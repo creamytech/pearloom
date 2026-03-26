@@ -37,7 +37,7 @@ export const authOptions: NextAuthOptions = {
             'openid',
             'email',
             'profile',
-            'https://www.googleapis.com/auth/photoslibrary',
+            'https://www.googleapis.com/auth/photoslibrary.readonly',
           ].join(' '),
           access_type: 'offline',
           prompt: 'consent',

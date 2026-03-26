@@ -29,13 +29,25 @@ export default function middleware(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams.toString();
   const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
 
-  // If the host exactly matches pearloom.app, render the marketing page / dashboard
-  if (hostname === "pearloom.app") {
+  // If the host exactly matches our main domains, render the marketing page / dashboard normally
+  if (
+    hostname === "pearloom.app" || 
+    hostname === "pearloom.vercel.app" ||
+    hostname.endsWith(".vercel.app") // Treat all random Vercel preview deployments as the base App
+  ) {
     return NextResponse.next();
   }
 
   // Define subdomain prefix (e.g. "ben-shauna")
-  const currentHost = hostname.replace(".pearloom.app", "");
+  let currentHost;
+  if (hostname.includes(".pearloom.app")) {
+    currentHost = hostname.replace(".pearloom.app", "");
+  } else if (hostname.includes(".localhost:3000")) {
+    currentHost = hostname.replace(".localhost:3000", "");
+  } else {
+    // Fallback if parsing fails bizarrely
+    currentHost = hostname;
+  }
 
   // Render the custom multi-tenant site under /sites/[domain] natively
   return NextResponse.rewrite(new URL(`/sites/${currentHost}${path}`, req.url));
