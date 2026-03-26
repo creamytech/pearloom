@@ -10,9 +10,9 @@ import type { Chapter } from '@/types';
 // Force dynamic because each subdomain generates a unique site payload on request
 export const dynamic = 'force-dynamic';
 
-export default async function SubdomainSite({ params }: { params: { domain: string } }) {
+export default async function SubdomainSite({ params }: { params: Promise<{ domain: string }> }) {
   // Wait for params as standard in NextJS App Router
-  const domain = params.domain;
+  const { domain } = await params;
 
   // Query Supabase via our DB layer bypassing RLS securely because this is a Server Component!
   const siteConfig = await getSiteConfig(domain);

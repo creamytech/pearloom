@@ -139,6 +139,9 @@ Your job is to generate a COMPLETE Story Manifest JSON that will power a cinemat
 ## Their Vibe & Personality
 ${vibeString}
 
+## Visual Deduction Rules
+If a cluster's location is 'unknown location' (which is common for manually uploaded files), you MUST physically inspect the attached image for that cluster to deduce the location and setting. For example, if you see them on a boat in Connecticut, describe it as such. Do NOT aggressively hallucinate locations simply because they were mentioned in the Vibe string.
+
 ## Photo Clusters (with rich metadata)
 ${JSON.stringify(clusterSummary, null, 2)}
 

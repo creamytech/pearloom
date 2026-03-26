@@ -163,6 +163,10 @@ function normalizePickedItem(item: any): GooglePhotoMetadata {
     baseUrl: mediaFile.baseUrl ?? '',
     cameraMake: metadata.cameraMake,
     cameraModel: metadata.cameraModel,
+    location: metadata.location ? {
+      latitude: metadata.location.latitude ?? 0,
+      longitude: metadata.location.longitude ?? 0,
+    } : undefined
   };
 }
 
