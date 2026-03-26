@@ -58,6 +58,7 @@ function PreviewContent() {
           names={names}
           anniversaryLabel={manifest.vibeString}
           subtitle={`${manifest.chapters.length} chapters of your love story`}
+          coverPhoto={manifest.chapters[0]?.images?.[0]?.url}
         />
         <Timeline chapters={manifest.chapters} />
         {manifest.comingSoon && <ComingSoon config={manifest.comingSoon} />}
