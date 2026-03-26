@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error || 'Failed to publish' }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, url: `http://${cleanSubdomain}.localhost:3000` });
+    return NextResponse.json({ success: true, url: `https://${cleanSubdomain}.pearloom.app` });
 
   } catch (err: any) {
     console.error('Publishing API error:', err);

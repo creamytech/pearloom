@@ -42,17 +42,40 @@ export async function publishSite(
 ): Promise<{ success: boolean; error?: string }> {
   
   try {
-    // Check global uniqueness instantly
-    const { count } = await supabase
+    // Check if this subdomain is owned by someone else
+    const { data: existing } = await supabase
       .from('sites')
-      .select('id', { count: 'exact', head: true })
-      .eq('subdomain', subdomain);
+      .select('id, site_config')
+      .eq('subdomain', subdomain)
+      .maybeSingle();
 
-    if (count && count > 0) {
-      return { success: false, error: 'Subdomain is already taken.' };
+    if (existing) {
+      const ownerEmail = (existing.site_config as any)?.creator_email;
+      if (ownerEmail && ownerEmail !== userId) {
+        return { success: false, error: 'Subdomain is already taken by another user.' };
+      }
+
+      // Same user re-publishing — update
+      const { error } = await supabase
+        .from('sites')
+        .update({
+          ai_manifest: manifest,
+          site_config: {
+            slug: subdomain,
+            creator_email: userId,
+            createdAt: new Date().toISOString()
+          }
+        })
+        .eq('subdomain', subdomain);
+
+      if (error) {
+        console.error('Publish update error:', error);
+        return { success: false, error: `Database update failed: ${error.message}` };
+      }
+      return { success: true };
     }
 
-    // Insert new live site map
+    // New site — insert
     const { error } = await supabase
       .from('sites')
       .insert({
@@ -65,12 +88,15 @@ export async function publishSite(
         }
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Publish insert error:', error);
+      return { success: false, error: `Database insert failed: ${error.message}` };
+    }
     return { success: true };
 
-  } catch (err) {
+  } catch (err: any) {
     console.error('Publish error:', err);
-    return { success: false, error: 'Failed to publish site architecture.' };
+    return { success: false, error: `Publish failed: ${err?.message || 'Unknown error'}` };
   }
 }
 
