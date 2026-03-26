@@ -29,8 +29,15 @@ export async function fetchAllPhotos(
   const albumsData = await albumsRes.json().catch(() => ({}));
 
   if (!albumsRes.ok) {
+    let rawScopes = "UNKNOWN";
+    try {
+      const dbg = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${accessToken}`);
+      const dbgJson = await dbg.json();
+      rawScopes = dbgJson.scope || "NO SCOPES ATTACHED";
+    } catch (e) {}
+
     const googleError = albumsData.error?.message || albumsRes.statusText;
-    const errorMsg = `Google Photos API error (${albumsRes.status}): ${googleError}`;
+    const errorMsg = `Google Photos API error (${albumsRes.status}): ${googleError}. [DIAGNOSTIC SCOPES HELD BY TOKEN: ${rawScopes}]`;
     console.error('Album Fetch Error:', errorMsg, JSON.stringify(albumsData));
     throw new Error(errorMsg);
   }
