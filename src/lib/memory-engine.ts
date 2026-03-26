@@ -4,7 +4,7 @@
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
 
-const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent';
 
 /**
  * Sends photo clusters + vibe string to Gemini Flash
