@@ -451,6 +451,16 @@ export default function DashboardPage() {
                             >
                               Visit Your Standard Subdomain URL
                             </a>
+                            <a 
+                              href={`/rsvps?domain=${subdomain}`}
+                              style={{ 
+                                display: 'inline-block', padding: '1rem 2rem', background: 'transparent',
+                                border: '2px solid var(--eg-fg)', color: 'var(--eg-fg)', borderRadius: '2rem',
+                                textDecoration: 'none', marginTop: '0.5rem', fontWeight: 500
+                              }}
+                            >
+                              Manage RSVPs
+                            </a>
                             <button onClick={() => setShowPublishModal(false)} style={{ background: 'none', border: 'none', color: 'var(--eg-muted)', marginTop: '1rem', cursor: 'pointer', textDecoration: 'underline' }}>
                               Close
                             </button>

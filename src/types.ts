@@ -14,6 +14,17 @@ export interface StoryManifest {
   theme: ThemeSchema;
   chapters: Chapter[];
   comingSoon: ComingSoonConfig;
+  logistics?: {
+    venue?: string;
+    date?: string;
+    time?: string;
+    rsvpDeadline?: string;
+  };
+  registry?: {
+    enabled: boolean;
+    cashFundUrl?: string;
+    message?: string;
+  };
 }
 
 export interface Chapter {

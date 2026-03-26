@@ -10,6 +10,7 @@ import { Suspense, useMemo } from 'react';
 import { Hero } from '@/components/hero';
 import { Timeline } from '@/components/timeline';
 import { ComingSoon } from '@/components/coming-soon';
+import { EventLogistics } from '@/components/event-logistics';
 import { ThemeProvider } from '@/components/theme-provider';
 import { defaultTheme } from '@/lib/theme';
 import type { StoryManifest } from '@/types';
@@ -74,6 +75,7 @@ function PreviewContent() {
           coupleNames={names}
         />
         {manifest.comingSoon && <ComingSoon config={manifest.comingSoon} />}
+        <EventLogistics manifest={manifest} siteId="preview" />
       </main>
     </ThemeProvider>
   );

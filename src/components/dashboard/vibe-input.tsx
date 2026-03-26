@@ -85,13 +85,14 @@ const btnPrimaryStyle: React.CSSProperties = {
 
 export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 7;
+  const [occasion, setOccasion] = useState<string>('');
+  const isEvent = occasion === 'wedding' || occasion === 'engagement';
+  const totalSteps = isEvent ? 8 : 7;
 
   // Step 1: Names
   const [name1, setName1] = useState(initialNames?.[0] ?? '');
   const [name2, setName2] = useState(initialNames?.[1] ?? '');
-  // Step 2: Occasion
-  const [occasion, setOccasion] = useState<string>('');
+  // Step 2: Occasion (already declared above)
   // Step 3: Mood
   const [mood, setMood] = useState<string>('');
   // Step 3: Color Palette
@@ -102,9 +103,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   // Step 5: Your Story
   const [meetCute, setMeetCute] = useState('');
   const [relationship, setRelationship] = useState('');
-  // Step 6: Special details
+  // Step 7: Special details
   const [petsDetails, setPetsDetails] = useState('');
   const [musicSong, setMusicSong] = useState('');
+  // Step 8: Event Details (Conditional)
+  const [eventDate, setEventDate] = useState('');
+  const [eventVenue, setEventVenue] = useState('');
+  const [rsvpDeadline, setRsvpDeadline] = useState('');
+  const [cashFundUrl, setCashFundUrl] = useState('');
 
   const canProceedStep1 = name1.trim() && name2.trim();
   const canProceedStep2 = occasion !== '';
@@ -146,6 +152,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       relationship ? `What makes their relationship special: ${relationship}.` : '',
       petsDetails ? `Important details (pets/inside jokes): ${petsDetails}.` : '',
       musicSong ? `"Their song" or musical vibe: ${musicSong}.` : '',
+      isEvent && eventDate ? `CRITICAL LOGISTICS: The event takes place on ${eventDate} at ${eventVenue || 'a beautiful venue'}. The RSVP deadline is ${rsvpDeadline || 'soon'}. Include a beautiful formal request for RSVP.` : '',
+      cashFundUrl ? `REGISTRY: They have a cash fund or registry setup at ${cashFundUrl}. Note this somewhere near the bottom of the story.` : '',
       'The generated site must feel deeply personal and emotionally resonant to the occasion.',
       'Make the colors, typography, and narrative flow from these exact feelings and aesthetics.',
     ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
@@ -410,9 +418,41 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, padding: '1rem 2.5rem', background: 'var(--eg-accent)' }}>
-                <Sparkles size={18} /> Craft Our Story
-              </button>
+              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'var(--eg-accent)', color: '#fff' }}>Generate Site <Sparkles size={18} /></button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 8: EVENT DETAILS (Conditional) ── */}
+        {step === 8 && isEvent && (
+          <motion.div key="s8" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Event Details</h2>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem' }}>
+                Since this is a {OCCASIONS.find(o => o.id === occasion)?.label}, let's add the logistics so guests can RSVP and contribute.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>When is the event?</label>
+                <input type="text" placeholder="e.g. October 12th, 2026" value={eventDate} onChange={e => setEventDate(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Where is the venue?</label>
+                <input type="text" placeholder="e.g. The Glasshouse, NYC" value={eventVenue} onChange={e => setEventVenue(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>RSVP Deadline</label>
+                <input type="text" placeholder="e.g. September 1st" value={rsvpDeadline} onChange={e => setRsvpDeadline(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Registry or Cash Fund URL (Optional)</label>
+                <input type="url" placeholder="e.g. venmo.com/shauna-scott" value={cashFundUrl} onChange={e => setCashFundUrl(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
+              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'var(--eg-accent)', color: '#fff' }}>Generate Site <Sparkles size={18} /></button>
             </div>
           </motion.div>
         )}
