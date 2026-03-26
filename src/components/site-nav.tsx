@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { SitePage } from '@/types';
 
@@ -56,10 +57,14 @@ export function SiteNav({ names, pages }: SiteNavProps) {
           {/* Brand */}
           <Link
             href="/"
-            className="text-base tracking-tight transition-opacity hover:opacity-60"
+            className="text-base tracking-tight transition-opacity hover:opacity-60 flex items-center gap-2"
             style={{ fontFamily: 'var(--eg-font-heading)', fontWeight: 600 }}
           >
-            {names[0]} & {names[1]}
+            {names[0] === 'Pearloom' ? (
+              <Image src="/logo.png" alt="Pearloom Logo" width={110} height={32} style={{ objectFit: 'contain' }} priority />
+            ) : (
+              <>{names[0]} & {names[1]}</>
+            )}
           </Link>
 
           {/* Desktop links */}
