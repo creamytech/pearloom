@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from 'react';
+import { signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2, ImageOff, RefreshCw, AlertCircle } from 'lucide-react';
 import type { GooglePhotoMetadata } from '@/types';
@@ -119,14 +120,25 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
         <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#1a1a1a' }}>
           {isForbidden ? 'Connection Blocked' : 'Upload Interrupted'}
         </h3>
+        
         <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
           {isForbidden 
-            ? "Your Google account is blocking access. You must enable the Google Photos Library API in Google Cloud and add your email as a test user."
+            ? "Your Google account is blocking access. You must enable the Google Photos Library API, add your email as a test user, AND Sign Out to request a new token."
             : error}
         </p>
-        <button onClick={fetchPhotos} style={btnPrimaryStyle}>
-          <RefreshCw size={18} /> Try Again
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          {isForbidden && (
+            <button
+              onClick={() => signOut()}
+              style={{ ...btnPrimaryStyle, background: '#dc2626' }}
+            >
+              Sign Out & Reconnect
+            </button>
+          )}
+          <button onClick={fetchPhotos} style={btnPrimaryStyle}>
+            <RefreshCw size={18} /> Try Again
+          </button>
+        </div>
       </div>
     );
   }
