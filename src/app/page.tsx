@@ -8,7 +8,7 @@
 import { useState, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { VibeInput } from '@/components/dashboard/vibe-input';
 import { SiteEditor } from '@/components/dashboard/site-editor';
@@ -109,31 +109,50 @@ export default function DashboardPage() {
         minHeight: '100vh',
         paddingTop: '8rem',
         paddingBottom: '5rem',
-        background: 'linear-gradient(180deg, #f5ead6 0%, #faf9f6 35%, #faf9f6 100%)',
+        background: '#faf9f6',
       }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 1.5rem' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem' }}>
           {/* Step progress */}
           {currentStep !== 'auth' && currentStep !== 'generating' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '3rem' }}>
-              {(['photos', 'vibe', 'edit', 'preview'] as Step[]).map((step, i) => {
-                const stepOrder = ['photos', 'vibe', 'edit', 'preview'] as Step[];
-                const currentIndex = stepOrder.indexOf(currentStep);
-                const isActive = stepOrder.indexOf(step) === currentIndex;
-                const isDone = stepOrder.indexOf(step) < currentIndex;
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '4rem' }}>
+              {([
+                { id: 'photos', label: 'Select Memories' },
+                { id: 'vibe', label: 'Capture Vibe' },
+                { id: 'edit', label: 'Editor' },
+                { id: 'preview', label: 'Preview Site' }
+              ] as const).map((stepDef, i) => {
+                const stepOrder = ['photos', 'vibe', 'edit', 'preview'] as const;
+                const currentIndex = stepOrder.indexOf(currentStep as any);
+                const stepIndex = stepOrder.indexOf(stepDef.id);
+                const isActive = stepIndex === currentIndex;
+                const isDone = stepIndex < currentIndex;
 
                 return (
-                  <div key={step} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {i > 0 && <div style={{ width: '2rem', height: '1px', background: 'rgba(0,0,0,0.1)' }} />}
-                    <div
-                      style={{
-                        width: '1.75rem', height: '1.75rem', borderRadius: '50%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.75rem', fontWeight: 500, transition: 'all 0.3s',
-                        background: isActive ? 'var(--eg-accent)' : isDone ? 'var(--eg-accent-light)' : 'rgba(0,0,0,0.05)',
-                        color: isActive ? '#fff' : isDone ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                      }}
+                  <div key={stepDef.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    {i > 0 && <div style={{ width: '3rem', height: '2px', background: isDone || isActive ? 'var(--eg-accent-light)' : 'rgba(0,0,0,0.05)', borderRadius: '2px' }} />}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', cursor: isDone ? 'pointer' : 'default' }}
+                         onClick={() => isDone && setCurrentStep(stepDef.id)}
                     >
-                      {i + 1}
+                      <div
+                        style={{
+                          width: '2.5rem', height: '2.5rem', borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                          background: isActive ? 'var(--eg-accent)' : isDone ? 'var(--eg-accent-light)' : '#ffffff',
+                          color: isActive ? '#fff' : isDone ? 'var(--eg-accent)' : 'var(--eg-muted)',
+                          border: `2px solid ${isActive || isDone ? 'transparent' : 'rgba(0,0,0,0.08)'}`,
+                          boxShadow: isActive ? '0 8px 16px rgba(184,146,106,0.3)' : 'none'
+                        }}
+                      >
+                        {isDone ? <Check size={14} strokeWidth={3} /> : i + 1}
+                      </div>
+                      <span style={{
+                        fontSize: '0.75rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase',
+                        color: isActive ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                        opacity: isActive || isDone ? 1 : 0.6
+                      }}>
+                        {stepDef.label}
+                      </span>
                     </div>
                   </div>
                 );
@@ -141,14 +160,11 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Step wrapper removed for unified SaaS UI */}
           <div style={{
-            background: 'var(--eg-card-bg)',
-            borderRadius: '1.5rem',
-            padding: '4rem',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.05)',
-            border: '1px solid rgba(0,0,0,0.02)',
             minHeight: '600px',
-            position: 'relative'
+            position: 'relative',
+            paddingTop: '1rem'
           }}>
             {/* Step header */}
             <div style={{ marginBottom: '3rem', textAlign: 'center' }}>

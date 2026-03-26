@@ -17,11 +17,7 @@ interface PhotoBrowserProps {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: '#ffffff',
-  borderRadius: '1.5rem',
-  padding: '3rem 2rem',
-  boxShadow: '0 10px 40px rgba(0,0,0,0.06)',
-  border: '1px solid rgba(0,0,0,0.04)',
+  padding: '1rem',
   textAlign: 'center',
   maxWidth: '600px',
   margin: '0 auto',
@@ -162,7 +158,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
 
   // ── GRID GALLERY ──
   return (
-    <div style={{ background: '#ffffff', borderRadius: '1.5rem', padding: '2.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.06)' }}>
+    <div style={{ padding: '0 0.5rem' }}>
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>

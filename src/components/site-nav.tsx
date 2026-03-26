@@ -50,16 +50,16 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
   return (
     <>
       <motion.nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${
-          scrolled
-            ? 'glass-nav shadow-sm'
-            : 'bg-transparent'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled || pathname !== '/'
+            ? 'bg-[#ffffff] shadow-[0_10px_40px_rgba(0,0,0,0.03)] py-4'
+            : 'bg-transparent py-8'
         }`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-8 flex items-center justify-between">
           {/* Brand */}
           <Link
             href="/"
