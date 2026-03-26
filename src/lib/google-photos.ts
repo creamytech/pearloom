@@ -13,42 +13,66 @@ const PHOTOS_API_BASE = 'https://photoslibrary.googleapis.com/v1';
  */
 export async function fetchAllPhotos(
   accessToken: string,
-  maxItems: number = 500
+  maxItems: number = 200
 ): Promise<GooglePhotoMetadata[]> {
   const photos: GooglePhotoMetadata[] = [];
-  let pageToken: string | undefined;
+  
+  // Step 1: Fetch Albums because global mediaItems.list is strictly deprecated by Google in 2025 
+  // and returns a hard 403 Insufficient Scopes error for new unverified projects.
+  const albumsUrl = new URL(`${PHOTOS_API_BASE}/albums`);
+  albumsUrl.searchParams.set('pageSize', '50');
 
-  while (photos.length < maxItems) {
-    const url = new URL(`${PHOTOS_API_BASE}/mediaItems`);
-    url.searchParams.set('pageSize', '100');
-    if (pageToken) url.searchParams.set('pageToken', pageToken);
+  const albumsRes = await fetch(albumsUrl.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${accessToken}` },
+  const albumsData = await albumsRes.json().catch(() => ({}));
+
+  if (!albumsRes.ok) {
+    const googleError = albumsData.error?.message || albumsRes.statusText;
+    const errorMsg = `Google Photos API error (${albumsRes.status}): ${googleError}`;
+    console.error('Album Fetch Error:', errorMsg, JSON.stringify(albumsData));
+    throw new Error(errorMsg);
+  }
+
+  const albums = albumsData.albums || [];
+
+  if (albums.length === 0) {
+    // If they have no albums, we're out of luck and they'd need the Picker API or manual upload.
+    return [];
+  }
+
+  // Step 2: Search for items within their most recent albums until we hit maxItems
+  for (const album of albums) {
+    if (photos.length >= maxItems) break;
+
+    const searchUrl = `${PHOTOS_API_BASE}/mediaItems:search`;
+    
+    // We fetch a batch from this specific album
+    const searchRes = await fetch(searchUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        albumId: album.id,
+        pageSize: 100,
+      }),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const searchData = await searchRes.json().catch(() => ({}));
+    
+    // If a specific album fails, just skip it gracefully
+    if (!searchRes.ok) continue;
 
-    if (!res.ok) {
-      const googleError = data.error?.message || res.statusText;
-      const errorMsg = `Google Photos API error (${res.status}): ${googleError}`;
-      console.error(errorMsg, JSON.stringify(data));
-      throw new Error(errorMsg);
-    }
-
-    const items = data.mediaItems ?? [];
+    const items = searchData.mediaItems || [];
 
     for (const item of items) {
-      // Only process images, skip videos
       if (!item.mimeType?.startsWith('image/')) continue;
-
       photos.push(normalizeMediaItem(item));
-
       if (photos.length >= maxItems) break;
     }
-
-    pageToken = data.nextPageToken;
-    if (!pageToken) break;
   }
 
   return photos;
