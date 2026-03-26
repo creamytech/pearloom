@@ -139,6 +139,7 @@ Return a JSON object with this exact shape:
       "images": [],
       "location": { "lat": <number>, "lng": <number>, "label": "<city, state>" } | null,
       "mood": "<one or two word mood>",
+      "layout": "<editorial | fullbleed | split | cinematic | gallery>",
       "order": <number>
     }
   ],
@@ -155,7 +156,13 @@ Rules:
 - USE the actual dates and locations from the photo metadata when setting chapter dates and locations.
 - All text must use proper capitalization.
 - The theme colors MUST complement the vibe. If they chose a color palette, base your colors on it.
-- Font choices must feel premium and intentional.`;
+- Font choices must feel premium and intentional.
+- CRITICAL: Assign a DIFFERENT layout to each chapter. Vary between: "editorial" (photo + text side-by-side), "fullbleed" (cinematic hero-style photo with text overlay), "split" (contained card layout), "cinematic" (quote-style text-focused), "gallery" (multi-image grid). 
+- The first chapter should be "editorial" or "fullbleed" for maximum impact.
+- Never use the same layout for consecutive chapters.
+- Use "cinematic" for the most emotional/intimate chapters.
+- Use "fullbleed" for chapters with strong visual moments (vacations, scenery).
+- Use "gallery" when there are multiple photos in a cluster.`;
 }
 
 /**

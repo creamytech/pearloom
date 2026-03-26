@@ -25,6 +25,7 @@ export interface Chapter {
   images: ChapterImage[];
   location: GeoLocation | null;
   mood: string; // AI-generated mood tag (e.g. "golden hour", "cozy winter")
+  layout?: 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery'; // visual layout variant
   order: number;
 }
 

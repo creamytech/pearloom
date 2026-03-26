@@ -1,7 +1,7 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// everglow / app/preview/page.tsx
+// Pearloom / app/preview/page.tsx
 // Real-time preview of the generated site from manifest data
 // ─────────────────────────────────────────────────────────────
 
@@ -13,6 +13,14 @@ import { ComingSoon } from '@/components/coming-soon';
 import { ThemeProvider } from '@/components/theme-provider';
 import { defaultTheme } from '@/lib/theme';
 import type { StoryManifest } from '@/types';
+
+function proxyUrl(rawUrl: string, w: number, h: number): string {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('googleusercontent.com')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
+  }
+  return rawUrl;
+}
 
 function PreviewContent() {
   const searchParams = useSearchParams();
@@ -35,10 +43,7 @@ function PreviewContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--eg-bg)]">
         <div className="text-center">
-          <h1
-            className="text-4xl font-semibold mb-3 tracking-tight"
-            style={{ fontFamily: 'var(--eg-font-heading)' }}
-          >
+          <h1 className="text-4xl font-semibold mb-3 tracking-tight" style={{ fontFamily: 'var(--eg-font-heading)' }}>
             preview
           </h1>
           <p className="text-[var(--eg-muted)]">
@@ -50,17 +55,24 @@ function PreviewContent() {
   }
 
   const theme = manifest.theme || defaultTheme;
+  const coverPhoto = manifest.chapters[0]?.images?.[0]?.url;
+  const proxiedCover = coverPhoto ? proxyUrl(coverPhoto, 1920, 1080) : undefined;
+
+  // Generate subtitle from the first chapter
+  const heroSubtitle = manifest.chapters[0]?.subtitle || `${manifest.chapters.length} chapters of your love story`;
 
   return (
     <ThemeProvider theme={theme}>
       <main>
         <Hero
           names={names}
-          anniversaryLabel={manifest.vibeString}
-          subtitle={`${manifest.chapters.length} chapters of your love story`}
-          coverPhoto={manifest.chapters[0]?.images?.[0]?.url}
+          subtitle={heroSubtitle}
+          coverPhoto={proxiedCover}
         />
-        <Timeline chapters={manifest.chapters} />
+        <Timeline 
+          chapters={manifest.chapters} 
+          coupleNames={names}
+        />
         {manifest.comingSoon && <ComingSoon config={manifest.comingSoon} />}
       </main>
     </ThemeProvider>
