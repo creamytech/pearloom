@@ -49,7 +49,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error || 'Failed to publish' }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, url: `https://${cleanSubdomain}.pearloom.app` });
+    const host = req.headers.get('host') || 'localhost:3000';
+    
+    // Auto-detect the URL format to return
+    let finalUrl = '';
+    if (host.includes('localhost')) {
+      finalUrl = `http://${cleanSubdomain}.localhost:3000`; // Localhost handles subdomains natively
+    } else if (host.includes('vercel.app')) {
+      finalUrl = `https://${host}/sites/${cleanSubdomain}`; // Vercel preview domain needs the explicit path route
+    } else {
+      finalUrl = `https://${cleanSubdomain}.${host}`; // Custom domain
+    }
+
+    return NextResponse.json({ success: true, url: finalUrl });
 
   } catch (err: any) {
     console.error('Publishing API error:', err);
