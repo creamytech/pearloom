@@ -76,7 +76,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ clusters: enriched, totalPhotos: photos.length });
       }
 
-      return NextResponse.json({ photos, total: photos.length });
+      // Include debug info so we can check in browser console
+      console.log('[Photos API] Returning', photos.length, 'photos. First photo baseUrl:', photos[0]?.baseUrl);
+      return NextResponse.json({ photos, total: photos.length, _debug_first: photos[0] || null });
     }
 
     return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });

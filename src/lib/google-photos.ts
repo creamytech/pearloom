@@ -109,6 +109,9 @@ export async function fetchPickedMediaItems(
       // Only process photos, skip videos
       if (item.type === 'VIDEO') continue;
 
+      // Debug: log raw item structure from Google
+      console.log('[Picker API] Raw item:', JSON.stringify(item, null, 2));
+
       photos.push(normalizePickedItem(item));
 
       if (photos.length >= maxItems) break;

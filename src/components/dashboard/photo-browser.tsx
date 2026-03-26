@@ -90,6 +90,8 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             }
             const fetchData = await fetchRes.json();
             const fetchedPhotos = fetchData.photos ?? [];
+            console.log('[PhotoBrowser] Fetched photos:', fetchedPhotos.length, 'First:', fetchedPhotos[0]);
+            console.log('[PhotoBrowser] Debug from API:', fetchData._debug_first);
             setPhotos(fetchedPhotos);
             setState('done');
 
@@ -361,11 +363,34 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                   transform: isSelected ? 'translateY(-2px)' : 'none',
                 }}
               >
+                {/* Debug: show baseUrl status */}
+                {!photo.baseUrl && (
+                  <div style={{
+                    position: 'absolute', top: '0.25rem', left: '0.25rem', right: '0.25rem',
+                    background: 'rgba(220,38,38,0.9)', color: '#fff', fontSize: '0.6rem',
+                    padding: '0.25rem', borderRadius: '0.25rem', zIndex: 5, wordBreak: 'break-all'
+                  }}>
+                    No baseUrl!
+                  </div>
+                )}
+
                 <img
-                  src={`${photo.baseUrl}=w300-h300-c`}
+                  src={photo.baseUrl ? `${photo.baseUrl}=w300-h300-c` : ''}
                   alt={photo.filename}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#f0ebe4' }}
                   loading="lazy"
+                  onError={(e) => {
+                    // Replace broken image with a placeholder
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      const placeholder = document.createElement('div');
+                      placeholder.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0ebe4;color:var(--eg-muted);font-size:0.75rem;text-align:center;padding:0.5rem;';
+                      placeholder.textContent = 'Image unavailable';
+                      parent.insertBefore(placeholder, target);
+                    }
+                  }}
                 />
 
                 {/* Selection overlay */}
