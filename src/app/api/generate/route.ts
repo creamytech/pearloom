@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         // Pick the best photos from the cluster (up to 3)
         chapter.images = cluster.photos.slice(0, 3).map((p) => ({
           id: p.id,
-          url: `${p.baseUrl}=w1200-h800`, // Google Photos CDN — sized
+          url: p.baseUrl, // Raw baseUrl — client proxy handles sizing
           alt: p.description || chapter.title,
           width: p.width,
           height: p.height,

@@ -13,8 +13,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { subdomain, manifest } = body;
 
+    console.log('[Publish API] Request:', { 
+      subdomain, 
+      hasManifest: !!manifest,
+      manifestKeys: manifest ? Object.keys(manifest) : 'null',
+      email: session.user.email 
+    });
+
     if (!subdomain || !manifest) {
-      return NextResponse.json({ error: 'Subdomain and manifest are required' }, { status: 400 });
+      return NextResponse.json({ 
+        error: `Missing required fields: subdomain=${!!subdomain}, manifest=${!!manifest}` 
+      }, { status: 400 });
     }
 
     // Format subdomain purely to be safe (no spaces, lowercase, etc)

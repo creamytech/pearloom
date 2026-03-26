@@ -28,7 +28,11 @@ export function TimelineItem({ chapter, index }: TimelineItemProps) {
   const textY = useTransform(scrollYProgress, [0, 1], ['15%', '-15%']);
 
   const hasImage = chapter.images.length > 0;
-  const mainImage = hasImage ? chapter.images[0].url : '';
+  const rawImageUrl = hasImage ? chapter.images[0].url : '';
+  // Google Picker API baseUrls need the authenticated proxy; Supabase/local URLs work directly
+  const mainImage = rawImageUrl.includes('googleusercontent.com')
+    ? `/api/photos/proxy?url=${encodeURIComponent(rawImageUrl)}&w=1200&h=1600`
+    : rawImageUrl;
 
   return (
     <motion.article
@@ -61,7 +65,7 @@ export function TimelineItem({ chapter, index }: TimelineItemProps) {
           className="max-md:w-full! max-md:aspect-[4/5]!"
         >
           <motion.img
-            src={`${mainImage}=w1200-h1600-c`} // Load high-res crop
+            src={mainImage}
             alt={chapter.title}
             style={{
               width: '100%',
