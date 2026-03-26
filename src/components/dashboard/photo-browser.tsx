@@ -67,7 +67,10 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
       setState('waiting-for-picker');
 
       // Step 3: Poll for completion
-      const pollIntervalMs = 3000; // 3 seconds
+      const pollIntervalMs = 2500; // 2.5 seconds
+      let popupClosedAt: number | null = null;
+      const GRACE_PERIOD_MS = 30000; // Keep polling 30s after popup closes
+
       pollRef.current = setInterval(async () => {
         try {
           const pollRes = await fetch(`/api/photos?action=poll&sessionId=${session.id}`);
@@ -96,10 +99,17 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
               setSelected(allIds);
               onSelectionChange(fetchedPhotos);
             }
+            return;
           }
 
-          // If popup was closed by user without selecting, detect and stop
-          if (popup && popup.closed && !pollData.mediaItemsSet) {
+          // Track when the popup was first detected as closed
+          if (popup && popup.closed && !popupClosedAt) {
+            popupClosedAt = Date.now();
+          }
+
+          // Only cancel if popup has been closed for longer than the grace period
+          // This gives Google time to process the user's selection
+          if (popupClosedAt && (Date.now() - popupClosedAt > GRACE_PERIOD_MS)) {
             if (pollRef.current) clearInterval(pollRef.current);
             setState('idle');
           }
