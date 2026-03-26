@@ -16,15 +16,62 @@ export async function generateStoryManifest(
   clusters: PhotoCluster[],
   vibeString: string,
   coupleNames: [string, string],
-  apiKey: string
+  apiKey: string,
+  googleAccessToken?: string
 ): Promise<StoryManifest> {
   const prompt = buildPrompt(clusters, vibeString, coupleNames);
+
+  // Build the multimodal parts array
+  const parts: any[] = [{ text: prompt }];
+
+  // If we have an access token, fetch 1 representative image per cluster to show Gemini
+  if (googleAccessToken) {
+    console.log(`[Memory Engine] Fetching up to ${clusters.length} images for Multimodal AI analysis...`);
+    const imagePromises = clusters.map(async (cluster) => {
+      const bestPhoto = cluster.photos[0];
+      if (!bestPhoto?.baseUrl) return null;
+      
+      try {
+        // Grab a perfectly sized image for AI vision (no need for 4k)
+        const fetchUrl = `${bestPhoto.baseUrl}=w1024-h1024`;
+        const res = await fetch(fetchUrl, {
+          headers: { Authorization: `Bearer ${googleAccessToken}` }
+        });
+        
+        if (!res.ok) return null;
+        
+        const arrayBuffer = await res.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        const mimeType = bestPhoto.mimeType || 'image/jpeg';
+        
+        return {
+          inlineData: {
+            data: base64,
+            mimeType,
+          }
+        };
+      } catch (err) {
+        console.warn('Failed to fetch image for Gemini:', err);
+        return null;
+      }
+    });
+
+    const resolvedImages = await Promise.all(imagePromises);
+    resolvedImages.forEach((imgData, index) => {
+      if (imgData) {
+        // Interleave text markers so Gemini knows which cluster this image belongs to
+        parts.push({ text: `\n\n--- Image for Cluster ${index} ---` });
+        parts.push(imgData);
+      }
+    });
+    console.log(`[Memory Engine] Successfully appended images to Gemini prompt!`);
+  }
 
   const res = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ parts }],
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.8,
@@ -162,7 +209,8 @@ Rules:
 - Never use the same layout for consecutive chapters.
 - Use "cinematic" for the most emotional/intimate chapters.
 - Use "fullbleed" for chapters with strong visual moments (vacations, scenery).
-- Use "gallery" when there are multiple photos in a cluster.`;
+- Use "gallery" when there are multiple photos in a cluster.
+- VISUAL ANALYSIS: You have been provided with exactly one representative image for each cluster, appended in sequential order. YOU MUST LOOK AT THE IMAGES to see who is in the photo, what they are wearing, what the environment is (e.g. if they are on a boat, in front of a landmark, indoor vs outdoor), and write the description based on the ACTUAL visual contents! Ignore location metadata or vibe strings if the photo clearly contradicts it.`;
 }
 
 /**

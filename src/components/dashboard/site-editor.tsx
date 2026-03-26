@@ -67,10 +67,7 @@ export function SiteEditor({ manifest, onChange }: SiteEditorProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3
-            className="text-xl font-semibold"
-            style={{ fontFamily: 'var(--eg-font-heading)' }}
-          >
+          <h3 className="text-xl font-semibold" style={{ fontFamily: 'var(--eg-font-heading)' }}>
             edit your story
           </h3>
           <p className="text-sm text-[var(--eg-muted)]">
@@ -86,6 +83,49 @@ export function SiteEditor({ manifest, onChange }: SiteEditorProps) {
           <Plus size={16} />
           add chapter
         </button>
+      </div>
+
+      {/* --- THEME EDITOR --- */}
+      <div className="p-4 mb-6 border border-black/5 rounded-lg bg-black/[0.02]">
+        <h4 className="text-sm font-semibold uppercase tracking-widest text-[var(--eg-muted)] mb-4">Site Theme & Aesthetic</h4>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs text-[var(--eg-muted)] mb-1 block">Background Color</label>
+            <input 
+              type="color" 
+              value={manifest.theme.colors.background}
+              onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, background: e.target.value } } })}
+              className="w-full h-8 cursor-pointer rounded overflow-hidden" 
+            />
+          </div>
+          <div>
+            <label className="text-xs text-[var(--eg-muted)] mb-1 block">Accent Color</label>
+            <input 
+              type="color" 
+              value={manifest.theme.colors.accent}
+              onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, accent: e.target.value } } })}
+              className="w-full h-8 cursor-pointer rounded overflow-hidden" 
+            />
+          </div>
+          <div>
+            <label className="text-xs text-[var(--eg-muted)] mb-1 block">Heading Font</label>
+            <input 
+              type="text" 
+              value={manifest.theme.fonts.heading}
+              onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, heading: e.target.value } } })}
+              className="w-full px-2 py-1 text-sm rounded border border-black/10" 
+            />
+          </div>
+          <div>
+            <label className="text-xs text-[var(--eg-muted)] mb-1 block">Body Font</label>
+            <input 
+              type="text" 
+              value={manifest.theme.fonts.body}
+              onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, body: e.target.value } } })}
+              className="w-full px-2 py-1 text-sm rounded border border-black/10" 
+            />
+          </div>
+        </div>
       </div>
 
       {manifest.chapters.map((chapter, index) => (
@@ -147,6 +187,21 @@ export function SiteEditor({ manifest, onChange }: SiteEditorProps) {
                 className="w-32 px-3 py-1.5 rounded-full border border-black/10 text-xs
                            focus:outline-none focus:border-[var(--eg-accent)]"
               />
+
+              <div className="flex gap-4 items-center">
+                <span className="text-sm font-medium text-[var(--eg-muted)]">Layout:</span>
+                <select 
+                  value={chapter.layout || 'editorial'}
+                  onChange={(e) => updateChapter(chapter.id, { layout: e.target.value as any })}
+                  className="px-3 py-1.5 rounded-md border border-black/10 text-sm focus:outline-none focus:border-[var(--eg-accent)]"
+                >
+                  <option value="editorial">Editorial (Side-by-side)</option>
+                  <option value="fullbleed">Fullbleed (Hero Photo)</option>
+                  <option value="split">Split (Card)</option>
+                  <option value="cinematic">Cinematic (Quote Focus)</option>
+                  <option value="gallery">Gallery (Multi-image Grid)</option>
+                </select>
+              </div>
 
               <div className="flex justify-end gap-2 pt-2">
                 <button

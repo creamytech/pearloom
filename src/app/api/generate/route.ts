@@ -59,12 +59,13 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // 3. Generate the Story Manifest via Gemini
+    // 3. Generate the Story Manifest via Gemini (now Multimodal)
     const manifest = await generateStoryManifest(
       enrichedClusters,
       vibeString,
       names,
-      apiKey
+      apiKey,
+      session.accessToken // Passed so Gemini can actually look at the photos
     );
 
     // 4. Map the actual photo URLs into the generated chapters
