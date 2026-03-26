@@ -3,9 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NextResponse } from 'next/server';
-import { getSiteConfig } from '@/lib/db';
 
 export async function GET() {
-  const config = await getSiteConfig();
-  return NextResponse.json({ config });
+  return NextResponse.json({ error: 'Migrating to Supabase multi-tenant DB...' }, { status: 501 });
 }

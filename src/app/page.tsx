@@ -8,7 +8,7 @@
 import { useState, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check } from 'lucide-react';
+import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { VibeInput } from '@/components/dashboard/vibe-input';
 import { SiteEditor } from '@/components/dashboard/site-editor';
@@ -38,6 +38,13 @@ export default function DashboardPage() {
   const [manifest, setManifest] = useState<StoryManifest | null>(null);
   const [generationStep, setGenerationStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Publish Flow State
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [subdomain, setSubdomain] = useState('');
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
   // When session status changes
   if (status === 'authenticated' && currentStep === 'auth') {
@@ -94,6 +101,29 @@ export default function DashboardPage() {
   const handleManifestChange = useCallback((updated: StoryManifest) => {
     setManifest(updated);
   }, []);
+
+  const handlePublish = async () => {
+    if (!subdomain) return setPublishError('Please enter a subdomain.');
+    setPublishError(null);
+    setIsPublishing(true);
+
+    try {
+      const res = await fetch('/api/sites/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain, manifest }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to publish');
+
+      setPublishedUrl(data.url);
+    } catch (err: any) {
+      setPublishError(err.message);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   const meta = STEP_META[currentStep];
 
@@ -323,6 +353,113 @@ export default function DashboardPage() {
                       title="Site Preview"
                     />
                   </div>
+
+                  {/* ── PUBLISH BUTTON ── */}
+                  <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                    <button
+                      onClick={() => {
+                        setSubdomain(`${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`);
+                        setShowPublishModal(true);
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.75rem',
+                        padding: '1rem 3rem', borderRadius: '2rem',
+                        background: 'var(--eg-accent)', color: '#fff', fontSize: '1.1rem',
+                        fontWeight: 500, cursor: 'pointer', border: 'none',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      <Globe size={20} />
+                      Publish Site
+                    </button>
+                  </div>
+
+                  {/* ── PUBLISH MODAL ── */}
+                  {showPublishModal && (
+                    <div style={{
+                      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                      background: 'rgba(250, 249, 246, 0.9)', backdropFilter: 'blur(10px)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      zIndex: 100, padding: '2rem'
+                    }}>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        style={{
+                          background: '#fff', padding: '3rem', borderRadius: '1.5rem',
+                          maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {publishedUrl ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                              <Check size={32} />
+                            </div>
+                            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginTop: '1rem' }}>It's Live.</h2>
+                            <p style={{ color: 'var(--eg-muted)' }}>Your magnificent love story is now available to the world.</p>
+                            <a 
+                              href={publishedUrl} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              style={{ 
+                                display: 'inline-block', padding: '1rem 2rem', background: 'var(--eg-fg)', 
+                                color: '#fff', borderRadius: '2rem', textDecoration: 'none', marginTop: '1rem', fontWeight: 500
+                              }}
+                            >
+                              Visit Your Standard Subdomain URL
+                            </a>
+                            <button onClick={() => setShowPublishModal(false)} style={{ background: 'none', border: 'none', color: 'var(--eg-muted)', marginTop: '1rem', cursor: 'pointer', textDecoration: 'underline' }}>
+                              Close
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>Choose your URL</h2>
+                            <p style={{ color: 'var(--eg-muted)', marginBottom: '2rem' }}>
+                              Claim your custom Pearloom subdomain. You can upgrade to a full custom domain later.
+                            </p>
+
+                            {publishError && (
+                              <div style={{ color: '#ef4444', background: '#fef2f2', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                                {publishError}
+                              </div>
+                            )}
+
+                            <div style={{ display: 'flex', alignItems: 'center', border: '2px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', overflow: 'hidden', transition: 'border-color 0.2s' }}>
+                              <input
+                                value={subdomain}
+                                onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                                placeholder="ben-and-shauna"
+                                style={{ flex: 1, padding: '1rem', fontSize: '1rem', border: 'none', outline: 'none' }}
+                                disabled={isPublishing}
+                              />
+                              <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)' }}>
+                                .pearloom.app
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                              <button
+                                onClick={() => setShowPublishModal(false)}
+                                style={{ flex: 1, padding: '1rem', background: 'none', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', color: 'var(--eg-fg)', cursor: 'pointer' }}
+                                disabled={isPublishing}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handlePublish}
+                                style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', background: 'var(--eg-fg)', color: '#fff', border: 'none', borderRadius: '0.75rem', cursor: 'pointer' }}
+                                disabled={isPublishing || !subdomain}
+                              >
+                                {isPublishing ? <Loader2 size={18} className="animate-spin" /> : 'Claim Subdomain'}
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </motion.div>
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>
