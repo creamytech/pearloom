@@ -68,7 +68,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
           
           {/* LOGISTICS BLOCK */}
           {logistics?.venue && (
-            <div style={{ background: 'var(--eg-bg)', padding: '3rem', borderRadius: 'var(--eg-radius, 1rem)' }}>
+            <div style={{ background: 'var(--eg-card-bg)', padding: '3rem', borderRadius: 'var(--eg-radius)', boxShadow: 'var(--eg-card-shadow)', border: 'var(--eg-card-border)', backdropFilter: 'blur(10px)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                   <Calendar color="var(--eg-accent)" style={{ marginTop: '0.2rem' }} />
@@ -123,7 +123,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
 
           {/* RSVP FORM */}
           {logistics?.rsvpDeadline && (
-            <div style={{ background: 'var(--eg-bg)', padding: '3rem', borderRadius: 'var(--eg-radius, 1rem)' }}>
+            <div style={{ background: 'var(--eg-card-bg)', padding: '3rem', borderRadius: 'var(--eg-radius)', boxShadow: 'var(--eg-card-shadow)', border: 'var(--eg-card-border)', backdropFilter: 'blur(10px)' }}>
               <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>RSVP</h3>
               <p style={{ color: 'var(--eg-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Kindly reply by {logistics.rsvpDeadline}</p>
               
@@ -145,7 +145,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                     placeholder="Full Name" 
                     value={name} 
                     onChange={e => setName(e.target.value)}
-                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '0.5rem', fontFamily: 'var(--eg-font-body)' }}
+                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--eg-radius) / 2)', fontFamily: 'var(--eg-font-body)' }}
                   />
                   <input 
                     required 
@@ -153,7 +153,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                     placeholder="Email Address" 
                     value={email} 
                     onChange={e => setEmail(e.target.value)}
-                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '0.5rem', fontFamily: 'var(--eg-font-body)' }}
+                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--eg-radius) / 2)', fontFamily: 'var(--eg-font-body)' }}
                   />
                   
                   <div style={{ display: 'flex', gap: '1rem', margin: '0.5rem 0' }}>
@@ -161,7 +161,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                       type="button"
                       onClick={() => setAttending(true)}
                       style={{ 
-                        flex: 1, padding: '1rem', borderRadius: '0.5rem', cursor: 'pointer',
+                        flex: 1, padding: '1rem', borderRadius: 'calc(var(--eg-radius) / 2)', cursor: 'pointer',
                         border: `2px solid ${attending === true ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
                         background: attending === true ? 'var(--eg-accent-light)' : 'transparent',
                         color: 'var(--eg-fg)', fontWeight: 500
@@ -173,7 +173,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                       type="button"
                       onClick={() => setAttending(false)}
                       style={{ 
-                        flex: 1, padding: '1rem', borderRadius: '0.5rem', cursor: 'pointer',
+                        flex: 1, padding: '1rem', borderRadius: 'calc(var(--eg-radius) / 2)', cursor: 'pointer',
                         border: `2px solid ${attending === false ? '#ff4d4f' : 'rgba(0,0,0,0.1)'}`,
                         background: attending === false ? '#fff1f0' : 'transparent',
                         color: 'var(--eg-fg)', fontWeight: 500
@@ -189,7 +189,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                       value={dietary}
                       onChange={e => setDietary(e.target.value)}
                       rows={2}
-                      style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '0.5rem', fontFamily: 'var(--eg-font-body)', resize: 'vertical' }}
+                      style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--eg-radius) / 2)', fontFamily: 'var(--eg-font-body)', resize: 'vertical' }}
                     />
                   )}
 

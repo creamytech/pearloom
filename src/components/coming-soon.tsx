@@ -47,11 +47,12 @@ export function ComingSoon({ config }: ComingSoonProps) {
           zIndex: 10,
           textAlign: 'center',
           maxWidth: '600px',
-          background: '#ffffff',
-          borderRadius: '2rem',
+          background: 'var(--eg-card-bg)',
+          borderRadius: 'var(--eg-radius)',
           padding: '4rem 3rem',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.05)',
-          border: '1px solid rgba(0,0,0,0.03)'
+          boxShadow: 'var(--eg-card-shadow)',
+          border: 'var(--eg-card-border)',
+          backdropFilter: 'blur(10px)'
         }}
       >
         <motion.div
@@ -103,7 +104,7 @@ export function ComingSoon({ config }: ComingSoonProps) {
             background: 'var(--eg-accent-light)',
             color: 'var(--eg-accent)',
             padding: '0.75rem 1.5rem',
-            borderRadius: '2rem',
+            borderRadius: 'calc(var(--eg-radius) / 2)',
             fontSize: '0.85rem',
             fontWeight: '600',
             letterSpacing: '0.1em',

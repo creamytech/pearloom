@@ -192,7 +192,7 @@ export function SiteEditor({ manifest, onChange }: SiteEditorProps) {
                 <span className="text-sm font-medium text-[var(--eg-muted)]">Layout:</span>
                 <select 
                   value={chapter.layout || 'editorial'}
-                  onChange={(e) => updateChapter(chapter.id, { layout: e.target.value as any })}
+                  onChange={(e) => updateChapter(chapter.id, { layout: e.target.value as Chapter['layout'] })}
                   className="px-3 py-1.5 rounded-md border border-black/10 text-sm focus:outline-none focus:border-[var(--eg-accent)]"
                 >
                   <option value="editorial">Editorial (Side-by-side)</option>

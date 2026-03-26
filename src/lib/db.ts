@@ -38,7 +38,7 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
 export async function publishSite(
   userId: string, 
   subdomain: string, 
-  manifest: any
+  manifest: unknown
 ): Promise<{ success: boolean; error?: string }> {
   
   try {
@@ -50,7 +50,7 @@ export async function publishSite(
       .maybeSingle();
 
     if (existing) {
-      const ownerEmail = (existing.site_config as any)?.creator_email;
+      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
       if (ownerEmail && ownerEmail !== userId) {
         return { success: false, error: 'Subdomain is already taken by another user.' };
       }
@@ -94,9 +94,9 @@ export async function publishSite(
     }
     return { success: true };
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Publish error:', err);
-    return { success: false, error: `Publish failed: ${err?.message || 'Unknown error'}` };
+    return { success: false, error: `Publish failed: ${err instanceof Error ? err.message : 'Unknown error'}` };
   }
 }
 
@@ -125,5 +125,5 @@ export async function addRsvp(siteId: string, rsvp: RsvpResponse): Promise<RsvpR
     .single();
     
   if (error) return null;
-  return data as any;
+  return data as unknown as RsvpResponse;
 }

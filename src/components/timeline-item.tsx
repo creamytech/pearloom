@@ -42,7 +42,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
   return (
     <motion.article ref={ref} style={{ display: 'flex', flexDirection: isEven ? 'row' : 'row-reverse', alignItems: 'center', justifyContent: 'center', gap: '4rem', padding: '0 2rem', maxWidth: '1200px', margin: '0 auto', width: '100%' }}
       className="max-md:flex-col! max-md:gap-6!" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
-      <div style={{ flex: '0 0 45%', position: 'relative', aspectRatio: '3/4', overflow: 'hidden', borderRadius: '0.25rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)' }} className="max-md:w-full! max-md:aspect-[4/5]!">
+      <div style={{ flex: '0 0 45%', position: 'relative', aspectRatio: '3/4', overflow: 'hidden', borderRadius: 'var(--eg-radius)', boxShadow: 'var(--eg-card-shadow)', border: 'var(--eg-card-border)' }} className="max-md:w-full! max-md:aspect-[4/5]!">
         <motion.img src={proxyUrl(mainImage, 1200, 1600)} alt={chapter.title} style={{ width: '100%', height: '110%', objectFit: 'cover', y: imgY }} />
       </div>
       <motion.div style={{ flex: 1, textAlign: isEven ? 'left' : 'right', y: textY, padding: '1rem 0' }} className="max-md:text-center!">
@@ -118,8 +118,8 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
   return (
     <motion.article style={{
       display: 'flex', flexDirection: isEven ? 'row' : 'row-reverse', maxWidth: '1100px', margin: '0 auto',
-      background: 'var(--eg-card-bg, #ffffff)', borderRadius: '1rem', overflow: 'hidden',
-      boxShadow: '0 20px 60px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.04)'
+      background: 'var(--eg-card-bg)', borderRadius: 'var(--eg-radius)', overflow: 'hidden',
+      boxShadow: 'var(--eg-card-shadow)', border: 'var(--eg-card-border)', backdropFilter: 'blur(10px)'
     }} className="max-md:flex-col!"
       initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
       <div style={{ flex: '0 0 50%', minHeight: '400px', position: 'relative' }} className="max-md:min-h-[250px]!">
@@ -151,7 +151,7 @@ function GalleryLayout({ chapter }: TimelineItemProps) {
         display: 'grid',
         gridTemplateColumns: images.length >= 3 ? '2fr 1fr' : images.length === 2 ? '1fr 1fr' : '1fr',
         gridTemplateRows: images.length >= 3 ? '1fr 1fr' : '1fr',
-        gap: '0.5rem', borderRadius: '0.75rem', overflow: 'hidden', aspectRatio: '16/9',
+        gap: '0.5rem', borderRadius: 'var(--eg-radius)', overflow: 'hidden', aspectRatio: '16/9',
       }}>
         {images[0] && (
           <div style={{ gridRow: images.length >= 3 ? '1 / -1' : '1', position: 'relative' }}>

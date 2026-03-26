@@ -22,7 +22,7 @@ export async function generateStoryManifest(
   const prompt = buildPrompt(clusters, vibeString, coupleNames);
 
   // Build the multimodal parts array
-  const parts: any[] = [{ text: prompt }];
+  const parts: Record<string, unknown>[] = [{ text: prompt }];
 
   // If we have an access token, fetch 1 representative image per cluster to show Gemini
   if (googleAccessToken) {
@@ -32,17 +32,25 @@ export async function generateStoryManifest(
       if (!bestPhoto?.baseUrl) return null;
       
       try {
-        // Grab a perfectly sized image for AI vision (no need for 4k)
-        const fetchUrl = `${bestPhoto.baseUrl}=w1024-h1024`;
-        const res = await fetch(fetchUrl, {
-          headers: { Authorization: `Bearer ${googleAccessToken}` }
-        });
+        const isGoogle = bestPhoto.baseUrl.includes('googleusercontent.com');
+        const fetchUrl = isGoogle ? `${bestPhoto.baseUrl}=w1024-h1024` : bestPhoto.baseUrl;
+        const headers = isGoogle && googleAccessToken ? { Authorization: `Bearer ${googleAccessToken}` } : undefined;
+
+        const res = await fetch(fetchUrl, { headers });
         
-        if (!res.ok) return null;
+        if (!res.ok) {
+          console.warn(`[Memory Engine] Failed to fetch image: ${res.status} ${res.statusText}`);
+          return null;
+        }
         
         const arrayBuffer = await res.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString('base64');
-        const mimeType = bestPhoto.mimeType || 'image/jpeg';
+        
+        // Gemini STRICTLY rejects application/octet-stream. Force it to image/jpeg if it's missing or generic.
+        let mimeType = bestPhoto.mimeType || 'image/jpeg';
+        if (mimeType === 'application/octet-stream' || !mimeType.startsWith('image/')) {
+          mimeType = 'image/jpeg';
+        }
         
         return {
           inlineData: {
@@ -174,7 +182,10 @@ Return a JSON object with this exact shape:
       "muted": "<hex>",
       "cardBg": "<hex>"
     },
-    "borderRadius": "<css value>"
+    "borderRadius": "<css value>",
+    "elementShape": "<square | rounded | arch | pill>",
+    "cardStyle": "<solid | glass | bordered | shadow-heavy>",
+    "backgroundPattern": "<none | noise | dots | grid | waves | floral | topography>"
   },
   "chapters": [
     {

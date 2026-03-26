@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, url: finalUrl });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Publishing API error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

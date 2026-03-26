@@ -130,10 +130,7 @@ export async function fetchPickedMediaItems(
  * @deprecated — The old Library API is dead (March 31 2025).
  * This now throws a helpful error directing users to the Picker flow.
  */
-export async function fetchAllPhotos(
-  _accessToken: string,
-  _maxItems: number = 200
-): Promise<GooglePhotoMetadata[]> {
+export async function fetchAllPhotos(): Promise<GooglePhotoMetadata[]> {
   throw new Error(
     'The Google Photos Library API (photoslibrary.readonly) was removed by Google on March 31, 2025. ' +
     'Please use the new Picker API flow instead. Click "Select from Google Photos" to use the updated integration.'
@@ -143,11 +140,7 @@ export async function fetchAllPhotos(
 /**
  * @deprecated — same as above
  */
-export async function searchPhotosByDateRange(
-  _accessToken: string,
-  _startDate: { year: number; month: number; day: number },
-  _endDate: { year: number; month: number; day: number }
-): Promise<GooglePhotoMetadata[]> {
+export async function searchPhotosByDateRange(): Promise<GooglePhotoMetadata[]> {
   throw new Error(
     'The Google Photos Library API date search was removed by Google on March 31, 2025.'
   );

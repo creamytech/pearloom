@@ -36,16 +36,37 @@ export const defaultTheme: ThemeSchema = {
  *   '--eg-font-heading': 'Playfair Display, serif'
  */
 export function themeToCssVars(theme: ThemeSchema): Record<string, string> {
+  const shapeMap: Record<string, string> = {
+    square: '0px',
+    rounded: '1.5rem',
+    arch: '12rem 12rem 0.5rem 0.5rem',
+    pill: '9999px',
+  };
+
+  const cssRadius = shapeMap[theme.elementShape || 'rounded'] || theme.borderRadius;
+
+  const styleMap: Record<string, { shadow: string; border: string; bg: string }> = {
+    solid: { shadow: '0 4px 12px rgba(0,0,0,0.02)', border: 'none', bg: theme.colors.cardBg },
+    glass: { shadow: '0 8px 32px rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.4)', bg: 'rgba(255,255,255,0.6)' },
+    bordered: { shadow: 'none', border: `2px solid ${theme.colors.accentLight}`, bg: 'transparent' },
+    'shadow-heavy': { shadow: '0 25px 50px -12px rgba(0,0,0,0.2)', border: 'none', bg: theme.colors.cardBg },
+  };
+
+  const cardStyling = styleMap[theme.cardStyle || 'solid'] || styleMap['solid'];
+
   return {
     '--eg-bg': theme.colors.background,
     '--eg-fg': theme.colors.foreground,
     '--eg-accent': theme.colors.accent,
     '--eg-accent-light': theme.colors.accentLight,
     '--eg-muted': theme.colors.muted,
-    '--eg-card-bg': theme.colors.cardBg,
+    '--eg-card-bg': cardStyling.bg,
     '--eg-font-heading': `"${theme.fonts.heading}", serif`,
     '--eg-font-body': `"${theme.fonts.body}", sans-serif`,
-    '--eg-radius': theme.borderRadius,
+    '--eg-radius': cssRadius,
+    '--eg-card-shadow': cardStyling.shadow,
+    '--eg-card-border': cardStyling.border,
+    '--eg-bg-pattern': theme.backgroundPattern || 'noise',
   };
 }
 

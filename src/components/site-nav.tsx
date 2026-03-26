@@ -59,10 +59,10 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="max-w-[1400px] mx-auto px-8 relative flex items-center justify-between h-12">
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '3rem' }}>
           
           {/* Left Navigation (Static & Dynamic Pages) */}
-          <div className="hidden md:flex flex-1 items-center gap-7">
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '1.75rem' }} className="hidden md:flex">
             {enabledPages.map((page) => (
               <Link
                 key={page.id}
@@ -89,12 +89,13 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
           {/* Centered Brand Logo */}
           <Link
             href="/"
-            className="flex-shrink-0 flex items-center justify-center transform transition-transform hover:scale-105"
+            className="transform transition-transform hover:scale-105"
             style={{ 
               position: 'absolute', 
               left: '50%', 
               transform: 'translateX(-50%)',
-              zIndex: 10 
+              zIndex: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}
           >
             {names[0] === 'Pearloom' ? (
@@ -107,7 +108,7 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
           </Link>
 
           {/* Right Actions */}
-          <div className="flex flex-1 justify-end items-center gap-4">
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
             {user && (
               <div className="hidden md:block">
                 <UserNav user={user} />

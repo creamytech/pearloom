@@ -120,8 +120,8 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
 
       setPublishedUrl(data.url);
-    } catch (err: any) {
-      setPublishError(err.message);
+    } catch (err: unknown) {
+      setPublishError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsPublishing(false);
     }
@@ -147,10 +147,20 @@ export default function DashboardPage() {
         paddingBottom: '5rem',
         background: '#faf9f6',
       }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem' }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: '500px',
+          background: 'linear-gradient(180deg, rgba(184,146,106,0.08) 0%, rgba(250,249,246,0) 100%)',
+          pointerEvents: 'none', zIndex: 0
+        }} />
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem', position: 'relative', zIndex: 1 }}>
           {/* Step progress */}
           {currentStep !== 'auth' && currentStep !== 'generating' && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '4rem' }}>
+            <div style={{ 
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+              marginBottom: '4rem', background: '#ffffff', padding: '1rem 2rem', 
+              borderRadius: '100px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)',
+              border: '1px solid rgba(0,0,0,0.03)', maxWidth: '800px', margin: '0 auto 4rem'
+            }}>
               {([
                 { id: 'photos', label: 'Select Memories' },
                 { id: 'vibe', label: 'Capture Vibe' },
@@ -158,39 +168,46 @@ export default function DashboardPage() {
                 { id: 'preview', label: 'Preview Site' }
               ] as const).map((stepDef, i) => {
                 const stepOrder = ['photos', 'vibe', 'edit', 'preview'] as const;
-                const normalizedCurrentStep = currentStep === 'local-upload' ? 'photos' : currentStep;
-                const currentIndex = stepOrder.indexOf(normalizedCurrentStep as any);
+                const normalizedCurrentStep = currentStep === 'local-upload' ? 'photos' : currentStep as typeof stepOrder[number];
+                const currentIndex = stepOrder.indexOf(normalizedCurrentStep);
                 const stepIndex = stepOrder.indexOf(stepDef.id);
                 const isActive = stepIndex === currentIndex;
                 const isDone = stepIndex < currentIndex;
 
                 return (
-                  <div key={stepDef.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {i > 0 && <div style={{ width: '3rem', height: '2px', background: isDone || isActive ? 'var(--eg-accent-light)' : 'rgba(0,0,0,0.05)', borderRadius: '2px' }} />}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', cursor: isDone ? 'pointer' : 'default' }}
+                  <div key={stepDef.id} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: isDone ? 'pointer' : 'default' }}
                          onClick={() => isDone && setCurrentStep(stepDef.id)}
                     >
                       <div
                         style={{
-                          width: '2.5rem', height: '2.5rem', borderRadius: '50%',
+                          width: '2.75rem', height: '2.75rem', borderRadius: '50%',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                          background: isActive ? 'var(--eg-accent)' : isDone ? 'var(--eg-accent-light)' : '#ffffff',
+                          fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                          background: isActive ? 'var(--eg-accent)' : isDone ? 'var(--eg-accent-light)' : '#f5f5f5',
                           color: isActive ? '#fff' : isDone ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                          border: `2px solid ${isActive || isDone ? 'transparent' : 'rgba(0,0,0,0.08)'}`,
-                          boxShadow: isActive ? '0 8px 16px rgba(184,146,106,0.3)' : 'none'
+                          boxShadow: isActive ? '0 8px 20px rgba(184,146,106,0.35)' : 'none',
+                          transform: isActive ? 'scale(1.05)' : 'scale(1)'
                         }}
                       >
-                        {isDone ? <Check size={14} strokeWidth={3} /> : i + 1}
+                        {isDone ? <Check size={16} strokeWidth={3} /> : i + 1}
                       </div>
-                      <span style={{
-                        fontSize: '0.75rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase',
+                      <span className="hidden md:block" style={{
+                        fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.02em',
                         color: isActive ? 'var(--eg-fg)' : 'var(--eg-muted)',
-                        opacity: isActive || isDone ? 1 : 0.6
+                        opacity: isActive || isDone ? 1 : 0.6,
+                        transition: 'all 0.3s ease'
                       }}>
                         {stepDef.label}
                       </span>
                     </div>
+                    {i < 3 && (
+                      <div style={{ 
+                        flex: 1, height: '2px', margin: '0 1rem',
+                        background: isDone ? 'var(--eg-accent-light)' : '#f0f0f0', 
+                        borderRadius: '2px', transition: 'background 0.3s ease' 
+                      }} className="hidden sm:block" />
+                    )}
                   </div>
                 );
               })}

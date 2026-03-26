@@ -89,8 +89,8 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
       }
 
       onUploadComplete(uploadedPhotos);
-    } catch (err: any) {
-      setError(`Upload failed: ${err.message}. Ensure your 'photos' Supabase bucket exists and is public!`);
+    } catch (err: unknown) {
+      setError(`Upload failed: ${err instanceof Error ? err.message : 'Unknown error'}. Ensure your 'photos' Supabase bucket exists and is public!`);
     } finally {
       setIsUploading(false);
     }

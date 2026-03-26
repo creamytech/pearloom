@@ -75,6 +75,10 @@ export interface ThemeSchema {
     cardBg: string; // hex
   };
   borderRadius: string; // e.g. "0.5rem"
+  // Dynamic UI Generation properties
+  elementShape?: 'square' | 'rounded' | 'arch' | 'pill';
+  cardStyle?: 'solid' | 'glass' | 'bordered' | 'shadow-heavy';
+  backgroundPattern?: 'none' | 'noise' | 'dots' | 'grid' | 'waves' | 'floral' | 'topography';
 }
 
 /**

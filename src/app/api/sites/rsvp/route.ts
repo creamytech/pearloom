@@ -34,8 +34,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('RSVP API Error:', err);
-    return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Internal error' }, { status: 500 });
   }
 }
