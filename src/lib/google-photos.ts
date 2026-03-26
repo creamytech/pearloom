@@ -1,155 +1,180 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / lib/google-photos.ts — metadata extractor service
+// Pearloom / lib/google-photos.ts — Google Photos Picker API
+// Migrated to the new Picker API (March 2025+)
+// Old Library API scopes (photoslibrary.readonly) were removed.
+// New scope: photospicker.mediaitems.readonly
 // ─────────────────────────────────────────────────────────────
 
 import type { GooglePhotoMetadata, PhotoCluster, GeoLocation } from '@/types';
 
-const PHOTOS_API_BASE = 'https://photoslibrary.googleapis.com/v1';
+const PICKER_API_BASE = 'https://photospicker.googleapis.com/v1';
+
+// ── Picker Session Management ──────────────────────────────
 
 /**
- * Fetches all media items from the user's Google Photos library.
- * Handles pagination automatically.
- * Requires an OAuth2 access token with photoslibrary.readonly scope.
+ * Creates a new Picker session. Returns { id, pickerUri, pollingConfig }.
+ * The pickerUri is what you open in a new tab/popup for the user to pick photos.
  */
-export async function fetchAllPhotos(
-  accessToken: string,
-  maxItems: number = 200
-): Promise<GooglePhotoMetadata[]> {
-  const photos: GooglePhotoMetadata[] = [];
-  
-  // Step 1: Fetch Albums because global mediaItems.list is strictly deprecated by Google in 2025 
-  // and returns a hard 403 Insufficient Scopes error for new unverified projects.
-  const albumsUrl = new URL(`${PHOTOS_API_BASE}/albums`);
-  albumsUrl.searchParams.set('pageSize', '50');
-
-  const albumsRes = await fetch(albumsUrl.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-
-  const albumsData = await albumsRes.json().catch(() => ({}));
-
-  if (!albumsRes.ok) {
-    let rawScopes = "UNKNOWN";
-    try {
-      const dbg = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${accessToken}`);
-      const dbgJson = await dbg.json();
-      rawScopes = dbgJson.scope || "NO SCOPES ATTACHED";
-    } catch (e) {}
-
-    const googleError = albumsData.error?.message || albumsRes.statusText;
-    const errorMsg = `Google Photos API error (${albumsRes.status}): ${googleError}. [DIAGNOSTIC SCOPES HELD BY TOKEN: ${rawScopes}]`;
-    console.error('Album Fetch Error:', errorMsg, JSON.stringify(albumsData));
-    throw new Error(errorMsg);
-  }
-
-  const albums = albumsData.albums || [];
-
-  if (albums.length === 0) {
-    // If they have no albums, we're out of luck and they'd need the Picker API or manual upload.
-    return [];
-  }
-
-  // Step 2: Search for items within their most recent albums until we hit maxItems
-  for (const album of albums) {
-    if (photos.length >= maxItems) break;
-
-    const searchUrl = `${PHOTOS_API_BASE}/mediaItems:search`;
-    
-    // We fetch a batch from this specific album
-    const searchRes = await fetch(searchUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        albumId: album.id,
-        pageSize: 100,
-      }),
-    });
-
-    const searchData = await searchRes.json().catch(() => ({}));
-    
-    // If a specific album fails, just skip it gracefully
-    if (!searchRes.ok) continue;
-
-    const items = searchData.mediaItems || [];
-
-    for (const item of items) {
-      if (!item.mimeType?.startsWith('image/')) continue;
-      photos.push(normalizeMediaItem(item));
-      if (photos.length >= maxItems) break;
-    }
-  }
-
-  return photos;
-}
-
-/**
- * Searches for photos in a specific date range.
- */
-export async function searchPhotosByDateRange(
-  accessToken: string,
-  startDate: { year: number; month: number; day: number },
-  endDate: { year: number; month: number; day: number }
-): Promise<GooglePhotoMetadata[]> {
-  const res = await fetch(`${PHOTOS_API_BASE}/mediaItems:search`, {
+export async function createPickerSession(accessToken: string): Promise<{
+  id: string;
+  pickerUri: string;
+  pollingConfig: { pollInterval: string; timeoutIn: string };
+  mediaItemsSet: boolean;
+}> {
+  const res = await fetch(`${PICKER_API_BASE}/sessions`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      pageSize: 100,
-      filters: {
-        dateFilter: {
-          ranges: [{ startDate, endDate }],
-        },
-      },
-    }),
+    body: JSON.stringify({}),
   });
 
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    throw new Error(`Google Photos search error: ${res.status}`);
+    const googleError = data.error?.message || res.statusText;
+    throw new Error(`Picker API session error (${res.status}): ${googleError}`);
   }
 
-  const data = await res.json();
-  return (data.mediaItems ?? [])
-    .filter((item: { mimeType?: string }) => item.mimeType?.startsWith('image/'))
-    .map(normalizeMediaItem);
-}
-
-/**
- * Normalizes a raw Google Photos API media item into our type.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeMediaItem(item: any): GooglePhotoMetadata {
-  const meta = item.mediaMetadata ?? {};
   return {
-    id: item.id,
-    filename: item.filename ?? '',
-    mimeType: item.mimeType ?? 'image/jpeg',
-    creationTime: meta.creationTime ?? new Date().toISOString(),
-    width: parseInt(meta.width ?? '0', 10),
-    height: parseInt(meta.height ?? '0', 10),
-    baseUrl: item.baseUrl ?? '',
-    location: meta.photo?.location
-      ? {
-          latitude: meta.photo.location.latitude,
-          longitude: meta.photo.location.longitude,
-        }
-      : undefined,
-    cameraMake: meta.photo?.cameraMake,
-    cameraModel: meta.photo?.cameraModel,
-    description: item.description,
+    id: data.id,
+    pickerUri: data.pickerUri,
+    pollingConfig: data.pollingConfig || { pollInterval: '5s', timeoutIn: '1800s' },
+    mediaItemsSet: data.mediaItemsSet || false,
   };
 }
 
 /**
- * Clusters photos by proximity in time and location.
- * A new cluster starts when:
- *   - More than `gapDays` days have passed since the previous photo, OR
- *   - The location is far from the previous cluster centroid.
+ * Polls a Picker session to check if the user has finished selecting.
+ * Returns the updated session state.
+ */
+export async function pollPickerSession(accessToken: string, sessionId: string): Promise<{
+  id: string;
+  pickerUri: string;
+  pollingConfig: { pollInterval: string; timeoutIn: string };
+  mediaItemsSet: boolean;
+}> {
+  const res = await fetch(`${PICKER_API_BASE}/sessions/${sessionId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const googleError = data.error?.message || res.statusText;
+    throw new Error(`Picker API poll error (${res.status}): ${googleError}`);
+  }
+
+  return {
+    id: data.id,
+    pickerUri: data.pickerUri,
+    pollingConfig: data.pollingConfig || { pollInterval: '5s', timeoutIn: '1800s' },
+    mediaItemsSet: data.mediaItemsSet || false,
+  };
+}
+
+/**
+ * Fetches picked media items from a completed Picker session.
+ * Call this after mediaItemsSet is true.
+ */
+export async function fetchPickedMediaItems(
+  accessToken: string,
+  sessionId: string,
+  maxItems: number = 200
+): Promise<GooglePhotoMetadata[]> {
+  const photos: GooglePhotoMetadata[] = [];
+  let pageToken: string | undefined;
+
+  while (photos.length < maxItems) {
+    const url = new URL(`${PICKER_API_BASE}/mediaItems`);
+    url.searchParams.set('sessionId', sessionId);
+    url.searchParams.set('pageSize', '100');
+    if (pageToken) url.searchParams.set('pageToken', pageToken);
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      const googleError = data.error?.message || res.statusText;
+      throw new Error(`Picker API mediaItems error (${res.status}): ${googleError}`);
+    }
+
+    const items = data.mediaItems ?? [];
+
+    for (const item of items) {
+      // Only process photos, skip videos
+      if (item.type === 'VIDEO') continue;
+
+      photos.push(normalizePickedItem(item));
+
+      if (photos.length >= maxItems) break;
+    }
+
+    pageToken = data.nextPageToken;
+    if (!pageToken) break;
+  }
+
+  return photos;
+}
+
+// ── Legacy wrapper (kept for backward compat with photo-browser) ──
+
+/**
+ * @deprecated — The old Library API is dead (March 31 2025).
+ * This now throws a helpful error directing users to the Picker flow.
+ */
+export async function fetchAllPhotos(
+  _accessToken: string,
+  _maxItems: number = 200
+): Promise<GooglePhotoMetadata[]> {
+  throw new Error(
+    'The Google Photos Library API (photoslibrary.readonly) was removed by Google on March 31, 2025. ' +
+    'Please use the new Picker API flow instead. Click "Select from Google Photos" to use the updated integration.'
+  );
+}
+
+/**
+ * @deprecated — same as above
+ */
+export async function searchPhotosByDateRange(
+  _accessToken: string,
+  _startDate: { year: number; month: number; day: number },
+  _endDate: { year: number; month: number; day: number }
+): Promise<GooglePhotoMetadata[]> {
+  throw new Error(
+    'The Google Photos Library API date search was removed by Google on March 31, 2025.'
+  );
+}
+
+// ── Normalizer for Picker API response shape ────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizePickedItem(item: any): GooglePhotoMetadata {
+  const mediaFile = item.mediaFile ?? {};
+  const metadata = mediaFile.mediaFileMetadata ?? {};
+
+  return {
+    id: item.id,
+    filename: mediaFile.filename ?? '',
+    mimeType: mediaFile.mimeType ?? 'image/jpeg',
+    creationTime: item.createTime ?? new Date().toISOString(),
+    width: metadata.width ?? 0,
+    height: metadata.height ?? 0,
+    baseUrl: mediaFile.baseUrl ?? '',
+    cameraMake: metadata.cameraMake,
+    cameraModel: metadata.cameraModel,
+  };
+}
+
+// ── Clustering (unchanged — framework agnostic) ─────────────
+
+/**
+ * Clusters photos by proximity in time.
+ * A new cluster starts when more than `gapDays` days have elapsed.
  */
 export function clusterPhotos(
   photos: GooglePhotoMetadata[],
@@ -157,7 +182,6 @@ export function clusterPhotos(
 ): PhotoCluster[] {
   if (!photos.length) return [];
 
-  // Sort by creation time ascending
   const sorted = [...photos].sort(
     (a, b) => new Date(a.creationTime).getTime() - new Date(b.creationTime).getTime()
   );
@@ -178,7 +202,6 @@ export function clusterPhotos(
     }
   }
 
-  // Push final cluster
   if (currentCluster.length > 0) {
     clusters.push(buildCluster(currentCluster));
   }
@@ -191,7 +214,6 @@ function buildCluster(photos: GooglePhotoMetadata[]): PhotoCluster {
   const startDate = new Date(Math.min(...dates)).toISOString();
   const endDate = new Date(Math.max(...dates)).toISOString();
 
-  // Find the centroid location (average of all geo-tagged photos)
   const geoPhotos = photos.filter((p) => p.location);
   let location: GeoLocation | null = null;
 
@@ -204,7 +226,7 @@ function buildCluster(photos: GooglePhotoMetadata[]): PhotoCluster {
     location = {
       lat: avgLat,
       lng: avgLng,
-      label: '', // will be reverse-geocoded by the Memory Engine
+      label: '',
     };
   }
 
@@ -219,7 +241,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
-      { headers: { 'User-Agent': 'everglow/1.0' } }
+      { headers: { 'User-Agent': 'pearloom/1.0' } }
     );
     if (!res.ok) return '';
     const data = await res.json();
