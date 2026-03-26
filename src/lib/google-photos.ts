@@ -27,11 +27,15 @@ export async function fetchAllPhotos(
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
+    const data = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      throw new Error(`Google Photos API error: ${res.status} ${res.statusText}`);
+      const googleError = data.error?.message || res.statusText;
+      const errorMsg = `Google Photos API error (${res.status}): ${googleError}`;
+      console.error(errorMsg, JSON.stringify(data));
+      throw new Error(errorMsg);
     }
 
-    const data = await res.json();
     const items = data.mediaItems ?? [];
 
     for (const item of items) {

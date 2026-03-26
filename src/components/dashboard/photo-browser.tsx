@@ -118,9 +118,15 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
         </h3>
         
         <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
-          {isForbidden 
-            ? "Your Google account is blocking access. You must enable the Google Photos Library API, add your email as a test user, AND Sign Out to request a new token."
-            : error}
+          {isForbidden ? (
+            <>
+              Your Google account is blocking access. You must enable the Google Photos Library API, add your email as a test user, AND Sign Out to request a new token.
+              <br/><br/>
+              <span style={{ fontSize: '0.85rem', color: '#b91c1c', background: '#fee2e2', padding: '0.5rem', borderRadius: '0.5rem', display: 'block', wordBreak: 'break-word' }}>
+                <strong>Google says:</strong> {error}
+              </span>
+            </>
+          ) : error}
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           {isForbidden && (
