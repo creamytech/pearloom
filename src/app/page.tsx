@@ -283,7 +283,29 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
-
+              {/* ── LOCAL UPLOAD ── */}
+              {currentStep === 'local-upload' && (
+                <div style={{ paddingBottom: '2rem' }}>
+                  <button
+                    onClick={() => setCurrentStep('photos')}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                      fontSize: '0.9rem', color: 'var(--eg-muted)', 
+                      marginBottom: '2rem', background: 'none', border: 'none', 
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowLeft size={14} />
+                    Back to Google Photos
+                  </button>
+                  <LocalUploader
+                    onUploadComplete={(photos) => {
+                      setSelectedPhotos(photos);
+                      setCurrentStep('vibe');
+                    }}
+                  />
+                </div>
+              )}
               {/* ── VIBE ── */}
               {currentStep === 'vibe' && (
                 <div style={{ paddingBottom: '2rem' }}>
