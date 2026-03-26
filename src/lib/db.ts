@@ -38,7 +38,8 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
 export async function publishSite(
   userId: string, 
   subdomain: string, 
-  manifest: unknown
+  manifest: unknown,
+  names: [string, string] = ['', '']
 ): Promise<{ success: boolean; error?: string }> {
   
   try {
@@ -61,8 +62,10 @@ export async function publishSite(
         .update({
           ai_manifest: manifest,
           site_config: {
+            ...((existing.site_config as Record<string, unknown>) || {}),
             slug: subdomain,
             creator_email: userId,
+            names,
             createdAt: new Date().toISOString()
           }
         })
@@ -84,6 +87,7 @@ export async function publishSite(
         site_config: {
           slug: subdomain,
           creator_email: userId,
+          names,
           createdAt: new Date().toISOString()
         }
       });

@@ -2,7 +2,7 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/hero.tsx
-// Ultra-Premium Editorial Hero 
+// Ultra-Premium Cinematic Hero
 // ─────────────────────────────────────────────────────────────
 
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -17,17 +17,32 @@ interface HeroProps {
   coverPhoto?: string;
 }
 
-export function Hero({ names, anniversaryLabel = 'Two Years', subtitle, date, coverPhoto }: HeroProps) {
+// Animated film grain overlay via SVG turbulence
+function FilmGrain() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 1, opacity: 0.035, mixBlendMode: 'overlay', pointerEvents: 'none' }}>
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain)" />
+      </svg>
+    </div>
+  );
+}
+
+export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-  
-  // Parallax effects
-  const yImage = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const opacityText = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const yText = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+
+  const yImage = useTransform(scrollYProgress, [0, 1], ['0%', '28%']);
+  const opacityImage = useTransform(scrollYProgress, [0, 1], [1, 0.1]);
+  const yText = useTransform(scrollYProgress, [0, 1], ['0%', '45%']);
+  const opacityText = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
 
   return (
-    <section 
+    <section
       ref={ref}
       style={{
         position: 'relative',
@@ -37,54 +52,66 @@ export function Hero({ names, anniversaryLabel = 'Two Years', subtitle, date, co
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--eg-bg)'
+        background: 'var(--eg-bg)',
       }}
     >
-      {/* Editorial Full-Viewport Background */}
+      {/* ── Visual Backdrop ── */}
       {coverPhoto ? (
-        <motion.div
-          style={{
-            position: 'absolute',
-            inset: -20, // prevents edges showing during bounce
-            y: yImage,
-            backgroundImage: `url(${coverPhoto})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.7) contrast(1.1)',
-          }}
-        />
+        <>
+          <motion.div
+            style={{
+              position: 'absolute',
+              inset: -80,
+              y: yImage,
+              opacity: opacityImage,
+              backgroundImage: `url(${coverPhoto})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center top',
+              filter: 'brightness(0.42) contrast(1.2) saturate(1.1)',
+            }}
+          />
+          {/* Layered gradient system for deep editorial look */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 30%)', zIndex: 1, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--eg-bg) 0%, rgba(0,0,0,0) 30%)', zIndex: 1, pointerEvents: 'none' }} />
+          <FilmGrain />
+        </>
       ) : (
-        <motion.div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            y: yImage,
-            background: 'linear-gradient(to bottom right, var(--eg-accent-light), var(--eg-bg))',
-          }}
-        />
+        /* Stunning no-photo fallback: multi-tone gradient + noise + animated orbs */
+        <>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse at 20% 60%, var(--eg-accent-light) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--eg-accent) 15%, transparent) 0%, transparent 55%), var(--eg-bg)',
+          }} />
+          <FilmGrain />
+          {/* Animated soft orbs */}
+          <motion.div
+            animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
+            transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              position: 'absolute', width: '700px', height: '700px', borderRadius: '50%',
+              background: 'radial-gradient(circle, color-mix(in srgb, var(--eg-accent) 18%, transparent) 0%, transparent 70%)',
+              top: '-15%', left: '-10%', filter: 'blur(60px)', zIndex: 0,
+            }}
+          />
+          <motion.div
+            animate={{ x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.15, 1] }}
+            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+            style={{
+              position: 'absolute', width: '600px', height: '600px', borderRadius: '50%',
+              background: 'radial-gradient(circle, color-mix(in srgb, var(--eg-accent) 10%, transparent) 0%, transparent 70%)',
+              bottom: '-10%', right: '-10%', filter: 'blur(80px)', zIndex: 0,
+            }}
+          />
+          {/* Fine dot grid */}
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 0,
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1.2px, transparent 0)',
+            backgroundSize: '32px 32px',
+          }} />
+        </>
       )}
 
-      {/* Noise Overlay for Film Aesthetic */}
-      <div 
-        style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          opacity: 0.15,
-          pointerEvents: 'none',
-          mixBlendMode: 'overlay'
-        }}
-      />
-
-      {/* Dark Vignette Overlay */}
-      <div 
-        style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.3) 100%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Typography Content */}
+      {/* ── Typographic Core ── */}
       <motion.div
         style={{
           position: 'relative',
@@ -93,115 +120,133 @@ export function Hero({ names, anniversaryLabel = 'Two Years', subtitle, date, co
           opacity: opacityText,
           y: yText,
           padding: '0 2rem',
-          color: coverPhoto ? '#ffffff' : 'var(--eg-fg)'
+          color: coverPhoto ? '#ffffff' : 'var(--eg-fg)',
+          width: '100%',
+          maxWidth: '1300px',
         }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
       >
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
-          style={{ 
-            fontSize: '0.85rem', 
-            letterSpacing: '0.3em', 
-            textTransform: 'uppercase',
-            marginBottom: '2rem',
-            opacity: 0.8
-          }}
-        >
-          {anniversaryLabel}
-        </motion.div>
-
-        <h1 
-          style={{ 
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: 'clamp(3rem, 10vw, 7rem)',
-            lineHeight: 1,
-            fontWeight: 400,
-            letterSpacing: '-0.03em',
-            margin: '0',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
-        >
-          <motion.span 
-            initial={{ opacity: 0, y: 30 }}
+        {/* Eyebrow label */}
+        {anniversaryLabel && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 1, delay: 0.2 }}
+            style={{
+              fontSize: '0.72rem',
+              letterSpacing: '0.45em',
+              textTransform: 'uppercase',
+              marginBottom: '3.5rem',
+              opacity: coverPhoto ? 0.75 : 0.65,
+              fontWeight: 700,
+              color: coverPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-accent)',
+            }}
+          >
+            {anniversaryLabel}
+          </motion.div>
+        )}
+
+        {/* Names */}
+        <h1 style={{
+          fontFamily: 'var(--eg-font-heading)',
+          fontSize: 'clamp(4.5rem, 13vw, 10rem)',
+          lineHeight: 0.88,
+          fontWeight: 400,
+          letterSpacing: '-0.025em',
+          margin: '0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}>
+          <motion.span
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.3, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
             {names[0]}
           </motion.span>
-          <motion.span 
-            initial={{ opacity: 0, scale: 0.5, rotate: -15 }}
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 100, damping: 20, delay: 1 }}
-            style={{ 
+            transition={{ type: 'spring', stiffness: 120, damping: 18, delay: 0.9 }}
+            style={{
               fontFamily: 'var(--eg-font-heading)',
               fontStyle: 'italic',
-              fontSize: 'clamp(2rem, 6vw, 4rem)',
-              color: coverPhoto ? 'rgba(255,255,255,0.7)' : 'var(--eg-accent)',
-              margin: '-1rem 0'
+              fontSize: 'clamp(2.5rem, 6vw, 5.5rem)',
+              color: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-accent)',
+              margin: '-1.8rem 0 -1.5rem',
+              display: 'block',
             }}
           >
             &
-          </motion.span>
-          <motion.span 
-            initial={{ opacity: 0, y: 30 }}
+          </motion.div>
+
+          <motion.span
+            initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 1.3, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
             {names[1]}
           </motion.span>
         </h1>
 
+        {/* Subtitle / date row */}
         {(subtitle || date) && (
-          <motion.p 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.5 }}
-            style={{
-              marginTop: '3rem',
-              fontSize: '1rem',
-              fontWeight: 300,
-              letterSpacing: '0.05em',
-              opacity: 0.9,
-              fontFamily: 'var(--eg-font-body)'
-            }}
+            transition={{ duration: 1.2, delay: 1.6 }}
+            style={{ marginTop: '4.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}
           >
-            {date && <span style={{ display: 'block', marginBottom: '0.5rem' }}>{date}</span>}
-            {subtitle && <span>{subtitle}</span>}
-          </motion.p>
+            <div style={{
+              width: '50px', height: '1px',
+              background: coverPhoto ? 'rgba(255,255,255,0.35)' : 'var(--eg-accent)',
+            }} />
+            <p style={{
+              fontSize: '1.15rem',
+              fontWeight: 300,
+              letterSpacing: '0.06em',
+              opacity: coverPhoto ? 0.85 : 0.8,
+              fontFamily: 'var(--eg-font-body)',
+              fontStyle: 'italic',
+              margin: 0,
+            }}>
+              {subtitle && <span>{subtitle}</span>}
+              {date && (
+                <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.85rem', opacity: 0.65, fontStyle: 'normal', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                  {date}
+                </span>
+              )}
+            </p>
+          </motion.div>
         )}
       </motion.div>
 
-      {/* Scroll indicator */}
+      {/* ── Animated Scroll Indicator ── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
+        transition={{ delay: 2.5, duration: 1 }}
         style={{
           position: 'absolute',
-          bottom: '3rem',
+          bottom: '3.5rem',
           left: '50%',
           transform: 'translateX(-50%)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '0.5rem',
-          color: coverPhoto ? 'rgba(255,255,255,0.6)' : 'var(--eg-muted)',
-          zIndex: 20
+          gap: '0.75rem',
+          color: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-muted)',
+          zIndex: 20,
         }}
       >
-        <span style={{ fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-          Scroll down
-        </span>
+        <span style={{ fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 700 }}>Scroll</span>
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
         >
           <ChevronDown size={18} strokeWidth={1.5} />
         </motion.div>

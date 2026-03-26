@@ -2,13 +2,13 @@
 
 // ─────────────────────────────────────────────────────────────
 // everglow / app/dashboard/page.tsx
-// Full wizard flow: Sign In → Select Photos → Set Vibe → Generate → Edit → Preview
+// Full wizard flow: Sign In → Dashboard → Select Photos → Set Vibe → Generate → Edit → Preview
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe } from 'lucide-react';
+import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe, LayoutDashboard } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LocalUploader } from '@/components/dashboard/local-uploader';
 import { VibeInput } from '@/components/dashboard/vibe-input';
@@ -17,12 +17,14 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { LandingPage } from '@/components/landing-page';
 import { GenerationProgress } from '@/components/dashboard/generation-progress';
+import { UserSites } from '@/components/dashboard/user-sites';
 import type { GooglePhotoMetadata, StoryManifest } from '@/types';
 
-type Step = 'auth' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview';
+type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview';
 
 const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.ElementType }> = {
   auth: { title: 'Welcome to Pearloom', subtitle: 'Connect Google Photos or upload locally.', icon: LogIn },
+  dashboard: { title: '', subtitle: '', icon: LayoutDashboard }, // Dashboard renders its own headers
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
   'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
   vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling — the AI will do the rest.', icon: Sparkles },
@@ -33,7 +35,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
-  const [currentStep, setCurrentStep] = useState<Step>(status === 'authenticated' ? 'photos' : 'auth');
+  const [currentStep, setCurrentStep] = useState<Step>(status === 'authenticated' ? 'dashboard' : 'auth');
   const [selectedPhotos, setSelectedPhotos] = useState<GooglePhotoMetadata[]>([]);
   const [coupleNames, setCoupleNames] = useState<[string, string]>(['', '']);
   const [vibeString, setVibeString] = useState('');
@@ -50,7 +52,7 @@ export default function DashboardPage() {
 
   // When session status changes
   if (status === 'authenticated' && currentStep === 'auth') {
-    setCurrentStep('photos');
+    setCurrentStep('dashboard');
   }
 
   const handleSignIn = () => {
@@ -113,7 +115,7 @@ export default function DashboardPage() {
       const res = await fetch('/api/sites/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain, manifest }),
+        body: JSON.stringify({ subdomain, manifest, names: coupleNames }),
       });
 
       const data = await res.json();
@@ -136,7 +138,13 @@ export default function DashboardPage() {
       colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
       borderRadius: '1rem',
     }}>
-      <SiteNav names={['Pearloom', 'Studio']} pages={[]} user={session?.user || undefined} />
+      <SiteNav
+        names={['Pearloom', 'Studio']}
+        pages={[]}
+        user={session?.user || undefined}
+        onGoToDashboard={session ? () => setCurrentStep('dashboard') : undefined}
+        onStartNew={session ? () => setCurrentStep('photos') : undefined}
+      />
       
       {status === 'unauthenticated' || (status === 'loading' && !session) ? (
         <LandingPage handleSignIn={handleSignIn} status={status} />
@@ -154,7 +162,7 @@ export default function DashboardPage() {
         }} />
         <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem', position: 'relative', zIndex: 1 }}>
           {/* Step progress */}
-          {currentStep !== 'auth' && currentStep !== 'generating' && (
+          {currentStep !== 'auth' && currentStep !== 'dashboard' && currentStep !== 'generating' && (
             <div style={{ 
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
               marginBottom: '4rem', background: '#ffffff', padding: '1rem 2rem', 
@@ -221,21 +229,23 @@ export default function DashboardPage() {
             paddingTop: '1rem'
           }}>
             {/* Step header */}
-            <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-              <h2 style={{
-                fontFamily: 'var(--eg-font-heading)',
-                fontSize: '2.5rem',
-                fontWeight: 600,
-                letterSpacing: '-0.02em',
-                marginBottom: '0.75rem',
-                color: 'var(--eg-fg)',
-              }}>
-                {meta.title}
-              </h2>
-              <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', maxWidth: '500px', margin: '0 auto' }}>
-                {meta.subtitle}
-              </p>
-            </div>
+            {currentStep !== 'dashboard' && (
+              <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
+                <h2 style={{
+                  fontFamily: 'var(--eg-font-heading)',
+                  fontSize: '2.5rem',
+                  fontWeight: 600,
+                  letterSpacing: '-0.02em',
+                  marginBottom: '0.75rem',
+                  color: 'var(--eg-fg)',
+                }}>
+                  {meta.title}
+                </h2>
+                <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', maxWidth: '500px', margin: '0 auto' }}>
+                  {meta.subtitle}
+                </p>
+              </div>
+            )}
 
             {/* Error display */}
             {error && (
@@ -257,6 +267,19 @@ export default function DashboardPage() {
                 exit={{ opacity: 0, scale: 0.98, y: -10 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
+              {/* ── DASHBOARD ── */}
+              {currentStep === 'dashboard' && (
+                <UserSites 
+                  onStartNew={() => setCurrentStep('photos')}
+                  onEditSite={(site) => {
+                    setManifest(site.manifest);
+                    setSubdomain(site.domain);
+                    setCoupleNames(site.names || ['', '']);
+                    setCurrentStep('edit');
+                  }}
+                />
+              )}
+
               {/* ── PHOTOS ── */}
               {currentStep === 'photos' && (
                 <div>

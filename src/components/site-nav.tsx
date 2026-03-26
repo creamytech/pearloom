@@ -2,12 +2,12 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/site-nav.tsx
-// Premium glass-morphism navigation
+// Premium glass-morphism navigation — studio wizard + site viewer
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Plus } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -22,19 +22,23 @@ interface SiteNavProps {
     email?: string | null;
     image?: string | null;
   };
+  /** If provided, studio-mode links (Dashboard / New Site) are shown */
+  onGoToDashboard?: () => void;
+  onStartNew?: () => void;
 }
 
-export function SiteNav({ names, pages, user }: SiteNavProps) {
+export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: SiteNavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80);
+    const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const isStudio = names[0] === 'Pearloom'; // Studio mode (wizard) vs published site
   const enabledPages = pages.filter((p) => p.enabled).sort((a, b) => a.order - b.order);
 
   const isActive = (slug: string) => {
@@ -50,75 +54,159 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
   return (
     <>
       <motion.nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled || pathname !== '/'
-            ? 'bg-[#ffffff] shadow-[0_10px_40px_rgba(0,0,0,0.03)] py-4'
-            : 'bg-transparent py-8'
-        }`}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0,
+          zIndex: 50,
+          transition: 'all 0.35s ease',
+          background: scrolled || pathname !== '/'
+            ? 'rgba(250,249,246,0.88)'
+            : 'transparent',
+          backdropFilter: scrolled || pathname !== '/' ? 'blur(20px) saturate(1.6)' : 'none',
+          WebkitBackdropFilter: scrolled || pathname !== '/' ? 'blur(20px) saturate(1.6)' : 'none',
+          borderBottom: scrolled || pathname !== '/' ? '1px solid rgba(0,0,0,0.04)' : '1px solid transparent',
+          boxShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.04)' : 'none',
+          padding: scrolled ? '0.75rem 0' : '1.5rem 0',
+        }}
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '3rem' }}>
-          
-          {/* Left Navigation (Static & Dynamic Pages) */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '1.75rem' }} className="hidden md:flex">
-            {enabledPages.map((page) => (
-              <Link
-                key={page.id}
-                href={getHref(page.slug)}
-                className={`text-[13px] tracking-wide transition-all duration-300 relative py-1
-                  ${isActive(page.slug)
-                    ? 'text-[var(--eg-fg)] font-medium'
-                    : 'text-[var(--eg-muted)] hover:text-[var(--eg-fg)]'
-                  }`}
-              >
-                {page.label}
-                {isActive(page.slug) && (
-                  <motion.div
-                    layoutId="nav-pill"
-                    className="absolute -bottom-0.5 left-0 right-0 h-[2px] rounded-full"
-                    style={{ background: 'var(--eg-accent)' }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
+        <div style={{
+          maxWidth: '1400px', margin: '0 auto',
+          padding: '0 2rem',
+          position: 'relative',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          height: '2.75rem',
+        }}>
+
+          {/* ── Left: Nav links or Studio actions ── */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }} className="hidden md:flex">
+            {isStudio && user ? (
+              // Studio wizard navigation
+              <>
+                {onGoToDashboard && (
+                  <button
+                    onClick={onGoToDashboard}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.5rem 1rem', borderRadius: '0.5rem',
+                      fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
+                      color: 'var(--eg-muted)', background: 'transparent', border: 'none',
+                      cursor: 'pointer', transition: 'all 0.2s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'rgba(0,0,0,0.05)';
+                      e.currentTarget.style.color = 'var(--eg-fg)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'var(--eg-muted)';
+                    }}
+                  >
+                    <LayoutDashboard size={14} />
+                    My Sites
+                  </button>
                 )}
-              </Link>
-            ))}
+                {onStartNew && (
+                  <button
+                    onClick={onStartNew}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.5rem 1rem', borderRadius: '0.5rem',
+                      fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
+                      color: 'var(--eg-accent)', background: 'rgba(184,146,106,0.08)',
+                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease',
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(184,146,106,0.15)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(184,146,106,0.08)'; }}
+                  >
+                    <Plus size={14} />
+                    New Site
+                  </button>
+                )}
+              </>
+            ) : (
+              // Published site navigation
+              enabledPages.map((page) => (
+                <Link
+                  key={page.id}
+                  href={getHref(page.slug)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
+                    color: isActive(page.slug) ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                    textDecoration: 'none',
+                    borderRadius: '0.5rem',
+                    background: isActive(page.slug) ? 'rgba(0,0,0,0.04)' : 'transparent',
+                    transition: 'all 0.2s ease',
+                    position: 'relative',
+                  }}
+                >
+                  {page.label}
+                  {isActive(page.slug) && (
+                    <motion.div
+                      layoutId="nav-underline"
+                      style={{
+                        position: 'absolute', bottom: '0.25rem', left: '1rem', right: '1rem',
+                        height: '2px', borderRadius: '100px',
+                        background: 'var(--eg-accent)',
+                      }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              ))
+            )}
           </div>
 
-          {/* Centered Brand Logo */}
+          {/* ── Center: Brand Logo ── */}
           <Link
             href="/"
-            className="transform transition-transform hover:scale-105"
-            style={{ 
-              position: 'absolute', 
-              left: '50%', 
+            style={{
+              position: 'absolute',
+              left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'transform 0.3s ease',
             }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(-50%) scale(1.04)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(-50%) scale(1)'; }}
           >
-            {names[0] === 'Pearloom' ? (
-              <Image src="/logo.png" alt="Pearloom Logo" width={110} height={32} style={{ objectFit: 'contain' }} priority />
+            {isStudio ? (
+              <Image src="/logo.png" alt="Pearloom" width={108} height={30} style={{ objectFit: 'contain' }} priority />
             ) : (
-              <span style={{ fontFamily: 'var(--eg-font-heading)', fontWeight: 600, fontSize: '1.25rem' }}>
+              <span style={{
+                fontFamily: 'var(--eg-font-heading)',
+                fontWeight: 600,
+                fontSize: '1.15rem',
+                color: 'var(--eg-fg)',
+                letterSpacing: '-0.01em',
+              }}>
                 {names[0]} & {names[1]}
               </span>
             )}
           </Link>
 
-          {/* Right Actions */}
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem' }}>
+          {/* ── Right: User nav + mobile toggle ── */}
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem' }}>
             {user && (
               <div className="hidden md:block">
                 <UserNav user={user} />
               </div>
             )}
 
-            {/* Mobile toggle */}
+            {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-[var(--eg-fg)] cursor-pointer z-20"
+              className="md:hidden"
+              style={{
+                padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
+                border: 'none', background: 'transparent',
+                color: 'var(--eg-fg)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -126,38 +214,68 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
         </div>
       </motion.nav>
 
-      {/* Mobile menu */}
+      {/* ── Mobile menu ── */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-[var(--eg-bg)]/95 backdrop-blur-2xl md:hidden"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden"
+            style={{
+              position: 'fixed', inset: 0, zIndex: 40,
+              background: 'rgba(250,249,246,0.97)',
+              backdropFilter: 'blur(20px)',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: '2rem',
+            }}
           >
-            <div className="flex flex-col items-center justify-center h-full gap-6">
-              {enabledPages.map((page, i) => (
-                <motion.div
-                  key={page.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
+            {/* Mobile: studio actions */}
+            {isStudio && user && onGoToDashboard && (
+              <motion.button
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+                onClick={() => { onGoToDashboard(); setMobileOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                  fontFamily: 'var(--eg-font-heading)', fontSize: '2rem',
+                  color: 'var(--eg-fg)', background: 'transparent', border: 'none', cursor: 'pointer',
+                }}
+              >
+                <LayoutDashboard size={24} />
+                My Sites
+              </motion.button>
+            )}
+
+            {/* Mobile: published pages */}
+            {enabledPages.map((page, i) => (
+              <motion.div
+                key={page.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07 + 0.1 }}
+              >
+                <Link
+                  href={getHref(page.slug)}
+                  onClick={() => setMobileOpen(false)}
+                  style={{
+                    fontFamily: 'var(--eg-font-heading)',
+                    fontSize: '2.5rem', letterSpacing: '-0.01em',
+                    color: isActive(page.slug) ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                    textDecoration: 'none',
+                  }}
                 >
-                  <Link
-                    href={getHref(page.slug)}
-                    onClick={() => setMobileOpen(false)}
-                    className={`text-2xl tracking-tight transition-colors
-                      ${isActive(page.slug)
-                        ? 'text-[var(--eg-fg)]'
-                        : 'text-[var(--eg-muted)]'
-                      }`}
-                    style={{ fontFamily: 'var(--eg-font-heading)' }}
-                  >
-                    {page.label}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+                  {page.label}
+                </Link>
+              </motion.div>
+            ))}
+
+            {user && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+                <UserNav user={user} />
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

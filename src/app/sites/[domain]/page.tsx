@@ -60,19 +60,47 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           coverPhoto={coverPhoto}
         />
 
-        <div style={{ maxWidth: '800px', margin: '-4rem auto 4rem', padding: '0 2rem', position: 'relative', zIndex: 10 }}>
-          <p style={{
-            fontSize: '1.25rem', lineHeight: 1.8, color: 'var(--eg-foreground)',
-            textAlign: 'center', fontFamily: 'var(--eg-font-body)', fontStyle: 'italic',
-            background: 'var(--eg-card-bg)', padding: '3rem', borderRadius: 'var(--eg-radius)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.05)'
+        {/* ── Editorial Pull-Quote bridge between hero and timeline ── */}
+        {manifest.vibeString && (
+          <div style={{
+            position: 'relative',
+            zIndex: 10,
+            padding: '7rem 2rem 5rem',
+            textAlign: 'center',
+            maxWidth: '900px',
+            margin: '0 auto',
           }}>
-            {manifest.vibeString || 'Two hearts, one journey.'}
-          </p>
-        </div>
+            {/* Top ornamental line */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem', opacity: 0.3 }}>
+              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
+              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)' }} />
+              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
+            </div>
+
+            <p style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: 'clamp(1.4rem, 3vw, 2.2rem)',
+              fontWeight: 400,
+              fontStyle: 'italic',
+              lineHeight: 1.65,
+              color: 'var(--eg-fg)',
+              opacity: 0.75,
+              letterSpacing: '-0.01em',
+            }}>
+              &ldquo;{manifest.vibeString}&rdquo;
+            </p>
+
+            {/* Bottom ornament */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem', opacity: 0.3 }}>
+              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
+              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)' }} />
+              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
+            </div>
+          </div>
+        )}
 
         <Timeline chapters={manifest.chapters || []} />
-        
+
         {/* Render Event Logistics (RSVP & Registry) only if the AI generated them from the Occasion step */}
         <EventLogistics manifest={manifest} siteId={domain} />
       </main>

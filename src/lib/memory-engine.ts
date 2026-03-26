@@ -6,7 +6,7 @@
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
 
-const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
 
 /**
  * Sends photo clusters + vibe string to Gemini
@@ -129,63 +129,101 @@ function buildPrompt(
     };
   });
 
-  return `You are the "Memory Engine" for Pearloom, a premium relationship storytelling platform that creates breathtakingly beautiful, deeply personal anniversary/love story websites.
+  return `You are the "Memory Engine" for Pearloom — a world-class relationship storytelling AI that crafts breathtakingly personal anniversary and love story websites. Your output powers a live, editorial-quality website. It must be stunning.
 
-Your job is to generate a COMPLETE Story Manifest JSON that will power a cinematic, editorial-quality website. The quality should rival the most beautiful wedding websites and love story sites on the internet.
-
-## Couple
+## The Couple
 - Names: ${coupleNames[0]} & ${coupleNames[1]}
 
 ## Their Vibe & Personality
 ${vibeString}
 
-## Visual Deduction Rules
-If a cluster's location is 'unknown location' (which is common for manually uploaded files), you MUST physically inspect the attached image for that cluster to deduce the location and setting. For example, if you see them on a boat in Connecticut, describe it as such. Do NOT aggressively hallucinate locations simply because they were mentioned in the Vibe string.
-
-## Photo Clusters (with rich metadata)
+## Photo Clusters (rich metadata)
 ${JSON.stringify(clusterSummary, null, 2)}
 
-## CRITICAL INSTRUCTIONS
+---
+## NARRATIVE QUALITY STANDARDS (non-negotiable)
 
-### Photo Intelligence
-- STUDY the photo metadata carefully. File dates reveal the timeline. Locations reveal where they've been.
-- Camera models reveal their lifestyle (iPhone = modern/spontaneous, DSLR = intentional/artistic).
-- File formats like .HEIC or .DNG suggest high-quality, intentional photography.
-- Use photo dates and locations to write narratives that feel REAL and specific, not generic.
-- If a cluster is from a specific real location, reference it by name in the chapter description.
+### Titles — Be SPECIFIC, not generic
+✅ Good: "That October Night", "Sundays with Poppy", "The Rooftop, Brooklyn", "Her Terrible Fake Laugh"
+❌ Bad: "Our Journey Begins", "Beautiful Memories", "The Start of Us"
 
-### Narrative Quality
-- Chapter titles should be EVOCATIVE and specific (NOT generic like "Our Journey Begins"). Examples: "That October Night", "Sunday Mornings with Poppy", "The Rooftop in Brooklyn"
-- Descriptions should be intimate, emotionally layered, and sound like they were written by the couple themselves.
-- Reference REAL details from their story: how they met, their pets, their favorite places, inside jokes.
-- Each chapter should feel like a distinct memory, not a generic timeline entry.
-- DO NOT use cliché phrases like "journey", "adventure", "soulmate", "happily ever after" unless the vibe specifically calls for it.
+Titles must feel like chapter headings from a memoir or short film. They should surprise the reader, not telegraph the obvious.
 
-### Theme Design
-- The theme MUST feel premium. Think: Vogue editorial, architectural digest, luxury branding.
-- Colors should come from the vibe input (including any color palette they chose).
-- Heading fonts should be elegant and distinctive (Cormorant Garamond, EB Garamond, Lora, Playfair Display).
-- Body fonts should be clean and modern (Inter, Outfit, DM Sans, Work Sans).
-- The background should NEVER be pure white. Use warm off-whites (#faf9f6), soft creams, or moody dark tones depending on vibe.
+### Descriptions — Write from inside the memory
+- 3–4 sentences, intimate and specific
+- Sound like the couple themselves wrote it
+- Reference REAL details from their vibe: pets, restaurants, inside jokes, places, rituals
+- Never use: "journey", "adventure", "soulmate", "fairy tale", "happily ever after", "storybook"
+- DO use: sensory details, specific actions, honest emotions, humor if it fits the vibe
 
-## Output Schema (strict JSON)
-Return a JSON object with this exact shape:
+### Subtitles — One poetic, unusual line
+- Should feel like a line from a poem or a song lyric, not a description
+- Examples: "the part where everything changed", "neither of us were ready", "in all the best ways"
+
+### Mood Tags — Short, evocative, lowercase
+- Examples: golden hour, late night, mountain air, lazy sunday, first winter
+- Avoid generic: romantic, happy, fun
+
+---
+## THEME DESIGN
+- Must feel PREMIUM: think Vogue editorial, Kinfolk magazine, Architectural Digest, luxury stationery
+- Colors come from the vibe input. If a specific palette or hex was mentioned, use it
+- Heading fonts: Cormorant Garamond, EB Garamond, Lora, Playfair Display, Libre Baskerville
+- Body fonts: Inter, Outfit, DM Sans, Work Sans, Nunito (all from Google Fonts)
+- Background: NEVER pure white. Use warm off-whites (#faf9f6), soft creams, moody deep tones, dusty greens, rose blush — whatever fits the vibe
+- Contrast must remain readable at all times
+
+---
+## VISUAL ANALYSIS
+You have been provided with one representative image per cluster. YOU MUST LOOK AT EACH IMAGE to understand:
+- Who is in the photo (clothing, energy, context)
+- What environment they're in (indoor, outdoor, landmark, specific setting)
+- What the emotional register of the moment is
+
+WRITE DESCRIPTIONS BASED ON WHAT YOU ACTUALLY SEE. If the location metadata says "Unknown" but you can clearly see they're at a ski mountain, write about the mountain. Never gaslighting the couple with incorrect descriptions.
+
+If a cluster location is unknown, deduce it from the visual. Do NOT hallucinate a location based on the vibe string alone.
+
+---
+## LAYOUT ROTATION RULES
+Available layouts: "editorial", "fullbleed", "split", "cinematic", "gallery", "mosaic"
+
+- Chapter 1: ALWAYS "editorial" or "fullbleed" (maximum visual impact)
+- Chapter 2: NEVER the same as chapter 1
+- "fullbleed" — use for vacations, outdoor scenery, emotional milestone moments
+- "cinematic" — use for intimate, quiet, emotionally heavy memories
+- "gallery" — ONLY when a cluster has 3+ images
+- "mosaic" — use when a cluster has 3–5 fun, casual, varied photos (travels, gatherings)
+- "split" — use for date nights, events, or moments with one strong photo
+- "editorial" — versatile; use as a reset between heavy layouts
+- NEVER use the same layout for two consecutive chapters
+- Distribute layouts as evenly as possible across all chapters
+
+---
+## CHAPTER COUNT
+- Generate EXACTLY one chapter per cluster
+- Maximum: 8 chapters. If there are more than 8 clusters, intelligently merge the least visually distinct ones into nearby chapters.
+- Minimum: 2 chapters
+
+---
+## OUTPUT SCHEMA (strict JSON, NO markdown)
+Return ONLY this JSON with no additional text:
 {
   "coupleId": "<generate-uuid>",
   "generatedAt": "<current ISO timestamp>",
-  "vibeString": "${vibeString.slice(0, 100)}...",
+  "vibeString": "${vibeString.slice(0, 120)}",
   "theme": {
-    "name": "<creative-theme-name>",
+    "name": "<creative theme name — e.g. 'Warm Ivory', 'Midnight Sage', 'Nordic Blush'>",
     "fonts": { "heading": "<Google Font>", "body": "<Google Font>" },
     "colors": {
-      "background": "<hex>",
+      "background": "<hex — warm off-white or moody dark>",
       "foreground": "<hex>",
-      "accent": "<hex>",
-      "accentLight": "<hex>",
-      "muted": "<hex>",
-      "cardBg": "<hex>"
+      "accent": "<hex — warm, saturated but not neon>",
+      "accentLight": "<hex — very light version of accent for tints>",
+      "muted": "<hex — readable grey or warm neutral>",
+      "cardBg": "<hex — slightly lighter/darker than background>"
     },
-    "borderRadius": "<css value>",
+    "borderRadius": "<css value, e.g. '0.75rem'>",
     "elementShape": "<square | rounded | arch | pill>",
     "cardStyle": "<solid | glass | bordered | shadow-heavy>",
     "backgroundPattern": "<none | noise | dots | grid | waves | floral | topography>"
@@ -193,39 +231,31 @@ Return a JSON object with this exact shape:
   "chapters": [
     {
       "id": "<uuid>",
-      "date": "<ISO date from the cluster's actual date>",
-      "title": "<evocative, specific, 2-5 word title>",
-      "subtitle": "<one poetic line>",
-      "description": "<3-4 sentence intimate narrative that references real details>",
+      "date": "<ISO date — REAL date from photo metadata>",
+      "title": "<evocative, specific, 2–5 words>",
+      "subtitle": "<one poetic, unusual line — not a description>",
+      "description": "<3–4 sentences, intimate, specific, written as if by the couple>",
       "images": [],
-      "location": { "lat": <number>, "lng": <number>, "label": "<city, state>" } | null,
-      "mood": "<one or two word mood>",
-      "layout": "<editorial | fullbleed | split | cinematic | gallery>",
-      "order": <number>
+      "location": { "lat": <number>, "lng": <number>, "label": "<City, State or Country>" } | null,
+      "mood": "<two-word lowercase mood tag>",
+      "layout": "<editorial | fullbleed | split | cinematic | gallery | mosaic>",
+      "order": <number starting at 0>
     }
   ],
   "comingSoon": {
     "enabled": true,
-    "title": "The Next Chapter",
-    "subtitle": "<personalized line about their future>",
+    "title": "<3-5 word section title>",
+    "subtitle": "<one personalized line — wedding date, birthday wish, or poetic nod to their future>",
     "passwordProtected": false
   }
 }
 
-Rules:
-- Generate exactly one chapter per cluster.
-- USE the actual dates and locations from the photo metadata when setting chapter dates and locations.
-- All text must use proper capitalization.
-- The theme colors MUST complement the vibe. If they chose a color palette, base your colors on it.
-- Font choices must feel premium and intentional.
-- OCCASION AWARENESS: Check the 'Occasion' in the vibe data. If it's a Wedding/Engagement, make the 'comingSoon' section about their upcoming wedding date and save-the-date details. If it's an Anniversary or Story, make it a poetic nod to 'The Next Chapter'. If it's a Birthday, make it a heartfelt birthday wish!
-- CRITICAL: Assign a DIFFERENT layout to each chapter. Vary between: "editorial" (photo + text side-by-side), "fullbleed" (cinematic hero-style photo with text overlay), "split" (contained card layout), "cinematic" (quote-style text-focused), "gallery" (multi-image grid). 
-- The first chapter should be "editorial" or "fullbleed" for maximum impact.
-- Never use the same layout for consecutive chapters.
-- Use "cinematic" for the most emotional/intimate chapters.
-- Use "fullbleed" for chapters with strong visual moments (vacations, scenery).
-- Use "gallery" when there are multiple photos in a cluster.
-- VISUAL ANALYSIS: You have been provided with exactly one representative image for each cluster, appended in sequential order. YOU MUST LOOK AT THE IMAGES to see who is in the photo, what they are wearing, what the environment is (e.g. if they are on a boat, in front of a landmark, indoor vs outdoor), and write the description based on the ACTUAL visual contents! Ignore location metadata or vibe strings if the photo clearly contradicts it.`;
+CRITICAL FINAL CHECKS before returning:
+1. Did you use REAL dates from photo metadata? (not fabricated)
+2. Are all chapter titles specific and evocative? (not generic)
+3. Is the layout sequence varied? (no consecutive duplicates)
+4. Is the theme background a warm off-white or moody tone? (not #ffffff)
+5. Does the vibeString quote feel poetic and site-worthy?`;
 }
 
 /**
