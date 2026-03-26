@@ -1,19 +1,39 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// everglow / components/dashboard/photo-browser.tsx
-// Google Photos grid browser with selection
+// Pearloom / components/dashboard/photo-browser.tsx
+// High-Fidelity Google Photos grid browser
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, ImageOff, RefreshCw } from 'lucide-react';
+import { Check, Loader2, ImageOff, RefreshCw, AlertCircle } from 'lucide-react';
 import type { GooglePhotoMetadata } from '@/types';
 
 interface PhotoBrowserProps {
   onSelectionChange: (photos: GooglePhotoMetadata[]) => void;
   maxSelection?: number;
 }
+
+const cardStyle: React.CSSProperties = {
+  background: '#ffffff',
+  borderRadius: '1.5rem',
+  padding: '3rem 2rem',
+  boxShadow: '0 10px 40px rgba(0,0,0,0.06)',
+  border: '1px solid rgba(0,0,0,0.04)',
+  textAlign: 'center',
+  maxWidth: '600px',
+  margin: '0 auto',
+};
+
+const btnPrimaryStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+  padding: '1rem 2rem', borderRadius: '0.75rem',
+  background: 'var(--eg-fg)', color: '#fff', border: 'none',
+  fontSize: '1rem', fontWeight: 500, fontFamily: 'var(--eg-font-body)',
+  cursor: 'pointer', transition: 'all 0.2s ease',
+  boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+};
 
 export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrowserProps) {
   const [photos, setPhotos] = useState<GooglePhotoMetadata[]>([]);
@@ -71,71 +91,96 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
     onSelectionChange([]);
   };
 
+  // ── LOADING STATE ──
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 size={32} className="animate-spin text-[var(--eg-accent)]" />
-        <p className="text-[var(--eg-muted)] text-sm">loading your photos...</p>
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Loader2 size={28} color="var(--eg-accent)" style={{ animation: 'spin 1.5s linear infinite' }} />
+          </div>
+        </div>
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Syncing Library</h3>
+        <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem' }}>Connecting to your Google Photos...</p>
       </div>
     );
   }
 
+  // ── ERROR STATE (Specifically designed for the 403 API Error) ──
   if (error) {
+    const isForbidden = error.toLowerCase().includes('403') || error.toLowerCase().includes('forbidden');
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-        <ImageOff size={48} className="text-[var(--eg-muted)]" />
-        <p className="text-[var(--eg-fg)] font-medium">{error}</p>
-        <button
-          onClick={fetchPhotos}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--eg-accent)] text-white
-                     text-sm hover:opacity-90 transition-opacity cursor-pointer"
-        >
-          <RefreshCw size={16} />
-          retry
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: '#fef2f2', border: '2px solid #fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {isForbidden ? <AlertCircle size={32} color="#dc2626" /> : <ImageOff size={32} color="#dc2626" />}
+          </div>
+        </div>
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#1a1a1a' }}>
+          {isForbidden ? 'Connection Blocked' : 'Upload Interrupted'}
+        </h3>
+        <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
+          {isForbidden 
+            ? "Your Google account is blocking access. You must enable the Google Photos Library API in Google Cloud and add your email as a test user."
+            : error}
+        </p>
+        <button onClick={fetchPhotos} style={btnPrimaryStyle}>
+          <RefreshCw size={18} /> Try Again
         </button>
       </div>
     );
   }
 
+  // ── EMPTY STATE ──
   if (!photos.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-        <ImageOff size={48} className="text-[var(--eg-muted)]" />
-        <p className="text-[var(--eg-fg)]">no photos found in your google photos library.</p>
-        <p className="text-[var(--eg-muted)] text-sm">
-          make sure your google photos account has images.
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ImageOff size={32} color="var(--eg-accent)" />
+          </div>
+        </div>
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem' }}>No Photos Found</h3>
+        <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6 }}>
+          We couldn't locate any images in the connected Google Photos library. Please ensure the account has uploaded media.
         </p>
       </div>
     );
   }
 
+  // ── GRID GALLERY ──
   return (
-    <div>
+    <div style={{ background: '#ffffff', borderRadius: '1.5rem', padding: '2.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.06)' }}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-[var(--eg-muted)]">
-          {selected.size} / {maxSelection} selected · {photos.length} photos available
-        </p>
-        <div className="flex gap-2">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>Select Best Memories</h3>
+          <p style={{ fontSize: '0.95rem', color: 'var(--eg-muted)' }}>
+            {selected.size} / {maxSelection} photos selected <span style={{ opacity: 0.5 }}>• {photos.length} total</span>
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={selectAll}
-            className="text-xs px-3 py-1.5 rounded-full border border-black/10
-                       hover:bg-black/5 transition-colors cursor-pointer"
+            style={{ padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
+            onMouseOut={e => e.currentTarget.style.background = '#fff'}
           >
-            select first {maxSelection}
+            Select Best {maxSelection}
           </button>
           <button
             onClick={clearSelection}
-            className="text-xs px-3 py-1.5 rounded-full border border-black/10
-                       hover:bg-black/5 transition-colors cursor-pointer"
+            style={{ padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
+            onMouseOut={e => e.currentTarget.style.background = '#fff'}
           >
-            clear
+            Clear All
           </button>
         </div>
       </div>
 
       {/* Photo grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
         <AnimatePresence>
           {photos.map((photo) => {
             const isSelected = selected.has(photo.id);
@@ -147,37 +192,45 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 onClick={() => togglePhoto(photo)}
-                className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer
-                            border-2 transition-all duration-200
-                            ${isSelected
-                              ? 'border-[var(--eg-accent)] ring-2 ring-[var(--eg-accent)]/30'
-                              : 'border-transparent hover:border-black/10'
-                            }`}
+                style={{
+                  position: 'relative', aspectRatio: '1', borderRadius: '0.75rem', overflow: 'hidden', cursor: 'pointer', padding: 0,
+                  border: isSelected ? '3px solid var(--eg-accent)' : '3px solid transparent',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  boxShadow: isSelected ? '0 8px 24px rgba(184,146,106,0.3)' : '0 2px 10px rgba(0,0,0,0.05)',
+                  transform: isSelected ? 'translateY(-2px)' : 'none',
+                }}
               >
                 <img
                   src={`${photo.baseUrl}=w300-h300-c`}
                   alt={photo.filename}
-                  className="w-full h-full object-cover"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   loading="lazy"
                 />
 
                 {/* Selection overlay */}
-                {isSelected && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="absolute inset-0 bg-[var(--eg-accent)]/20 flex items-center justify-center"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-[var(--eg-accent)] flex items-center justify-center">
-                      <Check size={14} className="text-white" />
-                    </div>
-                  </motion.div>
-                )}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      style={{ position: 'absolute', inset: 0, background: 'rgba(184,146,106,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: 'var(--eg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                        <Check size={16} color="#fff" strokeWidth={3} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Date label */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent
-                                p-1.5 text-[10px] text-white/80 truncate">
-                  {new Date(photo.creationTime).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                  padding: '1rem 0.5rem 0.5rem', textAlign: 'left',
+                  fontSize: '0.7rem', color: '#fff', fontWeight: 500, letterSpacing: '0.02em',
+                }}>
+                  {new Date(photo.creationTime).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </div>
               </motion.button>
             );

@@ -12,13 +12,19 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { SitePage } from '@/types';
+import { UserNav } from '@/components/dashboard/user-nav';
 
 interface SiteNavProps {
   names: [string, string];
   pages: SitePage[];
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
 }
 
-export function SiteNav({ names, pages }: SiteNavProps) {
+export function SiteNav({ names, pages, user }: SiteNavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
@@ -92,13 +98,22 @@ export function SiteNav({ names, pages }: SiteNavProps) {
             ))}
           </div>
 
-          {/* Mobile toggle */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-[var(--eg-fg)] cursor-pointer"
-          >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          {/* Actions */}
+          <div className="flex items-center gap-4">
+            {user && (
+              <div className="hidden md:block">
+                <UserNav user={user} />
+              </div>
+            )}
+
+            {/* Mobile toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden p-2 text-[var(--eg-fg)] cursor-pointer"
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
       </motion.nav>
 

@@ -103,7 +103,7 @@ export default function DashboardPage() {
       colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
       borderRadius: '1rem',
     }}>
-      <SiteNav names={['Pearloom', 'Studio']} pages={[]} />
+      <SiteNav names={['Pearloom', 'Studio']} pages={[]} user={session?.user || undefined} />
       
       <main style={{
         minHeight: '100vh',
@@ -141,42 +141,52 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Step header */}
-          <div style={{ marginBottom: '3rem' }}>
-            <h2 style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontSize: '2.5rem',
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
-              marginBottom: '0.5rem',
-            }}>
-              {meta.title}
-            </h2>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem' }}>
-              {meta.subtitle}
-            </p>
-          </div>
-
-          {/* Error display */}
-          {error && (
-            <div style={{
-              marginBottom: '1.5rem', padding: '1rem', borderRadius: '0.5rem',
-              background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
-              fontSize: '0.875rem'
-            }}>
-              {error}
+          <div style={{
+            background: 'var(--eg-card-bg)',
+            borderRadius: '1.5rem',
+            padding: '4rem',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.05)',
+            border: '1px solid rgba(0,0,0,0.02)',
+            minHeight: '600px',
+            position: 'relative'
+          }}>
+            {/* Step header */}
+            <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
+              <h2 style={{
+                fontFamily: 'var(--eg-font-heading)',
+                fontSize: '2.5rem',
+                fontWeight: 600,
+                letterSpacing: '-0.02em',
+                marginBottom: '0.75rem',
+                color: 'var(--eg-fg)',
+              }}>
+                {meta.title}
+              </h2>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', maxWidth: '500px', margin: '0 auto' }}>
+                {meta.subtitle}
+              </p>
             </div>
-          )}
 
-          {/* Step content */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
+            {/* Error display */}
+            {error && (
+              <div style={{
+                marginBottom: '2rem', padding: '1rem', borderRadius: '0.75rem',
+                background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
+                fontSize: '0.875rem', textAlign: 'center'
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Step content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98, y: -10 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
               {/* ── AUTH ── */}
               {currentStep === 'auth' && (
                 <div style={{
@@ -338,6 +348,7 @@ export default function DashboardPage() {
               )}
             </motion.div>
           </AnimatePresence>
+          </div>
         </div>
       </main>
     </ThemeProvider>
