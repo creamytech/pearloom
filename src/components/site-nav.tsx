@@ -59,22 +59,10 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="max-w-[1400px] mx-auto px-8 flex items-center justify-between">
-          {/* Brand */}
-          <Link
-            href="/"
-            className="text-base tracking-tight transition-opacity hover:opacity-60 flex items-center gap-2"
-            style={{ fontFamily: 'var(--eg-font-heading)', fontWeight: 600 }}
-          >
-            {names[0] === 'Pearloom' ? (
-              <Image src="/logo.png" alt="Pearloom Logo" width={110} height={32} style={{ objectFit: 'contain' }} priority />
-            ) : (
-              <>{names[0]} & {names[1]}</>
-            )}
-          </Link>
-
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-7">
+        <div className="max-w-[1400px] mx-auto px-8 relative flex items-center justify-between h-12">
+          
+          {/* Left Navigation (Static & Dynamic Pages) */}
+          <div className="hidden md:flex flex-1 items-center gap-7">
             {enabledPages.map((page) => (
               <Link
                 key={page.id}
@@ -98,8 +86,28 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
             ))}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-4">
+          {/* Centered Brand Logo */}
+          <Link
+            href="/"
+            className="flex-shrink-0 flex items-center justify-center transform transition-transform hover:scale-105"
+            style={{ 
+              position: 'absolute', 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              zIndex: 10 
+            }}
+          >
+            {names[0] === 'Pearloom' ? (
+              <Image src="/logo.png" alt="Pearloom Logo" width={110} height={32} style={{ objectFit: 'contain' }} priority />
+            ) : (
+              <span style={{ fontFamily: 'var(--eg-font-heading)', fontWeight: 600, fontSize: '1.25rem' }}>
+                {names[0]} & {names[1]}
+              </span>
+            )}
+          </Link>
+
+          {/* Right Actions */}
+          <div className="flex flex-1 justify-end items-center gap-4">
             {user && (
               <div className="hidden md:block">
                 <UserNav user={user} />
@@ -109,7 +117,7 @@ export function SiteNav({ names, pages, user }: SiteNavProps) {
             {/* Mobile toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-[var(--eg-fg)] cursor-pointer"
+              className="md:hidden p-2 text-[var(--eg-fg)] cursor-pointer z-20"
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
