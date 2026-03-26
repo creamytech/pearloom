@@ -204,6 +204,7 @@ Rules:
 - All text must use proper capitalization.
 - The theme colors MUST complement the vibe. If they chose a color palette, base your colors on it.
 - Font choices must feel premium and intentional.
+- OCCASION AWARENESS: Check the 'Occasion' in the vibe data. If it's a Wedding/Engagement, make the 'comingSoon' section about their upcoming wedding date and save-the-date details. If it's an Anniversary or Story, make it a poetic nod to 'The Next Chapter'. If it's a Birthday, make it a heartfelt birthday wish!
 - CRITICAL: Assign a DIFFERENT layout to each chapter. Vary between: "editorial" (photo + text side-by-side), "fullbleed" (cinematic hero-style photo with text overlay), "split" (contained card layout), "cinematic" (quote-style text-focused), "gallery" (multi-image grid). 
 - The first chapter should be "editorial" or "fullbleed" for maximum impact.
 - Never use the same layout for consecutive chapters.

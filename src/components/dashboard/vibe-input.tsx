@@ -24,6 +24,14 @@ const VIBE_MOODS = [
   { id: 'pets', label: 'Our Little Zoo', icon: Dog, desc: 'The fur babies are the stars' },
 ];
 
+const OCCASIONS = [
+  { id: 'wedding', label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site' },
+  { id: 'anniversary', label: 'Anniversary', desc: 'A celebration of years together' },
+  { id: 'engagement', label: 'Engagement', desc: 'Popping the question!' },
+  { id: 'birthday', label: 'Birthday / Gift', desc: 'A sweet gift for your partner' },
+  { id: 'story', label: 'Just Because', desc: 'Documenting our love story' },
+];
+
 const COLOR_PALETTES = [
   { id: 'warm-earth', name: 'Warm Earth', colors: ['#8B4513', '#D2691E', '#DEB887', '#FAEBD7', '#2F1B14'] },
   { id: 'ocean-breeze', name: 'Ocean Breeze', colors: ['#1B4965', '#5FA8D3', '#BEE9E8', '#CAE9FF', '#0B2545'] },
@@ -77,12 +85,14 @@ const btnPrimaryStyle: React.CSSProperties = {
 
 export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   // Step 1: Names
   const [name1, setName1] = useState(initialNames?.[0] ?? '');
   const [name2, setName2] = useState(initialNames?.[1] ?? '');
-  // Step 2: Mood
+  // Step 2: Occasion
+  const [occasion, setOccasion] = useState<string>('');
+  // Step 3: Mood
   const [mood, setMood] = useState<string>('');
   // Step 3: Color Palette
   const [palette, setPalette] = useState<string>('');
@@ -97,10 +107,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [musicSong, setMusicSong] = useState('');
 
   const canProceedStep1 = name1.trim() && name2.trim();
-  const canProceedStep2 = mood !== '';
-  const canProceedStep3 = palette !== '';
-  const canProceedStep4 = favPlaces.length > 0;
-  const canProceedStep5 = meetCute.trim() !== '';
+  const canProceedStep2 = occasion !== '';
+  const canProceedStep3 = mood !== '';
+  const canProceedStep4 = palette !== '';
+  const canProceedStep5 = favPlaces.length > 0;
+  const canProceedStep6 = meetCute.trim() !== '';
 
   const handleNext = () => { if (step < totalSteps) setStep(step + 1); };
   const handleBack = () => { if (step > 1) setStep(step - 1); };
@@ -111,6 +122,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
   const handleSubmit = () => {
     const selectedMoodLabel = VIBE_MOODS.find(m => m.id === mood)?.label || '';
+    const selectedOccasionLabel = OCCASIONS.find(o => o.id === occasion)?.label || '';
     const selectedPalette = COLOR_PALETTES.find(p => p.id === palette);
     const paletteInfo = selectedPalette && palette !== 'custom'
       ? `Color inspiration: ${selectedPalette.name} palette (${selectedPalette.colors.join(', ')}).`
@@ -125,6 +137,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       : '';
 
     const synthesizedVibe = [
+      `Occasion / Project Type: This site is for a ${selectedOccasionLabel}.`,
       `Core Vibe: ${selectedMoodLabel}.`,
       paletteInfo,
       placeString,
@@ -133,7 +146,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       relationship ? `What makes their relationship special: ${relationship}.` : '',
       petsDetails ? `Important details (pets/inside jokes): ${petsDetails}.` : '',
       musicSong ? `"Their song" or musical vibe: ${musicSong}.` : '',
-      'The generated site must feel deeply personal and emotionally resonant.',
+      'The generated site must feel deeply personal and emotionally resonant to the occasion.',
       'Make the colors, typography, and narrative flow from these exact feelings and aesthetics.',
     ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
 
@@ -205,8 +218,47 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 2: MOOD ── */}
+        {/* ── STEP 2: OCCASION ── */}
         {step === 2 && (
+          <motion.div key="s2" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+              What are you celebrating?
+            </h2>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
+              The occasion completely changes how we structure your site.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {OCCASIONS.map(occ => (
+                <button key={occ.id} onClick={() => setOccasion(occ.id)} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '1.5rem', borderRadius: '1rem', textAlign: 'left',
+                  border: `2px solid ${occasion === occ.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
+                  background: occasion === occ.id ? 'var(--eg-accent-light)' : '#fff',
+                  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                  boxShadow: occasion === occ.id ? '0 8px 24px rgba(184,146,106,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
+                  transform: occasion === occ.id ? 'translateY(-2px)' : 'none',
+                }}>
+                  <div>
+                    <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>{occ.desc}</p>
+                  </div>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${occasion === occ.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {occasion === occ.id && <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--eg-accent)' }} />}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+              <button onClick={handleBack} style={{ ...btnPrimaryStyle, background: 'transparent', color: 'var(--eg-muted)', boxShadow: 'none' }}><ArrowLeft size={18} /> Back</button>
+              <button onClick={handleNext} disabled={!canProceedStep2} style={{ ...btnPrimaryStyle, opacity: canProceedStep2 ? 1 : 0.5, pointerEvents: canProceedStep2 ? 'auto' : 'none' }}>
+                Continue <ArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 3: MOOD ── */}
+        {step === 3 && (
           <motion.div key="s2" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
               What&apos;s your relationship vibe?
@@ -237,14 +289,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep2} style={{ ...btnPrimaryStyle, opacity: canProceedStep2 ? 1 : 0.5, pointerEvents: canProceedStep2 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep3} style={{ ...btnPrimaryStyle, opacity: canProceedStep3 ? 1 : 0.5, pointerEvents: canProceedStep3 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 3: COLOR PALETTE ── */}
-        {step === 3 && (
-          <motion.div key="s3" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 4: COLOR PALETTE ── */}
+        {step === 4 && (
+          <motion.div key="s4" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Palette size={28} color="var(--eg-accent)" />
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Color Inspiration</h2>
@@ -273,14 +325,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep3} style={{ ...btnPrimaryStyle, opacity: canProceedStep3 ? 1 : 0.5, pointerEvents: canProceedStep3 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep4} style={{ ...btnPrimaryStyle, opacity: canProceedStep4 ? 1 : 0.5, pointerEvents: canProceedStep4 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 4: FAVORITE PLACES ── */}
-        {step === 4 && (
-          <motion.div key="s4" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 5: FAVORITE PLACES ── */}
+        {step === 5 && (
+          <motion.div key="s5" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Globe size={28} color="var(--eg-accent)" />
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Your Favorite Places</h2>
@@ -301,14 +353,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep4} style={{ ...btnPrimaryStyle, opacity: canProceedStep4 ? 1 : 0.5, pointerEvents: canProceedStep4 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep5} style={{ ...btnPrimaryStyle, opacity: canProceedStep5 ? 1 : 0.5, pointerEvents: canProceedStep5 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 5: YOUR STORY ── */}
-        {step === 5 && (
-          <motion.div key="s5" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 6: YOUR STORY ── */}
+        {step === 6 && (
+          <motion.div key="s6" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Tell Us Your Story</h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
               The more you share, the more personal and beautiful your site will be.
@@ -325,14 +377,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep5} style={{ ...btnPrimaryStyle, opacity: canProceedStep5 ? 1 : 0.5, pointerEvents: canProceedStep5 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep6} style={{ ...btnPrimaryStyle, opacity: canProceedStep6 ? 1 : 0.5, pointerEvents: canProceedStep6 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 6: SPECIAL DETAILS ── */}
-        {step === 6 && (
-          <motion.div key="s6" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 7: SPECIAL DETAILS ── */}
+        {step === 7 && (
+          <motion.div key="s7" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: 'var(--eg-accent-light)', border: '2px solid rgba(184,146,106,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                 <Sparkles size={28} color="var(--eg-accent)" />
