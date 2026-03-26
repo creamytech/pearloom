@@ -10,6 +10,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
+import { LocalUploader } from '@/components/dashboard/local-uploader';
 import { VibeInput } from '@/components/dashboard/vibe-input';
 import { SiteEditor } from '@/components/dashboard/site-editor';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -18,11 +19,12 @@ import { LandingPage } from '@/components/landing-page';
 import { GenerationProgress } from '@/components/dashboard/generation-progress';
 import type { GooglePhotoMetadata, StoryManifest } from '@/types';
 
-type Step = 'auth' | 'photos' | 'vibe' | 'generating' | 'edit' | 'preview';
+type Step = 'auth' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview';
 
 const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.ElementType }> = {
-  auth: { title: 'Welcome to Pearloom', subtitle: 'Sign in with Google to connect your photos.', icon: LogIn },
+  auth: { title: 'Welcome to Pearloom', subtitle: 'Connect Google Photos or upload locally.', icon: LogIn },
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
+  'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
   vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling — the AI will do the rest.', icon: Sparkles },
   generating: { title: 'Creating Magic', subtitle: 'The memory engine is crafting your story...', icon: Sparkles },
   edit: { title: 'Your Story', subtitle: 'Review and edit. Make it perfect.', icon: Pencil },
@@ -156,7 +158,8 @@ export default function DashboardPage() {
                 { id: 'preview', label: 'Preview Site' }
               ] as const).map((stepDef, i) => {
                 const stepOrder = ['photos', 'vibe', 'edit', 'preview'] as const;
-                const currentIndex = stepOrder.indexOf(currentStep as any);
+                const normalizedCurrentStep = currentStep === 'local-upload' ? 'photos' : currentStep;
+                const currentIndex = stepOrder.indexOf(normalizedCurrentStep as any);
                 const stepIndex = stepOrder.indexOf(stepDef.id);
                 const isActive = stepIndex === currentIndex;
                 const isDone = stepIndex < currentIndex;
@@ -244,6 +247,23 @@ export default function DashboardPage() {
                     onSelectionChange={handlePhotosSelected}
                     maxSelection={30}
                   />
+                  
+                  <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+                    <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                      Google Photos refusing to sync?
+                    </p>
+                    <button
+                      onClick={() => setCurrentStep('local-upload')}
+                      style={{
+                        padding: '0.75rem 2rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.1)',
+                        background: '#ffffff', color: 'var(--eg-fg)', fontSize: '0.95rem',
+                        fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                      }}
+                    >
+                      Bypass API and Upload Locally
+                    </button>
+                  </div>
                   {selectedPhotos.length > 0 && (
                     <div style={{ position: 'sticky', bottom: '1rem', marginTop: '2rem' }}>
                       <button
