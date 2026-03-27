@@ -98,11 +98,75 @@ export async function generateStoryManifest(
 
   const manifest: StoryManifest = JSON.parse(rawText);
 
+  // ─── CRITICAL: Hydrate chapter images from source clusters ───
+  // The AI always returns `images: []`. We post-process here to
+  // match each chapter back to its source cluster by date range
+  // and inject the real photo URLs.
+  manifest.chapters = hydrateChapterImages(manifest.chapters, clusters);
+
   manifest.chapters = manifest.chapters
     .sort((a: Chapter, b: Chapter) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((ch: Chapter, i: number) => ({ ...ch, order: i }));
 
   return manifest;
+}
+
+/**
+ * Matches AI-generated chapters back to their source photo clusters
+ * by date proximity, then injects ChapterImage[] from the cluster's photos.
+ * Each photo gets a { id, url, alt, width, height } record.
+ */
+function hydrateChapterImages(
+  chapters: Chapter[],
+  clusters: PhotoCluster[]
+): Chapter[] {
+  if (!clusters.length) return chapters;
+
+  return chapters.map((chapter) => {
+    // Find the cluster whose date range contains or is nearest to the chapter date
+    const chapterTime = new Date(chapter.date).getTime();
+
+    let bestCluster: PhotoCluster | null = null;
+    let bestDelta = Infinity;
+
+    for (const cluster of clusters) {
+      const start = new Date(cluster.startDate).getTime();
+      const end = new Date(cluster.endDate).getTime();
+      const mid = (start + end) / 2;
+
+      // Exact range match — prefer this
+      if (chapterTime >= start - 86_400_000 && chapterTime <= end + 86_400_000) {
+        bestCluster = cluster;
+        break;
+      }
+
+      // Otherwise track nearest midpoint
+      const delta = Math.abs(chapterTime - mid);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        bestCluster = cluster;
+      }
+    }
+
+    if (!bestCluster) return chapter;
+
+    // Build ChapterImage[] from the cluster's photos
+    // Limit to 6 per chapter to keep the UI clean
+    const images: import('@/types').ChapterImage[] = bestCluster.photos
+      .slice(0, 6)
+      .map((photo) => ({
+        id: photo.id,
+        // Google Photos: append size params. Local uploads: already a data URL
+        url: photo.baseUrl.includes('googleusercontent.com')
+          ? `${photo.baseUrl}=w1600-h1600`
+          : photo.baseUrl,
+        alt: photo.description || photo.filename || chapter.title,
+        width: photo.width || 1600,
+        height: photo.height || 1200,
+      }));
+
+    return { ...chapter, images };
+  });
 }
 
 function buildPrompt(
