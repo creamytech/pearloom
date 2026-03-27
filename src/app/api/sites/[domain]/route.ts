@@ -14,7 +14,7 @@ function getSupabase() {
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { domain: string } }
+  { params }: { params: Promise<{ domain: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -22,7 +22,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { domain } = params;
+    const { domain } = await params;
     const supabase = getSupabase();
 
     // Verify the site belongs to this user before deleting
