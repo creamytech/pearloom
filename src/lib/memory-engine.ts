@@ -1,10 +1,11 @@
-﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pearloom / lib/memory-engine.ts â€” AI story generation
 // Upgraded prompt: uses photo metadata (locations, dates,
 // cameras, filenames) alongside rich vibe data
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
+import { generateVibeSkin } from '@/lib/vibe-engine';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
@@ -201,7 +202,7 @@ export async function generateStoryManifest(
     borderRadius: '1rem',
   };
 
-  const manifest: StoryManifest = {
+  let manifest: StoryManifest = {
     coupleId: parsed.coupleId || `couple-${Date.now()}`,
     generatedAt: parsed.generatedAt || new Date().toISOString(),
     vibeString: parsed.vibeString || '',
@@ -244,8 +245,117 @@ export async function generateStoryManifest(
     .sort((a: Chapter, b: Chapter) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((ch: Chapter, i: number) => ({ ...ch, order: i }));
 
+  // ── Pass 2: Gemini self-critique + refinement ─────────────────────
+  // A second Gemini call reviews the output and patches weak chapters
+  // before the user ever sees the result.
+  try {
+    manifest = await critiqueAndRefineManifest(manifest, apiKey);
+
+  } catch (err) {
+    console.warn('[Memory Engine] Critique pass failed (non-fatal), using original:', err);
+  }
+
+  // ── Pass 3: Bake vibeSkin into manifest ───────────────────────────
+  // Generate all custom SVG art and visual skin in-process so it's
+  // ready on first render (no separate API call from the client).
+  try {
+    const vibeSkin = await generateVibeSkin(manifest.vibeString, coupleNames, apiKey);
+    manifest.vibeSkin = vibeSkin;
+    console.log('[Memory Engine] VibeSkin generated and baked into manifest');
+  } catch (err) {
+    console.warn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
+  }
+
   return manifest;
 }
+
+// ── Self-critique & refinement pass ───────────────────────────────────────────
+// Gemini reviews its own output and patches weak chapters/titles.
+async function critiqueAndRefineManifest(
+  manifest: StoryManifest,
+  apiKey: string
+): Promise<StoryManifest> {
+  const chapterSummary = (manifest.chapters || []).map((ch, i) => ({
+    index: i, id: ch.id, title: ch.title, subtitle: ch.subtitle, description: ch.description, mood: ch.mood,
+  }));
+
+  const critiquePrompt = `You are a senior editorial director reviewing a wedding website story draft.
+
+Couple's vibe: "${manifest.vibeString}"
+Theme name: ${manifest.theme?.name}
+
+Here are the chapter drafts:
+${JSON.stringify(chapterSummary, null, 2)}
+
+Your task: Identify chapters with WEAK titles, descriptions, or subtitles and return ONLY the ones that need improvement.
+
+Quality standards:
+- Titles must be specific, evocative, memoir-like — NOT generic ("Our Beautiful Day" = bad)
+- Descriptions must have sensory detail and feel written by the couple themselves
+- Subtitles must feel like a line from a song or poem, NOT a description
+- Mood tags should be specific two-word combinations, not just "romantic" or "happy"
+
+Return JSON:
+{
+  "patches": [
+    {
+      "id": "<chapter id>",
+      "title": "<improved title if needed, else omit>",
+      "subtitle": "<improved subtitle if needed, else omit>",
+      "description": "<improved description if needed, else omit>",
+      "mood": "<improved mood if needed, else omit>"
+    }
+  ]
+}
+
+Only return patches for chapters that genuinely need improvement. Return empty patches array if everything is already strong. Return ONLY JSON.`;
+
+  const res = await geminiRetryFetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: critiquePrompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.6,
+        maxOutputTokens: 4096,
+      },
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Critique pass API error: ${res.status}`);
+
+  const data = await res.json();
+  let raw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim();
+  raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  raw = raw.replace(/,\s*([}\]])/g, '$1');
+
+  const { patches } = JSON.parse(raw) as { patches: Array<{ id: string; title?: string; subtitle?: string; description?: string; mood?: string }> };
+
+  if (!patches?.length) {
+    console.log('[Memory Engine] Critique pass: all chapters passed quality review');
+    return manifest;
+  }
+
+  console.log(`[Memory Engine] Critique pass: patching ${patches.length} chapter(s)`);
+
+  const patchMap = new Map(patches.map(p => [p.id, p]));
+  return {
+    ...manifest,
+    chapters: manifest.chapters.map(ch => {
+      const patch = patchMap.get(ch.id);
+      if (!patch) return ch;
+      return {
+        ...ch,
+        ...(patch.title ? { title: patch.title } : {}),
+        ...(patch.subtitle ? { subtitle: patch.subtitle } : {}),
+        ...(patch.description ? { description: patch.description } : {}),
+        ...(patch.mood ? { mood: patch.mood } : {}),
+      };
+    }),
+  };
+}
+
 
 /**
  * Matches AI-generated chapters back to their source photo clusters

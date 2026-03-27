@@ -213,6 +213,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Vibe-intro quote section (always rendered after hero, not a removable block)
   const VibeQuote = () => (
     <div style={{ position: 'relative', zIndex: 10, padding: '7rem 2rem 5rem', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
+      {/* Custom medallion ornament */}
+      {vibeSkin.medallionSvg && (
+        <div
+          style={{ width: '80px', height: '80px', margin: '0 auto 2rem', opacity: 0.45 }}
+          dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }}
+        />
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
         <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
         <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
@@ -231,6 +238,20 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     </div>
   );
 
+  // Custom SVG border art rendered between major sections
+  const SvgBorder = ({ flip = false }: { flip?: boolean }) =>
+    vibeSkin.sectionBorderSvg ? (
+      <div
+        style={{
+          width: '100%', overflow: 'hidden', lineHeight: 0,
+          transform: flip ? 'scaleX(-1)' : undefined,
+          opacity: 0.5,
+        }}
+        dangerouslySetInnerHTML={{ __html: vibeSkin.sectionBorderSvg }}
+      />
+    ) : null;
+
+
   const siteContent = (
     <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
       <SiteNav names={safeNames} pages={sitePages} />
@@ -239,12 +260,24 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         {visibleBlocks ? (
           // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
           <>
+            {/* Subtle AI-generated pattern overlay for entire page */}
+            {vibeSkin.heroPatternSvg && (
+              <div
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+                  backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
+                  backgroundRepeat: 'repeat', backgroundSize: '200px 200px', opacity: 0.35,
+                }}
+              />
+            )}
             {visibleBlocks.map(block => renderBlock(block.type, block.id))}
             {/* Always append vibe quote after hero if hero is first */}
             {visibleBlocks[0]?.type === 'hero' && (
               <>
                 <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
+                <SvgBorder />
                 <VibeQuote />
+                <SvgBorder flip />
               </>
             )}
             {/* Chatbot footer sections */}
