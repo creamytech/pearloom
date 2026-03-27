@@ -19,6 +19,7 @@ import type { StoryManifest, Chapter, ChapterImage, WeddingEvent } from '@/types
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
+import { ColorPalettePanel } from './ColorPalettePanel';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -530,65 +531,26 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
 
 // ── Design Panel ───────────────────────────────────────────────
 function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
-  const updateColor = (key: string, val: string) => {
-    onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, [key]: val } } });
-  };
   const updateFont = (key: 'heading' | 'body', val: string) => {
     onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } } });
   };
 
+  const HEADING_FONTS = ['Playfair Display', 'Cormorant Garamond', 'Lora', 'Cinzel', 'DM Serif Display', 'Libre Baskerville', 'Josefin Sans'];
+  const BODY_FONTS = ['Inter', 'Outfit', 'DM Sans', 'Work Sans', 'Nunito', 'Roboto', 'Raleway', 'Poppins', 'Lato'];
+
   const colors = manifest.theme?.colors || {};
 
-  const COLOR_FIELDS = [
-    { key: 'background', label: 'Background' },
-    { key: 'foreground', label: 'Text' },
-    { key: 'accent', label: 'Accent' },
-    { key: 'accentLight', label: 'Accent Light' },
-    { key: 'muted', label: 'Muted' },
-    { key: 'cardBg', label: 'Card Background' },
-  ];
-
-  const HEADING_FONTS = ['Playfair Display', 'Cormorant Garamond', 'Lora', 'Cinzel', 'DM Serif Display', 'Libre Baskerville'];
-  const BODY_FONTS = ['Inter', 'Outfit', 'DM Sans', 'Work Sans', 'Nunito', 'Roboto'];
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)' }}>
-        Colors
-      </div>
-      {COLOR_FIELDS.map(({ key, label }) => (
-        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '50%',
-              background: (colors as Record<string, string>)[key] || '#fff',
-              border: '2px solid rgba(255,255,255,0.15)', cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-            }} />
-            <input
-              type="color"
-              value={(colors as Record<string, string>)[key] || '#ffffff'}
-              onChange={e => updateColor(key, e.target.value)}
-              style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ ...lbl, marginBottom: '2px' }}>{label}</label>
-            <input
-              type="text"
-              value={(colors as Record<string, string>)[key] || ''}
-              onChange={e => updateColor(key, e.target.value)}
-              style={{ ...inp, padding: '4px 8px', fontSize: '0.75rem', fontFamily: 'monospace' }}
-            />
-          </div>
-        </div>
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* AI palette + pattern picker */}
+      <ColorPalettePanel manifest={manifest} onChange={onChange} />
 
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
-        <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '1rem' }}>
+      {/* Typography */}
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
+        <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.75rem' }}>
           Typography
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           <div>
             <label style={lbl}>Heading Font</label>
             <select value={manifest.theme?.fonts?.heading || 'Playfair Display'} onChange={e => updateFont('heading', e.target.value)} style={{ ...inp, cursor: 'pointer' }}>

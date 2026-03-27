@@ -42,6 +42,8 @@ export interface StoryManifest {
   voiceSamples?: string[];
   // Free-canvas block order and visibility
   blocks?: PageBlock[];
+  // Custom SVG background pattern CSS (e.g. url("data:image/svg+xml,..."))
+  backgroundPatternCss?: string;
 }
 
 export interface Chapter {
