@@ -14,7 +14,14 @@ import { TravelSection } from '@/components/travel-section';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
 import type { Chapter } from '@/types';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
-import { WaveDivider, VibeSectionHeader } from '@/components/vibe/WaveDivider';
+import { WaveDivider } from '@/components/vibe/WaveDivider';
+import lazyLoad from 'next/dynamic';
+
+// Client-only components — lazy-loaded to prevent SSR issues
+const PhotoGallery = lazyLoad(() => import('@/components/photo-gallery').then(m => ({ default: m.PhotoGallery })), { ssr: false });
+const Guestbook = lazyLoad(() => import('@/components/guestbook').then(m => ({ default: m.Guestbook })), { ssr: false });
+const RsvpLiveCounter = lazyLoad(() => import('@/components/rsvp-live-counter').then(m => ({ default: m.RsvpLiveCounter })), { ssr: false });
+const AskCoupleChat = lazyLoad(() => import('@/components/ask-couple-chat').then(m => ({ default: m.AskCoupleChat })), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 
@@ -242,8 +249,46 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </section>
         )}
 
+        {/* Wave divider: FAQ → Guestbook */}
+        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
+
+        {/* Public Guestbook — guests leave wishes */}
+        <section id="guestbook">
+          <Guestbook siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
+        </section>
+
+        {/* Wave divider: Guestbook → Photos */}
+        <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
+
+        {/* Guest photo gallery with upload + masonry lightbox */}
+        <section id="photos" style={{ padding: '6rem 2rem', background: bgColor }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', marginBottom: '2rem' }}>
+                <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+                <span style={{ fontSize: '1.3rem', color: 'var(--eg-accent)' }}>{vibeSkin.decorIcons[0] || '✦'}</span>
+                <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+              </div>
+              <h2 style={{
+                fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(2rem, 4vw, 3rem)',
+                fontWeight: 400, letterSpacing: '-0.025em', color: 'var(--eg-fg)', marginBottom: '0.75rem',
+              }}>Our Photo Wall</h2>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '1rem', fontStyle: 'italic' }}>
+                Share your favorite moments. Upload your photos from the day.
+              </p>
+            </div>
+            <PhotoGallery />
+          </div>
+        </section>
+
+        {/* Live RSVP counter — shown just above the RSVP form */}
+        <RsvpLiveCounter siteId={domain} coupleNames={safeNames} />
+
         {manifest.comingSoon && <ComingSoon config={manifest.comingSoon} siteId={domain} />}
       </main>
+
+      {/* Floating Ask the Couple chatbot */}
+      <AskCoupleChat siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
     </ThemeProvider>
   );
 }

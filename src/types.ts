@@ -38,6 +38,8 @@ export interface StoryManifest {
   faqs?: FaqItem[];
   // Travel & lodging info
   travelInfo?: TravelInfo;
+  // Real text samples from the couple — used to train the Ask the Couple AI chatbot
+  voiceSamples?: string[];
 }
 
 export interface Chapter {

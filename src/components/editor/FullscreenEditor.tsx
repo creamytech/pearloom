@@ -13,13 +13,15 @@ import {
   Globe, Monitor, Tablet, Smartphone, GripVertical,
   Image, Calendar, Upload, X, Camera,
   Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
+  MessageCircleHeart,
 } from 'lucide-react';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent } from '@/types';
 import { AIBlocksPanel } from './AIBlocksPanel';
+import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'blocks';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'blocks' | 'voice';
 
 const DEVICE_DIMS: Record<DeviceMode, { width: string; label: string; icon: React.ElementType }> = {
   desktop: { width: '100%',    label: 'Desktop', icon: Monitor },
@@ -769,7 +771,7 @@ Return JSON with: title, subtitle, description, mood`,
   }, [chapters, manifest, updateChapter]);
 
   const TAB_ICONS: Record<EditorTab, React.ElementType> = {
-    story: AlignLeft, events: Calendar, design: Palette, details: Settings, blocks: Sparkles,
+    story: AlignLeft, events: Calendar, design: Palette, details: Settings, blocks: Sparkles, voice: MessageCircleHeart,
   };
 
   return (
@@ -884,7 +886,7 @@ Return JSON with: title, subtitle, description, mood`,
             display: 'flex', padding: '8px 8px 0',
             borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
           }}>
-            {(['story', 'events', 'design', 'details', 'blocks'] as EditorTab[]).map(tab => {
+            {(['story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
               const Icon = TAB_ICONS[tab];
               const isBlocks = tab === 'blocks';
               return (
@@ -968,6 +970,29 @@ Return JSON with: title, subtitle, description, mood`,
                 coupleNames={coupleNames}
                 onChange={(m) => { onChange(m); pushToPreview(m); }}
               />
+            )}
+
+            {activeTab === 'voice' && (
+              <div style={{ padding: '4px 0' }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                    AI Voice Training
+                  </span>
+                  <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: '4px', lineHeight: 1.5 }}>
+                    Teach the chatbot to speak like you.
+                  </p>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
+                  <VoiceTrainerPanel
+                    voiceSamples={manifest.voiceSamples || []}
+                    onChange={(samples) => {
+                      const updated = { ...manifest, voiceSamples: samples };
+                      onChange(updated);
+                      pushToPreview(updated);
+                    }}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>
