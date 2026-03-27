@@ -19,7 +19,8 @@ import { SiteNav } from '@/components/site-nav';
 import { LandingPage } from '@/components/landing-page';
 import { GenerationProgress } from '@/components/dashboard/generation-progress';
 import { UserSites } from '@/components/dashboard/user-sites';
-import type { GooglePhotoMetadata, StoryManifest } from '@/types';
+import type { GooglePhotoMetadata, StoryManifest, PhotoCluster } from '@/types';
+import { ClusterReview } from '@/components/dashboard/cluster-review';
 
 // Full-screen editor ”” SSR disabled (uses browser APIs + framer Reorder)
 const FullscreenEditor = dynamic(
@@ -27,7 +28,7 @@ const FullscreenEditor = dynamic(
   { ssr: false }
 );
 
-type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
+type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'cluster-review' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
 
 // Generates a memorable random slug like "shauna-and-ben-x7q2"
 function generateSlug(names: [string, string]): string {
@@ -42,6 +43,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
   dashboard: { title: '', subtitle: '', icon: LayoutDashboard },
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
   'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
+  'cluster-review': { title: 'Where Were You?', subtitle: 'Add locations to each memory group for a richer story.', icon: Camera },
   vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling ”” the AI will do the rest.', icon: Sparkles },
   generating: { title: '', subtitle: '', icon: Sparkles },
   edit: { title: 'Your Story', subtitle: 'Review and edit. Make it perfect.', icon: Pencil },
@@ -54,6 +56,7 @@ export default function DashboardPage() {
   const [currentStep, setCurrentStep] = useState<Step>(status === 'authenticated' ? 'dashboard' : 'auth');
   const [selectedPhotos, setSelectedPhotos] = useState<GooglePhotoMetadata[]>([]);
   const [coupleNames, setCoupleNames] = useState<[string, string]>(['', '']);
+  const [reviewedClusters, setReviewedClusters] = useState<PhotoCluster[]>([]);
   const [vibeString, setVibeString] = useState('');
   const [manifest, setManifest] = useState<StoryManifest | null>(null);
   const [generationStep, setGenerationStep] = useState(0);
@@ -96,7 +99,7 @@ export default function DashboardPage() {
 
     // 90-second timeout ”” Gemini can be slow on large photo sets
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90_000);
+    const timeoutId = setTimeout(() => controller.abort(), 180_000); // 3-pass pipeline: critique + vibeSkin can take ~60s extra
 
     try {
       console.log('[Generate] Starting generation for:', data.names, '| photos:', selectedPhotos.length);
@@ -105,6 +108,7 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           photos: selectedPhotos,
+          clusters: reviewedClusters.length > 0 ? reviewedClusters : undefined,
           vibeString: data.vibeString,
           names: data.names,
         }),
@@ -140,7 +144,7 @@ export default function DashboardPage() {
       clearInterval(stepInterval);
       clearTimeout(timeoutId);
       const msg = err instanceof Error
-        ? (err.name === 'AbortError' ? 'Generation timed out (90s). Please try again.' : err.message)
+        ? (err.name === 'AbortError' ? 'Generation timed out (3 min). Your photo set may be very large — please try again.' : err.message)
         : 'Generation failed. Please try again.';
       console.error('[Generate] Caught error:', msg);
       setError(msg);
@@ -411,7 +415,7 @@ export default function DashboardPage() {
                   {selectedPhotos.length > 0 && (
                     <div style={{ position: 'sticky', bottom: '1rem', marginTop: '2rem' }}>
                       <button
-                        onClick={() => setCurrentStep('vibe')}
+                        onClick={() => setCurrentStep('cluster-review')}
                         style={{
                           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           gap: '0.5rem', padding: '1rem 1.5rem', borderRadius: '0.75rem',
@@ -427,6 +431,28 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
+              {/* CLUSTER REVIEW */}
+
+              {currentStep === 'cluster-review' && (
+
+                <ClusterReview
+
+                  photos={selectedPhotos}
+
+                  onConfirm={(clusters) => {
+
+                    setReviewedClusters(clusters);
+
+                    setCurrentStep('vibe');
+
+                  }}
+
+                  onBack={() => setCurrentStep('photos')}
+
+                />
+
+              )}
+
               {/* â”€â”€ LOCAL UPLOAD â”€â”€ */}
               {currentStep === 'local-upload' && (
                 <div style={{ paddingBottom: '2rem' }}>
@@ -445,7 +471,7 @@ export default function DashboardPage() {
                   <LocalUploader
                     onUploadComplete={(photos) => {
                       setSelectedPhotos(photos);
-                      setCurrentStep('vibe');
+                      setCurrentStep('cluster-review');
                     }}
                   />
                 </div>
