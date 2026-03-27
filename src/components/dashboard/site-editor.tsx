@@ -8,8 +8,9 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, Check, GripVertical, Trash2, Plus, Lock, Unlock, Eye } from 'lucide-react';
+import { Pencil, Check, GripVertical, Trash2, Plus, Lock, Unlock, Eye, LayoutDashboard } from 'lucide-react';
 import type { Chapter, StoryManifest } from '@/types';
+import { BlockEditor } from '@/components/dashboard/block-editor';
 
 interface SiteEditorProps {
   manifest: StoryManifest;
@@ -128,7 +129,7 @@ function ColorPreviewSwatch({ colors }: { colors: Record<string, string> }) {
 
 export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditorProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'chapters' | 'design' | 'details'>('chapters');
+  const [activeTab, setActiveTab] = useState<'builder' | 'chapters' | 'design' | 'details'>('builder');
 
   const updateColor = useCallback((key: keyof typeof manifest.theme.colors, value: string) => {
     onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, [key]: value } } });
@@ -166,7 +167,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
     onChange({ ...manifest, chapters });
   };
 
-  const TAB_STYLE = (active: boolean) => ({
+  const TAB_STYLE = (active: boolean, accent?: boolean) => ({
     padding: '0.6rem 1.25rem',
     borderRadius: '0.5rem',
     fontSize: '0.75rem',
@@ -175,7 +176,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
     textTransform: 'uppercase' as const,
     border: 'none',
     cursor: 'pointer' as const,
-    background: active ? 'var(--eg-fg)' : 'transparent',
+    background: active ? (accent ? 'var(--eg-accent)' : 'var(--eg-fg)') : 'transparent',
     color: active ? '#fff' : 'var(--eg-muted)',
     transition: 'all 0.2s ease',
   });
@@ -190,6 +191,17 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
         border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
       }}>
         <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0,0,0,0.04)', borderRadius: '0.6rem', padding: '0.25rem' }}>
+          {/* Builder gets accent highlight — it's the premium DnD mode */}
+          <button
+            onClick={() => setActiveTab('builder')}
+            style={{
+              ...TAB_STYLE(activeTab === 'builder', true),
+              display: 'flex', alignItems: 'center', gap: '0.35rem',
+            }}
+          >
+            <LayoutDashboard size={13} />
+            Builder ✦
+          </button>
           {(['chapters', 'design', 'details'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={TAB_STYLE(activeTab === tab)}>
               {tab}
@@ -230,8 +242,20 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
         </div>
       </div>
 
-      {/* ── Chapters Tab ── */}
+      {/* ── Builder Tab (DnD Block Editor) ── */}
       <AnimatePresence mode="wait">
+        {activeTab === 'builder' && (
+          <motion.div key="builder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <BlockEditor
+              manifest={manifest}
+              onChange={onChange}
+              onSave={onSave}
+              onPreview={onPreview}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Chapters Tab ── */}
         {activeTab === 'chapters' && (
           <motion.div key="chapters" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

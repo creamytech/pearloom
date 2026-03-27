@@ -102,7 +102,7 @@ export function GenerationProgress({ step = 0 }: GenerationProgressProps) {
       <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', maxWidth: '520px', padding: '0 2rem' }}>
         {/* Pearloom logo mark — animated rings */}
         <motion.div
-          style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 3rem' }}
+          style={{ position: 'relative', width: '80px', height: '100px', margin: '0 auto 3rem' }}
         >
           {[1, 0.6, 0.3].map((opacity, i) => (
             <motion.div
@@ -110,8 +110,9 @@ export function GenerationProgress({ step = 0 }: GenerationProgressProps) {
               animate={{ rotate: i % 2 === 0 ? [0, 360] : [360, 0], scale: [1, 1.05, 1] }}
               transition={{ duration: 5 + i * 2, repeat: Infinity, ease: 'linear' }}
               style={{
-                position: 'absolute', inset: `${i * 12}px`,
-                borderRadius: '50%',
+                position: 'absolute', inset: `${i * 10}px`,
+                // Pear shape: rounder at bottom, narrower at top
+                borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
                 border: `1.5px solid color-mix(in srgb, var(--eg-accent) ${Math.round(opacity * 80)}%, transparent)`,
               }}
             />
@@ -120,7 +121,9 @@ export function GenerationProgress({ step = 0 }: GenerationProgressProps) {
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <div style={{
-              width: '24px', height: '24px', borderRadius: '50%',
+              width: '22px', height: '28px',
+              // Pear orb core
+              borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
               background: 'var(--eg-accent)', opacity: 0.85,
             }} />
           </div>
