@@ -11,8 +11,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe, LayoutDashboard, Users } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LocalUploader } from '@/components/dashboard/local-uploader';
+import dynamic from 'next/dynamic';
 import { VibeInput } from '@/components/dashboard/vibe-input';
-import { SiteEditor } from '@/components/dashboard/site-editor';
 import { GuestManager } from '@/components/dashboard/guest-manager';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
@@ -20,6 +20,12 @@ import { LandingPage } from '@/components/landing-page';
 import { GenerationProgress } from '@/components/dashboard/generation-progress';
 import { UserSites } from '@/components/dashboard/user-sites';
 import type { GooglePhotoMetadata, StoryManifest } from '@/types';
+
+// Full-screen editor — SSR disabled (uses browser APIs + framer Reorder)
+const FullscreenEditor = dynamic(
+  () => import('@/components/editor/FullscreenEditor').then(m => m.FullscreenEditor),
+  { ssr: false }
+);
 
 type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
 
@@ -176,6 +182,23 @@ export default function DashboardPage() {
   };
 
   const meta = STEP_META[currentStep];
+
+  // ── Full-screen editor takes over the entire viewport ──
+  if (currentStep === 'edit' && manifest) {
+    return (
+      <FullscreenEditor
+        manifest={manifest}
+        coupleNames={coupleNames}
+        onChange={setManifest}
+        onPublish={() => {
+          setPublishError(null);
+          setPublishedUrl(null);
+          setShowPublishModal(true);
+        }}
+        onExit={() => setCurrentStep('dashboard')}
+      />
+    );
+  }
 
   return (
     <ThemeProvider theme={{
@@ -459,26 +482,7 @@ export default function DashboardPage() {
                 <GenerationProgress step={generationStep} />
               )}
 
-              {/* ── EDIT ── */}
-              {currentStep === 'edit' && manifest && (
-                <SiteEditor
-                  manifest={manifest}
-                  onChange={handleManifestChange}
-                  onPreview={() => {
-                    // Store via sessionStorage to avoid URL length limits (#3)
-                    const key = `preview-${Date.now()}`;
-                    sessionStorage.setItem(key, JSON.stringify({ manifest, names: coupleNames }));
-                    window.open(`/preview?key=${key}`, '_blank');
-                  }}
-                  onSave={() => {
-                    // Open the publish modal — shows the pre-filled random URL
-                    console.log('[Editor] Publish clicked — current subdomain:', subdomain);
-                    setPublishError(null);
-                    setPublishedUrl(null);
-                    setShowPublishModal(true);
-                  }}
-                />
-              )}
+              {/* ── EDIT \u2014 handled by FullscreenEditor (early return above) ── */}
 
               {/* ── GUESTS ── */}
               {currentStep === 'guests' && subdomain && (
