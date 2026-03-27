@@ -5,7 +5,8 @@
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
-import { generateVibeSkin } from '@/lib/vibe-engine';
+import { generateVibeSkin, WAVE_PATHS } from '@/lib/vibe-engine';
+import type { VibeSkin } from '@/lib/vibe-engine';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
@@ -245,117 +246,155 @@ export async function generateStoryManifest(
     .sort((a: Chapter, b: Chapter) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((ch: Chapter, i: number) => ({ ...ch, order: i }));
 
-  // ── Pass 2: Gemini self-critique + refinement ─────────────────────
-  // A second Gemini call reviews the output and patches weak chapters
-  // before the user ever sees the result.
-  try {
-    manifest = await critiqueAndRefineManifest(manifest, apiKey);
-
-  } catch (err) {
-    console.warn('[Memory Engine] Critique pass failed (non-fatal), using original:', err);
-  }
-
-  // ── Pass 3: Bake vibeSkin into manifest ───────────────────────────
-  // Generate all custom SVG art and visual skin in-process so it's
-  // ready on first render (no separate API call from the client).
+  // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
+  // Bake the full visual skin in-process before critique.
   try {
     const vibeSkin = await generateVibeSkin(manifest.vibeString, coupleNames, apiKey);
     manifest.vibeSkin = vibeSkin;
-    console.log('[Memory Engine] VibeSkin generated and baked into manifest');
+    console.log('[Memory Engine] Pass 2: VibeSkin generated');
   } catch (err) {
     console.warn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
   }
 
+  // ── Pass 3: Design critique & iterative refinement ───────────────────
+  // Gemini reviews its own visual design for thematic specificity.
+  // Colors, SVG art, section labels, icons — all scored and patched
+  // if too generic before the user ever sees the result.
+  if (manifest.vibeSkin) {
+    try {
+      manifest.vibeSkin = await critiqueAndRefineDesign(
+        manifest.vibeSkin, manifest.vibeString, coupleNames, apiKey
+      );
+      console.log('[Memory Engine] Pass 3: Design critique complete');
+    } catch (err) {
+      console.warn('[Memory Engine] Design critique pass failed (non-fatal):', err);
+    }
+  }
   return manifest;
 }
 
-// ── Self-critique & refinement pass ───────────────────────────────────────────
-// Gemini reviews its own output and patches weak chapters/titles.
-async function critiqueAndRefineManifest(
-  manifest: StoryManifest,
+// ── Design critique & iterative refinement pass ───────────────────────
+// Gemini reviews the VibeSkin it just generated and asks:
+//   "Is this design truly specific to this couple's world,
+//    or could it belong to any wedding site?"
+// Scores each dimension 1-10 and patches any below 7.
+async function critiqueAndRefineDesign(
+  skin: VibeSkin,
+  vibeString: string,
+  coupleNames: [string, string] | undefined,
   apiKey: string
-): Promise<StoryManifest> {
-  const chapterSummary = (manifest.chapters || []).map((ch, i) => ({
-    index: i, id: ch.id, title: ch.title, subtitle: ch.subtitle, description: ch.description, mood: ch.mood,
-  }));
+): Promise<VibeSkin> {
 
-  const critiquePrompt = `You are a senior editorial director reviewing a wedding website story draft.
+  const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
 
-Couple's vibe: "${manifest.vibeString}"
-Theme name: ${manifest.theme?.name}
+  const critiquePrompt = `You are a senior art director and brand strategist reviewing an AI-generated wedding website design for ${namesCtx}.
 
-Here are the chapter drafts:
-${JSON.stringify(chapterSummary, null, 2)}
+Their vibe: "${vibeString}"
 
-Your task: Identify chapters with WEAK titles, descriptions, or subtitles and return ONLY the ones that need improvement.
+Current design spec:
+- Visual tone: ${skin.tone}
+- Curve/shape language: ${skin.curve}
+- Color accent: ${skin.particleColor}
+- Primary motif: ${skin.accentSymbol}
+- Decorative icons: ${skin.decorIcons.join(' ')}
+- Divider quote: "${skin.dividerQuote}"
+- Section labels: ${JSON.stringify(skin.sectionLabels, null, 2)}
+- Custom SVG art generated: ${[skin.heroPatternSvg, skin.sectionBorderSvg, skin.medallionSvg].filter(Boolean).length}/3 pieces
 
-Quality standards:
-- Titles must be specific, evocative, memoir-like — NOT generic ("Our Beautiful Day" = bad)
-- Descriptions must have sensory detail and feel written by the couple themselves
-- Subtitles must feel like a line from a song or poem, NOT a description
-- Mood tags should be specific two-word combinations, not just "romantic" or "happy"
+Your job: Score each of these dimensions 1-10 for how SPECIFIC and UNIQUE they feel to "${vibeString}" (vs. being generic wedding defaults):
+1. particleColor — does this hex feel emotionally tied to their specific vibe world?
+2. decorIcons — are these icons thematically tied to their world (not just generic hearts/stars)?  
+3. dividerQuote — does this quote feel written FOR them specifically (not a cliche)?
+4. sectionLabels — do these feel like a letter written to this couple, not just relabeled defaults?
+5. tone — is this the right emotional register for their specific vibe?
 
-Return JSON:
+If ALL score 7+, return: { "approved": true }
+
+If ANY score below 7, return ONLY the fields that need improvement:
 {
-  "patches": [
-    {
-      "id": "<chapter id>",
-      "title": "<improved title if needed, else omit>",
-      "subtitle": "<improved subtitle if needed, else omit>",
-      "description": "<improved description if needed, else omit>",
-      "mood": "<improved mood if needed, else omit>"
+  "approved": false,
+  "reason": "<single sentence: what's the weakest point>",
+  "improvements": {
+    "particleColor": "<more evocative hex if needed>",
+    "accentSymbol": "<more thematically specific symbol if needed>",
+    "decorIcons": ["<5 icons tightly tied to their specific vibe world>"],
+    "dividerQuote": "<original quote that could only be for THIS couple — intimate, specific, under 14 words>",
+    "tone": "<corrected tone if needed — dreamy|playful|luxurious|wild|intimate|cosmic|rustic>",
+    "curve": "<corrected curve if needed — organic|arch|geometric|wave|petal>",
+    "sectionLabels": {
+      "story": "<poetic label that fits their vibe>",
+      "events": "<label>",
+      "registry": "<label>",
+      "travel": "<label>",
+      "faqs": "<label>",
+      "rsvp": "<personal invitation in their voice>"
     }
-  ]
+  }
 }
 
-Only return patches for chapters that genuinely need improvement. Return empty patches array if everything is already strong. Return ONLY JSON.`;
+Return ONLY valid JSON. No markdown. No backticks.`;
 
-  const res = await geminiRetryFetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: critiquePrompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.6,
-        maxOutputTokens: 4096,
-      },
-    }),
-  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: critiquePrompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.75,
+          maxOutputTokens: 2048,
+        },
+      }),
+    }
+  );
 
-  if (!res.ok) throw new Error(`Critique pass API error: ${res.status}`);
+  if (!res.ok) throw new Error(`Design critique API \${res.status}`);
 
   const data = await res.json();
-  let raw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim();
-  raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
-  raw = raw.replace(/,\s*([}\]])/g, '$1');
+  let raw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim()
+    .replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+    .replace(/,\s*([}\]])/g, '$1');
 
-  const { patches } = JSON.parse(raw) as { patches: Array<{ id: string; title?: string; subtitle?: string; description?: string; mood?: string }> };
+  const result = JSON.parse(raw) as {
+    approved?: boolean;
+    reason?: string;
+    improvements?: Partial<VibeSkin & { sectionLabels: VibeSkin['sectionLabels'] }>;
+  };
 
-  if (!patches?.length) {
-    console.log('[Memory Engine] Critique pass: all chapters passed quality review');
-    return manifest;
+  if (result.approved) {
+    console.log('[Design Critique] Design approved — thematically specific, no changes needed');
+    return skin;
   }
 
-  console.log(`[Memory Engine] Critique pass: patching ${patches.length} chapter(s)`);
+  const imp = result.improvements ?? {};
+  console.log(`[Design Critique] Refining design: \${result.reason || 'generic elements detected'}`);
 
-  const patchMap = new Map(patches.map(p => [p.id, p]));
+  const VALID_CURVES: VibeSkin['curve'][] = ['organic', 'arch', 'geometric', 'wave', 'petal'];
+  const VALID_TONES: VibeSkin['tone'][] = ['dreamy', 'playful', 'luxurious', 'wild', 'intimate', 'cosmic', 'rustic'];
+
+  const curve: VibeSkin['curve'] = (imp.curve && VALID_CURVES.includes(imp.curve as VibeSkin['curve']))
+    ? imp.curve as VibeSkin['curve'] : skin.curve;
+  const waveDef = WAVE_PATHS[curve];
+
   return {
-    ...manifest,
-    chapters: manifest.chapters.map(ch => {
-      const patch = patchMap.get(ch.id);
-      if (!patch) return ch;
-      return {
-        ...ch,
-        ...(patch.title ? { title: patch.title } : {}),
-        ...(patch.subtitle ? { subtitle: patch.subtitle } : {}),
-        ...(patch.description ? { description: patch.description } : {}),
-        ...(patch.mood ? { mood: patch.mood } : {}),
-      };
-    }),
+    ...skin,
+    curve,
+    wavePath: waveDef.d,
+    wavePathInverted: waveDef.di,
+    ...(imp.tone && VALID_TONES.includes(imp.tone as VibeSkin['tone']) ? { tone: imp.tone as VibeSkin['tone'] } : {}),
+    ...(imp.particle ? { particle: imp.particle } : {}),
+    ...(imp.particleColor ? { particleColor: imp.particleColor } : {}),
+    ...(imp.accentSymbol ? { accentSymbol: imp.accentSymbol } : {}),
+    ...(Array.isArray(imp.decorIcons) && imp.decorIcons.length >= 3
+      ? { decorIcons: imp.decorIcons.slice(0, 5) } : {}),
+    ...(imp.dividerQuote ? { dividerQuote: imp.dividerQuote } : {}),
+    ...(imp.sectionLabels ? {
+      sectionLabels: { ...skin.sectionLabels, ...imp.sectionLabels }
+    } : {}),
   };
 }
-
 
 /**
  * Matches AI-generated chapters back to their source photo clusters
