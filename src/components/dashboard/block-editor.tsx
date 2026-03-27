@@ -2,39 +2,23 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/dashboard/block-editor.tsx
-// Site Block Editor — NO dnd-kit (removed: crashed Vercel with n-is-not-a-function)
-// Uses up/down arrow reordering instead. All other features preserved.
+// Production-grade Block Editor — real DnD via @dnd-kit/sortable
+// This file is ALWAYS loaded via dynamic({ ssr: false }) so
+// all browser-only dnd-kit APIs are safe here.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useRef } from 'react';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import {
   GripVertical, Plus, Trash2, Pencil, Sparkles, Loader2,
   LayoutTemplate, Image, HelpCircle, Map, Gift, Calendar, Check,
-  Wand2, ChevronRight, Eye, RotateCcw, ChevronUp, ChevronDown,
+  Wand2, Eye, RotateCcw, ChevronDown, ChevronUp, Globe,
+  MapPin, Tag, Layout,
 } from 'lucide-react';
 import type { Chapter, StoryManifest, FaqItem, WeddingEvent } from '@/types';
 
-const PEAR_RADIUS = '38% 38% 50% 50% / 28% 28% 50% 50%';
-const PEAR_RADIUS_CARD = '1rem 1rem 1.75rem 1.75rem';
-
+// ── Types ──────────────────────────────────────────────────────
 type BlockType = 'chapter' | 'faq' | 'registry' | 'travel' | 'events' | 'coming-soon';
-
-interface PaletteBlock {
-  type: BlockType;
-  label: string;
-  description: string;
-  icon: React.ElementType;
-  color: string;
-}
-
-const PALETTE_BLOCKS: PaletteBlock[] = [
-  { type: 'chapter', label: 'Story Chapter', description: 'A narrative moment with photos + text', icon: Image, color: '#f0f4ff' },
-  { type: 'faq', label: 'FAQ', description: 'Questions your guests are asking', icon: HelpCircle, color: '#f0fdf4' },
-  { type: 'events', label: 'Wedding Event', description: 'Ceremony, reception, rehearsal dinner', icon: Calendar, color: '#fff7f0' },
-  { type: 'registry', label: 'Registry', description: 'Gift registry links and cash fund', icon: Gift, color: '#fdf4ff' },
-  { type: 'travel', label: 'Travel & Hotel', description: 'Hotel blocks and airport info for guests', icon: Map, color: '#f0faff' },
-];
 
 interface CanvasBlock {
   id: string;
@@ -43,284 +27,437 @@ interface CanvasBlock {
   label: string;
 }
 
-function getBlockPreview(block: CanvasBlock): string {
-  if (block.type === 'chapter') return (block.data as Chapter).title || 'Untitled Chapter';
-  if (block.type === 'faq') return (block.data as FaqItem).question || 'FAQ';
-  if (block.type === 'events') return (block.data as WeddingEvent).name || 'Event';
-  if (block.type === 'registry') return 'Registry Section';
-  if (block.type === 'travel') return 'Travel & Hotels';
-  return block.label;
+interface BlockEditorProps {
+  manifest: StoryManifest;
+  onChange: (manifest: StoryManifest) => void;
+  onSave?: () => void;
+  onPreview?: () => void;
 }
 
-function getBlockColor(type: BlockType): string {
-  return PALETTE_BLOCKS.find(b => b.type === type)?.color || '#f9f5f0';
+// ── Constants ──────────────────────────────────────────────────
+const BLOCK_CONFIG: Record<BlockType, { label: string; color: string; gradient: string; icon: React.ElementType }> = {
+  chapter: { label: 'Chapter', color: '#f0f4ff', gradient: 'linear-gradient(135deg, #667eea22, #764ba222)', icon: Image },
+  faq:     { label: 'FAQ',     color: '#f0fdf4', gradient: 'linear-gradient(135deg, #11998e22, #38ef7d22)', icon: HelpCircle },
+  events:  { label: 'Event',   color: '#fff7f0', gradient: 'linear-gradient(135deg, #f09a2222, #fc4a1a22)', icon: Calendar },
+  registry:{ label: 'Registry',color: '#fdf4ff', gradient: 'linear-gradient(135deg, #a18cd122, #fbc2eb22)', icon: Gift },
+  travel:  { label: 'Travel',  color: '#f0faff', gradient: 'linear-gradient(135deg, #4facfe22, #00f2fe22)', icon: Map },
+  'coming-soon': { label: 'Coming Soon', color: '#fffbf0', gradient: 'linear-gradient(135deg, #f6d36522, #fda08522)', icon: Globe },
+};
+
+const LAYOUT_LABELS: Record<string, string> = {
+  editorial: 'Editorial', fullbleed: 'Full Bleed', split: 'Split',
+  cinematic: 'Cinematic', gallery: 'Gallery', mosaic: 'Mosaic',
+};
+
+// ── Helpers ────────────────────────────────────────────────────
+function chaptersToBlocks(manifest: StoryManifest): CanvasBlock[] {
+  return (manifest.chapters || [])
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map(ch => ({ id: ch.id, type: 'chapter' as BlockType, label: ch.title, data: ch }));
 }
 
-function getBlockIcon(type: BlockType): React.ElementType {
-  return PALETTE_BLOCKS.find(b => b.type === type)?.icon || LayoutTemplate;
+function blocksToManifest(blocks: CanvasBlock[], manifest: StoryManifest): StoryManifest {
+  const chapters = blocks
+    .filter(b => b.type === 'chapter')
+    .map((b, i) => ({ ...(b.data as Chapter), order: i }));
+  return { ...manifest, chapters };
 }
 
-// ── Block card (no dnd — uses up/down arrows) ──
-interface BlockCardProps {
+function getThumbUrl(chapter: Chapter): string | null {
+  const img = chapter.images?.[0];
+  if (!img?.url) return null;
+  return img.url;
+}
+
+// ── DragHandle ─────────────────────────────────────────────────
+function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls> }) {
+  return (
+    <div
+      onPointerDown={e => { e.preventDefault(); controls.start(e); }}
+      style={{
+        cursor: 'grab', padding: '0.5rem 0.25rem', display: 'flex',
+        alignItems: 'center', color: 'rgba(0,0,0,0.2)',
+        touchAction: 'none', userSelect: 'none', flexShrink: 0,
+        transition: 'color 0.15s',
+      }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)'; }}
+      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(0,0,0,0.2)'; }}
+    >
+      <GripVertical size={18} />
+    </div>
+  );
+}
+
+// ── ChapterCard (inline editor) ────────────────────────────────
+interface ChapterCardProps {
   block: CanvasBlock;
   index: number;
   total: number;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onMoveUp: (index: number) => void;
-  onMoveDown: (index: number) => void;
-  isEditing: boolean;
   manifest: StoryManifest;
+  isEditing: boolean;
+  isRewriting: boolean;
+  onToggleEdit: (id: string) => void;
+  onDelete: (id: string) => void;
   onUpdate: (id: string, data: Partial<Chapter>) => void;
   onAIRewrite: (id: string) => void;
-  isRewriting?: boolean;
 }
 
-function BlockCard({
-  block, index, total, onEdit, onDelete, onMoveUp, onMoveDown,
-  isEditing, manifest, onUpdate, onAIRewrite, isRewriting,
-}: BlockCardProps) {
-  const colorBg = getBlockColor(block.type);
-  const preview = getBlockPreview(block);
-  const IconComp = getBlockIcon(block.type);
+function ChapterCard({
+  block, index, total, manifest, isEditing, isRewriting,
+  onToggleEdit, onDelete, onUpdate, onAIRewrite,
+}: ChapterCardProps) {
+  const controls = useDragControls();
+  const chapter = block.data as Chapter;
+  const thumb = getThumbUrl(chapter);
+  const cfg = BLOCK_CONFIG[block.type];
+  const BlockIcon = cfg.icon;
 
   return (
-    <motion.div
+    <Reorder.Item
+      value={block}
+      id={block.id}
+      dragListener={false}
+      dragControls={controls}
+      as="div"
+      style={{ listStyle: 'none' }}
+      whileDrag={{
+        scale: 1.02,
+        boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+        zIndex: 50,
+        cursor: 'grabbing',
+      }}
       layout
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      style={{
-        background: '#fff',
-        borderRadius: PEAR_RADIUS_CARD,
-        border: '1px solid rgba(0,0,0,0.06)',
-        overflow: 'hidden',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
-        marginBottom: '0.75rem',
-      }}
+      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Block header row */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem',
-        padding: '1rem 1.25rem',
-        borderBottom: isEditing ? '1px solid rgba(0,0,0,0.06)' : 'none',
+        background: '#fff',
+        borderRadius: '1rem',
+        border: isEditing ? '2px solid var(--eg-accent)' : '1.5px solid rgba(0,0,0,0.06)',
+        overflow: 'hidden',
+        boxShadow: isEditing
+          ? '0 8px 30px rgba(184,146,106,0.16)'
+          : '0 2px 12px rgba(0,0,0,0.04)',
+        marginBottom: '0.75rem',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
       }}>
-
-        {/* Up/Down reorder arrows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
-          <button
-            onClick={() => onMoveUp(index)}
-            disabled={index === 0}
-            style={{
-              padding: '2px', border: 'none', background: 'none',
-              cursor: index === 0 ? 'default' : 'pointer',
-              color: index === 0 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.4)',
-              display: 'flex', transition: 'color 0.15s',
-            }}
-            onMouseOver={e => { if (index !== 0) (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = index === 0 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.4)'; }}
-          >
-            <ChevronUp size={14} />
-          </button>
-          <button
-            onClick={() => onMoveDown(index)}
-            disabled={index === total - 1}
-            style={{
-              padding: '2px', border: 'none', background: 'none',
-              cursor: index === total - 1 ? 'default' : 'pointer',
-              color: index === total - 1 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.4)',
-              display: 'flex', transition: 'color 0.15s',
-            }}
-            onMouseOver={e => { if (index !== total - 1) (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = index === total - 1 ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.4)'; }}
-          >
-            <ChevronDown size={14} />
-          </button>
-        </div>
-
-        {/* Grip visual (decorative only) */}
-        <GripVertical size={16} color="rgba(0,0,0,0.15)" />
-
-        {/* Icon badge */}
+        {/* ── Card Header ── */}
         <div style={{
-          width: '34px', height: '34px', borderRadius: '0.5rem',
-          background: colorBg, display: 'flex', alignItems: 'center',
-          justifyContent: 'center', flexShrink: 0,
+          display: 'flex', alignItems: 'stretch',
+          gap: 0, minHeight: '80px',
         }}>
-          <IconComp size={16} color="var(--eg-accent)" />
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.2rem' }}>
-            {block.type}
-          </div>
+          {/* Drag handle strip */}
           <div style={{
-            fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)',
-            fontFamily: block.type === 'chapter' ? `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif` : 'inherit',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            display: 'flex', alignItems: 'center', padding: '0 0.5rem',
+            background: 'rgba(0,0,0,0.015)',
+            borderRight: '1.5px solid rgba(0,0,0,0.04)',
           }}>
-            {preview}
+            <DragHandle controls={controls} />
+          </div>
+
+          {/* Thumbnail */}
+          <div style={{
+            width: '72px', flexShrink: 0,
+            background: thumb ? 'transparent' : cfg.color,
+            position: 'relative', overflow: 'hidden',
+          }}>
+            {thumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={thumb} alt={chapter.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{
+                width: '100%', height: '100%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: cfg.gradient,
+              }}>
+                <BlockIcon size={22} color="var(--eg-accent)" />
+              </div>
+            )}
+            {/* Index badge */}
+            <div style={{
+              position: 'absolute', top: '6px', left: '6px',
+              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+              color: '#fff', fontSize: '0.6rem', fontWeight: 800,
+              padding: '2px 6px', borderRadius: '100px', letterSpacing: '0.06em',
+            }}>
+              {index + 1}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div style={{ flex: 1, padding: '0.875rem 1rem', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
+              {/* Block type badge */}
+              <span style={{
+                fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.18em',
+                textTransform: 'uppercase', color: 'var(--eg-accent)',
+                background: 'var(--eg-accent-light)', padding: '2px 7px',
+                borderRadius: '100px',
+              }}>
+                {cfg.label}
+              </span>
+              {/* Layout badge */}
+              {chapter.layout && (
+                <span style={{
+                  fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)',
+                  background: 'rgba(0,0,0,0.05)', padding: '2px 7px',
+                  borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '3px',
+                }}>
+                  <Layout size={9} />
+                  {LAYOUT_LABELS[chapter.layout] || chapter.layout}
+                </span>
+              )}
+              {/* Mood tag */}
+              {chapter.mood && (
+                <span style={{
+                  fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.08em',
+                  color: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '3px',
+                }}>
+                  <Tag size={9} /> {chapter.mood}
+                </span>
+              )}
+            </div>
+
+            {/* Title */}
+            <div style={{
+              fontSize: '1rem', fontWeight: 700,
+              fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`,
+              color: 'var(--eg-fg)', lineHeight: 1.3,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {chapter.title || 'Untitled Chapter'}
+            </div>
+
+            {/* Subtitle */}
+            {chapter.subtitle && (
+              <div style={{
+                fontSize: '0.78rem', color: 'var(--eg-muted)', fontStyle: 'italic',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                marginTop: '0.15rem',
+              }}>
+                {chapter.subtitle}
+              </div>
+            )}
+
+            {/* Location + date row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.4rem' }}>
+              {chapter.location?.label && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.7rem', color: 'rgba(0,0,0,0.35)' }}>
+                  <MapPin size={10} /> {chapter.location.label}
+                </span>
+              )}
+              {chapter.date && (
+                <span style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.3)' }}>
+                  {new Date(chapter.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </span>
+              )}
+              {chapter.images && chapter.images.length > 0 && (
+                <span style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <Image size={10} /> {chapter.images.length} photo{chapter.images.length !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', gap: '0.35rem', padding: '0.75rem 0.875rem',
+            borderLeft: '1.5px solid rgba(0,0,0,0.04)',
+            background: 'rgba(0,0,0,0.01)',
+            flexShrink: 0,
+          }}>
+            {/* AI rewrite */}
+            <button
+              onClick={() => onAIRewrite(block.id)}
+              disabled={isRewriting}
+              title="Rewrite with AI"
+              style={{
+                padding: '0.45rem', borderRadius: '0.5rem', border: '1px solid rgba(0,0,0,0.08)',
+                background: isRewriting ? 'var(--eg-accent-light)' : 'transparent',
+                color: isRewriting ? 'var(--eg-accent)' : 'rgba(0,0,0,0.35)',
+                cursor: isRewriting ? 'not-allowed' : 'pointer',
+                display: 'flex', transition: 'all 0.15s',
+              }}
+              onMouseOver={e => { if (!isRewriting) { (e.currentTarget as HTMLElement).style.background = 'var(--eg-accent-light)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--eg-accent)'; }}}
+              onMouseOut={e => { if (!isRewriting) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(0,0,0,0.35)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}}
+            >
+              {isRewriting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
+            </button>
+
+            {/* Edit */}
+            <button
+              onClick={() => onToggleEdit(block.id)}
+              style={{
+                padding: '0.45rem 0.7rem', borderRadius: '0.5rem', fontSize: '0.72rem',
+                border: `1px solid ${isEditing ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
+                background: isEditing ? 'var(--eg-accent)' : 'transparent',
+                color: isEditing ? '#fff' : 'rgba(0,0,0,0.5)',
+                cursor: 'pointer', fontWeight: 700,
+                display: 'flex', alignItems: 'center', gap: '4px',
+                transition: 'all 0.15s',
+              }}
+            >
+              {isEditing ? <><Check size={12} /> Done</> : <><Pencil size={12} /> Edit</>}
+            </button>
+
+            {/* Delete */}
+            <button
+              onClick={() => onDelete(block.id)}
+              style={{
+                padding: '0.45rem', borderRadius: '0.5rem',
+                border: '1px solid rgba(239,68,68,0.15)', background: 'transparent',
+                color: 'rgba(239,68,68,0.45)', cursor: 'pointer', display: 'flex',
+                transition: 'all 0.15s',
+              }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#fef2f2'; (e.currentTarget as HTMLElement).style.color = '#ef4444'; (e.currentTarget as HTMLElement).style.borderColor = '#ef4444'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(239,68,68,0.45)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.15)'; }}
+            >
+              <Trash2 size={14} />
+            </button>
           </div>
         </div>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-          {block.type === 'chapter' && (
-            <>
-              <button
-                onClick={() => onAIRewrite(block.id)}
-                disabled={isRewriting}
-                title="Rewrite with AI"
-                style={{
-                  padding: '0.4rem', borderRadius: '0.5rem',
-                  border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
-                  color: isRewriting ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                  cursor: isRewriting ? 'not-allowed' : 'pointer', display: 'flex',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <Sparkles size={14} />
-              </button>
-              <button
-                onClick={() => onEdit(block.id)}
-                style={{
-                  padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.75rem',
-                  border: `1px solid ${isEditing ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
-                  background: isEditing ? 'var(--eg-accent)' : 'transparent',
-                  color: isEditing ? '#fff' : 'var(--eg-muted)',
-                  cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem',
-                }}
-              >
-                {isEditing ? <Check size={12} /> : <Pencil size={12} />}
-                {isEditing ? 'Done' : 'Edit'}
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => onDelete(block.id)}
-            style={{
-              padding: '0.4rem', borderRadius: '0.5rem',
-              border: '1px solid rgba(239,68,68,0.2)', background: 'transparent',
-              color: 'rgba(239,68,68,0.6)', cursor: 'pointer', display: 'flex',
-            }}
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      </div>
-
-      {/* Inline chapter quick-editor */}
-      <AnimatePresence>
-        {isEditing && block.type === 'chapter' && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ padding: '1.25rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}
-          >
-            {[
-              { key: 'title' as const, label: 'Chapter Title', ph: 'The First Hello' },
-              { key: 'subtitle' as const, label: 'Subtitle', ph: 'In a quiet coffee shop...' },
-            ].map(f => (
-              <div key={f.key}>
-                <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>{f.label}</label>
-                <input
-                  value={(block.data as Chapter)[f.key] as string}
-                  placeholder={f.ph}
-                  onChange={e => onUpdate(block.id, { [f.key]: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: '0.5rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.9rem', boxSizing: 'border-box' }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
-                />
+        {/* ── Inline Chapter Editor ── */}
+        <AnimatePresence>
+          {isEditing && (
+            <motion.div
+              key="editor"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{
+                padding: '1.25rem 1.25rem 1.5rem',
+                borderTop: '1.5px solid rgba(184,146,106,0.15)',
+                background: 'linear-gradient(to bottom, rgba(184,146,106,0.03), transparent)',
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem',
+              }}>
+                {/* Title */}
+                <div>
+                  <label style={labelStyle}>Title</label>
+                  <input
+                    value={chapter.title || ''}
+                    onChange={e => onUpdate(block.id, { title: e.target.value })}
+                    style={inputStyle}
+                    placeholder="The Rooftop, Brooklyn"
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                </div>
+                {/* Subtitle */}
+                <div>
+                  <label style={labelStyle}>Subtitle</label>
+                  <input
+                    value={chapter.subtitle || ''}
+                    onChange={e => onUpdate(block.id, { subtitle: e.target.value })}
+                    style={inputStyle}
+                    placeholder="in all the best ways"
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                </div>
+                {/* Description */}
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={labelStyle}>Story</label>
+                  <textarea
+                    value={chapter.description || ''}
+                    onChange={e => onUpdate(block.id, { description: e.target.value })}
+                    rows={4}
+                    style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.65 }}
+                    placeholder="Write your memory here..."
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                </div>
+                {/* Mood + Layout */}
+                <div>
+                  <label style={labelStyle}>Mood Tag</label>
+                  <input
+                    value={chapter.mood || ''}
+                    onChange={e => onUpdate(block.id, { mood: e.target.value })}
+                    style={inputStyle}
+                    placeholder="golden hour"
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Layout</label>
+                  <select
+                    value={chapter.layout || 'editorial'}
+                    onChange={e => onUpdate(block.id, { layout: e.target.value as Chapter['layout'] })}
+                    style={{
+                      ...inputStyle, cursor: 'pointer',
+                      appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center',
+                    }}
+                  >
+                    {Object.entries(LAYOUT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
               </div>
-            ))}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>Story</label>
-              <textarea
-                value={(block.data as Chapter).description}
-                placeholder="Write your memory..."
-                onChange={e => onUpdate(block.id, { description: e.target.value })}
-                rows={3}
-                style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: '0.5rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.9rem', boxSizing: 'border-box', resize: 'vertical' }}
-                onFocus={e => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
-                onBlur={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </Reorder.Item>
   );
 }
 
-// ── Palette item ──
-function PaletteItem({ block, onAdd }: { block: PaletteBlock; onAdd: (type: BlockType) => void }) {
-  const BlockIcon = block.icon;
-  return (
-    <motion.button
-      whileHover={{ scale: 1.02, x: 4 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={() => onAdd(block.type)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem',
-        width: '100%', padding: '0.85rem 1rem', borderRadius: '0.7rem',
-        background: block.color, border: '1px solid rgba(0,0,0,0.05)',
-        cursor: 'pointer', textAlign: 'left', marginBottom: '0.5rem',
-      }}
-      onMouseOver={e => (e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)')}
-      onMouseOut={e => (e.currentTarget.style.boxShadow = 'none')}
-    >
-      <div style={{ width: '32px', height: '32px', borderRadius: '0.45rem', background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <BlockIcon size={16} color="var(--eg-accent)" />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--eg-fg)', marginBottom: '0.15rem' }}>{block.label}</div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{block.description}</div>
-      </div>
-      <ChevronRight size={14} color="rgba(0,0,0,0.2)" />
-    </motion.button>
-  );
-}
+// ── Shared field styles ────────────────────────────────────────
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontSize: '0.65rem', fontWeight: 800,
+  letterSpacing: '0.14em', textTransform: 'uppercase',
+  color: 'var(--eg-muted)', marginBottom: '0.5rem',
+};
 
-// ── AI Block Generator ──
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '0.7rem 0.9rem', borderRadius: '0.6rem',
+  border: '1.5px solid rgba(0,0,0,0.1)', outline: 'none',
+  fontSize: '0.88rem', background: '#faf9f6', fontFamily: 'inherit',
+  transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
+  color: 'var(--eg-fg)',
+};
+
+// ── AI Block Generator ────────────────────────────────────────
 function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: CanvasBlock) => void; manifest: StoryManifest }) {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isOpen, setIsOpen] = useState(true);
 
   const generate = async () => {
     if (!prompt.trim()) return;
-    setLoading(true);
-    setError('');
+    setLoading(true); setError('');
     try {
       const res = await fetch('/api/generate-block', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, manifest }),
       });
       const data = await res.json();
       if (data.block) {
         const id = `ai-${Date.now()}`;
         onGenerated({
-          id,
-          type: 'chapter',
-          label: data.block.title || 'AI Chapter',
+          id, type: 'chapter', label: data.block.title || 'AI Chapter',
           data: {
-            id,
-            date: data.block.date || new Date().toISOString().slice(0, 10),
-            title: data.block.title || 'New Chapter',
-            subtitle: data.block.subtitle || '',
-            description: data.block.description || '',
-            images: [],
-            location: null,
-            mood: data.block.mood || 'romantic',
-            order: 0,
+            id, date: data.block.date || new Date().toISOString().slice(0, 10),
+            title: data.block.title || 'New Chapter', subtitle: data.block.subtitle || '',
+            description: data.block.description || '', images: [],
+            location: null, mood: data.block.mood || 'romantic', order: 0,
           },
         });
         setPrompt('');
       } else {
-        setError('Could not generate block. Try again.');
+        setError('Could not generate. Try again.');
       }
     } catch {
       setError('Generation failed. Check your connection.');
@@ -331,105 +468,135 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #1a1a1a 0%, #2a1a0a 100%)',
-      borderRadius: PEAR_RADIUS, padding: '1.5rem 1.25rem 1.25rem',
-      border: '1px solid rgba(255,255,255,0.05)',
-      position: 'relative', overflow: 'hidden',
+      borderRadius: '1rem', overflow: 'hidden',
+      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'linear-gradient(145deg, #1c1410 0%, #251a10 100%)',
     }}>
-      <div style={{
-        position: 'absolute', top: '-20px', right: '-20px',
-        width: '80px', height: '80px', opacity: 0.06,
-        background: 'var(--eg-accent)', borderRadius: PEAR_RADIUS,
-        pointerEvents: 'none',
-      }} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-        <Wand2 size={16} color="var(--eg-accent)" />
-        <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
-          AI Block Generator
-        </span>
-      </div>
-      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginBottom: '1rem', lineHeight: 1.5 }}>
-        Describe a section and AI will write it instantly.
-      </p>
-      <textarea
-        value={prompt}
-        onChange={e => setPrompt(e.target.value)}
-        placeholder='e.g. "Write about our first trip to Paris"'
-        rows={3}
-        style={{
-          width: '100%', padding: '0.75rem', borderRadius: '0.5rem',
-          border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)',
-          color: '#fff', fontSize: '0.82rem', lineHeight: 1.6,
-          resize: 'none', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-        }}
-        onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generate(); }}
-      />
-      {error && <p style={{ fontSize: '0.72rem', color: '#f87171', marginTop: '0.5rem' }}>{error}</p>}
+      {/* Header */}
       <button
-        onClick={generate}
-        disabled={loading || !prompt.trim()}
+        onClick={() => setIsOpen(o => !o)}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-          width: '100%', marginTop: '0.75rem', padding: '0.75rem',
-          borderRadius: '0.5rem', border: 'none', cursor: 'pointer',
-          background: prompt.trim() ? 'var(--eg-accent)' : 'rgba(255,255,255,0.1)',
-          color: prompt.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
-          fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.05em', transition: 'all 0.2s',
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.875rem 1rem', background: 'none', border: 'none', cursor: 'pointer',
         }}
       >
-        {loading ? <Loader2 size={14} /> : <Sparkles size={14} />}
-        {loading ? 'Generating...' : 'Generate Block (⌘↵)'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ padding: '0.3rem', borderRadius: '0.4rem', background: 'rgba(184,146,106,0.2)' }}>
+            <Wand2 size={13} color="var(--eg-accent)" />
+          </div>
+          <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.75)' }}>
+            AI Block Generator
+          </span>
+        </div>
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown size={14} color="rgba(255,255,255,0.4)" />
+        </motion.div>
       </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ padding: '0 1rem 1rem' }}>
+              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                Describe a section and AI will write it instantly.
+              </p>
+              <textarea
+                value={prompt}
+                onChange={e => setPrompt(e.target.value)}
+                placeholder={'e.g. "Write about our first trip to Paris"'}
+                rows={3}
+                style={{
+                  width: '100%', padding: '0.75rem', borderRadius: '0.55rem',
+                  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                  color: '#fff', fontSize: '0.82rem', lineHeight: 1.6, resize: 'none',
+                  outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+                }}
+                onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generate(); }}
+              />
+              {error && <p style={{ fontSize: '0.72rem', color: '#f87171', marginTop: '0.4rem' }}>{error}</p>}
+              <button
+                onClick={generate}
+                disabled={loading || !prompt.trim()}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                  width: '100%', marginTop: '0.6rem', padding: '0.7rem',
+                  borderRadius: '0.55rem', border: 'none', cursor: prompt.trim() ? 'pointer' : 'not-allowed',
+                  background: prompt.trim() ? 'var(--eg-accent)' : 'rgba(255,255,255,0.07)',
+                  color: prompt.trim() ? '#fff' : 'rgba(255,255,255,0.28)',
+                  fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.04em',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {loading
+                  ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
+                  : <><Sparkles size={13} /> Generate Block</>}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-// ── Helpers ──
-function chaptersToBlocks(manifest: StoryManifest): CanvasBlock[] {
-  return (manifest.chapters || []).map(ch => ({
-    id: ch.id,
-    type: 'chapter' as BlockType,
-    label: ch.title,
-    data: ch,
-  }));
+// ── Palette Item ───────────────────────────────────────────────
+function PaletteItem({ type, onAdd }: { type: BlockType; onAdd: (t: BlockType) => void }) {
+  const cfg = BLOCK_CONFIG[type];
+  const Icon = cfg.icon;
+  return (
+    <motion.button
+      onClick={() => onAdd(type)}
+      whileHover={{ x: 3 }}
+      whileTap={{ scale: 0.98 }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '0.75rem',
+        width: '100%', padding: '0.7rem 0.875rem', borderRadius: '0.65rem',
+        background: cfg.color, border: '1px solid rgba(0,0,0,0.05)',
+        cursor: 'pointer', textAlign: 'left', marginBottom: '0.4rem',
+        transition: 'box-shadow 0.15s',
+      }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.09)'; }}
+      onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+    >
+      <div style={{
+        width: '30px', height: '30px', borderRadius: '0.45rem',
+        background: cfg.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        <Icon size={14} color="var(--eg-accent)" />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--eg-fg)' }}>{cfg.label}</div>
+      </div>
+      <ChevronDown size={12} color="rgba(0,0,0,0.25)" style={{ transform: 'rotate(-90deg)' }} />
+    </motion.button>
+  );
 }
 
-function blocksToManifest(blocks: CanvasBlock[], manifest: StoryManifest): StoryManifest {
-  const chapters = blocks
-    .filter(b => b.type === 'chapter')
-    .map((b, i) => ({ ...(b.data as Chapter), order: i }));
-  return { ...manifest, chapters };
-}
-
-// ── Main BlockEditor ──
-interface BlockEditorProps {
-  manifest: StoryManifest;
-  onChange: (manifest: StoryManifest) => void;
-  onSave?: () => void;
-  onPreview?: () => void;
-}
-
+// ── Main BlockEditor ───────────────────────────────────────────
 export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEditorProps) {
   const [blocks, setBlocks] = useState<CanvasBlock[]>(chaptersToBlocks(manifest));
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [aiBlockCount, setAiBlockCount] = useState(0);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [rewritingId, setRewritingId] = useState<string | null>(null);
+  const [aiCount, setAiCount] = useState(0);
+  const [hasChanges, setHasChanges] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const syncManifest = useCallback((newBlocks: CanvasBlock[]) => {
     onChange(blocksToManifest(newBlocks, manifest));
-    setHasUnsavedChanges(true);
+    setHasChanges(true);
+    // Debounced auto-save indicator reset
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
   }, [manifest, onChange]);
 
-  const moveBlock = useCallback((index: number, direction: 'up' | 'down') => {
-    setBlocks(prev => {
-      const next = [...prev];
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= next.length) return prev;
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      syncManifest(next);
-      return next;
-    });
+  const handleReorder = useCallback((newBlocks: CanvasBlock[]) => {
+    setBlocks(newBlocks);
+    syncManifest(newBlocks);
   }, [syncManifest]);
 
   const addBlock = useCallback((type: BlockType) => {
@@ -439,38 +606,34 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
       data: type === 'chapter' ? {
         id, date: new Date().toISOString().slice(0, 10),
         title: 'New Chapter', subtitle: 'Add your subtitle here',
-        description: 'Write your story...', images: [],
+        description: 'Write your story…', images: [],
         location: null, mood: 'romantic', order: blocks.length,
       } : {},
     };
-    const newBlocks = [...blocks, newBlock];
-    setBlocks(newBlocks);
-    syncManifest(newBlocks);
+    const next = [...blocks, newBlock];
+    setBlocks(next);
+    syncManifest(next);
     setEditingId(id);
   }, [blocks, syncManifest]);
 
   const deleteBlock = useCallback((id: string) => {
-    setBlocks(prev => {
-      const next = prev.filter(b => b.id !== id);
-      syncManifest(next);
-      return next;
-    });
+    const next = blocks.filter(b => b.id !== id);
+    setBlocks(next);
+    syncManifest(next);
     if (editingId === id) setEditingId(null);
-  }, [editingId, syncManifest]);
+  }, [blocks, editingId, syncManifest]);
 
   const updateBlock = useCallback((id: string, data: Partial<Chapter>) => {
-    setBlocks(prev => {
-      const next = prev.map(b => b.id === id ? { ...b, data: { ...(b.data as Chapter), ...data } } : b);
-      syncManifest(next);
-      return next;
-    });
-  }, [syncManifest]);
+    const next = blocks.map(b => b.id === id ? { ...b, data: { ...(b.data as Chapter), ...data } } : b);
+    setBlocks(next);
+    syncManifest(next);
+  }, [blocks, syncManifest]);
 
   const handleAIGenerated = useCallback((block: CanvasBlock) => {
-    setAiBlockCount(n => n + 1);
-    const newBlocks = [...blocks, block];
-    setBlocks(newBlocks);
-    syncManifest(newBlocks);
+    setAiCount(n => n + 1);
+    const next = [...blocks, block];
+    setBlocks(next);
+    syncManifest(next);
     setEditingId(block.id);
   }, [blocks, syncManifest]);
 
@@ -481,91 +644,114 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
     try {
       const chapter = block.data as Chapter;
       const res = await fetch('/api/generate-block', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           blockType: 'chapter',
           context: { title: chapter.title, description: chapter.description, mood: chapter.mood, vibeString: manifest.vibeString },
-          instruction: 'Rewrite this chapter with fresh, more evocative language.',
+          instruction: 'Rewrite this chapter with fresh, more evocative, intimate language.',
         }),
       });
       if (res.ok) {
-        const { block: generated } = await res.json();
-        if (generated?.data) {
-          updateBlock(id, { ...generated.data, id, images: chapter.images, date: chapter.date, order: chapter.order });
-        }
+        const { block: gen } = await res.json();
+        if (gen?.data) updateBlock(id, { ...gen.data, id, images: chapter.images, date: chapter.date, order: chapter.order });
       }
-    } catch (err) {
-      console.error('AI rewrite failed:', err);
-    } finally {
-      setRewritingId(null);
-    }
+    } catch (err) { console.error('AI rewrite failed:', err); }
+    finally { setRewritingId(null); }
   }, [blocks, manifest, updateBlock]);
 
   return (
     <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', minHeight: '600px' }}>
 
-      {/* ── LEFT SIDEBAR ── */}
-      <div style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-accent)', marginBottom: '0.25rem' }}>Block Editor</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--eg-fg)' }}>Add Sections</div>
+      {/* ── SIDEBAR ── */}
+      <div style={{
+        width: '272px', flexShrink: 0,
+        position: 'sticky', top: '2rem',
+        display: 'flex', flexDirection: 'column', gap: '1rem',
+      }}>
+        {/* Header */}
+        <div style={{ paddingBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', marginBottom: '0.2rem' }}>
+            Block Editor
           </div>
-          <div style={{ display: 'flex', gap: '0.4rem' }}>
-            {onPreview && (
-              <button onClick={onPreview} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex' }}>
-                <Eye size={14} color="var(--eg-muted)" />
-              </button>
-            )}
-            {onSave && (
-              <button
-                onClick={() => { onSave(); setHasUnsavedChanges(false); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '0.35rem',
-                  padding: '0.5rem 1rem', borderRadius: '0.5rem',
-                  background: hasUnsavedChanges ? 'var(--eg-accent)' : '#f0f0f0',
-                  color: hasUnsavedChanges ? '#fff' : 'var(--eg-muted)',
-                  border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem',
-                }}
-              >
-                <Check size={13} />
-                {hasUnsavedChanges ? 'Save*' : 'Saved'}
-              </button>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--eg-fg)' }}>Add Sections</div>
+            <div style={{ display: 'flex', gap: '0.35rem' }}>
+              {onPreview && (
+                <button onClick={onPreview} title="Preview" style={sidebarIconBtn}>
+                  <Eye size={13} color="var(--eg-muted)" />
+                </button>
+              )}
+              {onSave && (
+                <button
+                  onClick={() => { onSave(); setHasChanges(false); }}
+                  title="Publish"
+                  style={{
+                    ...sidebarIconBtn,
+                    background: hasChanges ? 'var(--eg-accent)' : 'rgba(0,0,0,0.04)',
+                    border: hasChanges ? '1px solid var(--eg-accent)' : '1px solid rgba(0,0,0,0.08)',
+                    color: hasChanges ? '#fff' : 'var(--eg-muted)',
+                    padding: '0.45rem 0.875rem',
+                    gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <Check size={12} />
+                  {hasChanges ? 'Publish' : 'Saved'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-          {[{ label: 'Blocks', value: blocks.length }, { label: 'AI Created', value: aiBlockCount }].map(s => (
-            <div key={s.label} style={{ background: '#fff', borderRadius: '0.6rem', padding: '0.75rem 1rem', border: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-heading)' }}>{s.value}</div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{s.label}</div>
+          {[{ label: 'Blocks', value: blocks.length }, { label: 'AI Made', value: aiCount }].map(s => (
+            <div key={s.label} style={{
+              background: '#fff', borderRadius: '0.75rem', padding: '0.875rem 1rem',
+              border: '1px solid rgba(0,0,0,0.05)', textAlign: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            }}>
+              <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-heading)', lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginTop: '0.3rem' }}>{s.label}</div>
             </div>
           ))}
         </div>
 
+        {/* AI Generator */}
         <AIBlockGenerator onGenerated={handleAIGenerated} manifest={manifest} />
 
-        {/* Block palette */}
-        <div style={{ background: '#fff', borderRadius: '0.875rem', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <div style={{ padding: '0.875rem 1rem', borderBottom: '1px solid rgba(0,0,0,0.05)', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
+        {/* Block Palette */}
+        <div style={{
+          background: '#fff', borderRadius: '1rem',
+          border: '1px solid rgba(0,0,0,0.06)',
+          overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+        }}>
+          <div style={{
+            padding: '0.75rem 0.875rem', borderBottom: '1px solid rgba(0,0,0,0.05)',
+            fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.18em',
+            textTransform: 'uppercase', color: 'var(--eg-muted)',
+          }}>
             Block Palette
           </div>
-          <div style={{ padding: '0.75rem' }}>
-            {PALETTE_BLOCKS.map(pb => <PaletteItem key={pb.type} block={pb} onAdd={addBlock} />)}
+          <div style={{ padding: '0.625rem' }}>
+            {(Object.keys(BLOCK_CONFIG) as BlockType[]).map(t => (
+              <PaletteItem key={t} type={t} onAdd={addBlock} />
+            ))}
           </div>
         </div>
 
+        {/* Reset */}
         <button
-          onClick={() => { setBlocks(chaptersToBlocks(manifest)); setHasUnsavedChanges(false); }}
+          onClick={() => { setBlocks(chaptersToBlocks(manifest)); setHasChanges(false); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            padding: '0.6rem', borderRadius: '0.6rem', width: '100%',
+            padding: '0.6rem', borderRadius: '0.65rem', width: '100%',
             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
-            color: 'var(--eg-muted)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+            color: 'var(--eg-muted)', fontSize: '0.75rem', fontWeight: 600,
+            cursor: 'pointer', transition: 'all 0.15s',
           }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.2)'; }}
+          onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
         >
           <RotateCcw size={12} /> Reset to Saved
         </button>
@@ -573,16 +759,20 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
 
       {/* ── MAIN CANVAS ── */}
       <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Canvas Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: '1.25rem', padding: '1rem 1.25rem',
+          marginBottom: '1.25rem', padding: '0.875rem 1.25rem',
           background: '#fff', borderRadius: '0.875rem',
           border: '1px solid rgba(0,0,0,0.05)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
         }}>
           <div>
-            <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>Page Canvas</div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginTop: '0.15rem' }}>
-              Use ↑↓ to reorder · Click Edit to modify · AI generates instant blocks
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.15rem' }}>
+              Page Canvas
+            </div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 500, color: 'rgba(0,0,0,0.4)' }}>
+              Drag to reorder · click <strong>Edit</strong> to modify · <strong>✦</strong> rewrites with AI
             </div>
           </div>
           <button
@@ -592,12 +782,17 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
               padding: '0.6rem 1.1rem', borderRadius: '0.6rem',
               background: 'var(--eg-fg)', color: '#fff', border: 'none',
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
             }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 20px rgba(0,0,0,0.25)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)'; }}
           >
             <Plus size={14} /> Add Chapter
           </button>
         </div>
 
+        {/* ── DnD Canvas using Framer Motion Reorder ── */}
         <AnimatePresence>
           {blocks.length === 0 ? (
             <motion.div
@@ -605,60 +800,77 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
               animate={{ opacity: 1 }}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', minHeight: '300px',
-                background: '#fff', borderRadius: '0.875rem',
-                border: '2px dashed rgba(0,0,0,0.1)',
-                color: 'var(--eg-muted)', gap: '0.75rem',
+                justifyContent: 'center', minHeight: '320px',
+                background: '#fff', borderRadius: '1rem',
+                border: '2px dashed rgba(0,0,0,0.09)',
+                color: 'var(--eg-muted)', gap: '1rem',
               }}
             >
-              <LayoutTemplate size={32} color="rgba(0,0,0,0.15)" />
-              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Your canvas is empty</div>
-              <div style={{ fontSize: '0.82rem' }}>Add blocks from the sidebar or use AI to generate content</div>
+              <div style={{
+                width: '56px', height: '56px', borderRadius: '1rem',
+                background: 'rgba(0,0,0,0.04)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <LayoutTemplate size={28} color="rgba(0,0,0,0.15)" />
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', textAlign: 'center', color: 'var(--eg-fg)', marginBottom: '0.35rem' }}>Your canvas is empty</div>
+                <div style={{ fontSize: '0.82rem', textAlign: 'center', color: 'var(--eg-muted)' }}>Add blocks from the sidebar or use AI to generate content</div>
+              </div>
               <button
                 onClick={() => addBlock('chapter')}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '0.4rem',
-                  padding: '0.6rem 1.25rem', borderRadius: '100px',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.7rem 1.5rem', borderRadius: '100px',
                   background: 'var(--eg-accent)', color: '#fff', border: 'none',
-                  cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', marginTop: '0.5rem',
+                  cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem',
+                  boxShadow: '0 8px 20px rgba(184,146,106,0.3)',
                 }}
               >
-                <Plus size={14} /> Add Your First Block
+                <Plus size={15} /> Add Your First Block
               </button>
             </motion.div>
           ) : (
-            blocks.map((block, index) => (
-              <BlockCard
-                key={block.id}
-                block={block}
-                index={index}
-                total={blocks.length}
-                onEdit={id => setEditingId(editingId === id ? null : id)}
-                onDelete={deleteBlock}
-                onMoveUp={idx => moveBlock(idx, 'up')}
-                onMoveDown={idx => moveBlock(idx, 'down')}
-                isEditing={editingId === block.id}
-                manifest={manifest}
-                onUpdate={updateBlock}
-                onAIRewrite={handleAIRewrite}
-                isRewriting={rewritingId === block.id}
-              />
-            ))
+            <Reorder.Group
+              axis="y"
+              values={blocks}
+              onReorder={handleReorder}
+              as="div"
+              style={{ listStyle: 'none', margin: 0, padding: 0 }}
+            >
+              {blocks.map((block, index) => (
+                <ChapterCard
+                  key={block.id}
+                  block={block}
+                  index={index}
+                  total={blocks.length}
+                  manifest={manifest}
+                  isEditing={editingId === block.id}
+                  isRewriting={rewritingId === block.id}
+                  onToggleEdit={id => setEditingId(editingId === id ? null : id)}
+                  onDelete={deleteBlock}
+                  onUpdate={updateBlock}
+                  onAIRewrite={handleAIRewrite}
+                />
+              ))}
+            </Reorder.Group>
           )}
         </AnimatePresence>
 
+        {/* Drop zone at bottom */}
         {blocks.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            onClick={() => addBlock('chapter')}
+            whileHover={{ borderColor: 'var(--eg-accent)', color: 'var(--eg-accent)' }}
             style={{
-              marginTop: '0.75rem', padding: '1rem',
+              marginTop: '0.875rem', padding: '1.1rem',
               border: '2px dashed rgba(0,0,0,0.08)', borderRadius: '0.875rem',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: '0.5rem', color: 'rgba(0,0,0,0.25)', fontSize: '0.8rem', cursor: 'pointer',
+              gap: '0.5rem', color: 'rgba(0,0,0,0.22)', fontSize: '0.82rem',
+              cursor: 'pointer', transition: 'border-color 0.2s, color 0.2s',
             }}
-            onClick={() => addBlock('chapter')}
-            whileHover={{ borderColor: 'var(--eg-accent)', color: 'var(--eg-accent)' } as Record<string, string>}
           >
             <Plus size={14} /> Add a new block here
           </motion.div>
@@ -667,3 +879,10 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
     </div>
   );
 }
+
+// ── Shared styles ──────────────────────────────────────────────
+const sidebarIconBtn: React.CSSProperties = {
+  padding: '0.45rem', borderRadius: '0.5rem',
+  border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.03)',
+  cursor: 'pointer', display: 'flex', alignItems: 'center',
+};
