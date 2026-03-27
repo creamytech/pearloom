@@ -163,7 +163,10 @@ export default function DashboardPage() {
         onStartNew={session ? () => setCurrentStep('photos') : undefined}
       />
       
-      {status === 'unauthenticated' || (status === 'loading' && !session) ? (
+      {/* Only unmount to landing on CONFIRMED unauthenticated.
+          Never on 'loading' — session revalidation mid-generation would
+          destroy the component tree and cause React to crash with 'n is not a function'. */}
+      {status === 'unauthenticated' ? (
         <LandingPage handleSignIn={handleSignIn} status={status} />
       ) : (
       <main style={{
