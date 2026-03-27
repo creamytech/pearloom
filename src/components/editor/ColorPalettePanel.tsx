@@ -2,14 +2,18 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/editor/ColorPalettePanel.tsx
-// Custom color palette + AI-generated background pattern system.
-// Couples pick colors or describe their aesthetic + favorite place
-// → AI generates SVG patterns matching their vibe.
+// Custom color palette + AI-generated bespoke SVG background art.
+// Every couple gets truly original artwork written by Gemini —
+// botanical illustrations, cultural motifs, abstract art —
+// tuned to their names, vibe, place, and colors.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Palette, Wand2, RefreshCw, Check, Sparkles, Loader2, X } from 'lucide-react';
+import {
+  RefreshCw, Check, Sparkles, Loader2, Wand2,
+  Download, Copy, AlertTriangle, ChevronRight, Image,
+} from 'lucide-react';
 import type { StoryManifest, ThemeSchema } from '@/types';
 
 // ── Curated preset palettes ────────────────────────────────────
@@ -89,166 +93,16 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
 ];
 
-// ── Pattern library (SVG-based, inline) ────────────────────────
-// Each pattern is a function that takes accent color and returns inline SVG data URI
-
-interface PatternDef {
-  id: string;
-  name: string;
-  placeKeywords: string[];  // keywords that trigger this pattern
-  description: string;
-  generate: (accent: string, bg: string) => string;
-}
-
-const PATTERNS: PatternDef[] = [
-  {
-    id: 'greek-meander',
-    name: 'Greek Meander',
-    placeKeywords: ['greece', 'greek', 'mediterranean', 'santorini', 'mykonos', 'athens'],
-    description: 'Ancient Greek key / meander motif',
-    generate: (accent) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'>
-        <rect width='40' height='40' fill='none'/>
-        <path d='M0 5h10v5H5v10H0V5zm10 0h5v15h5V5h10v15h5V0h-5v-5H10V0H5v5h5z' fill='${accent}' opacity='0.12'/>
-        <path d='M20 20h10v5h-5v10h-5V20zm10 0h5v15h5V15h-5v5h-5z' fill='${accent}' opacity='0.12'/>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'floral-lace',
-    name: 'Floral Lace',
-    placeKeywords: ['france', 'paris', 'french', 'provence', 'tuscany', 'italy', 'florence'],
-    description: 'Delicate floral lace pattern',
-    generate: (accent) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'>
-        <g fill='none' stroke='${accent}' stroke-width='0.8' opacity='0.15'>
-          <circle cx='30' cy='30' r='10'/>
-          <circle cx='30' cy='10' r='4'/>
-          <circle cx='30' cy='50' r='4'/>
-          <circle cx='10' cy='30' r='4'/>
-          <circle cx='50' cy='30' r='4'/>
-          <circle cx='14' cy='14' r='2.5'/>
-          <circle cx='46' cy='14' r='2.5'/>
-          <circle cx='14' cy='46' r='2.5'/>
-          <circle cx='46' cy='46' r='2.5'/>
-        </g>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'tropical-leaves',
-    name: 'Tropical Leaves',
-    placeKeywords: ['hawaii', 'bali', 'tropical', 'caribbean', 'costa rica', 'hawaii', 'tulum', 'mexico'],
-    description: 'Lush tropical leaf silhouettes',
-    generate: (accent) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
-        <g fill='${accent}' opacity='0.1'>
-          <ellipse cx='20' cy='40' rx='18' ry='8' transform='rotate(-35 20 40)'/>
-          <ellipse cx='60' cy='20' rx='18' ry='8' transform='rotate(20 60 20)'/>
-          <ellipse cx='55' cy='65' rx='15' ry='6' transform='rotate(-20 55 65)'/>
-        </g>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'moroccan-tile',
-    name: 'Moroccan Tile',
-    placeKeywords: ['morocco', 'marrakech', 'Morocco', 'tangier', 'spain', 'andalusia'],
-    description: 'Geometric Moroccan zellige tile',
-    generate: (accent) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'>
-        <g fill='none' stroke='${accent}' stroke-width='0.7' opacity='0.18'>
-          <polygon points='25,2 48,14 48,36 25,48 2,36 2,14'/>
-          <polygon points='25,10 40,18 40,32 25,40 10,32 10,18'/>
-          <line x1='25' y1='2' x2='25' y2='10'/><line x1='48' y1='14' x2='40' y2='18'/>
-          <line x1='48' y1='36' x2='40' y2='32'/><line x1='25' y1='48' x2='25' y2='40'/>
-          <line x1='2' y1='36' x2='10' y2='32'/><line x1='2' y1='14' x2='10' y2='18'/>
-        </g>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'nordic-weave',
-    name: 'Nordic Weave',
-    placeKeywords: ['norway', 'sweden', 'iceland', 'nordic', 'scandinavian', 'denmark', 'finland'],
-    description: 'Scandinavian folk weave pattern',
-    generate: (accent) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'>
-        <g fill='${accent}' opacity='0.12'>
-          <rect x='0' y='0' width='4' height='4'/><rect x='8' y='0' width='4' height='4'/>
-          <rect x='16' y='0' width='4' height='4'/><rect x='24' y='0' width='4' height='4'/>
-          <rect x='32' y='0' width='4' height='4'/>
-          <rect x='4' y='4' width='4' height='4'/><rect x='12' y='4' width='4' height='4'/>
-          <rect x='20' y='4' width='4' height='4'/><rect x='28' y='4' width='4' height='4'/>
-          <rect x='36' y='4' width='4' height='4'/>
-          <rect x='0' y='8' width='4' height='4'/><rect x='8' y='8' width='4' height='4'/>
-          <rect x='16' y='8' width='4' height='4'/><rect x='24' y='8' width='4' height='4'/>
-        </g>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'japanese-seigaiha',
-    name: 'Japanese Waves',
-    placeKeywords: ['japan', 'tokyo', 'kyoto', 'japanese', 'asia', 'zen'],
-    description: 'Seigaiha — traditional Japanese overlapping scales',
-    generate: (accent) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40'>
-        <g fill='none' stroke='${accent}' stroke-width='0.8' opacity='0.18'>
-          <path d='M0 40 Q15 10 30 40'/>
-          <path d='M30 40 Q45 10 60 40'/>
-          <path d='M-30 20 Q-15 -10 0 20'/>
-          <path d='M15 20 Q30 -10 45 20'/>
-          <path d='M45 20 Q60 -10 75 20'/>
-        </g>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'art-deco-fan',
-    name: 'Art Deco Fan',
-    placeKeywords: ['new york', 'nyc', 'gatsby', 'art deco', 'manhattan', 'chicago', 'miami'],
-    description: 'Geometric Art Deco fan burst',
-    generate: (accent) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
-        <g fill='none' stroke='${accent}' stroke-width='0.8' opacity='0.15'>
-          <line x1='40' y1='40' x2='40' y2='0'/><line x1='40' y1='40' x2='80' y2='40'/>
-          <line x1='40' y1='40' x2='69' y2='11'/><line x1='40' y1='40' x2='11' y2='11'/>
-          <line x1='40' y1='40' x2='0' y2='40'/>
-          <circle cx='40' cy='40' r='15'/><circle cx='40' cy='40' r='28'/>
-        </g>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'cottagecore-gingham',
-    name: 'Gingham',
-    placeKeywords: ['countryside', 'barn', 'rustic', 'farm', 'country', 'vineyard', 'winery'],
-    description: 'Soft gingham check pattern',
-    generate: (accent, bg) => {
-      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'>
-        <rect width='20' height='20' fill='${bg}'/>
-        <rect width='10' height='10' fill='${accent}' opacity='0.08'/>
-        <rect x='10' y='10' width='10' height='10' fill='${accent}' opacity='0.08'/>
-        <rect x='0' y='0' width='20' height='20' fill='none' stroke='${accent}' stroke-width='0.3' opacity='0.15'/>
-      </svg>`;
-      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-    },
-  },
-  {
-    id: 'none',
-    name: 'None',
-    placeKeywords: [],
-    description: 'Clean — no background pattern',
-    generate: () => 'none',
-  },
+// ── Art Style options for the prompt ──────────────────────────
+const ART_STYLES = [
+  { id: 'botanical',    label: 'Botanical',      emoji: '🌿', hint: 'Botanical illustration, pressed flowers, vines' },
+  { id: 'cultural',    label: 'Cultural',        emoji: '🏛️', hint: 'Cultural motifs from your favorite place' },
+  { id: 'celestial',   label: 'Celestial',       emoji: '✨', hint: 'Stars, constellations, moons, night sky' },
+  { id: 'abstract',    label: 'Abstract',        emoji: '〰️', hint: 'Flowing curves, organic shapes, abstract art' },
+  { id: 'geometric',   label: 'Geometric',       emoji: '◆', hint: 'Precise geometry, art deco, tessellation' },
+  { id: 'landscape',   label: 'Landscape',       emoji: '🌄', hint: 'Horizon lines, mountains, water, countryside' },
+  { id: 'typographic', label: 'Typographic',     emoji: '✍️', hint: 'Elegant script flourishes, monograms, letters' },
+  { id: 'romantic',    label: 'Romantic',        emoji: '💫', hint: 'Roses, ribbons, swirls, romantic motifs' },
 ];
 
 // ── Swatch picker ──────────────────────────────────────────────
@@ -277,148 +131,175 @@ function Swatch({ color, onChange, label }: { color: string; onChange: (c: strin
   );
 }
 
-// ── Pattern Tile ───────────────────────────────────────────────
-function PatternTile({
-  pattern, accent, bg, selected, onSelect,
-}: { pattern: PatternDef; accent: string; bg: string; selected: boolean; onSelect: () => void }) {
-  const patBg = pattern.id === 'none' ? bg : undefined;
+// ── SVG Preview Canvas ─────────────────────────────────────────
+function SvgPreview({ svg, bg, label }: { svg: string; bg: string; label?: string }) {
+  const dataUri = `data:image/svg+xml,${encodeURIComponent(svg)}`;
 
   return (
-    <button
-      onClick={onSelect}
-      title={pattern.description}
-      style={{
-        width: '100%', padding: '8px', borderRadius: '8px',
-        border: `1.5px solid ${selected ? accent : 'rgba(255,255,255,0.08)'}`,
-        background: 'rgba(255,255,255,0.03)', cursor: 'pointer',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
-        transition: 'all 0.15s', position: 'relative',
-      }}
-    >
-      {/* Pattern preview box */}
+    <div style={{ position: 'relative' }}>
       <div style={{
-        width: '100%', height: '36px', borderRadius: '5px', overflow: 'hidden',
-        background: patBg || bg,
-        backgroundImage: pattern.id !== 'none' ? pattern.generate(accent, bg) : 'none',
-        backgroundSize: '40px 40px',
-        border: `1px solid rgba(255,255,255,0.06)`,
-      }} />
-      <span style={{ fontSize: '0.6rem', fontWeight: 700, color: selected ? accent : 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 1.2 }}>
-        {pattern.name}
-      </span>
-      {selected && (
-        <div style={{ position: 'absolute', top: '4px', right: '4px', background: accent, borderRadius: '50%', width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Check size={8} color="#fff" />
-        </div>
+        width: '100%', height: '140px', borderRadius: '10px',
+        background: bg,
+        backgroundImage: `url("${dataUri}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        border: '1px solid rgba(255,255,255,0.08)',
+        overflow: 'hidden',
+      }}>
+        {/* Overlay gradient for readability */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, rgba(0,0,0,0.08) 0%, transparent 100%)',
+        }} />
+      </div>
+      {label && (
+        <div style={{
+          position: 'absolute', bottom: '8px', left: '8px',
+          fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)',
+          background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)',
+          padding: '2px 6px', borderRadius: '4px',
+        }}>{label}</div>
       )}
-    </button>
+    </div>
   );
 }
 
-// ── Main panel ───────────────────────────────────────────────
+// ── Main panel ─────────────────────────────────────────────────
 interface ColorPalettePanelProps {
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
+  names?: [string, string]; // passed from FullscreenEditor
 }
 
-// Detect best pattern from vibe string + place
-function detectPattern(vibeString: string): PatternDef {
-  const lower = vibeString.toLowerCase();
-  for (const p of PATTERNS) {
-    if (p.id === 'none') continue;
-    if (p.placeKeywords.some(kw => lower.includes(kw))) return p;
-  }
-  return PATTERNS[PATTERNS.length - 1]; // 'none'
-}
-
-export function ColorPalettePanel({ manifest, onChange }: ColorPalettePanelProps) {
+export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePanelProps) {
   const theme = manifest.theme || PRESET_PALETTES[0];
   const [colors, setColors] = useState<ThemeSchema['colors']>(theme.colors || PRESET_PALETTES[0].colors);
-  const [selectedPattern, setSelectedPattern] = useState<string>(() => {
-    const detected = detectPattern(manifest.vibeString || '');
-    return detected.id;
-  });
-  const [customTab, setCustomTab] = useState<'presets' | 'custom' | 'patterns'>('presets');
-  const [placeInput, setPlaceInput] = useState('');
+  const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'ai-art'>('presets');
+
+  // AI Art state
+  const [place, setPlace] = useState('');
+  const [artStyle, setArtStyle] = useState('botanical');
+  const [extraPrompt, setExtraPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [generatedPatternId, setGeneratedPatternId] = useState<string | null>(null);
+  const [generatedSvg, setGeneratedSvg] = useState<string | null>(null);
+  const [prevSvgs, setPrevSvgs] = useState<string[]>([]);
+  const [genError, setGenError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   const accent = colors.accent || '#b8926a';
   const bg = colors.background || '#faf9f6';
 
-  const commit = useCallback((newColors: ThemeSchema['colors'], patternId: string) => {
-    const patternDef = PATTERNS.find(p => p.id === patternId);
-    const patternCss = patternDef ? patternDef.generate(newColors.accent, newColors.background) : 'none';
+  // Apply colors + optional SVG background to manifest
+  const commit = useCallback((newColors: ThemeSchema['colors'], svgArt?: string | null) => {
+    let backgroundPatternCss: string | undefined = manifest.backgroundPatternCss;
+
+    if (svgArt !== undefined) {
+      backgroundPatternCss = svgArt
+        ? `url("data:image/svg+xml,${encodeURIComponent(svgArt)}")`
+        : undefined;
+    }
+
     const updated: StoryManifest = {
       ...manifest,
       theme: {
         ...(manifest.theme || PRESET_PALETTES[0]),
         colors: newColors,
       },
-      // Store raw pattern CSS at manifest level — ThemeProvider reads this
-      backgroundPatternCss: patternId === 'none' ? undefined : patternCss,
+      backgroundPatternCss,
     };
     onChange(updated);
   }, [manifest, onChange]);
 
   const applyPreset = (preset: PresetPalette) => {
     setColors(preset.colors);
-    commit(preset.colors, selectedPattern);
+    commit(preset.colors);
   };
 
   const updateColor = (key: keyof ThemeSchema['colors'], value: string) => {
     const updated = { ...colors, [key]: value };
     setColors(updated);
-    commit(updated, selectedPattern);
+    commit(updated);
   };
 
-  const selectPattern = (id: string) => {
-    setSelectedPattern(id);
-    commit(colors, id);
-  };
-
-  // Generate pattern from place description using Gemini
-  const generatePattern = async () => {
-    if (!placeInput.trim()) return;
+  // ── Generate AI Art ──────────────────────────────────────────
+  const generateArt = async () => {
     setGenerating(true);
+    setGenError(null);
+    setIsFallback(false);
+
+    // Save previous for history strip
+    if (generatedSvg) {
+      setPrevSvgs(prev => [generatedSvg, ...prev].slice(0, 4));
+    }
+
     try {
-      // Find best matching pattern from library based on keywords
-      const lower = placeInput.toLowerCase();
-      const match = PATTERNS.find(p => p.placeKeywords.some(kw => lower.includes(kw)));
-      if (match) {
-        setSelectedPattern(match.id);
-        setGeneratedPatternId(match.id);
-        selectPattern(match.id);
-      } else {
-        // Default to art deco if nothing matches
-        setSelectedPattern('art-deco-fan');
-        setGeneratedPatternId('art-deco-fan');
-        selectPattern('art-deco-fan');
-      }
+      const coupleNames = names ?? [manifest.coupleId || 'the couple', ''];
+      const vibeString = [
+        manifest.vibeString || '',
+        extraPrompt,
+      ].filter(Boolean).join('. ');
+
+      const res = await fetch('/api/generate-pattern', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          names: coupleNames,
+          vibeString,
+          place,
+          accent,
+          bg,
+          style: ART_STYLES.find(s => s.id === artStyle)?.hint || artStyle,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Generation failed');
+
+      setGeneratedSvg(data.svg);
+      setIsFallback(!!data.fallback);
+      // Auto-apply
+      commit(colors, data.svg);
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
       setGenerating(false);
     }
   };
 
+  const applyHistorySvg = (svg: string) => {
+    setGeneratedSvg(svg);
+    commit(colors, svg);
+  };
+
+  const removeBackground = () => {
+    setGeneratedSvg(null);
+    commit(colors, null);
+  };
+
   const tabs = [
-    { id: 'presets',  label: 'Presets' },
-    { id: 'custom',   label: 'Custom' },
-    { id: 'patterns', label: 'Patterns' },
+    { id: 'presets',  label: '🎨 Presets' },
+    { id: 'custom',   label: '✏️ Custom' },
+    { id: 'ai-art',   label: '✦ AI Art' },
   ] as const;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {/* Tab strip */}
-      <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.04)', padding: '3px', borderRadius: '8px' }}>
+      <div style={{
+        display: 'flex', gap: '2px',
+        background: 'rgba(255,255,255,0.04)', padding: '3px', borderRadius: '8px',
+      }}>
         {tabs.map(t => (
           <button
             key={t.id}
-            onClick={() => setCustomTab(t.id)}
+            onClick={() => setActiveTab(t.id)}
             style={{
               flex: 1, padding: '5px 0', borderRadius: '6px', border: 'none',
-              background: customTab === t.id ? 'rgba(184,146,106,0.2)' : 'transparent',
-              color: customTab === t.id ? '#b8926a' : 'rgba(255,255,255,0.35)',
-              cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700, transition: 'all 0.15s',
+              background: activeTab === t.id ? 'rgba(184,146,106,0.2)' : 'transparent',
+              color: activeTab === t.id ? '#b8926a' : 'rgba(255,255,255,0.35)',
+              cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
+              transition: 'all 0.15s', whiteSpace: 'nowrap',
             }}
           >
             {t.label}
@@ -426,8 +307,8 @@ export function ColorPalettePanel({ manifest, onChange }: ColorPalettePanelProps
         ))}
       </div>
 
-      {/* ── Presets ── */}
-      {customTab === 'presets' && (
+      {/* ── Presets tab ── */}
+      {activeTab === 'presets' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
           {PRESET_PALETTES.map(preset => {
             const isCurrent = preset.colors.accent === colors.accent && preset.colors.background === colors.background;
@@ -439,7 +320,8 @@ export function ColorPalettePanel({ manifest, onChange }: ColorPalettePanelProps
                 whileTap={{ scale: 0.98 }}
                 style={{
                   display: 'flex', flexDirection: 'column', gap: '5px', padding: '8px',
-                  borderRadius: '10px', border: `1.5px solid ${isCurrent ? preset.colors.accent : 'rgba(255,255,255,0.07)'}`,
+                  borderRadius: '10px',
+                  border: `1.5px solid ${isCurrent ? preset.colors.accent : 'rgba(255,255,255,0.07)'}`,
                   background: 'rgba(255,255,255,0.03)', cursor: 'pointer', textAlign: 'left',
                   transition: 'all 0.15s',
                 }}
@@ -462,84 +344,264 @@ export function ColorPalettePanel({ manifest, onChange }: ColorPalettePanelProps
         </div>
       )}
 
-      {/* ── Custom ── */}
-      {customTab === 'custom' && (
+      {/* ── Custom tab ── */}
+      {activeTab === 'custom' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <Swatch label="Background" color={colors.background} onChange={v => updateColor('background', v)} />
-            <Swatch label="Text" color={colors.foreground} onChange={v => updateColor('foreground', v)} />
-            <Swatch label="Accent" color={colors.accent} onChange={v => updateColor('accent', v)} />
+            <Swatch label="Text"       color={colors.foreground} onChange={v => updateColor('foreground', v)} />
+            <Swatch label="Accent"     color={colors.accent}     onChange={v => updateColor('accent', v)} />
             <Swatch label="Accent Light" color={colors.accentLight} onChange={v => updateColor('accentLight', v)} />
-            <Swatch label="Muted" color={colors.muted} onChange={v => updateColor('muted', v)} />
-            <Swatch label="Card BG" color={colors.cardBg} onChange={v => updateColor('cardBg', v)} />
+            <Swatch label="Muted"      color={colors.muted}      onChange={v => updateColor('muted', v)} />
+            <Swatch label="Card BG"    color={colors.cardBg}     onChange={v => updateColor('cardBg', v)} />
           </div>
           <button
             onClick={() => applyPreset(PRESET_PALETTES[0])}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontSize: '0.65rem' }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              padding: '6px 10px', borderRadius: '6px',
+              border: '1px solid rgba(255,255,255,0.08)', background: 'transparent',
+              color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontSize: '0.65rem',
+            }}
           >
             <RefreshCw size={10} /> Reset to default
           </button>
         </div>
       )}
 
-      {/* ── Patterns ── */}
-      {customTab === 'patterns' && (
+      {/* ── AI Art tab ── */}
+      {activeTab === 'ai-art' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {/* AI pattern from place */}
-          <div style={{ background: 'rgba(184,146,106,0.08)', border: '1px solid rgba(184,146,106,0.2)', borderRadius: '10px', padding: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+
+          {/* Explainer */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(155,127,217,0.1), rgba(184,146,106,0.08))',
+            border: '1px solid rgba(184,146,106,0.2)',
+            borderRadius: '10px', padding: '10px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
               <Sparkles size={12} color="#b8926a" />
               <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b8926a' }}>
-                Pattern by Place
+                Bespoke AI Background Art
               </span>
             </div>
-            <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, margin: '0 0 8px' }}>
-              Enter a place, style, or vibe and we&apos;ll pick a matching pattern.
+            <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.55, margin: 0 }}>
+              Gemini writes a unique SVG illustration just for your couple — botanical, cultural, celestial — no two are alike.
             </p>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <input
-                value={placeInput}
-                onChange={e => setPlaceInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && generatePattern()}
-                placeholder="Greece, Japan, Tuscany, rustic barn…"
-                style={{
-                  flex: 1, padding: '6px 10px', borderRadius: '6px',
-                  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)',
-                  color: '#fff', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
-                }}
-              />
-              <button
-                onClick={generatePattern}
-                disabled={generating || !placeInput.trim()}
-                style={{
-                  padding: '6px 10px', borderRadius: '6px', border: 'none',
-                  background: '#b8926a', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                  fontSize: '0.72rem', fontWeight: 700, opacity: generating ? 0.6 : 1,
-                }}
-              >
-                {generating ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={11} />}
-              </button>
-            </div>
-            {generatedPatternId && (
-              <p style={{ fontSize: '0.62rem', color: '#b8926a', marginTop: '6px' }}>
-                ✓ Applied: {PATTERNS.find(p => p.id === generatedPatternId)?.name}
-              </p>
-            )}
           </div>
 
-          {/* Pattern grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-            {PATTERNS.map(p => (
-              <PatternTile
-                key={p.id}
-                pattern={p}
-                accent={accent}
-                bg={bg}
-                selected={selectedPattern === p.id}
-                onSelect={() => selectPattern(p.id)}
+          {/* Inputs */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Place / inspiration */}
+            <div>
+              <label style={{
+                display: 'block', fontSize: '0.58rem', fontWeight: 800,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+              }}>
+                Place or inspiration
+              </label>
+              <input
+                value={place}
+                onChange={e => setPlace(e.target.value)}
+                placeholder="Santorini, Japanese garden, Tuscany vineyard, the Alps…"
+                style={{
+                  width: '100%', padding: '8px 10px', borderRadius: '7px',
+                  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                  color: '#fff', fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.5)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
               />
-            ))}
+            </div>
+
+            {/* Art style grid */}
+            <div>
+              <label style={{
+                display: 'block', fontSize: '0.58rem', fontWeight: 800,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+              }}>
+                Art style
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                {ART_STYLES.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => setArtStyle(s.id)}
+                    title={s.hint}
+                    style={{
+                      padding: '5px 4px', borderRadius: '6px',
+                      border: `1px solid ${artStyle === s.id ? '#b8926a' : 'rgba(255,255,255,0.07)'}`,
+                      background: artStyle === s.id ? 'rgba(184,146,106,0.15)' : 'transparent',
+                      color: artStyle === s.id ? '#b8926a' : 'rgba(255,255,255,0.4)',
+                      cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
+                      textAlign: 'center', transition: 'all 0.15s', lineHeight: 1.3,
+                    }}
+                  >
+                    <div style={{ fontSize: '0.85rem' }}>{s.emoji}</div>
+                    <div>{s.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Extra prompt */}
+            <div>
+              <label style={{
+                display: 'block', fontSize: '0.58rem', fontWeight: 800,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+              }}>
+                Extra details (optional)
+              </label>
+              <textarea
+                value={extraPrompt}
+                onChange={e => setExtraPrompt(e.target.value)}
+                rows={2}
+                placeholder="We met hiking in the mountains, we love jazz, our dog is a golden retriever…"
+                style={{
+                  width: '100%', padding: '8px 10px', borderRadius: '7px',
+                  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                  color: '#fff', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
+                  boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.5)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+              />
+            </div>
           </div>
+
+          {/* Generate button */}
+          <motion.button
+            onClick={generateArt}
+            disabled={generating}
+            whileHover={{ scale: generating ? 1 : 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              padding: '12px', borderRadius: '8px', border: 'none',
+              background: generating
+                ? 'rgba(255,255,255,0.06)'
+                : 'linear-gradient(135deg, #9b7fd9, #b8926a)',
+              color: generating ? 'rgba(255,255,255,0.4)' : '#fff',
+              fontSize: '0.82rem', fontWeight: 800, cursor: generating ? 'not-allowed' : 'pointer',
+              letterSpacing: '0.05em', boxShadow: generating ? 'none' : '0 4px 20px rgba(155,127,217,0.3)',
+              transition: 'all 0.2s',
+            }}
+          >
+            {generating ? (
+              <>
+                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                Crafting your artwork…
+              </>
+            ) : (
+              <>
+                <Wand2 size={14} />
+                Generate Bespoke Art
+              </>
+            )}
+          </motion.button>
+
+          {/* Error */}
+          {genError && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px',
+              borderRadius: '7px', background: 'rgba(239,68,68,0.1)',
+              border: '1px solid rgba(239,68,68,0.2)', fontSize: '0.72rem', color: '#f87171',
+            }}>
+              <AlertTriangle size={12} /> {genError}
+            </div>
+          )}
+
+          {/* Preview of generated art */}
+          <AnimatePresence>
+            {generatedSvg && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+              >
+                {isFallback && (
+                  <div style={{
+                    fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}>
+                    <AlertTriangle size={9} /> Using generative fallback — try again for a Gemini-crafted design
+                  </div>
+                )}
+
+                <SvgPreview svg={generatedSvg} bg={bg} label="Your artwork" />
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={generateArt}
+                    disabled={generating}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      gap: '4px', padding: '7px', borderRadius: '6px',
+                      border: '1px solid rgba(184,146,106,0.3)', background: 'rgba(184,146,106,0.08)',
+                      color: '#b8926a', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
+                    }}
+                  >
+                    <RefreshCw size={11} /> Regenerate
+                  </button>
+                  <button
+                    onClick={removeBackground}
+                    style={{
+                      padding: '7px 12px', borderRadius: '6px',
+                      border: '1px solid rgba(255,255,255,0.08)', background: 'transparent',
+                      color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '0.7rem',
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* History strip */}
+          {prevSvgs.length > 0 && (
+            <div>
+              <div style={{
+                fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: '6px',
+              }}>
+                Previous generations
+              </div>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                {prevSvgs.map((svg, i) => (
+                  <button
+                    key={i}
+                    onClick={() => applyHistorySvg(svg)}
+                    title={`Apply generation ${i + 1}`}
+                    style={{
+                      flex: 1, height: '48px', borderRadius: '6px',
+                      background: bg,
+                      backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
+                      backgroundSize: 'cover',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer', transition: 'border-color 0.15s',
+                    }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = '#b8926a'; }}
+                    onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tip */}
+          <p style={{
+            fontSize: '0.62rem', color: 'rgba(255,255,255,0.2)', lineHeight: 1.5, margin: 0,
+            borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px',
+          }}>
+            💡 The more specific you are — place, story details, style — the more unique and tailored the artwork becomes. Hit Regenerate for a fresh interpretation.
+          </p>
         </div>
       )}
     </div>
