@@ -120,158 +120,164 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   const isPasswordProtected = manifest.comingSoon?.passwordProtected && manifest.comingSoon?.password;
 
-  const siteContent = (
-    <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
-      <SiteNav
-        names={safeNames}
-        pages={sitePages}
-      />
-
-      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
-        <Hero
-          names={safeNames}
-          subtitle={siteConfig.tagline || 'A love story beautifully told.'}
-          coverPhoto={coverPhoto}
-          weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
-          vibeSkin={vibeSkin}
-        />
-
-        {/* Wave divider: Hero → Story vibe quote */}
-        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
-
-        {/* ── AI-designed pull-quote with vibe-skin decoration ── */}
-        <div style={{
-          position: 'relative', zIndex: 10,
-          padding: '7rem 2rem 5rem', textAlign: 'center',
-          maxWidth: '900px', margin: '0 auto',
-        }}>
-          {/* Decorative row using AI-chosen symbols */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
-            <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>
-              {vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}
-            </span>
-            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-            <span style={{ fontSize: '1.75rem', color: 'var(--eg-accent)', opacity: 0.7 }}>
-              {vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}
-            </span>
-            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-            <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>
-              {vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}
-            </span>
-          </div>
-
-          <p style={{
-            fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)',
-            fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65,
-            color: 'var(--eg-fg)', opacity: 0.75, letterSpacing: '-0.01em',
-          }}>
-            &ldquo;{vibeSkin.aiGenerated ? vibeSkin.dividerQuote : manifest.vibeString}&rdquo;
-          </p>
-
-          {/* Bottom ornament */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem' }}>
-            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-            <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.5 }}>
-              {vibeSkin.decorIcons[3] || '•'}
-            </span>
-            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-          </div>
-        </div>
-
-        <section id="our-story">
-          <Timeline chapters={manifest.chapters || []} />
-        </section>
-
-        {/* Wave divider: Timeline → Events */}
-        {manifest.events && manifest.events.length > 0 && (
-          <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
-        )}
-
-        {manifest.events && manifest.events.length > 0 && (
-          <section id="schedule">
-            <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+  // ── Block renderer: ordered by manifest.blocks ─────────────────
+  const renderBlock = (type: string, key: string) => {
+    switch (type) {
+      case 'hero':
+        return (
+          <Hero
+            key={key}
+            names={safeNames}
+            subtitle={siteConfig.tagline || 'A love story beautifully told.'}
+            coverPhoto={coverPhoto}
+            weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
+            vibeSkin={vibeSkin}
+          />
+        );
+      case 'story':
+        return (
+          <section key={key} id="our-story">
+            <Timeline chapters={manifest.chapters || []} />
           </section>
-        )}
-
-        {/* Wave divider: Events → RSVP */}
-        {manifest.events && manifest.events.length > 0 && (
-          <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
-        )}
-
-        {manifest.events && manifest.events.length > 0 && (
-          <section id="rsvp">
+        );
+      case 'event':
+        if (!manifest.events?.length) return null;
+        return (
+          <section key={key} id="schedule">
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
+            <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
+          </section>
+        );
+      case 'rsvp':
+        if (!manifest.events?.length) return null;
+        return (
+          <section key={key} id="rsvp">
             <PublicRsvpSection
               siteId={domain}
               events={manifest.events}
               deadline={manifest.logistics?.rsvpDeadline}
             />
           </section>
-        )}
-
-        {/* Wave divider: RSVP → Registry */}
-        {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
-          <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
-        )}
-
-        {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
-          <section id="registry">
+        );
+      case 'registry':
+        if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
+        return (
+          <section key={key} id="registry">
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
             <RegistryShowcase
               registries={manifest.registry?.entries || []}
               cashFundUrl={manifest.registry?.cashFundUrl}
               cashFundMessage={manifest.registry?.cashFundMessage}
               title={vibeSkin.sectionLabels.registry}
             />
+            <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={bgColor} height={70} inverted />
           </section>
-        )}
-
-        {/* Wave divider: Registry → Travel */}
-        {manifest.travelInfo && (
-          <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={cardBg} height={70} inverted />
-        )}
-
-        {manifest.travelInfo && (
-          <section id="travel">
+        );
+      case 'travel':
+        if (!manifest.travelInfo) return null;
+        return (
+          <section key={key} id="travel">
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={70} />
             <TravelSection info={manifest.travelInfo} />
           </section>
-        )}
-
-        {/* Wave divider: Travel → FAQ */}
-        {manifest.faqs && manifest.faqs.length > 0 && (
-          <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} />
-        )}
-
-        {manifest.faqs && manifest.faqs.length > 0 && (
-          <section id="faq">
+        );
+      case 'faq':
+        if (!manifest.faqs?.length) return null;
+        return (
+          <section key={key} id="faq">
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
             <FaqSection faqs={manifest.faqs} />
           </section>
+        );
+      case 'guestbook':
+        return (
+          <section key={key} id="guestbook">
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
+            <SiteGallerySection siteId={domain} coupleNames={safeNames} />
+            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
+          </section>
+        );
+      case 'countdown':
+        return null; // handled client-side only
+      default:
+        return null;
+    }
+  };
+
+  // Determine section order: blocks > legacy hardcoded
+  const visibleBlocks = manifest.blocks && manifest.blocks.length > 0
+    ? [...manifest.blocks].sort((a, b) => a.order - b.order).filter(b => b.visible !== false)
+    : null;
+
+  // Vibe-intro quote section (always rendered after hero, not a removable block)
+  const VibeQuote = () => (
+    <div style={{ position: 'relative', zIndex: 10, padding: '7rem 2rem 5rem', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
+        <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
+        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+        <span style={{ fontSize: '1.75rem', color: 'var(--eg-accent)', opacity: 0.7 }}>{vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}</span>
+        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+        <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}</span>
+      </div>
+      <p style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: 'var(--eg-fg)', opacity: 0.75, letterSpacing: '-0.01em' }}>
+        &ldquo;{vibeSkin.aiGenerated ? vibeSkin.dividerQuote : manifest.vibeString}&rdquo;
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem' }}>
+        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+        <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.5 }}>{vibeSkin.decorIcons[3] || '•'}</span>
+        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+      </div>
+    </div>
+  );
+
+  const siteContent = (
+    <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
+      <SiteNav names={safeNames} pages={sitePages} />
+
+      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
+        {visibleBlocks ? (
+          // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
+          <>
+            {visibleBlocks.map(block => renderBlock(block.type, block.id))}
+            {/* Always append vibe quote after hero if hero is first */}
+            {visibleBlocks[0]?.type === 'hero' && (
+              <>
+                <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
+                <VibeQuote />
+              </>
+            )}
+            {/* Chatbot footer sections */}
+            <SiteGallerySection siteId={domain} coupleNames={safeNames} />
+          </>
+        ) : (
+          // ── LEGACY: hardcoded order (no blocks yet) ──
+          <>
+            <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} />
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
+            <VibeQuote />
+            <section id="our-story"><Timeline chapters={manifest.chapters || []} /></section>
+            {manifest.events?.length ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} /><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted /></> : null}
+            {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId={domain} events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
+            {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} /><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section><WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={cardBg} height={70} inverted /></> : null}
+            {manifest.travelInfo ? <><WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} /><section id="travel"><TravelSection info={manifest.travelInfo} /></section></> : null}
+            {manifest.faqs?.length ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} /><section id="faq"><FaqSection faqs={manifest.faqs} /></section></> : null}
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
+            <SiteGallerySection siteId={domain} coupleNames={safeNames} />
+            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
+          </>
         )}
-
-        {/* Wave divider: FAQ → Guestbook / Gallery */}
-        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
-
-        {/* Client-only: Guestbook + Photos + RSVP counter */}
-        <SiteGallerySection siteId={domain} coupleNames={safeNames} />
-
-        {/* Wave divider: Guestbook → Photos */}
-        <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
 
         {manifest.comingSoon && <ComingSoon config={manifest.comingSoon} siteId={domain} />}
       </main>
 
-      {/* Floating chatbot + visit tracker — client-only */}
       <SiteClientSections siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
     </ThemeProvider>
   );
 
-  // Wrap in PasswordGate if protected
   if (isPasswordProtected) {
     return (
-      <SitePasswordWrapper
-        siteId={domain}
-        coupleNames={safeNames}
-        password={manifest.comingSoon!.password!}
-        vibeSkin={vibeSkin}
-      >
+      <SitePasswordWrapper siteId={domain} coupleNames={safeNames} password={manifest.comingSoon!.password!} vibeSkin={vibeSkin}>
         {siteContent}
       </SitePasswordWrapper>
     );
@@ -279,3 +285,5 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   return siteContent;
 }
+
+

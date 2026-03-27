@@ -15,7 +15,7 @@ import {
   Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
   MessageCircleHeart,
 } from 'lucide-react';
-import type { StoryManifest, Chapter, ChapterImage, WeddingEvent } from '@/types';
+import type { StoryManifest, Chapter, ChapterImage, WeddingEvent, FaqItem, HotelBlock, TravelInfo } from '@/types';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
@@ -23,7 +23,7 @@ import { ColorPalettePanel } from './ColorPalettePanel';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'blocks' | 'voice' | 'canvas';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas';
 
 const DEVICE_DIMS: Record<DeviceMode, { width: string; label: string; icon: React.ElementType }> = {
   desktop: { width: '100%',    label: 'Desktop', icon: Monitor },
@@ -487,23 +487,170 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
   );
 }
 
-// ── Details Panel ──────────────────────────────────────────────
+// ── Details Panel — Travel, FAQ, Registry, Logistics ──────────
 function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const logistics = manifest.logistics || {};
+  const [openSection, setOpenSection] = useState<'logistics' | 'travel' | 'faq' | 'registry' | 'vibe'>('logistics');
 
   const upd = (data: Partial<typeof logistics>) =>
     onChange({ ...manifest, logistics: { ...logistics, ...data } });
 
+  // ── FAQ helpers ──
+  const faqs = manifest.faqs || [];
+  const addFaq = () => {
+    const newFaq: FaqItem = { id: `faq-${Date.now()}`, question: '', answer: '', order: faqs.length };
+    onChange({ ...manifest, faqs: [...faqs, newFaq] });
+  };
+  const updFaq = (id: string, data: Partial<FaqItem>) =>
+    onChange({ ...manifest, faqs: faqs.map(f => f.id === id ? { ...f, ...data } : f) });
+  const delFaq = (id: string) =>
+    onChange({ ...manifest, faqs: faqs.filter(f => f.id !== id) });
+
+  // ── Registry helpers ──
+  const entries = manifest.registry?.entries || [];
+  const updRegistry = (patch: Partial<NonNullable<StoryManifest['registry']>>) =>
+    onChange({ ...manifest, registry: { ...(manifest.registry || { enabled: true }), ...patch } });
+  const addEntry = () =>
+    updRegistry({ entries: [...entries, { name: '', url: '', note: '' }] });
+  const updEntry = (i: number, data: { name?: string; url?: string; note?: string }) =>
+    updRegistry({ entries: entries.map((e, idx) => idx === i ? { ...e, ...data } : e) });
+  const delEntry = (i: number) =>
+    updRegistry({ entries: entries.filter((_, idx) => idx !== i) });
+
+  // ── Travel helpers ──
+  const travel = manifest.travelInfo || { airports: [], hotels: [] };
+  const updTravel = (patch: Partial<TravelInfo>) =>
+    onChange({ ...manifest, travelInfo: { ...travel, ...patch } });
+  const addHotel = () =>
+    updTravel({ hotels: [...(travel.hotels || []), { name: '', address: '', bookingUrl: '', groupRate: '', notes: '' }] });
+  const updHotel = (i: number, data: Partial<HotelBlock>) =>
+    updTravel({ hotels: (travel.hotels || []).map((h, idx) => idx === i ? { ...h, ...data } : h) });
+  const delHotel = (i: number) =>
+    updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
+
+  const Section = ({ id, label, emoji, children }: { id: typeof openSection; label: string; emoji: string; children: React.ReactNode }) => (
+    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <button
+        onClick={() => setOpenSection(openSection === id ? 'logistics' : id)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',
+          color: openSection === id ? '#b8926a' : 'rgba(255,255,255,0.5)',
+        }}
+      >
+        <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          {emoji} {label}
+        </span>
+        <ChevronDown size={12} style={{ transform: openSection === id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+      </button>
+      {openSection === id && <div style={{ paddingBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>{children}</div>}
+    </div>
+  );
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)' }}>Wedding Details</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <Section id="logistics" label="Logistics" emoji="📅">
+        <Field label="Wedding Date" value={logistics.date || ''} onChange={v => upd({ date: v })} placeholder="2025-09-14" />
+        <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
+        <Field label="Venue" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
+        <Field label="RSVP Deadline" value={logistics.rsvpDeadline || ''} onChange={v => upd({ rsvpDeadline: v })} placeholder="2025-08-01" />
+      </Section>
 
-      <Field label="Wedding Date" value={logistics.date || ''} onChange={v => upd({ date: v })} placeholder="September 14, 2025" />
-      <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
-      <Field label="Venue" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
+      <Section id="travel" label="Travel & Hotels" emoji="✈️">
+        <div>
+          <label style={lbl}>Airports (one per line)</label>
+          <textarea
+            value={(travel.airports || []).join('\n')}
+            onChange={e => updTravel({ airports: e.target.value.split('\n').filter(Boolean) })}
+            rows={2} placeholder="JFK, LGA, EWR"
+            style={{ ...inp, resize: 'vertical', lineHeight: 1.5 }}
+          />
+        </div>
+        <div>
+          <label style={lbl}>Parking / Directions</label>
+          <textarea value={travel.parkingInfo || ''} onChange={e => updTravel({ parkingInfo: e.target.value })} rows={2}
+            placeholder="Valet parking available at the venue…" style={{ ...inp, resize: 'vertical', lineHeight: 1.5 }} />
+        </div>
+        <div>
+          <label style={lbl}>Directions</label>
+          <textarea value={travel.directions || ''} onChange={e => updTravel({ directions: e.target.value })} rows={2}
+            placeholder="Take exit 14B off I-95…" style={{ ...inp, resize: 'vertical', lineHeight: 1.5 }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+          <label style={{ ...lbl, margin: 0 }}>Hotels ({(travel.hotels || []).length})</label>
+          <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
+            <Plus size={10} /> Add Hotel
+          </button>
+        </div>
+        {(travel.hotels || []).map((hotel, i) => (
+          <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#b8926a' }}>Hotel {i + 1}</span>
+              <button onClick={() => delHotel(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}>
+                <Trash2 size={11} />
+              </button>
+            </div>
+            <Field label="Hotel Name" value={hotel.name} onChange={v => updHotel(i, { name: v })} placeholder="Marriott Newport" />
+            <Field label="Address" value={hotel.address} onChange={v => updHotel(i, { address: v })} placeholder="123 Main St" />
+            <Field label="Booking URL" value={hotel.bookingUrl || ''} onChange={v => updHotel(i, { bookingUrl: v })} placeholder="https://marriott.com/..." />
+            <Field label="Group Rate" value={hotel.groupRate || ''} onChange={v => updHotel(i, { groupRate: v })} placeholder="$189/night" />
+            <Field label="Notes" value={hotel.notes || ''} onChange={v => updHotel(i, { notes: v })} placeholder="Mention the wedding block…" />
+          </div>
+        ))}
+      </Section>
 
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.75rem' }}>Site Vibe</div>
+      <Section id="faq" label="FAQ" emoji="❓">
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
+            <Plus size={10} /> Add Question
+          </button>
+        </div>
+        {faqs.map(faq => (
+          <div key={faq.id} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => delFaq(faq.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}>
+                <Trash2 size={11} />
+              </button>
+            </div>
+            <Field label="Question" value={faq.question} onChange={v => updFaq(faq.id, { question: v })} placeholder="Is the venue wheelchair accessible?" />
+            <Field label="Answer" value={faq.answer} onChange={v => updFaq(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />
+          </div>
+        ))}
+        {faqs.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
+      </Section>
+
+      <Section id="registry" label="Registry" emoji="🎁">
+        <Field label="Cash Fund URL (optional)" value={manifest.registry?.cashFundUrl || ''} onChange={v => updRegistry({ cashFundUrl: v })} placeholder="https://hitchd.com/..." />
+        <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We're saving for our honeymoon!" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+          <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
+          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
+            <Plus size={10} /> Add Registry
+          </button>
+        </div>
+        {entries.map((entry, i) => (
+          <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#b8926a' }}>Registry {i + 1}</span>
+              <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}>
+                <Trash2 size={11} />
+              </button>
+            </div>
+            <Field label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Williams Sonoma" />
+            <Field label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://..." />
+            <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
+          </div>
+        ))}
+        {entries.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
+      </Section>
+
+      <Section id="vibe" label="Site Vibe" emoji="✨">
         <div>
           <label style={lbl}>Vibe String</label>
           <textarea
@@ -512,24 +659,109 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             rows={3}
             placeholder="intimate, golden hour, wildflower meadow..."
             style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
           <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.2)', marginTop: '0.4rem', lineHeight: 1.5 }}>
-            Used by the AI when rewriting chapters.
+            Used by the AI when rewriting chapters and generating art.
           </div>
         </div>
-      </div>
-
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.75rem' }}>RSVP Deadline</div>
-        <Field label="Deadline" value={logistics.rsvpDeadline || ''} onChange={v => upd({ rsvpDeadline: v })} placeholder="August 1, 2025" />
-      </div>
+      </Section>
     </div>
   );
 }
 
-// ── Design Panel ───────────────────────────────────────────────
+// ── Pages Panel ────────────────────────────────────────────────
+const ALL_SITE_PAGES = [
+  { id: 'home',     slug: '',         label: 'Home',     icon: '🏠', alwaysOn: true },
+  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '📅', alwaysOn: false },
+  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '💌', alwaysOn: false },
+  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '✈️', alwaysOn: false },
+  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '🏛️', alwaysOn: false },
+  { id: 'registry', slug: 'registry', label: 'Registry', icon: '🎁', alwaysOn: false },
+  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '❓', alwaysOn: false },
+];
+
+function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest; subdomain: string; onChange: (m: StoryManifest) => void }) {
+  const enabled = new Set<string>(
+    manifest.blocks?.flatMap(b =>
+      b.type === 'event' ? ['schedule', 'rsvp'] : [b.type]
+    ) || []
+  );
+
+  const baseUrl = subdomain ? `https://${subdomain}.pearloom.app` : '';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+        Site Pages
+      </div>
+      <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', lineHeight: 1.5, marginBottom: '8px' }}>
+        Each page gets its own URL. Enable sections in the Canvas tab to activate them.
+      </p>
+
+      {ALL_SITE_PAGES.map(page => {
+        const isActive = page.alwaysOn || enabled.has(page.slug) ||
+          (page.slug === 'travel' && !!manifest.travelInfo?.hotels?.length) ||
+          (page.slug === 'registry' && !!(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)) ||
+          (page.slug === 'faq' && !!(manifest.faqs?.length)) ||
+          (page.slug === 'schedule' && !!(manifest.events?.length)) ||
+          (page.slug === 'rsvp' && !!(manifest.events?.length)) ||
+          (page.slug === 'venue' && !!(manifest.logistics?.venue));
+
+        const url = page.slug === '' ? baseUrl : `${baseUrl}/${page.slug}`;
+
+        return (
+          <div
+            key={page.id}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '10px 10px 10px 12px', borderRadius: '10px',
+              background: isActive ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${isActive ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            }}
+          >
+            <span style={{ fontSize: '1rem', flexShrink: 0 }}>{page.icon}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
+              {subdomain && (
+                <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.2)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {url}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+              {isActive ? (
+                <span style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ade80', background: 'rgba(74,222,128,0.12)', padding: '2px 6px', borderRadius: '100px' }}>Live</span>
+              ) : (
+                <span style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '100px' }}>
+                  {page.alwaysOn ? 'Always On' : 'Inactive'}
+                </span>
+              )}
+              {subdomain && isActive && (
+                <a
+                  href={url} target="_blank" rel="noreferrer"
+                  style={{ display: 'flex', padding: '4px', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}
+                  title="Open page"
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+                >
+                  <Globe size={12} />
+                </a>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(184,146,106,0.06)', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.2)' }}>
+        <p style={{ fontSize: '0.68rem', color: 'rgba(184,146,106,0.7)', lineHeight: 1.5, margin: 0 }}>
+          💡 To activate Travel, FAQ, Registry, Venue pages — add your content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab, then they&apos;ll appear as live sub-pages automatically.
+        </p>
+      </div>
+    </div>
+  );
+}
 function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const updateFont = (key: 'heading' | 'body', val: string) => {
     onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } } });
@@ -599,6 +831,45 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ── Unsaved changes indicator ──
+  const [saveState, setSaveState] = useState<'saved' | 'unsaved'>('saved');
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ── Undo/Redo history ──
+  const historyRef = useRef<StoryManifest[]>([manifest]);
+  const historyIndexRef = useRef(0);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  const pushHistory = useCallback((m: StoryManifest) => {
+    const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
+    stack.push(m);
+    if (stack.length > 50) stack.shift();
+    historyRef.current = stack;
+    historyIndexRef.current = stack.length - 1;
+    setCanUndo(stack.length > 1);
+    setCanRedo(false);
+  }, []);
+
+  const undo = useCallback(() => {
+    if (historyIndexRef.current <= 0) return;
+    historyIndexRef.current -= 1;
+    const prev = historyRef.current[historyIndexRef.current];
+    onChange(prev);
+    pushToPreview(prev); // will be defined below — ref used
+    setCanUndo(historyIndexRef.current > 0);
+    setCanRedo(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onChange]);
+
+  const redo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1) return;
+    historyIndexRef.current += 1;
+    const next = historyRef.current[historyIndexRef.current];
+    onChange(next);
+    setCanUndo(true);
+    setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onChange]);
 
   // Publish modal state
   const [showPublish, setShowPublish] = useState(false);
@@ -625,6 +896,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
       setPublishedUrl(data.url);
+      setSaveState('saved');
       onPublish?.();
     } catch (err) {
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
@@ -637,6 +909,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
   // Push manifest changes to iframe preview (debounced 600ms)
   const pushToPreview = useCallback((m: StoryManifest) => {
+    // Mark unsaved
+    setSaveState('unsaved');
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       try {
@@ -644,6 +919,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         if (iframeRef.current) {
           iframeRef.current.src = `/preview?key=${previewKey}`;
         }
+        // Auto-mark as locally saved 2.5s after last change
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = setTimeout(() => setSaveState('saved'), 2500);
       } catch {}
     }, 600);
   }, [previewKey, coupleNames]);
@@ -659,9 +937,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       ...manifest,
       chapters: newChapters.map((ch, i) => ({ ...ch, order: i })),
     };
+    pushHistory(newManifest);
     onChange(newManifest);
     pushToPreview(newManifest);
-  }, [manifest, onChange, pushToPreview]);
+  }, [manifest, onChange, pushToPreview, pushHistory]);
 
   const updateChapter = useCallback((id: string, data: Partial<Chapter>) => {
     const next = chapters.map(ch => ch.id === id ? { ...ch, ...data } : ch);
@@ -695,9 +974,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [syncManifest]);
 
   const handleDesignChange = useCallback((m: StoryManifest) => {
+    pushHistory(m);
     onChange(m);
     pushToPreview(m);
-  }, [onChange, pushToPreview]);
+  }, [onChange, pushToPreview, pushHistory]);
 
   const handleAIRewrite = useCallback(async (id: string) => {
     const ch = chapters.find(c => c.id === id);
@@ -735,7 +1015,7 @@ Return JSON with: title, subtitle, description, mood`,
   }, [chapters, manifest, updateChapter]);
 
   const TAB_ICONS: Record<EditorTab, React.ElementType> = {
-    story: AlignLeft, events: Calendar, canvas: LayoutTemplate, design: Palette, details: Settings, blocks: Sparkles, voice: MessageCircleHeart,
+    story: AlignLeft, events: Calendar, canvas: LayoutTemplate, design: Palette, details: Settings, pages: Globe, blocks: Sparkles, voice: MessageCircleHeart,
   };
 
   return (
@@ -782,6 +1062,25 @@ Return JSON with: title, subtitle, description, mood`,
           </span>
         </div>
 
+        {/* Save state + Undo/Redo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+          <button
+            onClick={undo} disabled={!canUndo} title="Undo"
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', fontSize: '0.75rem', fontWeight: 700 }}
+          >↩</button>
+          <button
+            onClick={redo} disabled={!canRedo} title="Redo"
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', fontSize: '0.75rem', fontWeight: 700 }}
+          >↪</button>
+          <span style={{
+            fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em',
+            color: saveState === 'saved' ? '#4ade80' : '#facc15',
+            background: saveState === 'saved' ? 'rgba(74,222,128,0.1)' : 'rgba(250,204,21,0.1)',
+            padding: '3px 8px', borderRadius: '100px', transition: 'all 0.3s',
+          }}>
+            {saveState === 'saved' ? '✓ Saved' : '● Unsaved'}
+          </span>
+        </div>
         {/* Device switcher */}
         <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px', flexShrink: 0 }}>
           {(Object.entries(DEVICE_DIMS) as [DeviceMode, typeof DEVICE_DIMS[DeviceMode]][]).map(([mode, { icon: Icon, label }]) => (
@@ -850,7 +1149,7 @@ Return JSON with: title, subtitle, description, mood`,
             display: 'flex', padding: '8px 8px 0',
             borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
           }}>
-            {(['story', 'events', 'canvas', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
+            {(['story', 'events', 'canvas', 'design', 'details', 'pages', 'blocks', 'voice'] as EditorTab[]).map(tab => {
               const Icon = TAB_ICONS[tab];
               const isBlocks = tab === 'blocks';
               return (
@@ -926,6 +1225,10 @@ Return JSON with: title, subtitle, description, mood`,
 
             {activeTab === 'details' && (
               <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
+            )}
+
+            {activeTab === 'pages' && (
+              <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
             )}
 
             {activeTab === 'blocks' && (
@@ -1026,11 +1329,11 @@ Return JSON with: title, subtitle, description, mood`,
 
                 <AnimatePresence mode="wait">
                   <ChapterPanel
-                    key={activeChapter.id}
-                    chapter={activeChapter}
+                    key={activeChapter!.id}
+                    chapter={activeChapter!}
                     onUpdate={updateChapter}
                     onAIRewrite={handleAIRewrite}
-                    isRewriting={rewritingId === activeChapter.id}
+                    isRewriting={rewritingId === activeChapter!.id}
                   />
                 </AnimatePresence>
               </div>
@@ -1087,7 +1390,7 @@ Return JSON with: title, subtitle, description, mood`,
                   </code>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                     <a
-                      href={publishedUrl} target="_blank" rel="noreferrer"
+                      href={publishedUrl!} target="_blank" rel="noreferrer"
                       style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #b8926a, #d4a574)', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem' }}
                     >
                       Open Site →
