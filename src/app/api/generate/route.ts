@@ -89,7 +89,9 @@ export async function POST(req: NextRequest) {
       session.accessToken
     );
 
-    // Map the actual photo URLs into the generated chapters
+    // Map actual photo URLs + REAL locations into generated chapters.
+    // CRITICAL: cluster location (from GPS or user input) ALWAYS overrides
+    // whatever the AI hallucinated. If no location exists, strip it.
     manifest.chapters = manifest.chapters.map((chapter, i) => {
       const cluster = enrichedClusters[i];
       if (cluster) {
@@ -101,8 +103,12 @@ export async function POST(req: NextRequest) {
           height: p.height,
         }));
 
-        if (cluster.location) {
+        // ALWAYS use cluster location — never trust AI-generated ones
+        if (cluster.location && cluster.location.label) {
           chapter.location = cluster.location;
+        } else {
+          // No real location data → delete any AI hallucination
+          chapter.location = null;
         }
       }
       return chapter;

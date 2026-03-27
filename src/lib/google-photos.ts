@@ -170,11 +170,30 @@ function normalizePickedItem(item: any): GooglePhotoMetadata {
   };
 }
 
-// ── Clustering (unchanged — framework agnostic) ─────────────
+// ── Clustering (date + location aware) ─────────────────────
 
 /**
- * Clusters photos by proximity in time.
- * A new cluster starts when more than `gapDays` days have elapsed.
+ * Haversine distance between two GPS points in kilometers.
+ */
+function haversineKm(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number
+): number {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * Clusters photos by proximity in time AND location.
+ * - A new cluster starts when more than `gapDays` days have elapsed.
+ * - Within the same date window, photos >50km apart are split into
+ *   separate clusters so "Rome trip + Paris trip" don't merge.
  */
 export function clusterPhotos(
   photos: GooglePhotoMetadata[],
@@ -186,8 +205,9 @@ export function clusterPhotos(
     (a, b) => new Date(a.creationTime).getTime() - new Date(b.creationTime).getTime()
   );
 
-  const clusters: PhotoCluster[] = [];
-  let currentCluster: GooglePhotoMetadata[] = [sorted[0]];
+  // Pass 1: cluster by date gap
+  const dateClusters: GooglePhotoMetadata[][] = [];
+  let currentGroup: GooglePhotoMetadata[] = [sorted[0]];
 
   for (let i = 1; i < sorted.length; i++) {
     const prev = new Date(sorted[i - 1].creationTime).getTime();
@@ -195,18 +215,77 @@ export function clusterPhotos(
     const diffDays = (curr - prev) / (1000 * 60 * 60 * 24);
 
     if (diffDays > gapDays) {
-      clusters.push(buildCluster(currentCluster));
-      currentCluster = [sorted[i]];
+      dateClusters.push(currentGroup);
+      currentGroup = [sorted[i]];
     } else {
-      currentCluster.push(sorted[i]);
+      currentGroup.push(sorted[i]);
+    }
+  }
+  if (currentGroup.length > 0) {
+    dateClusters.push(currentGroup);
+  }
+
+  // Pass 2: sub-split each date cluster by location distance (>50km)
+  const DISTANCE_THRESHOLD_KM = 50;
+  const finalClusters: PhotoCluster[] = [];
+
+  for (const group of dateClusters) {
+    const geoPhotos = group.filter(p => p.location && p.location.latitude && p.location.longitude);
+
+    // If no GPS data at all, keep as one cluster
+    if (geoPhotos.length < 2) {
+      finalClusters.push(buildCluster(group));
+      continue;
+    }
+
+    // Simple greedy approach: assign each photo to the nearest existing sub-group,
+    // or start a new sub-group if too far from all existing ones.
+    const subGroups: GooglePhotoMetadata[][] = [];
+    const subCentroids: { lat: number; lng: number }[] = [];
+
+    for (const photo of group) {
+      const lat = photo.location?.latitude ?? 0;
+      const lng = photo.location?.longitude ?? 0;
+      const hasGps = lat !== 0 || lng !== 0;
+
+      if (!hasGps) {
+        // No GPS — assign to the most recent sub-group
+        if (subGroups.length === 0) subGroups.push([]);
+        subGroups[subGroups.length - 1].push(photo);
+        continue;
+      }
+
+      // Find nearest sub-group centroid
+      let bestIdx = -1;
+      let bestDist = Infinity;
+      for (let si = 0; si < subCentroids.length; si++) {
+        const d = haversineKm(lat, lng, subCentroids[si].lat, subCentroids[si].lng);
+        if (d < bestDist) { bestDist = d; bestIdx = si; }
+      }
+
+      if (bestIdx >= 0 && bestDist <= DISTANCE_THRESHOLD_KM) {
+        subGroups[bestIdx].push(photo);
+        // Update centroid (running average)
+        const n = subGroups[bestIdx].filter(p => p.location?.latitude).length;
+        subCentroids[bestIdx] = {
+          lat: subCentroids[bestIdx].lat + (lat - subCentroids[bestIdx].lat) / n,
+          lng: subCentroids[bestIdx].lng + (lng - subCentroids[bestIdx].lng) / n,
+        };
+      } else {
+        // Too far from any existing group — start new sub-group
+        subGroups.push([photo]);
+        subCentroids.push({ lat, lng });
+      }
+    }
+
+    for (const sub of subGroups) {
+      if (sub.length > 0) {
+        finalClusters.push(buildCluster(sub));
+      }
     }
   }
 
-  if (currentCluster.length > 0) {
-    clusters.push(buildCluster(currentCluster));
-  }
-
-  return clusters;
+  return finalClusters;
 }
 
 function buildCluster(photos: GooglePhotoMetadata[]): PhotoCluster {
@@ -214,7 +293,7 @@ function buildCluster(photos: GooglePhotoMetadata[]): PhotoCluster {
   const startDate = new Date(Math.min(...dates)).toISOString();
   const endDate = new Date(Math.max(...dates)).toISOString();
 
-  const geoPhotos = photos.filter((p) => p.location);
+  const geoPhotos = photos.filter((p) => p.location && (p.location.latitude || p.location.longitude));
   let location: GeoLocation | null = null;
 
   if (geoPhotos.length > 0) {
