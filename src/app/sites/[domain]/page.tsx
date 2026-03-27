@@ -22,6 +22,8 @@ const PhotoGallery = lazyLoad(() => import('@/components/photo-gallery').then(m 
 const Guestbook = lazyLoad(() => import('@/components/guestbook').then(m => ({ default: m.Guestbook })), { ssr: false });
 const RsvpLiveCounter = lazyLoad(() => import('@/components/rsvp-live-counter').then(m => ({ default: m.RsvpLiveCounter })), { ssr: false });
 const AskCoupleChat = lazyLoad(() => import('@/components/ask-couple-chat').then(m => ({ default: m.AskCoupleChat })), { ssr: false });
+const PasswordGate = lazyLoad(() => import('@/components/PasswordGate').then(m => ({ default: m.PasswordGate })), { ssr: false });
+const VisitTracker = lazyLoad(() => import('@/components/VisitTracker').then(m => ({ default: m.VisitTracker })), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 
@@ -123,12 +125,17 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       ? { id: 'faq',      slug: 'faq',      label: 'FAQ',        enabled: true,  order: 5 } : null,
   ].filter(Boolean) as import('@/types').SitePage[];
 
-  return (
+  const isPasswordProtected = manifest.comingSoon?.passwordProtected && manifest.comingSoon?.password;
+
+  const siteContent = (
     <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
       <SiteNav
         names={safeNames}
         pages={sitePages}
       />
+
+      {/* Silent analytics tracker */}
+      <VisitTracker siteId={domain} />
       
       <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
         <Hero
@@ -291,4 +298,20 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       <AskCoupleChat siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
     </ThemeProvider>
   );
+
+  // Wrap in PasswordGate if protected
+  if (isPasswordProtected) {
+    return (
+      <PasswordGate
+        siteId={domain}
+        coupleNames={safeNames}
+        password={manifest.comingSoon!.password!}
+        vibeSkin={vibeSkin}
+      >
+        {siteContent}
+      </PasswordGate>
+    );
+  }
+
+  return siteContent;
 }

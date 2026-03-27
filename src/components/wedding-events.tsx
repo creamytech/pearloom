@@ -109,8 +109,51 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
         )}
       </div>
 
-      {/* Map link */}
-      {event.mapUrl && (
+      {/* Embedded map + directions */}
+      {event.address && (
+        <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+          {/* Google Maps embed */}
+          <iframe
+            title={`Map — ${event.venue}`}
+            width="100%"
+            height="180"
+            frameBorder="0"
+            style={{ display: 'block' }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(event.address)}&output=embed&z=15`}
+          />
+          <div style={{ padding: '0.85rem 1.5rem', display: 'flex', gap: '0.75rem' }}>
+            <a
+              href={event.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                fontSize: '0.78rem', fontWeight: 700, color: 'var(--eg-accent)',
+                textDecoration: 'none', letterSpacing: '0.05em',
+              }}
+            >
+              <MapPin size={13} /> Get Directions <ExternalLink size={11} />
+            </a>
+            <a
+              href={`https://maps.apple.com/?q=${encodeURIComponent(event.address)}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                fontSize: '0.78rem', fontWeight: 700, color: 'var(--eg-muted)',
+                textDecoration: 'none', letterSpacing: '0.05em',
+              }}
+            >
+              Apple Maps <ExternalLink size={11} />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Fallback map link if only mapUrl, no address */}
+      {!event.address && event.mapUrl && (
         <div style={{ padding: '1rem 2rem', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           <a
             href={event.mapUrl}
@@ -122,9 +165,7 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
               textDecoration: 'none', letterSpacing: '0.05em',
             }}
           >
-            <MapPin size={14} />
-            Get Directions
-            <ExternalLink size={11} />
+            <MapPin size={14} /> Get Directions <ExternalLink size={11} />
           </a>
         </div>
       )}
