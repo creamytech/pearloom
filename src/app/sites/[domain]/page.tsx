@@ -101,11 +101,26 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const cardBg = manifest.theme?.colors?.cardBg || '#ffffff';
   const accentLight = manifest.theme?.colors?.accentLight || '#f3e8d8';
 
+  // Build real nav pages from manifest content
+  const sitePages = [
+    { id: 'story',    slug: 'our-story', label: 'Our Story', enabled: true,  order: 0 },
+    manifest.events?.length
+      ? { id: 'schedule', slug: 'schedule', label: 'Schedule',   enabled: true,  order: 1 } : null,
+    manifest.events?.length
+      ? { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',       enabled: true,  order: 2 } : null,
+    (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)
+      ? { id: 'registry', slug: 'registry', label: 'Registry',   enabled: true,  order: 3 } : null,
+    manifest.travelInfo
+      ? { id: 'travel',   slug: 'travel',   label: 'Travel',     enabled: true,  order: 4 } : null,
+    manifest.faqs?.length
+      ? { id: 'faq',      slug: 'faq',      label: 'FAQ',        enabled: true,  order: 5 } : null,
+  ].filter(Boolean) as import('@/types').SitePage[];
+
   return (
     <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
-      <SiteNav 
+      <SiteNav
         names={safeNames}
-        pages={[]}
+        pages={sitePages}
       />
       
       <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
@@ -159,16 +174,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </div>
         </div>
 
-        <Timeline chapters={manifest.chapters || []} />
+        <section id="our-story">
+          <Timeline chapters={manifest.chapters || []} />
+        </section>
 
         {/* Wave divider: Timeline → Events */}
         {manifest.events && manifest.events.length > 0 && (
           <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
         )}
 
-        {/* Multi-event cards — title from AI-designed skin */}
         {manifest.events && manifest.events.length > 0 && (
-          <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+          <section id="schedule">
+            <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+          </section>
         )}
 
         {/* Wave divider: Events → RSVP */}
@@ -176,13 +194,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
         )}
 
-        {/* Public RSVP Section — wired to guests table */}
         {manifest.events && manifest.events.length > 0 && (
-          <PublicRsvpSection
-            siteId={domain}
-            events={manifest.events}
-            deadline={manifest.logistics?.rsvpDeadline}
-          />
+          <section id="rsvp">
+            <PublicRsvpSection
+              siteId={domain}
+              events={manifest.events}
+              deadline={manifest.logistics?.rsvpDeadline}
+            />
+          </section>
         )}
 
         {/* Wave divider: RSVP → Registry */}
@@ -190,14 +209,15 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
         )}
 
-        {/* Multi-registry showcase — title from AI skin */}
         {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
-          <RegistryShowcase
-            registries={manifest.registry?.entries || []}
-            cashFundUrl={manifest.registry?.cashFundUrl}
-            cashFundMessage={manifest.registry?.cashFundMessage}
-            title={vibeSkin.sectionLabels.registry}
-          />
+          <section id="registry">
+            <RegistryShowcase
+              registries={manifest.registry?.entries || []}
+              cashFundUrl={manifest.registry?.cashFundUrl}
+              cashFundMessage={manifest.registry?.cashFundMessage}
+              title={vibeSkin.sectionLabels.registry}
+            />
+          </section>
         )}
 
         {/* Wave divider: Registry → Travel */}
@@ -205,20 +225,23 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={cardBg} height={70} inverted />
         )}
 
-        {/* Travel & Hotels */}
-        {manifest.travelInfo && <TravelSection info={manifest.travelInfo} />}
+        {manifest.travelInfo && (
+          <section id="travel">
+            <TravelSection info={manifest.travelInfo} />
+          </section>
+        )}
 
         {/* Wave divider: Travel → FAQ */}
         {manifest.faqs && manifest.faqs.length > 0 && (
           <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} />
         )}
 
-        {/* FAQ accordion */}
         {manifest.faqs && manifest.faqs.length > 0 && (
-          <FaqSection faqs={manifest.faqs} />
+          <section id="faq">
+            <FaqSection faqs={manifest.faqs} />
+          </section>
         )}
 
-        {/* Coming Soon section with email capture */}
         {manifest.comingSoon && <ComingSoon config={manifest.comingSoon} siteId={domain} />}
       </main>
     </ThemeProvider>

@@ -43,12 +43,14 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
 
   const isActive = (slug: string) => {
     if (slug === 'our-story') return pathname === '/';
-    return pathname === `/${slug}`;
+    // Match both anchor and sub-page variant
+    return pathname.endsWith(`/${slug}`);
   };
 
   const getHref = (slug: string) => {
-    if (slug === 'our-story') return '/';
-    return `/${slug}`;
+    if (slug === 'our-story') return '#';  // scrolls to top
+    // All sections are anchor links on the main page
+    return `#${slug}`;
   };
 
   return (
@@ -128,36 +130,47 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
                 )}
               </>
             ) : (
-              // Published site navigation
-              enabledPages.map((page) => (
-                <Link
-                  key={page.id}
-                  href={getHref(page.slug)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
-                    color: isActive(page.slug) ? 'var(--eg-fg)' : 'var(--eg-muted)',
-                    textDecoration: 'none',
-                    borderRadius: '0.5rem',
-                    background: isActive(page.slug) ? 'rgba(0,0,0,0.04)' : 'transparent',
-                    transition: 'all 0.2s ease',
-                    position: 'relative',
-                  }}
-                >
-                  {page.label}
-                  {isActive(page.slug) && (
-                    <motion.div
-                      layoutId="nav-underline"
-                      style={{
-                        position: 'absolute', bottom: '0.25rem', left: '1rem', right: '1rem',
-                        height: '2px', borderRadius: '100px',
-                        background: 'var(--eg-accent)',
-                      }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                </Link>
-              ))
+              // Published site — smooth anchor scroll with fixed nav offset
+              enabledPages.map((page) => {
+                const isHome = page.slug === 'our-story';
+                return (
+                  <button
+                    key={page.id}
+                    onClick={() => {
+                      if (isHome) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      } else {
+                        const el = document.getElementById(page.slug);
+                        if (el) {
+                          const top = el.getBoundingClientRect().top + window.scrollY - 80;
+                          window.scrollTo({ top, behavior: 'smooth' });
+                        }
+                      }
+                    }}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
+                      color: isActive(page.slug) ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                      borderRadius: '0.5rem',
+                      background: isActive(page.slug) ? 'rgba(0,0,0,0.04)' : 'transparent',
+                      transition: 'all 0.2s ease', position: 'relative',
+                      border: 'none', cursor: 'pointer', fontFamily: 'var(--eg-font-body)',
+                    }}
+                  >
+                    {page.label}
+                    {isActive(page.slug) && (
+                      <motion.div
+                        layoutId="nav-underline"
+                        style={{
+                          position: 'absolute', bottom: '0.25rem', left: '1rem', right: '1rem',
+                          height: '2px', borderRadius: '100px', background: 'var(--eg-accent)',
+                        }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                );
+              })
             )}
           </div>
 
