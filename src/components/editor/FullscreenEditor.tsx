@@ -31,8 +31,9 @@ const LAYOUT_OPTS = ['editorial', 'fullbleed', 'split', 'cinematic', 'gallery', 
 interface FullscreenEditorProps {
   manifest: StoryManifest;
   coupleNames: [string, string];
+  subdomain: string;
   onChange: (m: StoryManifest) => void;
-  onPublish: () => void;
+  onPublish?: () => void; // optional callback after successful publish
   onExit: () => void;
 }
 
@@ -509,7 +510,7 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 }
 
 // ── Main FullscreenEditor ──────────────────────────────────────
-export function FullscreenEditor({ manifest, coupleNames, onChange, onPublish, onExit }: FullscreenEditorProps) {
+export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubdomain, onChange, onPublish, onExit }: FullscreenEditorProps) {
   const [chapters, setChapters] = useState<Chapter[]>(
     [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   );
@@ -517,10 +518,42 @@ export function FullscreenEditor({ manifest, coupleNames, onChange, onPublish, o
   const [activeTab, setActiveTab] = useState<EditorTab>('story');
   const [device, setDevice] = useState<DeviceMode>('desktop');
   const [rewritingId, setRewritingId] = useState<string | null>(null);
-  const [isPublishing, setIsPublishing] = useState(false);
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Publish modal state
+  const [showPublish, setShowPublish] = useState(false);
+  const [subdomain, setSubdomain] = useState(initialSubdomain || '');
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+
+  const handlePublishSubmit = useCallback(async () => {
+    const target = subdomain.trim();
+    if (!target) return setPublishError('Please enter a URL.');
+    setPublishError(null);
+    setIsPublishing(true);
+    try {
+      const res = await fetch('/api/sites/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subdomain: target,
+          manifest: { ...manifest, chapters: chapters.map((ch, i) => ({ ...ch, order: i })) },
+          names: coupleNames,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to publish');
+      setPublishedUrl(data.url);
+      onPublish?.();
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [subdomain, manifest, chapters, coupleNames, onPublish]);
 
   const activeChapter = chapters.find(c => c.id === activeId) || null;
 
@@ -596,14 +629,28 @@ export function FullscreenEditor({ manifest, coupleNames, onChange, onPublish, o
       const res = await fetch('/api/generate-block', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          blockType: 'chapter',
-          context: { title: ch.title, description: ch.description, mood: ch.mood, vibeString: manifest.vibeString },
-          instruction: 'Rewrite with fresh, intimate, specific language.',
+          prompt: `Rewrite this wedding chapter with fresh, intimate, specific language. Keep the same emotional theme but use richer storytelling.
+
+Current title: "${ch.title}"
+Current story: "${ch.description}"
+Mood: ${ch.mood || 'romantic'}
+Vibe: ${manifest.vibeString || ''}
+
+Return JSON with: title, subtitle, description, mood`,
+          systemPrompt: 'You are a romantic storytelling AI for Pearloom wedding websites. Write in a warm, cinematic, intimate voice. Return ONLY valid JSON with keys: title, subtitle, description, mood.',
         }),
       });
       if (res.ok) {
         const { block } = await res.json();
-        if (block?.data) updateChapter(id, { ...block.data, id, images: ch.images, date: ch.date, order: ch.order });
+        // API returns { block: { title, subtitle, description, mood } } — no .data wrapper
+        if (block && (block.title || block.description)) {
+          updateChapter(id, {
+            title: block.title || ch.title,
+            subtitle: block.subtitle || ch.subtitle,
+            description: block.description || ch.description,
+            mood: block.mood || ch.mood,
+          });
+        }
       }
     } catch (e) { console.error('AI rewrite failed:', e); }
     finally { setRewritingId(null); }
@@ -692,21 +739,19 @@ export function FullscreenEditor({ manifest, coupleNames, onChange, onPublish, o
           >
             <Eye size={13} /> Preview
           </button>
+          {/* Publish */}
           <button
-            onClick={() => { setIsPublishing(true); onPublish(); setTimeout(() => setIsPublishing(false), 2000); }}
-            disabled={isPublishing}
+            onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '6px 18px', borderRadius: '6px', border: 'none',
               background: 'linear-gradient(135deg, #b8926a, #d4a574)',
               color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               boxShadow: '0 4px 12px rgba(184,146,106,0.35)',
-              transition: 'all 0.2s', opacity: isPublishing ? 0.7 : 1,
+              transition: 'all 0.2s',
             }}
           >
-            {isPublishing
-              ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</>
-              : <><Globe size={13} /> Publish</>}
+            <Globe size={13} /> Publish
           </button>
         </div>
       </div>
@@ -881,6 +926,107 @@ export function FullscreenEditor({ manifest, coupleNames, onChange, onPublish, o
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 100px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
       `}</style>
+
+      {/* ── PUBLISH MODAL ── */}
+      <AnimatePresence>
+        {showPublish && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 2000,
+              background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(16px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
+            }}
+            onClick={() => setShowPublish(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: '#1a1917', borderRadius: '1.5rem',
+                padding: '2.5rem', maxWidth: '460px', width: '100%',
+                boxShadow: '0 40px 100px rgba(0,0,0,0.6)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                textAlign: 'center',
+              }}
+            >
+              {publishedUrl ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Globe size={24} color="#22c55e" />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', margin: 0 }}>It&apos;s Live.</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</p>
+                  <code style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: '#b8926a', wordBreak: 'break-all' }}>
+                    {publishedUrl}
+                  </code>
+                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
+                    <a
+                      href={publishedUrl} target="_blank" rel="noreferrer"
+                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #b8926a, #d4a574)', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem' }}
+                    >
+                      Open Site →
+                    </a>
+                    <button
+                      onClick={() => { setShowPublish(false); onExit(); }}
+                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}
+                    >
+                      Dashboard
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', marginBottom: '0.5rem' }}>Choose Your URL</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.45)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
+
+                  {publishError && (
+                    <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                      {publishError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.06)', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                    <input
+                      value={subdomain}
+                      onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="shauna-and-ben"
+                      style={{ flex: 1, padding: '0.85rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontFamily: 'inherit' }}
+                      disabled={isPublishing}
+                      autoFocus
+                    />
+                    <div style={{ padding: '0.85rem 1rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', borderLeft: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap' }}>
+                      .pearloom.app
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                      onClick={() => setShowPublish(false)}
+                      disabled={isPublishing}
+                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handlePublishSubmit}
+                      disabled={isPublishing || !subdomain}
+                      style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.85rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #b8926a, #d4a574)', color: '#fff', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.88rem', opacity: isPublishing || !subdomain ? 0.7 : 1 }}
+                    >
+                      {isPublishing ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</> : <><Globe size={14} /> Publish Site</>}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

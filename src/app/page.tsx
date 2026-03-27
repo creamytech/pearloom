@@ -189,12 +189,9 @@ export default function DashboardPage() {
       <FullscreenEditor
         manifest={manifest}
         coupleNames={coupleNames}
+        subdomain={subdomain}
         onChange={setManifest}
-        onPublish={() => {
-          setPublishError(null);
-          setPublishedUrl(null);
-          setShowPublishModal(true);
-        }}
+        onPublish={() => setCurrentStep('dashboard')}
         onExit={() => setCurrentStep('dashboard')}
       />
     );
