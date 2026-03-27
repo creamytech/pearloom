@@ -7,10 +7,35 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pencil, Check, GripVertical, Trash2, Plus, Lock, Unlock, Eye, LayoutDashboard } from 'lucide-react';
 import type { Chapter, StoryManifest } from '@/types';
-import { BlockEditor } from '@/components/dashboard/block-editor';
+
+// dnd-kit uses browser-only pointer/keyboard APIs — must NOT run on the server
+// Static import crashes Vercel with 'n is not a function' during SSR
+const BlockEditor = dynamic(
+  () => import('@/components/dashboard/block-editor').then(m => m.BlockEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '400px', color: 'var(--eg-muted)', fontSize: '0.9rem',
+        gap: '0.75rem', flexDirection: 'column',
+      }}>
+        <div style={{
+          width: '40px', height: '51px',
+          borderRadius: '42% 42% 52% 52% / 30% 30% 52% 52%',
+          background: 'rgba(184,146,106,0.12)',
+          border: '1px solid rgba(184,146,106,0.2)',
+          animation: 'pulse 1.5s ease-in-out infinite',
+        }} />
+        <span>Loading editor…</span>
+      </div>
+    ),
+  }
+);
 
 interface SiteEditorProps {
   manifest: StoryManifest;
