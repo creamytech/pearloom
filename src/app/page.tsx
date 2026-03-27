@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // everglow / app/dashboard/page.tsx
-// Full wizard flow: Sign In → Dashboard → Select Photos → Set Vibe → Generate → Edit → Preview
-// ─────────────────────────────────────────────────────────────
+// Full wizard flow: Sign In â†’ Dashboard â†’ Select Photos â†’ Set Vibe â†’ Generate â†’ Edit â†’ Preview
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import { useState, useCallback, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
@@ -21,7 +21,7 @@ import { GenerationProgress } from '@/components/dashboard/generation-progress';
 import { UserSites } from '@/components/dashboard/user-sites';
 import type { GooglePhotoMetadata, StoryManifest } from '@/types';
 
-// Full-screen editor — SSR disabled (uses browser APIs + framer Reorder)
+// Full-screen editor â€” SSR disabled (uses browser APIs + framer Reorder)
 const FullscreenEditor = dynamic(
   () => import('@/components/editor/FullscreenEditor').then(m => m.FullscreenEditor),
   { ssr: false }
@@ -42,7 +42,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
   dashboard: { title: '', subtitle: '', icon: LayoutDashboard },
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
   'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
-  vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling — the AI will do the rest.', icon: Sparkles },
+  vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling â€” the AI will do the rest.', icon: Sparkles },
   generating: { title: '', subtitle: '', icon: Sparkles },
   edit: { title: 'Your Story', subtitle: 'Review and edit. Make it perfect.', icon: Pencil },
   preview: { title: 'Preview', subtitle: 'See your site live before publishing.', icon: Eye },
@@ -66,7 +66,7 @@ export default function DashboardPage() {
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
-  // Redirect to dashboard once auth is confirmed — must be in useEffect,
+  // Redirect to dashboard once auth is confirmed â€” must be in useEffect,
   // NOT inline during render, to avoid React's infinite update loop
   useEffect(() => {
     if (status === 'authenticated' && currentStep === 'auth') {
@@ -94,7 +94,7 @@ export default function DashboardPage() {
       setGenerationStep((prev) => Math.min(prev + 1, 5));
     }, 2000);
 
-    // 90-second timeout — Gemini can be slow on large photo sets
+    // 90-second timeout â€” Gemini can be slow on large photo sets
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90_000);
 
@@ -126,7 +126,7 @@ export default function DashboardPage() {
         console.error('[Generate] No manifest in response:', result);
         throw new Error('AI returned an empty manifest. Please try again.');
       }
-      console.log('[Generate] Manifest received ✓ chapters:', result.manifest.chapters?.length);
+      console.log('[Generate] Manifest received âœ“ chapters:', result.manifest.chapters?.length);
 
       setManifest(result.manifest);
 
@@ -171,7 +171,7 @@ export default function DashboardPage() {
       console.log('[Publish] API response:', data);
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
 
-      console.log('[Publish] ✓ Published! URL:', data.url);
+      console.log('[Publish] âœ“ Published! URL:', data.url);
       setPublishedUrl(data.url);
     } catch (err: unknown) {
       console.error('[Publish] Error:', err);
@@ -183,7 +183,7 @@ export default function DashboardPage() {
 
   const meta = STEP_META[currentStep];
 
-  // ── Full-screen editor takes over the entire viewport ──
+  // â”€â”€ Full-screen editor takes over the entire viewport â”€â”€
   if (currentStep === 'edit' && manifest) {
     return (
       <FullscreenEditor
@@ -213,7 +213,7 @@ export default function DashboardPage() {
       />
       
       {/* Only unmount to landing on CONFIRMED unauthenticated.
-          Never on 'loading' — session revalidation mid-generation would
+          Never on 'loading' â€” session revalidation mid-generation would
           destroy the component tree and cause React to crash with 'n is not a function'. */}
       {status === 'unauthenticated' ? (
         <LandingPage handleSignIn={handleSignIn} status={status} />
@@ -242,9 +242,8 @@ export default function DashboardPage() {
                 { id: 'photos', label: 'Select Memories' },
                 { id: 'vibe', label: 'Capture Vibe' },
                 { id: 'edit', label: 'Editor' },
-                { id: 'preview', label: 'Preview Site' }
               ] as const).map((stepDef, i) => {
-                const stepOrder = ['photos', 'vibe', 'edit', 'preview'] as const;
+                const stepOrder = ['photos', 'vibe', 'edit'] as const;
                 const normalizedCurrentStep = currentStep === 'local-upload' ? 'photos' : currentStep as typeof stepOrder[number];
                 const currentIndex = stepOrder.indexOf(normalizedCurrentStep);
                 const stepIndex = stepOrder.indexOf(stepDef.id);
@@ -278,7 +277,7 @@ export default function DashboardPage() {
                         {stepDef.label}
                       </span>
                     </div>
-                    {i < 3 && (
+                    {i < 2 && (
                       <div style={{ 
                         flex: 1, height: '2px', margin: '0 1rem',
                         background: isDone ? 'var(--eg-accent-light)' : '#f0f0f0', 
@@ -297,7 +296,7 @@ export default function DashboardPage() {
             position: 'relative',
             paddingTop: '1rem'
           }}>
-            {/* Step header — hidden during generating & dashboard */}
+            {/* Step header â€” hidden during generating & dashboard */}
             {currentStep !== 'dashboard' && currentStep !== 'generating' && (
               <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
                 <h2 style={{
@@ -316,7 +315,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Error display — polished card */}
+            {/* Error display â€” polished card */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -338,7 +337,7 @@ export default function DashboardPage() {
                   background: '#fef2f2', flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '1.25rem',
-                }}>⚠️</div>
+                }}>âš ï¸</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Generation failed</div>
                   <div style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: 1.5 }}>{error}</div>
@@ -368,7 +367,7 @@ export default function DashboardPage() {
                 exit={{ opacity: 0, scale: 0.98, y: -10 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-              {/* ── DASHBOARD ── */}
+              {/* â”€â”€ DASHBOARD â”€â”€ */}
               {currentStep === 'dashboard' && (
                 <UserSites 
                   onStartNew={() => setCurrentStep('photos')}
@@ -385,7 +384,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* ── PHOTOS ── */}
+              {/* â”€â”€ PHOTOS â”€â”€ */}
               {currentStep === 'photos' && (
                 <div>
                   <PhotoBrowser
@@ -428,7 +427,7 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
-              {/* ── LOCAL UPLOAD ── */}
+              {/* â”€â”€ LOCAL UPLOAD â”€â”€ */}
               {currentStep === 'local-upload' && (
                 <div style={{ paddingBottom: '2rem' }}>
                   <button
@@ -451,7 +450,7 @@ export default function DashboardPage() {
                   />
                 </div>
               )}
-              {/* ── VIBE ── */}
+              {/* â”€â”€ VIBE â”€â”€ */}
               {currentStep === 'vibe' && (
                 <div style={{ paddingBottom: '2rem' }}>
                   <button
@@ -474,14 +473,14 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── GENERATING ── */}
+              {/* â”€â”€ GENERATING â”€â”€ */}
               {currentStep === 'generating' && (
                 <GenerationProgress step={generationStep} />
               )}
 
-              {/* ── EDIT \u2014 handled by FullscreenEditor (early return above) ── */}
+              {/* â”€â”€ EDIT \u2014 handled by FullscreenEditor (early return above) â”€â”€ */}
 
-              {/* ── GUESTS ── */}
+              {/* â”€â”€ GUESTS â”€â”€ */}
               {currentStep === 'guests' && subdomain && (
                 <div>
                   <button
@@ -500,7 +499,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── PREVIEW ── */}
+              {/* â”€â”€ PREVIEW â”€â”€ */}
               {currentStep === 'preview' && manifest && (
                 <div>
                   <button
@@ -545,7 +544,7 @@ export default function DashboardPage() {
                     />
                   </div>
 
-                  {/* ── PUBLISH BUTTON (from preview) ── */}
+                  {/* â”€â”€ PUBLISH BUTTON (from preview) â”€â”€ */}
                   <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
                     <button
                       onClick={() => {
@@ -572,7 +571,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── GLOBAL PUBLISH MODAL ── Works from both edit and preview steps */}
+        {/* â”€â”€ GLOBAL PUBLISH MODAL â”€â”€ Works from both edit and preview steps */}
         {showPublishModal && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -608,7 +607,7 @@ export default function DashboardPage() {
                       color: '#fff', borderRadius: '2rem', textDecoration: 'none', marginTop: '0.5rem', fontWeight: 500
                     }}
                   >
-                    Open Your Site →
+                    Open Your Site â†’
                   </a>
                   <a
                     href={`/rsvps?domain=${subdomain}`}
@@ -631,7 +630,7 @@ export default function DashboardPage() {
                 <>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>Choose your URL</h2>
                   <p style={{ color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>
-                    We&apos;ve pre-filled a unique URL — customize it below.
+                    We&apos;ve pre-filled a unique URL â€” customize it below.
                   </p>
                   <p style={{ color: 'var(--eg-muted)', fontSize: '0.8rem', marginBottom: '2rem', opacity: 0.7 }}>
                     You can upgrade to a full custom domain later.

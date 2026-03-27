@@ -12,9 +12,9 @@ import {
   ArrowLeft, Plus, Trash2, Sparkles, Loader2,
   Globe, Monitor, Tablet, Smartphone, GripVertical,
   Image, Calendar, Upload, X, Camera,
-  Eye, Settings, AlignLeft, Palette, Heart,
+  Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
 } from 'lucide-react';
-import type { StoryManifest, Chapter, ChapterImage } from '@/types';
+import type { StoryManifest, Chapter, ChapterImage, WeddingEvent } from '@/types';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -409,6 +409,117 @@ function ChapterPanel({
         />
       </div>
     </motion.div>
+  );
+}
+
+// ── Events Panel ───────────────────────────────────────────────
+function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const events = manifest.events || [];
+
+  const addEvent = () => {
+    const newEvent: WeddingEvent = {
+      id: `event-${Date.now()}`,
+      name: 'New Event',
+      date: new Date().toISOString().slice(0, 10),
+      time: '5:00 PM',
+      venue: '',
+      address: '',
+    };
+    onChange({ ...manifest, events: [...events, newEvent] });
+  };
+
+  const updateEvent = (id: string, data: Partial<WeddingEvent>) => {
+    onChange({ ...manifest, events: events.map(e => e.id === id ? { ...e, ...data } : e) });
+  };
+
+  const removeEvent = (id: string) => {
+    onChange({ ...manifest, events: events.filter(e => e.id !== id) });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>Wedding Events</span>
+        <button
+          onClick={addEvent}
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
+        >
+          <Plus size={11} /> Add
+        </button>
+      </div>
+
+      {events.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2rem 0', color: 'rgba(255,255,255,0.2)' }}>
+          <Calendar size={24} style={{ marginBottom: '8px' }} />
+          <div style={{ fontSize: '0.78rem' }}>No events yet</div>
+          <div style={{ fontSize: '0.68rem', marginTop: '4px' }}>Add your ceremony, reception, etc.</div>
+        </div>
+      ) : (
+        events.map((evt) => (
+          <div key={evt.id} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.07)', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b8926a' }}>{evt.name || 'Event'}</div>
+              <button onClick={() => removeEvent(evt.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: '2px', display: 'flex' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+              >
+                <X size={12} />
+              </button>
+            </div>
+            <Field label="Event Name" value={evt.name} onChange={v => updateEvent(evt.id, { name: v })} placeholder="Ceremony" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <Field label="Date" value={evt.date} onChange={v => updateEvent(evt.id, { date: v })} placeholder="2024-09-14" />
+              <Field label="Time" value={evt.time} onChange={v => updateEvent(evt.id, { time: v })} placeholder="5:00 PM" />
+            </div>
+            <Field label="Venue" value={evt.venue} onChange={v => updateEvent(evt.id, { venue: v })} placeholder="The Grand Ballroom" />
+            <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St, New York, NY" />
+            <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+// ── Details Panel ──────────────────────────────────────────────
+function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const logistics = manifest.logistics || {};
+
+  const upd = (data: Partial<typeof logistics>) =>
+    onChange({ ...manifest, logistics: { ...logistics, ...data } });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)' }}>Wedding Details</div>
+
+      <Field label="Wedding Date" value={logistics.date || ''} onChange={v => upd({ date: v })} placeholder="September 14, 2025" />
+      <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
+      <Field label="Venue" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
+
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.75rem' }}>Site Vibe</div>
+        <div>
+          <label style={lbl}>Vibe String</label>
+          <textarea
+            value={manifest.vibeString || ''}
+            onChange={e => onChange({ ...manifest, vibeString: e.target.value })}
+            rows={3}
+            placeholder="intimate, golden hour, wildflower meadow..."
+            style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
+          />
+          <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.2)', marginTop: '0.4rem', lineHeight: 1.5 }}>
+            Used by the AI when rewriting chapters.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.75rem' }}>RSVP Deadline</div>
+        <Field label="Deadline" value={logistics.rsvpDeadline || ''} onChange={v => upd({ rsvpDeadline: v })} placeholder="August 1, 2025" />
+      </div>
+    </div>
   );
 }
 
@@ -839,12 +950,12 @@ Return JSON with: title, subtitle, description, mood`,
               <DesignPanel manifest={manifest} onChange={handleDesignChange} />
             )}
 
-            {(activeTab === 'events' || activeTab === 'details') && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', gap: '12px', color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
-                <Calendar size={28} />
-                <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Coming soon</div>
-                <div style={{ fontSize: '0.72rem' }}>Event details are set during generation</div>
-              </div>
+            {activeTab === 'events' && (
+              <EventsPanel manifest={manifest} onChange={handleDesignChange} />
+            )}
+
+            {activeTab === 'details' && (
+              <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
             )}
           </div>
         </div>
