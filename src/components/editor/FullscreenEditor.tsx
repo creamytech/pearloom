@@ -11,17 +11,18 @@ import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion
 import {
   ArrowLeft, Plus, Trash2, Sparkles, Loader2,
   Globe, Monitor, Tablet, Smartphone, GripVertical,
-  Image, Calendar, Upload, X, Camera,
+  Image, Calendar, Upload, X, Camera, LayoutTemplate,
   Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
   MessageCircleHeart,
 } from 'lucide-react';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent } from '@/types';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
+import { CanvasEditor } from './CanvasEditor';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'blocks' | 'voice';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'blocks' | 'voice' | 'canvas';
 
 const DEVICE_DIMS: Record<DeviceMode, { width: string; label: string; icon: React.ElementType }> = {
   desktop: { width: '100%',    label: 'Desktop', icon: Monitor },
@@ -423,6 +424,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
     const newEvent: WeddingEvent = {
       id: `event-${Date.now()}`,
       name: 'New Event',
+      type: 'other',
       date: new Date().toISOString().slice(0, 10),
       time: '5:00 PM',
       venue: '',
@@ -771,7 +773,7 @@ Return JSON with: title, subtitle, description, mood`,
   }, [chapters, manifest, updateChapter]);
 
   const TAB_ICONS: Record<EditorTab, React.ElementType> = {
-    story: AlignLeft, events: Calendar, design: Palette, details: Settings, blocks: Sparkles, voice: MessageCircleHeart,
+    story: AlignLeft, events: Calendar, canvas: LayoutTemplate, design: Palette, details: Settings, blocks: Sparkles, voice: MessageCircleHeart,
   };
 
   return (
@@ -886,7 +888,7 @@ Return JSON with: title, subtitle, description, mood`,
             display: 'flex', padding: '8px 8px 0',
             borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
           }}>
-            {(['story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
+            {(['story', 'events', 'canvas', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
               const Icon = TAB_ICONS[tab];
               const isBlocks = tab === 'blocks';
               return (
@@ -993,6 +995,14 @@ Return JSON with: title, subtitle, description, mood`,
                   />
                 </div>
               </div>
+            )}
+
+            {activeTab === 'canvas' && (
+              <CanvasEditor
+                manifest={manifest}
+                onChange={(m) => { onChange(m); }}
+                pushToPreview={pushToPreview}
+              />
             )}
           </div>
         </div>

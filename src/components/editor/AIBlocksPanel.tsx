@@ -122,7 +122,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
   const remove = (id: string) => onChange(events.filter(e => e.id !== id));
   const add = () => {
     const id = `event-${Date.now()}`;
-    onChange([...events, { id, name: 'New Event', date: '', time: '', venue: '', address: '' }]);
+    onChange([...events, { id, name: 'New Event', type: 'other' as const, date: '', time: '', venue: '', address: '' }]);
     setExpanded(id);
   };
 

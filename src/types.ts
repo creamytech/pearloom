@@ -40,6 +40,8 @@ export interface StoryManifest {
   travelInfo?: TravelInfo;
   // Real text samples from the couple — used to train the Ask the Couple AI chatbot
   voiceSamples?: string[];
+  // Free-canvas block order and visibility
+  blocks?: PageBlock[];
 }
 
 export interface Chapter {
@@ -207,7 +209,8 @@ export interface RsvpResponse {
 
 export interface WeddingEvent {
   id: string;
-  name: string;       // e.g. "ceremony", "reception", "rehearsal dinner"
+  name: string;       // e.g. "Ceremony", "Reception", "Rehearsal Dinner"
+  type: 'ceremony' | 'reception' | 'rehearsal' | 'brunch' | 'welcome-party' | 'other';
   date: string;       // ISO 8601
   time: string;       // e.g. "4:00 PM"
   endTime?: string;
@@ -216,7 +219,84 @@ export interface WeddingEvent {
   description?: string;
   dressCode?: string;
   mapUrl?: string;
+
+  // ── Ceremony-specific ──────────────────────
+  ceremony?: {
+    officiant?: string;
+    ceremonyLength?: string;        // e.g. "30 minutes"
+    vowsType?: 'traditional' | 'personal' | 'mix';
+    unityRitual?: string;           // e.g. "Unity candle", "Sand ceremony"
+    processionalSong?: string;
+    recessionalSong?: string;
+    flowerGirl?: string;
+    ringBearer?: string;
+    seating?: 'open' | 'assigned';
+  };
+
+  // ── Reception-specific ─────────────────────
+  reception?: {
+    cocktailHour?: boolean;
+    cocktailHourTime?: string;
+    dinnerType?: 'plated' | 'buffet' | 'stations' | 'family-style';
+    menuOptions?: string[];         // e.g. ["Chicken", "Fish", "Vegan"]
+    openBar?: boolean;
+    barClosesAt?: string;
+    firstDanceSong?: string;
+    parentDanceSong?: string;
+    bouquetToss?: boolean;
+    guestSongRequests?: boolean;
+    cakeFlavorOptions?: string[];
+    photoBooth?: boolean;
+    photoBoothNote?: string;
+    tableCount?: number;
+  };
+
+  // ── Rehearsal-specific ─────────────────────
+  rehearsal?: {
+    whoIsInvited?: string;          // e.g. "Wedding party + immediate family"
+    dinnerFollows?: boolean;
+    dinnerVenue?: string;
+    dresscode?: string;
+  };
+
+  // ── Welcome party / farewell brunch ────────
+  social?: {
+    activities?: string[];
+    foodStyle?: string;             // e.g. "Casual cocktails and bites"
+    kidsWelcome?: boolean;
+  };
 }
+
+// ─────────────────────────────────────────────────────────────
+// Page Block System — free-canvas drag-and-drop builder
+// ─────────────────────────────────────────────────────────────
+
+export type BlockType =
+  | 'hero'
+  | 'story'
+  | 'countdown'
+  | 'event'
+  | 'rsvp'
+  | 'registry'
+  | 'travel'
+  | 'faq'
+  | 'photos'
+  | 'guestbook'
+  | 'text'
+  | 'divider'
+  | 'video'
+  | 'quote'
+  | 'map';
+
+export interface PageBlock {
+  id: string;
+  type: BlockType;
+  order: number;
+  visible: boolean;
+  // Optional per-block config overrides
+  config?: Record<string, unknown>;
+}
+
 
 // ─────────────────────────────────────────────────────────────
 // Guest Photo Gallery

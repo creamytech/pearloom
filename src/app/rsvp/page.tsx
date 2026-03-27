@@ -33,6 +33,7 @@ const EVENTS: WeddingEvent[] = [
   {
     id: 'evt-1',
     name: 'Anniversary Dinner',
+    type: 'other' as const,
     date: '2026-03-15',
     time: '7:00 PM',
     endTime: '10:00 PM',
