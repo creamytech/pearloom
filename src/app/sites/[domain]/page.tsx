@@ -78,30 +78,36 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     : ['Our', 'Story'];
   const title = safeNames.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
 
-  const defaultTheme = {
-    name: 'pearloom-ivory',
-    fonts: { heading: 'Playfair Display', body: 'Inter' },
+  // Use cached AI skin if available, fall back to deterministic
+  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+
+  // Derive ALL colors from the AI-generated palette
+  const pal = vibeSkin.palette;
+  const bgColor = pal.background;
+  const cardBg = pal.card;
+  const accentLight = pal.accent2;
+
+  // Build theme dynamically from AI palette + fonts
+  const dynamicTheme = {
+    name: 'pearloom-ai',
+    fonts: { heading: vibeSkin.fonts.heading, body: vibeSkin.fonts.body },
     colors: {
-      background: '#faf9f6',
-      foreground: '#1a1a1a',
-      accent: '#b8926a',
-      accentLight: '#f3e8d8',
-      muted: '#8c8c8c',
-      cardBg: '#ffffff',
+      background: pal.background,
+      foreground: pal.foreground,
+      accent: pal.accent,
+      accentLight: pal.accent2,
+      muted: pal.muted,
+      cardBg: pal.card,
     },
     borderRadius: '1rem',
   };
 
+  // Google Fonts URL for the AI-selected pairing
+  const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
+
   // Determine cover photo
   const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || 'https://images.unsplash.com/photo-1519741497674-611481863552';
 
-  // Use cached AI skin if available, fall back to deterministic
-  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-
-  // Background colors for wave transitions
-  const bgColor = manifest.theme?.colors?.background || '#faf9f6';
-  const cardBg = manifest.theme?.colors?.cardBg || '#ffffff';
-  const accentLight = manifest.theme?.colors?.accentLight || '#f3e8d8';
 
   // Build real nav pages from manifest content
   const sitePages = [
@@ -253,20 +259,24 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
 
   const siteContent = (
-    <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
+    <ThemeProvider theme={manifest.theme || siteConfig.theme || dynamicTheme}>
+      {/* Inject AI-selected Google Fonts */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={fontUrl} />
+
       <SiteNav names={safeNames} pages={sitePages} />
 
       <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
         {visibleBlocks ? (
           // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
           <>
-            {/* Subtle AI-generated pattern overlay for entire page */}
+            {/* AI-generated pattern overlay for entire page */}
             {vibeSkin.heroPatternSvg && (
               <div
                 style={{
                   position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
                   backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
-                  backgroundRepeat: 'repeat', backgroundSize: '200px 200px', opacity: 0.35,
+                  backgroundRepeat: 'repeat', backgroundSize: '200px 200px', opacity: 0.08,
                 }}
               />
             )}

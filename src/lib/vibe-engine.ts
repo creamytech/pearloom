@@ -1,20 +1,20 @@
-﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——————————————————————————————————————————————————————————————————————————————————————————————————
 // Pearloom / lib/vibe-engine.ts
-// Gemini-first vibe â†’ visual skin system.
+// Gemini-first vibe → visual skin system.
 // AI designs the entire aesthetic + custom SVG art from scratch.
 // The keyword system is a fast fallback only.
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——————————————————————————————————————————————————————————————————————————————————————————————————
 
 export interface VibeSkin {
-  // â”€â”€ Structural choices (maps to pre-built SVG variants) â”€â”€
+  // — Structural choices (maps to pre-built SVG variants) —
   curve: 'organic' | 'arch' | 'geometric' | 'wave' | 'petal';
   particle: 'petals' | 'stars' | 'bubbles' | 'leaves' | 'confetti' | 'snowflakes' | 'fireflies';
   accentShape: 'ring' | 'arch' | 'diamond' | 'leaf' | 'infinity';
   sectionEntrance: 'fade-up' | 'bloom' | 'drift' | 'float' | 'reveal';
   texture: 'none' | 'linen' | 'floral' | 'marble' | 'bokeh' | 'starfield';
 
-  // â”€â”€ AI-generated open-ended fields â”€â”€
-  decorIcons: string[];      // unicode chars â€” Gemini picks freely
+  // — AI-generated open-ended fields —
+  decorIcons: string[];      // unicode chars — Gemini picks freely
   accentSymbol: string;      // primary motif character
   particleColor: string;     // CSS hex
   sectionLabels: {
@@ -29,11 +29,27 @@ export interface VibeSkin {
   cornerStyle: string;
   tone: 'dreamy' | 'playful' | 'luxurious' | 'wild' | 'intimate' | 'cosmic' | 'rustic';
 
-  // â”€â”€ Computed wave SVG paths â”€â”€
+  // — Full 6-color AI palette —
+  palette: {
+    background: string;   // primary page background (e.g. moody dark or warm ivory)
+    foreground: string;   // primary text color
+    accent: string;       // primary accent (buttons, links, highlights)
+    accent2: string;      // secondary accent (softer, complementary)
+    card: string;         // card/section background
+    muted: string;        // muted text, captions, timestamps
+  };
+
+  // — Font pairing (Google Fonts) —
+  fonts: {
+    heading: string;      // display/heading font (e.g. "Playfair Display")
+    body: string;         // body text font (e.g. "Inter")
+  };
+
+  // — Computed wave SVG paths —
   wavePath: string;
   wavePathInverted: string;
 
-  // â”€â”€ Custom AI-generated SVG art (baked at generation time) â”€â”€
+  // — Custom AI-generated SVG art (baked at generation time) —
   // Small repeating hero background pattern (viewBox 200x200)
   heroPatternSvg?: string;
   // Horizontal decorative border strip between sections (viewBox 800x40)
@@ -46,7 +62,7 @@ export interface VibeSkin {
   aiGenerated: boolean;
 }
 
-// â”€â”€ SVG Wave Paths Library â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// — SVG Wave Paths Library ——————————————————————————————————————————————————————————————————————————
 export const WAVE_PATHS: Record<VibeSkin['curve'], { d: string; di: string }> = {
   organic: {
     d: 'M0,60 C150,120 350,0 500,60 C650,120 850,0 1000,60 L1000,150 L0,150 Z',
@@ -78,7 +94,7 @@ const CORNER_STYLES: Record<VibeSkin['curve'], string> = {
   petal: '40% 40% 2rem 2rem / 3rem 3rem 2rem 2rem',
 };
 
-// â”€â”€ Deterministic fallback (keyword scoring) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// — Deterministic fallback (keyword scoring) ——————————————————————————————————————————————————————
 const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
   garden:     { curve: 'petal',     particle: 'petals',     decorIcons: ['âœ¿','â¦','âš˜','âœ¾','âš˜'], particleColor: '#f9c6c9', tone: 'dreamy'    },
   floral:     { curve: 'petal',     particle: 'petals',     decorIcons: ['âœ¿','â¦','âš˜','âš˜','â¦¿'], particleColor: '#f3d1d8', tone: 'dreamy'    },
@@ -132,6 +148,18 @@ function deriveFallback(vibeString: string): VibeSkin {
     dividerQuote: vibeString || 'A love story worth telling.',
     cornerStyle: CORNER_STYLES[curve],
     tone: merged.tone || 'dreamy',
+    palette: {
+      background: '#faf9f6',
+      foreground: '#1a1a1a',
+      accent: '#b8926a',
+      accent2: '#d4b896',
+      card: '#ffffff',
+      muted: '#8c8c8c',
+    },
+    fonts: {
+      heading: 'Playfair Display',
+      body: 'Inter',
+    },
     wavePath: waveDef.d,
     wavePathInverted: waveDef.di,
     ...art,
@@ -139,7 +167,7 @@ function deriveFallback(vibeString: string): VibeSkin {
   };
 }
 
-// â”€â”€ SVG art helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// — SVG art helpers —————————————————————————————————————————————————————————————————————————————————
 function extractSvgFromField(raw: string): string | null {
   if (!raw || typeof raw !== 'string') return null;
   const match = raw.match(/<svg[\s\S]*?<\/svg>/i);
@@ -226,7 +254,7 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
   return { heroPatternSvg, sectionBorderSvg, cornerFlourishSvg, medallionSvg };
 }
 
-// â”€â”€ Gemini-powered skin generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// — Gemini-powered skin generation ——————————————————————————————————————————————————————————————————
 // Called once per site generation, cached in manifest.vibeSkin.
 // Returns a full VibeSkin including custom AI SVG art.
 
@@ -248,49 +276,58 @@ export async function generateVibeSkin(
 ${namesContext}
 The couple's vibe is: "${vibeString}"
 
-Your job is to design the complete visual skin AND create bespoke SVG art for their wedding site.
-Everything must feel completely unique to this specific couple â€” not generic.
+Your job: design a COMPLETELY UNIQUE visual identity for their wedding site. The result should be jaw-dropping—no two sites should ever look the same.
 
-Return ONLY this JSON (no backticks, no markdown, no extra text). All SVG strings must be valid JSON-escaped strings:
+Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
 {
   "curve": "<one of: organic | arch | geometric | wave | petal>",
   "particle": "<one of: petals | stars | bubbles | leaves | confetti | snowflakes | fireflies>",
   "accentShape": "<one of: ring | arch | diamond | leaf | infinity>",
   "sectionEntrance": "<one of: fade-up | bloom | drift | float | reveal>",
   "texture": "<one of: none | linen | floral | marble | bokeh | starfield>",
-  "decorIcons": ["<5 creative unicode chars specific to this couple's world>"],
-  "accentSymbol": "<single elegant unicode symbol â€” their primary visual motif>",
-  "particleColor": "<hex color for ambient particles â€” emotionally evocative of their vibe>",
+  "decorIcons": ["<5 creative unicode chars specific to this couple’s world>"],
+  "accentSymbol": "<single elegant unicode symbol — their primary visual motif>",
+  "particleColor": "<hex color for ambient particles>",
+  "palette": {
+    "background": "<primary page bg hex — NEVER plain white. Use moody darks, warm ivories, dusty pastels, rich jewel tones depending on their vibe>",
+    "foreground": "<text color hex — must contrast with background>",
+    "accent": "<primary accent hex — bold, vibrant, emotionally tied to their vibe>",
+    "accent2": "<secondary accent hex — softer complementary tone>",
+    "card": "<card/section bg hex — slightly different from page bg for depth>",
+    "muted": "<muted text hex for captions/timestamps>"
+  },
+  "fonts": {
+    "heading": "<Google Fonts heading font name — NOT Playfair Display unless truly perfect. Consider: Cormorant Garamond, Marcellus, Tenor Sans, EB Garamond, Libre Caslon Display, Spectral, Noto Serif Display, DM Serif Display, Bodoni Moda, or Fraunces>",
+    "body": "<Google Fonts body font name — pair well with heading. Consider: Outfit, DM Sans, Nunito Sans, Source Sans 3, Lora, Crimson Text, or Karla>"
+  },
   "sectionLabels": {
-    "story": "<poetic title for love story section â€” as if you know them personally>",
-    "events": "<poetic title for ceremony/reception section>",
-    "registry": "<poetic title for registry section>",
-    "travel": "<poetic title for travel/hotel section>",
-    "faqs": "<poetic title for FAQ section>",
-    "rsvp": "<warm, personal invitation phrase for RSVP>"
+    "story": "<poetic title for story section—as if written by the couple>",
+    "events": "<poetic title for ceremony/reception>",
+    "registry": "<poetic title for registry>",
+    "travel": "<poetic title for travel/hotel>",
+    "faqs": "<poetic title for FAQ>",
+    "rsvp": "<warm personal invitation for RSVP>"
   },
   "dividerQuote": "<original quote about love specific to their vibe. Max 12 words. NOT a cliche.>",
   "tone": "<one of: dreamy | playful | luxurious | wild | intimate | cosmic | rustic>",
-  "heroPatternSvg": "<FULL SVG: subtle repeating background pattern for hero section. viewBox='0 0 200 200'. Must include 8-12 thematic elements (botanical stems, constellations, topographic lines, geometric lattice, etc.) inspired by their vibe. All fills/strokes at opacity 0.06-0.15. Accent color: an elegant hex matching the vibe. Complete <svg>...</svg> on one line with no line breaks.>",
-  "sectionBorderSvg": "<FULL SVG: horizontal ornamental border strip. viewBox='0 0 800 40'. An elegant single wavy or foliate line with tiny motifs (dots, leaves, stars, etc.) specific to their vibe. NOT just a straight line. Complete <svg>...</svg> on one line.>",
-  "cornerFlourishSvg": "<FULL SVG: Art Nouveau corner bracket ornament. viewBox='0 0 80 80'. Elegant scroll/flourish in top-left corner style. Complete <svg>...</svg> on one line.>",
-  "medallionSvg": "<FULL SVG: centered circular ornament for section headers. viewBox='0 0 120 120'. Circular wreath, compass rose, or mandala-style ornament thematically matched to their vibe. Complete <svg>...</svg> on one line.>"
+  "heroPatternSvg": "<FULL SVG: subtle repeating bg pattern. viewBox='0 0 200 200'. 8–12 thematic elements. All opacities 0.06–0.15. Use the accent color. Complete <svg>...</svg> on one line.>",
+  "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox='0 0 800 40'. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
+  "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox='0 0 80 80'. Art Nouveau style. Complete <svg>...</svg> on one line.>",
+  "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox='0 0 120 120'. Complete <svg>...</svg> on one line.>"
 }
 
-SVG RULES (critical for valid JSON):
-1. Each SVG field must be a single string with no actual line breaks â€” use spaces between tags
-2. Use only straight double quotes escaped as \\" inside the SVG attributes
-3. All opacities: 0.06-0.20 only â€” ultra subtle, never solid shapes
-4. The accent color for SVGs: pick one elegant complementary hex that fits the vibe
-5. heroPatternSvg: think pressed botanical illustration, constellation map, flowing abstract lines
-6. sectionBorderSvg: NOT a straight line â€” should have a wavy/foliate element and tiny motif dots
-7. cornerFlourishSvg: think luxury stationery / bookplate corner decoration
-8. medallionSvg: should feel like an antique emblem or pressed botanical circle
-
-Non-SVG guidelines:
-- decorIcons: thematically specific â€” botanical, celestial, nautical, architectural â€” NOT generic hearts or stars
-- dividerQuote: write something original, intimate, and specific to their vibe. Avoid "forever", "always", "hearts"
-- tone: choose the single energia word that most captures them`;
+CRITICAL DESIGN RULES:
+1. palette.background: NEVER #ffffff or #faf9f6. Derived from their vibe:
+   - dreamy/intimate: warm blush (#f5ede4), dusty rose (#f0e0d8), soft sage (#eef2eb)
+   - luxurious/cosmic: deep navy (#0d1b2a), charcoal (#1a1a2e), midnight (#191923)
+   - wild/rustic: warm cream (#fdf6ec), desert sand (#f4ece1), moss (#e8ede3)
+   - playful: soft peach (#fde8d8), sky (#e8f0fe), lavender (#ede8f5)
+2. fonts: MUST be a visually striking pair. The heading font sets the personality—choose boldly.
+3. SVGs: each must be a single line string. Use spaces between tags, escaped quotes.
+4. SVG opacities: 0.06–0.20 only—ultra subtle, never solid.
+5. decorIcons: thematically specific (botanical, celestial, nautical, architectural)—NOT generic hearts.
+6. dividerQuote: original, intimate, specific to their vibe.
+7. palette colors must create a cohesive, premium visual system. Test contrast mentally.`;
 
   try {
     const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
@@ -326,7 +363,7 @@ Non-SVG guidelines:
       ? parsed.particleColor : '#b8926a';
     const fallbackArt = buildFallbackArt(accentForFallback, curve);
 
-    // Extract and validate SVG fields â€” fall back to deterministic art if invalid
+    // Extract and validate SVG fields — fall back to deterministic art if invalid
     const resolvesvg = (field: string): string => {
       const raw = typeof parsed[field] === 'string' ? parsed[field] : null;
       if (raw) {
@@ -359,6 +396,18 @@ Non-SVG guidelines:
       dividerQuote: typeof parsed.dividerQuote === 'string' ? parsed.dividerQuote : vibeString,
       cornerStyle: CORNER_STYLES[curve],
       tone: VALID_TONES.includes(parsed.tone) ? parsed.tone : 'dreamy',
+      palette: {
+        background: (parsed.palette?.background?.startsWith?.('#')) ? parsed.palette.background : '#faf9f6',
+        foreground: (parsed.palette?.foreground?.startsWith?.('#')) ? parsed.palette.foreground : '#1a1a1a',
+        accent:     (parsed.palette?.accent?.startsWith?.('#'))     ? parsed.palette.accent     : '#b8926a',
+        accent2:    (parsed.palette?.accent2?.startsWith?.('#'))    ? parsed.palette.accent2    : '#d4b896',
+        card:       (parsed.palette?.card?.startsWith?.('#'))       ? parsed.palette.card       : '#ffffff',
+        muted:      (parsed.palette?.muted?.startsWith?.('#'))      ? parsed.palette.muted      : '#8c8c8c',
+      },
+      fonts: {
+        heading: (typeof parsed.fonts?.heading === 'string' && parsed.fonts.heading.length > 0) ? parsed.fonts.heading : 'Playfair Display',
+        body:    (typeof parsed.fonts?.body === 'string' && parsed.fonts.body.length > 0)       ? parsed.fonts.body    : 'Inter',
+      },
       wavePath: waveDef.d,
       wavePathInverted: waveDef.di,
       heroPatternSvg: resolvesvg('heroPatternSvg'),

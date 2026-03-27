@@ -37,7 +37,7 @@ interface SiteGalleryProps {
 
 export function SiteGallerySection({ siteId, coupleNames }: SiteGalleryProps) {
   // Provide a minimal vibeSkin to Guestbook (full skin only available server-side)
-  const minimalVibeSkin = { tone: 'dreamy' as const, decorIcons: ['✦'], accentSymbol: '♡', particleColor: '#b8926a', dividerQuote: '', sectionLabels: { story: '', events: '', registry: '', travel: '', faqs: '', rsvp: '' }, aiGenerated: false, curve: 'wave' as const, particle: 'petals' as const, accentShape: 'ring' as const, sectionEntrance: 'fade-up' as const, texture: 'none' as const, cornerStyle: '1rem', wavePath: '', wavePathInverted: '' };
+  const minimalVibeSkin: VibeSkin = { tone: 'dreamy', decorIcons: ['✦'], accentSymbol: '♡', particleColor: '#b8926a', dividerQuote: '', sectionLabels: { story: '', events: '', registry: '', travel: '', faqs: '', rsvp: '' }, aiGenerated: false, curve: 'wave', particle: 'petals', accentShape: 'ring', sectionEntrance: 'fade-up', texture: 'none', cornerStyle: '1rem', wavePath: '', wavePathInverted: '', palette: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accent2: '#d4b896', card: '#ffffff', muted: '#8c8c8c' }, fonts: { heading: 'Playfair Display', body: 'Inter' } };
   return (
     <>
       <RsvpLiveCounter siteId={siteId} coupleNames={coupleNames} />
