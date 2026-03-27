@@ -5,7 +5,7 @@
 // Full wizard flow: Sign In → Dashboard → Select Photos → Set Vibe → Generate → Edit → Preview
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe, LayoutDashboard, Users } from 'lucide-react';
@@ -52,10 +52,13 @@ export default function DashboardPage() {
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
-  // When session status changes
-  if (status === 'authenticated' && currentStep === 'auth') {
-    setCurrentStep('dashboard');
-  }
+  // Redirect to dashboard once auth is confirmed — must be in useEffect,
+  // NOT inline during render, to avoid React's infinite update loop
+  useEffect(() => {
+    if (status === 'authenticated' && currentStep === 'auth') {
+      setCurrentStep('dashboard');
+    }
+  }, [status, currentStep]);
 
   const handleSignIn = () => {
     signIn('google');
