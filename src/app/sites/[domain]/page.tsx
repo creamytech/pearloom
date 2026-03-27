@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { getSiteConfig } from '@/lib/db';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
@@ -10,10 +11,49 @@ import { WeddingEvents } from '@/components/wedding-events';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
+import { PublicRsvpSection } from '@/components/public-rsvp-section';
 import type { Chapter } from '@/types';
 
-// Force dynamic because each subdomain generates a unique site payload on request
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ domain: string }> }
+): Promise<Metadata> {
+  const { domain } = await params;
+  const siteConfig = await getSiteConfig(domain);
+  if (!siteConfig) return {};
+
+  const title = siteConfig.names
+    ? siteConfig.names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ')
+    : 'Our Wedding';
+  const tagline = siteConfig.tagline || 'A love story beautifully told.';
+  const accent = siteConfig.manifest?.theme?.colors?.accent || '#b8926a';
+  const bg = siteConfig.manifest?.theme?.colors?.background || '#1a1a1a';
+  const coverPhoto = siteConfig.manifest?.chapters?.[0]?.images?.[0]?.url || '';
+  const weddingDate = siteConfig.manifest?.logistics?.date || '';
+  const [n1, n2] = siteConfig.names || ['Together', 'Forever'];
+
+  const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
+
+  return {
+    title: `${title} — Wedding Website`,
+    description: tagline,
+    openGraph: {
+      title: `${title} — Wedding Website`,
+      description: tagline,
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${title} wedding website` }],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} — Wedding Website`,
+      description: tagline,
+      images: [ogUrl],
+    },
+  };
+}
+
+
 
 export default async function SubdomainSite({ params }: { params: Promise<{ domain: string }> }) {
   // Wait for params as standard in NextJS App Router
@@ -63,6 +103,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           names={siteConfig.names as [string, string] || ['Our', 'Story']}
           subtitle={siteConfig.tagline || 'A love story beautifully told.'}
           coverPhoto={coverPhoto}
+          weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
         />
 
         {/* ── Editorial Pull-Quote bridge between hero and timeline ── */}
@@ -111,8 +152,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <WeddingEvents events={manifest.events} />
         )}
 
-        {/* Render Event Logistics (RSVP & Registry) only if the AI generated them from the Occasion step */}
-        <EventLogistics manifest={manifest} siteId={domain} />
+        {/* Public RSVP Section — wired to guests table */}
+        {manifest.events && manifest.events.length > 0 && (
+          <PublicRsvpSection
+            siteId={domain}
+            events={manifest.events}
+            deadline={manifest.logistics?.rsvpDeadline}
+          />
+        )}
 
         {/* Multi-registry showcase */}
         {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (

@@ -104,7 +104,7 @@ export default function RsvpPage() {
               padding: 'clamp(1.5rem, 4vw, 2.5rem)',
             }}
           >
-            <RsvpForm events={EVENTS} />
+            <RsvpForm events={EVENTS} siteId="demo" />
           </motion.div>
         </div>
       </main>

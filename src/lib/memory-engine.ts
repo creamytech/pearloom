@@ -306,6 +306,84 @@ Return ONLY this JSON with no additional text:
       "order": <number starting at 0>
     }
   ],
+  "events": [
+    {
+      "id": "<uuid>",
+      "name": "Ceremony",
+      "date": "<ISO 8601 date — infer from vibeString or use a placeholder like 2025-06-15>",
+      "time": "4:00 PM",
+      "endTime": "5:00 PM",
+      "venue": "<infer a beautiful venue name from the vibe — e.g. 'The Garden Pavilion'>",
+      "address": "<make a plausible address or leave as 'Location TBA'>",
+      "description": "<one warm sentence about what to expect>",
+      "dressCode": "<infer from vibe — 'Black Tie', 'Garden Party Chic', 'Cocktail Attire', etc.>",
+      "mapUrl": null
+    },
+    {
+      "id": "<uuid>",
+      "name": "Reception",
+      "date": "<same date as ceremony>",
+      "time": "6:00 PM",
+      "endTime": "11:00 PM",
+      "venue": "<reception venue — can be same or different>",
+      "address": "<address or 'Location TBA'>",
+      "description": "<one warm sentence about dancing, dinner, toasts>",
+      "dressCode": "<same as ceremony>",
+      "mapUrl": null
+    }
+  ],
+  "faqs": [
+    {
+      "id": "<uuid>",
+      "question": "Is there parking available?",
+      "answer": "<write a warm, helpful answer based on the venue vibe>",
+      "order": 0
+    },
+    {
+      "id": "<uuid>",
+      "question": "Are children welcome?",
+      "answer": "<infer from vibe — intimate adult-only or family friendly>",
+      "order": 1
+    },
+    {
+      "id": "<uuid>",
+      "question": "What should I wear?",
+      "answer": "<match the dress code from events — expand with mood-appropriate style tips>",
+      "order": 2
+    },
+    {
+      "id": "<uuid>",
+      "question": "When is the RSVP deadline?",
+      "answer": "<suggest 4–6 weeks before the event date>",
+      "order": 3
+    }
+  ],
+  "travelInfo": {
+    "airports": ["<1–2 plausible nearby airports based on vibe/location — e.g. 'JFK - John F. Kennedy International'>"],
+    "hotels": [
+      {
+        "name": "<suggest a premium hotel name matching the vibe>",
+        "address": "<plausible address>",
+        "bookingUrl": null,
+        "groupRate": "Ask for the wedding block rate",
+        "notes": "<one warm sentence about the hotel — proximity, amenities, atmosphere>"
+      }
+    ],
+    "parkingInfo": "<brief parking guidance>",
+    "directions": "<brief directions hint — e.g. 'Take I-95 N to Exit 12, follow signs for the waterfront district'>"
+  },
+  "registry": {
+    "enabled": true,
+    "cashFundUrl": null,
+    "cashFundMessage": "Your presence is the greatest gift. But if you'd like to celebrate us further, we've created a honeymoon fund.",
+    "entries": [
+      {
+        "name": "Zola",
+        "url": "https://www.zola.com",
+        "note": "Our curated home and experience wishlist"
+      }
+    ]
+  },
   "comingSoon": {
     "enabled": true,
     "title": "<3-5 word section title>",
@@ -319,7 +397,10 @@ CRITICAL FINAL CHECKS before returning:
 2. Are all chapter titles specific and evocative? (not generic)
 3. Is the layout sequence varied? (no consecutive duplicates)
 4. Is the theme background a warm off-white or moody tone? (not #ffffff)
-5. Does the vibeString quote feel poetic and site-worthy?`;
+5. Does the vibeString quote feel poetic and site-worthy?
+6. Did you generate both ceremony AND reception events?
+7. Did you generate at least 4 FAQs?
+8. Did you include travelInfo with at least 1 hotel and 1 airport?`;
 }
 
 /**

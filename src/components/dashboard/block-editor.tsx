@@ -109,10 +109,12 @@ interface SortableBlockCardProps {
   isEditing: boolean;
   manifest: StoryManifest;
   onUpdate: (id: string, data: Partial<Chapter>) => void;
+  onAIRewrite: (id: string) => void;
+  isRewriting?: boolean;
   isDragging?: boolean;
 }
 
-function SortableBlockCard({ block, onEdit, onDelete, isEditing, manifest, onUpdate, isDragging }: SortableBlockCardProps) {
+function SortableBlockCard({ block, onEdit, onDelete, isEditing, manifest, onUpdate, onAIRewrite, isRewriting, isDragging }: SortableBlockCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({ id: block.id });
 
   const style = {
@@ -189,19 +191,37 @@ function SortableBlockCard({ block, onEdit, onDelete, isEditing, manifest, onUpd
           {/* Actions */}
           <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
             {block.type === 'chapter' && (
-              <button
-                onClick={() => onEdit(block.id)}
-                style={{
-                  padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.75rem',
-                  border: `1px solid ${isEditing ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
-                  background: isEditing ? 'var(--eg-accent)' : 'transparent',
-                  color: isEditing ? '#fff' : 'var(--eg-muted)',
-                  cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem',
-                }}
-              >
-                {isEditing ? <Check size={12} /> : <Pencil size={12} />}
-                {isEditing ? 'Done' : 'Edit'}
-              </button>
+              <>
+                {/* AI Rewrite */}
+                <button
+                  onClick={() => onAIRewrite(block.id)}
+                  disabled={isRewriting}
+                  title="Rewrite with AI"
+                  style={{
+                    padding: '0.4rem', borderRadius: '0.5rem',
+                    border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
+                    color: isRewriting ? 'var(--eg-accent)' : 'var(--eg-muted)',
+                    cursor: isRewriting ? 'not-allowed' : 'pointer', display: 'flex',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <Sparkles size={14} className={isRewriting ? 'animate-spin' : ''} />
+                </button>
+                {/* Edit */}
+                <button
+                  onClick={() => onEdit(block.id)}
+                  style={{
+                    padding: '0.4rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.75rem',
+                    border: `1px solid ${isEditing ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
+                    background: isEditing ? 'var(--eg-accent)' : 'transparent',
+                    color: isEditing ? '#fff' : 'var(--eg-muted)',
+                    cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem',
+                  }}
+                >
+                  {isEditing ? <Check size={12} /> : <Pencil size={12} />}
+                  {isEditing ? 'Done' : 'Edit'}
+                </button>
+              </>
             )}
             <button
               onClick={() => onDelete(block.id)}
@@ -463,6 +483,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
   const [editingId, setEditingId] = useState<string | null>(null);
   const [aiBlockCount, setAiBlockCount] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [rewritingId, setRewritingId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -537,6 +558,41 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
     syncManifest(newBlocks);
     setEditingId(block.id);
   }, [blocks, syncManifest]);
+
+  // AI rewrite: regenerate a specific chapter block in-place
+  const handleAIRewrite = useCallback(async (id: string) => {
+    const block = blocks.find(b => b.id === id);
+    if (!block || block.type !== 'chapter') return;
+    setRewritingId(id);
+    try {
+      const chapter = block.data as Chapter;
+      const res = await fetch('/api/generate-block', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockType: 'chapter',
+          context: {
+            title: chapter.title,
+            description: chapter.description,
+            mood: chapter.mood,
+            location: chapter.location?.label,
+            vibeString: manifest.vibeString,
+          },
+          instruction: 'Rewrite this chapter with fresh, more evocative language. Keep the same date, location and mood but craft a new title, subtitle, and richer description.',
+        }),
+      });
+      if (res.ok) {
+        const { block: generated } = await res.json();
+        if (generated?.data) {
+          updateBlock(id, { ...generated.data, id, images: chapter.images, date: chapter.date, order: chapter.order });
+        }
+      }
+    } catch (err) {
+      console.error('AI rewrite failed:', err);
+    } finally {
+      setRewritingId(null);
+    }
+  }, [blocks, manifest, updateBlock]);
 
   const activeBlock = activeId ? blocks.find(b => b.id === activeId) : null;
 
@@ -704,6 +760,8 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                     isEditing={editingId === block.id}
                     manifest={manifest}
                     onUpdate={updateBlock}
+                    onAIRewrite={handleAIRewrite}
+                    isRewriting={rewritingId === block.id}
                     isDragging={activeId === block.id}
                   />
                 ))

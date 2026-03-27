@@ -12,9 +12,10 @@ import type { RsvpStatus, WeddingEvent } from '@/types';
 
 interface RsvpFormProps {
   events: WeddingEvent[];
+  siteId: string;
 }
 
-export function RsvpForm({ events }: RsvpFormProps) {
+export function RsvpForm({ events, siteId }: RsvpFormProps) {
   const [status, setStatus] = useState<RsvpStatus>('attending');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,6 +38,7 @@ export function RsvpForm({ events }: RsvpFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          siteId,
           status,
           guestName: name,
           email,

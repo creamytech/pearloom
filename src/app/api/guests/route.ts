@@ -91,3 +91,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
+
+// DELETE /api/guests?id=xxx — remove a guest
+export async function DELETE(req: NextRequest) {
+  try {
+    const id = req.nextUrl.searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+    const supabase = getSupabase();
+    const { error } = await supabase.from('guests').delete().eq('id', id);
+
+    if (error) {
+      console.error('Guest delete error:', error);
+      return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Guest delete error:', err);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
+}

@@ -8,6 +8,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useRef } from 'react';
+import { CountdownWidget } from '@/components/countdown-widget';
 
 interface HeroProps {
   names: [string, string];
@@ -15,6 +16,7 @@ interface HeroProps {
   subtitle?: string;
   date?: string;
   coverPhoto?: string;
+  weddingDate?: string; // ISO date for countdown
 }
 
 // Animated film grain overlay via SVG turbulence
@@ -32,7 +34,7 @@ function FilmGrain() {
   );
 }
 
-export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto }: HeroProps) {
+export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, weddingDate }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
 
@@ -222,6 +224,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto }: He
               )}
             </p>
           </motion.div>
+        )}
+
+        {/* Countdown widget — live ticker to wedding day */}
+        {weddingDate && (
+          <CountdownWidget targetDate={weddingDate} onPhoto={!!coverPhoto} />
         )}
       </motion.div>
 
