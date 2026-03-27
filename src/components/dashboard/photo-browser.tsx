@@ -89,7 +89,10 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
               throw new Error(fetchErr.error || 'Failed to fetch picked photos');
             }
             const fetchData = await fetchRes.json();
-            const fetchedPhotos = fetchData.photos ?? [];
+            const fetchedPhotos: GooglePhotoMetadata[] = (fetchData.photos ?? []).filter(
+              // Guard: skip items missing essential fields
+              (p: GooglePhotoMetadata) => p && p.id && p.creationTime
+            );
             console.log('[PhotoBrowser] Fetched photos:', fetchedPhotos.length, 'First:', fetchedPhotos[0]);
             console.log('[PhotoBrowser] Debug from API:', fetchData._debug_first);
             setPhotos(fetchedPhotos);
@@ -97,7 +100,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
 
             // Auto-select all if within limit
             if (fetchedPhotos.length <= maxSelection) {
-              const allIds = new Set<string>(fetchedPhotos.map((p: GooglePhotoMetadata) => p.id));
+              const allIds = new Set<string>(fetchedPhotos.map((p: GooglePhotoMetadata) => p.id).filter(Boolean));
               setSelected(allIds);
               onSelectionChange(fetchedPhotos);
             }
@@ -346,7 +349,15 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
         <AnimatePresence>
           {photos.map((photo) => {
+            if (!photo?.id) return null; // skip malformed items
             const isSelected = selected.has(photo.id);
+            // Safe date formatting — Invalid Date throws in some V8 environments
+            let dateLabel = '';
+            try {
+              if (photo.creationTime) {
+                dateLabel = new Date(photo.creationTime).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              }
+            } catch { dateLabel = ''; }
             return (
               <motion.button
                 key={photo.id}
@@ -365,7 +376,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
               >
                 <img
                   src={photo.baseUrl ? `/api/photos/proxy?url=${encodeURIComponent(photo.baseUrl)}&w=300&h=300` : ''}
-                  alt={photo.filename}
+                  alt={photo.filename || 'Photo'}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#f0ebe4' }}
                   loading="lazy"
                 />
@@ -387,14 +398,16 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                 </AnimatePresence>
 
                 {/* Date label */}
-                <div style={{
-                  position: 'absolute', bottom: 0, left: 0, right: 0,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                  padding: '1rem 0.5rem 0.5rem', textAlign: 'left',
-                  fontSize: '0.7rem', color: '#fff', fontWeight: 500, letterSpacing: '0.02em',
-                }}>
-                  {new Date(photo.creationTime).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                </div>
+                {dateLabel && (
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                    padding: '1rem 0.5rem 0.5rem', textAlign: 'left',
+                    fontSize: '0.7rem', color: '#fff', fontWeight: 500, letterSpacing: '0.02em',
+                  }}>
+                    {dateLabel}
+                  </div>
+                )}
               </motion.button>
             );
           })}
