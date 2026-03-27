@@ -29,7 +29,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
   'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
   vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling — the AI will do the rest.', icon: Sparkles },
-  generating: { title: 'Creating Magic', subtitle: 'The memory engine is crafting your story...', icon: Sparkles },
+  generating: { title: '', subtitle: '', icon: Sparkles },
   edit: { title: 'Your Story', subtitle: 'Review and edit. Make it perfect.', icon: Pencil },
   preview: { title: 'Preview', subtitle: 'See your site live before publishing.', icon: Eye },
   guests: { title: 'Guest List', subtitle: 'Track RSVPs and manage your guests.', icon: Users },
@@ -69,12 +69,17 @@ export default function DashboardPage() {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
     setCurrentStep('generating');
+    setGenerationStep(0);
     setError(null);
 
     // Simulate progress steps
     const stepInterval = setInterval(() => {
       setGenerationStep((prev) => Math.min(prev + 1, 5));
     }, 2000);
+
+    // 90-second timeout — Gemini can be slow on large photo sets
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90_000);
 
     try {
       const res = await fetch('/api/generate', {
@@ -85,21 +90,28 @@ export default function DashboardPage() {
           vibeString: data.vibeString,
           names: data.names,
         }),
+        signal: controller.signal,
       });
 
       clearInterval(stepInterval);
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Generation failed');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error (${res.status})`);
       }
 
       const result = await res.json();
+      if (!result.manifest) throw new Error('AI returned an empty manifest. Please try again.');
       setManifest(result.manifest);
       setCurrentStep('edit');
     } catch (err) {
       clearInterval(stepInterval);
-      setError(err instanceof Error ? err.message : 'Generation failed');
+      clearTimeout(timeoutId);
+      const msg = err instanceof Error
+        ? (err.name === 'AbortError' ? 'Generation timed out (90s). Please try again.' : err.message)
+        : 'Generation failed. Please try again.';
+      setError(msg);
       setCurrentStep('vibe');
     }
   }, [selectedPhotos]);
@@ -230,8 +242,8 @@ export default function DashboardPage() {
             position: 'relative',
             paddingTop: '1rem'
           }}>
-            {/* Step header */}
-            {currentStep !== 'dashboard' && (
+            {/* Step header — hidden during generating & dashboard */}
+            {currentStep !== 'dashboard' && currentStep !== 'generating' && (
               <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
                 <h2 style={{
                   fontFamily: 'var(--eg-font-heading)',
@@ -249,15 +261,47 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Error display */}
+            {/* Error display — polished card */}
             {error && (
-              <div style={{
-                marginBottom: '2rem', padding: '1rem', borderRadius: '0.75rem',
-                background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
-                fontSize: '0.875rem', textAlign: 'center'
-              }}>
-                {error}
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  marginBottom: '2rem',
+                  padding: '1.5rem 2rem',
+                  borderRadius: '1rem',
+                  background: '#fff',
+                  border: '1px solid #fecaca',
+                  boxShadow: '0 8px 30px rgba(239,68,68,0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1.25rem',
+                }}
+              >
+                <div style={{
+                  width: '44px', height: '44px', borderRadius: '50%',
+                  background: '#fef2f2', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1.25rem',
+                }}>⚠️</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Generation failed</div>
+                  <div style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: 1.5 }}>{error}</div>
+                </div>
+                <button
+                  onClick={() => setError(null)}
+                  style={{
+                    padding: '0.5rem 1.25rem', borderRadius: '100px',
+                    background: '#1a1a1a', color: '#fff',
+                    border: 'none', cursor: 'pointer',
+                    fontSize: '0.82rem', fontWeight: 700,
+                    letterSpacing: '0.04em', flexShrink: 0,
+                    fontFamily: 'var(--eg-font-body)',
+                  }}
+                >
+                  Dismiss
+                </button>
+              </motion.div>
             )}
 
             {/* Step content */}
