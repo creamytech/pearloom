@@ -1,8 +1,8 @@
-// ─────────────────────────────────────────────────────────────
+﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pearloom / app/api/guestbook/route.ts
-// Public guestbook — guests leave wishes on the wedding site.
+// Public guestbook â€” guests leave wishes on the wedding site.
 // AI auto-highlights the most heartfelt message.
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabase();
 
-    // Count existing wishes — first wish becomes highlighted
+    // Count existing wishes â€” first wish becomes highlighted
     const { count } = await supabase
       .from('guestbook')
       .select('id', { count: 'exact', head: true })
@@ -102,7 +102,7 @@ ${data.map(r => `ID: ${r.id}\nMessage: ${r.message}`).join('\n\n')}`;
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -121,3 +121,4 @@ ${data.map(r => `ID: ${r.id}\nMessage: ${r.message}`).join('\n\n')}`;
     console.warn('[Guestbook] highlight re-eval failed:', e);
   }
 }
+

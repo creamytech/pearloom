@@ -17,6 +17,8 @@ import { UserNav } from '@/components/dashboard/user-nav';
 interface SiteNavProps {
   names: [string, string];
   pages: SitePage[];
+  /** Current sub-page slug for server-side active highlighting (e.g. 'travel') */
+  currentPage?: string;
   user?: {
     name?: string | null;
     email?: string | null;
@@ -27,7 +29,7 @@ interface SiteNavProps {
   onStartNew?: () => void;
 }
 
-export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: SiteNavProps) {
+export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
@@ -42,16 +44,30 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
   const enabledPages = pages.filter((p) => p.enabled).sort((a, b) => a.order - b.order);
 
   const isActive = (slug: string) => {
-    if (slug === 'our-story') return pathname === '/';
-    // Match both anchor and sub-page variant
+    // Server-provided currentPage takes priority
+    if (currentPage !== undefined) {
+      return slug === '' ? currentPage === '' : currentPage === slug;
+    }
+    // Client-side fallback using pathname
+    if (slug === '') return pathname.split('/').filter(Boolean).length === 1;
     return pathname.endsWith(`/${slug}`);
   };
 
-  const getHref = (slug: string) => {
-    if (slug === 'our-story') return '#';  // scrolls to top
-    // All sections are anchor links on the main page
-    return `#${slug}`;
+  const getHref = (slug: string, basePath: string) => {
+    // basePath is extracted from window.location in client, or passed in via pathname
+    // For SEO, use real URLs for all pages
+    if (slug === '') return basePath; // homepage
+    return `${basePath}/${slug}`;
   };
+
+  // Extract base domain path: e.g. '/sites/shaunaandben' from pathname
+  const basePath = (() => {
+    const parts = pathname.split('/');
+    // pathname: /sites/domain[/page]
+    if (parts[1] === 'sites') return `/${parts[1]}/${parts[2]}`;
+    // Direct subdomain: pathname IS the page
+    return '/' + parts[1];
+  })();
 
   return (
     <>
@@ -130,35 +146,29 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
                 )}
               </>
             ) : (
-              // Published site — smooth anchor scroll with fixed nav offset
-              enabledPages.map((page) => {
-                const isHome = page.slug === 'our-story';
+              // Published site — real page links
+              enabledPages.map((pg) => {
+                const active = isActive(pg.slug);
+                const href = getHref(pg.slug, basePath);
                 return (
-                  <button
-                    key={page.id}
-                    onClick={() => {
-                      if (isHome) {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      } else {
-                        const el = document.getElementById(page.slug);
-                        if (el) {
-                          const top = el.getBoundingClientRect().top + window.scrollY - 80;
-                          window.scrollTo({ top, behavior: 'smooth' });
-                        }
-                      }
-                    }}
+                  <Link
+                    key={pg.id}
+                    href={href}
                     style={{
                       padding: '0.5rem 1rem',
                       fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
-                      color: isActive(page.slug) ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                      color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
                       borderRadius: '0.5rem',
-                      background: isActive(page.slug) ? 'rgba(0,0,0,0.04)' : 'transparent',
+                      background: active ? 'rgba(0,0,0,0.04)' : 'transparent',
                       transition: 'all 0.2s ease', position: 'relative',
-                      border: 'none', cursor: 'pointer', fontFamily: 'var(--eg-font-body)',
+                      textDecoration: 'none', fontFamily: 'var(--eg-font-body)',
+                      display: 'inline-flex', alignItems: 'center',
                     }}
+                    onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-fg)'; }}
+                    onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.color = active ? 'var(--eg-fg)' : 'var(--eg-muted)'; }}
                   >
-                    {page.label}
-                    {isActive(page.slug) && (
+                    {pg.label}
+                    {active && (
                       <motion.div
                         layoutId="nav-underline"
                         style={{
@@ -168,7 +178,7 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
                     )}
-                  </button>
+                  </Link>
                 );
               })
             )}
@@ -278,7 +288,7 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
                 transition={{ delay: i * 0.07 + 0.1 }}
               >
                 <Link
-                  href={getHref(page.slug)}
+                  href={getHref(page.slug, basePath)}
                   onClick={() => setMobileOpen(false)}
                   style={{
                     fontFamily: 'var(--eg-font-heading)',

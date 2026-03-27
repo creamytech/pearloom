@@ -1,8 +1,8 @@
-// ─────────────────────────────────────────────────────────────
+﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pearloom / app/api/ask-couple/route.ts
 // AI chatbot that speaks AS the couple, trained on their actual
 // text messages / writing samples they provide.
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -10,7 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
 function getSupabase() {
   return createClient(
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       .eq('subdomain', siteId)
       .single();
 
-    if (!site) return NextResponse.json({ answer: "We're a little busy right now, but we'll catch up at the wedding! 💕" });
+    if (!site) return NextResponse.json({ answer: "We're a little busy right now, but we'll catch up at the wedding! ðŸ’•" });
 
     const manifest = site.manifest || {};
     const names: [string, string] = Array.isArray(site.names) && site.names.length >= 2
@@ -55,14 +55,14 @@ export async function POST(req: NextRequest) {
 
     // Build the system prompt
     const voiceContext = voiceSamples.length > 0
-      ? `\nHere are real text messages and writing samples from ${name1} & ${name2} — use these to match their exact voice, phrasing, emoji usage, and personality:\n\n${voiceSamples.slice(0, 8).map((s, i) => `Sample ${i + 1}: "${s}"`).join('\n')}\n`
+      ? `\nHere are real text messages and writing samples from ${name1} & ${name2} â€” use these to match their exact voice, phrasing, emoji usage, and personality:\n\n${voiceSamples.slice(0, 8).map((s, i) => `Sample ${i + 1}: "${s}"`).join('\n')}\n`
       : '';
 
     const conversationHistory = (history || []).map(m =>
       `${m.role === 'user' ? 'Guest' : `${name1} & ${name2}`}: ${m.text}`
     ).join('\n');
 
-    const systemPrompt = `You are ${name1} & ${name2}, a couple getting married. A wedding guest is chatting with you on your wedding website. Respond warmly and authentically — as if you are actually them texting back.
+    const systemPrompt = `You are ${name1} & ${name2}, a couple getting married. A wedding guest is chatting with you on your wedding website. Respond warmly and authentically â€” as if you are actually them texting back.
 ${voiceContext}
 Their wedding vibe: "${vibeString}"
 
@@ -76,9 +76,9 @@ ${conversationHistory ? `Previous conversation:\n${conversationHistory}\n` : ''}
 
 RULES:
 - Always speak as both of them together ("we", "us", "our")
-- Keep replies SHORT — 1-3 sentences, like a real text
+- Keep replies SHORT â€” 1-3 sentences, like a real text
 - Match their tone: casual, loving, excited, warm
-- If asked about something you don't know, say something charming like "Ask us at the reception! 🥂"
+- If asked about something you don't know, say something charming like "Ask us at the reception! ðŸ¥‚"
 - NEVER say you're an AI
 - Use emoji naturally if their samples show they do
 
@@ -100,11 +100,12 @@ ${name1} & ${name2}'s reply:`;
 
     const data = await res.json();
     const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-      || `We'd love to chat more in person! See you at the wedding 💕`;
+      || `We'd love to chat more in person! See you at the wedding ðŸ’•`;
 
     return NextResponse.json({ answer });
   } catch (err) {
     console.error('[ask-couple] Error:', err);
-    return NextResponse.json({ answer: "Oops, we're a little distracted with wedding planning 😅 — ask us at the reception!" });
+    return NextResponse.json({ answer: "Oops, we're a little distracted with wedding planning ðŸ˜… â€” ask us at the reception!" });
   }
 }
+

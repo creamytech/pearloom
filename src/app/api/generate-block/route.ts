@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -44,10 +44,11 @@ export async function POST(req: NextRequest) {
       block: {
         title: 'A Beautiful Moment',
         subtitle: 'Written by Pearloom AI',
-        description: 'Every love story has chapters that words can barely capture. This is one of them — a moment frozen in time, waiting to be told.',
+        description: 'Every love story has chapters that words can barely capture. This is one of them â€” a moment frozen in time, waiting to be told.',
         mood: 'romantic',
         date: new Date().toISOString().slice(0, 10),
       },
     });
   }
 }
+

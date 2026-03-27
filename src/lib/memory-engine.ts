@@ -1,16 +1,16 @@
-// ─────────────────────────────────────────────────────────────
-// Pearloom / lib/memory-engine.ts — AI story generation
+﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Pearloom / lib/memory-engine.ts â€” AI story generation
 // Upgraded prompt: uses photo metadata (locations, dates,
 // cameras, filenames) alongside rich vibe data
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
 
-const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
 /**
  * Wraps a Gemini fetch with automatic retry on 503 (UNAVAILABLE) and 429 (rate limit).
- * Uses exponential back-off: 2s → 4s → 8s (max 3 attempts).
+ * Uses exponential back-off: 2s â†’ 4s â†’ 8s (max 3 attempts).
  */
 async function geminiRetryFetch(
   url: string,
@@ -24,7 +24,7 @@ async function geminiRetryFetch(
       const retryAfter = res.headers.get('Retry-After');
       const backoff = retryAfter ? parseInt(retryAfter, 10) * 1000 : Math.pow(2, attempt) * 1000;
       if (attempt < maxAttempts) {
-        console.warn(`[Memory Engine] Gemini ${res.status} — retrying in ${backoff / 1000}s (attempt ${attempt}/${maxAttempts})...`);
+        console.warn(`[Memory Engine] Gemini ${res.status} â€” retrying in ${backoff / 1000}s (attempt ${attempt}/${maxAttempts})...`);
         await new Promise(resolve => setTimeout(resolve, backoff));
         continue;
       }
@@ -126,7 +126,7 @@ export async function generateStoryManifest(
   const data = await res.json();
   let rawText: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
 
-  // ── Robust JSON extraction ──────────────────────────────────
+  // â”€â”€ Robust JSON extraction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // 1. Strip leading/trailing whitespace
   rawText = rawText.trim();
 
@@ -143,15 +143,15 @@ export async function generateStoryManifest(
   }
 
   // 4. If JSON is truncated (Gemini hit token limit), try to close it
-  // Count open braces — if unbalanced, append closing braces
+  // Count open braces â€” if unbalanced, append closing braces
   const openBraces = (rawText.match(/"/g) || []).length;
   if (openBraces % 2 !== 0) {
-    // Truncated mid-string — cut at last complete field
+    // Truncated mid-string â€” cut at last complete field
     const lastGoodComma = rawText.lastIndexOf('\"');
     if (lastGoodComma > 0) rawText = rawText.slice(0, lastGoodComma + 1);
   }
 
-  // 5. Count { vs } — append missing closing braces
+  // 5. Count { vs } â€” append missing closing braces
   let depth = 0;
   for (const ch of rawText) {
     if (ch === '{') depth++;
@@ -186,7 +186,7 @@ export async function generateStoryManifest(
     }
   }
 
-  // Defensive defaults — ensure every required field exists before the editor renders
+  // Defensive defaults â€” ensure every required field exists before the editor renders
   const DEFAULT_THEME = {
     name: 'pearloom-ivory',
     fonts: { heading: 'Playfair Display', body: 'Inter' },
@@ -234,7 +234,7 @@ export async function generateStoryManifest(
     },
   };
 
-  // ─── CRITICAL: Hydrate chapter images from source clusters ───
+  // â”€â”€â”€ CRITICAL: Hydrate chapter images from source clusters â”€â”€â”€
   // The AI always returns `images: []`. We post-process here to
   // match each chapter back to its source cluster by date range
   // and inject the real photo URLs.
@@ -270,7 +270,7 @@ function hydrateChapterImages(
       const end = new Date(cluster.endDate).getTime();
       const mid = (start + end) / 2;
 
-      // Exact range match — prefer this
+      // Exact range match â€” prefer this
       if (chapterTime >= start - 86_400_000 && chapterTime <= end + 86_400_000) {
         bestCluster = cluster;
         break;
@@ -329,7 +329,7 @@ function buildPrompt(
     };
   });
 
-  return `You are the "Memory Engine" for Pearloom — a world-class relationship storytelling AI that crafts breathtakingly personal anniversary and love story websites. Your output powers a live, editorial-quality website. It must be stunning.
+  return `You are the "Memory Engine" for Pearloom â€” a world-class relationship storytelling AI that crafts breathtakingly personal anniversary and love story websites. Your output powers a live, editorial-quality website. It must be stunning.
 
 ## The Couple
 - Names: ${coupleNames[0]} & ${coupleNames[1]}
@@ -343,24 +343,24 @@ ${JSON.stringify(clusterSummary, null, 2)}
 ---
 ## NARRATIVE QUALITY STANDARDS (non-negotiable)
 
-### Titles — Be SPECIFIC, not generic
-✅ Good: "That October Night", "Sundays with Poppy", "The Rooftop, Brooklyn", "Her Terrible Fake Laugh"
-❌ Bad: "Our Journey Begins", "Beautiful Memories", "The Start of Us"
+### Titles â€” Be SPECIFIC, not generic
+âœ… Good: "That October Night", "Sundays with Poppy", "The Rooftop, Brooklyn", "Her Terrible Fake Laugh"
+âŒ Bad: "Our Journey Begins", "Beautiful Memories", "The Start of Us"
 
 Titles must feel like chapter headings from a memoir or short film. They should surprise the reader, not telegraph the obvious.
 
-### Descriptions — Write from inside the memory
-- 3–4 sentences, intimate and specific
+### Descriptions â€” Write from inside the memory
+- 3â€“4 sentences, intimate and specific
 - Sound like the couple themselves wrote it
 - Reference REAL details from their vibe: pets, restaurants, inside jokes, places, rituals
 - Never use: "journey", "adventure", "soulmate", "fairy tale", "happily ever after", "storybook"
 - DO use: sensory details, specific actions, honest emotions, humor if it fits the vibe
 
-### Subtitles — One poetic, unusual line
+### Subtitles â€” One poetic, unusual line
 - Should feel like a line from a poem or a song lyric, not a description
 - Examples: "the part where everything changed", "neither of us were ready", "in all the best ways"
 
-### Mood Tags — Short, evocative, lowercase
+### Mood Tags â€” Short, evocative, lowercase
 - Examples: golden hour, late night, mountain air, lazy sunday, first winter
 - Avoid generic: romantic, happy, fun
 
@@ -370,7 +370,7 @@ Titles must feel like chapter headings from a memoir or short film. They should 
 - Colors come from the vibe input. If a specific palette or hex was mentioned, use it
 - Heading fonts: Cormorant Garamond, EB Garamond, Lora, Playfair Display, Libre Baskerville
 - Body fonts: Inter, Outfit, DM Sans, Work Sans, Nunito (all from Google Fonts)
-- Background: NEVER pure white. Use warm off-whites (#faf9f6), soft creams, moody deep tones, dusty greens, rose blush — whatever fits the vibe
+- Background: NEVER pure white. Use warm off-whites (#faf9f6), soft creams, moody deep tones, dusty greens, rose blush â€” whatever fits the vibe
 - Contrast must remain readable at all times
 
 ---
@@ -390,12 +390,12 @@ Available layouts: "editorial", "fullbleed", "split", "cinematic", "gallery", "m
 
 - Chapter 1: ALWAYS "editorial" or "fullbleed" (maximum visual impact)
 - Chapter 2: NEVER the same as chapter 1
-- "fullbleed" — use for vacations, outdoor scenery, emotional milestone moments
-- "cinematic" — use for intimate, quiet, emotionally heavy memories
-- "gallery" — ONLY when a cluster has 3+ images
-- "mosaic" — use when a cluster has 3–5 fun, casual, varied photos (travels, gatherings)
-- "split" — use for date nights, events, or moments with one strong photo
-- "editorial" — versatile; use as a reset between heavy layouts
+- "fullbleed" â€” use for vacations, outdoor scenery, emotional milestone moments
+- "cinematic" â€” use for intimate, quiet, emotionally heavy memories
+- "gallery" â€” ONLY when a cluster has 3+ images
+- "mosaic" â€” use when a cluster has 3â€“5 fun, casual, varied photos (travels, gatherings)
+- "split" â€” use for date nights, events, or moments with one strong photo
+- "editorial" â€” versatile; use as a reset between heavy layouts
 - NEVER use the same layout for two consecutive chapters
 - Distribute layouts as evenly as possible across all chapters
 
@@ -413,15 +413,15 @@ Return ONLY this JSON with no additional text:
   "generatedAt": "<current ISO timestamp>",
   "vibeString": "${vibeString.slice(0, 120)}",
   "theme": {
-    "name": "<creative theme name — e.g. 'Warm Ivory', 'Midnight Sage', 'Nordic Blush'>",
+    "name": "<creative theme name â€” e.g. 'Warm Ivory', 'Midnight Sage', 'Nordic Blush'>",
     "fonts": { "heading": "<Google Font>", "body": "<Google Font>" },
     "colors": {
-      "background": "<hex — warm off-white or moody dark>",
+      "background": "<hex â€” warm off-white or moody dark>",
       "foreground": "<hex>",
-      "accent": "<hex — warm, saturated but not neon>",
-      "accentLight": "<hex — very light version of accent for tints>",
-      "muted": "<hex — readable grey or warm neutral>",
-      "cardBg": "<hex — slightly lighter/darker than background>"
+      "accent": "<hex â€” warm, saturated but not neon>",
+      "accentLight": "<hex â€” very light version of accent for tints>",
+      "muted": "<hex â€” readable grey or warm neutral>",
+      "cardBg": "<hex â€” slightly lighter/darker than background>"
     },
     "borderRadius": "<css value, e.g. '0.75rem'>",
     "elementShape": "<square | rounded | arch | pill>",
@@ -431,10 +431,10 @@ Return ONLY this JSON with no additional text:
   "chapters": [
     {
       "id": "<uuid>",
-      "date": "<ISO date — REAL date from photo metadata>",
-      "title": "<evocative, specific, 2–5 words>",
-      "subtitle": "<one poetic, unusual line — not a description>",
-      "description": "<3–4 sentences, intimate, specific, written as if by the couple>",
+      "date": "<ISO date â€” REAL date from photo metadata>",
+      "title": "<evocative, specific, 2â€“5 words>",
+      "subtitle": "<one poetic, unusual line â€” not a description>",
+      "description": "<3â€“4 sentences, intimate, specific, written as if by the couple>",
       "images": [],
       "location": { "lat": <number>, "lng": <number>, "label": "<City, State or Country>" } | null,
       "mood": "<two-word lowercase mood tag>",
@@ -446,13 +446,13 @@ Return ONLY this JSON with no additional text:
     {
       "id": "<uuid>",
       "name": "Ceremony",
-      "date": "<ISO 8601 date — infer from vibeString or use a placeholder like 2025-06-15>",
+      "date": "<ISO 8601 date â€” infer from vibeString or use a placeholder like 2025-06-15>",
       "time": "4:00 PM",
       "endTime": "5:00 PM",
-      "venue": "<infer a beautiful venue name from the vibe — e.g. 'The Garden Pavilion'>",
+      "venue": "<infer a beautiful venue name from the vibe â€” e.g. 'The Garden Pavilion'>",
       "address": "<make a plausible address or leave as 'Location TBA'>",
       "description": "<one warm sentence about what to expect>",
-      "dressCode": "<infer from vibe — 'Black Tie', 'Garden Party Chic', 'Cocktail Attire', etc.>",
+      "dressCode": "<infer from vibe â€” 'Black Tie', 'Garden Party Chic', 'Cocktail Attire', etc.>",
       "mapUrl": null
     },
     {
@@ -461,7 +461,7 @@ Return ONLY this JSON with no additional text:
       "date": "<same date as ceremony>",
       "time": "6:00 PM",
       "endTime": "11:00 PM",
-      "venue": "<reception venue — can be same or different>",
+      "venue": "<reception venue â€” can be same or different>",
       "address": "<address or 'Location TBA'>",
       "description": "<one warm sentence about dancing, dinner, toasts>",
       "dressCode": "<same as ceremony>",
@@ -478,35 +478,35 @@ Return ONLY this JSON with no additional text:
     {
       "id": "<uuid>",
       "question": "Are children welcome?",
-      "answer": "<infer from vibe — intimate adult-only or family friendly>",
+      "answer": "<infer from vibe â€” intimate adult-only or family friendly>",
       "order": 1
     },
     {
       "id": "<uuid>",
       "question": "What should I wear?",
-      "answer": "<match the dress code from events — expand with mood-appropriate style tips>",
+      "answer": "<match the dress code from events â€” expand with mood-appropriate style tips>",
       "order": 2
     },
     {
       "id": "<uuid>",
       "question": "When is the RSVP deadline?",
-      "answer": "<suggest 4–6 weeks before the event date>",
+      "answer": "<suggest 4â€“6 weeks before the event date>",
       "order": 3
     }
   ],
   "travelInfo": {
-    "airports": ["<1–2 plausible nearby airports based on vibe/location — e.g. 'JFK - John F. Kennedy International'>"],
+    "airports": ["<1â€“2 plausible nearby airports based on vibe/location â€” e.g. 'JFK - John F. Kennedy International'>"],
     "hotels": [
       {
         "name": "<suggest a premium hotel name matching the vibe>",
         "address": "<plausible address>",
         "bookingUrl": null,
         "groupRate": "Ask for the wedding block rate",
-        "notes": "<one warm sentence about the hotel — proximity, amenities, atmosphere>"
+        "notes": "<one warm sentence about the hotel â€” proximity, amenities, atmosphere>"
       }
     ],
     "parkingInfo": "<brief parking guidance>",
-    "directions": "<brief directions hint — e.g. 'Take I-95 N to Exit 12, follow signs for the waterfront district'>"
+    "directions": "<brief directions hint â€” e.g. 'Take I-95 N to Exit 12, follow signs for the waterfront district'>"
   },
   "registry": {
     "enabled": true,
@@ -523,7 +523,7 @@ Return ONLY this JSON with no additional text:
   "comingSoon": {
     "enabled": true,
     "title": "<3-5 word section title>",
-    "subtitle": "<one personalized line — wedding date, birthday wish, or poetic nod to their future>",
+    "subtitle": "<one personalized line â€” wedding date, birthday wish, or poetic nod to their future>",
     "passwordProtected": false
   }
 }
@@ -599,3 +599,4 @@ Rules: Use premium Google Fonts only. Colors should be warm, intimate, and high-
     };
   }
 }
+

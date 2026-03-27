@@ -1,0 +1,279 @@
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { getSiteConfig } from '@/lib/db';
+import { ThemeProvider } from '@/components/theme-provider';
+import { SiteNav } from '@/components/site-nav';
+import { deriveVibeSkin } from '@/lib/vibe-engine';
+import { TravelSection } from '@/components/travel-section';
+import { FaqSection } from '@/components/faq-section';
+import { RegistryShowcase } from '@/components/registry-showcase';
+import { WeddingEvents } from '@/components/wedding-events';
+import { PublicRsvpSection } from '@/components/public-rsvp-section';
+import { WaveDivider } from '@/components/vibe/WaveDivider';
+import { SiteClientSections } from '@/components/site/SiteClientSections';
+
+// ─────────────────────────────────────────────────────────────
+// [domain]/[page] — Sub-page router
+// Each wedding site can have dedicated full pages in addition
+// to the main scrolling homepage. This route handles:
+//   /travel   → Hotels, airports, directions
+//   /venue    → Ceremony & reception venue details
+//   /schedule → Full event schedule with maps
+//   /rsvp     → Standalone RSVP form
+//   /registry → Gift registry page
+//   /faq      → Questions & answers
+// ─────────────────────────────────────────────────────────────
+
+export const dynamic = 'force-dynamic';
+
+const PAGE_META: Record<string, { title: string; description: string }> = {
+  travel:   { title: 'Travel & Hotels',  description: 'Hotels, airports, and directions for our wedding' },
+  venue:    { title: 'Venue',            description: 'Ceremony and reception venue details' },
+  schedule: { title: 'Schedule',         description: 'Our wedding day timeline and events' },
+  rsvp:     { title: 'RSVP',            description: 'Please RSVP for our wedding celebration' },
+  registry: { title: 'Registry',        description: 'Our wedding gift registry' },
+  faq:      { title: 'FAQ',             description: 'Frequently asked questions about our wedding' },
+};
+
+const VALID_PAGES = Object.keys(PAGE_META);
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ domain: string; page: string }> }
+): Promise<Metadata> {
+  const { domain, page } = await params;
+  const siteConfig = await getSiteConfig(domain);
+  if (!siteConfig) return {};
+
+  const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
+  const coupleTitle = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
+  const pageMeta = PAGE_META[page];
+  if (!pageMeta) return {};
+
+  return {
+    title: `${pageMeta.title} — ${coupleTitle}`,
+    description: pageMeta.description,
+  };
+}
+
+export default async function SiteSubPage(
+  { params }: { params: Promise<{ domain: string; page: string }> }
+) {
+  const { domain, page } = await params;
+
+  if (!VALID_PAGES.includes(page)) return notFound();
+
+  const siteConfig = await getSiteConfig(domain);
+  if (!siteConfig || !siteConfig.manifest) return notFound();
+
+  const manifest = siteConfig.manifest;
+  const safeNames: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
+    ? [siteConfig.names[0], siteConfig.names[1]]
+    : ['Our', 'Story'];
+
+  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  const bgColor = manifest.theme?.colors?.background || '#faf9f6';
+  const cardBg  = manifest.theme?.colors?.cardBg     || '#ffffff';
+
+  // Build nav pages — same as main page
+  const sitePages = [
+    { id: 'home',     slug: '',         label: 'Home',     enabled: true, order: 0 },
+    { id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: !!(manifest.events?.length),            order: 1 },
+    { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     enabled: !!(manifest.events?.length),            order: 2 },
+    { id: 'travel',   slug: 'travel',   label: 'Travel',   enabled: !!(manifest.travelInfo),                order: 3 },
+    { id: 'venue',    slug: 'venue',    label: 'Venue',    enabled: !!(manifest.logistics?.venue),          order: 4 },
+    { id: 'registry', slug: 'registry', label: 'Registry', enabled: !!(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl), order: 5 },
+    { id: 'faq',      slug: 'faq',      label: 'FAQ',      enabled: !!(manifest.faqs?.length),              order: 6 },
+  ].filter(p => p.enabled) as import('@/types').SitePage[];
+
+  // Page header shared across sub-pages
+  const PageHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
+    <div style={{
+      padding: '5rem 2rem 3rem',
+      background: bgColor,
+      textAlign: 'center',
+      borderBottom: `1px solid rgba(0,0,0,0.06)`,
+    }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
+          <span style={{ fontSize: '1rem', color: 'var(--eg-accent)', opacity: 0.6 }}>{vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
+        </div>
+        <h1 style={{
+          fontFamily: 'var(--eg-font-heading)',
+          fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+          fontWeight: 400, letterSpacing: '-0.025em',
+          color: 'var(--eg-fg)', margin: '0 0 1rem',
+        }}>{title}</h1>
+        {subtitle && (
+          <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', fontStyle: 'italic' }}>{subtitle}</p>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
+          <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', opacity: 0.5 }}>
+            {safeNames.join(' & ')}
+          </span>
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Render page by slug ──────────────────────────────────────
+  let content: React.ReactNode = null;
+
+  if (page === 'travel') {
+    if (!manifest.travelInfo) return notFound();
+    content = (
+      <>
+        <PageHeader
+          title="Travel & Hotels"
+          subtitle="Everything you need to plan your trip — places to stay, how to get here, and more."
+        />
+        <TravelSection info={manifest.travelInfo} />
+      </>
+    );
+  }
+
+  if (page === 'venue') {
+    const venue = manifest.logistics?.venue;
+    content = (
+      <>
+        <PageHeader
+          title="The Venue"
+          subtitle={venue || 'Venue details coming soon'}
+        />
+        <section style={{ padding: '5rem 2rem', background: cardBg }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {venue && (
+              <div style={{
+                background: '#fff', borderRadius: '1.5rem', padding: '2.5rem',
+                border: '1px solid rgba(0,0,0,0.06)',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.04)',
+              }}>
+                <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', fontWeight: 400, color: 'var(--eg-fg)', marginBottom: '1rem' }}>
+                  {venue}
+                </h2>
+                {manifest.logistics?.date && (
+                  <p style={{ color: 'var(--eg-muted)', fontSize: '1rem', marginBottom: '0.5rem' }}>
+                    📅 {new Date(manifest.logistics.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                )}
+                {manifest.logistics?.time && (
+                  <p style={{ color: 'var(--eg-muted)', fontSize: '1rem' }}>
+                    🕐 {manifest.logistics.time}
+                  </p>
+                )}
+                <a
+                  href={`https://maps.google.com?q=${encodeURIComponent(venue)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                    marginTop: '1.5rem', padding: '0.65rem 1.5rem',
+                    background: 'var(--eg-fg)', color: '#fff',
+                    borderRadius: '100px', fontSize: '0.8rem', fontWeight: 700,
+                    textDecoration: 'none', letterSpacing: '0.05em',
+                  }}
+                >
+                  📍 Open in Google Maps
+                </a>
+              </div>
+            )}
+            {/* Embedded map iframe */}
+            {venue && (
+              <div style={{ borderRadius: '1.25rem', overflow: 'hidden', height: '360px', border: '1px solid rgba(0,0,0,0.08)' }}>
+                <iframe
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(venue)}&output=embed`}
+                  width="100%" height="360"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  title={`Map of ${venue}`}
+                />
+              </div>
+            )}
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  if (page === 'schedule') {
+    if (!manifest.events?.length) return notFound();
+    content = (
+      <>
+        <PageHeader
+          title="The Schedule"
+          subtitle="Our wedding day — every moment that brings us together."
+        />
+        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
+        <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+      </>
+    );
+  }
+
+  if (page === 'rsvp') {
+    if (!manifest.events?.length) return notFound();
+    content = (
+      <>
+        <PageHeader
+          title="RSVP"
+          subtitle={manifest.logistics?.rsvpDeadline
+            ? `Please respond by ${new Date(manifest.logistics.rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+            : 'We hope to celebrate with you — please let us know if you can make it.'}
+        />
+        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
+        <PublicRsvpSection
+          siteId={domain}
+          events={manifest.events}
+          deadline={manifest.logistics?.rsvpDeadline}
+        />
+      </>
+    );
+  }
+
+  if (page === 'registry') {
+    if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return notFound();
+    content = (
+      <>
+        <PageHeader
+          title="Registry"
+          subtitle="Your presence is the greatest gift — but if you'd like to celebrate us with something more, here are a few ideas."
+        />
+        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
+        <RegistryShowcase
+          registries={manifest.registry!.entries || []}
+          cashFundUrl={manifest.registry?.cashFundUrl}
+          cashFundMessage={manifest.registry?.cashFundMessage}
+          title={vibeSkin.sectionLabels.registry}
+        />
+      </>
+    );
+  }
+
+  if (page === 'faq') {
+    if (!manifest.faqs?.length) return notFound();
+    content = (
+      <>
+        <PageHeader
+          title="Questions & Answers"
+          subtitle="Everything you need to know — and a few things you didn't think to ask."
+        />
+        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
+        <FaqSection faqs={manifest.faqs} />
+      </>
+    );
+  }
+
+  if (!content) return notFound();
+
+  return (
+    <ThemeProvider theme={manifest.theme || undefined}>
+      <SiteNav names={safeNames} pages={sitePages} currentPage={page} />
+      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
+        {content}
+      </main>
+      <SiteClientSections siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
+    </ThemeProvider>
+  );
+}

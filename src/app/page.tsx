@@ -21,7 +21,7 @@ import { GenerationProgress } from '@/components/dashboard/generation-progress';
 import { UserSites } from '@/components/dashboard/user-sites';
 import type { GooglePhotoMetadata, StoryManifest } from '@/types';
 
-// Full-screen editor â€” SSR disabled (uses browser APIs + framer Reorder)
+// Full-screen editor ”” SSR disabled (uses browser APIs + framer Reorder)
 const FullscreenEditor = dynamic(
   () => import('@/components/editor/FullscreenEditor').then(m => m.FullscreenEditor),
   { ssr: false }
@@ -42,7 +42,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
   dashboard: { title: '', subtitle: '', icon: LayoutDashboard },
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
   'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
-  vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling â€” the AI will do the rest.', icon: Sparkles },
+  vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling ”” the AI will do the rest.', icon: Sparkles },
   generating: { title: '', subtitle: '', icon: Sparkles },
   edit: { title: 'Your Story', subtitle: 'Review and edit. Make it perfect.', icon: Pencil },
   preview: { title: 'Preview', subtitle: 'See your site live before publishing.', icon: Eye },
@@ -66,7 +66,7 @@ export default function DashboardPage() {
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
-  // Redirect to dashboard once auth is confirmed â€” must be in useEffect,
+  // Redirect to dashboard once auth is confirmed ”” must be in useEffect,
   // NOT inline during render, to avoid React's infinite update loop
   useEffect(() => {
     if (status === 'authenticated' && currentStep === 'auth') {
@@ -94,7 +94,7 @@ export default function DashboardPage() {
       setGenerationStep((prev) => Math.min(prev + 1, 5));
     }, 2000);
 
-    // 90-second timeout â€” Gemini can be slow on large photo sets
+    // 90-second timeout ”” Gemini can be slow on large photo sets
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 90_000);
 
@@ -213,7 +213,7 @@ export default function DashboardPage() {
       />
       
       {/* Only unmount to landing on CONFIRMED unauthenticated.
-          Never on 'loading' â€” session revalidation mid-generation would
+          Never on 'loading' ”” session revalidation mid-generation would
           destroy the component tree and cause React to crash with 'n is not a function'. */}
       {status === 'unauthenticated' ? (
         <LandingPage handleSignIn={handleSignIn} status={status} />
@@ -296,7 +296,7 @@ export default function DashboardPage() {
             position: 'relative',
             paddingTop: '1rem'
           }}>
-            {/* Step header â€” hidden during generating & dashboard */}
+            {/* Step header ”” hidden during generating & dashboard */}
             {currentStep !== 'dashboard' && currentStep !== 'generating' && (
               <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
                 <h2 style={{
@@ -315,7 +315,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Error display â€” polished card */}
+            {/* Error display ”” polished card */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -630,7 +630,7 @@ export default function DashboardPage() {
                 <>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>Choose your URL</h2>
                   <p style={{ color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>
-                    We&apos;ve pre-filled a unique URL â€” customize it below.
+                    We&apos;ve pre-filled a unique URL ”” customize it below.
                   </p>
                   <p style={{ color: 'var(--eg-muted)', fontSize: '0.8rem', marginBottom: '2rem', opacity: 0.7 }}>
                     You can upgrade to a full custom domain later.
@@ -684,3 +684,4 @@ export default function DashboardPage() {
     </ThemeProvider>
   );
 }
+

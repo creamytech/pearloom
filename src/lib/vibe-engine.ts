@@ -1,24 +1,24 @@
-// ─────────────────────────────────────────────────────────────
+﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pearloom / lib/vibe-engine.ts
-// Gemini-first vibe → visual skin system.
+// Gemini-first vibe â†’ visual skin system.
 // AI designs the entire aesthetic from scratch for any prompt.
 // The keyword system is a fast fallback only.
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface VibeSkin {
-  // ── Structural choices (maps to pre-built SVG variants) ──
+  // â”€â”€ Structural choices (maps to pre-built SVG variants) â”€â”€
   curve: 'organic' | 'arch' | 'geometric' | 'wave' | 'petal';
   particle: 'petals' | 'stars' | 'bubbles' | 'leaves' | 'confetti' | 'snowflakes' | 'fireflies';
   accentShape: 'ring' | 'arch' | 'diamond' | 'leaf' | 'infinity';
   sectionEntrance: 'fade-up' | 'bloom' | 'drift' | 'float' | 'reveal';
   texture: 'none' | 'linen' | 'floral' | 'marble' | 'bokeh' | 'starfield';
 
-  // ── AI-generated open-ended fields ──
-  // Any unicode chars — Gemini picks these freely
+  // â”€â”€ AI-generated open-ended fields â”€â”€
+  // Any unicode chars â€” Gemini picks these freely
   decorIcons: string[];
   // Primary accent geometric/divider symbol
   accentSymbol: string;
-  // Particle tint color (CSS hex) — Gemini chooses
+  // Particle tint color (CSS hex) â€” Gemini chooses
   particleColor: string;
   // Section header micro-copy per block type
   sectionLabels: {
@@ -44,7 +44,7 @@ export interface VibeSkin {
   aiGenerated: boolean;
 }
 
-// ── SVG Wave Paths Library ────────────────────────────────────
+// â”€â”€ SVG Wave Paths Library â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const WAVE_PATHS: Record<VibeSkin['curve'], { d: string; di: string }> = {
   organic: {
     d: 'M0,60 C150,120 350,0 500,60 C650,120 850,0 1000,60 L1000,150 L0,150 Z',
@@ -76,26 +76,26 @@ const CORNER_STYLES: Record<VibeSkin['curve'], string> = {
   petal: '40% 40% 2rem 2rem / 3rem 3rem 2rem 2rem',
 };
 
-// ── Deterministic fallback (keyword scoring) ──────────────────
+// â”€â”€ Deterministic fallback (keyword scoring) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Only used when Gemini is unavailable or times out.
 
 const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
-  garden:     { curve: 'petal',     particle: 'petals',     decorIcons: ['✿','❀','❁','✾','⚘'], particleColor: '#f9c6c9', tone: 'dreamy'    },
-  floral:     { curve: 'petal',     particle: 'petals',     decorIcons: ['✿','❀','❁','⚘','❦'], particleColor: '#f3d1d8', tone: 'dreamy'    },
-  wildflower: { curve: 'organic',   particle: 'petals',     decorIcons: ['✿','❀','⚘','🌾','✦'], particleColor: '#e8b4bc', tone: 'wild'     },
-  forest:     { curve: 'organic',   particle: 'leaves',     decorIcons: ['❧','⚘','✦','🌿','❦'], particleColor: '#a8d5a2', tone: 'rustic'   },
-  beach:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['🌊','🐚','⚓','✦','○'], particleColor: '#b8e0ff', tone: 'playful'  },
-  ocean:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['🌊','○','◯','✦','⚓'], particleColor: '#9dd0f5', tone: 'dreamy'   },
-  celestial:  { curve: 'arch',      particle: 'stars',      decorIcons: ['✦','✧','☽','⋆','✩'], particleColor: '#ffe98a', tone: 'cosmic'   },
-  starry:     { curve: 'arch',      particle: 'stars',      decorIcons: ['✦','⋆','✩','☽','✧'], particleColor: '#fff3b0', tone: 'cosmic'   },
-  night:      { curve: 'arch',      particle: 'fireflies',  decorIcons: ['✦','✧','⋆','◦','☽'], particleColor: '#c8ff8a', tone: 'cosmic'   },
-  golden:     { curve: 'organic',   particle: 'petals',     decorIcons: ['✦','◇','•','✧','◦'], particleColor: '#ffd966', tone: 'luxurious'},
-  romantic:   { curve: 'petal',     particle: 'petals',     decorIcons: ['♡','✿','✦','•','◦'], particleColor: '#f9c6c9', tone: 'intimate' },
-  boho:       { curve: 'organic',   particle: 'leaves',     decorIcons: ['✿','✦','•','❧','⚘'], particleColor: '#c5e5c0', tone: 'wild'     },
-  elegant:    { curve: 'arch',      particle: 'stars',      decorIcons: ['◈','◇','✦','●','○'], particleColor: '#fff9e6', tone: 'luxurious'},
-  luxury:     { curve: 'geometric', particle: 'stars',      decorIcons: ['◈','◇','▣','✦','◦'], particleColor: '#ffe98a', tone: 'luxurious'},
-  winter:     { curve: 'geometric', particle: 'snowflakes', decorIcons: ['❄','❅','❆','✻','✼'], particleColor: '#e0f0ff', tone: 'dreamy'   },
-  tropical:   { curve: 'wave',      particle: 'confetti',   decorIcons: ['🌺','🌿','✦','❀','🌴'], particleColor: '#c3f5a9', tone: 'playful'},
+  garden:     { curve: 'petal',     particle: 'petals',     decorIcons: ['âœ¿','â€','â','âœ¾','âš˜'], particleColor: '#f9c6c9', tone: 'dreamy'    },
+  floral:     { curve: 'petal',     particle: 'petals',     decorIcons: ['âœ¿','â€','â','âš˜','â¦'], particleColor: '#f3d1d8', tone: 'dreamy'    },
+  wildflower: { curve: 'organic',   particle: 'petals',     decorIcons: ['âœ¿','â€','âš˜','ðŸŒ¾','âœ¦'], particleColor: '#e8b4bc', tone: 'wild'     },
+  forest:     { curve: 'organic',   particle: 'leaves',     decorIcons: ['â§','âš˜','âœ¦','ðŸŒ¿','â¦'], particleColor: '#a8d5a2', tone: 'rustic'   },
+  beach:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['ðŸŒŠ','ðŸš','âš“','âœ¦','â—‹'], particleColor: '#b8e0ff', tone: 'playful'  },
+  ocean:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['ðŸŒŠ','â—‹','â—¯','âœ¦','âš“'], particleColor: '#9dd0f5', tone: 'dreamy'   },
+  celestial:  { curve: 'arch',      particle: 'stars',      decorIcons: ['âœ¦','âœ§','â˜½','â‹†','âœ©'], particleColor: '#ffe98a', tone: 'cosmic'   },
+  starry:     { curve: 'arch',      particle: 'stars',      decorIcons: ['âœ¦','â‹†','âœ©','â˜½','âœ§'], particleColor: '#fff3b0', tone: 'cosmic'   },
+  night:      { curve: 'arch',      particle: 'fireflies',  decorIcons: ['âœ¦','âœ§','â‹†','â—¦','â˜½'], particleColor: '#c8ff8a', tone: 'cosmic'   },
+  golden:     { curve: 'organic',   particle: 'petals',     decorIcons: ['âœ¦','â—‡','â€¢','âœ§','â—¦'], particleColor: '#ffd966', tone: 'luxurious'},
+  romantic:   { curve: 'petal',     particle: 'petals',     decorIcons: ['â™¡','âœ¿','âœ¦','â€¢','â—¦'], particleColor: '#f9c6c9', tone: 'intimate' },
+  boho:       { curve: 'organic',   particle: 'leaves',     decorIcons: ['âœ¿','âœ¦','â€¢','â§','âš˜'], particleColor: '#c5e5c0', tone: 'wild'     },
+  elegant:    { curve: 'arch',      particle: 'stars',      decorIcons: ['â—ˆ','â—‡','âœ¦','â—','â—‹'], particleColor: '#fff9e6', tone: 'luxurious'},
+  luxury:     { curve: 'geometric', particle: 'stars',      decorIcons: ['â—ˆ','â—‡','â–£','âœ¦','â—¦'], particleColor: '#ffe98a', tone: 'luxurious'},
+  winter:     { curve: 'geometric', particle: 'snowflakes', decorIcons: ['â„','â…','â†','âœ»','âœ¼'], particleColor: '#e0f0ff', tone: 'dreamy'   },
+  tropical:   { curve: 'wave',      particle: 'confetti',   decorIcons: ['ðŸŒº','ðŸŒ¿','âœ¦','â€','ðŸŒ´'], particleColor: '#c3f5a9', tone: 'playful'},
 };
 
 function deriveFallback(vibeString: string): VibeSkin {
@@ -117,8 +117,8 @@ function deriveFallback(vibeString: string): VibeSkin {
     accentShape: 'ring',
     sectionEntrance: 'fade-up',
     texture: 'none',
-    decorIcons: merged.decorIcons || ['✦', '•', '◦', '✧', '·'],
-    accentSymbol: merged.decorIcons?.[0] || '✦',
+    decorIcons: merged.decorIcons || ['âœ¦', 'â€¢', 'â—¦', 'âœ§', 'Â·'],
+    accentSymbol: merged.decorIcons?.[0] || 'âœ¦',
     particleColor: merged.particleColor || '#f9c6c9',
     sectionLabels: {
       story: 'Our Story',
@@ -137,12 +137,12 @@ function deriveFallback(vibeString: string): VibeSkin {
   };
 }
 
-// ── Gemini-powered skin generation ───────────────────────────
+// â”€â”€ Gemini-powered skin generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Called once per site generation, cached in manifest.vibeSkin.
 // Returns a full VibeSkin from any free-text vibe description.
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
 export async function generateVibeSkin(
   vibeString: string,
@@ -159,7 +159,7 @@ export async function generateVibeSkin(
 ${namesContext}
 The couple's vibe is: "${vibeString}"
 
-Design a complete visual skin for their wedding site. Be creative, thoughtful, poetic, and unique — go far beyond generic keywords. Think about what symbols, shapes, motion, and colors would feel completely *theirs*.
+Design a complete visual skin for their wedding site. Be creative, thoughtful, poetic, and unique â€” go far beyond generic keywords. Think about what symbols, shapes, motion, and colors would feel completely *theirs*.
 
 Return ONLY this JSON (no backticks, no markdown):
 {
@@ -169,8 +169,8 @@ Return ONLY this JSON (no backticks, no markdown):
   "sectionEntrance": "<one of: fade-up | bloom | drift | float | reveal>",
   "texture": "<one of: none | linen | floral | marble | bokeh | starfield>",
   "decorIcons": ["<5 creative unicode chars that feel like this couple's world>"],
-  "accentSymbol": "<single elegant unicode symbol — the primary motif>",
-  "particleColor": "<hex color for the ambient particles — evocative of their vibe>",
+  "accentSymbol": "<single elegant unicode symbol â€” the primary motif>",
+  "particleColor": "<hex color for the ambient particles â€” evocative of their vibe>",
   "sectionLabels": {
     "story": "<poetic title for their love story section>",
     "events": "<poetic title for ceremony/reception section>",
@@ -184,9 +184,9 @@ Return ONLY this JSON (no backticks, no markdown):
 }
 
 Guidelines:
-- decorIcons: pick unicode symbols that feel thematically right — botanical, celestial, nautical, architectural, etc. Be specific to their vibe.
+- decorIcons: pick unicode symbols that feel thematically right â€” botanical, celestial, nautical, architectural, etc. Be specific to their vibe.
 - accentSymbol: the single char that will appear most prominently. Make it special.
-- particleColor: pick a color that evokes their vibe emotionally. Not just pink or gold — think carefully.
+- particleColor: pick a color that evokes their vibe emotionally. Not just pink or gold â€” think carefully.
 - sectionLabels: write these as if you know this couple personally. Poetic and warm.
 - dividerQuote: write something original and specific. Avoid "forever", "always", "one".
 - tone: choose the single word that most captures their energy.`;
@@ -213,7 +213,7 @@ Guidelines:
       particle?: VibeSkin['particle'];
     };
 
-    // Validate enum fields — fall back to defaults if Gemini hallucinates
+    // Validate enum fields â€” fall back to defaults if Gemini hallucinates
     const VALID_CURVES: VibeSkin['curve'][] = ['organic', 'arch', 'geometric', 'wave', 'petal'];
     const VALID_PARTICLES: VibeSkin['particle'][] = ['petals', 'stars', 'bubbles', 'leaves', 'confetti', 'snowflakes', 'fireflies'];
     const VALID_SHAPES: VibeSkin['accentShape'][] = ['ring', 'arch', 'diamond', 'leaf', 'infinity'];
@@ -232,8 +232,8 @@ Guidelines:
       texture: VALID_TEXTURES.includes(parsed.texture!) ? parsed.texture! : 'none',
       decorIcons: Array.isArray(parsed.decorIcons) && parsed.decorIcons.length > 0
         ? parsed.decorIcons.slice(0, 5)
-        : ['✦', '•', '◦', '✧', '·'],
-      accentSymbol: typeof parsed.accentSymbol === 'string' ? parsed.accentSymbol : '✦',
+        : ['âœ¦', 'â€¢', 'â—¦', 'âœ§', 'Â·'],
+      accentSymbol: typeof parsed.accentSymbol === 'string' ? parsed.accentSymbol : 'âœ¦',
       particleColor: typeof parsed.particleColor === 'string' && parsed.particleColor.startsWith('#')
         ? parsed.particleColor : '#f9c6c9',
       sectionLabels: {
@@ -257,13 +257,13 @@ Guidelines:
   }
 }
 
-// ── Synchronous fallback for SSR/Server Components ────────────
+// â”€â”€ Synchronous fallback for SSR/Server Components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Use when you have an already-generated skin cached in manifest.
 export function deriveVibeSkin(vibeString: string): VibeSkin {
   return deriveFallback(vibeString);
 }
 
-// ── React hook for client components ─────────────────────────
+// â”€â”€ React hook for client components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { useMemo } from 'react';
 
 export function useVibeSkin(vibeString: string | undefined, cached?: VibeSkin): VibeSkin {
@@ -272,3 +272,4 @@ export function useVibeSkin(vibeString: string | undefined, cached?: VibeSkin): 
     [vibeString, cached]
   );
 }
+

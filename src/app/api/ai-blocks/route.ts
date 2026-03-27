@@ -1,8 +1,8 @@
-// ─────────────────────────────────────────────────────────────
+﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pearloom / app/api/ai-blocks/route.ts
-// AI Block Generator — creates rich site sections from a prompt
+// AI Block Generator â€” creates rich site sections from a prompt
 // Supports: venue, events, registry, travel, faqs
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -11,7 +11,7 @@ import { authOptions } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
 const BLOCK_SCHEMAS: Record<string, { schema: string; fallback: unknown }> = {
   events: {
@@ -63,9 +63,9 @@ Return 2-4 events covering the full day (ceremony, cocktail hour, reception, aft
   "enabled": true,
   "message": "Your presence is the greatest gift. If you'd like to celebrate us further, we've curated a few ideas.",
   "cashFundUrl": "https://www.honeyfund.com/...",
-  "cashFundMessage": "Contribute to our honeymoon adventures in Italy 🇮🇹",
+  "cashFundMessage": "Contribute to our honeymoon adventures in Italy ðŸ‡®ðŸ‡¹",
   "entries": [
-    { "name": "Zola", "url": "https://www.zola.com/registry/...", "note": "Our main registry — kitchenware, home, and experiences" },
+    { "name": "Zola", "url": "https://www.zola.com/registry/...", "note": "Our main registry â€” kitchenware, home, and experiences" },
     { "name": "Amazon", "url": "https://www.amazon.com/wedding/...", "note": "Everyday essentials and fun extras" }
   ]
 }
@@ -93,7 +93,7 @@ Use realistic placeholder URLs. Make the message warm and personal based on the 
       "address": "25 Americas Cup Ave, Newport, RI",
       "bookingUrl": "https://www.marriott.com/...",
       "groupRate": "$179/night with code SMITH2025",
-      "notes": "Our recommended hotel — 10 min from the venue"
+      "notes": "Our recommended hotel â€” 10 min from the venue"
     },
     {
       "name": "Hampton Inn Newport",
@@ -198,3 +198,4 @@ ${schema.schema}`;
     return NextResponse.json({ error: 'Generation failed' }, { status: 500 });
   }
 }
+
