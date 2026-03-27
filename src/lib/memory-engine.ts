@@ -94,9 +94,70 @@ export async function generateStoryManifest(
   }
 
   const data = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
+  let rawText: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
 
-  const manifest: StoryManifest = JSON.parse(rawText);
+  // Strip markdown code fences — Gemini sometimes wraps JSON in ```json ... ```
+  rawText = rawText.trim();
+  if (rawText.startsWith('```')) {
+    rawText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  }
+
+  let parsed: Partial<StoryManifest>;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch (e) {
+    console.error('[memory-engine] Failed to parse Gemini JSON:', e);
+    console.error('[memory-engine] Raw text sample:', rawText.slice(0, 500));
+    throw new Error('AI returned invalid JSON. Please try again.');
+  }
+
+  // Defensive defaults — ensure every required field exists before the editor renders
+  const DEFAULT_THEME = {
+    name: 'pearloom-ivory',
+    fonts: { heading: 'Playfair Display', body: 'Inter' },
+    colors: {
+      background: '#faf9f6',
+      foreground: '#1a1a1a',
+      accent: '#b8926a',
+      accentLight: '#f3e8d8',
+      muted: '#8c8c8c',
+      cardBg: '#ffffff',
+    },
+    borderRadius: '1rem',
+  };
+
+  const manifest: StoryManifest = {
+    coupleId: parsed.coupleId || `couple-${Date.now()}`,
+    generatedAt: parsed.generatedAt || new Date().toISOString(),
+    vibeString: parsed.vibeString || '',
+    theme: parsed.theme ?? DEFAULT_THEME,
+    chapters: Array.isArray(parsed.chapters) ? parsed.chapters : [],
+    comingSoon: parsed.comingSoon ?? {
+      enabled: false,
+      title: 'Coming Soon',
+      subtitle: 'Something beautiful is on its way.',
+      passwordProtected: false,
+    },
+    logistics: parsed.logistics,
+    registry: parsed.registry,
+    events: parsed.events,
+    faqs: parsed.faqs,
+    travelInfo: parsed.travelInfo,
+  };
+
+  // Ensure theme has all required color keys
+  manifest.theme = {
+    ...DEFAULT_THEME,
+    ...manifest.theme,
+    colors: {
+      ...DEFAULT_THEME.colors,
+      ...(manifest.theme?.colors || {}),
+    },
+    fonts: {
+      ...DEFAULT_THEME.fonts,
+      ...(manifest.theme?.fonts || {}),
+    },
+  };
 
   // ─── CRITICAL: Hydrate chapter images from source clusters ───
   // The AI always returns `images: []`. We post-process here to
