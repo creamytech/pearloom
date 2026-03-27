@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -14,6 +14,15 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: '#b8926a',
+};
 
 export const metadata: Metadata = {
   title: "Pearloom — Our Story",

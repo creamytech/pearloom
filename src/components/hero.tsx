@@ -48,7 +48,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
       ref={ref}
       style={{
         position: 'relative',
-        height: '100vh',
+        height: '100dvh',
         width: '100%',
         overflow: 'hidden',
         display: 'flex',
@@ -239,7 +239,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
         transition={{ delay: 2.5, duration: 1 }}
         style={{
           position: 'absolute',
-          bottom: '3.5rem',
+          bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
           left: '50%',
           transform: 'translateX(-50%)',
           display: 'flex',

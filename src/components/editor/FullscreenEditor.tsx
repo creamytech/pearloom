@@ -9,13 +9,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import {
-  ArrowLeft, Plus, Trash2, Pencil, Sparkles, Loader2, Check,
-  Globe, Monitor, Tablet, Smartphone, GripVertical, ChevronDown,
-  ChevronRight, Image, HelpCircle, Map, Gift, Calendar, Layout,
-  Tag, MapPin, Wand2, RotateCcw, Eye, Settings, AlignLeft,
-  Palette, Heart,
+  ArrowLeft, Plus, Trash2, Sparkles, Loader2,
+  Globe, Monitor, Tablet, Smartphone, GripVertical,
+  Image, Calendar, Upload, X, Camera,
+  Eye, Settings, AlignLeft, Palette, Heart,
 } from 'lucide-react';
-import type { StoryManifest, Chapter } from '@/types';
+import type { StoryManifest, Chapter, ChapterImage } from '@/types';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -196,6 +195,143 @@ function SectionItem({
   );
 }
 
+// ── ImageManager ───────────────────────────────────────────────
+function ImageManager({
+  images, onUpdate,
+}: {
+  images: ChapterImage[];
+  onUpdate: (imgs: ChapterImage[]) => void;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const removeImage = (idx: number) => {
+    onUpdate(images.filter((_, i) => i !== idx));
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const results: ChapterImage[] = [];
+    for (const file of Array.from(files)) {
+      const reader = new FileReader();
+      await new Promise<void>(resolve => {
+        reader.onload = e => {
+          const url = e.target?.result as string;
+          results.push({
+            id: `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            url, alt: file.name.replace(/\.\w+$/, ''),
+            width: 0, height: 0,
+          });
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    onUpdate([...images, ...results]);
+    setUploading(false);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+        <label style={lbl}>Photos ({images.length})</label>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
+            padding: '4px 10px', borderRadius: '5px', border: '1px solid rgba(184,146,106,0.3)',
+            background: 'rgba(184,146,106,0.1)', color: '#b8926a',
+            fontSize: '0.68rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
+            opacity: uploading ? 0.6 : 1,
+          }}
+        >
+          {uploading
+            ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+            : <Upload size={10} />}
+          {uploading ? 'Uploading…' : 'Upload'}
+        </button>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        style={{ display: 'none' }}
+        onChange={e => handleFileUpload(e.target.files)}
+      />
+
+      {/* Photo grid */}
+      {images.length === 0 ? (
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: '8px', width: '100%', padding: '1.5rem',
+            border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '10px',
+            background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.25)',
+          }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.4)'; (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
+          onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+        >
+          <Camera size={20} />
+          <span style={{ fontSize: '0.72rem', fontWeight: 600 }}>Add photos</span>
+        </button>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+          {images.map((img, i) => (
+            <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.url} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              {/* Remove button */}
+              <button
+                onClick={() => removeImage(i)}
+                style={{
+                  position: 'absolute', top: '4px', right: '4px',
+                  width: '20px', height: '20px', borderRadius: '50%',
+                  background: 'rgba(0,0,0,0.7)', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', backdropFilter: 'blur(4px)',
+                  transition: 'background 0.15s',
+                }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#ef4444'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.7)'; }}
+              >
+                <X size={10} />
+              </button>
+              {/* Cover badge */}
+              {i === 0 && (
+                <div style={{
+                  position: 'absolute', bottom: '4px', left: '4px',
+                  background: 'rgba(184,146,106,0.9)', color: '#fff',
+                  fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
+                }}>Cover</div>
+              )}
+            </div>
+          ))}
+          {/* Add more button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              aspectRatio: '1', borderRadius: '8px',
+              border: '2px dashed rgba(255,255,255,0.1)', background: 'transparent',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'rgba(255,255,255,0.25)', transition: 'all 0.15s',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.4)'; (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Chapter Property Panel ─────────────────────────────────────
 function ChapterPanel({
   chapter, onUpdate, onAIRewrite, isRewriting,
@@ -264,26 +400,13 @@ function ChapterPanel({
         </div>
       </div>
 
-      {/* Image count preview */}
-      {chapter.images && chapter.images.length > 0 && (
-        <div>
-          <label style={lbl}>Photos ({chapter.images.length})</label>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {chapter.images.slice(0, 6).map((img, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i} src={img.url} alt={img.alt}
-                style={{ width: '48px', height: '48px', borderRadius: '6px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }}
-              />
-            ))}
-            {chapter.images.length > 6 && (
-              <div style={{ width: '48px', height: '48px', borderRadius: '6px', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>
-                +{chapter.images.length - 6}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Image Manager */}
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
+        <ImageManager
+          images={chapter.images || []}
+          onUpdate={imgs => upd({ images: imgs })}
+        />
+      </div>
     </motion.div>
   );
 }

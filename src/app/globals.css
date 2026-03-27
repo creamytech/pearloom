@@ -56,7 +56,33 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   line-height: 1.7;
+  /* iOS momentum scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Remove iOS tap highlight flash */
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* ─── iOS Safe Area (notch / Dynamic Island / home bar) ─── */
+.safe-top    { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 24px); }
+.safe-x      { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+
+/* ─── Dynamic viewport height (100vh includes browser chrome on iOS) ─── */
+.h-dvh   { height: 100dvh; }
+.min-dvh { min-height: 100dvh; }
+
+/* ─── Touch targets — Apple HIG minimum 44×44pt ─── */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* ─── Prevent iOS input zoom (triggers when font-size < 16px) ─── */
+input, textarea, select {
+  font-size: max(16px, 1rem);
+}
+
+/* ─── Disable double-tap-to-zoom on interactive elements ─── */
+a, button { touch-action: manipulation; }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--eg-font-heading);

@@ -172,7 +172,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   return (
     <motion.article
       ref={ref}
-      style={{ position: 'relative', height: '100vh', minHeight: '700px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+      style={{ position: 'relative', height: '100dvh', minHeight: '700px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
