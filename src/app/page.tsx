@@ -8,11 +8,12 @@
 import { useState, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe, LayoutDashboard } from 'lucide-react';
+import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe, LayoutDashboard, Users } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LocalUploader } from '@/components/dashboard/local-uploader';
 import { VibeInput } from '@/components/dashboard/vibe-input';
 import { SiteEditor } from '@/components/dashboard/site-editor';
+import { GuestManager } from '@/components/dashboard/guest-manager';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { LandingPage } from '@/components/landing-page';
@@ -20,17 +21,18 @@ import { GenerationProgress } from '@/components/dashboard/generation-progress';
 import { UserSites } from '@/components/dashboard/user-sites';
 import type { GooglePhotoMetadata, StoryManifest } from '@/types';
 
-type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview';
+type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
 
 const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.ElementType }> = {
   auth: { title: 'Welcome to Pearloom', subtitle: 'Connect Google Photos or upload locally.', icon: LogIn },
-  dashboard: { title: '', subtitle: '', icon: LayoutDashboard }, // Dashboard renders its own headers
+  dashboard: { title: '', subtitle: '', icon: LayoutDashboard },
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
   'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
   vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling — the AI will do the rest.', icon: Sparkles },
   generating: { title: 'Creating Magic', subtitle: 'The memory engine is crafting your story...', icon: Sparkles },
   edit: { title: 'Your Story', subtitle: 'Review and edit. Make it perfect.', icon: Pencil },
   preview: { title: 'Preview', subtitle: 'See your site live before publishing.', icon: Eye },
+  guests: { title: 'Guest List', subtitle: 'Track RSVPs and manage your guests.', icon: Users },
 };
 
 export default function DashboardPage() {
@@ -277,6 +279,10 @@ export default function DashboardPage() {
                     setCoupleNames(site.names || ['', '']);
                     setCurrentStep('edit');
                   }}
+                  onManageGuests={(site) => {
+                    setSubdomain(site.domain);
+                    setCurrentStep('guests');
+                  }}
                 />
               )}
 
@@ -390,6 +396,25 @@ export default function DashboardPage() {
                     if (subdomain) handlePublish();
                   }}
                 />
+              )}
+
+              {/* ── GUESTS ── */}
+              {currentStep === 'guests' && subdomain && (
+                <div>
+                  <button
+                    onClick={() => setCurrentStep('dashboard')}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.4rem',
+                      fontSize: '0.9rem', color: 'var(--eg-muted)',
+                      marginBottom: '2rem', background: 'none', border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowLeft size={14} />
+                    Back to My Sites
+                  </button>
+                  <GuestManager siteId={subdomain} />
+                </div>
               )}
 
               {/* ── PREVIEW ── */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Trash2, X, AlertTriangle } from 'lucide-react';
+import { Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Trash2, X, AlertTriangle, Users } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 
 interface UserSite {
@@ -13,7 +13,11 @@ interface UserSite {
   names: [string, string];
 }
 
-export function UserSites({ onStartNew, onEditSite }: { onStartNew: () => void, onEditSite: (site: UserSite) => void }) {
+export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
+  onStartNew: () => void;
+  onEditSite: (site: UserSite) => void;
+  onManageGuests: (site: UserSite) => void;
+}) {
   const [sites, setSites] = useState<UserSite[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
@@ -140,6 +144,14 @@ export function UserSites({ onStartNew, onEditSite }: { onStartNew: () => void, 
                     >
                       <Pencil size={12} />
                       Edit
+                    </button>
+
+                    {/* Guest List */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onManageGuests(site); }}
+                      className="flex items-center justify-center px-3 py-2 text-xs border border-black/10 text-[var(--eg-muted)] rounded-lg hover:bg-black/5 hover:text-black transition-colors"
+                    >
+                      <Users size={12} />
                     </button>
 
                     {/* Delete */}

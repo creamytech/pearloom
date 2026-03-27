@@ -23,8 +23,17 @@ export interface StoryManifest {
   registry?: {
     enabled: boolean;
     cashFundUrl?: string;
+    cashFundMessage?: string;
     message?: string;
+    // Multi-registry support
+    entries?: Array<{ name: string; url: string; note?: string }>;
   };
+  // Multiple wedding events (ceremony, reception, rehearsal dinner, etc.)
+  events?: WeddingEvent[];
+  // FAQs from the couple
+  faqs?: FaqItem[];
+  // Travel & lodging info
+  travelInfo?: TravelInfo;
 }
 
 export interface Chapter {

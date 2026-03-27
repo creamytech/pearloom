@@ -6,6 +6,10 @@ import { Hero } from '@/components/hero';
 import { Timeline } from '@/components/timeline';
 import { EventLogistics } from '@/components/event-logistics';
 import { ComingSoon } from '@/components/coming-soon';
+import { WeddingEvents } from '@/components/wedding-events';
+import { RegistryShowcase } from '@/components/registry-showcase';
+import { FaqSection } from '@/components/faq-section';
+import { TravelSection } from '@/components/travel-section';
 import type { Chapter } from '@/types';
 
 // Force dynamic because each subdomain generates a unique site payload on request
@@ -102,8 +106,30 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
         <Timeline chapters={manifest.chapters || []} />
 
+        {/* Multi-event cards: ceremony, reception, rehearsal dinner */}
+        {manifest.events && manifest.events.length > 0 && (
+          <WeddingEvents events={manifest.events} />
+        )}
+
         {/* Render Event Logistics (RSVP & Registry) only if the AI generated them from the Occasion step */}
         <EventLogistics manifest={manifest} siteId={domain} />
+
+        {/* Multi-registry showcase */}
+        {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
+          <RegistryShowcase
+            registries={manifest.registry?.entries || []}
+            cashFundUrl={manifest.registry?.cashFundUrl}
+            cashFundMessage={manifest.registry?.cashFundMessage}
+          />
+        )}
+
+        {/* Travel & Hotels */}
+        {manifest.travelInfo && <TravelSection info={manifest.travelInfo} />}
+
+        {/* FAQ accordion */}
+        {manifest.faqs && manifest.faqs.length > 0 && (
+          <FaqSection faqs={manifest.faqs} />
+        )}
 
         {/* Coming Soon section with email capture */}
         {manifest.comingSoon && <ComingSoon config={manifest.comingSoon} siteId={domain} />}
