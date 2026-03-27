@@ -1,57 +1,160 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// everglow / components/dashboard/site-editor.tsx
-// Post-generation inline editor for chapter content
+// Pearloom / components/dashboard/site-editor.tsx
+// Complete Site Editor — chapters + design system + password + patterns
+// Improvements: #11 font picker, #12 live color preview, #10 patterns, #18 password
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Pencil, Check, X, GripVertical, Trash2, Plus } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Pencil, Check, GripVertical, Trash2, Plus, Lock, Unlock, Eye } from 'lucide-react';
 import type { Chapter, StoryManifest } from '@/types';
 
 interface SiteEditorProps {
   manifest: StoryManifest;
   onChange: (manifest: StoryManifest) => void;
+  onSave?: () => void;
+  onPreview?: () => void;
 }
 
-export function SiteEditor({ manifest, onChange }: SiteEditorProps) {
+// ── Curated font pairings ──
+const HEADING_FONTS = [
+  { name: 'Playfair Display', label: 'Playfair Display', style: 'Editorial' },
+  { name: 'Cormorant Garamond', label: 'Cormorant Garamond', style: 'Classic' },
+  { name: 'Lora', label: 'Lora', style: 'Elegant' },
+  { name: 'Cinzel', label: 'Cinzel', style: 'High Fashion' },
+  { name: 'DM Serif Display', label: 'DM Serif', style: 'Modern Serif' },
+  { name: 'Libre Baskerville', label: 'Libre Baskerville', style: 'Traditional' },
+  { name: 'Inter', label: 'Inter', style: 'Clean Modern' },
+  { name: 'Outfit', label: 'Outfit', style: 'Geometric' },
+];
+
+const BODY_FONTS = [
+  { name: 'Inter', label: 'Inter', style: 'Clean' },
+  { name: 'Lora', label: 'Lora', style: 'Serif Readable' },
+  { name: 'Outfit', label: 'Outfit', style: 'Geometric' },
+  { name: 'Roboto', label: 'Roboto', style: 'Standard' },
+  { name: 'PT Serif', label: 'PT Serif', style: 'Traditional' },
+  { name: 'DM Sans', label: 'DM Sans', style: 'Humanist' },
+];
+
+const PATTERNS = [
+  { value: 'none', label: 'None' },
+  { value: 'noise', label: 'Noise / Grain' },
+  { value: 'dots', label: 'Dot Grid' },
+  { value: 'grid', label: 'Fine Grid' },
+  { value: 'waves', label: 'Line Waves' },
+  { value: 'topography', label: 'Topography' },
+  { value: 'floral', label: 'Radial Glow' },
+];
+
+// ── Color section ──
+function ColorField({
+  label, value, onChange,
+}: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <label style={{
+        display: 'block', fontSize: '0.7rem', fontWeight: 700,
+        letterSpacing: '0.12em', textTransform: 'uppercase',
+        color: 'var(--eg-muted)', marginBottom: '0.6rem',
+      }}>
+        {label}
+      </label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{
+          position: 'relative', width: '40px', height: '40px',
+          borderRadius: '50%', border: '2px solid rgba(0,0,0,0.08)',
+          overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        }}>
+          <div style={{ background: value, width: '100%', height: '100%' }} />
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            style={{ position: 'absolute', inset: 0, width: '200%', height: '200%', top: '-50%', left: '-50%', opacity: 0, cursor: 'pointer' }}
+          />
+        </div>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            flex: 1, padding: '0.65rem 1rem', borderRadius: '0.6rem',
+            border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none',
+            fontSize: '0.85rem', fontFamily: 'monospace', background: 'rgba(0,0,0,0.02)',
+          }}
+          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
+          onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Live color preview swatch ──
+function ColorPreviewSwatch({ colors }: { colors: Record<string, string> }) {
+  return (
+    <div style={{
+      borderRadius: '0.75rem', overflow: 'hidden',
+      border: '1px solid rgba(0,0,0,0.08)',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+      fontSize: '0.7rem',
+    }}>
+      <div style={{ background: colors.background, padding: '1rem' }}>
+        <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1rem', color: colors.foreground, marginBottom: '0.4rem' }}>
+          Shauna & Ben
+        </div>
+        <div style={{ color: colors.muted, fontSize: '0.75rem', marginBottom: '0.8rem' }}>
+          The beginning of everything.
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div style={{ background: colors.accent, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>
+            View Story
+          </div>
+          <div style={{ background: colors.accentLight, color: colors.accent, padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>
+            RSVP
+          </div>
+        </div>
+      </div>
+      <div style={{ background: colors.accent, color: '#fff', padding: '0.5rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        Accent strip ↑
+      </div>
+    </div>
+  );
+}
+
+export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditorProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'chapters' | 'design' | 'details'>('chapters');
+
+  const updateColor = useCallback((key: keyof typeof manifest.theme.colors, value: string) => {
+    onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, [key]: value } } });
+  }, [manifest, onChange]);
 
   const updateChapter = (chapterId: string, updates: Partial<Chapter>) => {
-    const newManifest = {
-      ...manifest,
-      chapters: manifest.chapters.map((ch) =>
-        ch.id === chapterId ? { ...ch, ...updates } : ch
-      ),
-    };
-    onChange(newManifest);
+    onChange({ ...manifest, chapters: manifest.chapters.map(ch => ch.id === chapterId ? { ...ch, ...updates } : ch) });
   };
 
   const deleteChapter = (chapterId: string) => {
-    const newManifest = {
-      ...manifest,
-      chapters: manifest.chapters.filter((ch) => ch.id !== chapterId),
-    };
-    onChange(newManifest);
+    onChange({ ...manifest, chapters: manifest.chapters.filter(ch => ch.id !== chapterId) });
   };
 
   const addChapter = () => {
     const newChapter: Chapter = {
       id: `ch-${Date.now()}`,
       date: new Date().toISOString(),
-      title: 'new chapter',
-      subtitle: 'add your subtitle',
-      description: 'write your story here...',
+      title: 'New Chapter',
+      subtitle: 'Add your subtitle',
+      description: 'Write your story here...',
       images: [],
       location: null,
       mood: 'new',
       order: manifest.chapters.length,
     };
-    onChange({
-      ...manifest,
-      chapters: [...manifest.chapters, newChapter],
-    });
+    onChange({ ...manifest, chapters: [...manifest.chapters, newChapter] });
     setEditingId(newChapter.id);
   };
 
@@ -63,323 +166,433 @@ export function SiteEditor({ manifest, onChange }: SiteEditorProps) {
     onChange({ ...manifest, chapters });
   };
 
+  const TAB_STYLE = (active: boolean) => ({
+    padding: '0.6rem 1.25rem',
+    borderRadius: '0.5rem',
+    fontSize: '0.75rem',
+    fontWeight: 700 as const,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
+    border: 'none',
+    cursor: 'pointer' as const,
+    background: active ? 'var(--eg-fg)' : 'transparent',
+    color: active ? '#fff' : 'var(--eg-muted)',
+    transition: 'all 0.2s ease',
+  });
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-xl font-semibold" style={{ fontFamily: 'var(--eg-font-heading)' }}>
-            edit your story
-          </h3>
-          <p className="text-sm text-[var(--eg-muted)]">
-            click any chapter to edit. drag to reorder.
-          </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+      {/* ── Header + Tabs ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '1.25rem 1.5rem', background: '#fff', borderRadius: '1rem',
+        border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+      }}>
+        <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0,0,0,0.04)', borderRadius: '0.6rem', padding: '0.25rem' }}>
+          {(['chapters', 'design', 'details'] as const).map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)} style={TAB_STYLE(activeTab === tab)}>
+              {tab}
+            </button>
+          ))}
         </div>
-        <button
-          onClick={addChapter}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-black/20
-                     text-sm text-[var(--eg-muted)] hover:border-[var(--eg-accent)] hover:text-[var(--eg-accent)]
-                     transition-all cursor-pointer"
-        >
-          <Plus size={16} />
-          add chapter
-        </button>
-      </div>
-
-      {/* --- THEME EDITOR --- */}
-      <div className="mb-8 overflow-hidden rounded-xl border border-black/5 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
-        <div className="bg-black/[0.02] px-6 py-4 border-b border-black/5">
-          <h4 className="text-sm font-bold uppercase tracking-[0.15em] text-[var(--eg-fg)]">Global Design System</h4>
-          <p className="text-xs text-[var(--eg-muted)] mt-1">Configure your site-wide typography and color palette.</p>
-        </div>
-        
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-          
-          {/* Colors */}
-          <div className="space-y-6">
-            <div>
-              <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider mb-3 block">Background Color</label>
-              <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-full shadow-sm border border-black/10 flex-shrink-0 overflow-hidden cursor-pointer hover:scale-105 transition-transform">
-                  <div style={{ background: manifest.theme.colors.background, width: '100%', height: '100%' }} />
-                  <input 
-                    type="color" 
-                    value={manifest.theme.colors.background}
-                    onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, background: e.target.value } } })}
-                    className="absolute inset-0 w-[200%] h-[200%] -top-1/2 -left-1/2 opacity-0 cursor-pointer" 
-                  />
-                </div>
-                <input 
-                  type="text" 
-                  value={manifest.theme.colors.background}
-                  onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, background: e.target.value } } })}
-                  className="flex-1 px-3 py-2 text-sm rounded-lg bg-black/[0.02] border border-black/5 focus:outline-none focus:border-[var(--eg-accent)] focus:bg-white transition-colors" 
-                  style={{ fontFamily: 'monospace' }}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider mb-3 block">Primary Accent</label>
-              <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-full shadow-sm border border-black/10 flex-shrink-0 overflow-hidden cursor-pointer hover:scale-105 transition-transform">
-                  <div style={{ background: manifest.theme.colors.accent, width: '100%', height: '100%' }} />
-                  <input 
-                    type="color" 
-                    value={manifest.theme.colors.accent}
-                    onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, accent: e.target.value } } })}
-                    className="absolute inset-0 w-[200%] h-[200%] -top-1/2 -left-1/2 opacity-0 cursor-pointer" 
-                  />
-                </div>
-                <input 
-                  type="text" 
-                  value={manifest.theme.colors.accent}
-                  onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, colors: { ...manifest.theme.colors, accent: e.target.value } } })}
-                  className="flex-1 px-3 py-2 text-sm rounded-lg bg-black/[0.02] border border-black/5 focus:outline-none focus:border-[var(--eg-accent)] focus:bg-white transition-colors" 
-                  style={{ fontFamily: 'monospace' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Typography */}
-          <div className="space-y-6">
-            <div>
-              <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider mb-3 block">Heading Typography</label>
-              <select
-                value={manifest.theme.fonts.heading}
-                onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, heading: e.target.value } } })}
-                className="w-full px-4 py-3 text-sm rounded-lg bg-black/[0.02] border border-black/5 focus:outline-none focus:border-[var(--eg-accent)] focus:bg-white transition-colors cursor-pointer appearance-none" 
-                style={{ fontFamily: manifest.theme.fonts.heading || 'Playfair Display' }}
-              >
-                <option value="Playfair Display">Playfair Display (Editorial)</option>
-                <option value="Cormorant Garamond">Cormorant Garamond (Classic)</option>
-                <option value="Lora">Lora (Elegant)</option>
-                <option value="Inter">Inter (Modern Clean)</option>
-                <option value="Outfit">Outfit (Geometric)</option>
-                <option value="Cinzel">Cinzel (High Fashion)</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider mb-3 block">Body Typography</label>
-              <select
-                value={manifest.theme.fonts.body}
-                onChange={(e) => onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, body: e.target.value } } })}
-                className="w-full px-4 py-3 text-sm rounded-lg bg-black/[0.02] border border-black/5 focus:outline-none focus:border-[var(--eg-accent)] focus:bg-white transition-colors cursor-pointer appearance-none" 
-                style={{ fontFamily: manifest.theme.fonts.body || 'Inter' }}
-              >
-                <option value="Inter">Inter (Clean)</option>
-                <option value="Outfit">Outfit (Geometric)</option>
-                <option value="Roboto">Roboto (Standard)</option>
-                <option value="Lora">Lora (Serif Readable)</option>
-                <option value="PT Serif">PT Serif (Traditional)</option>
-              </select>
-            </div>
-          </div>
-
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {onPreview && (
+            <button
+              onClick={onPreview}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.6rem 1.25rem', borderRadius: '0.6rem',
+                border: '1.5px solid rgba(0,0,0,0.12)', background: 'transparent',
+                color: 'var(--eg-fg)', fontSize: '0.8rem', fontWeight: 700,
+                cursor: 'pointer', letterSpacing: '0.05em',
+              }}
+            >
+              <Eye size={14} />
+              Preview
+            </button>
+          )}
+          {onSave && (
+            <button
+              onClick={onSave}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.6rem 1.25rem', borderRadius: '0.6rem',
+                background: 'var(--eg-accent)', color: '#fff',
+                border: 'none', fontSize: '0.8rem', fontWeight: 700,
+                cursor: 'pointer', letterSpacing: '0.05em',
+              }}
+            >
+              <Check size={14} />
+              Save Draft
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="space-y-4">
-        {manifest.chapters.map((chapter, index) => (
-          <motion.div
-            key={chapter.id}
-            layout
-            className="border border-black/5 rounded-xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-shadow"
-          >
-            {editingId === chapter.id ? (
-              /* ── Edit Mode ── */
-              <div className="p-6 space-y-6">
-                <div className="flex items-center justify-between border-b border-black/5 pb-4">
-                  <span className="text-xs text-[var(--eg-accent)] font-semibold uppercase tracking-[0.2em]">
-                    Chapter {index + 1}
-                  </span>
-                  <div className="flex gap-4 items-center">
-                    <span className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-widest">Layout</span>
-                    <select 
-                      value={chapter.layout || 'editorial'}
-                      onChange={(e) => updateChapter(chapter.id, { layout: e.target.value as Chapter['layout'] })}
-                      className="px-3 py-1.5 rounded-md bg-black/[0.02] border border-transparent text-sm font-medium focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors cursor-pointer"
-                    >
-                      <option value="editorial">Editorial (Side-by-side)</option>
-                      <option value="fullbleed">Fullbleed (Hero Photo)</option>
-                      <option value="split">Split (Card)</option>
-                      <option value="cinematic">Cinematic (Quote Focus)</option>
-                      <option value="gallery">Gallery (Multi-image Grid)</option>
-                      <option value="mosaic">Mosaic (Polaroid Scatter)</option>
-                    </select>
-                  </div>
-                </div>
+      {/* ── Chapters Tab ── */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'chapters' && (
+          <motion.div key="chapters" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={addChapter}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.6rem 1.25rem', borderRadius: '0.6rem',
+                  border: '1.5px dashed rgba(0,0,0,0.2)', background: 'transparent',
+                  color: 'var(--eg-muted)', fontSize: '0.8rem', fontWeight: 600,
+                  cursor: 'pointer', transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.color = 'var(--eg-accent)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'; e.currentTarget.style.color = 'var(--eg-muted)'; }}
+              >
+                <Plus size={15} />
+                Add Chapter
+              </button>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider block mb-2">Title</label>
-                      <input
-                        type="text"
-                        value={chapter.title}
-                        onChange={(e) => updateChapter(chapter.id, { title: e.target.value })}
-                        placeholder="Chapter Title"
-                        className="w-full px-4 py-3 rounded-lg bg-black/[0.02] border border-transparent text-lg font-semibold focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors placeholder-black/30"
-                        style={{ fontFamily: manifest.theme.fonts.heading || 'Playfair Display' }}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider block mb-2">Subtitle</label>
-                      <input
-                        type="text"
-                        value={chapter.subtitle}
-                        onChange={(e) => updateChapter(chapter.id, { subtitle: e.target.value })}
-                        placeholder="Optional subtitle"
-                        className="w-full px-4 py-3 rounded-lg bg-black/[0.02] border border-transparent text-sm italic focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors placeholder-black/30"
-                      />
-                    </div>
-                    
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider block mb-2">Date</label>
-                        <input
-                          type="date"
-                          value={chapter.date.slice(0, 10)}
-                          onChange={(e) => updateChapter(chapter.id, { date: e.target.value })}
-                          className="w-full px-4 py-3 rounded-lg bg-black/[0.02] border border-transparent text-sm focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider block mb-2">Mood / Tag</label>
-                        <input
-                          type="text"
-                          value={chapter.mood}
-                          onChange={(e) => updateChapter(chapter.id, { mood: e.target.value })}
-                          placeholder="e.g. Romantic"
-                          className="w-full px-4 py-3 rounded-lg bg-black/[0.02] border border-transparent text-sm focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors placeholder-black/30"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider block mb-2">The Story</label>
-                    <textarea
-                      value={chapter.description}
-                      onChange={(e) => updateChapter(chapter.id, { description: e.target.value })}
-                      placeholder="Write your beautiful memory here..."
-                      className="w-full h-[calc(100%-24px)] min-h-[160px] px-5 py-4 rounded-lg bg-black/[0.02] border border-transparent text-sm leading-relaxed focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors resize-none placeholder-black/30"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t border-black/5">
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[var(--eg-accent)] text-white text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
-                  >
-                    <Check size={16} />
-                    Save & Collapse
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* ── Display Mode ── */
-              <div className="flex items-center gap-6 p-5 group">
-                <div className="flex flex-col gap-2 text-[var(--eg-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => moveChapter(index, 'up')}
-                    disabled={index === 0}
-                    className="hover:text-[var(--eg-fg)] disabled:opacity-20 cursor-pointer p-1 rounded hover:bg-black/5 transition-colors"
-                  >
-                    <GripVertical size={16} />
-                  </button>
-                </div>
-
-                {/* Thumbnail */}
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 shadow-sm border border-black/5">
-                  {chapter.images?.[0] ? (
-                    <img
-                      src={chapter.images[0].url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-black/5 flex items-center justify-center">
-                      <span className="text-[10px] uppercase text-black/30 font-bold">No Image</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-[10px] text-[var(--eg-accent)] font-bold uppercase tracking-widest bg-[var(--eg-accent)]/10 px-2 py-0.5 rounded-sm">
-                      {new Date(chapter.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                    </span>
-                    {chapter.mood && (
-                      <span className="text-[10px] text-[var(--eg-muted)] font-medium uppercase tracking-wider">
-                        • {chapter.mood}
+            {manifest.chapters.map((chapter, index) => (
+              <motion.div
+                key={chapter.id}
+                layout
+                style={{ borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', background: '#fff', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}
+              >
+                {editingId === chapter.id ? (
+                  <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--eg-accent)', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+                        Chapter {index + 1}
                       </span>
-                    )}
-                  </div>
-                  
-                  <h5
-                    className="text-lg font-medium text-[var(--eg-fg)] truncate mb-1"
-                    style={{ fontFamily: manifest.theme.fonts.heading || 'Playfair Display' }}
-                  >
-                    {chapter.title}
-                  </h5>
-                  <p className="text-sm text-[var(--eg-muted)] truncate max-w-2xl">{chapter.description}</p>
-                </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>Layout</label>
+                        <select
+                          value={chapter.layout || 'editorial'}
+                          onChange={(e) => updateChapter(chapter.id, { layout: e.target.value as Chapter['layout'] })}
+                          style={{ padding: '0.4rem 0.75rem', borderRadius: '0.4rem', border: '1.5px solid rgba(0,0,0,0.1)', background: 'transparent', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          <option value="editorial">Editorial</option>
+                          <option value="fullbleed">Fullbleed</option>
+                          <option value="split">Split Card</option>
+                          <option value="cinematic">Cinematic</option>
+                          <option value="gallery">Gallery Grid</option>
+                          <option value="mosaic">Mosaic Polaroids</option>
+                        </select>
+                      </div>
+                    </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
-                  <button
-                    onClick={() => setEditingId(chapter.id)}
-                    className="p-2.5 rounded-lg border border-black/10 hover:border-black/20 hover:bg-black/5 text-[var(--eg-muted)] hover:text-[var(--eg-fg)] transition-all cursor-pointer shadow-sm"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    onClick={() => deleteChapter(chapter.id)}
-                    className="p-2.5 rounded-lg border border-red-500/20 hover:border-red-500 hover:bg-red-50 text-red-500/70 hover:text-red-500 transition-all cursor-pointer shadow-sm"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {[
+                          { label: 'Title', key: 'title' as const, type: 'text', size: '1.1rem', font: manifest.theme.fonts.heading },
+                          { label: 'Subtitle', key: 'subtitle' as const, type: 'text', size: '0.9rem', italic: true },
+                        ].map(field => (
+                          <div key={field.key}>
+                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>
+                              {field.label}
+                            </label>
+                            <input
+                              type="text"
+                              value={chapter[field.key] as string}
+                              onChange={(e) => updateChapter(chapter.id, { [field.key]: e.target.value })}
+                              style={{
+                                width: '100%', padding: '0.7rem 1rem', borderRadius: '0.6rem',
+                                border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none',
+                                fontSize: field.size, fontFamily: field.font ? `"${field.font}", serif` : 'inherit',
+                                fontStyle: field.italic ? 'italic' : 'normal',
+                                background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box',
+                              }}
+                              onFocus={(e) => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
+                              onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
+                            />
+                          </div>
+                        ))}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Date</label>
+                            <input type="date" value={chapter.date.slice(0, 10)} onChange={(e) => updateChapter(chapter.id, { date: e.target.value })}
+                              style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.85rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }} />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Mood</label>
+                            <input type="text" value={chapter.mood} onChange={(e) => updateChapter(chapter.id, { mood: e.target.value })}
+                              placeholder="e.g. Romantic"
+                              style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.85rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>The Story</label>
+                        <textarea
+                          value={chapter.description}
+                          onChange={(e) => updateChapter(chapter.id, { description: e.target.value })}
+                          placeholder="Write your beautiful memory here..."
+                          style={{
+                            width: '100%', height: '180px', padding: '0.9rem 1rem',
+                            borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)',
+                            outline: 'none', fontSize: '0.9rem', lineHeight: 1.7,
+                            resize: 'none', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box',
+                          }}
+                          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
+                          onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.5rem',
+                          padding: '0.6rem 1.5rem', borderRadius: '0.6rem',
+                          background: 'var(--eg-accent)', color: '#fff',
+                          border: 'none', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
+                        }}
+                      >
+                        <Check size={14} />
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem' }} className="group">
+                    {/* Reorder arrows */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', opacity: 0, transition: 'opacity 0.2s' }} className="group-hover:opacity-100">
+                      <button onClick={() => moveChapter(index, 'up')} disabled={index === 0} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: '2px', opacity: index === 0 ? 0.3 : 1 }}>
+                        <GripVertical size={14} />
+                      </button>
+                    </div>
+
+                    {/* Thumbnail */}
+                    <div style={{ width: '64px', height: '64px', borderRadius: '0.6rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.04)' }}>
+                      {chapter.images?.[0] ? (
+                        <img src={chapter.images[0].url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.25)' }}>
+                          {chapter.images?.length ? `${chapter.images.length} photos` : 'No Image'}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--eg-accent)', background: 'rgba(0,0,0,0.04)', padding: '0.2rem 0.5rem', borderRadius: '0.25rem' }}>
+                          {new Date(chapter.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        </span>
+                        {chapter.layout && (
+                          <span style={{ fontSize: '0.6rem', color: 'var(--eg-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
+                            {chapter.layout}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontFamily: `"${manifest.theme.fonts.heading}", serif`, fontSize: '1rem', fontWeight: 500, color: 'var(--eg-fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {chapter.title}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.15rem' }}>
+                        {chapter.description}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: '0.4rem', opacity: 0, transition: 'opacity 0.2s' }} className="group-hover:opacity-100">
+                      <button onClick={() => setEditingId(chapter.id)} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(0,0,0,0.1)', background: 'none', cursor: 'pointer', color: 'var(--eg-muted)', display: 'flex' }}>
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={() => deleteChapter(chapter.id)} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(239,68,68,0.2)', background: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.7)', display: 'flex' }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+
+        {/* ── Design Tab ── */}
+        {activeTab === 'design' && (
+          <motion.div key="design" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+            {/* Color system */}
+            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Color Palette</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>Customize your site-wide colors. Preview updates live.</div>
+              </div>
+              <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <ColorField label="Background" value={manifest.theme.colors.background} onChange={v => updateColor('background', v)} />
+                  <ColorField label="Foreground / Text" value={manifest.theme.colors.foreground} onChange={v => updateColor('foreground', v)} />
+                  <ColorField label="Primary Accent" value={manifest.theme.colors.accent} onChange={v => updateColor('accent', v)} />
+                  <ColorField label="Accent Light" value={manifest.theme.colors.accentLight} onChange={v => updateColor('accentLight', v)} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Live preview */}
+                  <ColorPreviewSwatch colors={manifest.theme.colors} />
+                  <ColorField label="Muted Text" value={manifest.theme.colors.muted} onChange={v => updateColor('muted', v)} />
                 </div>
               </div>
-            )}
-          </motion.div>
-        ))}
-      </div>
+            </div>
 
-      {/* --- COMING SOON EDITOR --- */}
-      <div className="mt-6 overflow-hidden rounded-xl border border-black/5 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
-        <div className="bg-black/[0.02] px-6 py-4 border-b border-black/5">
-          <h4 className="text-sm font-bold uppercase tracking-[0.15em] text-[var(--eg-fg)]">Coming Soon Section</h4>
-          <p className="text-xs text-[var(--eg-muted)] mt-1">The bottom section teasing what's next for you two.</p>
-        </div>
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider block mb-2">Section Title</label>
-            <input
-              type="text"
-              value={manifest.comingSoon?.title || 'The Next Chapter'}
-              onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, title: e.target.value, enabled: true, passwordProtected: false } })}
-              className="w-full px-4 py-3 rounded-lg bg-black/[0.02] border border-transparent text-sm font-medium focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors"
-              style={{ fontFamily: manifest.theme.fonts.heading || 'Playfair Display' }}
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-[var(--eg-muted)] uppercase tracking-wider block mb-2">Subtitle / Message</label>
-            <input
-              type="text"
-              value={manifest.comingSoon?.subtitle || ''}
-              onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, subtitle: e.target.value, title: manifest.comingSoon?.title || 'The Next Chapter', enabled: true, passwordProtected: false } })}
-              placeholder="e.g. Our wedding day, September 14th 2025"
-              className="w-full px-4 py-3 rounded-lg bg-black/[0.02] border border-transparent text-sm focus:bg-white focus:border-[var(--eg-accent)] focus:outline-none transition-colors placeholder-black/25"
-            />
-          </div>
-        </div>
-      </div>
+            {/* Typography */}
+            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Typography</div>
+              </div>
+              <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                {/* Heading font visual picker */}
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Heading Font</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {HEADING_FONTS.map(font => (
+                      <button
+                        key={font.name}
+                        onClick={() => onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, heading: font.name } } })}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '0.75rem 1rem', borderRadius: '0.6rem', cursor: 'pointer',
+                          border: `1.5px solid ${manifest.theme.fonts.heading === font.name ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
+                          background: manifest.theme.fonts.heading === font.name ? 'rgba(0,0,0,0.02)' : 'transparent',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <span style={{ fontFamily: `"${font.name}", serif`, fontSize: '1.05rem', color: 'var(--eg-fg)' }}>{font.label}</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{font.style}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Body font visual picker */}
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Body Font</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {BODY_FONTS.map(font => (
+                      <button
+                        key={font.name}
+                        onClick={() => onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, body: font.name } } })}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '0.75rem 1rem', borderRadius: '0.6rem', cursor: 'pointer',
+                          border: `1.5px solid ${manifest.theme.fonts.body === font.name ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
+                          background: manifest.theme.fonts.body === font.name ? 'rgba(0,0,0,0.02)' : 'transparent',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <span style={{ fontFamily: `"${font.name}", sans-serif`, fontSize: '1rem', color: 'var(--eg-fg)' }}>{font.label}</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{font.style}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Background pattern */}
+            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Background Pattern</div>
+              </div>
+              <div style={{ padding: '1.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {PATTERNS.map(p => (
+                  <button
+                    key={p.value}
+                    onClick={() => onChange({ ...manifest, theme: { ...manifest.theme, backgroundPattern: p.value as typeof manifest.theme.backgroundPattern } })}
+                    style={{
+                      padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer',
+                      border: `1.5px solid ${(manifest.theme.backgroundPattern || 'none') === p.value ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
+                      background: (manifest.theme.backgroundPattern || 'none') === p.value ? 'rgba(0,0,0,0.03)' : 'transparent',
+                      fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-fg)',
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Details Tab ── */}
+        {activeTab === 'details' && (
+          <motion.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+            {/* Coming Soon editor */}
+            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Coming Soon Section</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>The bottom section teasing what&apos;s next.</div>
+              </div>
+              <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Section Title</label>
+                  <input
+                    type="text"
+                    value={manifest.comingSoon?.title || 'The Next Chapter'}
+                    onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, title: e.target.value, enabled: true, passwordProtected: false } })}
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.95rem', fontFamily: `"${manifest.theme.fonts.heading}", serif`, background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Subtitle / Message</label>
+                  <input
+                    type="text"
+                    value={manifest.comingSoon?.subtitle || ''}
+                    onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, subtitle: e.target.value, title: manifest.comingSoon?.title || 'The Next Chapter', enabled: true, passwordProtected: false } })}
+                    placeholder="e.g. Our wedding day, September 14th 2025"
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.9rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Reveal Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={manifest.comingSoon?.revealDate?.slice(0, 10) || ''}
+                    onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, revealDate: e.target.value, title: manifest.comingSoon?.title || 'The Next Chapter', enabled: true, passwordProtected: false, subtitle: manifest.comingSoon?.subtitle || '' } })}
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.9rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Password protection */}
+            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+              <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Password Protection</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>Restrict access to your site with a password.</div>
+                </div>
+                <button
+                  onClick={() => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, passwordProtected: !manifest.comingSoon?.passwordProtected, enabled: manifest.comingSoon?.enabled ?? true, title: manifest.comingSoon?.title || 'The Next Chapter', subtitle: manifest.comingSoon?.subtitle || '' } })}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700,
+                    border: 'none', cursor: 'pointer',
+                    background: manifest.comingSoon?.passwordProtected ? 'var(--eg-fg)' : 'rgba(0,0,0,0.06)',
+                    color: manifest.comingSoon?.passwordProtected ? '#fff' : 'var(--eg-muted)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {manifest.comingSoon?.passwordProtected ? <Lock size={14} /> : <Unlock size={14} />}
+                  {manifest.comingSoon?.passwordProtected ? 'Protected' : 'Public'}
+                </button>
+              </div>
+              {manifest.comingSoon?.passwordProtected && (
+                <div style={{ padding: '1.25rem 1.5rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Site Password</label>
+                  <input
+                    type="text"
+                    value={manifest.comingSoon?.password || ''}
+                    onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon!, password: e.target.value } })}
+                    placeholder="Enter a password for guests"
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.9rem', fontFamily: 'monospace', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }}
+                  />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -376,23 +376,20 @@ export default function DashboardPage() {
 
               {/* ── EDIT ── */}
               {currentStep === 'edit' && manifest && (
-                <div>
-                  <SiteEditor manifest={manifest} onChange={handleManifestChange} />
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                    <button
-                      onClick={() => setCurrentStep('preview')}
-                      style={{
-                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: '0.5rem', padding: '1rem', borderRadius: '0.75rem',
-                        background: 'var(--eg-fg)', color: '#fff', fontSize: '0.9rem',
-                        fontWeight: 500, cursor: 'pointer', border: 'none',
-                      }}
-                    >
-                      <Eye size={16} />
-                       Preview your site
-                    </button>
-                  </div>
-                </div>
+                <SiteEditor
+                  manifest={manifest}
+                  onChange={handleManifestChange}
+                  onPreview={() => {
+                    // Store via sessionStorage to avoid URL length limits (#3)
+                    const key = `preview-${Date.now()}`;
+                    sessionStorage.setItem(key, JSON.stringify({ manifest, names: coupleNames }));
+                    window.open(`/preview?key=${key}`, '_blank');
+                  }}
+                  onSave={() => {
+                    // Auto-save: re-publish to Supabase with updated manifest
+                    if (subdomain) handlePublish();
+                  }}
+                />
               )}
 
               {/* ── PREVIEW ── */}
@@ -430,7 +427,11 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <iframe
-                      src={`/preview?data=${encodeURIComponent(JSON.stringify({ manifest, names: coupleNames }))}`}
+                      src={(() => {
+                        const key = `preview-${Date.now()}`;
+                        if (typeof window !== 'undefined') sessionStorage.setItem(key, JSON.stringify({ manifest, names: coupleNames }));
+                        return `/preview?key=${key}`;
+                      })()}
                       style={{ width: '100%', height: '600px', border: 'none' }}
                       title="Site Preview"
                     />

@@ -28,13 +28,20 @@ function PreviewContent() {
 
   const { manifest, names } = useMemo(() => {
     try {
+      // New approach: sessionStorage key avoids URL length limits (#3)
+      const key = searchParams.get('key');
+      if (key && typeof window !== 'undefined') {
+        const stored = sessionStorage.getItem(key);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          return { manifest: parsed.manifest as StoryManifest, names: parsed.names as [string, string] };
+        }
+      }
+      // Legacy fallback: data in URL param
       const raw = searchParams.get('data');
       if (!raw) return { manifest: null, names: ['', ''] as [string, string] };
       const parsed = JSON.parse(decodeURIComponent(raw));
-      return {
-        manifest: parsed.manifest as StoryManifest,
-        names: parsed.names as [string, string],
-      };
+      return { manifest: parsed.manifest as StoryManifest, names: parsed.names as [string, string] };
     } catch {
       return { manifest: null, names: ['', ''] as [string, string] };
     }
