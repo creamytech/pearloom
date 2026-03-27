@@ -9,6 +9,34 @@ import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types'
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 /**
+ * Wraps a Gemini fetch with automatic retry on 503 (UNAVAILABLE) and 429 (rate limit).
+ * Uses exponential back-off: 2s → 4s → 8s (max 3 attempts).
+ */
+async function geminiRetryFetch(
+  url: string,
+  init: RequestInit,
+  maxAttempts = 3
+): Promise<Response> {
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fetch(url, init);
+    if (res.status === 503 || res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After');
+      const backoff = retryAfter ? parseInt(retryAfter, 10) * 1000 : Math.pow(2, attempt) * 1000;
+      if (attempt < maxAttempts) {
+        console.warn(`[Memory Engine] Gemini ${res.status} — retrying in ${backoff / 1000}s (attempt ${attempt}/${maxAttempts})...`);
+        await new Promise(resolve => setTimeout(resolve, backoff));
+        continue;
+      }
+      lastError = new Error(`Gemini API temporarily unavailable (${res.status}). Please try again in a moment.`);
+      throw lastError;
+    }
+    return res;
+  }
+  throw lastError ?? new Error('Gemini request failed after max retries');
+}
+
+/**
  * Sends photo clusters + vibe string to Gemini
  * and returns a fully structured Story Manifest.
  */
@@ -75,7 +103,8 @@ export async function generateStoryManifest(
     console.log(`[Memory Engine] Successfully appended images to Gemini prompt!`);
   }
 
-  const res = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
+  console.log('[Memory Engine] Sending request to Gemini...');
+  const res = await geminiRetryFetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -492,7 +521,7 @@ Return JSON:
 
 Rules: Use premium Google Fonts only. Colors should be warm, intimate, and high-contrast for readability. Background should be an off-white or warm tone, never #ffffff. No neon or overly bright colors. The palette should feel like a luxury brand.`;
 
-  const res = await fetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
+  const res = await geminiRetryFetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

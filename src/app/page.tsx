@@ -23,6 +23,14 @@ import type { GooglePhotoMetadata, StoryManifest } from '@/types';
 
 type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
 
+// Generates a memorable random slug like "shauna-and-ben-x7q2"
+function generateSlug(names: [string, string]): string {
+  const n1 = names[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'us';
+  const n2 = names[1].toLowerCase().replace(/[^a-z0-9]/g, '') || 'together';
+  const suffix = Math.random().toString(36).slice(2, 6);
+  return `${n1}-and-${n2}-${suffix}`;
+}
+
 const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.ElementType }> = {
   auth: { title: 'Welcome to Pearloom', subtitle: 'Connect Google Photos or upload locally.', icon: LogIn },
   dashboard: { title: '', subtitle: '', icon: LayoutDashboard },
@@ -85,6 +93,7 @@ export default function DashboardPage() {
     const timeoutId = setTimeout(() => controller.abort(), 90_000);
 
     try {
+      console.log('[Generate] Starting generation for:', data.names, '| photos:', selectedPhotos.length);
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,12 +110,25 @@ export default function DashboardPage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
+        console.error('[Generate] API error:', res.status, errData);
         throw new Error(errData.error || `Server error (${res.status})`);
       }
 
       const result = await res.json();
-      if (!result.manifest) throw new Error('AI returned an empty manifest. Please try again.');
+      console.log('[Generate] Raw API result keys:', Object.keys(result));
+      if (!result.manifest) {
+        console.error('[Generate] No manifest in response:', result);
+        throw new Error('AI returned an empty manifest. Please try again.');
+      }
+      console.log('[Generate] Manifest received ✓ chapters:', result.manifest.chapters?.length);
+
       setManifest(result.manifest);
+
+      // Auto-generate a random slug so Publish works immediately from the editor
+      const autoSlug = generateSlug(data.names);
+      console.log('[Generate] Auto-generated subdomain:', autoSlug);
+      setSubdomain(autoSlug);
+
       setCurrentStep('edit');
     } catch (err) {
       clearInterval(stepInterval);
@@ -114,6 +136,7 @@ export default function DashboardPage() {
       const msg = err instanceof Error
         ? (err.name === 'AbortError' ? 'Generation timed out (90s). Please try again.' : err.message)
         : 'Generation failed. Please try again.';
+      console.error('[Generate] Caught error:', msg);
       setError(msg);
       setCurrentStep('vibe');
     }
@@ -124,7 +147,10 @@ export default function DashboardPage() {
   }, []);
 
   const handlePublish = async () => {
-    if (!subdomain) return setPublishError('Please enter a subdomain.');
+    const targetSubdomain = subdomain.trim();
+    console.log('[Publish] Attempting:', { targetSubdomain, hasManifest: !!manifest, names: coupleNames });
+    if (!targetSubdomain) return setPublishError('Please enter a subdomain.');
+    if (!manifest) return setPublishError('No manifest to publish. Please generate a site first.');
     setPublishError(null);
     setIsPublishing(true);
 
@@ -132,14 +158,17 @@ export default function DashboardPage() {
       const res = await fetch('/api/sites/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain, manifest, names: coupleNames }),
+        body: JSON.stringify({ subdomain: targetSubdomain, manifest, names: coupleNames }),
       });
 
       const data = await res.json();
+      console.log('[Publish] API response:', data);
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
 
+      console.log('[Publish] ✓ Published! URL:', data.url);
       setPublishedUrl(data.url);
     } catch (err: unknown) {
+      console.error('[Publish] Error:', err);
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsPublishing(false);
@@ -442,8 +471,11 @@ export default function DashboardPage() {
                     window.open(`/preview?key=${key}`, '_blank');
                   }}
                   onSave={() => {
-                    // Auto-save: re-publish to Supabase with updated manifest
-                    if (subdomain) handlePublish();
+                    // Open the publish modal — shows the pre-filled random URL
+                    console.log('[Editor] Publish clicked — current subdomain:', subdomain);
+                    setPublishError(null);
+                    setPublishedUrl(null);
+                    setShowPublishModal(true);
                   }}
                 />
               )}
@@ -498,7 +530,7 @@ export default function DashboardPage() {
                         <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#4ade80' }} />
                       </div>
                       <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', color: 'var(--eg-muted)' }}>
-                        pearloom.app/{coupleNames[0].toLowerCase()}-and-{coupleNames[1].toLowerCase()}
+                        pearloom.app/{subdomain || `${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`}
                       </div>
                     </div>
                     <iframe
@@ -512,11 +544,12 @@ export default function DashboardPage() {
                     />
                   </div>
 
-                  {/* ── PUBLISH BUTTON ── */}
+                  {/* ── PUBLISH BUTTON (from preview) ── */}
                   <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
                     <button
                       onClick={() => {
-                        setSubdomain(`${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`);
+                        setPublishError(null);
+                        setPublishedUrl(null);
                         setShowPublishModal(true);
                       }}
                       style={{
@@ -531,109 +564,121 @@ export default function DashboardPage() {
                       Publish Site
                     </button>
                   </div>
-
-                  {/* ── PUBLISH MODAL ── */}
-                  {showPublishModal && (
-                    <div style={{
-                      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                      background: 'rgba(250, 249, 246, 0.9)', backdropFilter: 'blur(10px)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      zIndex: 100, padding: '2rem'
-                    }}>
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        style={{
-                          background: '#fff', padding: '3rem', borderRadius: '1.5rem',
-                          maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
-                          textAlign: 'center'
-                        }}
-                      >
-                        {publishedUrl ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                              <Check size={32} />
-                            </div>
-                            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginTop: '1rem' }}>It's Live.</h2>
-                            <p style={{ color: 'var(--eg-muted)' }}>Your magnificent love story is now available to the world.</p>
-                            <a 
-                              href={publishedUrl} 
-                              target="_blank" 
-                              rel="noreferrer"
-                              style={{ 
-                                display: 'inline-block', padding: '1rem 2rem', background: 'var(--eg-fg)', 
-                                color: '#fff', borderRadius: '2rem', textDecoration: 'none', marginTop: '1rem', fontWeight: 500
-                              }}
-                            >
-                              Visit Your Standard Subdomain URL
-                            </a>
-                            <a 
-                              href={`/rsvps?domain=${subdomain}`}
-                              style={{ 
-                                display: 'inline-block', padding: '1rem 2rem', background: 'transparent',
-                                border: '2px solid var(--eg-fg)', color: 'var(--eg-fg)', borderRadius: '2rem',
-                                textDecoration: 'none', marginTop: '0.5rem', fontWeight: 500
-                              }}
-                            >
-                              Manage RSVPs
-                            </a>
-                            <button onClick={() => setShowPublishModal(false)} style={{ background: 'none', border: 'none', color: 'var(--eg-muted)', marginTop: '1rem', cursor: 'pointer', textDecoration: 'underline' }}>
-                              Close
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>Choose your URL</h2>
-                            <p style={{ color: 'var(--eg-muted)', marginBottom: '2rem' }}>
-                              Claim your custom Pearloom subdomain. You can upgrade to a full custom domain later.
-                            </p>
-
-                            {publishError && (
-                              <div style={{ color: '#ef4444', background: '#fef2f2', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                                {publishError}
-                              </div>
-                            )}
-
-                            <div style={{ display: 'flex', alignItems: 'center', border: '2px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', overflow: 'hidden', transition: 'border-color 0.2s' }}>
-                              <input
-                                value={subdomain}
-                                onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                                placeholder="ben-and-shauna"
-                                style={{ flex: 1, padding: '1rem', fontSize: '1rem', border: 'none', outline: 'none' }}
-                                disabled={isPublishing}
-                              />
-                              <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)' }}>
-                                .pearloom.app
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                              <button
-                                onClick={() => setShowPublishModal(false)}
-                                style={{ flex: 1, padding: '1rem', background: 'none', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', color: 'var(--eg-fg)', cursor: 'pointer' }}
-                                disabled={isPublishing}
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={handlePublish}
-                                style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', background: 'var(--eg-fg)', color: '#fff', border: 'none', borderRadius: '0.75rem', cursor: 'pointer' }}
-                                disabled={isPublishing || !subdomain}
-                              >
-                                {isPublishing ? <Loader2 size={18} className="animate-spin" /> : 'Claim Subdomain'}
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </motion.div>
-                    </div>
-                  )}
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
           </div>
         </div>
+
+        {/* ── GLOBAL PUBLISH MODAL ── Works from both edit and preview steps */}
+        {showPublishModal && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(250, 249, 246, 0.92)', backdropFilter: 'blur(12px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200, padding: '2rem'
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              style={{
+                background: '#fff', padding: '3rem', borderRadius: '1.5rem',
+                maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
+                textAlign: 'center'
+              }}
+            >
+              {publishedUrl ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                    <Check size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginTop: '0.5rem' }}>It&apos;s Live.</h2>
+                  <p style={{ color: 'var(--eg-muted)' }}>Your love story is now live at:</p>
+                  <code style={{ background: 'rgba(0,0,0,0.04)', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.85rem', wordBreak: 'break-all' }}>
+                    {publishedUrl}
+                  </code>
+                  <a
+                    href={publishedUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-block', padding: '1rem 2rem', background: 'var(--eg-fg)',
+                      color: '#fff', borderRadius: '2rem', textDecoration: 'none', marginTop: '0.5rem', fontWeight: 500
+                    }}
+                  >
+                    Open Your Site →
+                  </a>
+                  <a
+                    href={`/rsvps?domain=${subdomain}`}
+                    style={{
+                      display: 'inline-block', padding: '1rem 2rem', background: 'transparent',
+                      border: '2px solid var(--eg-fg)', color: 'var(--eg-fg)', borderRadius: '2rem',
+                      textDecoration: 'none', fontWeight: 500
+                    }}
+                  >
+                    Manage RSVPs
+                  </a>
+                  <button
+                    onClick={() => { setShowPublishModal(false); setCurrentStep('dashboard'); }}
+                    style={{ background: 'none', border: 'none', color: 'var(--eg-muted)', marginTop: '0.5rem', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Go to Dashboard
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>Choose your URL</h2>
+                  <p style={{ color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>
+                    We&apos;ve pre-filled a unique URL — customize it below.
+                  </p>
+                  <p style={{ color: 'var(--eg-muted)', fontSize: '0.8rem', marginBottom: '2rem', opacity: 0.7 }}>
+                    You can upgrade to a full custom domain later.
+                  </p>
+
+                  {publishError && (
+                    <div style={{ color: '#ef4444', background: '#fef2f2', padding: '0.75rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                      {publishError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'center', border: '2px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', overflow: 'hidden', transition: 'border-color 0.2s' }}>
+                    <input
+                      value={subdomain}
+                      onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="ben-and-shauna"
+                      style={{ flex: 1, padding: '1rem', fontSize: '1rem', border: 'none', outline: 'none' }}
+                      disabled={isPublishing}
+                      autoFocus
+                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = '#b8926a'; }}
+                      onBlur={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
+                    />
+                    <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>
+                      .pearloom.app
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                    <button
+                      onClick={() => setShowPublishModal(false)}
+                      style={{ flex: 1, padding: '1rem', background: 'none', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', color: 'var(--eg-fg)', cursor: 'pointer' }}
+                      disabled={isPublishing}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handlePublish}
+                      style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', background: 'var(--eg-fg)', color: '#fff', border: 'none', borderRadius: '0.75rem', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600 }}
+                      disabled={isPublishing || !subdomain}
+                    >
+                      {isPublishing ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <><Globe size={16} /> Publish Site</>}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
       </main>
       )}
     </ThemeProvider>
