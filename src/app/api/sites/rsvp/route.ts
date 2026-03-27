@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-// We have to use the service role or a public anon key that allows inserts to rsvps table
-// If RLS allows inserts, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY works
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+export const dynamic = 'force-dynamic';
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  if (!url || !key) throw new Error('Supabase env vars not configured');
+  return createClient(url, key);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +17,8 @@ export async function POST(req: NextRequest) {
     if (!siteId || !name || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const supabase = getSupabase();
 
     const { data, error } = await supabase
       .from('rsvps')

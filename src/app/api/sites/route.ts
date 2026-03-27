@@ -3,18 +3,25 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase Service Role configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Force this route to always be server-rendered (never statically collected)
+export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request) {
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Supabase env vars not configured');
+  return createClient(url, key);
+}
+
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || !session.user.email) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const supabase = getSupabase();
 
     const { data, error } = await supabase
       .from('sites')
@@ -27,13 +34,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 
-    // Map `sites` to the shape `UserSites` expects
     const mappedSites = data?.map(site => ({
       id: site.id,
       domain: site.subdomain,
       manifest: site.ai_manifest,
       created_at: site.created_at,
-      names: site.site_config?.names || ['', ''] // default fallback if older site
+      names: (site.site_config as Record<string, unknown>)?.names || ['', ''],
     })) || [];
 
     return NextResponse.json({ sites: mappedSites }, { status: 200 });
