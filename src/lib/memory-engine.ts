@@ -6,7 +6,7 @@
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
 
-const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 /**
  * Wraps a Gemini fetch with automatic retry on 503 (UNAVAILABLE) and 429 (rate limit).
@@ -111,8 +111,9 @@ export async function generateStoryManifest(
       contents: [{ parts }],
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 0.8,
-        maxOutputTokens: 8192,
+        temperature: 0.75,
+        maxOutputTokens: 16384,
+        topP: 0.95,
       },
     }),
   });
@@ -125,19 +126,64 @@ export async function generateStoryManifest(
   const data = await res.json();
   let rawText: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
 
-  // Strip markdown code fences — Gemini sometimes wraps JSON in ```json ... ```
+  // ── Robust JSON extraction ──────────────────────────────────
+  // 1. Strip leading/trailing whitespace
   rawText = rawText.trim();
-  if (rawText.startsWith('```')) {
-    rawText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+
+  // 2. Strip markdown code fences (```json ... ``` or ``` ... ```)
+  rawText = rawText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
+
+  // 3. If the response has stray text before the JSON object, find '{'
+  const firstBrace = rawText.indexOf('{');
+  if (firstBrace > 0) {
+    rawText = rawText.slice(firstBrace);
   }
+
+  // 4. If JSON is truncated (Gemini hit token limit), try to close it
+  // Count open braces — if unbalanced, append closing braces
+  const openBraces = (rawText.match(/"/g) || []).length;
+  if (openBraces % 2 !== 0) {
+    // Truncated mid-string — cut at last complete field
+    const lastGoodComma = rawText.lastIndexOf('\"');
+    if (lastGoodComma > 0) rawText = rawText.slice(0, lastGoodComma + 1);
+  }
+
+  // 5. Count { vs } — append missing closing braces
+  let depth = 0;
+  for (const ch of rawText) {
+    if (ch === '{') depth++;
+    else if (ch === '}') depth--;
+  }
+  if (depth > 0) {
+    rawText += '}'.repeat(depth);
+  }
+
+  // 6. Remove trailing commas before } or ] (common Gemini mistake)
+  rawText = rawText.replace(/,\s*([}\]])/g, '$1');
 
   let parsed: Partial<StoryManifest>;
   try {
     parsed = JSON.parse(rawText);
   } catch (e) {
     console.error('[memory-engine] Failed to parse Gemini JSON:', e);
-    console.error('[memory-engine] Raw text sample:', rawText.slice(0, 500));
-    throw new Error('AI returned invalid JSON. Please try again.');
+    console.error('[memory-engine] Raw text (first 800 chars):', rawText.slice(0, 800));
+
+    // Last resort: try extracting just the chapters array if it's there
+    try {
+      const chapStart = rawText.indexOf('"chapters"');
+      if (chapStart !== -1) {
+        const partial = '{' + rawText.slice(chapStart);
+        parsed = JSON.parse(partial + '}');
+        console.warn('[memory-engine] Recovered partial manifest (chapters only)');
+      } else {
+        throw new Error('no chapters');
+      }
+    } catch {
+      throw new Error('AI returned invalid JSON. Please try again.');
+    }
   }
 
   // Defensive defaults — ensure every required field exists before the editor renders
@@ -536,6 +582,20 @@ Rules: Use premium Google Fonts only. Colors should be warm, intimate, and high-
   if (!res.ok) throw new Error(`Gemini theme generation failed: ${res.status}`);
 
   const data = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
-  return JSON.parse(rawText);
+  let themeRaw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim();
+  themeRaw = themeRaw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  const firstBrace = themeRaw.indexOf('{');
+  if (firstBrace > 0) themeRaw = themeRaw.slice(firstBrace);
+  themeRaw = themeRaw.replace(/,\s*([}\]])/g, '$1');
+  try {
+    return JSON.parse(themeRaw);
+  } catch {
+    console.warn('[generateThemeFromVibe] Parse failed, returning default theme');
+    return {
+      name: 'Warm Ivory',
+      fonts: { heading: 'Playfair Display', body: 'Inter' },
+      colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+      borderRadius: '1rem',
+    };
+  }
 }
