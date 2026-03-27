@@ -36,9 +36,17 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
     setDeletingDomain(site.domain);
     try {
       const res = await fetch(`/api/sites/${site.domain}`, { method: 'DELETE' });
-      if (res.ok) setSites(prev => prev.filter(s => s.domain !== site.domain));
+      if (res.ok) {
+        setSites(prev => prev.filter(s => s.domain !== site.domain));
+      } else {
+        const body = await res.json().catch(() => ({}));
+        const msg = body?.error || `Error ${res.status}`;
+        console.error('[UserSites] Delete failed:', msg);
+        alert(`Could not delete site: ${msg}`);
+      }
     } catch (err) {
       console.error('Delete failed:', err);
+      alert('Could not delete site — please try again.');
     } finally {
       setDeletingDomain(null);
       setConfirmDelete(null);
