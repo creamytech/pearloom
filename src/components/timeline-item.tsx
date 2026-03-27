@@ -10,6 +10,7 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import type { Chapter } from '@/types';
+import { MoodDecorator } from '@/components/mood-decorator';
 
 interface TimelineItemProps {
   chapter: Chapter;
@@ -139,10 +140,14 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
           letterSpacing: '-0.025em',
         }}>{chapter.title}</h3>
         {chapter.subtitle && (
-          <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.2rem', marginBottom: '2.25rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+          <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.2rem', marginBottom: '1.5rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
             {chapter.subtitle}
           </p>
         )}
+        {/* Context-driven animated mood decoration */}
+        <div style={{ marginBottom: '1.75rem', textAlign: isEven ? 'left' : 'right' }}>
+          <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={false} />
+        </div>
         <p style={{ color: 'var(--eg-muted)', lineHeight: 2, fontSize: '1rem', maxWidth: '460px', margin: isEven ? '0' : '0 0 0 auto', fontWeight: 300 }} className="max-md:mx-auto">
           {chapter.description}
         </p>
@@ -197,7 +202,11 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             textShadow: '0 10px 30px rgba(0,0,0,0.4)',
             letterSpacing: '-0.02em',
           }}>{chapter.title}</h3>
-          <div style={{ width: '1px', height: '60px', background: 'rgba(255,255,255,0.25)', margin: '0 auto 2.5rem' }} />
+          {/* Context mood animation — light mode for dark background */}
+          <div style={{ marginBottom: '2rem' }}>
+            <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={true} />
+          </div>
+          <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.2)', margin: '0 auto 2.5rem' }} />
           <p style={{ lineHeight: 2, fontSize: '1.1rem', opacity: 0.85, fontWeight: 300, maxWidth: '600px', margin: '0 auto' }}>
             {chapter.description}
           </p>
