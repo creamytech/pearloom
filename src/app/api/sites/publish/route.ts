@@ -1,9 +1,10 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { publishSite } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
+import { generateVibeSkin } from '@/lib/vibe-engine';
 
 // â”€â”€ Mirror Google Photos URLs â†’ Supabase Storage â”€â”€
 // Google Photos baseUrls expire within ~1 hour. On publish we upload
@@ -102,6 +103,18 @@ export async function POST(req: NextRequest) {
     if (session.accessToken) {
       console.log('[Publish API] Mirroring photos to Supabase Storage...');
       persistManifest = await mirrorImagesToStorage(manifest, session.accessToken, cleanSubdomain);
+    }
+
+    // Generate AI vibe skin (unless already cached)
+    if (!persistManifest.vibeSkin || !persistManifest.vibeSkin.aiGenerated) {
+      console.log('[Publish API] Generating AI vibe skin...');
+      const vibeSkin = await generateVibeSkin(
+        persistManifest.vibeString,
+        names as [string, string],
+        process.env.GEMINI_API_KEY
+      );
+      persistManifest = { ...persistManifest, vibeSkin };
+      console.log(`[Publish API] Vibe skin generated: ${vibeSkin.tone} / ${vibeSkin.curve} / aiGenerated=${vibeSkin.aiGenerated}`);
     }
 
     // Pass the tuple of names to the DB upsert

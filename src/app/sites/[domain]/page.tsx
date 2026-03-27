@@ -93,8 +93,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Determine cover photo
   const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || 'https://images.unsplash.com/photo-1519741497674-611481863552';
 
-  // Derive a unique visual skin from the couple's vibe
-  const vibeSkin = deriveVibeSkin(manifest.vibeString || '');
+  // Use cached AI skin if available, fall back to deterministic
+  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
 
   // Background colors for wave transitions
   const bgColor = manifest.theme?.colors?.background || '#faf9f6';
@@ -120,44 +120,44 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         {/* Wave divider: Hero → Story vibe quote */}
         <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
 
-        {/* ── Editorial Pull-Quote bridge between hero and timeline ── */}
-        {manifest.vibeString && (
-          <div style={{
-            position: 'relative',
-            zIndex: 10,
-            padding: '7rem 2rem 5rem',
-            textAlign: 'center',
-            maxWidth: '900px',
-            margin: '0 auto',
-          }}>
-            {/* Top ornamental line */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem', opacity: 0.3 }}>
-              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
-              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)' }} />
-              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
-            </div>
-
-            <p style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontSize: 'clamp(1.4rem, 3vw, 2.2rem)',
-              fontWeight: 400,
-              fontStyle: 'italic',
-              lineHeight: 1.65,
-              color: 'var(--eg-fg)',
-              opacity: 0.75,
-              letterSpacing: '-0.01em',
-            }}>
-              &ldquo;{manifest.vibeString}&rdquo;
-            </p>
-
-            {/* Bottom ornament */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem', opacity: 0.3 }}>
-              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
-              <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)' }} />
-              <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-fg)' }} />
-            </div>
+        {/* ── AI-designed pull-quote with vibe-skin decoration ── */}
+        <div style={{
+          position: 'relative', zIndex: 10,
+          padding: '7rem 2rem 5rem', textAlign: 'center',
+          maxWidth: '900px', margin: '0 auto',
+        }}>
+          {/* Decorative row using AI-chosen symbols */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
+            <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>
+              {vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}
+            </span>
+            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+            <span style={{ fontSize: '1.75rem', color: 'var(--eg-accent)', opacity: 0.7 }}>
+              {vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}
+            </span>
+            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+            <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>
+              {vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}
+            </span>
           </div>
-        )}
+
+          <p style={{
+            fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)',
+            fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65,
+            color: 'var(--eg-fg)', opacity: 0.75, letterSpacing: '-0.01em',
+          }}>
+            &ldquo;{vibeSkin.aiGenerated ? vibeSkin.dividerQuote : manifest.vibeString}&rdquo;
+          </p>
+
+          {/* Bottom ornament */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem' }}>
+            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+            <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.5 }}>
+              {vibeSkin.decorIcons[3] || '•'}
+            </span>
+            <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+          </div>
+        </div>
 
         <Timeline chapters={manifest.chapters || []} />
 
@@ -166,9 +166,9 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
         )}
 
-        {/* Multi-event cards: ceremony, reception, rehearsal dinner */}
+        {/* Multi-event cards — title from AI-designed skin */}
         {manifest.events && manifest.events.length > 0 && (
-          <WeddingEvents events={manifest.events} />
+          <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
         )}
 
         {/* Wave divider: Events → RSVP */}
@@ -190,12 +190,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
         )}
 
-        {/* Multi-registry showcase */}
+        {/* Multi-registry showcase — title from AI skin */}
         {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
           <RegistryShowcase
             registries={manifest.registry?.entries || []}
             cashFundUrl={manifest.registry?.cashFundUrl}
             cashFundMessage={manifest.registry?.cashFundMessage}
+            title={vibeSkin.sectionLabels.registry}
           />
         )}
 

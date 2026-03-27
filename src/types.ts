@@ -2,6 +2,8 @@
 // everglow / types.ts — canonical type system
 // ─────────────────────────────────────────────────────────────
 
+import type { VibeSkin } from '@/lib/vibe-engine';
+
 /**
  * Story Manifest
  * The structured output returned by the Gemini "Memory Engine."
@@ -28,6 +30,8 @@ export interface StoryManifest {
     // Multi-registry support
     entries?: Array<{ name: string; url: string; note?: string }>;
   };
+  // AI-generated visual skin — cached on publish so it's not re-generated on every load
+  vibeSkin?: VibeSkin;
   // Multiple wedding events (ceremony, reception, rehearsal dinner, etc.)
   events?: WeddingEvent[];
   // FAQs from the couple
