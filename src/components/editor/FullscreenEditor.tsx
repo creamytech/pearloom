@@ -15,10 +15,11 @@ import {
   Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
 } from 'lucide-react';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent } from '@/types';
+import { AIBlocksPanel } from './AIBlocksPanel';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-type EditorTab = 'story' | 'events' | 'design' | 'details';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'blocks';
 
 const DEVICE_DIMS: Record<DeviceMode, { width: string; label: string; icon: React.ElementType }> = {
   desktop: { width: '100%',    label: 'Desktop', icon: Monitor },
@@ -768,7 +769,7 @@ Return JSON with: title, subtitle, description, mood`,
   }, [chapters, manifest, updateChapter]);
 
   const TAB_ICONS: Record<EditorTab, React.ElementType> = {
-    story: AlignLeft, events: Calendar, design: Palette, details: Settings,
+    story: AlignLeft, events: Calendar, design: Palette, details: Settings, blocks: Sparkles,
   };
 
   return (
@@ -883,8 +884,9 @@ Return JSON with: title, subtitle, description, mood`,
             display: 'flex', padding: '8px 8px 0',
             borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
           }}>
-            {(['story', 'events', 'design', 'details'] as EditorTab[]).map(tab => {
+            {(['story', 'events', 'design', 'details', 'blocks'] as EditorTab[]).map(tab => {
               const Icon = TAB_ICONS[tab];
+              const isBlocks = tab === 'blocks';
               return (
                 <button
                   key={tab}
@@ -893,7 +895,9 @@ Return JSON with: title, subtitle, description, mood`,
                     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
                     gap: '3px', padding: '6px 4px 8px', borderRadius: '6px 6px 0 0',
                     border: 'none', cursor: 'pointer',
-                    background: activeTab === tab ? 'rgba(255,255,255,0.05)' : 'transparent',
+                    background: activeTab === tab
+                      ? (isBlocks ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.05)')
+                      : 'transparent',
                     borderBottom: activeTab === tab ? '2px solid #b8926a' : '2px solid transparent',
                     color: activeTab === tab ? '#b8926a' : 'rgba(255,255,255,0.3)',
                     transition: 'all 0.15s',
@@ -956,6 +960,14 @@ Return JSON with: title, subtitle, description, mood`,
 
             {activeTab === 'details' && (
               <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
+            )}
+
+            {activeTab === 'blocks' && (
+              <AIBlocksPanel
+                manifest={manifest}
+                coupleNames={coupleNames}
+                onChange={(m) => { onChange(m); pushToPreview(m); }}
+              />
             )}
           </div>
         </div>

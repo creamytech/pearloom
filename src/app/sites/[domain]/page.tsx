@@ -13,6 +13,8 @@ import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
 import type { Chapter } from '@/types';
+import { deriveVibeSkin } from '@/lib/vibe-engine';
+import { WaveDivider, VibeSectionHeader } from '@/components/vibe/WaveDivider';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,6 +93,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Determine cover photo
   const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || 'https://images.unsplash.com/photo-1519741497674-611481863552';
 
+  // Derive a unique visual skin from the couple's vibe
+  const vibeSkin = deriveVibeSkin(manifest.vibeString || '');
+
+  // Background colors for wave transitions
+  const bgColor = manifest.theme?.colors?.background || '#faf9f6';
+  const cardBg = manifest.theme?.colors?.cardBg || '#ffffff';
+  const accentLight = manifest.theme?.colors?.accentLight || '#f3e8d8';
+
   return (
     <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
       <SiteNav 
@@ -98,13 +108,17 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         pages={[]}
       />
       
-      <main style={{ minHeight: '100vh', paddingBottom: '5rem' }}>
+      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
         <Hero
           names={safeNames}
           subtitle={siteConfig.tagline || 'A love story beautifully told.'}
           coverPhoto={coverPhoto}
           weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
+          vibeSkin={vibeSkin}
         />
+
+        {/* Wave divider: Hero → Story vibe quote */}
+        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
 
         {/* ── Editorial Pull-Quote bridge between hero and timeline ── */}
         {manifest.vibeString && (
@@ -147,9 +161,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
         <Timeline chapters={manifest.chapters || []} />
 
+        {/* Wave divider: Timeline → Events */}
+        {manifest.events && manifest.events.length > 0 && (
+          <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
+        )}
+
         {/* Multi-event cards: ceremony, reception, rehearsal dinner */}
         {manifest.events && manifest.events.length > 0 && (
           <WeddingEvents events={manifest.events} />
+        )}
+
+        {/* Wave divider: Events → RSVP */}
+        {manifest.events && manifest.events.length > 0 && (
+          <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
         )}
 
         {/* Public RSVP Section — wired to guests table */}
@@ -161,6 +185,11 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           />
         )}
 
+        {/* Wave divider: RSVP → Registry */}
+        {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
+          <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
+        )}
+
         {/* Multi-registry showcase */}
         {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
           <RegistryShowcase
@@ -170,8 +199,18 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           />
         )}
 
+        {/* Wave divider: Registry → Travel */}
+        {manifest.travelInfo && (
+          <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={cardBg} height={70} inverted />
+        )}
+
         {/* Travel & Hotels */}
         {manifest.travelInfo && <TravelSection info={manifest.travelInfo} />}
+
+        {/* Wave divider: Travel → FAQ */}
+        {manifest.faqs && manifest.faqs.length > 0 && (
+          <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} />
+        )}
 
         {/* FAQ accordion */}
         {manifest.faqs && manifest.faqs.length > 0 && (

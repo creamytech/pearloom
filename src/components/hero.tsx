@@ -9,6 +9,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useRef } from 'react';
 import { CountdownWidget } from '@/components/countdown-widget';
+import { VibeParticles } from '@/components/vibe/VibeParticles';
+import type { VibeSkin } from '@/lib/vibe-engine';
 
 interface HeroProps {
   names: [string, string];
@@ -16,7 +18,8 @@ interface HeroProps {
   subtitle?: string;
   date?: string;
   coverPhoto?: string;
-  weddingDate?: string; // ISO date for countdown
+  weddingDate?: string;
+  vibeSkin?: VibeSkin;
 }
 
 // Animated film grain overlay via SVG turbulence
@@ -34,7 +37,7 @@ function FilmGrain() {
   );
 }
 
-export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, weddingDate }: HeroProps) {
+export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, weddingDate, vibeSkin }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
 
@@ -110,6 +113,8 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1.2px, transparent 0)',
             backgroundSize: '32px 32px',
           }} />
+          {/* Vibe ambient particles over the no-photo gradient */}
+          {vibeSkin && <VibeParticles particle={vibeSkin.particle} />}
         </>
       )}
 
