@@ -77,7 +77,8 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
           padding: '0 2rem',
           position: 'relative',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          height: '2.75rem',
+          height: '3.5rem',
+          overflow: 'visible',
         }}>
 
           {/* ── Left: Nav links or Studio actions ── */}
@@ -175,7 +176,14 @@ export function SiteNav({ names, pages, user, onGoToDashboard, onStartNew }: Sit
             onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(-50%) scale(1)'; }}
           >
             {isStudio ? (
-              <Image src="/logo.png" alt="Pearloom" width={108} height={30} style={{ objectFit: 'contain' }} priority />
+              <Image
+                src="/logo.png"
+                alt="Pearloom"
+                width={130}
+                height={40}
+                style={{ objectFit: 'contain', width: 'auto', height: '34px', maxWidth: '140px' }}
+                priority
+              />
             ) : (
               <span style={{
                 fontFamily: 'var(--eg-font-heading)',
