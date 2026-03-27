@@ -23,15 +23,14 @@ export async function generateMetadata(
   const siteConfig = await getSiteConfig(domain);
   if (!siteConfig) return {};
 
-  const title = siteConfig.names
-    ? siteConfig.names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ')
-    : 'Our Wedding';
+  const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
+  const title = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
   const tagline = siteConfig.tagline || 'A love story beautifully told.';
   const accent = siteConfig.manifest?.theme?.colors?.accent || '#b8926a';
   const bg = siteConfig.manifest?.theme?.colors?.background || '#1a1a1a';
   const coverPhoto = siteConfig.manifest?.chapters?.[0]?.images?.[0]?.url || '';
   const weddingDate = siteConfig.manifest?.logistics?.date || '';
-  const [n1, n2] = siteConfig.names || ['Together', 'Forever'];
+  const [n1, n2] = names;
 
   const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
 
@@ -70,9 +69,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const manifest = siteConfig.manifest;
   
   // Format the name elegantly "Shauna & Ben"
-  const title = siteConfig.names 
-    ? siteConfig.names.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ')
-    : 'Our Story';
+  const safeNames: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
+    ? [siteConfig.names[0], siteConfig.names[1]]
+    : ['Our', 'Story'];
+  const title = safeNames.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
 
   const defaultTheme = {
     name: 'pearloom-ivory',
@@ -94,13 +94,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   return (
     <ThemeProvider theme={manifest.theme || siteConfig.theme || defaultTheme}>
       <SiteNav 
-        names={siteConfig.names as [string, string] || ['Our', 'Story']} 
-        pages={[]} 
+        names={safeNames}
+        pages={[]}
       />
       
       <main style={{ minHeight: '100vh', paddingBottom: '5rem' }}>
         <Hero
-          names={siteConfig.names as [string, string] || ['Our', 'Story']}
+          names={safeNames}
           subtitle={siteConfig.tagline || 'A love story beautifully told.'}
           coverPhoto={coverPhoto}
           weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
