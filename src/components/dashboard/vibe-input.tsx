@@ -76,11 +76,13 @@ const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
 
 const btnPrimaryStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '0.5rem',
-  padding: '1rem 2rem', borderRadius: '0.75rem',
-  background: 'var(--eg-fg)', color: '#fff', border: 'none',
-  fontSize: '1rem', fontWeight: 500, fontFamily: 'var(--eg-font-body)',
-  cursor: 'pointer', transition: 'all 0.2s ease',
-  boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+  padding: '1rem 2.25rem', borderRadius: '100px',
+  background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+  color: '#fff', border: 'none',
+  fontSize: '0.95rem', fontWeight: 600, fontFamily: 'var(--eg-font-body)',
+  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
+  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+  letterSpacing: '0.01em',
 };
 
 export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
@@ -183,16 +185,36 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   });
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem' }}>
-      {/* Progress Bar */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '3rem' }}>
-        {Array.from({ length: totalSteps }).map((_, i) => (
-          <div key={i} style={{
-            flex: 1, height: '4px', borderRadius: '2px',
-            background: i + 1 <= step ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)',
-            transition: 'background 0.4s ease',
-          }} />
-        ))}
+    <div style={{
+      maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem',
+    }}>
+      {/* Pear progress dots */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '3rem', alignItems: 'center', justifyContent: 'center' }}>
+        {Array.from({ length: totalSteps }).map((_, i) => {
+          const done = i + 1 < step;
+          const active = i + 1 === step;
+          return (
+            <div
+              key={i}
+              style={{
+                width: active ? '32px' : '8px',
+                height: active ? '41px' : '10px',
+                borderRadius: active
+                  ? '42% 42% 52% 52% / 30% 30% 52% 52%'
+                  : done
+                  ? '42% 42% 52% 52% / 30% 30% 52% 52%'
+                  : '50%',
+                background: active
+                  ? 'var(--eg-accent)'
+                  : done
+                  ? 'rgba(184,146,106,0.45)'
+                  : 'rgba(0,0,0,0.08)',
+                transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
+                boxShadow: active ? '0 4px 12px rgba(184,146,106,0.35)' : 'none',
+              }}
+            />
+          );
+        })}
       </div>
 
       <AnimatePresence mode="wait" custom={1}>
@@ -394,7 +416,16 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         {step === 7 && (
           <motion.div key="s7" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: 'var(--eg-accent-light)', border: '2px solid rgba(184,146,106,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              {/* Pear-shaped icon instead of circle */}
+              <div style={{
+                width: '5rem', height: '6.4rem',
+                borderRadius: '42% 42% 52% 52% / 30% 30% 52% 52%',
+                background: 'linear-gradient(160deg, rgba(184,146,106,0.15), rgba(184,146,106,0.08))',
+                border: '1.5px solid rgba(184,146,106,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 1.5rem',
+                boxShadow: '0 8px 24px rgba(184,146,106,0.15)',
+              }}>
                 <Sparkles size={28} color="var(--eg-accent)" />
               </div>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.75rem' }}>Final Magic Touches</h2>
@@ -418,7 +449,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'var(--eg-accent)', color: '#fff' }}>Generate Site <Sparkles size={18} /></button>
+              <button onClick={handleSubmit} style={{
+                ...btnPrimaryStyle,
+                background: 'linear-gradient(135deg, #b8926a, #8b6b4a)',
+                boxShadow: '0 12px 36px rgba(184,146,106,0.4)',
+              }}>Generate My Site <Sparkles size={18} /></button>
             </div>
           </motion.div>
         )}
@@ -452,7 +487,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'var(--eg-accent)', color: '#fff' }}>Generate Site <Sparkles size={18} /></button>
+              <button onClick={handleSubmit} style={{
+                ...btnPrimaryStyle,
+                background: 'linear-gradient(135deg, #b8926a, #8b6b4a)',
+                boxShadow: '0 12px 36px rgba(184,146,106,0.4)',
+              }}>Generate My Site <Sparkles size={18} /></button>
             </div>
           </motion.div>
         )}

@@ -187,10 +187,14 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
       {/* ── Header + Tabs ── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '1.25rem 1.5rem', background: '#fff', borderRadius: '1rem',
-        border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-      }}>
-        <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0,0,0,0.04)', borderRadius: '0.6rem', padding: '0.25rem' }}>
+        padding: '1rem 1.5rem', background: '#fff', borderRadius: '1.25rem',
+        border: '1px solid rgba(0,0,0,0.04)',
+        boxShadow: '0 8px 30px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02)',
+        gap: '1rem', flexWrap: 'wrap',
+      }}
+>
+        {/* Tab group */}
+        <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0,0,0,0.04)', borderRadius: '0.75rem', padding: '0.3rem' }}>
           {/* Builder gets accent highlight — it's the premium DnD mode */}
           <button
             onClick={() => setActiveTab('builder')}
@@ -208,17 +212,27 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Auto-save indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: '#22c55e', fontWeight: 600, letterSpacing: '0.05em' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} />
+            Auto-saved
+          </div>
           {onPreview && (
             <button
               onClick={onPreview}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.6rem 1.25rem', borderRadius: '0.6rem',
+                padding: '0.6rem 1.25rem', borderRadius: '100px',
                 border: '1.5px solid rgba(0,0,0,0.12)', background: 'transparent',
-                color: 'var(--eg-fg)', fontSize: '0.8rem', fontWeight: 700,
-                cursor: 'pointer', letterSpacing: '0.05em',
+                color: 'var(--eg-fg)', fontSize: '0.78rem', fontWeight: 700,
+                cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
+                transition: 'all 0.2s ease',
               }}
+              onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.color = 'var(--eg-accent)'; }}
+              onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)'; e.currentTarget.style.color = 'var(--eg-fg)'; }}
             >
               <Eye size={14} />
               Preview
@@ -229,14 +243,19 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               onClick={onSave}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.6rem 1.25rem', borderRadius: '0.6rem',
-                background: 'var(--eg-accent)', color: '#fff',
-                border: 'none', fontSize: '0.8rem', fontWeight: 700,
-                cursor: 'pointer', letterSpacing: '0.05em',
+                padding: '0.65rem 1.5rem', borderRadius: '100px',
+                background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)',
+                color: '#fff', border: 'none',
+                fontSize: '0.78rem', fontWeight: 700,
+                cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
+                transition: 'all 0.2s ease',
               }}
+              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.25)'; }}
+              onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)'; }}
             >
               <Check size={14} />
-              Save Draft
+              Publish
             </button>
           )}
         </div>
