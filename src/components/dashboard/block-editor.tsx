@@ -147,8 +147,7 @@ function BlockCard({
           background: colorBg, display: 'flex', alignItems: 'center',
           justifyContent: 'center', flexShrink: 0,
         }}>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {(IconComp as any)({ size: 16, color: 'var(--eg-accent)' })}
+          <IconComp size={16} color="var(--eg-accent)" />
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
