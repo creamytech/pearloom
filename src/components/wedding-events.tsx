@@ -6,7 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, ExternalLink, Shirt } from 'lucide-react';
+import { Clock, ExternalLink, Shirt } from 'lucide-react';
+import { CalendarHeartIcon, LocationPinIcon } from '@/components/icons/PearloomIcons';
 import type { WeddingEvent } from '@/types';
 
 const EVENT_ICONS: Record<string, string> = {
@@ -103,7 +104,7 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem' }}>
-          <MapPin size={14} color="var(--eg-accent)" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+          <LocationPinIcon size={14} color="var(--eg-accent)" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
           <div>
             <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.1rem' }}>{event.venue}</div>
             {event.address && <div style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', lineHeight: 1.5 }}>{event.address}</div>}
@@ -154,7 +155,7 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
                 textDecoration: 'none', letterSpacing: '0.06em',
               }}
             >
-              <MapPin size={11} /> Directions <ExternalLink size={10} />
+              <LocationPinIcon size={11} /> Directions <ExternalLink size={10} />
             </a>
             <a
               href={`https://maps.apple.com/?q=${encodeURIComponent(event.address)}`}
@@ -187,7 +188,7 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
               textDecoration: 'none', letterSpacing: '0.05em',
             }}
           >
-            <MapPin size={14} /> Get Directions <ExternalLink size={11} />
+            <LocationPinIcon size={14} /> Get Directions <ExternalLink size={11} />
           </a>
         </div>
       )}
@@ -219,7 +220,7 @@ export function WeddingEvents({ events, title = 'Our Celebration' }: WeddingEven
           {/* Eyebrow with flanking ornament */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', marginBottom: '2.5rem' }}>
             <div style={{ width: '50px', height: '1px', background: 'var(--eg-accent)', opacity: 0.25 }} />
-            <Calendar size={16} color="var(--eg-accent)" strokeWidth={1.5} style={{ opacity: 0.7 }} />
+            <CalendarHeartIcon size={16} color="var(--eg-accent)" style={{ opacity: 0.7 }} />
             <div style={{ width: '50px', height: '1px', background: 'var(--eg-accent)', opacity: 0.25 }} />
           </div>
           <h2 style={{

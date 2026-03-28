@@ -7,7 +7,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
-import { ExternalLink, Gift, Heart } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { GiftIcon, ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 
 interface RegistryEntry {
   name: string;
@@ -141,7 +142,7 @@ export function RegistryShowcase({ registries, cashFundUrl, cashFundMessage, tit
           {/* Eyebrow */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', marginBottom: '2.5rem' }}>
             <div style={{ width: '50px', height: '1px', background: 'var(--eg-accent)', opacity: 0.25 }} />
-            <Gift size={16} color="var(--eg-accent)" strokeWidth={1.5} style={{ opacity: 0.7 }} />
+            <GiftIcon size={16} color="var(--eg-accent)" style={{ opacity: 0.7 }} />
             <div style={{ width: '50px', height: '1px', background: 'var(--eg-accent)', opacity: 0.25 }} />
           </div>
           <h2 style={{
@@ -201,7 +202,7 @@ export function RegistryShowcase({ registries, cashFundUrl, cashFundMessage, tit
               backgroundSize: '20px 20px', opacity: 0.3,
             }} />
             <div style={{ position: 'relative', zIndex: 1 }}>
-              <Heart size={24} color="var(--eg-accent)" style={{ marginBottom: '1.5rem', opacity: 0.7 }} strokeWidth={1.5} />
+              <ElegantHeartIcon size={24} color="var(--eg-accent)" style={{ marginBottom: '1.5rem', opacity: 0.7 }} />
               <p style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(1.2rem, 2.5vw, 1.5rem)', color: 'var(--eg-fg)',
@@ -227,7 +228,7 @@ export function RegistryShowcase({ registries, cashFundUrl, cashFundMessage, tit
                 onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 40px color-mix(in srgb, var(--eg-accent) 45%, transparent)'; }}
                 onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 30px color-mix(in srgb, var(--eg-accent) 35%, transparent)'; }}
               >
-                <Heart size={14} />
+                <ElegantHeartIcon size={14} />
                 Contribute a Gift
               </a>
             </div>
