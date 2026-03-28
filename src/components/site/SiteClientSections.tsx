@@ -43,7 +43,7 @@ export function SiteGallerySection({ siteId, coupleNames }: SiteGalleryProps) {
       <RsvpLiveCounter siteId={siteId} coupleNames={coupleNames} />
       <section style={{ padding: '6rem 2rem', background: 'var(--eg-bg)' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <PhotoGallery />
+          <PhotoGallery siteId={siteId} />
         </div>
       </section>
       <Guestbook siteId={siteId} coupleNames={coupleNames} vibeSkin={minimalVibeSkin} />

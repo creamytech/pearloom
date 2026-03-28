@@ -10,7 +10,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Camera, Loader2, ImagePlus } from 'lucide-react';
 import type { GalleryPhoto } from '@/types';
 
-export function PhotoGallery() {
+interface PhotoGalleryProps {
+  siteId: string;
+}
+
+export function PhotoGallery({ siteId }: PhotoGalleryProps) {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -20,7 +24,7 @@ export function PhotoGallery() {
 
   const fetchPhotos = useCallback(async () => {
     try {
-      const res = await fetch('/api/gallery');
+      const res = await fetch(`/api/gallery?siteId=${encodeURIComponent(siteId)}`);
       const data = await res.json();
       setPhotos(data.photos || []);
     } catch {
@@ -28,7 +32,7 @@ export function PhotoGallery() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [siteId]);
 
   useEffect(() => {
     fetchPhotos();
@@ -40,6 +44,7 @@ export function PhotoGallery() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('uploadedBy', uploadName || 'Guest');
+      formData.append('siteId', siteId);
       const res = await fetch('/api/gallery', { method: 'POST', body: formData });
       return res.json();
     });

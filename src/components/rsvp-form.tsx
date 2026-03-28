@@ -115,6 +115,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
   const [mealPreference, setMealPreference] = useState('');
   const [dietaryRestrictions, setDietaryRestrictions] = useState('');
   const [songRequest, setSongRequest] = useState('');
+  const [mailingAddress, setMailingAddress] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -140,6 +141,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           dietaryRestrictions: status === 'attending' ? dietaryRestrictions : null,
           songRequest: status === 'attending' ? songRequest : null,
           message,
+          mailingAddress: mailingAddress || null,
         }),
       });
 
@@ -298,6 +300,22 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             }}
           />
         </div>
+      </div>
+
+      {/* ── Mailing Address ── */}
+      <div style={sectionGap}>
+        <label style={labelStyle}>Mailing Address (optional)</label>
+        <textarea
+          value={mailingAddress}
+          onChange={(e) => setMailingAddress(e.target.value)}
+          placeholder="123 Main St, City, State ZIP"
+          rows={2}
+          style={{
+            ...inputStyle,
+            resize: 'none',
+            lineHeight: 1.6,
+          }}
+        />
       </div>
 
       {/* ── Events ── */}
