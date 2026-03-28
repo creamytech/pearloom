@@ -179,17 +179,18 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
 
   // Build real nav pages from manifest content
+  const hidden = new Set(manifest.hiddenPages || []);
   const sitePages = [
     { id: 'story',    slug: 'our-story', label: 'Our Story', enabled: true,  order: 0 },
-    manifest.events?.length
+    (!hidden.has('schedule') && manifest.events?.length)
       ? { id: 'schedule', slug: 'schedule', label: 'Schedule',   enabled: true,  order: 1 } : null,
-    manifest.events?.length
+    (!hidden.has('rsvp') && manifest.events?.length)
       ? { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',       enabled: true,  order: 2 } : null,
-    (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)
+    (!hidden.has('registry') && (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl))
       ? { id: 'registry', slug: 'registry', label: 'Registry',   enabled: true,  order: 3 } : null,
-    manifest.travelInfo
+    (!hidden.has('travel') && manifest.travelInfo)
       ? { id: 'travel',   slug: 'travel',   label: 'Travel',     enabled: true,  order: 4 } : null,
-    manifest.faqs?.length
+    (!hidden.has('faq') && manifest.faqs?.length)
       ? { id: 'faq',      slug: 'faq',      label: 'FAQ',        enabled: true,  order: 5 } : null,
   ].filter(Boolean) as import('@/types').SitePage[];
 

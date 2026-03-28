@@ -18,6 +18,7 @@ import {
   Globe, Monitor, Tablet, Smartphone,
   Image, Calendar, Upload, X, Camera,
   Heart, MapPin, Clock, ChevronDown, Columns2,
+  Eye, EyeOff,
 } from 'lucide-react';
 import { PreviewPane } from './PreviewPane';
 import { PhotoReposition } from './PhotoReposition';
@@ -1124,6 +1125,13 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
   const occasion = (manifest.occasion || 'wedding') as OccasionType;
   const filteredPresets = ALL_SITE_PAGES.filter(p => p.occasions.includes(occasion));
 
+  const togglePageVisibility = (pageId: string) => {
+    const hidden = manifest.hiddenPages || [];
+    const isHidden = hidden.includes(pageId);
+    const next = isHidden ? hidden.filter(id => id !== pageId) : [...hidden, pageId];
+    onChange({ ...manifest, hiddenPages: next });
+  };
+
   const enabled = new Set<string>(
     manifest.blocks?.flatMap(b =>
       b.type === 'event' ? ['schedule', 'rsvp'] : [b.type]
@@ -1223,24 +1231,37 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
           (page.slug === 'rsvp' && !!(manifest.events?.length)) ||
           (page.slug === 'venue' && !!(manifest.logistics?.venue));
         const url = page.slug === '' ? baseUrl : `${baseUrl}/${page.slug}`;
+        const isHidden = !page.alwaysOn && (manifest.hiddenPages || []).includes(page.id);
 
         return (
           <div key={page.id} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             padding: '8px 10px 8px 12px', borderRadius: '10px',
-            background: isActive ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${isActive ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            background: isActive && !isHidden ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${isActive && !isHidden ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            opacity: isHidden ? 0.4 : 1,
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive && !isHidden ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
               {subdomain && <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
             </div>
             <span style={{
               fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: isActive ? '#4ade80' : 'rgba(255,255,255,0.2)',
-              background: isActive ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.05)',
+              color: isActive && !isHidden ? '#4ade80' : 'rgba(255,255,255,0.2)',
+              background: isActive && !isHidden ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.05)',
               padding: '2px 6px', borderRadius: '100px',
-            }}>{isActive ? 'Live' : 'Inactive'}</span>
+            }}>{isActive && !isHidden ? 'Live' : 'Inactive'}</span>
+            {!page.alwaysOn && (
+              <button
+                onClick={() => togglePageVisibility(page.id)}
+                title={isHidden ? 'Show page' : 'Hide page'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: isHidden ? '#f87171' : 'rgba(255,255,255,0.3)', display: 'flex', padding: '2px', flexShrink: 0 }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#fca5a5' : 'rgba(255,255,255,0.7)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#f87171' : 'rgba(255,255,255,0.3)'; }}
+              >
+                {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
+            )}
           </div>
         );
       })}
@@ -2079,9 +2100,10 @@ Return JSON with: title, subtitle, description, mood`,
                         vibeSkin={manifest.vibeSkin}
                         vibeString={manifest.vibeString}
                         sectionOverrides={sectionOverridesMap[activeChapter.id]}
-                        onOverridesChange={(id, overrides) =>
-                          setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))
-                        }
+                        onOverridesChange={(id, overrides) => {
+                          setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }));
+                          updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });
+                        }}
                       />
                     </motion.div>
                   )}
@@ -2413,9 +2435,10 @@ Return JSON with: title, subtitle, description, mood`,
                           vibeSkin={manifest.vibeSkin}
                           vibeString={manifest.vibeString}
                           sectionOverrides={sectionOverridesMap[activeChapter.id]}
-                          onOverridesChange={(id, overrides) =>
-                            setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))
-                          }
+                          onOverridesChange={(id, overrides) => {
+                            setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }));
+                            updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });
+                          }}
                         />
                       </motion.div>
                     )}

@@ -83,6 +83,8 @@ export interface StoryManifest {
   subdomain?: string;
   // ISO 8601 timestamp of when the site was first published
   publishedAt?: string;
+  // Page ids to hide from nav: 'schedule' | 'rsvp' | 'registry' | 'travel' | 'faq' | 'venue'
+  hiddenPages?: string[];
 }
 
 export interface Chapter {
@@ -111,6 +113,11 @@ export interface Chapter {
   /** Completion tracking */
   hasCustomTitle?: boolean;
   hasCustomDescription?: boolean;
+  styleOverrides?: {
+    backgroundColor?: string;
+    textColor?: string;
+    padding?: 'compact' | 'normal' | 'spacious';
+  };
 }
 
 export interface ChapterImage {
