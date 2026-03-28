@@ -12,8 +12,10 @@ import {
   Plus, Trash2, Sparkles, Loader2,
   Globe, Monitor, Tablet, Smartphone,
   Image, Calendar, Upload, X, Camera,
-  Heart, MapPin, Clock, ChevronDown,
+  Heart, MapPin, Clock, ChevronDown, Columns2,
 } from 'lucide-react';
+import { PreviewPane } from './PreviewPane';
+import { PhotoReposition } from './PhotoReposition';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon, DetailsIcon,
   AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
@@ -210,10 +212,12 @@ function SectionItem({
 
 // ── ImageManager ───────────────────────────────────────────────
 function ImageManager({
-  images, onUpdate,
+  images, onUpdate, imagePosition, onPositionChange,
 }: {
   images: ChapterImage[];
   onUpdate: (imgs: ChapterImage[]) => void;
+  imagePosition?: { x: number; y: number };
+  onPositionChange?: (x: number, y: number) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -296,8 +300,21 @@ function ImageManager({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {images.map((img, i) => (
             <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.url} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              {/* Cover image uses PhotoReposition */}
+              {i === 0 && onPositionChange ? (
+                <PhotoReposition
+                  src={img.url}
+                  alt={img.alt}
+                  onPositionChange={onPositionChange}
+                  initialX={imagePosition?.x ?? 50}
+                  initialY={imagePosition?.y ?? 50}
+                  width="100%"
+                  height="100%"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={img.url} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              )}
               {/* Remove button */}
               <button
                 onClick={() => removeImage(i)}
@@ -308,6 +325,7 @@ function ImageManager({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#fff', backdropFilter: 'blur(4px)',
                   transition: 'background 0.15s',
+                  zIndex: 2,
                 }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#ef4444'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.7)'; }}
@@ -321,6 +339,7 @@ function ImageManager({
                   background: 'rgba(184,146,106,0.9)', color: '#fff',
                   fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em',
                   textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
+                  zIndex: 2,
                 }}>Cover</div>
               )}
             </div>
@@ -474,6 +493,8 @@ function ChapterPanel({
         <ImageManager
           images={chapter.images || []}
           onUpdate={imgs => upd({ images: imgs })}
+          imagePosition={chapter.imagePosition}
+          onPositionChange={(x, y) => upd({ imagePosition: { x, y } })}
         />
       </div>
     </motion.div>
@@ -1212,6 +1233,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [rewritingId, setRewritingId] = useState<string | null>(null);
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
+  const [splitView, setSplitView] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // ── Unsaved changes indicator ──
@@ -1223,17 +1246,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
-  // ── Command Palette keyboard shortcut ──
+  // ── Show "Click to jump" hint when split view first opens ──
+  const hintShownRef = useRef(false);
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setCmdPaletteOpen(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
+    if (splitView && !hintShownRef.current) {
+      hintShownRef.current = true;
+      setShowHint(true);
+      const t = setTimeout(() => setShowHint(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [splitView]);
 
   const pushHistory = useCallback((m: StoryManifest) => {
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
@@ -1265,6 +1287,32 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onChange]);
+
+  // ── Command Palette + Undo/Redo keyboard shortcuts ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.key === 'k') {
+        e.preventDefault();
+        setCmdPaletteOpen(prev => !prev);
+      }
+      if (mod && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if (mod && e.key === 'z' && e.shiftKey) {
+        e.preventDefault();
+        redo();
+      }
+      // Cmd+Y as alt redo shortcut (Windows convention)
+      if (mod && e.key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
 
   // Publish modal state
   const [showPublish, setShowPublish] = useState(false);
@@ -1545,6 +1593,23 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* Preview + Publish — desktop only */}
         <div style={{ display: isMobile ? 'none' : 'flex', gap: '6px', flexShrink: 0 }}>
+          {/* Split view toggle */}
+          <button
+            onClick={() => setSplitView(v => !v)}
+            title="Toggle split-pane preview"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '6px 10px', borderRadius: '6px',
+              border: `1px solid ${splitView ? 'rgba(184,146,106,0.5)' : 'rgba(255,255,255,0.12)'}`,
+              background: splitView ? 'rgba(184,146,106,0.15)' : 'transparent',
+              color: splitView ? '#b8926a' : 'rgba(255,255,255,0.6)',
+              cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
+            }}
+            onMouseOver={e => { if (!splitView) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
+            onMouseOut={e => { if (!splitView) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+          >
+            <Columns2 size={13} /> Split
+          </button>
           <button
             onClick={() => {
               sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
@@ -1586,7 +1651,8 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* ── LEFT SIDEBAR — Section Nav ── */}
         <div style={{
-          width: isMobile ? '100%' : '420px', flexShrink: 0,
+          width: isMobile ? '100%' : (splitView ? '50%' : '420px'), flexShrink: 0,
+          transition: 'width 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
           borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)',
           background: '#110f0d',
           display: 'flex', flexDirection: 'column',
@@ -1748,31 +1814,52 @@ Return JSON with: title, subtitle, description, mood`,
         </div>
 
         {/* ── CENTER — Live Preview Canvas (hidden on mobile) ── */}
-        <div style={{
-          flex: 1, background: '#1a1916',
-          display: isMobile ? 'none' : 'flex', flexDirection: 'column',
-          alignItems: 'center', overflow: 'auto',
-          padding: device === 'desktop' ? '0' : '2rem 2rem 4rem',
-        }}>
+        {/* In split view: show PreviewPane directly. Otherwise show iframe. */}
+        {splitView ? (
           <div style={{
-            width: DEVICE_DIMS[device].width,
-            height: '100%',
-            flexShrink: 0,
-            display: 'flex', flexDirection: 'column',
-            boxShadow: device !== 'desktop' ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
-            borderRadius: device !== 'desktop' ? '12px' : 0,
+            flex: 1, display: isMobile ? 'none' : 'flex', flexDirection: 'column',
+            borderLeft: '1px solid rgba(255,255,255,0.06)',
+            transition: 'flex 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
             overflow: 'hidden',
-            border: device !== 'desktop' ? '1px solid rgba(255,255,255,0.08)' : 'none',
-            transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}>
-            <iframe
-              ref={iframeRef}
-              src={`/preview?key=${previewKey}`}
-              style={{ flex: 1, border: 'none', width: '100%', minHeight: '600px' }}
-              title="Live Preview"
+            <PreviewPane
+              manifest={{ ...manifest, chapters: chapters.map((ch, i) => ({ ...ch, order: i })) }}
+              coupleNames={coupleNames}
+              vibeSkin={manifest.vibeSkin}
+              scale={0.55}
+              onSectionClick={(chapterId) => {
+                setActiveId(chapterId);
+                setActiveTab('story');
+              }}
             />
           </div>
-        </div>
+        ) : (
+          <div style={{
+            flex: 1, background: '#1a1916',
+            display: isMobile ? 'none' : 'flex', flexDirection: 'column',
+            alignItems: 'center', overflow: 'auto',
+            padding: device === 'desktop' ? '0' : '2rem 2rem 4rem',
+          }}>
+            <div style={{
+              width: DEVICE_DIMS[device].width,
+              height: '100%',
+              flexShrink: 0,
+              display: 'flex', flexDirection: 'column',
+              boxShadow: device !== 'desktop' ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
+              borderRadius: device !== 'desktop' ? '12px' : 0,
+              overflow: 'hidden',
+              border: device !== 'desktop' ? '1px solid rgba(255,255,255,0.08)' : 'none',
+              transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}>
+              <iframe
+                ref={iframeRef}
+                src={`/preview?key=${previewKey}`}
+                style={{ flex: 1, border: 'none', width: '100%', minHeight: '600px' }}
+                title="Live Preview"
+              />
+            </div>
+          </div>
+        )}
 
       </div>
 
@@ -1843,6 +1930,36 @@ Return JSON with: title, subtitle, description, mood`,
           </button>
         </div>
       )}
+
+      {/* ── "Click to jump" hint toast ── */}
+      <AnimatePresence>
+        {showHint && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'fixed', bottom: '80px', left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1500, pointerEvents: 'none',
+              background: 'rgba(20,18,16,0.92)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(184,146,106,0.3)',
+              borderRadius: '100px',
+              padding: '8px 18px',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            } as React.CSSProperties}
+          >
+            <span style={{ fontSize: '14px' }}>👆</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' }}>
+              Click any section in the preview to jump to it
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
