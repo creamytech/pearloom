@@ -257,7 +257,13 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
 
   const sitePages = [
     { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
-  ].filter(Boolean) as import('@/types').SitePage[];
+  ] as import('@/types').SitePage[];
+
+  // FaqSection expects FaqItemWithCategory — add a default category if missing
+  const faqsWithCategory = (manifest.faqs || []).map((f: FaqItem) => ({
+    ...f,
+    category: (f as FaqItem & { category?: string }).category ?? 'General',
+  }));
 
   return (
     <ThemeProvider theme={dynamicTheme}>
@@ -265,8 +271,6 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
         <SiteNav
           pages={sitePages}
           names={safeNames}
-          accentColor={pal.accent}
-          headingFont={vibeSkin.fonts.heading}
         />
         <Hero
           names={safeNames}
@@ -276,20 +280,20 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
           vibeSkin={vibeSkin}
         />
         <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
-        {manifest.chapters?.length > 0 && (
+        {(manifest.chapters?.length ?? 0) > 0 && (
           <section id="our-story">
-            <Timeline chapters={manifest.chapters} />
+            <Timeline chapters={manifest.chapters ?? []} />
           </section>
         )}
-        {manifest.events?.length > 0 && (
+        {(manifest.events?.length ?? 0) > 0 && (
           <>
             <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
             <section id="schedule" style={{ background: cardBg }}>
-              <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels?.events || 'The Celebration'} />
+              <WeddingEvents events={manifest.events ?? []} title={vibeSkin.sectionLabels?.events || 'The Celebration'} />
             </section>
           </>
         )}
-        {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && (
+        {(manifest.registry?.entries?.length ?? 0) > 0 || manifest.registry?.cashFundUrl ? (
           <>
             <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={accentLight} height={60} />
             <section id="registry" style={{ background: accentLight }}>
@@ -301,20 +305,20 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
               />
             </section>
           </>
-        )}
-        {manifest.travelInfo && (
+        ) : null}
+        {manifest.travelInfo ? (
           <>
             <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={cardBg} height={60} />
             <section id="travel" style={{ background: cardBg }}>
               <TravelSection info={manifest.travelInfo} />
             </section>
           </>
-        )}
-        {manifest.faqs?.length > 0 && (
+        ) : null}
+        {faqsWithCategory.length > 0 && (
           <>
             <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={60} />
             <section id="faq">
-              <FaqSection faqs={manifest.faqs} />
+              <FaqSection faqs={faqsWithCategory} />
             </section>
           </>
         )}
