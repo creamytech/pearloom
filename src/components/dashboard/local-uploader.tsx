@@ -8,12 +8,7 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { UploadCloud, X, Loader2, ArrowRight } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
 import type { GooglePhotoMetadata } from '@/types';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface LocalUploaderProps {
   onUploadComplete: (photos: GooglePhotoMetadata[]) => void;
@@ -56,32 +51,25 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
 
     try {
       for (const file of selectedFiles) {
-        // Create unique highly chaotic filename to prevent collisions natively
-        const ext = file.name.split('.').pop() || 'jpg';
-        const uuid = Math.random().toString(36).substring(2, 15);
-        const filename = `${Date.now()}_${uuid}.${ext}`;
+        const formData = new FormData();
+        formData.append('file', file);
 
-        const { data, error } = await supabase.storage
-          .from('photos')
-          .upload(filename, file, { cacheControl: '3600', upsert: false });
-
-        if (error) {
-           console.error("Supabase Storage error:", error);
-           throw new Error(error.message);
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: 'Upload failed' }));
+          throw new Error(error || `HTTP ${res.status}`);
         }
 
-        const { data: publicData } = supabase.storage
-          .from('photos')
-          .getPublicUrl(filename);
+        const { filename, publicUrl } = await res.json();
 
         uploadedPhotos.push({
           id: filename,
           filename: file.name,
           mimeType: file.type,
           creationTime: new Date().toISOString(),
-          width: 1920, // Default MVP Fallbacks since extracting EXIF in browser is slow 
+          width: 1920,
           height: 1080,
-          baseUrl: publicData.publicUrl,
+          baseUrl: publicUrl,
         });
 
         completedCount++;
@@ -90,7 +78,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
 
       onUploadComplete(uploadedPhotos);
     } catch (err: unknown) {
-      setError(`Upload failed: ${err instanceof Error ? err.message : 'Unknown error'}. Ensure your 'photos' Supabase bucket exists and is public!`);
+      setError(`Upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsUploading(false);
     }
