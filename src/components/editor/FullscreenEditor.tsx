@@ -32,7 +32,7 @@ import { CommandPalette } from './CommandPalette';
 import type { CommandAction } from './CommandPalette';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { SectionStyleEditor } from './SectionStyleEditor';
-import { FontPicker } from '@/components/dashboard/FontPicker';
+import FontPicker from '@/components/dashboard/FontPicker';
 import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
 import type { VibeSkin } from '@/lib/vibe-engine';

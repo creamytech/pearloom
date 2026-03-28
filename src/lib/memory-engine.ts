@@ -49,7 +49,8 @@ export async function generateStoryManifest(
   apiKey: string,
   googleAccessToken?: string,
   occasion?: string,
-  eventDate?: string
+  eventDate?: string,
+  inspirationUrls?: string[]
 ): Promise<StoryManifest> {
   const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate);
 
