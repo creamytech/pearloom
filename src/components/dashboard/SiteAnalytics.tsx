@@ -2,43 +2,62 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/dashboard/SiteAnalytics.tsx
-// Premium analytics view for a published site.
+// Polished analytics dashboard widget for a couple's site.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Eye, TrendingUp, Users, CalendarHeart, Download,
-  RefreshCw, ArrowUpRight, ImageIcon, Clock,
+  Eye, Users, ImageIcon, CheckCircle2, Circle,
+  TrendingUp, Share2, Pencil, ExternalLink,
 } from 'lucide-react';
-import type { RsvpResponse } from '@/types';
+import type { StoryManifest } from '@/types';
 
-interface Stats {
-  visits: number;
-  today: number;
-  mobile: number;
-  desktop: number;
+// ── Brand palette ──────────────────────────────────────────────
+const C = {
+  ivory:    '#F5F1E8',
+  gold:     '#b8926a',
+  sage:     '#A3B18A',
+  espresso: '#3D3530',
+  muted:    '#9A8F87',
+  red:      '#C0574E',
+  white:    '#FFFFFF',
+  border:   'rgba(61,53,48,0.08)',
+  shadow:   '0 2px 14px rgba(61,53,48,0.06)',
+};
+
+// ── Shared card wrapper ────────────────────────────────────────
+function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      background: C.white,
+      borderRadius: '1rem',
+      padding: '1.25rem',
+      border: `1px solid ${C.border}`,
+      boxShadow: C.shadow,
+      ...style,
+    }}>
+      {children}
+    </div>
+  );
 }
 
-interface ActivityItem {
-  id: string;
-  type: 'rsvp' | 'photo' | 'visit';
-  label: string;
-  time: string;
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span style={{
+      display: 'block',
+      fontSize: '0.6rem',
+      fontWeight: 800,
+      letterSpacing: '0.14em',
+      textTransform: 'uppercase',
+      color: C.muted,
+      marginBottom: '1rem',
+    }}>
+      {children}
+    </span>
+  );
 }
 
-interface SiteAnalyticsProps {
-  siteId: string;
-  /** ISO date string of the wedding — for countdown */
-  weddingDate?: string;
-  /** RSVP responses from parent, if available */
-  rsvps?: RsvpResponse[];
-  /** Photo count if available */
-  photoCount?: number;
-  /** Recent activity feed items */
-  recentActivity?: ActivityItem[];
-}
-
+// ── Stat card ─────────────────────────────────────────────────
 function StatCard({
   icon: Icon,
   label,
@@ -58,328 +77,366 @@ function StatCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay }}
+      transition={{ duration: 0.4, delay }}
       style={{
-        background: '#fff',
+        background: C.white,
         borderRadius: '1rem',
-        padding: '1.25rem',
-        border: '1px solid rgba(0,0,0,0.05)',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
-        display: 'flex', flexDirection: 'column', gap: '0.5rem',
+        padding: '1.1rem',
+        border: `1px solid ${C.border}`,
+        boxShadow: C.shadow,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.45rem',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{
-          fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: 'var(--eg-muted)',
+          fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em',
+          textTransform: 'uppercase', color: C.muted,
         }}>
           {label}
         </span>
         <div style={{
-          width: '30px', height: '30px', borderRadius: '0.5rem',
-          background: `${color}14`,
+          width: '28px', height: '28px', borderRadius: '0.5rem',
+          background: `${color}18`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon size={14} color={color} />
+          <Icon size={13} color={color} />
         </div>
       </div>
       <div style={{
-        fontSize: '2rem', fontWeight: 700, color: 'var(--eg-fg)',
-        fontFamily: 'var(--eg-font-heading)', lineHeight: 1,
+        fontSize: '1.85rem', fontWeight: 700, color: C.espresso,
+        fontFamily: 'var(--eg-font-heading, serif)', lineHeight: 1,
       }}>
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: '0.7rem', color: 'var(--eg-muted)' }}>
-          {sub}
-        </div>
+        <div style={{ fontSize: '0.68rem', color: C.muted }}>{sub}</div>
       )}
     </motion.div>
   );
 }
 
-function activityIcon(type: ActivityItem['type']) {
-  if (type === 'rsvp') return <Users size={13} color="var(--eg-accent)" />;
-  if (type === 'photo') return <ImageIcon size={13} color="#6366f1" />;
-  return <Eye size={13} color="var(--eg-muted)" />;
+// ── Props ──────────────────────────────────────────────────────
+export interface SiteAnalyticsProps {
+  manifest: StoryManifest;
+  coupleNames: [string, string];
+  onEdit?: () => void;
+  onShare?: () => void;
 }
 
-export function SiteAnalytics({
-  siteId,
-  weddingDate,
-  rsvps = [],
-  photoCount = 0,
-  recentActivity = [],
-}: SiteAnalyticsProps) {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [loading, setLoading] = useState(true);
+// ── Main component ─────────────────────────────────────────────
+export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAnalyticsProps) {
 
-  const fetchStats = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/analytics/visit?siteId=${siteId}`);
-      const data = await res.json();
-      setStats(data);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ── Computed stats ──────────────────────────────────────────
+  const views = manifest.analytics?.views ?? 0;
 
-  useEffect(() => { fetchStats(); }, [siteId]);
-
-  // Days until wedding
-  const daysUntil = (() => {
-    if (!weddingDate) return null;
-    const diff = new Date(weddingDate).getTime() - Date.now();
-    return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : null;
-  })();
-
-  // RSVP breakdown
+  const rsvps = manifest.rsvps ?? [];
   const attending = rsvps.filter((r) => r.status === 'attending').length;
-  const declined = rsvps.filter((r) => r.status === 'declined').length;
-  const pending = rsvps.filter((r) => r.status === 'pending').length;
-  const total = rsvps.length;
-  const attendingPct = total > 0 ? (attending / total) * 100 : 0;
+  const declined  = rsvps.filter((r) => r.status === 'declined').length;
+  const awaiting  = rsvps.filter((r) => r.status === 'pending').length;
+  const rsvpTotal = rsvps.length;
 
-  // CSV export
-  const exportCsv = () => {
-    if (!rsvps.length) return;
-    const header = 'Name,Email,Status,Plus One,Plus One Name,Meal,Song Request,Responded';
-    const rows = rsvps.map((r) => [
-      r.guestName, r.email, r.status,
-      r.plusOne ? 'Yes' : 'No',
-      r.plusOneName || '',
-      r.mealPreference || '',
-      r.songRequest || '',
-      r.respondedAt,
-    ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','));
-    const csv = [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `rsvps-${siteId}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const totalPhotos = (manifest.chapters ?? []).reduce(
+    (sum, ch) => sum + (ch.images?.length ?? 0),
+    0,
+  );
+
+  const chapters = manifest.chapters ?? [];
+  const completedChapters = chapters.filter(
+    (ch) => ch.title && ch.description && ch.images?.length > 0,
+  ).length;
+  const completionPct = chapters.length > 0
+    ? Math.round((completedChapters / chapters.length) * 100)
+    : 0;
+
+  // ── RSVP bar percentages ────────────────────────────────────
+  const attendingPct = rsvpTotal > 0 ? (attending / rsvpTotal) * 100 : 0;
+  const declinedPct  = rsvpTotal > 0 ? (declined  / rsvpTotal) * 100 : 0;
+  const awaitingPct  = rsvpTotal > 0 ? (awaiting  / rsvpTotal) * 100 : 0;
+
+  // ── Guest name list (max 6) ─────────────────────────────────
+  const attendingGuests = rsvps.filter((r) => r.status === 'attending');
+  const shownGuests = attendingGuests.slice(0, 6);
+  const extraGuests = attendingGuests.length - shownGuests.length;
+
+  // ── Checklist ───────────────────────────────────────────────
+  const checklist: { label: string; done: boolean }[] = [
+    { label: 'Story created',          done: true },
+    { label: 'Cover photos added',     done: (chapters[0]?.images?.length ?? 0) > 0 },
+    { label: 'Wedding date set',       done: !!manifest.logistics?.date },
+    { label: 'Events added',           done: (manifest.events?.length ?? 0) > 0 },
+    { label: 'Site published',         done: !!(manifest.publishedAt || manifest.subdomain) },
+    { label: '5+ chapters',            done: chapters.length >= 5 },
+  ];
+
+  // ── Preview URL ─────────────────────────────────────────────
+  const previewHref = manifest.previewToken
+    ? `/preview/${manifest.previewToken}`
+    : manifest.subdomain
+      ? `https://${manifest.subdomain}.pearloom.com`
+      : undefined;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-      {/* Header row */}
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{
-          fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em',
-          textTransform: 'uppercase', color: 'var(--eg-muted)',
+          fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.14em',
+          textTransform: 'uppercase', color: C.muted,
         }}>
-          Site Analytics
+          Site Overview
         </span>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          {rsvps.length > 0 && (
-            <button
-              onClick={exportCsv}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.35rem',
-                padding: '0.4rem 0.85rem', borderRadius: '0.5rem',
-                border: '1px solid rgba(0,0,0,0.08)', background: '#fff',
-                cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
-                color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)',
-                transition: 'background 0.15s',
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.background = '#f8f8f8'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; }}
-            >
-              <Download size={12} />
-              Download CSV
-            </button>
-          )}
-          <button
-            onClick={fetchStats}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--eg-muted)', display: 'flex', padding: '4px',
-            }}
-          >
-            <RefreshCw
-              size={13}
-              style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }}
-            />
-          </button>
-        </div>
+        <span style={{ fontSize: '0.78rem', color: C.muted }}>
+          {coupleNames[0]} &amp; {coupleNames[1]}
+        </span>
       </div>
 
-      {/* 4 stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+      {/* 4-stat row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.7rem' }}>
         <StatCard
           icon={Eye}
-          label="Total Visits"
-          value={loading ? '—' : (stats?.visits ?? 0).toLocaleString()}
-          sub={stats?.today ? `+${stats.today} today` : undefined}
-          color="#6366f1"
+          label="Views"
+          value={views.toLocaleString()}
+          sub={manifest.analytics?.lastViewed ? `Last visit ${manifest.analytics.lastViewed}` : undefined}
+          color={C.gold}
           delay={0}
         />
         <StatCard
           icon={Users}
-          label="RSVPs Received"
-          value={total}
-          sub={total > 0 ? `${attending} attending` : 'None yet'}
-          color="var(--eg-accent)"
+          label="RSVPs"
+          value={rsvpTotal}
+          sub={rsvpTotal > 0 ? `${attending} attending` : 'None yet'}
+          color={C.sage}
           delay={0.06}
         />
         <StatCard
           icon={ImageIcon}
-          label="Photos Shared"
-          value={photoCount}
-          color="#f59e0b"
+          label="Photos"
+          value={totalPhotos}
+          sub={`across ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''}`}
+          color="#E09B6A"
           delay={0.12}
         />
         <StatCard
-          icon={daysUntil !== null ? CalendarHeart : TrendingUp}
-          label={daysUntil !== null ? 'Days Until Wedding' : 'Today\'s Visits'}
-          value={daysUntil !== null ? daysUntil : (loading ? '—' : (stats?.today ?? 0))}
-          sub={daysUntil !== null ? 'keep the countdown going' : undefined}
-          color="#ec4899"
+          icon={TrendingUp}
+          label="Completion"
+          value={`${completionPct}%`}
+          sub={`${completedChapters} of ${chapters.length} chapters full`}
+          color={C.espresso}
           delay={0.18}
         />
       </div>
 
-      {/* RSVP breakdown bar */}
-      {total > 0 && (
-        <div style={{
-          background: '#fff', borderRadius: '1rem', padding: '1.25rem',
-          border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
-              RSVP Breakdown
-            </span>
-            <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)' }}>
-              {attending} attending · {declined} declined · {pending} pending
-            </span>
-          </div>
-          <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '100px', height: '7px', overflow: 'hidden' }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${attendingPct}%` }}
-              transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
-              style={{
-                height: '100%',
-                background: 'linear-gradient(90deg, var(--eg-accent), #8FA876)',
-                borderRadius: '100px',
-              }}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: '1.25rem', marginTop: '0.85rem' }}>
-            {[
-              { label: 'Attending', count: attending, color: 'var(--eg-accent)' },
-              { label: 'Declined', count: declined, color: '#ef4444' },
-              { label: 'Pending', count: pending, color: '#f59e0b' },
-            ].map((item) => (
-              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.color }} />
-                <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)' }}>
-                  {item.count} {item.label}
+      {/* RSVP breakdown */}
+      {rsvpTotal > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.22 }}
+        >
+          <Card>
+            <SectionLabel>RSVP Breakdown</SectionLabel>
+
+            {/* Segmented bar */}
+            <div style={{
+              display: 'flex', height: '8px', borderRadius: '100px', overflow: 'hidden',
+              background: 'rgba(0,0,0,0.05)', gap: '1px',
+            }}>
+              {attendingPct > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${attendingPct}%` }}
+                  transition={{ duration: 0.9, ease: 'easeOut', delay: 0.3 }}
+                  style={{ height: '100%', background: C.sage, borderRadius: '100px 0 0 100px' }}
+                />
+              )}
+              {declinedPct > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${declinedPct}%` }}
+                  transition={{ duration: 0.9, ease: 'easeOut', delay: 0.4 }}
+                  style={{ height: '100%', background: C.red }}
+                />
+              )}
+              {awaitingPct > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${awaitingPct}%` }}
+                  transition={{ duration: 0.9, ease: 'easeOut', delay: 0.5 }}
+                  style={{ height: '100%', background: '#C8BFB9', borderRadius: '0 100px 100px 0' }}
+                />
+              )}
+            </div>
+
+            {/* Legend */}
+            <div style={{ display: 'flex', gap: '1.25rem', marginTop: '0.75rem' }}>
+              {[
+                { label: 'Attending', count: attending, color: C.sage },
+                { label: 'Declining', count: declined,  color: C.red },
+                { label: 'Awaiting',  count: awaiting,  color: '#C8BFB9' },
+              ].map((item) => (
+                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: item.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.7rem', color: C.muted }}>
+                    {item.count} {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Guest names */}
+            {shownGuests.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.85rem' }}>
+                {shownGuests.map((r) => (
+                  <span
+                    key={r.id}
+                    style={{
+                      fontSize: '0.72rem', padding: '0.2rem 0.65rem',
+                      borderRadius: '100px', background: C.ivory,
+                      color: C.espresso, fontWeight: 500,
+                      border: `1px solid ${C.border}`,
+                    }}
+                  >
+                    {r.guestName}
+                  </span>
+                ))}
+                {extraGuests > 0 && (
+                  <span style={{
+                    fontSize: '0.72rem', padding: '0.2rem 0.65rem',
+                    borderRadius: '100px', background: 'rgba(0,0,0,0.04)',
+                    color: C.muted, fontWeight: 500,
+                  }}>
+                    +{extraGuests} more
+                  </span>
+                )}
+              </div>
+            )}
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Story completeness checklist */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.28 }}
+      >
+        <Card>
+          <SectionLabel>Story Checklist</SectionLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {checklist.map((item, i) => (
+              <div
+                key={item.label}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.65rem',
+                  padding: '0.55rem 0',
+                  borderBottom: i < checklist.length - 1 ? `1px solid ${C.border}` : 'none',
+                }}
+              >
+                {item.done
+                  ? <CheckCircle2 size={15} color={C.sage} strokeWidth={2.2} />
+                  : <Circle      size={15} color={C.muted} strokeWidth={1.6} />
+                }
+                <span style={{
+                  fontSize: '0.8rem',
+                  color: item.done ? C.espresso : C.muted,
+                  fontWeight: item.done ? 500 : 400,
+                }}>
+                  {item.label}
                 </span>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        </Card>
+      </motion.div>
 
-      {/* Recent activity feed */}
-      {recentActivity.length > 0 && (
-        <div style={{
-          background: '#fff', borderRadius: '1rem', padding: '1.25rem',
-          border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
-        }}>
-          <span style={{
-            display: 'block', marginBottom: '1rem',
-            fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
-            textTransform: 'uppercase', color: 'var(--eg-muted)',
-          }}>
-            Recent Activity
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-            {recentActivity.map((item, i) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  padding: '0.65rem 0',
-                  borderBottom: i < recentActivity.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
-                }}
-              >
-                <div style={{
-                  width: '26px', height: '26px', borderRadius: '0.45rem',
-                  background: 'rgba(0,0,0,0.03)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                  {activityIcon(item.type)}
-                </div>
-                <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--eg-fg)' }}>{item.label}</span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--eg-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <Clock size={11} />
-                  {item.time}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Quick actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.34 }}
+        style={{ display: 'flex', gap: '0.6rem' }}
+      >
+        {/* Edit Story */}
+        <button
+          onClick={onEdit}
+          style={{
+            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '0.4rem', padding: '0.65rem 0.5rem',
+            borderRadius: '0.75rem', border: `1px solid ${C.border}`,
+            background: C.gold, color: C.white,
+            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+            fontFamily: 'var(--eg-font-body, sans-serif)',
+            transition: 'opacity 0.15s',
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; }}
+          onMouseOut={(e)  => { e.currentTarget.style.opacity = '1'; }}
+        >
+          <Pencil size={12} />
+          Edit Story
+        </button>
 
-      {/* Mobile split bar */}
-      {stats && stats.visits > 0 && (
-        <div style={{
-          background: '#fff', borderRadius: '1rem', padding: '1.25rem',
-          border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-            <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
-              Device Split
-            </span>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--eg-muted)' }}>
-                {Math.round((stats.mobile / stats.visits) * 100)}% mobile
-              </span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--eg-muted)' }}>
-                {Math.round((stats.desktop / stats.visits) * 100)}% desktop
-              </span>
-            </div>
-          </div>
-          <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '100px', height: '5px', overflow: 'hidden' }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.round((stats.mobile / stats.visits) * 100)}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              style={{ height: '100%', background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', borderRadius: '100px' }}
-            />
-          </div>
-        </div>
-      )}
+        {/* Share Site */}
+        <button
+          onClick={onShare}
+          style={{
+            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '0.4rem', padding: '0.65rem 0.5rem',
+            borderRadius: '0.75rem', border: `1px solid ${C.border}`,
+            background: C.white, color: C.espresso,
+            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+            fontFamily: 'var(--eg-font-body, sans-serif)',
+            transition: 'background 0.15s',
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.background = C.ivory; }}
+          onMouseOut={(e)  => { e.currentTarget.style.background = C.white; }}
+        >
+          <Share2 size={12} />
+          Share Site
+        </button>
 
-      {!loading && stats?.visits === 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.02)', borderRadius: '0.75rem' }}>
-          <ArrowUpRight size={14} color="var(--eg-accent)" />
-          <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)' }}>
-            No visits yet — share your site link to get started.
-          </p>
-        </div>
-      )}
+        {/* Preview */}
+        {previewHref ? (
+          <a
+            href={previewHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '0.4rem', padding: '0.65rem 0.5rem',
+              borderRadius: '0.75rem', border: `1px solid ${C.border}`,
+              background: C.white, color: C.espresso,
+              cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+              fontFamily: 'var(--eg-font-body, sans-serif)',
+              textDecoration: 'none',
+              transition: 'background 0.15s',
+            }}
+            onMouseOver={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = C.ivory; }}
+            onMouseOut={(e)  => { (e.currentTarget as HTMLAnchorElement).style.background = C.white; }}
+          >
+            <ExternalLink size={12} />
+            Preview
+          </a>
+        ) : (
+          <button
+            disabled
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '0.4rem', padding: '0.65rem 0.5rem',
+              borderRadius: '0.75rem', border: `1px solid ${C.border}`,
+              background: C.ivory, color: C.muted,
+              cursor: 'default', fontSize: '0.75rem', fontWeight: 600,
+              fontFamily: 'var(--eg-font-body, sans-serif)',
+            }}
+          >
+            <ExternalLink size={12} />
+            Preview
+          </button>
+        )}
+      </motion.div>
 
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

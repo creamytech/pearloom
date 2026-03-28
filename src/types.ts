@@ -75,6 +75,14 @@ export interface StoryManifest {
   activeLocale?: string;
   // Real-time collab: current editor session info
   collaborators?: Array<{ userId: string; name: string; color: string; cursor?: string }>;
+  // Site analytics — lightweight view counter
+  analytics?: { views: number; lastViewed?: string };
+  // RSVP responses collected for this site
+  rsvps?: RsvpResponse[];
+  // Published site subdomain (e.g. "jess-and-tom")
+  subdomain?: string;
+  // ISO 8601 timestamp of when the site was first published
+  publishedAt?: string;
 }
 
 export interface Chapter {
@@ -112,6 +120,7 @@ export interface ChapterImage {
   width: number;
   height: number;
   blurDataUrl?: string; // base64 placeholder for Next/Image
+  caption?: string; // AI-generated poetic caption (4-8 words)
 }
 
 export interface GeoLocation {
