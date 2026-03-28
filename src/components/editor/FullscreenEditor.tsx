@@ -23,6 +23,7 @@ import {
   UndoIcon, RedoIcon, CommandIcon, GripIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent, FaqItem, HotelBlock, TravelInfo } from '@/types';
+import { ChapterActions } from './ChapterActions';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
@@ -133,10 +134,12 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
 
 // ── SectionItem in left nav ─────────────────────────────────────
 function SectionItem({
-  chapter, index, isActive, onSelect, onDelete,
+  chapter, index, isActive, onSelect, onDelete, onUpdate, voiceSamples,
 }: {
   chapter: Chapter; index: number; isActive: boolean;
   onSelect: (id: string) => void; onDelete: (id: string) => void;
+  onUpdate: (id: string, data: Partial<Chapter>) => void;
+  voiceSamples?: string[];
 }) {
   const controls = useDragControls();
   const thumb = getThumb(chapter);
@@ -157,61 +160,78 @@ function SectionItem({
       style={{ marginBottom: '4px', cursor: 'pointer' }}
     >
       <div
-        onClick={() => onSelect(chapter.id)}
         style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '8px 10px', borderRadius: '8px',
+          borderRadius: '8px',
           background: isActive ? 'rgba(184,146,106,0.18)' : 'rgba(255,255,255,0.04)',
           border: isActive ? '1px solid rgba(184,146,106,0.35)' : '1px solid transparent',
           transition: 'all 0.15s',
           position: 'relative',
+          overflow: 'hidden',
         }}
         onMouseOver={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
         onMouseOut={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
       >
-        <DragHandle controls={controls} />
-
-        {/* Thumbnail */}
-        <div style={{
-          width: '36px', height: '36px', borderRadius: '6px', flexShrink: 0,
-          background: thumb ? 'transparent' : 'rgba(255,255,255,0.08)',
-          overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)',
-        }}>
-          {thumb
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image size={14} color="rgba(255,255,255,0.25)" />
-              </div>}
-        </div>
-
-        {/* Labels */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: '0.75rem', fontWeight: 700, color: isActive ? 'rgba(184,146,106,1)' : 'rgba(255,255,255,0.85)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            lineHeight: 1.3,
-          }}>
-            {chapter.title || 'Untitled'}
-          </div>
-          <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
-            Ch. {index + 1} · {slugDate(chapter.date)}
-          </div>
-        </div>
-
-        {/* Delete */}
-        <button
-          onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
-          style={{
-            padding: '4px', borderRadius: '4px', border: 'none',
-            background: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-            display: 'flex', flexShrink: 0, transition: 'color 0.15s',
-          }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-          onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+        {/* Main card row */}
+        <div
+          onClick={() => onSelect(chapter.id)}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px' }}
         >
-          <Trash2 size={12} />
-        </button>
+          <DragHandle controls={controls} />
+
+          {/* Thumbnail */}
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '6px', flexShrink: 0,
+            background: thumb ? 'transparent' : 'rgba(255,255,255,0.08)',
+            overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)',
+          }}>
+            {thumb
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Image size={14} color="rgba(255,255,255,0.25)" />
+                </div>}
+          </div>
+
+          {/* Labels */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: '0.75rem', fontWeight: 700, color: isActive ? 'rgba(184,146,106,1)' : 'rgba(255,255,255,0.85)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              lineHeight: 1.3,
+            }}>
+              {chapter.title || 'Untitled'}
+            </div>
+            <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
+              Ch. {index + 1} · {slugDate(chapter.date)}
+            </div>
+          </div>
+
+          {/* Delete */}
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
+            style={{
+              padding: '4px', borderRadius: '4px', border: 'none',
+              background: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
+              display: 'flex', flexShrink: 0, transition: 'color 0.15s',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
+
+        {/* Chapter actions row — completion dots + rewrite + sort */}
+        <div style={{
+          padding: '0 10px 8px 10px',
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+        }}>
+          <ChapterActions
+            chapter={chapter}
+            voiceSamples={voiceSamples}
+            onUpdate={(data) => onUpdate(chapter.id, data)}
+          />
+        </div>
       </div>
     </Reorder.Item>
   );
@@ -1751,6 +1771,8 @@ Return JSON with: title, subtitle, description, mood`,
                         isActive={activeId === ch.id}
                         onSelect={setActiveId}
                         onDelete={deleteChapter}
+                        onUpdate={updateChapter}
+                        voiceSamples={manifest.voiceSamples}
                       />
                     ))}
                   </AnimatePresence>
