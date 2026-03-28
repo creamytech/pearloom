@@ -375,9 +375,8 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             backdropFilter: 'blur(2px)',
             WebkitBackdropFilter: 'blur(2px)',
             borderRadius: '8px',
-            padding: '2rem',
             filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))',
-          }}>
+          }} className="max-md:px-5 max-md:py-6 max-md:max-w-[90vw] max-md:mx-auto p-8">
             <MoodBadge mood={chapter.mood} light />
             <span style={{ fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase', opacity: 0.8, display: 'block', marginBottom: '1.75rem', color: '#ffffff', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
               {formatDateFull(chapter.date)}
@@ -645,26 +644,41 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             gridTemplateRows: images.length >= 3 ? 'repeat(2, 360px)' : '520px',
             gap: '1rem',
             width: '100%',
-          }} className="max-md:flex max-md:flex-col">
+          }} className="max-md:flex max-md:flex-col max-md:gap-2">
             {images[0] && (
-              <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+              <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
+                className="max-md:w-full max-md:rounded-[8px]">
                 <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                  className="max-md:[aspect-ratio:4/3]"
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
               </div>
             )}
             {images[1] && (
-              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}>
+              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                className="max-md:w-full max-md:rounded-[8px]">
                 <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                  className="max-md:[aspect-ratio:4/3]"
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
               </div>
             )}
             {images[2] && (
-              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}>
+              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                className="max-md:w-full max-md:rounded-[8px]">
                 <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                  className="max-md:[aspect-ratio:4/3]"
+                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
+                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
+                />
+              </div>
+            )}
+            {images[3] && (
+              <div style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                className="max-md:hidden">
+                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
@@ -686,24 +700,109 @@ const OFFSETS: Array<{ x: number | string; y: number }> = [
 
 function MosaicLayout({ chapter, index }: TimelineItemProps) {
   const images = chapter.images.slice(0, 5);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const mobileImages = images.slice(0, 2);
+  const displayImages = isMobile ? mobileImages : images;
 
   return (
     <>
       <ChapterDivider />
       <motion.article
         style={{ maxWidth: '1300px', margin: '4rem auto', padding: '5rem 3rem', display: 'flex', gap: '5rem', alignItems: 'flex-start' }}
-        className="max-md:flex-col max-md:px-4 max-md:gap-8"
+        className="max-md:flex-col max-md:px-4 max-md:gap-8 max-md:pt-8"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.8 }}
       >
-        {/* Polaroid collage left side */}
-        <div style={{ flex: '0 0 50%', position: 'relative', height: images.length > 1 ? '580px' : '420px' }} className="max-md:w-full max-md:h-[340px]">
-          {images.map((img, i) => {
-            const rotate = ROTATIONS[i % ROTATIONS.length];
+        {/* On mobile: text first so heading is never hidden behind polaroids */}
+        {isMobile && (
+          <motion.div
+            style={{ width: '100%', position: 'relative' }}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ delay: 0.1, duration: 0.85 }}
+          >
+            <ChapterGhost number={index + 1} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <MoodBadge mood={chapter.mood} />
+              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
+                {formatDateFull(chapter.date)}
+              </span>
+              <h3 style={{
+                fontFamily: 'var(--eg-font-heading)',
+                fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+                fontWeight: 400,
+                color: 'var(--eg-fg)',
+                lineHeight: 1.08,
+                margin: '0 0 1.25rem 0',
+                letterSpacing: '-0.02em',
+              }}>
+                {chapter.title}
+              </h3>
+              {chapter.subtitle && (
+                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                  {chapter.subtitle}
+                </p>
+              )}
+              <EnhancedDescription text={chapter.description} />
+              {chapter.location && (
+                <div style={{ marginTop: '2.5rem' }}>
+                  <LocationPill label={chapter.location.label} />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Polaroid collage */}
+        <div
+          style={isMobile
+            ? { width: '100%', maxHeight: '280px', display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'flex-start' }
+            : { flex: '0 0 50%', position: 'relative', height: images.length > 1 ? '580px' : '420px' }
+          }
+        >
+          {displayImages.map((img, i) => {
+            const rotate = isMobile ? (i === 0 ? -2 : 2) : ROTATIONS[i % ROTATIONS.length];
             const offset = OFFSETS[i % OFFSETS.length];
             const isFirst = i === 0;
+
+            if (isMobile) {
+              return (
+                <motion.div
+                  key={img.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  style={{
+                    flex: '0 0 45%',
+                    cursor: 'pointer',
+                    transform: `rotate(${rotate}deg)`,
+                    transformOrigin: 'center center',
+                  }}
+                >
+                  <div style={{
+                    background: '#fff',
+                    padding: '8px 8px 28px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+                    borderRadius: '2px',
+                  }}>
+                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
+                      <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            }
 
             return (
               <motion.div
@@ -739,45 +838,46 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
           })}
         </div>
 
-        {/* Text column */}
-        <motion.div
-          style={{ flex: 1, paddingTop: '3rem', position: 'relative' }}
-          initial={{ opacity: 0, x: 30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ delay: 0.3, duration: 0.85 }}
-          className="max-md:pt-0"
-        >
-          <ChapterGhost number={index + 1} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <MoodBadge mood={chapter.mood} />
-            <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
-              {formatDateFull(chapter.date)}
-            </span>
-            <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-              fontWeight: 400,
-              color: 'var(--eg-fg)',
-              lineHeight: 1.08,
-              margin: '0 0 1.25rem 0',
-              letterSpacing: '-0.02em',
-            }}>
-              {chapter.title}
-            </h3>
-            {chapter.subtitle && (
-              <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
-                {chapter.subtitle}
-              </p>
-            )}
-            <EnhancedDescription text={chapter.description} />
-            {chapter.location && (
-              <div style={{ marginTop: '2.5rem' }}>
-                <LocationPill label={chapter.location.label} />
-              </div>
-            )}
-          </div>
-        </motion.div>
+        {/* Text column — desktop only (mobile version rendered above) */}
+        {!isMobile && (
+          <motion.div
+            style={{ flex: 1, paddingTop: '3rem', position: 'relative' }}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ delay: 0.3, duration: 0.85 }}
+          >
+            <ChapterGhost number={index + 1} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <MoodBadge mood={chapter.mood} />
+              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
+                {formatDateFull(chapter.date)}
+              </span>
+              <h3 style={{
+                fontFamily: 'var(--eg-font-heading)',
+                fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+                fontWeight: 400,
+                color: 'var(--eg-fg)',
+                lineHeight: 1.08,
+                margin: '0 0 1.25rem 0',
+                letterSpacing: '-0.02em',
+              }}>
+                {chapter.title}
+              </h3>
+              {chapter.subtitle && (
+                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                  {chapter.subtitle}
+                </p>
+              )}
+              <EnhancedDescription text={chapter.description} />
+              {chapter.location && (
+                <div style={{ marginTop: '2.5rem' }}>
+                  <LocationPill label={chapter.location.label} />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
       </motion.article>
     </>
   );
