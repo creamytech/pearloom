@@ -50,6 +50,8 @@ export interface StoryManifest {
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)
   customPages?: CustomPage[];
+  // Last asset selected from the asset library (for canvas insertion)
+  lastAsset?: { id: string; type: 'dividers' | 'illustrations' | 'accents'; name: string };
   // Poetry pass — 4th AI generation pass: hero tagline, footer closing line, RSVP intro
   poetry?: {
     heroTagline: string;    // 5-8 word poetic subtitle for the hero section

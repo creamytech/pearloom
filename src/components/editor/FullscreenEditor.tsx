@@ -31,6 +31,8 @@ import { CommandPalette } from './CommandPalette';
 import type { CommandAction } from './CommandPalette';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { SectionStyleEditor } from './SectionStyleEditor';
+import { FontPicker } from '@/components/dashboard/FontPicker';
+import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
@@ -1140,9 +1142,6 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
     });
   };
 
-  const HEADING_FONTS = ['Playfair Display', 'Cormorant Garamond', 'Lora', 'Cinzel', 'DM Serif Display', 'Libre Baskerville', 'Josefin Sans'];
-  const BODY_FONTS = ['Inter', 'Outfit', 'DM Sans', 'Work Sans', 'Nunito', 'Roboto', 'Raleway', 'Poppins', 'Lato'];
-
   const colors = manifest.theme?.colors || {};
   const vibeSkin = manifest.vibeSkin;
   const paletteColors = vibeSkin?.palette
@@ -1216,34 +1215,32 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
       {/* AI palette + pattern picker */}
       <ColorPalettePanel manifest={manifest} onChange={onChange} />
 
-      {/* Typography — font pair display */}
+      {/* Typography — full font pair picker */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '10px' }}>
+        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.4)', marginBottom: '10px' }}>
           Typography
         </div>
-        {/* Font pair preview */}
-        <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px', marginBottom: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
-            {manifest.theme?.fonts?.heading || 'Playfair Display'}
-          </div>
-          <div style={{ fontFamily: `"${manifest.theme?.fonts?.body || 'Inter'}", sans-serif`, fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
-            {manifest.theme?.fonts?.body || 'Inter'} — body text
-          </div>
+        <FontPicker
+          currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
+          currentBody={manifest.theme?.fonts?.body || 'Inter'}
+          onChange={(heading, body) => { updateFont('heading', heading); updateFont('body', body); }}
+        />
+      </div>
+
+      {/* Asset Library */}
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
+        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.4)', marginBottom: '10px' }}>
+          Asset Library
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-          <div>
-            <label style={lbl}>Heading Font</label>
-            <select value={manifest.theme?.fonts?.heading || 'Playfair Display'} onChange={e => updateFont('heading', e.target.value)} style={{ ...inp, cursor: 'pointer' }}>
-              {HEADING_FONTS.map(f => <option key={f} value={f} style={{ background: '#1a1a1a' }}>{f}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={lbl}>Body Font</label>
-            <select value={manifest.theme?.fonts?.body || 'Inter'} onChange={e => updateFont('body', e.target.value)} style={{ ...inp, cursor: 'pointer' }}>
-              {BODY_FONTS.map(f => <option key={f} value={f} style={{ background: '#1a1a1a' }}>{f}</option>)}
-            </select>
-          </div>
-        </div>
+        <p style={{ fontSize: '0.68rem', color: 'rgba(214,198,168,0.3)', marginBottom: '10px', lineHeight: 1.5 }}>
+          Dividers, illustrations & accents to add to your pages.
+        </p>
+        <AssetPicker
+          onSelect={(asset) => {
+            // Store last-selected asset on manifest for canvas insertion
+            onChange({ ...manifest, lastAsset: asset as StoryManifest['lastAsset'] });
+          }}
+        />
       </div>
 
       {/* Live color preview swatch */}
