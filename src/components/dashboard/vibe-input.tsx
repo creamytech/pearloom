@@ -28,6 +28,7 @@ interface VibeInputProps {
     names: [string, string];
     vibeString: string;
     occasion: string;
+    subdomain?: string;
     eventDate?: string;
     ceremonyVenue?: string;
     ceremonyAddress?: string;
@@ -43,6 +44,12 @@ interface VibeInputProps {
   }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
+}
+
+function slugFromNames(n1: string, n2: string): string {
+  const s1 = n1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'us';
+  const s2 = n2.toLowerCase().replace(/[^a-z0-9]/g, '') || 'together';
+  return `${s1}-and-${s2}`;
 }
 
 const VIBE_MOODS = [
@@ -129,6 +136,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   // 'main' = steps 1-8 of the original wizard, 'details' = optional details sub-step
   const [wizardPhase, setWizardPhase] = useState<'main' | 'details'>('main');
   const [detailsData, setDetailsData] = useState<DetailsData>({});
+  const [subdomain, setSubdomain] = useState('');
   const [occasion, setOccasion] = useState<string>('');
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
   const totalSteps = isEvent ? 8 : 7;
@@ -212,10 +220,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const handleFinalSubmit = (skipDetails = false) => {
     const synthesizedVibe = buildVibeString();
     const details = skipDetails ? {} : detailsData;
+    const n1 = name1.trim();
+    const n2 = name2.trim();
+    const finalSlug = subdomain.trim() || slugFromNames(n1, n2);
     onSubmit({
-      names: [name1.trim(), name2.trim()],
+      names: [n1, n2],
       vibeString: synthesizedVibe,
       occasion,
+      subdomain: finalSlug,
       eventDate: eventDate || undefined,
       ...details,
     });
@@ -550,6 +562,33 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           )}
         </div>
 
+        {/* URL slug picker */}
+        <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginTop: '2rem' }}>
+          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL</p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
+            This is where your site will live. You can always change it later.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', overflow: 'hidden', transition: 'border-color 0.2s', background: '#FAFAF8' }}
+            onFocus={() => {}} onBlur={() => {}}>
+            <input
+              value={subdomain}
+              onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+              placeholder="ben-and-shauna"
+              style={{ flex: 1, padding: '0.85rem 1rem', fontSize: 'max(16px, 0.9rem)', border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--eg-font-body)', color: 'var(--eg-fg)' }}
+              onFocus={e => { (e.target.parentElement as HTMLElement).style.borderColor = 'var(--eg-accent)'; }}
+              onBlur={e => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
+            />
+            <div style={{ padding: '0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
+              .pearloom.app
+            </div>
+          </div>
+          {subdomain && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--eg-accent)', marginTop: '0.5rem', fontWeight: 500 }}>
+              pearloom.app/{subdomain}
+            </p>
+          )}
+        </div>
+
         {/* Build my site button */}
         <div style={{ marginTop: '2.5rem' }}>
           <button
@@ -621,14 +660,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>First Person</label>
-                <input type="text" placeholder="e.g. Ben" value={name1} onChange={e => setName1(e.target.value)} style={{ ...inputStyle, fontSize: '1.25rem' }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <input type="text" placeholder="e.g. Ben" value={name1} onChange={e => { setName1(e.target.value); setSubdomain(slugFromNames(e.target.value, name2)); }} style={{ ...inputStyle, fontSize: '1.25rem' }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span className="shimmer-text" style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', color: 'var(--eg-accent)' }}>&</span>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Second Person</label>
-                <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => setName2(e.target.value)} style={{ ...inputStyle, fontSize: '1.25rem' }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem' }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>

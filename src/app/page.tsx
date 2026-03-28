@@ -93,6 +93,7 @@ export default function DashboardPage() {
     names: [string, string];
     vibeString: string;
     occasion: string;
+    subdomain?: string;
     eventDate?: string;
     ceremonyVenue?: string;
     ceremonyAddress?: string;
@@ -169,9 +170,9 @@ export default function DashboardPage() {
       result.manifest.occasion = data.occasion || 'wedding';
       setManifest(result.manifest);
 
-      // Auto-generate a random slug so Publish works immediately from the editor
-      const autoSlug = generateSlug(data.names);
-      console.log('[Generate] Auto-generated subdomain:', autoSlug);
+      // Use slug from wizard if provided, otherwise auto-generate from names
+      const autoSlug = data.subdomain || generateSlug(data.names);
+      console.log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
       setSubdomain(autoSlug);
 
       setCurrentStep('edit');
