@@ -28,7 +28,7 @@ function Tooltip({ text }: { text: string }) {
           position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
           background: 'var(--eg-bg, #fff)', border: '1px solid var(--eg-gold, #DAA520)',
           borderRadius: '0.5rem', padding: '0.45rem 0.7rem', fontSize: '0.78rem',
-          color: 'var(--eg-fg)', whiteSpace: 'nowrap', maxWidth: '240px', whiteSpace: 'normal' as 'normal',
+          color: 'var(--eg-fg)', maxWidth: '240px', whiteSpace: 'normal' as 'normal',
           lineHeight: 1.4, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 50, pointerEvents: 'none',
           textTransform: 'none' as 'none', letterSpacing: 'normal', fontWeight: 400,
         }}>
@@ -464,7 +464,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
               {/* Reception block */}
               <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Reception</p>
+                <p style={sectionHeading}>Reception<Tooltip text="Used to create your events page and guest directions" /></p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue name</label>
@@ -507,7 +507,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
               {/* Dress code */}
               <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Dress Code <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)' }}>(tap to select, tap again to clear)</span></p>
+                <p style={sectionHeading}>Dress Code<Tooltip text="Displayed on your events page for guests" /> <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)' }}>(tap to select, tap again to clear)</span></p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
                   {DRESSCODE_OPTIONS.map(code => (
                     <button key={code} onClick={() => toggleDresscode(code)} style={pillStyle(detailsData.dresscode === code)}>
