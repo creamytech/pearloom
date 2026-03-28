@@ -293,7 +293,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       }
       case 'text':
         return (
-          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '800px', margin: '0 auto' }}>
             <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}>
               Custom text block — edit in the Canvas tab.
             </p>
@@ -301,7 +301,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         );
       case 'quote':
         return (
-          <section key={key} style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
             <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: pal.foreground, opacity: 0.75 }}>
               &ldquo;{vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.'}&rdquo;
@@ -311,7 +311,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'video': {
         const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
         return (
-          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
               {videoEmbedUrl ? (
                 <iframe
@@ -332,7 +332,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'map': {
         const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
         return (
-          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
               {mapAddress ? (
                 <iframe
@@ -355,7 +355,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'photos': {
         const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
         return (
-          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '1100px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             {allPhotos.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
@@ -555,7 +555,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
-      <div style={siteVarsStyle}>
+      <div style={{ ...siteVarsStyle, scrollBehavior: 'smooth' }}>
         <SiteNav names={safeNames} pages={sitePages} />
 
         <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
