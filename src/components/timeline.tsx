@@ -139,7 +139,22 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
                     position: 'relative',
                   }}
                 >
-                  <TimelineItem chapter={chapter} index={i} />
+                  {/* Per-chapter ambient color wash — unique tint per moment */}
+                  {(chapter.ambientColor || vibeSkin?.chapterColors?.[i]) && (
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        position: 'absolute', inset: 0, pointerEvents: 'none',
+                        background: chapter.ambientColor || vibeSkin?.chapterColors?.[i],
+                        opacity: 0.045,
+                      }}
+                    />
+                  )}
+                  <TimelineItem
+                    chapter={chapter}
+                    index={i}
+                    chapterIcon={vibeSkin?.chapterIcons?.[i]}
+                  />
                 </div>
               </div>
             ))}

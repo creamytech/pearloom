@@ -77,6 +77,12 @@ export interface VibeSkin {
   // SVG path only for organic full-width section shape (viewBox 0 0 1440 500)
   sectionBlobPath?: string;
 
+  // — Couple-specific per-chapter illustration icons (one per chapter, viewBox "0 0 80 80") —
+  chapterIcons?: string[];
+
+  // — Per-chapter ambient color wash (one hex per chapter, used as subtle section tint) —
+  chapterColors?: string[];
+
   aiGenerated: boolean;
 }
 
@@ -156,6 +162,16 @@ const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
   minimalist: { curve: 'ribbon',    particle: 'stars',      decorIcons: ['◦','•','◈','◇','✦'],    particleColor: '#d0ccc4', tone: 'luxurious'},
   vintage:    { curve: 'cascade',   particle: 'petals',     decorIcons: ['◈','✿','◇','✦','•'],    particleColor: '#d4b896', tone: 'rustic'   },
   sakura:     { curve: 'petal',     particle: 'sakura',     decorIcons: ['✿','❀','◦','✦','•'],    particleColor: '#ffb7c5', tone: 'dreamy'   },
+  festival:   { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','◆','✿','★','◉'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  fiesta:     { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','◆','✿','◉'],    particleColor: '#F5A800', tone: 'playful',
+    palette: { background: '#FFF8F0', foreground: '#1A0A00', accent: '#C45C1A', accent2: '#F5A800', card: '#FFF5EC', muted: '#9A6040', highlight: '#D4225A', subtle: '#FFF2E8', ink: '#1A3A8F' } as VibeSkin['palette'] },
+  vibrant:    { curve: 'wave',      particle: 'confetti',   decorIcons: ['✦','★','◆','✿','◉'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F5841F', card: '#FFFAFC', muted: '#9A6080', highlight: '#F8C000', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  colorful:   { curve: 'wave',      particle: 'confetti',   decorIcons: ['✦','★','◆','✿','●'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  coco:       { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','✿','◆','●'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
 };
 
 // — Seed-based deterministic number in [0,1) from a string ——————————————————————————————————————————
@@ -462,6 +478,16 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
+// Structured profile of the couple's personal world, extracted from their story
+export interface CoupleProfile {
+  pets: string[];         // e.g. ["2 cats named Luna and Mochi", "golden retriever named Bear"]
+  interests: string[];    // e.g. ["hiking", "vinyl records", "Italian cooking"]
+  locations: string[];    // e.g. ["Brooklyn", "Amalfi Coast", "coffee shop in Portland"]
+  motifs: string[];       // recurring objects/symbols: ["sunsets", "coffee", "train rides"]
+  heritage: string[];     // cultural background: ["Mexican", "Japanese"]
+  illustrationPrompt: string; // 1–2 sentence description for generating the hero illustration
+}
+
 export interface VibeSkinContext {
   chapters?: Array<{
     title: string;
@@ -472,6 +498,60 @@ export interface VibeSkinContext {
   }>;
   inspirationUrls?: string[];  // Pinterest/inspiration image URLs
   photoUrls?: string[];        // Representative photo URLs from the couple's actual uploads
+  coupleProfile?: CoupleProfile; // Extracted personal elements for bespoke illustration
+}
+
+// — Extract couple DNA from vibeString + chapters ——————————————————————————————————————————————————
+export async function extractCoupleProfile(
+  vibeString: string,
+  chapters: Array<{ title: string; description: string; mood: string }>,
+  apiKey: string
+): Promise<CoupleProfile> {
+  const storyText = chapters.map(c => `"${c.title}": ${c.description}`).join('\n');
+
+  const prompt = `Given this couple's vibe and story, extract their unique personal elements as JSON.
+
+VIBE:
+${vibeString}
+
+STORY CHAPTERS:
+${storyText}
+
+Return ONLY this JSON (no extra text, no markdown):
+{
+  "pets": [],
+  "interests": [],
+  "locations": [],
+  "motifs": [],
+  "heritage": [],
+  "illustrationPrompt": "1-2 sentences describing what to draw to represent this couple's world. Be specific and visual. E.g.: 'Two cats (one orange tabby, one black) intertwined with vinyl records and coffee cups, surrounded by Brooklyn cityscape silhouettes.' or 'Hiking trails winding through mountain peaks with pine trees and star constellations above, a dog's paw print trail below.'"
+}
+
+Rules:
+- pets: include animal type, quantity, and names if mentioned. Empty array if none.
+- interests: max 5 most visually representable hobbies/interests
+- locations: specific named places only (not generic "a coffee shop")
+- motifs: recurring objects, themes, or symbols that could be illustrated
+- heritage: cultural backgrounds if clearly mentioned, else empty
+- illustrationPrompt: make it visually specific, richly detailed, and drawable as SVG lineart`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
+      }
+    );
+    if (!res.ok) return { pets: [], interests: [], locations: [], motifs: [], heritage: [], illustrationPrompt: '' };
+    const json = await res.json();
+    const raw = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
+    return JSON.parse(cleaned) as CoupleProfile;
+  } catch {
+    return { pets: [], interests: [], locations: [], motifs: [], heritage: [], illustrationPrompt: '' };
+  }
 }
 
 export async function generateVibeSkin(
@@ -497,19 +577,45 @@ Key locations: ${[...new Set(context.chapters.map(c => c.location?.label).filter
 `
     : '';
 
+  const profile = context?.coupleProfile;
+  const coupleProfileContext = profile ? `
+## COUPLE DNA — THIS IS WHO THEY ARE (use for illustration and icon generation)
+${profile.pets.length ? `PETS: ${profile.pets.join(', ')}` : ''}
+${profile.interests.length ? `INTERESTS: ${profile.interests.join(', ')}` : ''}
+${profile.locations.length ? `KEY PLACES: ${profile.locations.join(', ')}` : ''}
+${profile.motifs.length ? `VISUAL MOTIFS: ${profile.motifs.join(', ')}` : ''}
+${profile.heritage.length ? `CULTURAL HERITAGE: ${profile.heritage.join(', ')}` : ''}
+ILLUSTRATION PROMPT: ${profile.illustrationPrompt}
+
+SVG ART RULES — READ CAREFULLY:
+- heroBlobSvg: Draw "${profile.illustrationPrompt}". Use this as the LITERAL subject matter. If they have cats, draw actual cat silhouettes in elegant poses. If they love hiking, draw mountain peaks and winding trails. If they mention vinyl records, draw record discs with musical notes. Fill 70%+ of the 500×700 canvas with THESE SPECIFIC ELEMENTS.
+- heroPatternSvg: Use their world as the repeating element. Cats → small paw prints and whisker curves. Music → staff lines and notes. Hiking → tiny mountain peaks. Coffee → coffee cup outlines. Heritage-inspired → cultural patterns.
+- chapterIcons: Generate one small SVG icon (80×80) per chapter that visually represents THAT CHAPTER's content. A chapter about "meeting at a coffee shop" gets a coffee cup. A chapter about "our first hike" gets a mountain peak. An anniversary chapter gets intertwined rings. Make each icon feel hand-crafted and specific.
+` : '';
+
+  const chapterIconsPrompt = context?.chapters?.length
+    ? `  "chapterIcons": [${context.chapters.map(c =>
+        `"<FULL SVG for chapter '${c.title}': Simple, elegant line-art icon 80×80 that represents '${c.description.slice(0, 80)}...'. 1-3 thematic elements. stroke only, no fill. Use accent color. viewBox='0 0 80 80'. Complete <svg>...</svg> on one line.>"`
+      ).join(', ')}],`
+    : '  "chapterIcons": [],';
+
   const prompt = `You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
 The couple's vibe is: "${vibeString}"
 ${storyContext}
-Your job: design a COMPLETELY UNIQUE, ELEGANT visual identity for their wedding site. The result should be refined and beautiful—no two sites should ever look the same.
+${coupleProfileContext}
+Your job: design a COMPLETELY UNIQUE visual identity for this specific couple. Every SVG illustration should reflect THEIR actual world — their pets, interests, places, and story. No two sites should ever look the same.
+
+## MANDATORY COLOR RULE — READ FIRST
+If the vibe string contains "Color inspiration:" with hex values (e.g. "#E84393, #F8C000"), those are the couple's CHOSEN colors. You MUST build the palette from those exact hex values. Do NOT substitute muted or desaturated alternatives. If the inspiration images show vibrant colors, use them vibrantly. The couple's explicit choice OVERRIDES everything below.
 
 ## CORE AESTHETIC PHILOSOPHY
-Default to MINIMALISM and ELEGANCE. Less is more. Avoid visual noise. Prefer:
-- Sophisticated desaturated tones with ONE warm or jewel-toned accent
-- Generous whitespace and restraint
-- For a luxurious feel: muted, aged tones (dusty rose, warm ivory, slate, sage) + one warm metallic or deep accent
-- Analogous color schemes (colors close on the wheel) with high-contrast ink for text
-- When in doubt: simplify the palette, let the typography breathe
+Match the couple's actual vibe — whether that's minimalist elegance OR bold festival color. Read the tone:
+- If vibeString has vibrant/festive/colorful/bold keywords OR bright hex colors: use FULL SATURATION. Embrace it.
+- If vibeString has words like minimal/clean/subtle/soft: prefer desaturated tones.
+- Never force muted tones when the couple chose vibrant. Never force vibrant when they chose soft.
+- Analogous color schemes work well, but analogous doesn't mean dull.
+- When in doubt: trust the hex colors and inspiration images over generic defaults.
 
 ## TONE-TO-PALETTE MAPPING
 Read the actual emotional tone words in the vibe and derive the palette from them:
@@ -523,6 +629,9 @@ Read the actual emotional tone words in the vibe and derive the palette from the
 - "art deco roaring twenties" → black (#0d0d0d), gold (#c4a438), cream (#f5f0e0), bg: #0d0d0d
 - "wildflower meadow boho" → lavender (#9a84b4), sage (#7a9a6a), terracotta (#b4724a), cream (#f5f0e4), bg: #f0ece4
 - "japanese zen cherry" → blush (#e8bcc0), white (#f5f2f0), charcoal (#2a2828), bamboo green (#6a8a68), bg: #f8f4f2
+- "vibrant festival fiesta colorful bold celebration" → hot pink (#E84393), golden yellow (#F8C000), deep orange (#F5841F), deep navy (#2A2690), bg: #FFF5F8
+- "tropical neon pop maximalist" → electric teal (#00C9B1), hot pink (#FF4D8D), deep violet (#3D0066), lime (#B8F400), bg: #0A0A1A
+- "warm festive mexican boho colorful" → terracotta (#C45C1A), magenta (#D4225A), golden (#F5A800), cobalt (#1A3A8F), bg: #FFF8F0
 
 ## SECTION LABEL GUIDANCE
 Avoid generic defaults. Use personality-driven labels:
@@ -591,9 +700,11 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
   "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox='0 0 800 40'. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
   "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox='0 0 80 80'. Art Nouveau style. Complete <svg>...</svg> on one line.>",
   "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox='0 0 120 120'. Complete <svg>...</svg> on one line.>",
-  "heroBlobSvg": "<FULL SVG: large editorial illustration for the hero section right panel. viewBox='0 0 500 700'. Draw 20-30 thematic botanical branches with leaf shapes, constellations with connecting lines and star dots, vineyard/architectural linework, or other vibe-specific illustrations that FILL 70%+ of the canvas richly. This displays at ~40% page width — it must look impressive and artistic. Use ONLY the accent color. Opacity range 0.12-0.25. Complete <svg>...</svg> on one line.>",
+  "heroBlobSvg": "<FULL SVG: viewBox='0 0 500 700'. THIS MUST ILLUSTRATE THE COUPLE'S ACTUAL WORLD. If they have cats: draw 4-6 elegant cat silhouettes in different poses scattered throughout. If they love hiking: draw mountain peaks, trails, pine trees. If they mention vinyl: draw record discs, musical notes, a turntable. If they mention a city: draw that city's skyline. Use the illustrationPrompt above as your exact brief. 20-30 elements. Fill 70%+ of canvas. Use ONLY accent color. Opacity 0.12-0.25. Complete <svg>...</svg> on one line.>",
   "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox='0 0 600 400'. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08-0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
-  "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Match the 'curve' choice: cascade=multi-cascade beziers, ribbon=wide sinusoid, mountain=sharp peaks, organic=flowing beziers, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.>"
+  "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Match the 'curve' choice: cascade=multi-cascade beziers, ribbon=wide sinusoid, mountain=sharp peaks, organic=flowing beziers, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.>",
+  "chapterColors": ["<hex tint per chapter — e.g. beach chapter → '#E8F4F8', golden hour → '#FDF0E0', forest → '#EAF2E8', night → '#1A1A2E'. One entry per chapter. These are applied as very subtle (3-5% opacity) background washes on each story section.>"],
+  ${chapterIconsPrompt}
 }
 
 CRITICAL DESIGN RULES:
@@ -604,14 +715,15 @@ CRITICAL DESIGN RULES:
 5. decorIcons: thematically specific (botanical, celestial, nautical, architectural) — NOT generic hearts.
 6. dividerQuote: MUST be 6-10 words maximum. Short, poetic, specific to this couple's vibe. Never a generic love quote.
 7. All 9 palette colors must form a cohesive, premium visual system. Prefer analogous schemes with one contrasting accent.
-8. heroBlobSvg: Must fill 70%+ of the 500x700 canvas with rich thematic linework.
+8. heroBlobSvg: MUST illustrate the couple's actual world using the COUPLE DNA above. Not generic branches. Draw their pets, hobbies, locations. Fill 70%+ of the 500x700 canvas.
+16. chapterIcons: Each icon must be specific to that chapter's content — not generic. A coffee chapter = coffee cup. A travel chapter = airplane or map. A proposal chapter = ring. Simple, elegant, 3-5 stroke elements max per icon.
 9. accentBlobSvg: The blob polygon must be irregular and organic, filling ~60% of canvas.
 10. sectionBlobPath: Match curve type exactly — cascade/ribbon/mountain have distinct geometries.
 11. headingStyle: italic-serif for romantic, uppercase-tracked for minimal/luxury, script-like for handcrafted, bold-editorial for modern, thin-elegant for art deco.
 12. cardStyle: glass for dreamy/cosmic, elevated for luxurious, outlined for minimal, solid for rustic, minimal for zen.
 13. sectionGradient: use palette.subtle → palette.card → palette.background for a gentle wash.
 14. curve / wavePath: The wave dividers between sections should be GENTLE and SUBTLE. Prefer: ribbon (wide sinusoid), arch (smooth arc), organic (soft flowing). Reserve mountain/geometric for bold/modern vibes. The rendered height is max 80px — the SVG path coords should reflect gentle height changes, NOT dramatic peaks.
-15. ELEGANCE FIRST: When uncertain about palette choices, default to sophisticated muted tones + one warm accent. Avoid neon, high-saturation primaries, or jarring color contrasts. The site should feel like a luxury editorial magazine.`;
+15. RESPECT THE BRIEF: If the couple chose vibrant hex colors or submitted vibrant inspiration images, USE THOSE COLORS at full saturation. Do not desaturate or mute colors that the couple chose. A Coco / festival / fiesta vibe should look like hot pink, deep navy, and golden yellow — not dusty rose and cream. Serve the couple's actual vision.`;
 
   try {
     // Build multimodal parts array — start with the text prompt
@@ -619,7 +731,7 @@ CRITICAL DESIGN RULES:
 
     // Add inspiration images to the Gemini parts array
     if (context?.inspirationUrls?.length) {
-      parts.push({ text: `\n\nINSPIRATION IMAGES: The couple has provided ${context.inspirationUrls.length} inspiration image(s) below. Analyze each for: dominant color palette, typography style (serif/sans/script), decorative density (minimal/medium/ornate), overall mood. Let these HEAVILY influence your palette, typography, and decoration choices.\n` });
+      parts.push({ text: `\n\nINSPIRATION IMAGES (HIGHEST PRIORITY): The couple uploaded ${context.inspirationUrls.length} inspiration image(s) below. These represent EXACTLY the visual world they want. Extract the dominant colors, mood, and style from these images and let them COMPLETELY DEFINE your palette and aesthetic choices. If the images show vibrant or bold colors, reproduce them faithfully — do NOT soften or desaturate. These images OVERRIDE the default tone mapping guidelines.\n` });
 
       for (const url of context.inspirationUrls.slice(0, 4)) {
         try {
@@ -662,7 +774,7 @@ CRITICAL DESIGN RULES:
         contents: [{ parts }],
         generationConfig: {
           temperature: 1.0,
-          maxOutputTokens: 6000,
+          maxOutputTokens: 12000,
           responseMimeType: 'application/json',
         },
       }),
@@ -768,6 +880,18 @@ CRITICAL DESIGN RULES:
       sectionBlobPath: typeof parsed.sectionBlobPath === 'string' && parsed.sectionBlobPath.startsWith('M')
         ? parsed.sectionBlobPath
         : fallbackArt.sectionBlobPath,
+      chapterIcons: Array.isArray(parsed.chapterIcons)
+        ? parsed.chapterIcons.map((raw: unknown) => {
+            if (typeof raw !== 'string') return null;
+            const svg = extractSvgFromField(raw);
+            return svg && isValidSvg(svg) ? svg : null;
+          }).filter(Boolean) as string[]
+        : [],
+      chapterColors: Array.isArray(parsed.chapterColors)
+        ? parsed.chapterColors.map((c: unknown) =>
+            typeof c === 'string' && c.startsWith('#') ? c : null
+          ).filter(Boolean) as string[]
+        : [],
       aiGenerated: true,
     };
   } catch (err) {

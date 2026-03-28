@@ -8,6 +8,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import type { Transition, TargetAndTransition } from 'framer-motion';
 import type { Chapter } from '@/types';
 import { MoodDecorator } from '@/components/mood-decorator';
 import { LocationPinIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
@@ -16,6 +17,59 @@ import { VideoChapterPlayer } from '@/components/site/VideoChapterPlayer';
 interface TimelineItemProps {
   chapter: Chapter;
   index: number;
+  chapterIcon?: string; // AI-generated SVG icon specific to this chapter
+}
+
+/**
+ * Maps mood tag + emotional intensity to a Framer Motion entrance variant.
+ * High-intensity dramatic moments snap in fast. Quiet intimate moments drift slowly.
+ */
+type MoodVariant = { initial: TargetAndTransition; animate: TargetAndTransition; transition: Transition };
+
+function moodEntrance(mood: string, intensity = 5): MoodVariant {
+  const m = (mood || '').toLowerCase();
+  const dur = intensity >= 8 ? 0.65 : intensity >= 5 ? 0.9 : 1.2;
+
+  // Night / moody / dark → pure opacity fade, no movement
+  if (m.includes('night') || m.includes('dark') || m.includes('moody') || m.includes('midnight'))
+    return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: dur * 1.3, ease: 'easeInOut' } };
+
+  // High-intensity milestone → sharp rise from below, fast overshoot
+  if (intensity >= 8)
+    return { initial: { opacity: 0, y: 70 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur, ease: [0.16, 1, 0.3, 1] } };
+
+  // Dreamy / golden / warm → gentle diagonal drift
+  if (m.includes('golden') || m.includes('sunset') || m.includes('warm') || m.includes('dreamy'))
+    return { initial: { opacity: 0, y: 28, x: 12 }, animate: { opacity: 1, y: 0, x: 0 }, transition: { duration: dur, ease: [0.25, 1, 0.5, 1] } };
+
+  // Adventure / mountain / travel → strong vertical rise
+  if (m.includes('mountain') || m.includes('travel') || m.includes('adventure') || m.includes('outdoor'))
+    return { initial: { opacity: 0, y: 60 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur * 0.85, ease: [0.16, 1, 0.3, 1] } };
+
+  // Cozy / lazy / intimate → slow, barely-moving float
+  if (m.includes('cozy') || m.includes('lazy') || m.includes('sunday') || m.includes('intimate') || m.includes('winter'))
+    return { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur * 1.4, ease: 'easeOut' } };
+
+  // Playful / fun → light upward spring
+  if (m.includes('playful') || m.includes('fun') || m.includes('summer'))
+    return { initial: { opacity: 0, y: 40, scale: 0.97 }, animate: { opacity: 1, y: 0, scale: 1 }, transition: { duration: dur, ease: [0.34, 1.56, 0.64, 1] } };
+
+  // Default: standard fade-up
+  return { initial: { opacity: 0, y: 50 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur, ease: [0.16, 1, 0.3, 1] } };
+}
+
+/** Returns CSS object-position from AI-detected focal point, or 'center' as default */
+function focalPos(chapter: Chapter): string {
+  if (!chapter.imagePosition) return 'center';
+  return `${chapter.imagePosition.x}% ${chapter.imagePosition.y}%`;
+}
+
+/** Returns the hero image URL — AI picks the best photo, falls back to index 0 */
+function heroImage(chapter: Chapter): string {
+  const imgs = chapter.images || [];
+  if (!imgs.length) return '';
+  const idx = chapter.heroPhotoIndex ?? 0;
+  return imgs[Math.min(idx, imgs.length - 1)]?.url || '';
 }
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
@@ -244,7 +298,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
   const imgY2 = useTransform(scrollYProgress, [0, 1], ['-8%', '18%']);
   const textY = useTransform(scrollYProgress, [0, 1], ['8%', '-4%']);
 
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const secondImage = chapter.images[1]?.url || '';
 
   return (
@@ -265,10 +319,11 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
           position: 'relative',
         }}
         className="max-md:flex-col max-md:gap-8 max-md:px-6"
-        initial={{ opacity: 0, y: 60 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* Editorial Image Stack — 60% */}
         <div style={{ flex: '0 0 56%', position: 'relative', minHeight: '600px' }} className="max-md:w-full max-md:min-h-[360px]">
@@ -290,7 +345,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(mainImage, 1200, 1600)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
               />
@@ -316,7 +371,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(secondImage, 800, 1000)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05) grayscale(0)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'grayscale(18%) brightness(0.97)'; }}
               />
@@ -385,7 +440,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['-18%', '18%']);
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
   if (!hasImages) return <EditorialLayout chapter={chapter} index={0} />;
@@ -394,10 +449,11 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
     <motion.article
       ref={ref}
       style={{ position: 'relative', height: '100dvh', minHeight: '600px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
+      {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+      whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+      initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
       viewport={{ once: true }}
-      transition={{ duration: 1.4 }}
+      transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
     >
       {/* Video replaces image when playing */}
       {chapter.videoUrl && videoPlaying ? (
@@ -423,7 +479,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
         <>
           {mainImage && (
             <motion.div style={{ position: 'absolute', inset: -80, y }}>
-              <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.45) contrast(1.2) saturate(1.15)' }} />
+              <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), filter: 'brightness(0.68) contrast(1.08) saturate(1.1)' }} />
             </motion.div>
           )}
 
@@ -522,7 +578,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const blur = useTransform(scrollYProgress, [0, 0.5, 1], [60, 80, 60]);
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
   return (
@@ -531,10 +587,11 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
       <motion.article
         ref={ref}
         style={{ position: 'relative', padding: '10rem 2rem', textAlign: 'center', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '600px' }}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1.2 }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* Video replaces blurred background when playing */}
         {chapter.videoUrl && videoPlaying ? (
@@ -562,7 +619,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                 <motion.div style={{
                   position: 'absolute', inset: -120,
                   backgroundImage: `url(${proxyUrl(mainImage, 800, 800)})`,
-                  backgroundSize: 'cover', backgroundPosition: 'center',
+                  backgroundSize: 'cover', backgroundPosition: focalPos(chapter),
                   filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
                   opacity: 0.35, zIndex: 0,
                 }} />
@@ -639,7 +696,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
 function SplitLayout({ chapter, index }: TimelineItemProps) {
   const isEven = index % 2 === 0;
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -664,10 +721,11 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
           minHeight: '500px',
         }}
         className="max-md:flex-col max-md:px-4"
-        initial={{ opacity: 0, y: 60 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* Photo — fills its half completely */}
         {hasImages && mainImage && (
@@ -678,7 +736,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
             <img
               src={proxyUrl(mainImage, 1400, 1100)}
               alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
               onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
               onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
             />
@@ -743,16 +801,18 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
 // ─── LAYOUT: GALLERY (editorial asymmetric masonry grid) ───
 function GalleryLayout({ chapter, index }: TimelineItemProps) {
   const images = chapter.images.slice(0, 4);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   return (
     <>
       <ChapterDivider />
       <motion.article
         style={{ maxWidth: '1300px', margin: '4rem auto', padding: '0 3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1 }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
         className="max-md:px-4"
       >
         {/* Centered editorial header */}
@@ -799,41 +859,65 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
           }} className="max-md:flex max-md:flex-col max-md:gap-2">
             {images[0] && (
               <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
-                className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                className="max-md:w-full max-md:rounded-[8px]"
+                onMouseOver={() => setHoveredIdx(0)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 0 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 0 ? 'brightness(1.05)' : 'none' }}
                   className="max-md:[aspect-ratio:4/3]"
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
+                {images[0].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 0 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[0].caption}
+                  </div>
+                )}
               </div>
             )}
             {images[1] && (
               <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
-                className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                className="max-md:w-full max-md:rounded-[8px]"
+                onMouseOver={() => setHoveredIdx(1)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 1 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 1 ? 'brightness(1.05)' : 'none' }}
                   className="max-md:[aspect-ratio:4/3]"
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
+                {images[1].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 1 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[1].caption}
+                  </div>
+                )}
               </div>
             )}
             {images[2] && (
               <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
-                className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                className="max-md:w-full max-md:rounded-[8px]"
+                onMouseOver={() => setHoveredIdx(2)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 2 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 2 ? 'brightness(1.05)' : 'none' }}
                   className="max-md:[aspect-ratio:4/3]"
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
+                {images[2].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 2 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[2].caption}
+                  </div>
+                )}
               </div>
             )}
             {images[3] && (
               <div style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
-                className="max-md:hidden">
-                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
+                className="max-md:hidden"
+                onMouseOver={() => setHoveredIdx(3)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 3 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 3 ? 'brightness(1.05)' : 'none' }}
                 />
+                {images[3].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 3 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[3].caption}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -853,6 +937,7 @@ const OFFSETS: Array<{ x: number | string; y: number }> = [
 function MosaicLayout({ chapter, index }: TimelineItemProps) {
   const images = chapter.images.slice(0, 5);
   const [isMobile, setIsMobile] = useState(false);
+  const [hoveredMosaicIdx, setHoveredMosaicIdx] = useState<number | null>(null);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -869,10 +954,11 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
       <motion.article
         style={{ maxWidth: '1300px', margin: '4rem auto', padding: '5rem 3rem', display: 'flex', gap: '5rem', alignItems: 'flex-start' }}
         className="max-md:flex-col max-md:px-4 max-md:gap-8 max-md:pt-8"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.8 }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* On mobile: text first so heading is never hidden behind polaroids */}
         {isMobile && (
@@ -941,15 +1027,23 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                     transform: `rotate(${rotate}deg)`,
                     transformOrigin: 'center center',
                   }}
+                  onMouseOver={() => setHoveredMosaicIdx(i)}
+                  onMouseOut={() => setHoveredMosaicIdx(null)}
                 >
                   <div style={{
                     background: '#fff',
                     padding: '8px 8px 28px',
                     boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
                     borderRadius: '2px',
+                    position: 'relative',
                   }}>
-                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
-                      <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)', position: 'relative' }}>
+                      <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
+                      {img.caption && (
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredMosaicIdx === i ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                          {img.caption}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -973,6 +1067,8 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   cursor: 'pointer',
                   transformOrigin: 'center center',
                 }}
+                onMouseOver={() => setHoveredMosaicIdx(i)}
+                onMouseOut={() => setHoveredMosaicIdx(null)}
               >
                 {/* Polaroid frame */}
                 <div style={{
@@ -981,8 +1077,13 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
                   borderRadius: '2px',
                 }}>
-                  <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
-                    <img src={proxyUrl(img.url, 600, 800)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)', position: 'relative' }}>
+                    <img src={proxyUrl(img.url, 600, 800)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
+                    {img.caption && (
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredMosaicIdx === i ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                        {img.caption}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -1038,19 +1139,56 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
 // ─── MAIN ROUTER ─────────────────────────────────────────────
 const LAYOUT_CYCLE: Array<Chapter['layout']> = ['editorial', 'fullbleed', 'split', 'mosaic', 'cinematic', 'gallery'];
 
-export function TimelineItem({ chapter, index }: TimelineItemProps) {
+export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps) {
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  // Fall back to editorial (text-only) when no images are available
-  const rawLayout = chapter.layout || LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  const imageCount = chapter.images?.length ?? 0;
+  const intensity = chapter.emotionalIntensity ?? 5;
+
+  // Emotional intensity + photo count → optimal layout selection
+  const rawLayout = chapter.layout || (() => {
+    if (!hasImages) return 'editorial';
+    if (intensity >= 8 && imageCount >= 1) return index % 2 === 0 ? 'cinematic' : 'fullbleed';
+    if (intensity <= 3) return 'editorial';
+    if (imageCount >= 4) return index % 2 === 0 ? 'mosaic' : 'gallery';
+    if (imageCount === 3) return 'gallery';
+    if (imageCount === 2) return index % 2 === 0 ? 'split' : 'editorial';
+    return LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  })();
   const layout = hasImages ? rawLayout : 'editorial';
 
-  switch (layout) {
-    case 'fullbleed': return <FullbleedLayout chapter={chapter} index={index} />;
-    case 'split': return <SplitLayout chapter={chapter} index={index} />;
-    case 'cinematic': return <CinematicLayout chapter={chapter} index={index} />;
-    case 'gallery': return <GalleryLayout chapter={chapter} index={index} />;
-    case 'mosaic': return <MosaicLayout chapter={chapter} index={index} />;
-    case 'editorial':
-    default: return <EditorialLayout chapter={chapter} index={index} />;
+  const inner = (() => {
+    switch (layout) {
+      case 'fullbleed': return <FullbleedLayout chapter={chapter} index={index} />;
+      case 'split': return <SplitLayout chapter={chapter} index={index} />;
+      case 'cinematic': return <CinematicLayout chapter={chapter} index={index} />;
+      case 'gallery': return <GalleryLayout chapter={chapter} index={index} />;
+      case 'mosaic': return <MosaicLayout chapter={chapter} index={index} />;
+      case 'editorial':
+      default: return <EditorialLayout chapter={chapter} index={index} />;
+    }
+  })();
+
+  // Overlay the AI chapter icon as a floating decoration if available
+  if (chapterIcon) {
+    return (
+      <div style={{ position: 'relative' }}>
+        {inner}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '2.5rem',
+            right: '2.5rem',
+            width: '64px',
+            height: '64px',
+            opacity: 0.22,
+            pointerEvents: 'none',
+          }}
+          dangerouslySetInnerHTML={{ __html: chapterIcon }}
+        />
+      </div>
+    );
   }
+
+  return inner;
 }

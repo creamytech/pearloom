@@ -9,6 +9,7 @@ import {
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 import { PearBackground } from '@/components/icons/PearShapes';
+import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 
 // ── Greeting helper ────────────────────────────────────────────
 function getGreeting(): string {
@@ -150,6 +151,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
   const [confirmDelete, setConfirmDelete] = useState<UserSite | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [expandedCompleteness, setExpandedCompleteness] = useState<string | null>(null);
 
   const loadSites = () => {
     setFetchError(false);
@@ -533,6 +535,41 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           <span>Created {formattedDate}</span>
                         </div>
                       </div>
+
+                      {/* Completeness bar — click to expand full panel */}
+                      {site.manifest && (
+                        <div style={{ marginBottom: '0.85rem' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedCompleteness(prev => prev === site.id ? null : site.id);
+                            }}
+                            style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+                          >
+                            <SiteCompletenessPanel
+                              manifest={site.manifest}
+                              coupleNames={(site.names || ['', '']) as [string, string]}
+                              compact
+                            />
+                          </button>
+                          <AnimatePresence>
+                            {expandedCompleteness === site.id && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                                style={{ overflow: 'hidden', marginTop: '8px' }}
+                              >
+                                <SiteCompletenessPanel
+                                  manifest={site.manifest}
+                                  coupleNames={(site.names || ['', '']) as [string, string]}
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
 
                       {/* Action row */}
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

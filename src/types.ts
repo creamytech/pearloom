@@ -75,6 +75,14 @@ export interface StoryManifest {
   activeLocale?: string;
   // Real-time collab: current editor session info
   collaborators?: Array<{ userId: string; name: string; color: string; cursor?: string }>;
+  // Site analytics — lightweight view counter
+  analytics?: { views: number; lastViewed?: string };
+  // RSVP responses collected for this site
+  rsvps?: RsvpResponse[];
+  // Published site subdomain (e.g. "jess-and-tom")
+  subdomain?: string;
+  // ISO 8601 timestamp of when the site was first published
+  publishedAt?: string;
 }
 
 export interface Chapter {
@@ -90,6 +98,12 @@ export interface Chapter {
   order: number;
   /** Object-position for the cover image (percentages 0–100). Default: { x: 50, y: 50 } */
   imagePosition?: { x: number; y: number };
+  /** Emotional intensity score 1–10. High (8–10) = cinematic/fullbleed; Low (1–3) = editorial */
+  emotionalIntensity?: number;
+  /** Ambient background tint color for this chapter's section (very subtle, ~4% opacity) */
+  ambientColor?: string;
+  /** Index into chapter.images[] of the hero/cover photo (AI picks the most visually striking one) */
+  heroPhotoIndex?: number;
   /** Optional video URL (YouTube, Vimeo, or direct mp4) to show instead of/alongside photos */
   videoUrl?: string;
   /** AI-generated quiz question derived from this chapter's content */
@@ -106,6 +120,7 @@ export interface ChapterImage {
   width: number;
   height: number;
   blurDataUrl?: string; // base64 placeholder for Next/Image
+  caption?: string; // AI-generated poetic caption (4-8 words)
 }
 
 export interface GeoLocation {

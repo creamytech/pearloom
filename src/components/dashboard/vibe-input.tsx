@@ -71,14 +71,18 @@ const OCCASIONS = [
 ];
 
 const COLOR_PALETTES = [
-  { id: 'warm-earth', name: 'Warm Earth', colors: ['#8B4513', '#D2691E', '#DEB887', '#FAEBD7', '#2F1B14'] },
-  { id: 'ocean-breeze', name: 'Ocean Breeze', colors: ['#1B4965', '#5FA8D3', '#BEE9E8', '#CAE9FF', '#0B2545'] },
-  { id: 'golden-hour', name: 'Golden Hour', colors: ['#B8860B', '#DAA520', '#FFD700', '#FFF8DC', '#1A1A1A'] },
-  { id: 'sage-garden', name: 'Sage & Garden', colors: ['#556B2F', '#8FBC8F', '#F5F5DC', '#FAFAF5', '#2D3B2D'] },
-  { id: 'blush-rose', name: 'Blush & Rose', colors: ['#8B3A62', '#DB7093', '#FFB6C1', '#FFF0F5', '#4A1728'] },
-  { id: 'midnight', name: 'Midnight Elegant', colors: ['#191970', '#4169E1', '#B0C4DE', '#F0F0FF', '#0A0A2E'] },
-  { id: 'terracotta', name: 'Terracotta', colors: ['#A0522D', '#CD853F', '#F4A460', '#FFEFD5', '#3B1F0B'] },
-  { id: 'custom', name: 'Let AI decide', colors: ['#888', '#aaa', '#ccc', '#eee', '#333'] },
+  { id: 'warm-earth',    name: 'Warm Earth',       colors: ['#8B4513', '#D2691E', '#DEB887', '#FAEBD7', '#2F1B14'] },
+  { id: 'ocean-breeze',  name: 'Ocean Breeze',      colors: ['#1B4965', '#5FA8D3', '#BEE9E8', '#CAE9FF', '#0B2545'] },
+  { id: 'golden-hour',   name: 'Golden Hour',       colors: ['#B8860B', '#DAA520', '#FFD700', '#FFF8DC', '#1A1A1A'] },
+  { id: 'sage-garden',   name: 'Sage & Garden',     colors: ['#556B2F', '#8FBC8F', '#F5F5DC', '#FAFAF5', '#2D3B2D'] },
+  { id: 'blush-rose',    name: 'Blush & Rose',      colors: ['#8B3A62', '#DB7093', '#FFB6C1', '#FFF0F5', '#4A1728'] },
+  { id: 'midnight',      name: 'Midnight Elegant',  colors: ['#191970', '#4169E1', '#B0C4DE', '#F0F0FF', '#0A0A2E'] },
+  { id: 'terracotta',    name: 'Terracotta',        colors: ['#A0522D', '#CD853F', '#F4A460', '#FFEFD5', '#3B1F0B'] },
+  { id: 'festival',      name: 'Festival & Bold',   colors: ['#E84393', '#F8C000', '#F5841F', '#FFF5F8', '#2A2690'] },
+  { id: 'dark-romance',  name: 'Dark Romance',      colors: ['#6A0F2A', '#A83050', '#D4A0A0', '#F8F0F2', '#1A0408'] },
+  { id: 'celestial',     name: 'Celestial Night',   colors: ['#0D1B2A', '#1B3A6B', '#C8A0E8', '#F0EAFF', '#E8D8FF'] },
+  { id: 'modern-luxe',   name: 'Modern Luxe',       colors: ['#1A1A1A', '#B8962A', '#DFC870', '#F5F2ED', '#0A0A0A'] },
+  { id: 'custom',        name: 'Let AI decide',     colors: ['#888', '#aaa', '#ccc', '#eee', '#333'] },
 ];
 
 const PLACES = [
@@ -185,7 +189,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const selectedOccasionLabel = OCCASIONS.find(o => o.id === occasion)?.label || '';
     const selectedPalette = COLOR_PALETTES.find(p => p.id === palette);
     const paletteInfo = selectedPalette && palette !== 'custom'
-      ? `Color inspiration: ${selectedPalette.name} palette (${selectedPalette.colors.join(', ')}).`
+      ? `MANDATORY COLOR PALETTE — the couple chose "${selectedPalette.name}". You MUST use these exact hex colors as the basis for the design: ${selectedPalette.colors.join(', ')}. Do NOT substitute muted or desaturated alternatives. These colors are required.`
       : 'Let the AI choose colors that match the overall vibe.';
 
     const placeVibes = favPlaces.map(id => {
