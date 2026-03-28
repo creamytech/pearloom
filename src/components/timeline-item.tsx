@@ -523,6 +523,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
   const blur = useTransform(scrollYProgress, [0, 0.5, 1], [60, 80, 60]);
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   return (
     <>

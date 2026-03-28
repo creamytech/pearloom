@@ -408,6 +408,120 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                   </motion.div>
                 )}
 
+                {/* AI prompt pills */}
+                <div>
+                  <p
+                    style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      color: 'var(--eg-muted)',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      marginBottom: '0.6rem',
+                    }}
+                  >
+                    Need inspiration?
+                  </p>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.45rem',
+                    }}
+                  >
+                    {PROMPT_PILLS.map((pill) => (
+                      <button
+                        key={pill.label}
+                        type="button"
+                        onClick={() => setMessage((prev) => prev ? prev : pill.starter)}
+                        style={{
+                          padding: '0.35rem 0.8rem',
+                          borderRadius: '100px',
+                          border: '1px solid color-mix(in srgb, var(--eg-accent) 30%, transparent)',
+                          background: 'color-mix(in srgb, var(--eg-accent-light) 50%, transparent)',
+                          color: 'var(--eg-accent)',
+                          fontSize: '0.78rem',
+                          fontFamily: 'var(--eg-font-body)',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s, border-color 0.2s',
+                          whiteSpace: 'nowrap',
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.background =
+                            'color-mix(in srgb, var(--eg-accent-light) 80%, transparent)';
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.background =
+                            'color-mix(in srgb, var(--eg-accent-light) 50%, transparent)';
+                        }}
+                      >
+                        {pill.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Voice note placeholder */}
+                <div style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVoiceToast(true);
+                      setTimeout(() => setVoiceToast(false), 2800);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.45rem 1rem',
+                      borderRadius: '100px',
+                      border: '1.5px dashed rgba(0,0,0,0.15)',
+                      background: 'transparent',
+                      color: 'var(--eg-muted)',
+                      fontSize: '0.82rem',
+                      fontFamily: 'var(--eg-font-body)',
+                      cursor: 'pointer',
+                      transition: 'border-color 0.2s, color 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = 'var(--eg-accent)';
+                      (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.15)';
+                      (e.currentTarget as HTMLElement).style.color = 'var(--eg-muted)';
+                    }}
+                  >
+                    <Mic size={13} />
+                    Leave a voice message
+                  </button>
+                  <AnimatePresence>
+                    {voiceToast && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.25 }}
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 'calc(100% + 0.5rem)',
+                          background: 'var(--eg-fg)',
+                          color: 'var(--eg-bg)',
+                          fontSize: '0.75rem',
+                          padding: '0.4rem 0.85rem',
+                          borderRadius: '0.5rem',
+                          whiteSpace: 'nowrap',
+                          pointerEvents: 'none',
+                          zIndex: 10,
+                        }}
+                      >
+                        Voice messages coming soon ✨
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {/* Name field — bottom-border style */}
                 <div>
                   <label
