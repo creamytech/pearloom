@@ -329,7 +329,7 @@ export default async function SiteSubPage(
   return (
     <ThemeProvider theme={manifest.theme || undefined}>
       <SiteNav names={safeNames} pages={sitePages} currentPage={page} />
-      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
         {content}
       </main>
       <SiteClientSections siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />

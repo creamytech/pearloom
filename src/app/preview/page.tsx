@@ -104,7 +104,7 @@ function PreviewContent() {
 
   if (!manifest) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#faf9f6' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#faf9f6' }}>
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 300, letterSpacing: '0.04em', color: '#1a1a1a', marginBottom: '0.75rem' }}>
             Preview
@@ -400,7 +400,7 @@ function PreviewContent() {
 
       <SiteNav names={names} pages={sitePages} />
 
-      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
         {visibleBlocks ? (
           <>
             {vibeSkin.heroPatternSvg && (
@@ -494,7 +494,7 @@ export default function PreviewPage() {
   return (
     <Suspense
       fallback={
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p style={{ color: '#8c8c8c' }}>Loading preview…</p>
         </div>
       }

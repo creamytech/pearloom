@@ -135,7 +135,7 @@ const lbl: React.CSSProperties = {
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
   border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.05)',
-  color: '#fff', fontSize: '0.82rem', outline: 'none', fontFamily: 'inherit',
+  color: '#fff', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
   boxSizing: 'border-box', transition: 'border-color 0.15s',
 };
 
@@ -409,22 +409,22 @@ function BlockRow({
         <button
           onClick={e => { e.stopPropagation(); onToggle(block.id); }}
           title={block.visible ? 'Hide section' : 'Show section'}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'rgba(255,255,255,0.3)' : '#f87171', display: 'flex', padding: '5px', borderRadius: '5px', transition: 'color 0.15s' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'rgba(255,255,255,0.3)' : '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
         >
-          {block.visible ? <Eye size={13} /> : <EyeOff size={13} />}
+          {block.visible ? <Eye size={14} /> : <EyeOff size={14} />}
         </button>
         <button
           onClick={e => { e.stopPropagation(); onDelete(block.id); }}
           title="Remove block"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '5px', borderRadius: '5px', transition: 'color 0.15s' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
         >
-          <Trash2 size={12} />
+          <Trash2 size={14} />
         </button>
         {/* Expand chevron */}
-        <div style={{ color: isActive ? color : 'rgba(255,255,255,0.2)', display: 'flex', padding: '5px', transition: 'all 0.2s' }}>
-          <ChevronDown size={13} style={{ transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+        <div style={{ color: isActive ? color : 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', transition: 'all 0.2s', minWidth: '36px', minHeight: '36px' }}>
+          <ChevronDown size={14} style={{ transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
         </div>
       </div>
 
@@ -953,7 +953,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* ── Block list (scrollable) ── */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
 
         {/* ── Page Selector ── */}
         <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>

@@ -81,6 +81,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
           top: 0, left: 0, right: 0,
           zIndex: 50,
           transition: 'all 0.35s ease',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
           background: scrolled || pathname !== '/'
             ? 'rgba(250,249,246,0.88)'
             : 'transparent',
@@ -273,9 +274,12 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               position: 'fixed', inset: 0, zIndex: 40,
               background: 'rgba(250,249,246,0.97)',
               backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
               gap: '2rem',
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+              paddingBottom: 'env(safe-area-inset-bottom, 24px)',
             }}
           >
             {/* Mobile: studio actions */}

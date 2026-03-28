@@ -413,7 +413,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
       <SiteNav names={safeNames} pages={sitePages} />
 
-      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
         {visibleBlocks ? (
           // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
           <>
