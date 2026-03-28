@@ -182,6 +182,33 @@ export async function POST(req: NextRequest) {
       manifest.events = events;
     }
 
+    // ── Initialize blocks: only show what the user has actually provided.
+    // Hero + Story are always shown. Events/countdown are shown if venue data was entered.
+    // RSVP, registry, travel, FAQ, guestbook are NOT shown until explicitly enabled in editor.
+    {
+      let order = 0;
+      const blocks: Array<{ id: string; type: string; order: number; visible: boolean }> = [
+        { id: 'hero',  type: 'hero',  order: order++, visible: true },
+        { id: 'story', type: 'story', order: order++, visible: true },
+      ];
+      // Only add events block if the user actually provided venue/time details
+      if (events.length > 0) {
+        blocks.push({ id: 'event', type: 'event', order: order++, visible: true });
+        // Countdown only if there's a date
+        if (eventDate) {
+          blocks.push({ id: 'countdown', type: 'countdown', order: order++, visible: true });
+        }
+      }
+      // RSVP, registry, travel, FAQ, guestbook — hidden by default, user unlocks in editor
+      blocks.push({ id: 'rsvp',      type: 'rsvp',      order: order++, visible: false });
+      blocks.push({ id: 'registry',  type: 'registry',  order: order++, visible: false });
+      blocks.push({ id: 'travel',    type: 'travel',    order: order++, visible: false });
+      blocks.push({ id: 'faq',       type: 'faq',       order: order++, visible: false });
+      blocks.push({ id: 'photos',    type: 'photos',    order: order++, visible: false });
+      blocks.push({ id: 'guestbook', type: 'guestbook', order: order++, visible: false });
+      manifest.blocks = blocks as typeof manifest.blocks;
+    }
+
     // Set top-level logistics fields from user-supplied details
     if (dresscode) {
       manifest.logistics = { ...(manifest.logistics ?? {}), dresscode };
