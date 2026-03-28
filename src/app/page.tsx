@@ -106,6 +106,7 @@ export default function DashboardPage() {
     celebrationVenue?: string;
     celebrationTime?: string;
     guestNotes?: string;
+    inspirationUrls?: string[];
   }) => {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
@@ -145,6 +146,7 @@ export default function DashboardPage() {
           celebrationVenue: data.celebrationVenue,
           celebrationTime: data.celebrationTime,
           guestNotes: data.guestNotes,
+          inspirationUrls: data.inspirationUrls || [],
         }),
         signal: controller.signal,
       });
