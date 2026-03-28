@@ -185,7 +185,6 @@ export function LanguageSwitcher({
                     cursor: isLoadingThis ? 'wait' : 'pointer',
                     textAlign: 'left',
                     transition: 'background 0.15s',
-                    dir: lang.dir || 'ltr',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) (e.currentTarget as HTMLElement).style.background = `${palette.accent}0e`;
