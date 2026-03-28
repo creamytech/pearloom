@@ -462,10 +462,23 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
+export interface VibeSkinContext {
+  chapters?: Array<{
+    title: string;
+    subtitle: string;
+    mood: string;
+    location?: { label: string } | null;
+    description: string;
+  }>;
+  inspirationUrls?: string[];  // Pinterest/inspiration image URLs
+  photoUrls?: string[];        // Representative photo URLs from the couple's actual uploads
+}
+
 export async function generateVibeSkin(
   vibeString: string,
+  apiKey?: string,
   coupleNames?: [string, string],
-  apiKey?: string
+  context?: VibeSkinContext
 ): Promise<VibeSkin> {
   if (!apiKey) return deriveFallback(vibeString);
 
@@ -473,10 +486,21 @@ export async function generateVibeSkin(
     ? `The couple is ${coupleNames[0]} & ${coupleNames[1]}.`
     : '';
 
+  const storyContext = context?.chapters?.length
+    ? `
+STORY CONTEXT (use this to deeply inform the visual identity):
+The couple's story has these chapters:
+${context.chapters.map(c => `- "${c.title}" — ${c.mood} mood, ${c.location?.label || 'no specific location'}: ${c.description}`).join('\n')}
+
+Key moods detected: ${[...new Set(context.chapters.map(c => c.mood))].join(', ')}
+Key locations: ${[...new Set(context.chapters.map(c => c.location?.label).filter(Boolean))].join(', ') || 'not specified'}
+`
+    : '';
+
   const prompt = `You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
-The couple’s vibe is: "${vibeString}"
-
+The couple's vibe is: "${vibeString}"
+${storyContext}
 Your job: design a COMPLETELY UNIQUE, ELEGANT visual identity for their wedding site. The result should be refined and beautiful—no two sites should ever look the same.
 
 ## CORE AESTHETIC PHILOSOPHY
@@ -534,10 +558,10 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
   "texture": "<one of: none | linen | floral | marble | bokeh | starfield | paper>",
   "headingStyle": "<one of: italic-serif | uppercase-tracked | thin-elegant | bold-editorial | script-like>",
   "cardStyle": "<one of: glass | solid | outlined | minimal | elevated>",
-  "decorIcons": ["<5 creative unicode chars specific to this couple’s world>"],
+  "decorIcons": ["<5 creative unicode chars specific to this couple's world>"],
   "accentSymbol": "<single elegant unicode symbol — their primary visual motif>",
   "particleColor": "<hex color for ambient particles>",
-  "sectionGradient": "<CSS linear-gradient using 2-3 palette colors — e.g. ‘linear-gradient(135deg, #f5ede4 0%, #fdf9f5 60%, #ede8e0 100%)’>",
+  "sectionGradient": "<CSS linear-gradient using 2-3 palette colors — e.g. 'linear-gradient(135deg, #f5ede4 0%, #fdf9f5 60%, #ede8e0 100%)'>",
   "palette": {
     "background": "<primary page bg hex — NEVER plain white. Derive from tone mapping above>",
     "foreground": "<text color hex — must contrast strongly with background>",
@@ -559,17 +583,17 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
     "registry": "<label>",
     "travel": "<label>",
     "faqs": "<label>",
-    "rsvp": "<warm personal RSVP invitation in the couple’s voice>"
+    "rsvp": "<warm personal RSVP invitation in the couple's voice>"
   },
   "dividerQuote": "<Write a single original poetic phrase (6-10 words MAXIMUM) that is short, lyrical, and emotionally specific to this couple. Evoke their vibe — a place, a feeling, a moment. Think of it as a whispered caption, not a full sentence. NOT a cliche. Examples of good length: 'Where the sea met us first', 'Fog-laced mornings and tangled roots', 'Every city led back to you'>",
   "tone": "<one of: dreamy | playful | luxurious | wild | intimate | cosmic | rustic>",
-  "heroPatternSvg": "<FULL SVG: subtle repeating bg pattern. viewBox=’0 0 200 200’. 8-12 thematic elements. All opacities 0.06-0.15. Use the accent color. Complete <svg>...</svg> on one line.>",
-  "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox=’0 0 800 40’. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
-  "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox=’0 0 80 80’. Art Nouveau style. Complete <svg>...</svg> on one line.>",
-  "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox=’0 0 120 120’. Complete <svg>...</svg> on one line.>",
-  "heroBlobSvg": "<FULL SVG: large editorial illustration for the hero section right panel. viewBox=’0 0 500 700’. Draw 20-30 thematic botanical branches with leaf shapes, constellations with connecting lines and star dots, vineyard/architectural linework, or other vibe-specific illustrations that FILL 70%+ of the canvas richly. This displays at ~40% page width — it must look impressive and artistic. Use ONLY the accent color. Opacity range 0.12-0.25. Complete <svg>...</svg> on one line.>",
-  "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox=’0 0 600 400’. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08-0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
-  "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Match the ‘curve’ choice: cascade=multi-cascade beziers, ribbon=wide sinusoid, mountain=sharp peaks, organic=flowing beziers, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.>"
+  "heroPatternSvg": "<FULL SVG: subtle repeating bg pattern. viewBox='0 0 200 200'. 8-12 thematic elements. All opacities 0.06-0.15. Use the accent color. Complete <svg>...</svg> on one line.>",
+  "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox='0 0 800 40'. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
+  "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox='0 0 80 80'. Art Nouveau style. Complete <svg>...</svg> on one line.>",
+  "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox='0 0 120 120'. Complete <svg>...</svg> on one line.>",
+  "heroBlobSvg": "<FULL SVG: large editorial illustration for the hero section right panel. viewBox='0 0 500 700'. Draw 20-30 thematic botanical branches with leaf shapes, constellations with connecting lines and star dots, vineyard/architectural linework, or other vibe-specific illustrations that FILL 70%+ of the canvas richly. This displays at ~40% page width — it must look impressive and artistic. Use ONLY the accent color. Opacity range 0.12-0.25. Complete <svg>...</svg> on one line.>",
+  "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox='0 0 600 400'. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08-0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
+  "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Match the 'curve' choice: cascade=multi-cascade beziers, ribbon=wide sinusoid, mountain=sharp peaks, organic=flowing beziers, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.>"
 }
 
 CRITICAL DESIGN RULES:
@@ -590,11 +614,52 @@ CRITICAL DESIGN RULES:
 15. ELEGANCE FIRST: When uncertain about palette choices, default to sophisticated muted tones + one warm accent. Avoid neon, high-saturation primaries, or jarring color contrasts. The site should feel like a luxury editorial magazine.`;
 
   try {
+    // Build multimodal parts array — start with the text prompt
+    const parts: Record<string, unknown>[] = [{ text: prompt }];
+
+    // Add inspiration images to the Gemini parts array
+    if (context?.inspirationUrls?.length) {
+      parts.push({ text: `\n\nINSPIRATION IMAGES: The couple has provided ${context.inspirationUrls.length} inspiration image(s) below. Analyze each for: dominant color palette, typography style (serif/sans/script), decorative density (minimal/medium/ornate), overall mood. Let these HEAVILY influence your palette, typography, and decoration choices.\n` });
+
+      for (const url of context.inspirationUrls.slice(0, 4)) {
+        try {
+          const resp = await fetch(url);
+          if (resp.ok) {
+            const arrayBuffer = await resp.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            const contentType = resp.headers.get('content-type') || 'image/jpeg';
+            parts.push({ inlineData: { mimeType: contentType, data: base64 } });
+          }
+        } catch {
+          // Skip failed image fetches silently
+        }
+      }
+    }
+
+    // Add representative photos from the couple's actual uploads
+    if (context?.photoUrls?.length) {
+      parts.push({ text: `\n\nCOUPLE'S ACTUAL PHOTOS: These images are from the couple's real photo collection. Extract the dominant color palette, lighting style (warm/cool/neutral), and overall aesthetic (film/digital, bright/moody, candid/posed). The visual identity MUST harmonize with these photos.\n` });
+
+      for (const url of context.photoUrls.slice(0, 3)) {
+        try {
+          const resp = await fetch(url);
+          if (resp.ok) {
+            const arrayBuffer = await resp.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            const contentType = resp.headers.get('content-type') || 'image/jpeg';
+            parts.push({ inlineData: { mimeType: contentType, data: base64 } });
+          }
+        } catch {
+          // Skip failed image fetches silently
+        }
+      }
+    }
+
     const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: {
           temperature: 1.0,
           maxOutputTokens: 6000,

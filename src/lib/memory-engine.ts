@@ -251,7 +251,21 @@ export async function generateStoryManifest(
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
   // Bake the full visual skin in-process before critique.
   try {
-    const vibeSkin = await generateVibeSkin(manifest.vibeString, coupleNames, apiKey);
+    const chapterContext = manifest.chapters.map(c => ({
+      title: c.title,
+      subtitle: c.subtitle,
+      mood: c.mood,
+      location: c.location,
+      description: c.description,
+    }));
+
+    // Pass first photo from each cluster as representative photo URLs
+    const photoUrls = clusters.slice(0, 5).map(c => c.photos[0]?.baseUrl).filter(Boolean) as string[];
+
+    const vibeSkin = await generateVibeSkin(manifest.vibeString, apiKey, coupleNames, {
+      chapters: chapterContext,
+      photoUrls,
+    });
     manifest.vibeSkin = vibeSkin;
     console.log('[Memory Engine] Pass 2: VibeSkin generated');
   } catch (err) {
@@ -566,14 +580,14 @@ function buildPrompt(
       clusterIndex: i,
       dateRange: `${c.startDate.slice(0, 10)} to ${c.endDate.slice(0, 10)}`,
       photoCount: c.photos.length,
+      note: c.note || null,
+      noteInstruction: c.note
+        ? `⚠️ HIGHEST PRIORITY CONTEXT — written BY THE COUPLE about this exact moment: '${c.note}'. The chapter title, subtitle, and description MUST directly reflect this note's emotion, details, and voice.`
+        : null,
       location: c.location?.label || null,
       locationInstruction: c.location?.label
         ? `This chapter takes place in ${c.location.label}. Weave this place into the narrative naturally — the light there, the feeling of arriving, what made it memorable. Do NOT invent a location if none is provided.`
         : 'No specific location was given for this chapter. Do NOT make up or invent a location. Write about the emotional space and feeling instead of a geographical place.',
-      note: c.note || null,
-      noteInstruction: c.note
-        ? `Context from the couple about this moment: '${c.note}'. Use this as emotional grounding for the chapter.`
-        : null,
       photos: photoDetails,
     };
   });
@@ -607,9 +621,15 @@ ${JSON.stringify(clusterSummary, null, 2)}
 
 ## CRITICAL LOCATION AND CONTEXT RULES (non-negotiable)
 - Each cluster above has a "locationInstruction" field. You MUST follow it exactly for that chapter.
-- Each cluster above has a "noteInstruction" field. If present, ground the chapter description in that specific memory — it is what the couple themselves remembers.
 - NEVER invent a location if "location" is null. Use the locationInstruction's fallback language instead.
-- If "noteInstruction" is present, the chapter description must be rooted in that context — do not ignore or replace it with generic narrative.
+
+## BLURB/NOTE RULES (HIGHEST PRIORITY):
+- Each cluster may have a "note" field — a personal caption written BY THE COUPLE about that moment
+- If a cluster has a "note", it is the SINGLE MOST IMPORTANT piece of context for that chapter
+- The chapter title, subtitle, and description MUST reflect the emotion and content of the note
+- Do NOT paraphrase or genericize the note — honor its specific details, feelings, and voice
+- If the note mentions a specific activity, place, feeling, or inside joke — weave it directly into the narrative
+- The note represents what the couple themselves want remembered about this moment
 
 ---
 ## NARRATIVE QUALITY STANDARDS (non-negotiable)

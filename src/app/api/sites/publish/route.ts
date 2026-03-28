@@ -110,8 +110,8 @@ export async function POST(req: NextRequest) {
       console.log('[Publish API] Generating AI vibe skin...');
       const vibeSkin = await generateVibeSkin(
         persistManifest.vibeString,
-        names as [string, string],
-        process.env.GEMINI_API_KEY
+        process.env.GEMINI_API_KEY,
+        names as [string, string]
       );
       persistManifest = { ...persistManifest, vibeSkin };
       console.log(`[Publish API] Vibe skin generated: ${vibeSkin.tone} / ${vibeSkin.curve} / aiGenerated=${vibeSkin.aiGenerated}`);
