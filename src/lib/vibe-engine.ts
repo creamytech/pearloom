@@ -172,6 +172,12 @@ const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
     palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
   coco:       { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','✿','◆','●'],    particleColor: '#F8C000', tone: 'playful',
     palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  'dia de los muertos': { curve: 'cascade', particle: 'confetti', decorIcons: ['✦','★','✿','◆','●'], particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  'día de los muertos': { curve: 'cascade', particle: 'confetti', decorIcons: ['✦','★','✿','◆','●'], particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  marigold:   { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','✿','◆','●'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF8F0', foreground: '#1A0A00', accent: '#F5A623', accent2: '#E84393', card: '#FFF5EC', muted: '#9A6040', highlight: '#F8C000', subtle: '#FFF2E8', ink: '#1A3A8F' } as VibeSkin['palette'] },
 };
 
 // — Seed-based deterministic number in [0,1) from a string ——————————————————————————————————————————
@@ -579,13 +585,16 @@ Key locations: ${[...new Set(context.chapters.map(c => c.location?.label).filter
 
   const profile = context?.coupleProfile;
   const coupleProfileContext = profile ? `
-## COUPLE DNA — THIS IS WHO THEY ARE (use for illustration and icon generation)
+## COUPLE DNA — MANDATORY ILLUSTRATION BRIEF
 ${profile.pets.length ? `PETS: ${profile.pets.join(', ')}` : ''}
 ${profile.interests.length ? `INTERESTS: ${profile.interests.join(', ')}` : ''}
 ${profile.locations.length ? `KEY PLACES: ${profile.locations.join(', ')}` : ''}
 ${profile.motifs.length ? `VISUAL MOTIFS: ${profile.motifs.join(', ')}` : ''}
 ${profile.heritage.length ? `CULTURAL HERITAGE: ${profile.heritage.join(', ')}` : ''}
 ILLUSTRATION PROMPT: ${profile.illustrationPrompt}
+
+KEY MOTIFS: ${[...profile.pets, ...profile.interests, ...profile.motifs].filter(Boolean).join(', ') || 'see illustration prompt above'}
+The hero illustration MUST reference these elements. If they have cats, draw cats. If Coco/marigold inspiration, draw marigolds and papel picado. If pets are mentioned, those animals must appear prominently.
 
 SVG ART RULES — READ CAREFULLY:
 - heroBlobSvg: Draw "${profile.illustrationPrompt}". Use this as the LITERAL subject matter. If they have cats, draw actual cat silhouettes in elegant poses. If they love hiking, draw mountain peaks and winding trails. If they mention vinyl records, draw record discs with musical notes. Fill 70%+ of the 500×700 canvas with THESE SPECIFIC ELEMENTS.
@@ -599,7 +608,21 @@ SVG ART RULES — READ CAREFULLY:
       ).join(', ')}],`
     : '  "chapterIcons": [],';
 
-  const prompt = `You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
+  const inspirationDirective = context?.inspirationUrls?.length
+    ? `🚨 CRITICAL VISUAL DIRECTIVE — READ THIS FIRST:
+The couple has provided ${context.inspirationUrls.length} inspiration image(s). These images ARE THE DESIGN.
+You MUST extract the EXACT colors from these images and use them as the palette.
+DO NOT use generic wedding colors. DO NOT use ivory/beige/sage defaults.
+Extract the 5-6 most dominant/vibrant colors from these images and use them directly.
+If the images show: hot pink → palette.accent = that exact hot pink.
+If the images show: marigold gold → palette.accent2 = that exact marigold.
+If the images show: deep navy → palette.ink = that exact navy.
+This is NON-NEGOTIABLE. The inspiration images override everything else.
+
+`
+    : '';
+
+  const prompt = `${inspirationDirective}You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
 The couple's vibe is: "${vibeString}"
 ${storyContext}
@@ -609,11 +632,13 @@ Your job: design a COMPLETELY UNIQUE visual identity for this specific couple. E
 ## MANDATORY COLOR RULE — READ FIRST
 If the vibe string contains "Color inspiration:" with hex values (e.g. "#E84393, #F8C000"), those are the couple's CHOSEN colors. You MUST build the palette from those exact hex values. Do NOT substitute muted or desaturated alternatives. If the inspiration images show vibrant colors, use them vibrantly. The couple's explicit choice OVERRIDES everything below.
 
-## CORE AESTHETIC PHILOSOPHY
-Match the couple's actual vibe — whether that's minimalist elegance OR bold festival color. Read the tone:
+## COLOR RULES
+- If inspiration images are provided, use THEIR exact colors — vibrant, saturated, bold if that's what they show.
+- A Coco/Day of the Dead inspired site should use: hot pink #E84393, marigold #F8C000, deep navy #1A1A5E, warm gold #F5A623.
+- A festival/fiesta inspired site should be COLORFUL not beige.
+- Only default to muted/elegant if NO inspiration images are provided and the vibe string uses soft/minimal language.
 - If vibeString has vibrant/festive/colorful/bold keywords OR bright hex colors: use FULL SATURATION. Embrace it.
-- If vibeString has words like minimal/clean/subtle/soft: prefer desaturated tones.
-- Never force muted tones when the couple chose vibrant. Never force vibrant when they chose soft.
+- If vibeString has words like minimal/clean/subtle/soft (and no inspiration images): prefer desaturated tones.
 - Analogous color schemes work well, but analogous doesn't mean dull.
 - When in doubt: trust the hex colors and inspiration images over generic defaults.
 
@@ -726,27 +751,30 @@ CRITICAL DESIGN RULES:
 15. RESPECT THE BRIEF: If the couple chose vibrant hex colors or submitted vibrant inspiration images, USE THOSE COLORS at full saturation. Do not desaturate or mute colors that the couple chose. A Coco / festival / fiesta vibe should look like hot pink, deep navy, and golden yellow — not dusty rose and cream. Serve the couple's actual vision.`;
 
   try {
-    // Build multimodal parts array — start with the text prompt
-    const parts: Record<string, unknown>[] = [{ text: prompt }];
-
-    // Add inspiration images to the Gemini parts array
-    if (context?.inspirationUrls?.length) {
-      parts.push({ text: `\n\nINSPIRATION IMAGES (HIGHEST PRIORITY): The couple uploaded ${context.inspirationUrls.length} inspiration image(s) below. These represent EXACTLY the visual world they want. Extract the dominant colors, mood, and style from these images and let them COMPLETELY DEFINE your palette and aesthetic choices. If the images show vibrant or bold colors, reproduce them faithfully — do NOT soften or desaturate. These images OVERRIDE the default tone mapping guidelines.\n` });
-
-      for (const url of context.inspirationUrls.slice(0, 4)) {
+    // Fetch inspiration images as base64 inline_data parts
+    const imageParts = await Promise.all(
+      (context?.inspirationUrls || []).slice(0, 4).map(async (url) => {
         try {
-          const resp = await fetch(url);
-          if (resp.ok) {
-            const arrayBuffer = await resp.arrayBuffer();
-            const base64 = Buffer.from(arrayBuffer).toString('base64');
-            const contentType = resp.headers.get('content-type') || 'image/jpeg';
-            parts.push({ inlineData: { mimeType: contentType, data: base64 } });
-          }
-        } catch {
-          // Skip failed image fetches silently
-        }
-      }
+          const imgRes = await fetch(url);
+          if (!imgRes.ok) return null;
+          const buf = await imgRes.arrayBuffer();
+          const b64 = Buffer.from(buf).toString('base64');
+          const mime = imgRes.headers.get('content-type') || 'image/jpeg';
+          return { inlineData: { mimeType: mime, data: b64 } };
+        } catch { return null; }
+      })
+    ).then(parts => parts.filter((p): p is { inlineData: { mimeType: string; data: string } } => p !== null));
+
+    // Build multimodal parts array — inspiration images come BEFORE the text prompt so the model sees them first
+    const parts: Record<string, unknown>[] = [];
+
+    if (imageParts.length > 0) {
+      parts.push({ text: `INSPIRATION IMAGES (HIGHEST PRIORITY — ${imageParts.length} image(s) follow): Extract the EXACT dominant colors from these images. They ARE the palette. Do NOT soften or desaturate. These images OVERRIDE all tone mapping defaults.` });
+      parts.push(...imageParts);
     }
+
+    // Text prompt comes after inspiration images
+    parts.push({ text: prompt });
 
     // Add representative photos from the couple's actual uploads
     if (context?.photoUrls?.length) {
