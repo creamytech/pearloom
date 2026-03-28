@@ -447,9 +447,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
                   <WovenCircle
                     size={44}
-                    color="linear-gradient(135deg, #A3B18A, #8b6b4a)"
+                    color="linear-gradient(135deg, #A3B18A, #8FA876)"
                     borderColor="rgba(163,177,138,0.3)"
-                    style={{ background: 'linear-gradient(135deg, #A3B18A, #8b6b4a)' }}
+                    style={{ background: 'linear-gradient(135deg, #A3B18A, #8FA876)' }}
                   >
                     <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
                       {TESTIMONIALS[activeTestimonial].name[0]}
@@ -564,7 +564,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 style={{
                   width: '100%', marginTop: '2rem',
                   padding: '1.15rem', borderRadius: '100px',
-                  background: 'linear-gradient(135deg, #A3B18A, #8b6b4a)',
+                  background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
                   color: '#fff', fontSize: '1rem', fontWeight: 700,
                   border: 'none', cursor: 'pointer',
                   boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
@@ -623,7 +623,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.75rem',
               padding: '1.15rem 3.5rem', borderRadius: '100px',
-              background: 'linear-gradient(135deg, #A3B18A, #8b6b4a)',
+              background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
               color: '#fff', fontSize: '1.05rem', fontWeight: 600,
               border: 'none', cursor: 'pointer',
               boxShadow: '0 14px 50px rgba(163,177,138,0.4)',
