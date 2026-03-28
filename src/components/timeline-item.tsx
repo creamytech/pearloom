@@ -6,11 +6,12 @@
 // Layouts: editorial | fullbleed | split | cinematic | gallery | mosaic
 // ─────────────────────────────────────────────────────────────
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import type { Chapter } from '@/types';
 import { MoodDecorator } from '@/components/mood-decorator';
 import { LocationPinIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
+import { VideoChapterPlayer } from '@/components/site/VideoChapterPlayer';
 
 interface TimelineItemProps {
   chapter: Chapter;
@@ -125,6 +126,45 @@ function ChapterDivider() {
       opacity: 0.35,
     }}>
       <PearlDividerIcon size={12} color="var(--eg-accent)" />
+    </div>
+  );
+}
+
+// Collapsible video panel — "▶ Watch the moment" toggle
+function CollapsibleVideo({ videoUrl }: { videoUrl: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: '1.5rem' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          background: 'none',
+          border: '1px solid var(--eg-accent)',
+          borderRadius: '100px',
+          padding: '0.35rem 0.9rem',
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'var(--eg-accent)',
+          cursor: 'pointer',
+          transition: 'background 0.18s',
+        }}
+        onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--eg-accent-rgb, 107,143,90), 0.08)'; }}
+        onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
+      >
+        <span aria-hidden="true">{open ? '▼' : '▶'}</span>
+        {open ? 'Hide video' : 'Watch the moment'}
+      </button>
+      {open && (
+        <div style={{ marginTop: '1rem' }}>
+          <VideoChapterPlayer videoUrl={videoUrl} />
+        </div>
+      )}
     </div>
   );
 }
@@ -284,6 +324,13 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
           )}
         </div>
 
+        {/* Video (editorial) — below images */}
+        {chapter.videoUrl && (
+          <div style={{ position: 'absolute', bottom: 0, left: isEven ? 0 : 'auto', right: isEven ? 'auto' : 0, width: '56%', zIndex: 20 }} className="max-md:static max-md:w-full max-md:mt-4">
+            <CollapsibleVideo videoUrl={chapter.videoUrl} />
+          </div>
+        )}
+
         {/* Typography Column — 40% */}
         <motion.div style={{ flex: 1, textAlign: isEven ? 'left' : 'right', y: textY, position: 'relative', zIndex: 10 }} className="max-md:text-center">
           {/* Ghost chapter number */}
@@ -339,6 +386,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   const y = useTransform(scrollYProgress, [0, 1], ['-18%', '18%']);
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   if (!hasImages) return <EditorialLayout chapter={chapter} index={0} />;
 
@@ -351,18 +399,74 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
       viewport={{ once: true }}
       transition={{ duration: 1.4 }}
     >
-      {mainImage && (
-        <motion.div style={{ position: 'absolute', inset: -80, y }}>
-          <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.45) contrast(1.2) saturate(1.15)' }} />
-        </motion.div>
+      {/* Video replaces image when playing */}
+      {chapter.videoUrl && videoPlaying ? (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: '#000' }}>
+          <VideoChapterPlayer
+            videoUrl={chapter.videoUrl}
+            style={{ borderRadius: 0, height: '100%', aspectRatio: undefined, position: 'absolute', inset: 0, width: '100%' }}
+          />
+          <button
+            type="button"
+            onClick={() => setVideoPlaying(false)}
+            style={{
+              position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
+              background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
+              cursor: 'pointer', letterSpacing: '0.08em',
+            }}
+          >
+            ✕ Close
+          </button>
+        </div>
+      ) : (
+        <>
+          {mainImage && (
+            <motion.div style={{ position: 'absolute', inset: -80, y }}>
+              <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.45) contrast(1.2) saturate(1.15)' }} />
+            </motion.div>
+          )}
+
+          {/* Play button overlay when chapter has video */}
+          {chapter.videoUrl && (
+            <button
+              type="button"
+              onClick={() => setVideoPlaying(true)}
+              style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 15,
+                width: '72px', height: '72px',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.18)',
+                backdropFilter: 'blur(8px)',
+                border: '2px solid rgba(255,255,255,0.5)',
+                color: '#fff',
+                fontSize: '1.5rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'background 0.2s, transform 0.2s',
+              }}
+              onMouseOver={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(255,255,255,0.28)'; b.style.transform = 'translate(-50%, -50%) scale(1.1)'; }}
+              onMouseOut={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(255,255,255,0.18)'; b.style.transform = 'translate(-50%, -50%) scale(1)'; }}
+              aria-label="Play video"
+            >
+              ▶
+            </button>
+          )}
+        </>
       )}
 
       {/* Multi-layer cinematic overlay — strengthened for readability */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.72) 35%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.15) 100%)' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 30%)' }} />
+      {!(chapter.videoUrl && videoPlaying) && (
+        <>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.72) 35%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.15) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 30%)' }} />
+        </>
+      )}
 
-      {/* Content anchored at bottom */}
-      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '5rem 2rem 7rem', maxWidth: '900px', color: '#ffffff', width: '100%' }}>
+      {/* Content anchored at bottom — hidden when video playing */}
+      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '5rem 2rem 7rem', maxWidth: '900px', color: '#ffffff', width: '100%', display: chapter.videoUrl && videoPlaying ? 'none' : undefined }}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -375,9 +479,8 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             backdropFilter: 'blur(2px)',
             WebkitBackdropFilter: 'blur(2px)',
             borderRadius: '8px',
-            padding: '2rem',
             filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))',
-          }}>
+          }} className="max-md:px-5 max-md:py-6 max-md:max-w-[90vw] max-md:mx-auto p-8">
             <MoodBadge mood={chapter.mood} light />
             <span style={{ fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase', opacity: 0.8, display: 'block', marginBottom: '1.75rem', color: '#ffffff', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
               {formatDateFull(chapter.date)}
@@ -420,6 +523,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
   const blur = useTransform(scrollYProgress, [0, 0.5, 1], [60, 80, 60]);
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   return (
     <>
@@ -432,20 +536,64 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 1.2 }}
       >
-        {hasImages && mainImage && (
+        {/* Video replaces blurred background when playing */}
+        {chapter.videoUrl && videoPlaying ? (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '900px', padding: '0 2rem' }}>
+              <VideoChapterPlayer videoUrl={chapter.videoUrl} />
+            </div>
+            <button
+              type="button"
+              onClick={() => setVideoPlaying(false)}
+              style={{
+                position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
+                background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)',
+                borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
+                cursor: 'pointer', letterSpacing: '0.08em',
+              }}
+            >
+              ✕ Close
+            </button>
+          </div>
+        ) : (
           <>
-            <motion.div style={{
-              position: 'absolute', inset: -120,
-              backgroundImage: `url(${proxyUrl(mainImage, 800, 800)})`,
-              backgroundSize: 'cover', backgroundPosition: 'center',
-              filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
-              opacity: 0.35, zIndex: 0,
-            }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'var(--eg-bg)', opacity: 0.82, zIndex: 1 }} />
+            {hasImages && mainImage && (
+              <>
+                <motion.div style={{
+                  position: 'absolute', inset: -120,
+                  backgroundImage: `url(${proxyUrl(mainImage, 800, 800)})`,
+                  backgroundSize: 'cover', backgroundPosition: 'center',
+                  filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
+                  opacity: 0.35, zIndex: 0,
+                }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'var(--eg-bg)', opacity: 0.82, zIndex: 1 }} />
+              </>
+            )}
+            {/* Play button for cinematic layout */}
+            {chapter.videoUrl && (
+              <button
+                type="button"
+                onClick={() => setVideoPlaying(true)}
+                style={{
+                  position: 'absolute', top: '2rem', right: '2rem', zIndex: 15,
+                  width: '52px', height: '52px', borderRadius: '50%',
+                  background: 'var(--eg-accent)', color: '#fff',
+                  border: 'none', fontSize: '1rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
+                  transition: 'transform 0.18s',
+                }}
+                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+                aria-label="Play video"
+              >
+                ▶
+              </button>
+            )}
           </>
         )}
 
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '820px', width: '100%' }}>
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '820px', width: '100%', display: chapter.videoUrl && videoPlaying ? 'none' : undefined }}>
           {/* Ghost chapter number */}
           <div style={{ position: 'relative' }}>
             <ChapterGhost number={index + 1} />
@@ -492,6 +640,13 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
   const isEven = index % 2 === 0;
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   return (
     <>
@@ -518,7 +673,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
         {hasImages && mainImage && (
           <div
             style={{ flex: '0 0 50%', height: '660px', position: 'relative', zIndex: 1, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 30px 70px rgba(0,0,0,0.12)' }}
-            className="max-md:w-full max-md:h-[380px]"
+            className="max-md:w-full max-md:h-[320px] max-md:rounded-none"
           >
             <img
               src={proxyUrl(mainImage, 1400, 1100)}
@@ -533,17 +688,17 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
         {/* Story card — overlaps the photo */}
         <div style={{
           flex: 1,
-          padding: '3rem 4rem',
-          background: 'var(--eg-card-bg)',
+          padding: isMobile ? '2rem 1.5rem' : '3rem 4rem',
+          background: isMobile ? 'rgba(255,255,255,0.97)' : 'var(--eg-card-bg)',
           borderRadius: '8px',
           boxShadow: '0 25px 60px rgba(0,0,0,0.07)',
           position: 'relative',
           zIndex: 2,
-          marginLeft: hasImages && isEven ? '-5rem' : '0',
-          marginRight: hasImages && !isEven ? '-5rem' : '0',
-          marginTop: hasImages ? '2.5rem' : '0',
+          marginLeft: hasImages && isEven && !isMobile ? '-5rem' : '0',
+          marginRight: hasImages && !isEven && !isMobile ? '-5rem' : '0',
+          marginTop: hasImages && !isMobile ? '2.5rem' : '0',
           backdropFilter: 'blur(12px)',
-        }} className="max-md:m-0 max-md:-mt-12 max-md:mx-6 max-md:p-8">
+        }} className="max-md:relative max-md:z-10 max-md:mx-4 max-md:mt-0">
           {/* Ghost number */}
           <div style={{ position: 'relative' }}>
             <ChapterGhost number={index + 1} />
@@ -573,6 +728,9 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
                 <div style={{ marginTop: '2.5rem' }}>
                   <LocationPill label={chapter.location.label} />
                 </div>
+              )}
+              {chapter.videoUrl && (
+                <CollapsibleVideo videoUrl={chapter.videoUrl} />
               )}
             </div>
           </div>
@@ -638,26 +796,41 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             gridTemplateRows: images.length >= 3 ? 'repeat(2, 360px)' : '520px',
             gap: '1rem',
             width: '100%',
-          }} className="max-md:flex max-md:flex-col">
+          }} className="max-md:flex max-md:flex-col max-md:gap-2">
             {images[0] && (
-              <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+              <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
+                className="max-md:w-full max-md:rounded-[8px]">
                 <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                  className="max-md:[aspect-ratio:4/3]"
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
               </div>
             )}
             {images[1] && (
-              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}>
+              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                className="max-md:w-full max-md:rounded-[8px]">
                 <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                  className="max-md:[aspect-ratio:4/3]"
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
               </div>
             )}
             {images[2] && (
-              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}>
+              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                className="max-md:w-full max-md:rounded-[8px]">
                 <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                  className="max-md:[aspect-ratio:4/3]"
+                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
+                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
+                />
+              </div>
+            )}
+            {images[3] && (
+              <div style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                className="max-md:hidden">
+                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
@@ -679,24 +852,109 @@ const OFFSETS: Array<{ x: number | string; y: number }> = [
 
 function MosaicLayout({ chapter, index }: TimelineItemProps) {
   const images = chapter.images.slice(0, 5);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const mobileImages = images.slice(0, 2);
+  const displayImages = isMobile ? mobileImages : images;
 
   return (
     <>
       <ChapterDivider />
       <motion.article
         style={{ maxWidth: '1300px', margin: '4rem auto', padding: '5rem 3rem', display: 'flex', gap: '5rem', alignItems: 'flex-start' }}
-        className="max-md:flex-col max-md:px-4 max-md:gap-8"
+        className="max-md:flex-col max-md:px-4 max-md:gap-8 max-md:pt-8"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.8 }}
       >
-        {/* Polaroid collage left side */}
-        <div style={{ flex: '0 0 50%', position: 'relative', height: images.length > 1 ? '580px' : '420px' }} className="max-md:w-full max-md:h-[340px]">
-          {images.map((img, i) => {
-            const rotate = ROTATIONS[i % ROTATIONS.length];
+        {/* On mobile: text first so heading is never hidden behind polaroids */}
+        {isMobile && (
+          <motion.div
+            style={{ width: '100%', position: 'relative' }}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ delay: 0.1, duration: 0.85 }}
+          >
+            <ChapterGhost number={index + 1} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <MoodBadge mood={chapter.mood} />
+              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
+                {formatDateFull(chapter.date)}
+              </span>
+              <h3 style={{
+                fontFamily: 'var(--eg-font-heading)',
+                fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+                fontWeight: 400,
+                color: 'var(--eg-fg)',
+                lineHeight: 1.08,
+                margin: '0 0 1.25rem 0',
+                letterSpacing: '-0.02em',
+              }}>
+                {chapter.title}
+              </h3>
+              {chapter.subtitle && (
+                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                  {chapter.subtitle}
+                </p>
+              )}
+              <EnhancedDescription text={chapter.description} />
+              {chapter.location && (
+                <div style={{ marginTop: '2.5rem' }}>
+                  <LocationPill label={chapter.location.label} />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Polaroid collage */}
+        <div
+          style={isMobile
+            ? { width: '100%', maxHeight: '280px', display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'flex-start' }
+            : { flex: '0 0 50%', position: 'relative', height: images.length > 1 ? '580px' : '420px' }
+          }
+        >
+          {displayImages.map((img, i) => {
+            const rotate = isMobile ? (i === 0 ? -2 : 2) : ROTATIONS[i % ROTATIONS.length];
             const offset = OFFSETS[i % OFFSETS.length];
             const isFirst = i === 0;
+
+            if (isMobile) {
+              return (
+                <motion.div
+                  key={img.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  style={{
+                    flex: '0 0 45%',
+                    cursor: 'pointer',
+                    transform: `rotate(${rotate}deg)`,
+                    transformOrigin: 'center center',
+                  }}
+                >
+                  <div style={{
+                    background: '#fff',
+                    padding: '8px 8px 28px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+                    borderRadius: '2px',
+                  }}>
+                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
+                      <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            }
 
             return (
               <motion.div
@@ -732,45 +990,46 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
           })}
         </div>
 
-        {/* Text column */}
-        <motion.div
-          style={{ flex: 1, paddingTop: '3rem', position: 'relative' }}
-          initial={{ opacity: 0, x: 30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ delay: 0.3, duration: 0.85 }}
-          className="max-md:pt-0"
-        >
-          <ChapterGhost number={index + 1} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <MoodBadge mood={chapter.mood} />
-            <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
-              {formatDateFull(chapter.date)}
-            </span>
-            <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-              fontWeight: 400,
-              color: 'var(--eg-fg)',
-              lineHeight: 1.08,
-              margin: '0 0 1.25rem 0',
-              letterSpacing: '-0.02em',
-            }}>
-              {chapter.title}
-            </h3>
-            {chapter.subtitle && (
-              <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
-                {chapter.subtitle}
-              </p>
-            )}
-            <EnhancedDescription text={chapter.description} />
-            {chapter.location && (
-              <div style={{ marginTop: '2.5rem' }}>
-                <LocationPill label={chapter.location.label} />
-              </div>
-            )}
-          </div>
-        </motion.div>
+        {/* Text column — desktop only (mobile version rendered above) */}
+        {!isMobile && (
+          <motion.div
+            style={{ flex: 1, paddingTop: '3rem', position: 'relative' }}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ delay: 0.3, duration: 0.85 }}
+          >
+            <ChapterGhost number={index + 1} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <MoodBadge mood={chapter.mood} />
+              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
+                {formatDateFull(chapter.date)}
+              </span>
+              <h3 style={{
+                fontFamily: 'var(--eg-font-heading)',
+                fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+                fontWeight: 400,
+                color: 'var(--eg-fg)',
+                lineHeight: 1.08,
+                margin: '0 0 1.25rem 0',
+                letterSpacing: '-0.02em',
+              }}>
+                {chapter.title}
+              </h3>
+              {chapter.subtitle && (
+                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                  {chapter.subtitle}
+                </p>
+              )}
+              <EnhancedDescription text={chapter.description} />
+              {chapter.location && (
+                <div style={{ marginTop: '2.5rem' }}>
+                  <LocationPill label={chapter.location.label} />
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
       </motion.article>
     </>
   );

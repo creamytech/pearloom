@@ -30,17 +30,17 @@ const PARTICLE_CONFIGS: Record<VibeSkin['particle'], {
   petals: {
     symbols: ['✿', '❀', '⚘', '❁', '✾'],
     colors: ['#f9c6c9', '#f7a7b0', '#fce4e4', '#f3d1d8', '#e8b4bc'],
-    count: 18, speed: 0.4, drift: 0.8, spin: true,
+    count: 15, speed: 0.4, drift: 0.8, spin: true,
   },
   stars: {
     symbols: ['✦', '✧', '⋆', '✩', '★'],
     colors: ['#fff9e6', '#ffe98a', '#ffd966', '#fff3b0', '#fffde7'],
-    count: 22, speed: 0.2, drift: 0.3, spin: false,
+    count: 18, speed: 0.2, drift: 0.3, spin: false,
   },
   bubbles: {
     symbols: ['○', '◯', '◦', '⬡', '⬟'],
     colors: ['rgba(184,220,255,0.6)', 'rgba(200,230,255,0.5)', 'rgba(160,210,255,0.4)'],
-    count: 16, speed: 0.35, drift: 0.5, spin: false,
+    count: 15, speed: 0.35, drift: 0.5, spin: false,
   },
   leaves: {
     symbols: ['✿', '❧', '⚘', '✾', '❦'],
@@ -50,22 +50,22 @@ const PARTICLE_CONFIGS: Record<VibeSkin['particle'], {
   confetti: {
     symbols: ['◆', '▲', '●', '■', '★'],
     colors: ['#f9c6c9', '#b8e0ff', '#c3f5a9', '#ffd966', '#ffb3de'],
-    count: 24, speed: 0.55, drift: 0.6, spin: true,
+    count: 18, speed: 0.55, drift: 0.6, spin: true,
   },
   snowflakes: {
     symbols: ['❄', '❅', '❆', '✻', '✼'],
     colors: ['rgba(255,255,255,0.7)', 'rgba(200,230,255,0.6)', 'rgba(220,240,255,0.5)'],
-    count: 20, speed: 0.3, drift: 0.6, spin: true,
+    count: 16, speed: 0.3, drift: 0.6, spin: true,
   },
   fireflies: {
     symbols: ['•', '◦', '∘', '⋅', '·'],
     colors: ['#c8ff8a', '#d4f56e', '#a8ff5c', '#e8ffb0', '#f0ffcc'],
-    count: 28, speed: 0.15, drift: 0.4, spin: false,
+    count: 20, speed: 0.15, drift: 0.4, spin: false,
   },
   sakura: {
     symbols: ['✿', '❀', '⚘', '✾', '❁'],
     colors: ['#ffb7c5', '#ffccd5', '#ff9db0', '#ffdde3', '#ffc0cb'],
-    count: 20, speed: 0.35, drift: 1.0, spin: true,
+    count: 15, speed: 0.35, drift: 1.0, spin: true,
   },
 };
 
@@ -161,7 +161,7 @@ export function VibeParticles({ particle, accent }: VibeParticlesProps) {
       ref={canvasRef}
       style={{
         position: 'absolute', inset: 0, width: '100%', height: '100%',
-        pointerEvents: 'none', zIndex: 1,
+        pointerEvents: 'none', zIndex: 1, willChange: 'transform',
       }}
     />
   );

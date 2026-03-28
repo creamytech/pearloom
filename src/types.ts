@@ -50,12 +50,31 @@ export interface StoryManifest {
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)
   customPages?: CustomPage[];
+  // Last asset selected from the asset library (for canvas insertion)
+  lastAsset?: { id: string; type: 'dividers' | 'illustrations' | 'accents'; name: string };
   // Poetry pass — 4th AI generation pass: hero tagline, footer closing line, RSVP intro
   poetry?: {
     heroTagline: string;    // 5-8 word poetic subtitle for the hero section
     closingLine: string;    // 10-15 word closing line for the footer
     rsvpIntro: string;      // warm, personal 1-2 sentence intro for the RSVP section
   };
+  // AI-generated wedding hashtag suggestions
+  hashtags?: string[];
+  // Spotify playlist or track URL for "Our Soundtrack" section
+  spotifyUrl?: string;
+  spotifyPlaylistName?: string;
+  // Vibe discovery tags — shown in public vibe gallery
+  vibeTags?: string[];
+  // Preview share token (unpublished preview link)
+  previewToken?: string;
+  // Anniversary mode — transforms site after wedding date passes
+  anniversaryMode?: boolean;
+  anniversaryPhotos?: ChapterImage[];
+  // Multi-language: translated content keyed by locale
+  translations?: Record<string, { chapters?: Array<{ title: string; subtitle: string; description: string }> }>;
+  activeLocale?: string;
+  // Real-time collab: current editor session info
+  collaborators?: Array<{ userId: string; name: string; color: string; cursor?: string }>;
 }
 
 export interface Chapter {
@@ -71,6 +90,13 @@ export interface Chapter {
   order: number;
   /** Object-position for the cover image (percentages 0–100). Default: { x: 50, y: 50 } */
   imagePosition?: { x: number; y: number };
+  /** Optional video URL (YouTube, Vimeo, or direct mp4) to show instead of/alongside photos */
+  videoUrl?: string;
+  /** AI-generated quiz question derived from this chapter's content */
+  quizQuestion?: { question: string; options: string[]; correctIndex: number };
+  /** Completion tracking */
+  hasCustomTitle?: boolean;
+  hasCustomDescription?: boolean;
 }
 
 export interface ChapterImage {
@@ -305,7 +331,11 @@ export type BlockType =
   | 'divider'
   | 'video'
   | 'quote'
-  | 'map';
+  | 'map'
+  | 'spotify'
+  | 'quiz'
+  | 'storymap'
+  | 'hashtag';
 
 export interface PageBlock {
   id: string;

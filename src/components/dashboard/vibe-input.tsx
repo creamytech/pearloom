@@ -41,6 +41,7 @@ interface VibeInputProps {
     celebrationVenue?: string;
     celebrationTime?: string;
     guestNotes?: string;
+    inspirationUrls?: string[];
   }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
@@ -136,6 +137,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   // 'main' = steps 1-8 of the original wizard, 'details' = optional details sub-step
   const [wizardPhase, setWizardPhase] = useState<'main' | 'details'>('main');
   const [detailsData, setDetailsData] = useState<DetailsData>({});
+  const [inspirationUrls, setInspirationUrls] = useState<string[]>([]);
   const [subdomain, setSubdomain] = useState('');
   const [occasion, setOccasion] = useState<string>('');
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
@@ -223,12 +225,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const n1 = name1.trim();
     const n2 = name2.trim();
     const finalSlug = subdomain.trim() || slugFromNames(n1, n2);
+    const validUrls = inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/));
     onSubmit({
       names: [n1, n2],
       vibeString: synthesizedVibe,
       occasion,
       subdomain: finalSlug,
       eventDate: eventDate || undefined,
+      inspirationUrls: validUrls.length > 0 ? validUrls : undefined,
       ...details,
     });
   };
@@ -560,6 +564,104 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               No details needed. We&apos;ll build from your photos and vibe.
             </div>
           )}
+        </div>
+
+        {/* ── VISUAL INSPIRATION ── */}
+        <div style={{
+          background: 'rgba(255,255,255,0.03)',
+          borderRadius: '1rem',
+          padding: '1.5rem',
+          border: '1px solid rgba(214,198,168,0.12)',
+          marginTop: '2rem',
+        }}>
+          <p style={sectionHeading}>
+            <span style={{ marginRight: '0.4rem' }}>✨</span>Visual Inspiration
+            <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)', marginLeft: '0.5rem' }}>(optional)</span>
+          </p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
+            Paste links to images that capture your wedding aesthetic — Pinterest pins, Instagram posts, or any image URL.
+          </p>
+
+          {inspirationUrls.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '0.75rem' }}>
+              {inspirationUrls.map((url, idx) => {
+                const isDirectImage = /\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(url);
+                const isValid = /^https?:\/\/.+/.test(url.trim());
+                return (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {isDirectImage && isValid && (
+                      <div style={{
+                        width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem',
+                        overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(214,198,168,0.2)',
+                      }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt="inspiration preview"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
+                    <input
+                      type="url"
+                      value={url}
+                      placeholder="https://..."
+                      onChange={e => {
+                        const next = [...inspirationUrls];
+                        next[idx] = e.target.value;
+                        setInspirationUrls(next);
+                      }}
+                      style={{
+                        ...detailInputStyle,
+                        flex: 1,
+                        borderColor: url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)',
+                      }}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    <button
+                      onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))}
+                      aria-label="Remove"
+                      style={{
+                        width: '2rem', height: '2rem', borderRadius: '50%',
+                        border: '1px solid rgba(0,0,0,0.1)', background: '#fff',
+                        color: 'var(--eg-muted)', cursor: 'pointer', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1rem', lineHeight: 1, transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fef2f2'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#fca5a5'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.1)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--eg-muted)'; }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {inspirationUrls.length < 4 && (
+            <button
+              onClick={() => setInspirationUrls(prev => [...prev, ''])}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                padding: '0.5rem 1rem', borderRadius: '100px',
+                border: '1.5px solid rgba(163,177,138,0.35)',
+                background: 'transparent', color: 'var(--eg-accent)',
+                fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(163,177,138,0.08)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            >
+              <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>+</span> Add inspiration image
+            </button>
+          )}
+
+          <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.75rem', lineHeight: 1.5 }}>
+            Up to 4 images. Our AI will analyze them to match your visual style.
+          </p>
         </div>
 
         {/* URL slug picker */}

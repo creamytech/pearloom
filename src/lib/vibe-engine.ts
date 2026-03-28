@@ -129,11 +129,13 @@ const CORNER_STYLES: Record<VibeSkin['curve'], string> = {
 
 // — Deterministic fallback (keyword scoring) ——————————————————————————————————————————————————————
 const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
-  garden:     { curve: 'petal',     particle: 'petals',     decorIcons: ['✿','❦','✾','◦','•'],   particleColor: '#f9c6c9', tone: 'dreamy'    },
+  garden:     { curve: 'petal',     particle: 'petals',     decorIcons: ['✿','❦','✾','◦','•'],   particleColor: '#c8d8a8', tone: 'dreamy',
+    palette: { background: '#EEF2E8', foreground: '#2A2E20', accent: '#6B8F5A', accent2: '#B4CCA0', card: '#F4F8EF', muted: '#7A8C70', highlight: '#4E7240', subtle: '#F1F6EC', ink: '#181E10' } as VibeSkin['palette'] },
   floral:     { curve: 'petal',     particle: 'petals',     decorIcons: ['✿','❦','✾','⦿','◦'],   particleColor: '#f3d1d8', tone: 'dreamy'    },
   wildflower: { curve: 'organic',   particle: 'petals',     decorIcons: ['✿','❦','✦','◦','•'],   particleColor: '#e8b4bc', tone: 'wild'      },
   forest:     { curve: 'organic',   particle: 'leaves',     decorIcons: ['⧱','◦','✦','⦿','•'],   particleColor: '#a8d5a2', tone: 'rustic'   },
-  beach:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['◯','○','◦','✦','•'],    particleColor: '#b8e0ff', tone: 'playful'  },
+  beach:      { curve: 'ribbon',    particle: 'bubbles',    decorIcons: ['◯','○','◦','✦','•'],    particleColor: '#b8d8f8', tone: 'playful',
+    palette: { background: '#EBF3F5', foreground: '#1A2C38', accent: '#2E7A9E', accent2: '#9ECDE8', card: '#F2F8FA', muted: '#6A8898', highlight: '#1A5A7A', subtle: '#EDF5F8', ink: '#0D1C28' } as VibeSkin['palette'] },
   ocean:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['○','◯','◦','✦','•'],    particleColor: '#9dd0f5', tone: 'dreamy'   },
   celestial:  { curve: 'arch',      particle: 'stars',      decorIcons: ['✦','✧','☽','⋆','✩'],   particleColor: '#ffe98a', tone: 'cosmic'   },
   starry:     { curve: 'arch',      particle: 'stars',      decorIcons: ['✦','⋆','✩','☽','✧'],   particleColor: '#fff3b0', tone: 'cosmic'   },
@@ -141,10 +143,19 @@ const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
   golden:     { curve: 'organic',   particle: 'petals',     decorIcons: ['✦','◇','•','✧','◦'],    particleColor: '#ffd966', tone: 'luxurious'},
   romantic:   { curve: 'petal',     particle: 'petals',     decorIcons: ['♡','✿','✦','•','◦'],    particleColor: '#f9c6c9', tone: 'intimate' },
   boho:       { curve: 'organic',   particle: 'leaves',     decorIcons: ['✿','✦','•','⧱','◦'],    particleColor: '#c5e5c0', tone: 'wild'     },
+  bohemian:   { curve: 'cascade',   particle: 'leaves',     decorIcons: ['✿','⧱','✦','◦','❦'],   particleColor: '#d4a08a', tone: 'wild',
+    palette: { background: '#F2E8E0', foreground: '#2A1810', accent: '#A84A30', accent2: '#C89070', card: '#FAF0E8', muted: '#8A6858', highlight: '#7A2E18', subtle: '#F6EEE6', ink: '#180C04' } as VibeSkin['palette'] },
   elegant:    { curve: 'arch',      particle: 'stars',      decorIcons: ['◈','◇','✦','◉','○'],    particleColor: '#fff9e6', tone: 'luxurious'},
   luxury:     { curve: 'geometric', particle: 'stars',      decorIcons: ['◈','◇','▣','✦','◦'],    particleColor: '#ffe98a', tone: 'luxurious'},
-  winter:     { curve: 'geometric', particle: 'snowflakes', decorIcons: ['❄','✻','✼','✦','◦'],    particleColor: '#e0f0ff', tone: 'dreamy'   },
+  modern:     { curve: 'geometric', particle: 'stars',      decorIcons: ['◈','◆','▪','◦','✦'],    particleColor: '#d4c070', tone: 'luxurious',
+    palette: { background: '#F5F2ED', foreground: '#1A1A1A', accent: '#B8962A', accent2: '#DFC870', card: '#FDFBF6', muted: '#8A8478', highlight: '#8A6E10', subtle: '#F9F7F2', ink: '#0A0A0A' } as VibeSkin['palette'] },
+  winter:     { curve: 'geometric', particle: 'snowflakes', decorIcons: ['❄','✻','✼','✦','◦'],    particleColor: '#c8dff0', tone: 'dreamy',
+    palette: { background: '#EDF2F8', foreground: '#0E1830', accent: '#3058A8', accent2: '#90B0D8', card: '#F4F8FC', muted: '#6878A0', highlight: '#1A3878', subtle: '#F0F4FA', ink: '#060C1E' } as VibeSkin['palette'] },
   tropical:   { curve: 'wave',      particle: 'confetti',   decorIcons: ['✿','◦','✦','❦','•'],    particleColor: '#c3f5a9', tone: 'playful'  },
+  rustic:     { curve: 'mountain',  particle: 'leaves',     decorIcons: ['⧱','◦','✦','•','❦'],   particleColor: '#c4a882', tone: 'rustic'   },
+  minimalist: { curve: 'ribbon',    particle: 'stars',      decorIcons: ['◦','•','◈','◇','✦'],    particleColor: '#d0ccc4', tone: 'luxurious'},
+  vintage:    { curve: 'cascade',   particle: 'petals',     decorIcons: ['◈','✿','◇','✦','•'],    particleColor: '#d4b896', tone: 'rustic'   },
+  sakura:     { curve: 'petal',     particle: 'sakura',     decorIcons: ['✿','❀','◦','✦','•'],    particleColor: '#ffb7c5', tone: 'dreamy'   },
 };
 
 // — Seed-based deterministic number in [0,1) from a string ——————————————————————————————————————————
@@ -171,6 +182,18 @@ const FALLBACK_PALETTE_VARIANTS = [
   { background: '#F4EDE6', foreground: '#2C1E14', accent: '#B5633A', accent2: '#D4A086', card: '#FAF4EE', muted: '#9E7D68', highlight: '#8F4620', subtle: '#F8F2EC', ink: '#1E1008' },
   // Lavender / Cream
   { background: '#EFECF5', foreground: '#201A2C', accent: '#7B68AE', accent2: '#B8AED4', card: '#F7F5FB', muted: '#8A82A0', highlight: '#5C4E8C', subtle: '#F3F0F9', ink: '#150E20' },
+  // Warm Charcoal / Gold (modern luxe)
+  { background: '#F5F2ED', foreground: '#1A1A1A', accent: '#B8962A', accent2: '#DFC870', card: '#FDFBF6', muted: '#8A8478', highlight: '#8A6E10', subtle: '#F9F7F2', ink: '#0A0A0A' },
+  // Icy Platinum / Deep Navy (winter)
+  { background: '#EDF2F8', foreground: '#0E1830', accent: '#3058A8', accent2: '#90B0D8', card: '#F4F8FC', muted: '#6878A0', highlight: '#1A3878', subtle: '#F0F4FA', ink: '#060C1E' },
+  // Burgundy / Warm Sand (bohemian)
+  { background: '#F2E8E0', foreground: '#2A1810', accent: '#A84A30', accent2: '#C89070', card: '#FAF0E8', muted: '#8A6858', highlight: '#7A2E18', subtle: '#F6EEE6', ink: '#180C04' },
+  // Warm Sage / Organic (garden)
+  { background: '#EEF2E8', foreground: '#2A2E20', accent: '#6B8F5A', accent2: '#B4CCA0', card: '#F4F8EF', muted: '#7A8C70', highlight: '#4E7240', subtle: '#F1F6EC', ink: '#181E10' },
+  // Sea Glass / Sand (beach/coastal)
+  { background: '#EBF3F5', foreground: '#1A2C38', accent: '#2E7A9E', accent2: '#9ECDE8', card: '#F2F8FA', muted: '#6A8898', highlight: '#1A5A7A', subtle: '#EDF5F8', ink: '#0D1C28' },
+  // Warm Blush / Antique Gold
+  { background: '#F8F0EC', foreground: '#2C1820', accent: '#C87060', accent2: '#E4B090', card: '#FEF6F2', muted: '#9E7870', highlight: '#A84840', subtle: '#FBF4F0', ink: '#1C0C10' },
 ];
 
 function deriveFallback(vibeString: string): VibeSkin {
@@ -186,10 +209,10 @@ function deriveFallback(vibeString: string): VibeSkin {
   const curve = merged.curve || 'organic';
   const waveDef = WAVE_PATHS[curve];
 
-  // Seed-based palette variation — different vibeStrings get noticeably different fallback palettes
+  // If a keyword match provided a full palette override, use it; otherwise seed-pick from variants
   const seed = seededRandom(vibeString);
   const paletteIdx = Math.floor(seed * FALLBACK_PALETTE_VARIANTS.length);
-  const palettePick = FALLBACK_PALETTE_VARIANTS[paletteIdx];
+  const palettePick = (merged as Partial<VibeSkin>).palette || FALLBACK_PALETTE_VARIANTS[paletteIdx];
   const art = buildFallbackArt(palettePick.accent, curve);
 
   // Seed-based heading/body font variation — 40+ curated Google Fonts pairings
@@ -301,25 +324,19 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
 } {
   const a = accent || '#A3B18A';
 
-  const heroPatternSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.12">
-    <circle cx="100" cy="100" r="70"/>
-    <circle cx="100" cy="100" r="45"/>
-    <circle cx="40" cy="40" r="20"/>
-    <circle cx="160" cy="160" r="20"/>
-    <circle cx="160" cy="40" r="15"/>
-    <circle cx="40" cy="160" r="15"/>
-    <line x1="30" y1="100" x2="170" y2="100"/>
-    <line x1="100" y1="30" x2="100" y2="170"/>
-  </g>
-  <g fill="${a}" opacity="0.08">
-    <circle cx="100" cy="100" r="3"/>
-    <circle cx="55" cy="55" r="2"/>
-    <circle cx="145" cy="55" r="2"/>
-    <circle cx="55" cy="145" r="2"/>
-    <circle cx="145" cy="145" r="2"/>
-  </g>
-</svg>`;
+  // Pattern varies by curve type for more visual variety across sites
+  const HERO_PATTERNS: Record<VibeSkin['curve'], string> = {
+    organic: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.11"><path d="M20,100 C60,40 140,40 180,100 C140,160 60,160 20,100 Z"/><circle cx="100" cy="100" r="45"/><circle cx="100" cy="100" r="22"/></g><g fill="${a}" opacity="0.08"><circle cx="100" cy="55" r="2.5"/><circle cx="100" cy="145" r="2.5"/><circle cx="55" cy="100" r="2"/><circle cx="145" cy="100" r="2"/><circle cx="100" cy="100" r="2"/></g></svg>`,
+    arch: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.12"><path d="M30,130 Q100,20 170,130"/><path d="M50,150 Q100,60 150,150"/><line x1="100" y1="20" x2="100" y2="170"/></g><g fill="${a}" opacity="0.08"><circle cx="100" cy="20" r="3"/><circle cx="30" cy="130" r="2"/><circle cx="170" cy="130" r="2"/></g></svg>`,
+    geometric: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.12"><rect x="40" y="40" width="120" height="120"/><rect x="70" y="70" width="60" height="60" transform="rotate(45 100 100)"/><line x1="40" y1="40" x2="160" y2="160"/><line x1="160" y1="40" x2="40" y2="160"/></g><g fill="${a}" opacity="0.08"><circle cx="100" cy="100" r="3"/><circle cx="40" cy="40" r="2"/><circle cx="160" cy="40" r="2"/><circle cx="40" cy="160" r="2"/><circle cx="160" cy="160" r="2"/></g></svg>`,
+    wave: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.7" opacity="0.11"><path d="M0,60 C40,40 80,80 120,60 C160,40 180,70 200,55"/><path d="M0,100 C40,80 80,120 120,100 C160,80 180,110 200,95"/><path d="M0,140 C40,120 80,160 120,140 C160,120 180,150 200,135"/></g><g fill="${a}" opacity="0.07"><circle cx="40" cy="40" r="2"/><circle cx="120" cy="60" r="2"/><circle cx="40" cy="80" r="2"/><circle cx="120" cy="100" r="2"/></g></svg>`,
+    petal: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.12"><path d="M100,100 Q100,50 130,70 Q110,100 100,100 Z"/><path d="M100,100 Q150,100 130,130 Q100,110 100,100 Z"/><path d="M100,100 Q100,150 70,130 Q90,100 100,100 Z"/><path d="M100,100 Q50,100 70,70 Q100,90 100,100 Z"/><circle cx="100" cy="100" r="15"/></g><circle cx="100" cy="100" r="3" fill="${a}" opacity="0.18"/></svg>`,
+    cascade: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.11"><path d="M20,40 C50,20 80,60 110,40 C140,20 170,60 190,40"/><path d="M20,80 C50,60 80,100 110,80 C140,60 170,100 190,80"/><path d="M20,120 C50,100 80,140 110,120 C140,100 170,140 190,120"/><path d="M20,160 C50,140 80,180 110,160 C140,140 170,180 190,160"/></g><g fill="${a}" opacity="0.08"><circle cx="110" cy="40" r="2"/><circle cx="110" cy="80" r="2"/><circle cx="110" cy="120" r="2"/><circle cx="110" cy="160" r="2"/></g></svg>`,
+    ribbon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.7" opacity="0.10"><path d="M0,100 C67,40 133,160 200,100"/><path d="M0,80 C67,20 133,140 200,80"/><path d="M0,120 C67,60 133,180 200,120"/></g><g fill="${a}" opacity="0.08"><circle cx="100" cy="100" r="2.5"/><circle cx="33" cy="70" r="1.5"/><circle cx="167" cy="130" r="1.5"/></g></svg>`,
+    mountain: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.11"><path d="M0,160 L50,80 L80,120 L110,50 L140,100 L170,60 L200,90"/><path d="M0,180 L50,110 L80,145 L110,80 L140,125 L170,90 L200,115"/></g><g fill="${a}" opacity="0.08"><circle cx="50" cy="80" r="2.5"/><circle cx="110" cy="50" r="3"/><circle cx="170" cy="60" r="2.5"/></g></svg>`,
+  };
+
+  const heroPatternSvg = HERO_PATTERNS[curve] || HERO_PATTERNS.organic;
 
   const curvePaths: Record<VibeSkin['curve'], string> = {
     organic:   'M0,20 C50,5 100,35 150,20 C200,5 250,35 300,20 C350,5 400,35 450,20 C500,5 550,35 600,20 C650,5 700,35 750,20 C800,5 800,20 800,20',
@@ -445,10 +462,23 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
+export interface VibeSkinContext {
+  chapters?: Array<{
+    title: string;
+    subtitle: string;
+    mood: string;
+    location?: { label: string } | null;
+    description: string;
+  }>;
+  inspirationUrls?: string[];  // Pinterest/inspiration image URLs
+  photoUrls?: string[];        // Representative photo URLs from the couple's actual uploads
+}
+
 export async function generateVibeSkin(
   vibeString: string,
+  apiKey?: string,
   coupleNames?: [string, string],
-  apiKey?: string
+  context?: VibeSkinContext
 ): Promise<VibeSkin> {
   if (!apiKey) return deriveFallback(vibeString);
 
@@ -456,11 +486,30 @@ export async function generateVibeSkin(
     ? `The couple is ${coupleNames[0]} & ${coupleNames[1]}.`
     : '';
 
+  const storyContext = context?.chapters?.length
+    ? `
+STORY CONTEXT (use this to deeply inform the visual identity):
+The couple's story has these chapters:
+${context.chapters.map(c => `- "${c.title}" — ${c.mood} mood, ${c.location?.label || 'no specific location'}: ${c.description}`).join('\n')}
+
+Key moods detected: ${[...new Set(context.chapters.map(c => c.mood))].join(', ')}
+Key locations: ${[...new Set(context.chapters.map(c => c.location?.label).filter(Boolean))].join(', ') || 'not specified'}
+`
+    : '';
+
   const prompt = `You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
-The couple’s vibe is: "${vibeString}"
+The couple's vibe is: "${vibeString}"
+${storyContext}
+Your job: design a COMPLETELY UNIQUE, ELEGANT visual identity for their wedding site. The result should be refined and beautiful—no two sites should ever look the same.
 
-Your job: design a COMPLETELY UNIQUE visual identity for their wedding site. The result should be jaw-dropping—no two sites should ever look the same.
+## CORE AESTHETIC PHILOSOPHY
+Default to MINIMALISM and ELEGANCE. Less is more. Avoid visual noise. Prefer:
+- Sophisticated desaturated tones with ONE warm or jewel-toned accent
+- Generous whitespace and restraint
+- For a luxurious feel: muted, aged tones (dusty rose, warm ivory, slate, sage) + one warm metallic or deep accent
+- Analogous color schemes (colors close on the wheel) with high-contrast ink for text
+- When in doubt: simplify the palette, let the typography breathe
 
 ## TONE-TO-PALETTE MAPPING
 Read the actual emotional tone words in the vibe and derive the palette from them:
@@ -509,10 +558,10 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
   "texture": "<one of: none | linen | floral | marble | bokeh | starfield | paper>",
   "headingStyle": "<one of: italic-serif | uppercase-tracked | thin-elegant | bold-editorial | script-like>",
   "cardStyle": "<one of: glass | solid | outlined | minimal | elevated>",
-  "decorIcons": ["<5 creative unicode chars specific to this couple’s world>"],
+  "decorIcons": ["<5 creative unicode chars specific to this couple's world>"],
   "accentSymbol": "<single elegant unicode symbol — their primary visual motif>",
   "particleColor": "<hex color for ambient particles>",
-  "sectionGradient": "<CSS linear-gradient using 2-3 palette colors — e.g. ‘linear-gradient(135deg, #f5ede4 0%, #fdf9f5 60%, #ede8e0 100%)’>",
+  "sectionGradient": "<CSS linear-gradient using 2-3 palette colors — e.g. 'linear-gradient(135deg, #f5ede4 0%, #fdf9f5 60%, #ede8e0 100%)'>",
   "palette": {
     "background": "<primary page bg hex — NEVER plain white. Derive from tone mapping above>",
     "foreground": "<text color hex — must contrast strongly with background>",
@@ -534,17 +583,17 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
     "registry": "<label>",
     "travel": "<label>",
     "faqs": "<label>",
-    "rsvp": "<warm personal RSVP invitation in the couple’s voice>"
+    "rsvp": "<warm personal RSVP invitation in the couple's voice>"
   },
-  "dividerQuote": "<Write a single original poetic line (12-20 words) that could ONLY belong to this specific couple based on their story. Reference their actual vibe details — place names, activities, the moment they knew. NOT a cliche.>",
+  "dividerQuote": "<Write a single original poetic phrase (6-10 words MAXIMUM) that is short, lyrical, and emotionally specific to this couple. Evoke their vibe — a place, a feeling, a moment. Think of it as a whispered caption, not a full sentence. NOT a cliche. Examples of good length: 'Where the sea met us first', 'Fog-laced mornings and tangled roots', 'Every city led back to you'>",
   "tone": "<one of: dreamy | playful | luxurious | wild | intimate | cosmic | rustic>",
-  "heroPatternSvg": "<FULL SVG: subtle repeating bg pattern. viewBox=’0 0 200 200’. 8-12 thematic elements. All opacities 0.06-0.15. Use the accent color. Complete <svg>...</svg> on one line.>",
-  "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox=’0 0 800 40’. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
-  "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox=’0 0 80 80’. Art Nouveau style. Complete <svg>...</svg> on one line.>",
-  "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox=’0 0 120 120’. Complete <svg>...</svg> on one line.>",
-  "heroBlobSvg": "<FULL SVG: large editorial illustration for the hero section right panel. viewBox=’0 0 500 700’. Draw 20-30 thematic botanical branches with leaf shapes, constellations with connecting lines and star dots, vineyard/architectural linework, or other vibe-specific illustrations that FILL 70%+ of the canvas richly. This displays at ~40% page width — it must look impressive and artistic. Use ONLY the accent color. Opacity range 0.12-0.25. Complete <svg>...</svg> on one line.>",
-  "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox=’0 0 600 400’. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08-0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
-  "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Match the ‘curve’ choice: cascade=multi-cascade beziers, ribbon=wide sinusoid, mountain=sharp peaks, organic=flowing beziers, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.>"
+  "heroPatternSvg": "<FULL SVG: subtle repeating bg pattern. viewBox='0 0 200 200'. 8-12 thematic elements. All opacities 0.06-0.15. Use the accent color. Complete <svg>...</svg> on one line.>",
+  "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox='0 0 800 40'. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
+  "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox='0 0 80 80'. Art Nouveau style. Complete <svg>...</svg> on one line.>",
+  "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox='0 0 120 120'. Complete <svg>...</svg> on one line.>",
+  "heroBlobSvg": "<FULL SVG: large editorial illustration for the hero section right panel. viewBox='0 0 500 700'. Draw 20-30 thematic botanical branches with leaf shapes, constellations with connecting lines and star dots, vineyard/architectural linework, or other vibe-specific illustrations that FILL 70%+ of the canvas richly. This displays at ~40% page width — it must look impressive and artistic. Use ONLY the accent color. Opacity range 0.12-0.25. Complete <svg>...</svg> on one line.>",
+  "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox='0 0 600 400'. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08-0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
+  "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Match the 'curve' choice: cascade=multi-cascade beziers, ribbon=wide sinusoid, mountain=sharp peaks, organic=flowing beziers, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.>"
 }
 
 CRITICAL DESIGN RULES:
@@ -553,21 +602,64 @@ CRITICAL DESIGN RULES:
 3. SVGs: each must be a single line string. Use spaces between tags, escaped quotes.
 4. SVG opacities: 0.06-0.20 only — ultra subtle, never solid.
 5. decorIcons: thematically specific (botanical, celestial, nautical, architectural) — NOT generic hearts.
-6. dividerQuote: MUST reference specific details from the vibe — never a generic love quote.
-7. All 9 palette colors must form a cohesive, premium visual system. Test contrast mentally.
+6. dividerQuote: MUST be 6-10 words maximum. Short, poetic, specific to this couple's vibe. Never a generic love quote.
+7. All 9 palette colors must form a cohesive, premium visual system. Prefer analogous schemes with one contrasting accent.
 8. heroBlobSvg: Must fill 70%+ of the 500x700 canvas with rich thematic linework.
 9. accentBlobSvg: The blob polygon must be irregular and organic, filling ~60% of canvas.
 10. sectionBlobPath: Match curve type exactly — cascade/ribbon/mountain have distinct geometries.
 11. headingStyle: italic-serif for romantic, uppercase-tracked for minimal/luxury, script-like for handcrafted, bold-editorial for modern, thin-elegant for art deco.
 12. cardStyle: glass for dreamy/cosmic, elevated for luxurious, outlined for minimal, solid for rustic, minimal for zen.
-13. sectionGradient: use palette.subtle → palette.card → palette.background for a gentle wash.`;
+13. sectionGradient: use palette.subtle → palette.card → palette.background for a gentle wash.
+14. curve / wavePath: The wave dividers between sections should be GENTLE and SUBTLE. Prefer: ribbon (wide sinusoid), arch (smooth arc), organic (soft flowing). Reserve mountain/geometric for bold/modern vibes. The rendered height is max 80px — the SVG path coords should reflect gentle height changes, NOT dramatic peaks.
+15. ELEGANCE FIRST: When uncertain about palette choices, default to sophisticated muted tones + one warm accent. Avoid neon, high-saturation primaries, or jarring color contrasts. The site should feel like a luxury editorial magazine.`;
 
   try {
+    // Build multimodal parts array — start with the text prompt
+    const parts: Record<string, unknown>[] = [{ text: prompt }];
+
+    // Add inspiration images to the Gemini parts array
+    if (context?.inspirationUrls?.length) {
+      parts.push({ text: `\n\nINSPIRATION IMAGES: The couple has provided ${context.inspirationUrls.length} inspiration image(s) below. Analyze each for: dominant color palette, typography style (serif/sans/script), decorative density (minimal/medium/ornate), overall mood. Let these HEAVILY influence your palette, typography, and decoration choices.\n` });
+
+      for (const url of context.inspirationUrls.slice(0, 4)) {
+        try {
+          const resp = await fetch(url);
+          if (resp.ok) {
+            const arrayBuffer = await resp.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            const contentType = resp.headers.get('content-type') || 'image/jpeg';
+            parts.push({ inlineData: { mimeType: contentType, data: base64 } });
+          }
+        } catch {
+          // Skip failed image fetches silently
+        }
+      }
+    }
+
+    // Add representative photos from the couple's actual uploads
+    if (context?.photoUrls?.length) {
+      parts.push({ text: `\n\nCOUPLE'S ACTUAL PHOTOS: These images are from the couple's real photo collection. Extract the dominant color palette, lighting style (warm/cool/neutral), and overall aesthetic (film/digital, bright/moody, candid/posed). The visual identity MUST harmonize with these photos.\n` });
+
+      for (const url of context.photoUrls.slice(0, 3)) {
+        try {
+          const resp = await fetch(url);
+          if (resp.ok) {
+            const arrayBuffer = await resp.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            const contentType = resp.headers.get('content-type') || 'image/jpeg';
+            parts.push({ inlineData: { mimeType: contentType, data: base64 } });
+          }
+        } catch {
+          // Skip failed image fetches silently
+        }
+      }
+    }
+
     const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: {
           temperature: 1.0,
           maxOutputTokens: 6000,

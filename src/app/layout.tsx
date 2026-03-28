@@ -1,20 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Lora } from "next/font/google";
 import "./globals.css";
-
-const playfair = Playfair_Display({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  style: ["normal", "italic"],
-});
-
-const lora = Lora({
-  variable: "--font-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -41,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${lora.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />

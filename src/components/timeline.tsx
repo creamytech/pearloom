@@ -9,7 +9,6 @@ import { motion } from 'framer-motion';
 import { TimelineItem } from './timeline-item';
 import { useTheme } from '@/components/theme-provider';
 import { getPatternStyle } from '@/lib/patterns';
-import { PearSectionDivider } from '@/components/icons/PearShapes';
 import type { Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
@@ -37,11 +36,6 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
 
   return (
     <section style={{ background: 'var(--eg-bg)', position: 'relative' }}>
-      {/* PearSectionDivider — wave transition from hero */}
-      <div style={{ position: 'relative', lineHeight: 0, marginBottom: '-2px' }}>
-        <PearSectionDivider color="var(--eg-bg)" opacity={1} />
-      </div>
-
       <div style={{ padding: '2rem 0 8rem', position: 'relative' }}>
         {/* Dynamic Background Pattern */}
         <div
