@@ -718,7 +718,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
       id: `page-${Date.now()}`,
       slug,
       title: newPageTitle.trim(),
-      icon: '📄',
+      icon: '',
       blocks: [
         { id: `b-text-${Date.now()}`, type: 'text' as const, order: 0, visible: true },
       ],
@@ -837,7 +837,6 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
               background: 'rgba(184,146,106,0.08)',
               border: '1px solid rgba(184,146,106,0.2)',
             }}>
-              <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{page.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
                 <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px' }}>{baseUrl}/{page.slug}</div>
