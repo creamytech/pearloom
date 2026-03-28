@@ -19,6 +19,8 @@ export interface PreviewPaneProps {
   onSectionClick?: (chapterId: string) => void;
   /** When set, drop zones appear between chapters for drag-and-drop reorder/insert */
   draggingId?: string | null;
+  /** When set, the matching chapter will show a selection ring */
+  selectedChapterId?: string | null;
 }
 
 type PreviewDevice = 'desktop' | 'mobile';
@@ -216,11 +218,11 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
     <div
       ref={setNodeRef}
       style={{
-        height: isOver ? '72px' : '10px',
+        height: isOver ? '80px' : '24px',
         margin: '0 48px',
         borderRadius: '8px',
-        border: isOver ? `2px dashed ${accent}` : `2px dashed transparent`,
-        background: isOver ? `${accent}15` : 'transparent',
+        border: isOver ? `2px solid ${accent}` : `2px dotted ${accent}30`,
+        background: isOver ? `${accent}22` : `${accent}06`,
         transition: 'all 0.18s ease',
         display: 'flex',
         alignItems: 'center',
@@ -229,8 +231,8 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
       }}
     >
       {isOver && (
-        <span style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          Drop here
+        <span style={{ fontSize: '12px', fontWeight: 700, color: accent, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          Drop here ↓
         </span>
       )}
     </div>
@@ -239,7 +241,7 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
 
 // ── Main PreviewPane ───────────────────────────────────────────
 export function PreviewPane({
-  manifest, coupleNames, vibeSkin, scale = 0.65, onSectionClick, draggingId,
+  manifest, coupleNames, vibeSkin, scale = 0.65, onSectionClick, draggingId, selectedChapterId,
 }: PreviewPaneProps) {
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
 
@@ -318,22 +320,51 @@ export function PreviewPane({
             {/* Top drop zone — insert before first chapter */}
             {draggingId && <DropZone id="drop:before:0" accent={accent} />}
 
-            {chapters.map((ch, i) => (
-              <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
-                <ChapterCard
-                  chapter={ch}
-                  vibeSkin={vibeSkin}
-                  manifest={manifest}
-                  onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
-                />
-                {draggingId
-                  ? <DropZone id={`drop:after:${i}`} accent={accent} />
-                  : i < chapters.length - 1 && (
-                    <div style={{ height: '1px', background: `${accent}18`, margin: '0 48px' }} />
-                  )
-                }
-              </div>
-            ))}
+            {chapters.map((ch, i) => {
+              const isSelected = selectedChapterId === ch.id;
+              return (
+                <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
+                  {isSelected ? (
+                    <div style={{
+                      outline: `2px solid var(--eg-plum, #6D597A)`,
+                      outlineOffset: '-2px',
+                      borderRadius: '4px',
+                      position: 'relative',
+                    }}>
+                      <ChapterCard
+                        chapter={ch}
+                        vibeSkin={vibeSkin}
+                        manifest={manifest}
+                        onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
+                      />
+                      <div style={{
+                        position: 'absolute', top: '8px', right: '8px',
+                        background: 'var(--eg-plum, #6D597A)',
+                        color: '#fff', fontSize: '0.68rem', fontWeight: 700,
+                        padding: '2px 8px', borderRadius: '100px',
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        pointerEvents: 'none',
+                      }}>
+                        Editing
+                      </div>
+                    </div>
+                  ) : (
+                    <ChapterCard
+                      chapter={ch}
+                      vibeSkin={vibeSkin}
+                      manifest={manifest}
+                      onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
+                    />
+                  )}
+                  {draggingId
+                    ? <DropZone id={`drop:after:${i}`} accent={accent} />
+                    : i < chapters.length - 1 && (
+                      <div style={{ height: '1px', background: `${accent}18`, margin: '0 48px' }} />
+                    )
+                  }
+                </div>
+              );
+            })}
 
             {/* Footer */}
             <div style={{
