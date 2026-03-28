@@ -397,3 +397,158 @@ export interface CustomPage {
   visible: boolean;
   order: number;
 }
+
+// ─────────────────────────────────────────────────────────────
+// Guest (canonical — used across seating, RSVP, constraints)
+// ─────────────────────────────────────────────────────────────
+
+export interface Guest {
+  id: string;
+  name: string;
+  email?: string;
+  status: 'attending' | 'declined' | 'pending';
+  plusOne: boolean;
+  plusOneName?: string;
+  mealPreference?: string;
+  dietaryRestrictions?: string;
+  songRequest?: string;
+  message?: string;
+  respondedAt?: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Venues
+// ─────────────────────────────────────────────────────────────
+
+export interface Venue {
+  id: string;
+  userId: string;
+  siteId?: string;
+  name: string;
+  formattedAddress?: string;
+  placeId?: string;
+  lat?: number;
+  lng?: number;
+  website?: string;
+  phone?: string;
+  capacityCeremony?: number;
+  capacityReception?: number;
+  indoorOutdoor?: 'indoor' | 'outdoor' | 'both';
+  notes?: string;
+  floorplanUrl?: string;
+  createdAt: string;
+}
+
+export interface VenueSpace {
+  id: string;
+  venueId: string;
+  name: string;
+  capacity?: number;
+  widthFt?: number;
+  lengthFt?: number;
+  shape?: string;
+  notes?: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Seating
+// ─────────────────────────────────────────────────────────────
+
+export interface SeatingTable {
+  id: string;
+  spaceId: string;
+  userId: string;
+  label: string;
+  shape: 'round' | 'rectangular' | 'banquet' | 'square';
+  capacity: number;
+  x: number;
+  y: number;
+  rotation: number;
+  isReserved: boolean;
+  notes?: string;
+  seats?: Seat[];
+}
+
+export interface Seat {
+  id: string;
+  tableId: string;
+  seatNumber: number;
+  guestId?: string;
+  mealPreference?: string;
+  guest?: Guest; // populated via join
+}
+
+export type ConstraintType =
+  | 'must_sit_together'
+  | 'must_not_sit_together'
+  | 'near_exit'
+  | 'near_dance_floor'
+  | 'avoid_table'
+  | 'prefer_table'
+  | 'custom';
+
+export interface SeatingConstraint {
+  id: string;
+  userId: string;
+  siteId?: string;
+  type: ConstraintType;
+  guestIds?: string[];
+  tableId?: string;
+  priority: 1 | 2;
+  description?: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Registry
+// ─────────────────────────────────────────────────────────────
+
+export interface RegistrySource {
+  id: string;
+  userId: string;
+  siteId?: string;
+  storeName: string;
+  registryUrl: string;
+  category?: string;
+  notes?: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface RegistryItem {
+  id: string;
+  sourceId: string;
+  name: string;
+  price?: number;
+  imageUrl?: string;
+  itemUrl?: string;
+  category?: string;
+  priority: 'need' | 'want' | 'dream';
+  purchased: boolean;
+  notes?: string;
+}
+
+export interface AIProposal {
+  id: string;
+  userId: string;
+  siteId?: string;
+  type: 'seating' | 'registry' | 'vendor' | 'timeline';
+  proposal: unknown;
+  explanation?: string;
+  applied: boolean;
+  createdAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Google Places
+// ─────────────────────────────────────────────────────────────
+
+export interface PlaceResult {
+  placeId: string;
+  name: string;
+  formattedAddress: string;
+  lat: number;
+  lng: number;
+  website?: string;
+  phone?: string;
+  types?: string[];
+}
