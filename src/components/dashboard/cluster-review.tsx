@@ -35,12 +35,17 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [draftLocation, setDraftLocation] = useState('');
   const [geocoding, setGeocoding] = useState<number | null>(null);
+  const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
 
   useEffect(() => {
     // Cluster the photos whenever the photo set changes
     const built = clusterPhotos(photos, 14);
     setClusters(built);
   }, [photos]);
+
+  const setClusterNote = (idx: number, note: string) => {
+    setClusters(prev => prev.map((c, i) => i === idx ? { ...c, note } : c));
+  };
 
   const setClusterLabel = (idx: number, label: string) => {
     setClusters(prev => prev.map((c, i) => {
