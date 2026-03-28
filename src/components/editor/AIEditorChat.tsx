@@ -122,7 +122,7 @@ export function AIEditorChat({
         const parts = (actionData.path as string).split('.');
         if (parts.length === 2) {
           const [topKey, subKey] = parts;
-          const existing = (manifest as Record<string, unknown>)[topKey] as Record<string, unknown> | undefined;
+          const existing = (manifest as unknown as Record<string, unknown>)[topKey] as Record<string, unknown> | undefined;
           const updated = { [topKey]: { ...(existing || {}), [subKey]: actionData.value } };
           onUpdateManifest(updated as Partial<StoryManifest>);
         } else {
