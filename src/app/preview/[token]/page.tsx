@@ -14,6 +14,7 @@ import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
+import type { FaqItem } from '@/types';
 
 interface PreviewPageProps {
   params: Promise<{ token: string }>;

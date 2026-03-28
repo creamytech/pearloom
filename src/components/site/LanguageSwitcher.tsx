@@ -169,6 +169,7 @@ export function LanguageSwitcher({
                   key={lang.code}
                   onClick={() => handleSelect(lang)}
                   disabled={isLoadingThis}
+                  dir={lang.dir || 'ltr'}
                   style={{
                     display: 'flex',
                     alignItems: 'center',

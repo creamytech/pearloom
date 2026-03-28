@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/site/LeafletMap.tsx
 // Leaflet map — must be imported dynamically (no SSR).
+// Loads Leaflet from CDN to avoid a missing npm package.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef } from 'react';
@@ -13,14 +14,31 @@ interface LeafletMapProps {
   accentColor: string;
 }
 
-export default function LeafletMap({ chapters, accentColor }: LeafletMapProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<unknown>(null);
+// Minimal Leaflet type shim so we can use window.L without TS errors.
+interface LMarkerOptions { icon?: unknown }
+interface LMap {
+  setView(latlng: [number, number], zoom: number): LMap;
+  fitBounds(latlngs: [number, number][], opts?: { padding: [number, number] }): void;
+  remove(): void;
+}
+interface LLib {
+  map(el: HTMLElement): LMap;
+  tileLayer(url: string, opts: unknown): { addTo(m: LMap): void };
+  polyline(latlngs: [number, number][], opts: unknown): { addTo(m: LMap): void };
+  marker(latlng: [number, number], opts?: LMarkerOptions): { addTo(m: LMap): void; bindPopup(html: string): unknown };
+  divIcon(opts: unknown): unknown;
+  Icon: { Default: { prototype: Record<string, unknown>; mergeOptions(o: unknown): void } };
+}
 
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+declare global {
+  interface Window { L?: LLib }
+}
 
-    // Inject Leaflet CSS
+function loadLeaflet(): Promise<LLib> {
+  return new Promise((resolve, reject) => {
+    if (window.L) { resolve(window.L); return; }
+
+    // CSS
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
@@ -29,16 +47,31 @@ export default function LeafletMap({ chapters, accentColor }: LeafletMapProps) {
       document.head.appendChild(link);
     }
 
+    // JS
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => { if (window.L) resolve(window.L); else reject(new Error('Leaflet not loaded')); };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+export default function LeafletMap({ chapters, accentColor }: LeafletMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<LMap | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
     // Collect chapters that have locations
     const located = chapters.filter(ch => ch.location !== null);
     if (located.length === 0) return;
 
-    import('leaflet').then(L => {
+    loadLeaflet().then(L => {
       if (!containerRef.current || mapRef.current) return;
 
       // Fix default icon path issue in bundled environments
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -108,12 +141,13 @@ export default function LeafletMap({ chapters, accentColor }: LeafletMapProps) {
       if (located.length > 1) {
         map.fitBounds(latlngs, { padding: [40, 40] });
       }
+    }).catch(err => {
+      console.error('[LeafletMap] Failed to load Leaflet:', err);
     });
 
     return () => {
       if (mapRef.current) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (mapRef.current as any).remove();
+        mapRef.current.remove();
         mapRef.current = null;
       }
     };
