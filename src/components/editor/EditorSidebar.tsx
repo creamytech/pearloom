@@ -69,33 +69,33 @@ export function SidebarSection({
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
           padding: '7px 8px', borderRadius: '6px', border: 'none',
-          background: 'rgba(255,255,255,0.03)', cursor: 'pointer',
-          color: 'rgba(255,255,255,0.6)',
+          background: 'rgba(214,198,168,0.04)', cursor: 'pointer',
+          color: 'rgba(214,198,168,0.6)',
         }}
-        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
-        onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
+        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.08)'; }}
+        onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.04)'; }}
       >
         <ChevronRight
           size={11}
           style={{
             transform: open ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(214,198,168,0.3)',
             flexShrink: 0,
           }}
         />
-        {Icon && <Icon size={12} color="rgba(255,255,255,0.4)" />}
+        {Icon && <Icon size={12} color="rgba(214,198,168,0.4)" />}
         <span style={{
           flex: 1, textAlign: 'left', fontSize: '0.62rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.55)',
+          color: 'rgba(214,198,168,0.55)',
         }}>
           {title}
         </span>
         {badge !== undefined && (
           <span style={{
             fontSize: '0.58rem', padding: '1px 5px', borderRadius: '8px',
-            background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)',
+            background: 'rgba(214,198,168,0.08)', color: 'rgba(214,198,168,0.4)',
           }}>
             {badge}
           </span>
@@ -190,8 +190,8 @@ export function EditorSidebar({
           width: '48px',
           flexShrink: 0,
           height: '100%',
-          background: '#0D0B09',
-          borderRight: '1px solid rgba(255,255,255,0.05)',
+          background: '#1C1916',
+          borderRight: '1px solid rgba(214,198,168,0.07)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -214,7 +214,7 @@ export function EditorSidebar({
                   style={{
                     width: '28px',
                     height: '1px',
-                    background: 'rgba(255,255,255,0.07)',
+                    background: 'rgba(214,198,168,0.08)',
                     margin: '4px 0',
                     flexShrink: 0,
                   }}
@@ -242,18 +242,18 @@ export function EditorSidebar({
                   borderRadius: '6px',
                   margin: '1px 2px',
                   background: isActive && !collapsed
-                    ? 'rgba(92,107,58,0.6)'
+                    ? 'rgba(163,177,138,0.18)'
                     : 'transparent',
                   borderLeft: isActive && !collapsed
-                    ? '3px solid #8a9e56'
+                    ? '3px solid #A3B18A'
                     : '3px solid transparent',
-                  color: isActive && !collapsed ? '#fff' : 'rgba(255,255,255,0.25)',
+                  color: isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)',
                   transition: 'background 0.15s, color 0.15s',
                   boxSizing: 'border-box',
                 }}
                 onMouseOver={e => {
                   if (!(isActive && !collapsed)) {
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)';
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.08)';
                   }
                 }}
                 onMouseOut={e => {
@@ -264,7 +264,7 @@ export function EditorSidebar({
               >
                 <Icon
                   size={16}
-                  color={isActive && !collapsed ? '#fff' : 'rgba(255,255,255,0.25)'}
+                  color={isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)'}
                 />
               </button>
             </React.Fragment>
@@ -289,16 +289,16 @@ export function EditorSidebar({
             borderRadius: '6px',
             margin: '2px',
             background: 'transparent',
-            color: 'rgba(255,255,255,0.2)',
+            color: 'rgba(214,198,168,0.25)',
             transition: 'background 0.15s, color 0.15s',
           }}
           onMouseOver={e => {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)';
-            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.5)';
+            (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.07)';
+            (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.6)';
           }}
           onMouseOut={e => {
             (e.currentTarget as HTMLElement).style.background = 'transparent';
-            (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)';
+            (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.25)';
           }}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -314,8 +314,8 @@ export function EditorSidebar({
           transition: isResizing ? 'none' : 'width 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           display: 'flex',
           flexDirection: 'column',
-          background: '#110f0d',
-          borderRight: collapsed ? 'none' : '1px solid rgba(255,255,255,0.06)',
+          background: '#211D18',
+          borderRight: collapsed ? 'none' : '1px solid rgba(214,198,168,0.07)',
           position: 'relative',
         }}
       >
@@ -329,7 +329,7 @@ export function EditorSidebar({
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 10px 0 12px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid rgba(214,198,168,0.07)',
                 gap: '8px',
               }}
             >
@@ -340,7 +340,7 @@ export function EditorSidebar({
                   fontWeight: 800,
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.45)',
+                  color: 'rgba(214,198,168,0.5)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -362,8 +362,8 @@ export function EditorSidebar({
                   border: 'none',
                   cursor: 'pointer',
                   borderRadius: '4px',
-                  background: isAtMax ? 'rgba(138,158,86,0.2)' : 'transparent',
-                  color: isAtMax ? '#8a9e56' : 'rgba(255,255,255,0.2)',
+                  background: isAtMax ? 'rgba(163,177,138,0.15)' : 'transparent',
+                  color: isAtMax ? '#A3B18A' : 'rgba(214,198,168,0.25)',
                   fontSize: '14px',
                   lineHeight: 1,
                   flexShrink: 0,
@@ -371,14 +371,14 @@ export function EditorSidebar({
                 }}
                 onMouseOver={e => {
                   if (!isAtMax) {
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)';
-                    (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.5)';
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.08)';
+                    (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.6)';
                   }
                 }}
                 onMouseOut={e => {
                   if (!isAtMax) {
                     (e.currentTarget as HTMLElement).style.background = 'transparent';
-                    (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)';
+                    (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.25)';
                   }
                 }}
               >
@@ -419,7 +419,7 @@ export function EditorSidebar({
             alignItems: 'center',
             justifyContent: 'center',
             background: isResizing || isResizeHover
-              ? 'rgba(255,255,255,0.06)'
+              ? 'rgba(214,198,168,0.05)'
               : 'transparent',
             transition: 'background 0.15s',
           }}
@@ -431,8 +431,8 @@ export function EditorSidebar({
               height: '40px',
               borderRadius: '1px',
               background: isResizing || isResizeHover
-                ? 'rgba(138,158,86,0.5)'
-                : 'rgba(255,255,255,0.08)',
+                ? 'rgba(163,177,138,0.6)'
+                : 'rgba(214,198,168,0.1)',
               transition: 'background 0.15s',
               pointerEvents: 'none',
             }}
