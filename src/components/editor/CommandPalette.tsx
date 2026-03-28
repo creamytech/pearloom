@@ -188,7 +188,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               transform: 'translateX(-50%)',
               width: '100%', maxWidth: '580px',
               zIndex: 2001,
-              background: '#18171a',
+              background: '#19160f',
               borderRadius: '16px',
               border: '1px solid rgba(255,255,255,0.1)',
               boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)',
@@ -210,7 +210,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 placeholder="Search actions, tabs, chapters…"
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  color: '#fff', fontSize: '0.95rem', fontFamily: 'Inter, sans-serif',
+                  color: '#fff', fontSize: '0.95rem', fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
                   caretColor: '#b8926a',
                 }}
               />

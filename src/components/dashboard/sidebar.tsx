@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, Image, Settings, ExternalLink } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Generate', icon: LayoutDashboard },
-  { href: '/dashboard/rsvps', label: 'RSVPs', icon: Users },
+  { href: '/dashboard', label: 'Stories', icon: LayoutDashboard },
+  { href: '/dashboard/rsvps', label: 'Guests', icon: Users },
   { href: '/dashboard/gallery', label: 'Gallery', icon: Image },
 ];
 

@@ -1165,7 +1165,7 @@ Return JSON with: title, subtitle, description, mood`,
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       display: 'flex', flexDirection: 'column',
-      background: '#0e0d0c', fontFamily: 'Inter, sans-serif',
+      background: '#100f0d', fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
     }}>
       {/* ── Command Palette ── */}
       <CommandPalette
@@ -1182,7 +1182,7 @@ Return JSON with: title, subtitle, description, mood`,
         height: '52px', flexShrink: 0,
         display: 'flex', alignItems: 'center',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#111110', padding: '0 1rem', gap: '1rem',
+        background: '#110f0d', padding: '0 1rem', gap: '1rem',
         zIndex: 10,
       }}>
         {/* Exit */}
@@ -1309,7 +1309,7 @@ Return JSON with: title, subtitle, description, mood`,
         <div style={{
           width: '248px', flexShrink: 0,
           borderRight: '1px solid rgba(255,255,255,0.06)',
-          background: '#111110',
+          background: '#110f0d',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
         }}>

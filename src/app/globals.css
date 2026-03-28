@@ -8,24 +8,30 @@
 /* ─── Design Tokens ─── */
 :root {
   --eg-bg: #faf9f6;
-  --eg-fg: #1a1a1a;
+  --eg-fg: #1a1713;
   --eg-accent: #b8926a;
   --eg-accent-light: #f3e8d8;
   --eg-accent-dark: #96724c;
-  --eg-muted: #8c8c8c;
+  --eg-accent-warm: #c9a27c;        /* softer accent for body accents */
+  --eg-muted: #8c8680;              /* warm-shifted muted (was cool grey) */
   --eg-card-bg: #ffffff;
+  --eg-dark: #1a1713;               /* warm dark — replaces cold #1a1a1a */
+  --eg-dark-2: #2a2118;             /* deeper warm dark for gradients */
   --eg-font-heading: "Playfair Display", serif;
-  --eg-font-body: "Inter", sans-serif;
+  --eg-font-body: "Lora", Georgia, serif;
   --eg-radius: 1rem;
   --eg-radius-sm: 0.75rem;
-  --eg-shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-  --eg-shadow-md: 0 8px 32px rgba(0,0,0,0.06);
-  --eg-shadow-lg: 0 20px 60px rgba(0,0,0,0.08);
-  --eg-shadow-xl: 0 32px 80px rgba(0,0,0,0.1);
+  --eg-shadow-sm: 0 2px 8px rgba(26,23,19,0.04);
+  --eg-shadow-md: 0 8px 32px rgba(26,23,19,0.06);
+  --eg-shadow-lg: 0 20px 60px rgba(26,23,19,0.08);
+  --eg-shadow-xl: 0 32px 80px rgba(26,23,19,0.1);
   --eg-gradient-warm: linear-gradient(135deg, #f8e8d4 0%, #faf9f6 50%, #e8ddd0 100%);
   --eg-gradient-hero: linear-gradient(180deg, #f5ead6 0%, #faf9f6 40%, #faf9f6 100%);
   --eg-glass: rgba(255, 255, 255, 0.72);
   --eg-glass-border: rgba(255, 255, 255, 0.3);
+  /* Thread / weave metaphor tokens */
+  --eg-thread: rgba(184,146,106,0.25);       /* thread line color */
+  --eg-thread-glow: rgba(184,146,106,0.08);  /* soft thread glow fill */
 }
 
 @theme inline {

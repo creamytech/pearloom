@@ -77,11 +77,11 @@ const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
 const btnPrimaryStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '0.5rem',
   padding: '1rem 2.25rem', borderRadius: '100px',
-  background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+  background: 'linear-gradient(135deg, var(--eg-dark, #1a1713) 0%, var(--eg-dark-2, #2a2118) 100%)',
   color: '#fff', border: 'none',
   fontSize: '0.95rem', fontWeight: 600, fontFamily: 'var(--eg-font-body)',
   cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+  boxShadow: '0 8px 24px rgba(26,23,19,0.18)',
   letterSpacing: '0.01em',
 };
 
