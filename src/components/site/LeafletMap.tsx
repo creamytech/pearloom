@@ -21,11 +21,15 @@ interface LMap {
   fitBounds(latlngs: [number, number][], opts?: { padding: [number, number] }): void;
   remove(): void;
 }
+interface LMarker {
+  addTo(m: LMap): LMarker;
+  bindPopup(html: string): LMarker;
+}
 interface LLib {
   map(el: HTMLElement): LMap;
   tileLayer(url: string, opts: unknown): { addTo(m: LMap): void };
   polyline(latlngs: [number, number][], opts: unknown): { addTo(m: LMap): void };
-  marker(latlng: [number, number], opts?: LMarkerOptions): { addTo(m: LMap): void; bindPopup(html: string): unknown };
+  marker(latlng: [number, number], opts?: LMarkerOptions): LMarker;
   divIcon(opts: unknown): unknown;
   Icon: { Default: { prototype: Record<string, unknown>; mergeOptions(o: unknown): void } };
 }
