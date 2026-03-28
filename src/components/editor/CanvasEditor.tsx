@@ -8,7 +8,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useDragSort } from './useDragSort';
+import type { DragHandleProps } from './useDragSort';
 import {
   Plus, Eye, EyeOff, Trash2,
   ChevronDown, ChevronRight, X,
@@ -354,7 +356,7 @@ function EventBlockConfig({ events, onChange }: {
 
 // ── Block Row ──────────────────────────────────────────────────
 function BlockRow({
-  block, def, isActive, onSelect, onToggle, onDelete,
+  block, def, isActive, onSelect, onToggle, onDelete, dragHandleProps,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
@@ -362,6 +364,7 @@ function BlockRow({
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  dragHandleProps: DragHandleProps;
 }) {
   const Icon = def?.icon || LayoutTemplate;
   const color = def?.color || '#b8926a';
@@ -385,8 +388,22 @@ function BlockRow({
         boxShadow: isActive ? `0 0 0 3px ${color}10` : 'none',
       }}
     >
-      {/* Drag handle */}
-      <div style={{ cursor: 'grab', color: 'rgba(255,255,255,0.2)', display: 'flex', flexShrink: 0 }}>
+      {/* Drag handle — only initiates drag, does not trigger card click */}
+      <div
+        {...dragHandleProps}
+        onClick={e => e.stopPropagation()}
+        style={{
+          ...dragHandleProps.style,
+          color: 'rgba(255,255,255,0.25)',
+          display: 'flex',
+          flexShrink: 0,
+          padding: '4px',
+          borderRadius: '4px',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+      >
         <GripIcon size={14} />
       </div>
 
@@ -884,7 +901,18 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
     pushToPreview(updated);
   }, [manifest, onChange, pushToPreview, isCustomPage, currentCustomPage, activePage]);
 
-  const handleReorder = (newBlocks: PageBlock[]) => commit(newBlocks);
+  // ── Drag-and-drop reordering via useDragSort ──────────────────
+  const {
+    orderedItems: dragOrderedBlocks,
+    getDragProps,
+    getHandleProps,
+    isDragging,
+    dropIndex,
+  } = useDragSort<PageBlock>({
+    items: blocks,
+    getKey: (b) => b.id,
+    onReorder: (newBlocks) => commit(newBlocks),
+  });
 
   const toggleVisible = useCallback((id: string) => {
     commit(blocks.map(b => b.id === id ? { ...b, visible: !b.visible } : b));
@@ -1082,17 +1110,32 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
           </div>
         )}
 
-        <Reorder.Group
-          axis="y"
-          values={blocks}
-          onReorder={handleReorder}
-          as="div"
-          style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}
-        >
-          {blocks.map(block => {
+        {/* ── Drag-sortable block list ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', position: 'relative' }}>
+          {dragOrderedBlocks.map((block, idx) => {
             const def = BLOCK_CATALOGUE.find(d => d.type === block.type);
+            const dragProps = getDragProps(block);
+            const handleProps = getHandleProps(block);
+            const showDropLine = isDragging && dropIndex === idx;
+            const showDropLineAfter = isDragging && dropIndex === dragOrderedBlocks.length - 1 && idx === dragOrderedBlocks.length - 1;
+
             return (
-              <Reorder.Item key={block.id} value={block} as="div">
+              <div
+                key={block.id}
+                ref={dragProps.ref}
+                data-drag-id={dragProps['data-drag-id']}
+                style={dragProps.style}
+              >
+                {/* Drop indicator line — before this item */}
+                {showDropLine && (
+                  <div style={{
+                    height: '2px',
+                    background: '#A3B18A',
+                    borderRadius: '2px',
+                    marginBottom: '4px',
+                    boxShadow: '0 0 6px rgba(163,177,138,0.5)',
+                  }} />
+                )}
                 <BlockRow
                   block={block}
                   def={def}
@@ -1100,11 +1143,22 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                   onSelect={id => setActiveBlockId(activeBlockId === id ? null : id)}
                   onToggle={toggleVisible}
                   onDelete={deleteBlock}
+                  dragHandleProps={handleProps}
                 />
-              </Reorder.Item>
+                {/* Drop indicator line — after the last item */}
+                {showDropLineAfter && (
+                  <div style={{
+                    height: '2px',
+                    background: '#A3B18A',
+                    borderRadius: '2px',
+                    marginTop: '4px',
+                    boxShadow: '0 0 6px rgba(163,177,138,0.5)',
+                  }} />
+                )}
+              </div>
             );
           })}
-        </Reorder.Group>
+        </div>
 
         <AddBlockPicker onAdd={addBlock} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
       </div>
