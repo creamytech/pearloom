@@ -188,27 +188,36 @@ function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      title={desc}
+      title="Drag to insert →"
       style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '8px 10px', borderRadius: '7px',
-        border: '1px solid rgba(255,255,255,0.08)',
-        background: isDragging ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.04)',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '10px 12px', borderRadius: '8px', minHeight: '60px',
+        border: '1px solid rgba(255,255,255,0.1)',
+        background: isDragging ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.06)',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none', touchAction: 'none',
         transition: 'all 0.15s',
-        marginBottom: '4px',
+        marginBottom: '6px',
         opacity: isDragging ? 0.5 : 1,
+        transform: isDragging ? 'none' : undefined,
       }}
-      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(163,177,138,0.3)'; }}
-      onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.04)'; el.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.1)'; el.style.borderColor = 'rgba(163,177,138,0.35)'; el.style.transform = 'translateX(2px)'; }}
+      onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.06)'; el.style.borderColor = 'rgba(255,255,255,0.1)'; el.style.transform = 'translateX(0)'; }}
     >
-      <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{emoji}</span>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', lineHeight: 1.2 }}>{label}</div>
-        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+      {/* Drag handle */}
+      <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '1rem', flexShrink: 0, lineHeight: 1 }}>✦</div>
+      {/* Emoji icon with colored bg */}
+      <div style={{
+        width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
+        background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', fontSize: '1.15rem',
+      }}>
+        {emoji}
       </div>
-      <div style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem', flexShrink: 0 }}>⠿</div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.42)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+      </div>
     </div>
   );
 }
@@ -1546,6 +1555,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
+  // ── Auto-enable split view when canvas tab is active ──
+  useEffect(() => {
+    if (activeTab === 'canvas') setSplitView(true);
+  }, [activeTab]);
+
   // ── Show "Click to jump" hint when split view first opens ──
   const hintShownRef = useRef(false);
   useEffect(() => {
@@ -2064,23 +2078,21 @@ Return JSON with: title, subtitle, description, mood`,
                   </AnimatePresence>
                 </Reorder.Group>
 
-                {/* Blocks palette — drag to canvas */}
-                {splitView && (
-                  <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '10px' }}>
-                      Drag to canvas
-                    </div>
-                    {CANVAS_BLOCK_TYPES.map(b => (
-                      <BlockTypeCard
-                        key={b.id}
-                        blockId={b.id}
-                        label={b.label}
-                        emoji={b.emoji}
-                        desc={b.desc}
-                      />
-                    ))}
+                {/* Blocks palette — drag to canvas — always visible */}
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-olive, #A3B18A)', marginBottom: '10px' }}>
+                    Add Sections — Drag to Canvas
                   </div>
-                )}
+                  {CANVAS_BLOCK_TYPES.map(b => (
+                    <BlockTypeCard
+                      key={b.id}
+                      blockId={b.id}
+                      label={b.label}
+                      emoji={b.emoji}
+                      desc={b.desc}
+                    />
+                  ))}
+                </div>
 
                 {/* Inline chapter editor */}
                 <AnimatePresence mode="wait">
@@ -2185,6 +2197,7 @@ Return JSON with: title, subtitle, description, mood`,
               vibeSkin={manifest.vibeSkin}
               scale={0.55}
               draggingId={canvasDragId}
+              selectedChapterId={activeId}
               onSectionClick={(chapterId) => {
                 setActiveId(chapterId);
                 setActiveTab('story');
@@ -2639,15 +2652,22 @@ Return JSON with: title, subtitle, description, mood`,
       <DragOverlay dropAnimation={null}>
         {canvasDragId && (
           <div style={{
-            padding: '8px 14px', borderRadius: '8px',
-            background: 'rgba(163,177,138,0.95)',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
-            color: '#fff', fontSize: '0.78rem', fontWeight: 700,
-            letterSpacing: '0.04em',
-            display: 'flex', alignItems: 'center', gap: '6px',
-            pointerEvents: 'none', whiteSpace: 'nowrap',
+            padding: '10px 14px',
+            background: 'var(--eg-accent, #A3B18A)',
+            color: '#F5F1E8',
+            borderRadius: '8px',
+            fontSize: '0.88rem', fontWeight: 700,
+            boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', gap: '8px',
+            pointerEvents: 'none',
+            border: '1px solid rgba(255,255,255,0.2)',
+            whiteSpace: 'nowrap',
           }}>
-            <span>⠿</span> {canvasDragLabel}
+            <span style={{ fontSize: '1.2rem' }}>
+              {CANVAS_BLOCK_TYPES.find(b => b.id === canvasDragId)?.emoji ||
+               (canvasDragId.startsWith('chapter:') ? '⌖' : '✦')}
+            </span>
+            {canvasDragLabel}
           </div>
         )}
       </DragOverlay>
