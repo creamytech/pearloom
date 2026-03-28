@@ -252,19 +252,19 @@ export function PreviewPane({
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100%',
-      background: '#1a1916', overflow: 'hidden',
+      background: 'var(--eg-dark-2, #3D3530)', overflow: 'hidden',
     }}>
       {/* ── Header bar ── */}
       <div style={{
         flexShrink: 0, height: '40px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 12px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        background: '#110f0d',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        background: 'rgba(0,0,0,0.2)',
       }}>
         <span style={{
-          fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)',
+          fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)',
         }}>
           Live Preview
         </span>
