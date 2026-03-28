@@ -139,7 +139,11 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
                     position: 'relative',
                   }}
                 >
-                  <TimelineItem chapter={chapter} index={i} />
+                  <TimelineItem
+                    chapter={chapter}
+                    index={i}
+                    chapterIcon={vibeSkin?.chapterIcons?.[i]}
+                  />
                 </div>
               </div>
             ))}

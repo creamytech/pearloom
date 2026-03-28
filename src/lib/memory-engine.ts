@@ -5,7 +5,7 @@
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
-import { generateVibeSkin, WAVE_PATHS } from '@/lib/vibe-engine';
+import { generateVibeSkin, extractCoupleProfile, WAVE_PATHS } from '@/lib/vibe-engine';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
@@ -249,6 +249,24 @@ export async function generateStoryManifest(
     .sort((a: Chapter, b: Chapter) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((ch: Chapter, i: number) => ({ ...ch, order: i }));
 
+  // ── Pass 1.5: Extract Couple DNA — pets, interests, locations, motifs ────
+  // Lightweight Gemini call to extract couple's personal world for bespoke illustration
+  let coupleProfile;
+  try {
+    const chapterSummaries = manifest.chapters.map(c => ({
+      title: c.title,
+      description: c.description,
+      mood: c.mood,
+    }));
+    coupleProfile = await extractCoupleProfile(vibeString, chapterSummaries, apiKey);
+    console.log('[Memory Engine] Pass 1.5: Couple DNA extracted —',
+      `pets: [${coupleProfile.pets.join(', ')}]`,
+      `interests: [${coupleProfile.interests.join(', ')}]`
+    );
+  } catch (err) {
+    console.warn('[Memory Engine] Couple profile extraction failed (non-fatal):', err);
+  }
+
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
   // Bake the full visual skin in-process before critique.
   try {
@@ -266,10 +284,13 @@ export async function generateStoryManifest(
     const vibeSkin = await generateVibeSkin(manifest.vibeString, apiKey, coupleNames, {
       chapters: chapterContext,
       photoUrls,
-      inspirationUrls,  // Pass user's inspiration images so VibeSkin uses them
+      inspirationUrls,
+      coupleProfile,  // Couple DNA drives bespoke illustration generation
     });
     manifest.vibeSkin = vibeSkin;
-    console.log('[Memory Engine] Pass 2: VibeSkin generated');
+    console.log('[Memory Engine] Pass 2: VibeSkin generated',
+      vibeSkin.chapterIcons?.length ? `with ${vibeSkin.chapterIcons.length} chapter icons` : '(no chapter icons)'
+    );
   } catch (err) {
     console.warn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
   }

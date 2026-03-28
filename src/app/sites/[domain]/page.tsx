@@ -213,7 +213,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'story':
         return (
           <section key={key} id="our-story">
-            <Timeline chapters={manifest.chapters || []} />
+            <Timeline chapters={manifest.chapters || []} vibeSkin={vibeSkin} />
           </section>
         );
       case 'event':

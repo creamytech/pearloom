@@ -16,6 +16,7 @@ import { VideoChapterPlayer } from '@/components/site/VideoChapterPlayer';
 interface TimelineItemProps {
   chapter: Chapter;
   index: number;
+  chapterIcon?: string; // AI-generated SVG icon specific to this chapter
 }
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
@@ -1038,19 +1039,45 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
 // ─── MAIN ROUTER ─────────────────────────────────────────────
 const LAYOUT_CYCLE: Array<Chapter['layout']> = ['editorial', 'fullbleed', 'split', 'mosaic', 'cinematic', 'gallery'];
 
-export function TimelineItem({ chapter, index }: TimelineItemProps) {
+export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps) {
   const hasImages = (chapter.images?.length ?? 0) > 0;
   // Fall back to editorial (text-only) when no images are available
   const rawLayout = chapter.layout || LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
   const layout = hasImages ? rawLayout : 'editorial';
 
-  switch (layout) {
-    case 'fullbleed': return <FullbleedLayout chapter={chapter} index={index} />;
-    case 'split': return <SplitLayout chapter={chapter} index={index} />;
-    case 'cinematic': return <CinematicLayout chapter={chapter} index={index} />;
-    case 'gallery': return <GalleryLayout chapter={chapter} index={index} />;
-    case 'mosaic': return <MosaicLayout chapter={chapter} index={index} />;
-    case 'editorial':
-    default: return <EditorialLayout chapter={chapter} index={index} />;
+  const inner = (() => {
+    switch (layout) {
+      case 'fullbleed': return <FullbleedLayout chapter={chapter} index={index} />;
+      case 'split': return <SplitLayout chapter={chapter} index={index} />;
+      case 'cinematic': return <CinematicLayout chapter={chapter} index={index} />;
+      case 'gallery': return <GalleryLayout chapter={chapter} index={index} />;
+      case 'mosaic': return <MosaicLayout chapter={chapter} index={index} />;
+      case 'editorial':
+      default: return <EditorialLayout chapter={chapter} index={index} />;
+    }
+  })();
+
+  // Overlay the AI chapter icon as a floating decoration if available
+  if (chapterIcon) {
+    return (
+      <div style={{ position: 'relative' }}>
+        {inner}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '2.5rem',
+            right: '2.5rem',
+            width: '64px',
+            height: '64px',
+            opacity: 0.22,
+            pointerEvents: 'none',
+          }}
+          dangerouslySetInnerHTML={{ __html: chapterIcon }}
+        />
+      </div>
+    );
   }
+
+  return inner;
 }
