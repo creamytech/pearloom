@@ -116,7 +116,7 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
     }
   };
 
-  const sectionHeading = vibeSkin?.sectionLabels?.['guestbook'] || 'Guest Wishes';
+  const sectionHeading = (vibeSkin?.sectionLabels as Record<string, string> | undefined)?.['guestbook'] || 'Guest Wishes';
 
   return (
     <section
