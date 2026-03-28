@@ -11,6 +11,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import type { Chapter } from '@/types';
 import { MoodDecorator } from '@/components/mood-decorator';
 import { LocationPinIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
+import { VideoChapterPlayer } from '@/components/site/VideoChapterPlayer';
 
 interface TimelineItemProps {
   chapter: Chapter;
@@ -125,6 +126,45 @@ function ChapterDivider() {
       opacity: 0.35,
     }}>
       <PearlDividerIcon size={12} color="var(--eg-accent)" />
+    </div>
+  );
+}
+
+// Collapsible video panel — "▶ Watch the moment" toggle
+function CollapsibleVideo({ videoUrl }: { videoUrl: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: '1.5rem' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          background: 'none',
+          border: '1px solid var(--eg-accent)',
+          borderRadius: '100px',
+          padding: '0.35rem 0.9rem',
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'var(--eg-accent)',
+          cursor: 'pointer',
+          transition: 'background 0.18s',
+        }}
+        onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--eg-accent-rgb, 107,143,90), 0.08)'; }}
+        onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
+      >
+        <span aria-hidden="true">{open ? '▼' : '▶'}</span>
+        {open ? 'Hide video' : 'Watch the moment'}
+      </button>
+      {open && (
+        <div style={{ marginTop: '1rem' }}>
+          <VideoChapterPlayer videoUrl={videoUrl} />
+        </div>
+      )}
     </div>
   );
 }
@@ -284,6 +324,13 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
           )}
         </div>
 
+        {/* Video (editorial) — below images */}
+        {chapter.videoUrl && (
+          <div style={{ position: 'absolute', bottom: 0, left: isEven ? 0 : 'auto', right: isEven ? 'auto' : 0, width: '56%', zIndex: 20 }} className="max-md:static max-md:w-full max-md:mt-4">
+            <CollapsibleVideo videoUrl={chapter.videoUrl} />
+          </div>
+        )}
+
         {/* Typography Column — 40% */}
         <motion.div style={{ flex: 1, textAlign: isEven ? 'left' : 'right', y: textY, position: 'relative', zIndex: 10 }} className="max-md:text-center">
           {/* Ghost chapter number */}
@@ -339,6 +386,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   const y = useTransform(scrollYProgress, [0, 1], ['-18%', '18%']);
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   if (!hasImages) return <EditorialLayout chapter={chapter} index={0} />;
 
@@ -351,18 +399,74 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
       viewport={{ once: true }}
       transition={{ duration: 1.4 }}
     >
-      {mainImage && (
-        <motion.div style={{ position: 'absolute', inset: -80, y }}>
-          <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.45) contrast(1.2) saturate(1.15)' }} />
-        </motion.div>
+      {/* Video replaces image when playing */}
+      {chapter.videoUrl && videoPlaying ? (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: '#000' }}>
+          <VideoChapterPlayer
+            videoUrl={chapter.videoUrl}
+            style={{ borderRadius: 0, height: '100%', aspectRatio: undefined, position: 'absolute', inset: 0, width: '100%' }}
+          />
+          <button
+            type="button"
+            onClick={() => setVideoPlaying(false)}
+            style={{
+              position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
+              background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
+              cursor: 'pointer', letterSpacing: '0.08em',
+            }}
+          >
+            ✕ Close
+          </button>
+        </div>
+      ) : (
+        <>
+          {mainImage && (
+            <motion.div style={{ position: 'absolute', inset: -80, y }}>
+              <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.45) contrast(1.2) saturate(1.15)' }} />
+            </motion.div>
+          )}
+
+          {/* Play button overlay when chapter has video */}
+          {chapter.videoUrl && (
+            <button
+              type="button"
+              onClick={() => setVideoPlaying(true)}
+              style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 15,
+                width: '72px', height: '72px',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.18)',
+                backdropFilter: 'blur(8px)',
+                border: '2px solid rgba(255,255,255,0.5)',
+                color: '#fff',
+                fontSize: '1.5rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'background 0.2s, transform 0.2s',
+              }}
+              onMouseOver={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(255,255,255,0.28)'; b.style.transform = 'translate(-50%, -50%) scale(1.1)'; }}
+              onMouseOut={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(255,255,255,0.18)'; b.style.transform = 'translate(-50%, -50%) scale(1)'; }}
+              aria-label="Play video"
+            >
+              ▶
+            </button>
+          )}
+        </>
       )}
 
       {/* Multi-layer cinematic overlay — strengthened for readability */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.72) 35%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.15) 100%)' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 30%)' }} />
+      {!(chapter.videoUrl && videoPlaying) && (
+        <>
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.72) 35%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.15) 100%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 30%)' }} />
+        </>
+      )}
 
-      {/* Content anchored at bottom */}
-      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '5rem 2rem 7rem', maxWidth: '900px', color: '#ffffff', width: '100%' }}>
+      {/* Content anchored at bottom — hidden when video playing */}
+      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '5rem 2rem 7rem', maxWidth: '900px', color: '#ffffff', width: '100%', display: chapter.videoUrl && videoPlaying ? 'none' : undefined }}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -579,6 +683,9 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
                 <div style={{ marginTop: '2.5rem' }}>
                   <LocationPill label={chapter.location.label} />
                 </div>
+              )}
+              {chapter.videoUrl && (
+                <CollapsibleVideo videoUrl={chapter.videoUrl} />
               )}
             </div>
           </div>

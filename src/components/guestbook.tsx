@@ -8,11 +8,19 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, AlertCircle, Send } from 'lucide-react';
+import { Loader2, Sparkles, AlertCircle, Send, Mic } from 'lucide-react';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 const MAX_CHARS = 300;
+
+// ── AI-inspired prompt pills — static starters guests can click ──
+const PROMPT_PILLS = [
+  { label: 'What's your secret to a happy marriage?', starter: "My secret to a happy marriage: " },
+  { label: 'What do you love about this couple?', starter: "What I love most about this couple is " },
+  { label: 'Your favorite memory with them?', starter: "My favorite memory with them is " },
+  { label: 'Advice for their adventure together?', starter: "My advice for your adventure together: " },
+];
 
 interface Wish {
   id: string;
@@ -168,6 +176,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [voiceToast, setVoiceToast] = useState(false);
 
   void vibeSkin; // reserved for future theming
 
