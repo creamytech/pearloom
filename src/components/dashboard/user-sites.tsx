@@ -117,18 +117,18 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
         flexWrap: 'wrap', gap: '1.5rem',
       }}>
         <div>
-          <div style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#b8926a', marginBottom: '0.5rem' }}>
-            My Sites
+          <div style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b8926a', marginBottom: '0.5rem' }}>
+            Your Stories
           </div>
           <h2 style={{
             fontFamily: 'var(--eg-font-heading)',
-            fontSize: '2.75rem', fontWeight: 400, color: '#1a1a1a',
+            fontSize: '2.75rem', fontWeight: 400, color: 'var(--eg-fg)',
             letterSpacing: '-0.02em', lineHeight: 1,
           }}>
-            {sites.length > 0 ? `${sites.length} Love ${sites.length === 1 ? 'Story' : 'Stories'}` : 'Your Sites'}
+            {sites.length > 0 ? `${sites.length} ${sites.length === 1 ? 'Story' : 'Stories'} woven` : 'Begin weaving'}
           </h2>
-          <p style={{ color: '#8c8c8c', marginTop: '0.5rem', fontSize: '0.95rem' }}>
-            Manage your published sites or create a beautiful new one.
+          <p style={{ color: 'var(--eg-muted)', marginTop: '0.5rem', fontSize: '0.95rem', fontStyle: 'italic' }}>
+            Each site is a living memory — open, edit, or begin a new chapter.
           </p>
         </div>
 
@@ -137,15 +137,15 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.65rem',
             padding: '0.9rem 2rem', borderRadius: '100px',
-            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+            background: 'linear-gradient(135deg, var(--eg-dark) 0%, var(--eg-dark-2) 100%)',
             color: '#fff', fontWeight: 600, fontSize: '0.9rem',
             border: 'none', cursor: 'pointer', letterSpacing: '0.01em',
-            boxShadow: '0 8px 30px rgba(26,26,26,0.2)',
+            boxShadow: '0 8px 30px rgba(26,23,19,0.2)',
             fontFamily: 'var(--eg-font-body)',
           }}
         >
           <Plus size={18} />
-          Create New Site
+          Begin a New Story
         </MagneticButton>
       </div>
 
@@ -188,13 +188,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
           </WovenCircle>
           <h3 style={{
             fontFamily: 'var(--eg-font-heading)', fontSize: '2rem',
-            fontWeight: 400, color: '#1a1a1a', marginBottom: '0.8rem',
+            fontWeight: 400, color: 'var(--eg-fg)', marginBottom: '0.8rem',
             letterSpacing: '-0.015em',
           }}>
-            No sites yet
+            Your first chapter awaits
           </h3>
-          <p style={{ color: '#8c8c8c', maxWidth: '380px', marginBottom: '2.5rem', lineHeight: 1.7, fontSize: '1rem' }}>
-            Build a beautiful AI-powered site for any life milestone in under 90 seconds. Connect your photos and let the magic begin.
+          <p style={{ color: 'var(--eg-muted)', maxWidth: '380px', marginBottom: '2.5rem', lineHeight: 1.8, fontSize: '1rem', fontStyle: 'italic' }}>
+            Connect your photos and describe how it feels. Pearloom weaves them into something worth keeping — in under 90 seconds.
           </p>
           <button
             onClick={onStartNew}
@@ -209,7 +209,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             }}
           >
             <Sparkles size={16} />
-            Create Your First Site
+            Begin Weaving
           </button>
         </motion.div>
 
