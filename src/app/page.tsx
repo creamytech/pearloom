@@ -226,7 +226,7 @@ export default function DashboardPage() {
         <LandingPage handleSignIn={handleSignIn} status={status} />
       ) : (
       <main style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         paddingTop: '8rem',
         paddingBottom: '5rem',
         background: '#faf9f6',

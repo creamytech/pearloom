@@ -45,13 +45,13 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
   }, [tick]);
 
   return (
-    <div style={{ backgroundColor: '#faf9f6', minHeight: '100vh', fontFamily: 'var(--eg-font-body)', overflowX: 'hidden' }}>
+    <div style={{ backgroundColor: '#faf9f6', minHeight: '100dvh', fontFamily: 'var(--eg-font-body)', overflowX: 'hidden' }}>
 
       {/* ══════════════════════════════════════
           HERO — The Loom
       ══════════════════════════════════════ */}
       <section style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         padding: '10rem 2rem 6rem',

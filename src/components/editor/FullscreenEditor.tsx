@@ -66,7 +66,7 @@ const lbl: React.CSSProperties = {
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.65rem 0.8rem', borderRadius: '0.5rem',
   border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.05)',
-  color: '#fff', fontSize: '0.85rem', outline: 'none', fontFamily: 'inherit',
+  color: '#fff', fontSize: 'max(16px, 0.85rem)', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
 };
 
@@ -106,8 +106,9 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
     <div
       onPointerDown={e => { e.preventDefault(); controls.start(e); }}
       style={{
-        cursor: 'grab', padding: '0 6px', display: 'flex', alignItems: 'center',
+        cursor: 'grab', padding: '0 10px', display: 'flex', alignItems: 'center',
         color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
+        minHeight: '44px',
       }}
       onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
@@ -928,6 +929,14 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
 // ── Main FullscreenEditor ──────────────────────────────────────
 export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubdomain, onChange, onPublish, onExit }: FullscreenEditorProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const [chapters, setChapters] = useState<Chapter[]>(
     [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   );
@@ -1232,7 +1241,7 @@ Return JSON with: title, subtitle, description, mood`,
         </div>
 
         {/* Save state + Undo/Redo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+        <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           <button
             onClick={undo} disabled={!canUndo} title="Undo"
             style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', fontSize: '0.75rem', fontWeight: 700 }}
@@ -1250,8 +1259,8 @@ Return JSON with: title, subtitle, description, mood`,
             {saveState === 'saved' ? '✓ Saved' : '● Unsaved'}
           </span>
         </div>
-        {/* Device switcher */}
-        <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px', flexShrink: 0 }}>
+        {/* Device switcher — desktop only */}
+        <div style={{ display: isMobile ? 'none' : 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px', flexShrink: 0 }}>
           {(Object.entries(DEVICE_DIMS) as [DeviceMode, typeof DEVICE_DIMS[DeviceMode]][]).map(([mode, { icon: Icon, label }]) => (
             <button
               key={mode}
@@ -1269,8 +1278,8 @@ Return JSON with: title, subtitle, description, mood`,
           ))}
         </div>
 
-        {/* Preview + Publish */}
-        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+        {/* Preview + Publish — desktop only (mobile uses floating buttons) */}
+        <div style={{ display: isMobile ? 'none' : 'flex', gap: '8px', flexShrink: 0 }}>
           <button
             onClick={() => {
               sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
@@ -1307,8 +1316,8 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* ── LEFT SIDEBAR — Section Nav ── */}
         <div style={{
-          width: '420px', flexShrink: 0,
-          borderRight: '1px solid rgba(255,255,255,0.06)',
+          width: isMobile ? '100%' : '420px', flexShrink: 0,
+          borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)',
           background: '#110f0d',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
@@ -1351,7 +1360,7 @@ Return JSON with: title, subtitle, description, mood`,
           </div>
 
           {/* Tab content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 10px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 10px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
             {activeTab === 'story' && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -1466,10 +1475,10 @@ Return JSON with: title, subtitle, description, mood`,
           </div>
         </div>
 
-        {/* ── CENTER — Live Preview Canvas ── */}
+        {/* ── CENTER — Live Preview Canvas (hidden on mobile) ── */}
         <div style={{
           flex: 1, background: '#1a1916',
-          display: 'flex', flexDirection: 'column',
+          display: isMobile ? 'none' : 'flex', flexDirection: 'column',
           alignItems: 'center', overflow: 'auto',
           padding: device === 'desktop' ? '0' : '2rem 2rem 4rem',
         }}>
@@ -1495,6 +1504,44 @@ Return JSON with: title, subtitle, description, mood`,
 
       </div>
 
+      {/* ── Mobile floating Preview button ── */}
+      {isMobile && (
+        <div style={{
+          position: 'fixed', bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))', right: '1.5rem',
+          zIndex: 1100, display: 'flex', gap: '10px',
+        }}>
+          <button
+            onClick={() => {
+              sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+              window.open(`/preview?key=${previewKey}`, '_blank');
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '14px 20px', borderRadius: '100px', border: 'none',
+              background: 'linear-gradient(135deg, #b8926a, #d4a574)',
+              color: '#fff', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700,
+              boxShadow: '0 8px 24px rgba(184,146,106,0.4)',
+              minHeight: '52px',
+            }}
+          >
+            <Eye size={16} /> Preview
+          </button>
+          <button
+            onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '14px 20px', borderRadius: '100px', border: 'none',
+              background: 'linear-gradient(135deg, #1a3a2a, #2a5a3a)',
+              color: '#4ade80', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              minHeight: '52px',
+            }}
+          >
+            <Globe size={16} /> Publish
+          </button>
+        </div>
+      )}
+
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 4px; }
@@ -1513,8 +1560,10 @@ Return JSON with: title, subtitle, description, mood`,
             style={{
               position: 'fixed', inset: 0, zIndex: 2000,
               background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(16px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
-            }}
+              WebkitBackdropFilter: 'blur(16px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 'calc(2rem + env(safe-area-inset-top, 0px)) 2rem calc(2rem + env(safe-area-inset-bottom, 0px))',
+            } as React.CSSProperties}
             onClick={() => setShowPublish(false)}
           >
             <motion.div

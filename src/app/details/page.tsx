@@ -96,7 +96,7 @@ export default function DetailsPage() {
       <SiteNav names={NAMES} pages={PAGES} />
 
       <main style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         paddingTop: '8rem',
         paddingBottom: '5rem',
         background: 'linear-gradient(180deg, #f5ead6 0%, #faf9f6 35%, #faf9f6 100%)',

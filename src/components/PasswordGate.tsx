@@ -59,7 +59,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
 
   return (
     <div style={{
-      minHeight: '100vh', background: bgColor,
+      minHeight: '100dvh', background: bgColor,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '2rem', fontFamily: 'var(--eg-font-body)',
     }}>

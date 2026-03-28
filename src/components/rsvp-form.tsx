@@ -204,7 +204,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
     borderRadius: '0.75rem',
     border: '1.5px solid rgba(0,0,0,0.1)',
     background: '#ffffff',
-    fontSize: '0.9rem',
+    fontSize: 'max(16px, 0.9rem)',
     fontFamily: 'var(--eg-font-body)',
     color: 'var(--eg-fg)',
     outline: 'none',
