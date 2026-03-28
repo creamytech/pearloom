@@ -663,8 +663,9 @@ Available layouts: "editorial", "fullbleed", "split", "cinematic", "gallery", "m
 ---
 ## CHAPTER COUNT
 - Generate EXACTLY one chapter per cluster
-- Maximum: 8 chapters. If there are more than 8 clusters, intelligently merge the least visually distinct ones into nearby chapters.
-- Minimum: 2 chapters
+- Maximum: 7 chapters. If there are more than 7 clusters, intelligently merge the least visually distinct ones into nearby chapters.
+- Minimum: 3 chapters. If there are fewer than 3 clusters, expand the most emotionally significant ones with richer narrative.
+- Each chapter must have emotional momentum — the full arc from first spark to certainty.
 
 ---
 ## OUTPUT SCHEMA (strict JSON, NO markdown)
