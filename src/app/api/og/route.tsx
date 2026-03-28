@@ -66,20 +66,23 @@ export async function GET(req: NextRequest) {
           }}
         />
 
-        {/* Pearloom watermark pear shape — top right */}
+        {/* Pearloom watermark — intertwined thread curves */}
         <div
           style={{
             position: 'absolute',
-            top: '-60px',
-            right: '-60px',
+            top: '40px',
+            right: '60px',
             width: '200px',
-            height: '250px',
-            background: accent,
-            borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
-            opacity: 0.08,
+            height: '80px',
+            opacity: 0.12,
             display: 'flex',
           }}
-        />
+        >
+          <svg viewBox="0 0 100 40" width="200" height="80">
+            <path d="M 12 28 C 12 12, 30 8, 50 20 C 70 32, 88 28, 88 12" stroke={accent} strokeWidth="2" fill="none" />
+            <path d="M 12 12 C 12 28, 30 32, 50 20 C 70 8, 88 12, 88 28" stroke={accent} strokeWidth="2" fill="none" opacity="0.6" />
+          </svg>
+        </div>
 
         {/* Content */}
         <div
@@ -105,7 +108,7 @@ export async function GET(req: NextRequest) {
               display: 'flex',
             }}
           >
-            🍐 PEARLOOM
+            ✦ PEARLOOM
           </div>
 
           {/* Names */}

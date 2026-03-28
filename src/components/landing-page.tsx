@@ -2,72 +2,18 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/landing-page.tsx
-// The Pear Garden — Bespoke pear-motif marketing page
+// The Loom — Intertwined brand marketing page
+// "Pair + Loom" — two lives woven together
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, ArrowRight, Check, Star, Heart } from 'lucide-react';
+import { PearloomMark, PearloomWordmark, FloatingThread, WovenCircle } from '@/components/brand/PearloomMark';
 
 interface LandingPageProps {
   handleSignIn: () => void;
   status: 'authenticated' | 'loading' | 'unauthenticated';
-}
-
-// Pure CSS pear shape
-const PEAR_RADIUS = '42% 42% 52% 52% / 30% 30% 52% 52%';
-
-function PearShape({
-  size = 300,
-  color = 'rgba(184,146,106,0.1)',
-  stroke = 'rgba(184,146,106,0.25)',
-  strokeWidth = 1.5,
-  children,
-  style = {},
-}: {
-  size?: number;
-  color?: string;
-  stroke?: string;
-  strokeWidth?: number;
-  children?: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  const h = Math.round(size * 1.28);
-  return (
-    <div style={{
-      width: size, height: h,
-      borderRadius: PEAR_RADIUS,
-      background: color,
-      border: `${strokeWidth}px solid ${stroke}`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      position: 'relative',
-      flexShrink: 0,
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
-}
-
-// Floating pear particle
-function FloatingPear({ x, y, size, delay, opacity }: { x: string; y: string; size: number; delay: number; opacity: number }) {
-  return (
-    <motion.div
-      style={{
-        position: 'absolute', left: x, top: y,
-        width: size, height: Math.round(size * 1.28),
-        borderRadius: PEAR_RADIUS,
-        border: `1px solid rgba(184,146,106,${opacity})`,
-        pointerEvents: 'none',
-      }}
-      animate={{
-        y: [0, -20, 0],
-        rotate: [0, 5, -3, 0],
-        opacity: [opacity * 0.6, opacity, opacity * 0.4, opacity * 0.6],
-      }}
-      transition={{ duration: 6 + delay, repeat: Infinity, ease: 'easeInOut', delay }}
-    />
-  );
 }
 
 const FEATURES = [
@@ -102,7 +48,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
     <div style={{ backgroundColor: '#faf9f6', minHeight: '100vh', fontFamily: 'var(--eg-font-body)', overflowX: 'hidden' }}>
 
       {/* ══════════════════════════════════════
-          HERO — The Pear Garden
+          HERO — The Loom
       ══════════════════════════════════════ */}
       <section style={{
         minHeight: '100vh',
@@ -111,14 +57,14 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         padding: '10rem 2rem 6rem',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Background floating pears */}
-        <FloatingPear x="5%" y="10%" size={60} delay={0} opacity={0.25} />
-        <FloatingPear x="88%" y="8%" size={44} delay={1.5} opacity={0.2} />
-        <FloatingPear x="78%" y="60%" size={80} delay={3} opacity={0.15} />
-        <FloatingPear x="3%" y="65%" size={50} delay={2} opacity={0.18} />
-        <FloatingPear x="92%" y="35%" size={36} delay={4} opacity={0.22} />
-        <FloatingPear x="15%" y="82%" size={28} delay={1} opacity={0.2} />
-        <FloatingPear x="60%" y="88%" size={42} delay={2.5} opacity={0.15} />
+        {/* Background floating threads */}
+        <FloatingThread x="5%" y="10%" size={80} delay={0} opacity={0.18} />
+        <FloatingThread x="88%" y="8%" size={55} delay={1.5} opacity={0.15} />
+        <FloatingThread x="78%" y="60%" size={100} delay={3} opacity={0.12} />
+        <FloatingThread x="3%" y="65%" size={65} delay={2} opacity={0.14} />
+        <FloatingThread x="92%" y="35%" size={45} delay={4} opacity={0.16} />
+        <FloatingThread x="15%" y="82%" size={40} delay={1} opacity={0.15} />
+        <FloatingThread x="60%" y="88%" size={55} delay={2.5} opacity={0.12} />
 
         {/* Background warm radial glow */}
         <div style={{
@@ -128,15 +74,22 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           filter: 'blur(40px)', pointerEvents: 'none',
         }} />
 
-        {/* Dot grid */}
+        {/* Subtle woven texture */}
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0)',
-          backgroundSize: '28px 28px', pointerEvents: 'none',
+          backgroundImage: `
+            linear-gradient(45deg, rgba(184,146,106,0.03) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(184,146,106,0.03) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(184,146,106,0.03) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(184,146,106,0.03) 75%)
+          `,
+          backgroundSize: '20px 20px',
+          backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+          pointerEvents: 'none',
         }} />
 
         <div style={{ position: 'relative', zIndex: 10, maxWidth: '860px', width: '100%', textAlign: 'center' }}>
-          {/* Giant pear hero icon */}
+          {/* Giant intertwined mark */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -150,25 +103,17 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   key={ring}
                   style={{
                     position: 'absolute',
-                    width: 120 + ring * 36, height: Math.round((120 + ring * 36) * 1.28),
-                    borderRadius: PEAR_RADIUS,
-                    border: `1px solid rgba(184,146,106,${0.25 - ring * 0.06})`,
+                    width: 160 + ring * 40, height: 80 + ring * 20,
+                    borderRadius: '50%',
+                    border: `1px solid rgba(184,146,106,${0.2 - ring * 0.05})`,
                     pointerEvents: 'none',
                   }}
                   animate={{ scale: [1, 1.04, 1] }}
                   transition={{ duration: 4 + ring, repeat: Infinity, ease: 'easeInOut', delay: ring * 0.6 }}
                 />
               ))}
-              {/* Core pear */}
-              <PearShape
-                size={120}
-                color="linear-gradient(160deg, #f5e8d5 0%, #e8cba8 40%, #d4a572 100%)"
-                stroke="rgba(184,146,106,0.4)"
-                strokeWidth={2}
-                style={{ background: 'linear-gradient(160deg, #f5e8d5 0%, #e8cba8 40%, #d4a572 100%)' }}
-              >
-                <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>🍐</span>
-              </PearShape>
+              {/* Core logo mark — animated draw-in */}
+              <PearloomMark size={160} color="#b8926a" color2="#d4a572" animated />
             </div>
           </motion.div>
 
@@ -204,7 +149,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             }}
           >
             Your love story,<br />
-            <span style={{ fontStyle: 'italic', color: '#b8926a' }}>beautifully&nbsp;told.</span>
+            <span style={{ fontStyle: 'italic', color: '#b8926a' }}>beautifully&nbsp;woven.</span>
           </motion.h1>
 
           {/* Sub */}
@@ -215,11 +160,11 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             style={{
               fontSize: 'clamp(1rem, 2.2vw, 1.2rem)', fontWeight: 300,
               lineHeight: 1.75, color: '#8c8c8c',
-              maxWidth: '540px', margin: '0 auto 4rem',
+              maxWidth: '560px', margin: '0 auto 4rem',
             }}
           >
-            Connect Google Photos. Describe your vibe. Pearloom's AI crafts a
-            magazine-quality wedding site in under 90 seconds.
+            Connect Google Photos. Describe your vibe. Pearloom&apos;s AI weaves a
+            magazine-quality site for every milestone — in under 90 seconds.
           </motion.p>
 
           {/* CTA */}
@@ -244,7 +189,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.04) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(26,26,26,0.3)'; }}
               onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 16px 50px rgba(26,26,26,0.22)'; }}
             >
-              {status === 'loading' ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <span style={{ fontSize: '1.1rem' }}>🍐</span>}
+              {status === 'loading' ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <PearloomMark size={24} color="#fff" />}
               Start Building Free
               <ArrowRight size={16} style={{ opacity: 0.6 }} />
             </button>
@@ -256,7 +201,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             </div>
           </motion.div>
 
-          {/* Stats — pear-shaped pills */}
+          {/* Stats pills */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -272,7 +217,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               <div key={s.label} style={{
                 padding: '1.25rem 2rem', textAlign: 'center',
                 background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)',
-                borderRadius: PEAR_RADIUS,
+                borderRadius: '1rem',
                 border: '1px solid rgba(184,146,106,0.15)',
                 boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
                 minWidth: '110px',
@@ -286,7 +231,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </section>
 
       {/* ══════════════════════════════════════
-          FEATURES — Pear Card Grid
+          FEATURES — Card Grid
       ══════════════════════════════════════ */}
       <section style={{ padding: '9rem 2rem', background: '#fff' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -296,9 +241,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             viewport={{ once: true }}
             style={{ textAlign: 'center', marginBottom: '6rem' }}
           >
-            <PearShape size={40} color="rgba(184,146,106,0.1)" stroke="rgba(184,146,106,0.2)" style={{ margin: '0 auto 1.5rem' }}>
-              <span style={{ fontSize: '1.1rem' }}>✨</span>
-            </PearShape>
+            <WovenCircle size={44} style={{ margin: '0 auto 1.5rem' }}>
+              <PearloomMark size={24} color="#b8926a" />
+            </WovenCircle>
             <h2 style={{
               fontFamily: 'var(--eg-font-heading)',
               fontSize: 'clamp(2.5rem, 5vw, 4rem)',
@@ -306,7 +251,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               letterSpacing: '-0.025em', lineHeight: 1.05,
               marginTop: '0.5rem',
             }}>
-              A complete wedding platform,<br />
+              A complete event platform,<br />
               <span style={{ fontStyle: 'italic', color: '#b8926a' }}>powered by AI</span>
             </h2>
           </motion.div>
@@ -327,10 +272,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   cursor: 'default',
                 }}
               >
-                {/* Pear-shaped icon */}
-                <PearShape size={52} color="rgba(184,146,106,0.1)" stroke="rgba(184,146,106,0.2)" style={{ marginBottom: '1.5rem' }}>
+                <WovenCircle size={52} style={{ marginBottom: '1.5rem' }}>
                   <span style={{ fontSize: '1.4rem' }}>{f.emoji}</span>
-                </PearShape>
+                </WovenCircle>
                 <h3 style={{
                   fontFamily: 'var(--eg-font-heading)', fontSize: '1.35rem',
                   fontWeight: 400, color: '#1a1a1a',
@@ -344,17 +288,16 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </section>
 
       {/* ══════════════════════════════════════
-          HOW IT WORKS — Pear spine
+          HOW IT WORKS — Thread spine
       ══════════════════════════════════════ */}
       <section style={{ padding: '9rem 2rem', background: '#faf9f6', position: 'relative' }}>
-        {/* Giant background pear outline */}
+        {/* Giant background thread outline */}
         <div style={{
-          position: 'absolute', top: '50%', right: '-200px', transform: 'translateY(-50%)',
-          width: '500px', height: '640px',
-          borderRadius: PEAR_RADIUS,
-          border: '1.5px solid rgba(184,146,106,0.08)',
-          pointerEvents: 'none',
-        }} />
+          position: 'absolute', top: '50%', right: '-100px', transform: 'translateY(-50%)',
+          pointerEvents: 'none', opacity: 0.08,
+        }}>
+          <PearloomMark size={500} color="#b8926a" />
+        </div>
 
         <div style={{ maxWidth: '820px', margin: '0 auto' }}>
           <motion.div
@@ -375,12 +318,14 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           </motion.div>
 
           <div style={{ position: 'relative' }}>
-            {/* Vertical connecting line */}
+            {/* Vertical connecting line — woven double-line */}
             <div style={{
-              position: 'absolute', left: '2.5rem', top: '3rem', bottom: '3rem',
-              width: '1px',
-              background: 'linear-gradient(to bottom, rgba(184,146,106,0.3), rgba(184,146,106,0.05))',
-            }} />
+              position: 'absolute', left: '2.35rem', top: '3rem', bottom: '3rem',
+              width: '3px', display: 'flex', flexDirection: 'column',
+            }}>
+              <div style={{ flex: 1, background: 'linear-gradient(to bottom, rgba(184,146,106,0.35), rgba(184,146,106,0.05))', width: '1px', marginLeft: '0px' }} />
+              <div style={{ position: 'absolute', inset: 0, width: '1px', marginLeft: '2px', background: 'linear-gradient(to bottom, rgba(184,146,106,0.2), rgba(184,146,106,0.03))' }} />
+            </div>
 
             {[
               { emoji: '📸', step: '01', title: 'Connect your photos', body: 'Link Google Photos or upload directly. Up to 30 memories per site.' },
@@ -395,20 +340,17 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 transition={{ duration: 0.8, delay: i * 0.15 }}
                 style={{ display: 'flex', gap: '2.5rem', alignItems: 'flex-start', marginBottom: '4rem' }}
               >
-                {/* Pear step marker */}
-                <PearShape
+                <WovenCircle
                   size={48}
                   color={i === 0 ? 'linear-gradient(160deg, #e8cba8, #d4a572)' : 'rgba(184,146,106,0.1)'}
-                  stroke="rgba(184,146,106,0.3)"
-                  strokeWidth={1.5}
+                  borderColor="rgba(184,146,106,0.3)"
                   style={{
-                    flexShrink: 0,
                     background: i === 0 ? 'linear-gradient(160deg, #e8cba8, #d4a572)' : 'rgba(184,146,106,0.08)',
                     boxShadow: i === 0 ? '0 8px 24px rgba(184,146,106,0.3)' : 'none',
                   }}
                 >
                   <span style={{ fontSize: '1.3rem' }}>{item.emoji}</span>
-                </PearShape>
+                </WovenCircle>
 
                 <div style={{ paddingTop: '0.5rem' }}>
                   <div style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.22em', color: '#b8926a', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
@@ -430,30 +372,27 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </section>
 
       {/* ══════════════════════════════════════
-          TESTIMONIALS — Dark Pear Section
+          TESTIMONIALS — Dark Section
       ══════════════════════════════════════ */}
       <section style={{ padding: '9rem 2rem', background: '#1a1a1a', position: 'relative', overflow: 'hidden' }}>
-        {/* Giant background pear outline left */}
+        {/* Giant background thread outlines */}
         <div style={{
-          position: 'absolute', left: '-120px', top: '50%', transform: 'translateY(-50%)',
-          width: '400px', height: '512px',
-          borderRadius: PEAR_RADIUS,
-          border: '1px solid rgba(184,146,106,0.1)',
-          pointerEvents: 'none',
-        }} />
-        {/* Right pear */}
+          position: 'absolute', left: '-60px', top: '50%', transform: 'translateY(-50%)',
+          pointerEvents: 'none', opacity: 0.06,
+        }}>
+          <PearloomMark size={400} color="#b8926a" />
+        </div>
         <div style={{
-          position: 'absolute', right: '-80px', bottom: '-80px',
-          width: '300px', height: '384px',
-          borderRadius: PEAR_RADIUS,
-          border: '1px solid rgba(184,146,106,0.07)',
-          pointerEvents: 'none',
-        }} />
+          position: 'absolute', right: '-40px', bottom: '-20px',
+          pointerEvents: 'none', opacity: 0.04,
+        }}>
+          <PearloomMark size={300} color="#b8926a" />
+        </div>
 
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          <PearShape size={40} color="rgba(184,146,106,0.1)" stroke="rgba(184,146,106,0.3)" style={{ margin: '0 auto 2rem' }}>
+          <WovenCircle size={44} color="rgba(184,146,106,0.1)" borderColor="rgba(184,146,106,0.3)" style={{ margin: '0 auto 2rem' }}>
             <span style={{ fontSize: '1.1rem' }}>💬</span>
-          </PearShape>
+          </WovenCircle>
           <h2 style={{
             fontFamily: 'var(--eg-font-heading)',
             fontSize: 'clamp(2.5rem, 5vw, 4rem)',
@@ -491,17 +430,16 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   &ldquo;{TESTIMONIALS[activeTestimonial].quote}&rdquo;
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  {/* Pear-shaped avatar */}
-                  <PearShape
+                  <WovenCircle
                     size={44}
                     color="linear-gradient(135deg, #b8926a, #8b6b4a)"
-                    stroke="rgba(184,146,106,0.3)"
+                    borderColor="rgba(184,146,106,0.3)"
                     style={{ background: 'linear-gradient(135deg, #b8926a, #8b6b4a)' }}
                   >
                     <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
                       {TESTIMONIALS[activeTestimonial].name[0]}
                     </span>
-                  </PearShape>
+                  </WovenCircle>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.9rem' }}>{TESTIMONIALS[activeTestimonial].name}</div>
                     <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.1rem' }}>{TESTIMONIALS[activeTestimonial].wedding}</div>
@@ -569,9 +507,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               padding: '2.5rem 3rem',
               display: 'flex', alignItems: 'center', gap: '1.5rem',
             }}>
-              <PearShape size={52} color="rgba(184,146,106,0.15)" stroke="rgba(184,146,106,0.4)" style={{ flexShrink: 0 }}>
-                <span style={{ fontSize: '1.4rem' }}>🍐</span>
-              </PearShape>
+              <WovenCircle size={52} color="rgba(184,146,106,0.15)" borderColor="rgba(184,146,106,0.4)" style={{ flexShrink: 0 }}>
+                <PearloomMark size={28} color="#b8926a" />
+              </WovenCircle>
               <div>
                 <div style={{ color: '#fff', fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', fontWeight: 400, letterSpacing: '-0.01em' }}>Free Forever</div>
                 <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', marginTop: '0.2rem' }}>No credit card required · No hidden fees</div>
@@ -586,11 +524,11 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             <div style={{ padding: '2rem 3rem' }}>
               {[
                 'AI-generated story chapters from your photos',
-                'Wedding events, RSVP & guest manager',
+                'Event cards, RSVP & guest manager',
                 'Registry showcase & travel logistics',
                 'Social OG preview card for sharing',
                 'Drag-and-drop editor with AI rewrite',
-                'Live countdown to your wedding day',
+                'Live countdown to your special day',
                 'Published at yourname.pearloom.app',
                 'FAQ accordion for guests',
               ].map((feat) => (
@@ -599,9 +537,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   padding: '0.875rem 0',
                   borderBottom: '1px solid rgba(0,0,0,0.04)',
                 }}>
-                  <PearShape size={22} color="rgba(184,146,106,0.1)" stroke="rgba(184,146,106,0.2)" style={{ flexShrink: 0 }}>
+                  <WovenCircle size={22} style={{ flexShrink: 0 }}>
                     <Check size={11} color="#b8926a" strokeWidth={2.5} />
-                  </PearShape>
+                  </WovenCircle>
                   <span style={{ fontSize: '0.95rem', color: '#3a3a3a' }}>{feat}</span>
                 </div>
               ))}
@@ -631,17 +569,16 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </section>
 
       {/* ══════════════════════════════════════
-          FOOTER — Pear Garden Close
+          FOOTER — Elegant Close
       ══════════════════════════════════════ */}
       <footer style={{ background: '#1a1a1a', padding: '8rem 2rem 5rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        {/* Large pear outline center */}
+        {/* Large thread outline center */}
         <div style={{
           position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-          width: '500px', height: '640px',
-          borderRadius: PEAR_RADIUS,
-          border: '1px solid rgba(184,146,106,0.07)',
-          pointerEvents: 'none',
-        }} />
+          pointerEvents: 'none', opacity: 0.05,
+        }}>
+          <PearloomMark size={500} color="#b8926a" />
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -649,9 +586,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           viewport={{ once: true }}
           style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}
         >
-          <PearShape size={64} color="rgba(184,146,106,0.1)" stroke="rgba(184,146,106,0.3)" style={{ margin: '0 auto 3rem' }}>
-            <span style={{ fontSize: '1.8rem' }}>🍐</span>
-          </PearShape>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem' }}>
+            <PearloomMark size={80} color="#b8926a" color2="rgba(184,146,106,0.5)" />
+          </div>
           <h2 style={{
             fontFamily: 'var(--eg-font-heading)',
             fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
@@ -659,11 +596,11 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             letterSpacing: '-0.03em', lineHeight: 1.05,
             marginBottom: '1.5rem',
           }}>
-            Ready to share<br />
+            Ready to weave<br />
             <span style={{ fontStyle: 'italic', color: '#b8926a' }}>your love story?</span>
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', lineHeight: 1.65, marginBottom: '4rem' }}>
-            Thousands of couples building beautiful wedding sites in minutes.
+            Thousands of couples building beautiful sites for every milestone.
           </p>
 
           <button
@@ -680,12 +617,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.04) translateY(-3px)'; }}
             onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
           >
-            <span>🍐</span>
+            <PearloomMark size={22} color="#fff" />
             Start Building Free
           </button>
 
           <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-            {['© 2026 Pearloom', 'Built by Pixel Boba Studio', 'Privacy', 'Terms'].map((item, i) => (
+            {['© 2026 Pearloom', 'Built by Pixel Boba Studio', 'Privacy', 'Terms'].map((item) => (
               <span key={item} style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.08em' }}>{item}</span>
             ))}
           </div>

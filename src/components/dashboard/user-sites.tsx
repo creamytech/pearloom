@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Trash2, X, AlertTriangle, Users, Heart, Sparkles } from 'lucide-react';
 import type { StoryManifest } from '@/types';
+import { PearloomMark, WovenCircle } from '@/components/brand/PearloomMark';
 
 interface UserSite {
   id: string;
@@ -71,7 +72,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
       }}>
         <div>
           <div style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#b8926a', marginBottom: '0.5rem' }}>
-            My Wedding Sites
+            My Sites
           </div>
           <h2 style={{
             fontFamily: 'var(--eg-font-heading)',
@@ -109,8 +110,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '8rem 0', gap: '1.5rem' }}>
           <div style={{
-            width: '56px', height: '70px',
-            borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
+            width: '56px', height: '56px',
+            borderRadius: '50%',
             background: 'rgba(184,146,106,0.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'pulse 1.5s ease-in-out infinite',
@@ -135,17 +136,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             textAlign: 'center',
           }}
         >
-          {/* Pear shape empty state icon */}
-          <div style={{
-            width: '80px', height: '100px',
-            borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
+          <WovenCircle size={80} color="linear-gradient(135deg, #f3e8d8, #e8d4b8)" borderColor="rgba(184,146,106,0.3)" style={{
             background: 'linear-gradient(135deg, #f3e8d8, #e8d4b8)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '2.5rem', fontSize: '2rem',
+            marginBottom: '2.5rem',
             boxShadow: '0 12px 40px rgba(184,146,106,0.2)',
           }}>
-            🍐
-          </div>
+            <PearloomMark size={40} color="#b8926a" />
+          </WovenCircle>
           <h3 style={{
             fontFamily: 'var(--eg-font-heading)', fontSize: '2rem',
             fontWeight: 400, color: '#1a1a1a', marginBottom: '0.8rem',
@@ -154,7 +151,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             No sites yet
           </h3>
           <p style={{ color: '#8c8c8c', maxWidth: '380px', marginBottom: '2.5rem', lineHeight: 1.7, fontSize: '1rem' }}>
-            Build a beautiful AI-powered wedding site in under 90 seconds. Connect your photos and let the magic begin.
+            Build a beautiful AI-powered site for any life milestone in under 90 seconds. Connect your photos and let the magic begin.
           </p>
           <button
             onClick={onStartNew}
