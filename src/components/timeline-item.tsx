@@ -780,7 +780,10 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
 const LAYOUT_CYCLE: Array<Chapter['layout']> = ['editorial', 'fullbleed', 'split', 'mosaic', 'cinematic', 'gallery'];
 
 export function TimelineItem({ chapter, index }: TimelineItemProps) {
-  const layout = chapter.layout || LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  const hasImages = (chapter.images?.length ?? 0) > 0;
+  // Fall back to editorial (text-only) when no images are available
+  const rawLayout = chapter.layout || LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  const layout = hasImages ? rawLayout : 'editorial';
 
   switch (layout) {
     case 'fullbleed': return <FullbleedLayout chapter={chapter} index={index} />;

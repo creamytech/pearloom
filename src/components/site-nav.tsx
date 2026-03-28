@@ -2,18 +2,27 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/site-nav.tsx
-// Premium glass-morphism navigation — studio wizard + site viewer
+// Always-drawer navigation — hamburger on both mobile + desktop
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { Menu, X, LayoutDashboard, Plus } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Plus, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { SitePage } from '@/types';
 import { UserNav } from '@/components/dashboard/user-nav';
-import { PearIcon } from '@/components/icons/PearloomIcons';
+import {
+  PearIcon,
+  LoomThreadIcon,
+  CalendarHeartIcon,
+  GiftIcon,
+  LocationPinIcon,
+  EnvelopeIcon,
+  PearlIcon,
+  StarburstIcon,
+} from '@/components/icons/PearloomIcons';
 
 interface SiteNavProps {
   names: [string, string];
@@ -30,11 +39,23 @@ interface SiteNavProps {
   onStartNew?: () => void;
 }
 
+/** Map page slugs to the appropriate icon component */
+function PageIcon({ slug, size = 18 }: { slug: string; size?: number }) {
+  const color = 'var(--eg-accent)';
+  if (slug === '' || slug === 'our-story' || slug === 'story') return <LoomThreadIcon size={size} color={color} />;
+  if (slug === 'events' || slug === 'ceremony') return <CalendarHeartIcon size={size} color={color} />;
+  if (slug === 'registry') return <GiftIcon size={size} color={color} />;
+  if (slug === 'travel') return <LocationPinIcon size={size} color={color} />;
+  if (slug === 'rsvp') return <EnvelopeIcon size={size} color={color} />;
+  if (slug === 'faq') return <PearlIcon size={size} color={color} />;
+  if (slug === 'photos') return <StarburstIcon size={size} color={color} />;
+  // Default fallback
+  return <LoomThreadIcon size={size} color={color} />;
+}
+
 export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
   const [scrollY, setScrollY] = useState(0);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [scrollingDown, setScrollingDown] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
   const prevScrollY = useRef(0);
 
@@ -46,13 +67,21 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
     const onScroll = () => {
       const current = window.scrollY;
       setScrollY(current);
-      setScrollingDown(current > prevScrollY.current && current > 60);
       prevScrollY.current = current;
-      setLastScrollY(current);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
 
   const isAtTop = scrollY < 20;
   const scrolled = scrollY > 60;
@@ -126,109 +155,18 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
           overflow: 'visible',
         }}>
 
-          {/* ── Left: Nav links ── */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }} className="hidden md:flex">
-            {isStudio && user ? (
-              <>
-                {onGoToDashboard && (
-                  <button
-                    onClick={onGoToDashboard}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.5rem 1rem', borderRadius: '0.5rem',
-                      fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
-                      color: 'var(--eg-muted)', background: 'transparent', border: 'none',
-                      cursor: 'pointer', transition: 'all 0.2s ease',
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.background = 'rgba(0,0,0,0.05)';
-                      e.currentTarget.style.color = 'var(--eg-fg)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = 'var(--eg-muted)';
-                    }}
-                  >
-                    <LayoutDashboard size={14} />
-                    My Sites
-                  </button>
-                )}
-                {onStartNew && (
-                  <button
-                    onClick={onStartNew}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.5rem 1rem', borderRadius: '0.5rem',
-                      fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
-                      color: 'var(--eg-accent)', background: 'rgba(163,177,138,0.08)',
-                      border: 'none', cursor: 'pointer', transition: 'all 0.2s ease',
-                    }}
-                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.15)'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
-                  >
-                    <Plus size={14} />
-                    New Site
-                  </button>
-                )}
-              </>
-            ) : (
-              // Published site — real page links
-              enabledPages.map((pg) => {
-                const active = isActive(pg.slug);
-                const href = getHref(pg.slug);
-                return (
-                  <Link
-                    key={pg.id}
-                    href={href}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
-                      color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
-                      borderRadius: '0.5rem',
-                      background: 'transparent',
-                      transition: 'all 0.2s ease',
-                      position: 'relative',
-                      textDecoration: 'none',
-                      fontFamily: 'var(--eg-font-body)',
-                      display: 'inline-flex', alignItems: 'center', flexDirection: 'column',
-                    }}
-                    onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-fg)'; }}
-                    onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.color = active ? 'var(--eg-fg)' : 'var(--eg-muted)'; }}
-                  >
-                    {pg.label}
-                    {active && (
-                      <motion.div
-                        layoutId="nav-underline"
-                        style={{
-                          position: 'absolute', bottom: '0.2rem', left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: '5px', height: '5px', borderRadius: '50%',
-                          background: 'var(--eg-accent)',
-                        }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                  </Link>
-                );
-              })
-            )}
-          </div>
-
-          {/* ── Center: Brand Logo ── */}
+          {/* ── Left: Couple name / brand ── */}
           <Link
-            href="/"
+            href={basePath}
             style={{
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              display: 'flex', alignItems: 'center',
               gap: '0.5rem',
-              transition: 'transform 0.3s ease',
+              transition: 'opacity 0.2s ease',
               textDecoration: 'none',
+              flex: 1,
             }}
-            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(-50%) scale(1.04)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(-50%) scale(1)'; }}
+            onMouseOver={(e) => { e.currentTarget.style.opacity = '0.75'; }}
+            onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; }}
           >
             {isStudio ? (
               <Image
@@ -241,13 +179,14 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               />
             ) : (
               <>
-                <PearIcon size={20} color="var(--eg-accent)" />
+                <PearIcon size={18} color="var(--eg-accent)" />
                 <span style={{
                   fontFamily: 'var(--eg-font-heading)',
                   fontWeight: 600,
-                  fontSize: '1.1rem',
+                  fontSize: '1rem',
                   color: 'var(--eg-fg)',
                   letterSpacing: '-0.01em',
+                  whiteSpace: 'nowrap',
                 }}>
                   {names[0]} & {names[1]}
                 </span>
@@ -255,32 +194,35 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
             )}
           </Link>
 
-          {/* ── Right: User nav + mobile toggle ── */}
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem' }}>
+          {/* ── Right: User nav + hamburger menu ── */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {user && (
-              <div className="hidden md:block">
-                <UserNav user={user} />
-              </div>
+              <UserNav user={user} />
             )}
+            {/* Hamburger — always visible on both mobile and desktop */}
             <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden"
+              onClick={() => setDrawerOpen(!drawerOpen)}
+              aria-label="Open navigation menu"
+              aria-expanded={drawerOpen}
               style={{
                 padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
                 border: 'none', background: 'transparent',
                 color: 'var(--eg-fg)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.2s ease',
               }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              {drawerOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
       </motion.nav>
 
-      {/* ── Mobile menu — slides in from right ── */}
+      {/* ── Navigation Drawer — slides in from right on all viewports ── */}
       <AnimatePresence>
-        {mobileOpen && (
+        {drawerOpen && (
           <>
             {/* Backdrop */}
             <motion.div
@@ -288,11 +230,10 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="md:hidden"
-              onClick={() => setMobileOpen(false)}
+              onClick={() => setDrawerOpen(false)}
               style={{
                 position: 'fixed', inset: 0, zIndex: 48,
-                background: 'rgba(0,0,0,0.35)',
+                background: 'rgba(0,0,0,0.4)',
                 backdropFilter: 'blur(4px)',
                 WebkitBackdropFilter: 'blur(4px)',
               }}
@@ -303,128 +244,177 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-              className="md:hidden"
+              transition={{ type: 'tween', duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 position: 'fixed', top: 0, right: 0, bottom: 0,
                 zIndex: 49,
-                width: 'min(320px, 85vw)',
+                width: 'min(320px, 100vw)',
                 background: 'rgba(245,241,232,0.98)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 display: 'flex', flexDirection: 'column',
-                paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4rem)',
                 paddingBottom: 'env(safe-area-inset-bottom, 24px)',
-                paddingLeft: '2rem', paddingRight: '2rem',
-                gap: '0.25rem',
                 borderLeft: '1px solid rgba(0,0,0,0.05)',
-                boxShadow: '-20px 0 60px rgba(0,0,0,0.08)',
+                boxShadow: '-20px 0 60px rgba(0,0,0,0.1)',
+                overflowY: 'auto',
               }}
             >
-              {/* Close button */}
-              <button
-                onClick={() => setMobileOpen(false)}
-                style={{
-                  position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 1rem)',
-                  right: '1.25rem',
-                  background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%',
-                  width: '36px', height: '36px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+              {/* Drawer header */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: 'calc(env(safe-area-inset-top, 0px) + 1.5rem) 1.5rem 1.25rem',
+                borderBottom: '1px solid rgba(0,0,0,0.06)',
+                flexShrink: 0,
+              }}>
+                <span style={{
+                  fontFamily: 'var(--eg-font-heading)',
+                  fontSize: '1.4rem',
+                  fontWeight: 400,
                   color: 'var(--eg-fg)',
-                }}
-              >
-                <X size={16} />
-              </button>
-
-              {/* PearIcon brand mark */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                <PearIcon size={22} color="var(--eg-accent)" />
-                <span style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1rem', color: 'var(--eg-fg)', fontWeight: 600 }}>
-                  Pearloom
+                  letterSpacing: '-0.015em',
+                  lineHeight: 1.15,
+                }}>
+                  {isStudio ? 'Pearloom' : `${names[0]} & ${names[1]}`}
                 </span>
+                <button
+                  onClick={() => setDrawerOpen(false)}
+                  aria-label="Close menu"
+                  style={{
+                    background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%',
+                    width: '36px', height: '36px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--eg-fg)', flexShrink: 0,
+                    transition: 'background 0.2s ease',
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
+                >
+                  <X size={16} />
+                </button>
               </div>
 
               {/* Studio actions */}
-              {isStudio && user && onGoToDashboard && (
-                <motion.button
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 }}
-                  onClick={() => { onGoToDashboard(); setMobileOpen(false); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '0.75rem',
-                    padding: '0.875rem 0',
-                    fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem',
-                    color: 'var(--eg-fg)', background: 'transparent', border: 'none',
-                    cursor: 'pointer', textAlign: 'left',
-                    borderBottom: '1px solid rgba(0,0,0,0.06)',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  <LayoutDashboard size={20} />
-                  My Sites
-                </motion.button>
-              )}
-
-              {/* Published pages */}
-              {enabledPages.map((page, i) => {
-                const active = isActive(page.slug);
-                return (
-                  <motion.div
-                    key={page.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.06 + 0.1 }}
-                  >
-                    <Link
-                      href={getHref(page.slug)}
-                      onClick={() => setMobileOpen(false)}
+              {isStudio && user && (
+                <div style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
+                  {onGoToDashboard && (
+                    <motion.button
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 }}
+                      onClick={() => { onGoToDashboard(); setDrawerOpen(false); }}
                       style={{
-                        display: 'flex', alignItems: 'center',
-                        padding: '0.875rem 0',
-                        fontFamily: 'var(--eg-font-heading)',
-                        fontSize: '1.5rem', letterSpacing: '-0.01em',
-                        color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
-                        textDecoration: 'none',
-                        borderBottom: '1px solid rgba(0,0,0,0.06)',
-                        position: 'relative',
+                        display: 'flex', alignItems: 'center', gap: '0.875rem',
+                        width: '100%',
+                        minHeight: '56px',
+                        padding: '0 1.5rem',
+                        fontFamily: 'var(--eg-font-body)', fontSize: '0.95rem', fontWeight: 500,
+                        color: 'var(--eg-fg)', background: 'transparent', border: 'none',
+                        cursor: 'pointer', textAlign: 'left',
+                        transition: 'background 0.15s ease',
                       }}
+                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
-                      {page.label}
-                      {active && (
-                        <span style={{
-                          marginLeft: '0.5rem',
-                          width: '6px', height: '6px', borderRadius: '50%',
-                          background: 'var(--eg-accent)', display: 'inline-block', flexShrink: 0,
-                        }} />
-                      )}
-                    </Link>
-                  </motion.div>
-                );
-              })}
-
-              {user && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  style={{ marginTop: 'auto' }}
-                >
-                  <UserNav user={user} />
-                </motion.div>
+                      <LayoutDashboard size={18} color="var(--eg-accent)" />
+                      My Sites
+                    </motion.button>
+                  )}
+                  {onStartNew && (
+                    <motion.button
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.08 }}
+                      onClick={() => { onStartNew(); setDrawerOpen(false); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.875rem',
+                        width: '100%',
+                        minHeight: '56px',
+                        padding: '0 1.5rem',
+                        fontFamily: 'var(--eg-font-body)', fontSize: '0.95rem', fontWeight: 500,
+                        color: 'var(--eg-fg)', background: 'transparent', border: 'none',
+                        cursor: 'pointer', textAlign: 'left',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <Plus size={18} color="var(--eg-accent)" />
+                      New Site
+                    </motion.button>
+                  )}
+                </div>
               )}
+
+              {/* Page links */}
+              <nav style={{ flex: 1, padding: '0.75rem 0' }}>
+                {enabledPages.map((page, i) => {
+                  const active = isActive(page.slug);
+                  return (
+                    <motion.div
+                      key={page.id}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.055 + 0.06 }}
+                    >
+                      <Link
+                        href={getHref(page.slug)}
+                        onClick={() => setDrawerOpen(false)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.875rem',
+                          minHeight: '56px',
+                          padding: '0 1.5rem',
+                          fontFamily: 'var(--eg-font-body)',
+                          fontSize: '0.95rem', fontWeight: active ? 600 : 500,
+                          color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                          textDecoration: 'none',
+                          position: 'relative',
+                          transition: 'background 0.15s ease, color 0.15s ease',
+                          background: active ? 'rgba(163,177,138,0.08)' : 'transparent',
+                          borderLeft: active ? '3px solid #A3B18A' : '3px solid transparent',
+                        }}
+                        onMouseOver={(e) => {
+                          if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)';
+                        }}
+                        onMouseOut={(e) => {
+                          if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent';
+                        }}
+                      >
+                        <PageIcon slug={page.slug} size={18} />
+                        <span style={{ flex: 1 }}>{page.label}</span>
+                        <ChevronRight size={14} style={{ opacity: 0.35, flexShrink: 0 }} />
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </nav>
+
+              {/* Bottom area — user nav + powered by */}
+              <div style={{ flexShrink: 0, borderTop: '1px solid rgba(0,0,0,0.06)', padding: '1rem 1.5rem' }}>
+                {user && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    style={{ marginBottom: '1rem' }}
+                  >
+                    <UserNav user={user} />
+                  </motion.div>
+                )}
+                <p style={{
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'var(--eg-muted)',
+                  opacity: 0.5,
+                  margin: 0,
+                }}>
+                  Powered by Pearloom
+                </p>
+              </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
-
-      <style>{`
-        @media (min-width: 768px) {
-          .hidden.md\\:flex { display: flex; }
-          .hidden.md\\:block { display: block; }
-          .md\\:hidden { display: none; }
-        }
-      `}</style>
     </>
   );
 }

@@ -53,7 +53,7 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
 
         <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 10 }}>
           {/* Section Header */}
-          <div style={{ textAlign: 'center', marginBottom: '9rem', padding: '0 2rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '5rem', padding: '0 2rem' }}>
 
             {/* Eyebrow — small caps, olive, generous letter-spacing */}
             <motion.div
@@ -133,15 +133,20 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
           {/* Dynamic Chapters — alternating section backgrounds, each with its own layout */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             {chapters.map((chapter, i) => (
-              <div
-                key={chapter.id}
-                style={{
-                  background: i % 2 === 0 ? 'var(--eg-bg)' : 'var(--eg-bg-section)',
-                  padding: '4rem 0',
-                  position: 'relative',
-                }}
-              >
-                <TimelineItem chapter={chapter} index={i} />
+              <div key={chapter.id}>
+                {i > 0 && (
+                  <div style={{ height: '1px', background: 'var(--eg-divider, rgba(0,0,0,0.07))', margin: '0 2rem' }} />
+                )}
+                <div
+                  style={{
+                    background: i % 2 === 0 ? 'var(--eg-bg)' : 'var(--eg-bg-section)',
+                    paddingTop: '5rem',
+                    paddingBottom: '5rem',
+                    position: 'relative',
+                  }}
+                >
+                  <TimelineItem chapter={chapter} index={i} />
+                </div>
               </div>
             ))}
           </div>
