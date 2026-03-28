@@ -1125,8 +1125,10 @@ const ALL_SITE_PAGES: PresetPage[] = [
   { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
   { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
   { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'registry', slug: 'registry', label: 'Registry', icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'registry',  slug: 'registry',  label: 'Registry',      icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'faq',       slug: 'faq',       label: 'FAQ',           icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'guestbook', slug: 'guestbook', label: 'Guest Wishes',  icon: '', alwaysOn: false, occasions: ['wedding', 'anniversary', 'birthday'] },
+  { id: 'live',      slug: 'live',      label: 'Day-Of Updates', icon: '', alwaysOn: false, occasions: ['wedding'] },
 ];
 
 function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest; subdomain: string; onChange: (m: StoryManifest) => void }) {
@@ -1700,6 +1702,45 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Autosave to localStorage (debounced 1.5s) ──
+  const AUTOSAVE_KEY = 'pearloom_draft_manifest';
+  const [draftBanner, setDraftBanner] = useState<'visible' | 'hidden' | null>(null);
+  const [recoveredDraft, setRecoveredDraft] = useState<StoryManifest | null>(null);
+
+  // On mount: check for a saved draft newer than the prop manifest
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(AUTOSAVE_KEY);
+      if (!raw) return;
+      const saved: { manifest: StoryManifest; savedAt: number } = JSON.parse(raw);
+      const propTime = manifest.generatedAt ? new Date(manifest.generatedAt).getTime() : 0;
+      if (saved.savedAt > propTime) {
+        setRecoveredDraft(saved.manifest);
+        setDraftBanner('visible');
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Autosave whenever manifest changes
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ manifest, savedAt: Date.now() }));
+      } catch {}
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [manifest]);
+
+  const handleRestoreDraft = useCallback(() => {
+    if (!recoveredDraft) return;
+    onChange(recoveredDraft);
+    pushToPreview(recoveredDraft);
+    pushHistory(recoveredDraft);
+    setDraftBanner('hidden');
+    setRecoveredDraft(null);
+  }, [recoveredDraft, onChange, pushToPreview, pushHistory]);
+
   const syncManifest = useCallback((newChapters: Chapter[]) => {
     const newManifest = {
       ...manifest,
@@ -1891,6 +1932,38 @@ Return JSON with: title, subtitle, description, mood`,
         canUndo={canUndo}
         canRedo={canRedo}
       />
+
+      {/* ── Draft Recovery Banner ── */}
+      {draftBanner === 'visible' && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
+          background: 'var(--eg-gold, #D6C6A8)', color: '#2B2B2B',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: '0.75rem', padding: '0.6rem 1rem',
+          fontSize: '0.85rem', fontWeight: 600,
+        }}>
+          <span>Unsaved draft recovered</span>
+          <span style={{ opacity: 0.4 }}>—</span>
+          <button
+            onClick={handleRestoreDraft}
+            style={{
+              background: '#2B2B2B', color: '#fff', border: 'none', borderRadius: '4px',
+              padding: '3px 10px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+            }}
+          >
+            restore draft
+          </button>
+          <button
+            onClick={() => setDraftBanner('hidden')}
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: '#2B2B2B', fontSize: '0.78rem', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
+            }}
+          >
+            dismiss
+          </button>
+        </div>
+      )}
 
       {/* ── TOP BAR ── */}
       <div style={{
