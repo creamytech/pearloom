@@ -90,6 +90,10 @@ export interface Chapter {
   order: number;
   /** Object-position for the cover image (percentages 0–100). Default: { x: 50, y: 50 } */
   imagePosition?: { x: number; y: number };
+  /** Emotional intensity score 1–10. High (8–10) = cinematic/fullbleed; Low (1–3) = editorial */
+  emotionalIntensity?: number;
+  /** Ambient background tint color for this chapter's section (very subtle, ~4% opacity) */
+  ambientColor?: string;
   /** Optional video URL (YouTube, Vimeo, or direct mp4) to show instead of/alongside photos */
   videoUrl?: string;
   /** AI-generated quiz question derived from this chapter's content */

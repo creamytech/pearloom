@@ -80,6 +80,9 @@ export interface VibeSkin {
   // — Couple-specific per-chapter illustration icons (one per chapter, viewBox "0 0 80 80") —
   chapterIcons?: string[];
 
+  // — Per-chapter ambient color wash (one hex per chapter, used as subtle section tint) —
+  chapterColors?: string[];
+
   aiGenerated: boolean;
 }
 
@@ -700,6 +703,7 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
   "heroBlobSvg": "<FULL SVG: viewBox='0 0 500 700'. THIS MUST ILLUSTRATE THE COUPLE'S ACTUAL WORLD. If they have cats: draw 4-6 elegant cat silhouettes in different poses scattered throughout. If they love hiking: draw mountain peaks, trails, pine trees. If they mention vinyl: draw record discs, musical notes, a turntable. If they mention a city: draw that city's skyline. Use the illustrationPrompt above as your exact brief. 20-30 elements. Fill 70%+ of canvas. Use ONLY accent color. Opacity 0.12-0.25. Complete <svg>...</svg> on one line.>",
   "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox='0 0 600 400'. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08-0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
   "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Match the 'curve' choice: cascade=multi-cascade beziers, ribbon=wide sinusoid, mountain=sharp peaks, organic=flowing beziers, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.>",
+  "chapterColors": ["<hex tint per chapter — e.g. beach chapter → '#E8F4F8', golden hour → '#FDF0E0', forest → '#EAF2E8', night → '#1A1A2E'. One entry per chapter. These are applied as very subtle (3-5% opacity) background washes on each story section.>"],
   ${chapterIconsPrompt}
 }
 
@@ -882,6 +886,11 @@ CRITICAL DESIGN RULES:
             const svg = extractSvgFromField(raw);
             return svg && isValidSvg(svg) ? svg : null;
           }).filter(Boolean) as string[]
+        : [],
+      chapterColors: Array.isArray(parsed.chapterColors)
+        ? parsed.chapterColors.map((c: unknown) =>
+            typeof c === 'string' && c.startsWith('#') ? c : null
+          ).filter(Boolean) as string[]
         : [],
       aiGenerated: true,
     };

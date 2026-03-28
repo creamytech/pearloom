@@ -19,6 +19,12 @@ interface TimelineItemProps {
   chapterIcon?: string; // AI-generated SVG icon specific to this chapter
 }
 
+/** Returns CSS object-position from AI-detected focal point, or 'center' as default */
+function focalPos(chapter: Chapter): string {
+  if (!chapter.imagePosition) return 'center';
+  return `${chapter.imagePosition.x}% ${chapter.imagePosition.y}%`;
+}
+
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
   if (rawUrl.includes('googleusercontent.com')) {
@@ -291,7 +297,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(mainImage, 1200, 1600)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
               />
@@ -317,7 +323,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(secondImage, 800, 1000)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05) grayscale(0)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'grayscale(18%) brightness(0.97)'; }}
               />
@@ -424,7 +430,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
         <>
           {mainImage && (
             <motion.div style={{ position: 'absolute', inset: -80, y }}>
-              <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.45) contrast(1.2) saturate(1.15)' }} />
+              <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), filter: 'brightness(0.68) contrast(1.08) saturate(1.1)' }} />
             </motion.div>
           )}
 
@@ -563,7 +569,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                 <motion.div style={{
                   position: 'absolute', inset: -120,
                   backgroundImage: `url(${proxyUrl(mainImage, 800, 800)})`,
-                  backgroundSize: 'cover', backgroundPosition: 'center',
+                  backgroundSize: 'cover', backgroundPosition: focalPos(chapter),
                   filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
                   opacity: 0.35, zIndex: 0,
                 }} />
@@ -679,7 +685,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
             <img
               src={proxyUrl(mainImage, 1400, 1100)}
               alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
               onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
               onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
             />
@@ -801,7 +807,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {images[0] && (
               <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
                 className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
                   className="max-md:[aspect-ratio:4/3]"
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
@@ -811,7 +817,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {images[1] && (
               <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
                   className="max-md:[aspect-ratio:4/3]"
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
@@ -821,7 +827,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {images[2] && (
               <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
                   className="max-md:[aspect-ratio:4/3]"
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
@@ -831,7 +837,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {images[3] && (
               <div style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 className="max-md:hidden">
-                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
                   onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                   onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
@@ -950,7 +956,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                     borderRadius: '2px',
                   }}>
                     <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
-                      <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
                     </div>
                   </div>
                 </motion.div>
@@ -983,7 +989,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   borderRadius: '2px',
                 }}>
                   <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
-                    <img src={proxyUrl(img.url, 600, 800)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <img src={proxyUrl(img.url, 600, 800)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
                   </div>
                 </div>
               </motion.div>
@@ -1041,8 +1047,19 @@ const LAYOUT_CYCLE: Array<Chapter['layout']> = ['editorial', 'fullbleed', 'split
 
 export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps) {
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  // Fall back to editorial (text-only) when no images are available
-  const rawLayout = chapter.layout || LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  const imageCount = chapter.images?.length ?? 0;
+  const intensity = chapter.emotionalIntensity ?? 5;
+
+  // Emotional intensity + photo count → optimal layout selection
+  const rawLayout = chapter.layout || (() => {
+    if (!hasImages) return 'editorial';
+    if (intensity >= 8 && imageCount >= 1) return index % 2 === 0 ? 'cinematic' : 'fullbleed';
+    if (intensity <= 3) return 'editorial';
+    if (imageCount >= 4) return index % 2 === 0 ? 'mosaic' : 'gallery';
+    if (imageCount === 3) return 'gallery';
+    if (imageCount === 2) return index % 2 === 0 ? 'split' : 'editorial';
+    return LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  })();
   const layout = hasImages ? rawLayout : 'editorial';
 
   const inner = (() => {

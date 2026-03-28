@@ -762,7 +762,10 @@ Return ONLY this JSON with no additional text:
       "images": [],
       "location": { "lat": <number>, "lng": <number>, "label": "<City, State or Country>" } | null,
       "mood": "<two-word lowercase mood tag>",
-      "layout": "<editorial | fullbleed | split | cinematic | gallery | mosaic>",
+      "layout": "<Choose based on PHOTO COUNT + INTENSITY: 1 photo->editorial, 2 photos->split, 3+ photos->gallery/mosaic, high emotion->cinematic/fullbleed>",
+      "emotionalIntensity": "<1-10: rate emotional weight: 1=quiet/everyday, 5=travel/adventure, 8=first kiss/proposal/milestone, 10=life-defining moment>",
+      "ambientColor": "<hex tint for this chapter section: beach->#E8F4F8, golden-hour->#FDF0E0, forest->#EAF2E8, night->#1A1A2E, city->#F0F0F8, match the mood>",
+      "imagePosition": { "x": "<0-100 horizontal: left-third=25, center=50, right-third=75>", "y": "<0-100 vertical: top=25, center=50, bottom=75>" },
       "order": <number starting at 0>
     }
   ],

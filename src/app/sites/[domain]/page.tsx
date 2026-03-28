@@ -576,7 +576,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           {visibleBlocks ? (
             // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
             <>
-              {/* AI-generated pattern overlay for entire page */}
+              {/* AI-generated couple motif pattern overlay */}
               {vibeSkin.heroPatternSvg && (
                 <div
                   style={{
@@ -586,6 +586,31 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   }}
                 />
               )}
+              {/* VibeSkin texture overlay — linen/paper/marble/etc grain */}
+              {vibeSkin.texture && vibeSkin.texture !== 'none' && (() => {
+                const TEXTURES: Record<string, string> = {
+                  linen: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><path d="M0 0L4 4M4 0L0 4" stroke="#888" stroke-width="0.4" opacity="0.4"/></svg>')}")`,
+                  paper: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="200" height="200" filter="url(#n)" opacity="0.06"/></svg>')}")`,
+                  marble: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="4" seed="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="200" height="200" filter="url(#n)" opacity="0.05"/></svg>')}")`,
+                  starfield: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="10" cy="15" r="0.6" fill="#fff" opacity="0.5"/><circle cx="40" cy="80" r="0.8" fill="#fff" opacity="0.4"/><circle cx="80" cy="30" r="0.5" fill="#fff" opacity="0.6"/><circle cx="120" cy="90" r="0.7" fill="#fff" opacity="0.45"/><circle cx="160" cy="50" r="0.6" fill="#fff" opacity="0.5"/><circle cx="190" cy="140" r="0.8" fill="#fff" opacity="0.4"/><circle cx="60" cy="160" r="0.5" fill="#fff" opacity="0.55"/><circle cx="150" cy="180" r="0.7" fill="#fff" opacity="0.45"/></svg>')}")`,
+                  floral: `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><g fill="none" stroke="currentColor" stroke-width="0.4" opacity="0.18"><path d="M30 30Q30 20 25 15Q30 20 35 15Q30 20 30 30Z"/><path d="M30 30Q40 30 45 25Q40 30 45 35Q40 30 30 30Z"/><path d="M30 30Q30 40 35 45Q30 40 25 45Q30 40 30 30Z"/><path d="M30 30Q20 30 15 35Q20 30 15 25Q20 30 30 30Z"/><circle cx="30" cy="30" r="3"/></g></svg>')}")`,
+                };
+                const bg = TEXTURES[vibeSkin.texture];
+                if (!bg) return null;
+                return (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+                      backgroundImage: bg,
+                      backgroundRepeat: 'repeat',
+                      backgroundSize: vibeSkin.texture === 'linen' ? '4px 4px' : vibeSkin.texture === 'floral' ? '60px 60px' : '200px 200px',
+                      opacity: vibeSkin.texture === 'starfield' ? 0.4 : 0.6,
+                      mixBlendMode: 'multiply',
+                    }}
+                  />
+                );
+              })()}
               {renderBlockSequence()}
             </>
           ) : (
