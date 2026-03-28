@@ -7,32 +7,39 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Heart, Sparkles, UtensilsCrossed, Wine, Coffee, Calendar } from 'lucide-react';
 import {
-  CeremonyIcon,
-  ChampagneIcon,
-  BouquetIcon,
   CalendarHeartIcon,
   LocationPinIcon,
   StarburstIcon,
 } from '@/components/icons/PearloomIcons';
-import { PearSectionDivider } from '@/components/icons/PearShapes';
+import { WaveDivider } from '@/components/vibe/WaveDivider';
 import type { WeddingEvent } from '@/types';
+import type { VibeSkin } from '@/lib/vibe-engine';
 
-function getEventIcon(type: WeddingEvent['type'], size = 18) {
+function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--eg-accent)', size = 18) {
+  const style = { color: accentColor, width: size, height: size };
   switch (type) {
     case 'ceremony':
-      return <CeremonyIcon size={size} color="var(--eg-accent)" />;
+      return <Heart style={style} />;
     case 'reception':
-      return <ChampagneIcon size={size} color="var(--eg-accent)" />;
+      return <Sparkles style={style} />;
     case 'rehearsal':
-      return <BouquetIcon size={size} color="var(--eg-accent)" />;
+      return <UtensilsCrossed style={style} />;
+    case 'welcome-party':
+      return <Wine style={style} />;
+    case 'brunch':
+      return <Coffee style={style} />;
     default:
-      return <CalendarHeartIcon size={size} color="var(--eg-accent)" />;
+      return <Calendar style={style} />;
   }
 }
 
-function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
+function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: number; vibeSkin?: VibeSkin }) {
+  const accentColor = vibeSkin?.palette.accent ?? 'var(--eg-accent)';
+  const cardBg = vibeSkin?.palette.card ?? 'rgba(255,255,255,0.7)';
+  const headingFont = vibeSkin?.fonts.heading ?? 'var(--eg-font-heading)';
+  const bodyFont = vibeSkin?.fonts.body ?? 'var(--eg-font-body)';
   const dateObj = (() => {
     try {
       return new Date(event.date);
@@ -70,13 +77,17 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
         ease: [0.16, 1, 0.3, 1],
       }}
       style={{
-        background: '#ffffff',
-        borderRadius: '1.25rem',
+        background: cardBg,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: '16px',
         overflow: 'hidden',
-        boxShadow: '0 4px 24px rgba(43,43,43,0.06)',
+        border: `1px solid ${accentColor}26`,
+        boxShadow: '0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
+        fontFamily: bodyFont,
       }}
     >
       {/* Left accent bar */}
@@ -87,8 +98,8 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
           left: 0,
           width: '4px',
           height: '100%',
-          background: 'var(--eg-accent)',
-          borderRadius: '1.25rem 0 0 1.25rem',
+          background: accentColor,
+          borderRadius: '16px 0 0 16px',
         }}
       />
 
@@ -107,19 +118,19 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            background: 'var(--eg-accent-light)',
+            background: `${accentColor}18`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
           }}
         >
-          {getEventIcon(event.type)}
+          {getEventIcon(event.type, accentColor)}
         </div>
         <div>
           <h3
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: headingFont,
               fontSize: '1.4rem',
               fontWeight: 400,
               letterSpacing: '-0.02em',
@@ -138,7 +149,7 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
           padding: '1.25rem 2rem 1.5rem',
           borderBottom: '1px solid rgba(0,0,0,0.05)',
           textAlign: 'center',
-          background: 'rgba(245,241,232,0.4)',
+          background: `${accentColor}0a`,
         }}
       >
         <div
@@ -346,7 +357,7 @@ function EventCard({ event, index }: { event: WeddingEvent; index: number }) {
               fontSize: '0.72rem',
               fontWeight: 700,
               color: '#fff',
-              background: 'var(--eg-accent)',
+              background: accentColor,
               padding: '0.45rem 1rem',
               borderRadius: '100px',
               textDecoration: 'none',
@@ -391,12 +402,14 @@ interface WeddingEventsProps {
   events: WeddingEvent[];
   title?: string;
   subtitle?: string;
+  vibeSkin?: VibeSkin;
 }
 
 export function WeddingEvents({
   events,
   title = 'Our Celebration',
   subtitle = 'Save the dates and join us for every moment.',
+  vibeSkin,
 }: WeddingEventsProps) {
   if (!events || events.length === 0) return null;
 
@@ -406,21 +419,34 @@ export function WeddingEvents({
 
   const isSingle = sorted.length === 1;
 
+  const accentColor = vibeSkin?.palette.accent ?? 'var(--eg-accent)';
+  const headingFont = vibeSkin?.fonts.heading ?? 'var(--eg-font-heading)';
+  const eyebrowLabel = vibeSkin?.sectionLabels.events ?? 'The Celebration';
+  const accentSymbol = vibeSkin?.accentSymbol ?? '✦';
+
+  // Subtle gradient background instead of flat section color
+  const sectionBg = vibeSkin?.palette.subtle
+    ? `linear-gradient(180deg, ${vibeSkin.palette.subtle} 0%, ${vibeSkin.palette.background} 100%)`
+    : 'var(--eg-bg-section)';
+
   return (
     <section
       style={{
-        background: 'var(--eg-bg-section)',
+        background: sectionBg,
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Pear wave divider at top */}
-      <PearSectionDivider
-        color="var(--eg-bg)"
-        opacity={1}
+      {/* Single, subtle wave divider at top — transitions from story section */}
+      <WaveDivider
+        fromColor={vibeSkin?.palette.background ?? 'var(--eg-bg)'}
+        toColor={vibeSkin?.palette.subtle ?? 'var(--eg-bg-section)'}
+        skin={vibeSkin}
+        height={60}
+        opacity={0.65}
       />
 
-      <div style={{ padding: '4rem 2rem 8rem' }}>
+      <div style={{ padding: '3rem 2rem 8rem' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           {/* Section header */}
           <motion.div
@@ -428,40 +454,38 @@ export function WeddingEvents({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.9 }}
-            style={{ textAlign: 'center', marginBottom: '5rem' }}
+            style={{ textAlign: 'center', marginBottom: '4rem' }}
           >
-            {/* Eyebrow with CeremonyIcon */}
+            {/* Eyebrow label */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '1rem',
-                marginBottom: '2rem',
+                marginBottom: '1.5rem',
               }}
             >
-              <div
+              <div style={{ width: '48px', height: '1px', background: accentColor, opacity: 0.3 }} />
+              <span
                 style={{
-                  width: '48px',
-                  height: '1px',
-                  background: 'var(--eg-accent)',
-                  opacity: 0.3,
+                  fontSize: '0.62rem',
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  fontVariant: 'small-caps',
+                  color: accentColor,
+                  fontWeight: 700,
+                  opacity: 0.85,
                 }}
-              />
-              <CeremonyIcon size={20} color="var(--eg-accent)" style={{ opacity: 0.75 }} />
-              <div
-                style={{
-                  width: '48px',
-                  height: '1px',
-                  background: 'var(--eg-accent)',
-                  opacity: 0.3,
-                }}
-              />
+              >
+                {eyebrowLabel}
+              </span>
+              <div style={{ width: '48px', height: '1px', background: accentColor, opacity: 0.3 }} />
             </div>
 
             <h2
               style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: headingFont,
                 fontSize: 'clamp(2.75rem, 5.5vw, 4.25rem)',
                 fontWeight: 400,
                 letterSpacing: '-0.025em',
@@ -473,41 +497,19 @@ export function WeddingEvents({
               {title}
             </h2>
 
-            {/* Ornamental rule */}
+            {/* Accent symbol ornamental divider */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem',
+                gap: '0.75rem',
                 marginBottom: '1.5rem',
               }}
             >
-              <div
-                style={{
-                  width: '24px',
-                  height: '1px',
-                  background: 'var(--eg-accent)',
-                  opacity: 0.35,
-                }}
-              />
-              <div
-                style={{
-                  width: '4px',
-                  height: '4px',
-                  background: 'var(--eg-accent)',
-                  transform: 'rotate(45deg)',
-                  opacity: 0.5,
-                }}
-              />
-              <div
-                style={{
-                  width: '24px',
-                  height: '1px',
-                  background: 'var(--eg-accent)',
-                  opacity: 0.35,
-                }}
-              />
+              <div style={{ width: '24px', height: '1px', background: accentColor, opacity: 0.35 }} />
+              <span style={{ color: accentColor, opacity: 0.55, fontSize: '0.9rem' }}>{accentSymbol}</span>
+              <div style={{ width: '24px', height: '1px', background: accentColor, opacity: 0.35 }} />
             </div>
 
             <p
@@ -522,8 +524,9 @@ export function WeddingEvents({
             </p>
           </motion.div>
 
-          {/* Cards grid */}
+          {/* Cards grid — responsive auto-fill */}
           <div
+            className="wedding-events-grid"
             style={
               isSingle
                 ? {
@@ -532,22 +535,21 @@ export function WeddingEvents({
                   }
                 : {
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '1.75rem',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                    gap: '20px',
                   }
             }
           >
-            {/* Single-card wrapper for centering */}
             {isSingle ? (
-              <EventCard event={sorted[0]} index={0} />
+              <EventCard event={sorted[0]} index={0} vibeSkin={vibeSkin} />
             ) : (
               sorted.map((event, i) => (
-                <EventCard key={event.id} event={event} index={i} />
+                <EventCard key={event.id} event={event} index={i} vibeSkin={vibeSkin} />
               ))
             )}
           </div>
 
-          {/* Responsive: stack on mobile via inline media query workaround */}
+          {/* Responsive: stack on mobile */}
           <style>{`
             @media (max-width: 680px) {
               .wedding-events-grid {

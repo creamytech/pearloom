@@ -14,6 +14,8 @@ interface WaveDividerProps {
   skin?: VibeSkin;
   height?: number;     // default 60, was 80
   flip?: boolean;
+  /** @deprecated use flip instead */
+  inverted?: boolean;
   opacity?: number;    // default 0.65
 }
 
@@ -23,11 +25,13 @@ export function WaveDivider({
   skin,
   height = 60,
   flip = false,
+  inverted = false,
   opacity = 0.65,
 }: WaveDividerProps) {
+  const shouldFlip = flip || inverted;
   // Use vibe skin wave path if available, otherwise fall back to a gentle default
   const basePath = skin
-    ? (flip ? skin.wavePathInverted : skin.wavePath)
+    ? (shouldFlip ? skin.wavePathInverted : skin.wavePath)
     : 'M0,40 C180,80 320,10 500,40 C680,70 820,10 1000,40 L1000,150 L0,150 Z';
 
   return (
