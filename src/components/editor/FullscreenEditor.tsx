@@ -9,12 +9,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import {
-  ArrowLeft, Plus, Trash2, Sparkles, Loader2,
-  Globe, Monitor, Tablet, Smartphone, GripVertical,
-  Image, Calendar, Upload, X, Camera, LayoutTemplate,
-  Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
-  MessageCircleHeart, Search,
+  Plus, Trash2, Sparkles, Loader2,
+  Globe, Monitor, Tablet, Smartphone,
+  Image, Calendar, Upload, X, Camera,
+  Heart, MapPin, Clock, ChevronDown,
 } from 'lucide-react';
+import {
+  SectionsIcon, StoryIcon, EventsIcon, DesignIcon, DetailsIcon,
+  AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
+  UndoIcon, RedoIcon, CommandIcon, GripIcon, SavedIcon, UnsavedIcon,
+} from '@/components/icons/EditorIcons';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent, FaqItem, HotelBlock, TravelInfo } from '@/types';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
@@ -113,7 +117,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
       onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
     >
-      <GripVertical size={14} />
+      <GripIcon size={14} />
     </div>
   );
 }
@@ -1165,7 +1169,8 @@ Return JSON with: title, subtitle, description, mood`,
   }, [chapters, manifest, updateChapter]);
 
   const TAB_ICONS: Record<EditorTab, React.ElementType> = {
-    story: AlignLeft, events: Calendar, canvas: LayoutTemplate, design: Palette, details: Settings, pages: Globe, blocks: Sparkles, voice: MessageCircleHeart,
+    canvas: SectionsIcon, story: StoryIcon, events: EventsIcon, design: DesignIcon,
+    details: DetailsIcon, pages: Globe, blocks: AIBlocksIcon, voice: VoiceIcon,
   };
 
   return (
@@ -1204,7 +1209,7 @@ Return JSON with: title, subtitle, description, mood`,
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
         >
-          <ArrowLeft size={14} /> Exit
+          <ExitIcon size={14} /> Exit
         </button>
 
         {/* Site name + Cmd+K search trigger */}
@@ -1226,7 +1231,7 @@ Return JSON with: title, subtitle, description, mood`,
             onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}
           >
-            <Search size={11} />
+            <CommandIcon size={11} />
             <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
           </button>
           <span style={{
@@ -1293,7 +1298,7 @@ Return JSON with: title, subtitle, description, mood`,
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
             }}
           >
-            <Eye size={13} /> Preview
+            <PreviewIcon size={13} /> Preview
           </button>
           {/* Publish */}
           <button
@@ -1307,7 +1312,7 @@ Return JSON with: title, subtitle, description, mood`,
               transition: 'all 0.2s',
             }}
           >
-            <Globe size={13} /> Publish
+            <PublishIcon size={13} /> Publish
           </button>
         </div>
       </div>

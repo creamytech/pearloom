@@ -166,19 +166,71 @@ export async function POST(req: NextRequest) {
 
     const schema = BLOCK_SCHEMAS[blockType];
 
+    const occasion = context?.occasion || 'wedding';
+    const occasionLabel = occasion === 'wedding' ? 'wedding'
+      : occasion === 'anniversary' ? 'anniversary celebration'
+      : occasion === 'birthday' ? 'birthday celebration'
+      : occasion === 'engagement' ? 'engagement party'
+      : 'celebration';
+
+    // Detect destination/travel elements in the vibe for travel block suggestions
+    const vibe = (context?.vibe || '').toLowerCase();
+    const isDestination = ['destination', 'abroad', 'international', 'fly', 'flight', 'overseas', 'tropical',
+      'italy', 'france', 'mexico', 'bali', 'hawaii', 'tuscany', 'paris', 'amalfi', 'santorini',
+      'travel', 'journey', 'voyage'].some(kw => vibe.includes(kw));
+
+    // Build occasion-specific guidance for the AI
+    const occasionGuidance: Record<string, string> = {
+      wedding: blockType === 'registry'
+        ? 'This is a wedding registry. Focus on home setup, experiences, and honeymoon. Make the message celebrate the start of their shared life.'
+        : blockType === 'travel' && isDestination
+          ? 'This is a DESTINATION wedding — guests are traveling from afar. Include flight booking tips, area attractions, and a warm note about making it a trip. Add at least 2-3 hotel options and 1-2 airport options relevant to the destination vibe.'
+          : blockType === 'faqs'
+            ? 'Generate 5-7 FAQs that are genuinely useful for wedding guests. Include dress code, parking, children policy, RSVP deadline, and gift questions.'
+            : '',
+      anniversary: blockType === 'registry'
+        ? 'This is an anniversary celebration. Suggest meaningful experiences over material goods — travel funds, spa experiences, restaurant gift cards, or a memory book service.'
+        : blockType === 'faqs'
+          ? 'Generate FAQs for an anniversary party — what to expect, gift suggestions, whether to bring children, parking and logistics.'
+          : blockType === 'events'
+            ? 'Generate events for an anniversary celebration — a dinner, a champagne toast, and a milestone tribute moment. Tone should feel like a celebration of years together.'
+            : '',
+      birthday: blockType === 'events'
+        ? 'Generate events for a birthday celebration — arrival cocktails, dinner/gathering, and cake/toast moment. Keep the tone joyful and celebratory.'
+        : blockType === 'registry'
+          ? 'This is a birthday gift guide. Suggest experiences, hobbies, or wishlist items. Keep it personal and warm.'
+          : '',
+      engagement: blockType === 'events'
+        ? 'Generate events for an engagement party — welcome cocktails, dinner announcement, and a champagne toast. Tone should be romantic and celebratory.'
+        : '',
+    };
+
+    const specificGuidance = occasionGuidance[occasion] || '';
+
+    // Inject manifest poetry/story details if available
+    const poetryContext = context?.poetry ? [
+      context.poetry.heroTagline ? `Site tagline: "${context.poetry.heroTagline}"` : '',
+      context.poetry.rsvpIntro && blockType === 'faqs' ? `RSVP intro tone: "${context.poetry.rsvpIntro}"` : '',
+    ].filter(Boolean).join('\n') : '';
+
     const systemContext = [
-      context?.names ? `Couple: ${context.names[0]} & ${context.names[1]}` : '',
+      context?.names ? `Names: ${context.names[0]} & ${context.names[1]}` : '',
+      `Occasion: ${occasionLabel}`,
       context?.vibe ? `Vibe: "${context.vibe}"` : '',
       context?.venue ? `Venue: ${context.venue}` : '',
-      context?.date ? `Wedding Date: ${context.date}` : '',
+      context?.date ? `Event Date: ${context.date}` : '',
+      poetryContext,
+      specificGuidance,
     ].filter(Boolean).join('\n');
 
-    const fullPrompt = `You are an AI wedding planner for Pearloom, a premium wedding website platform.
-Generate a ${blockType} block for a wedding website.
+    const fullPrompt = `You are an AI event planner for Pearloom, a premium celebration website platform.
+Generate a ${blockType} block for a ${occasionLabel} website.
 
 ${systemContext}
 
-User request: "${prompt || `Generate a beautiful ${blockType} section`}"
+User request: "${prompt || `Generate a beautiful, personalized ${blockType} section for this ${occasionLabel}`}"
+
+IMPORTANT: Make this feel genuinely specific to ${context?.names ? `${context.names[0]} & ${context.names[1]}` : 'this couple/honoree'} — not a generic template. Reference their vibe, occasion, and any details provided.
 
 Return ONLY valid JSON matching this schema (no markdown, no backticks):
 ${schema.schema}`;
