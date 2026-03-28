@@ -375,12 +375,16 @@ const LAYOUT_LABELS: Record<string, string> = {
 };
 
 function ChapterPanel({
-  chapter, onUpdate, onAIRewrite, isRewriting,
+  chapter, onUpdate, onAIRewrite, isRewriting, vibeSkin,
+  sectionOverrides, onOverridesChange,
 }: {
   chapter: Chapter;
   onUpdate: (id: string, data: Partial<Chapter>) => void;
   onAIRewrite: (id: string) => void;
   isRewriting: boolean;
+  vibeSkin?: VibeSkin;
+  sectionOverrides?: SectionStyleOverrides;
+  onOverridesChange?: (id: string, overrides: SectionStyleOverrides) => void;
 }) {
   const upd = useCallback((data: Partial<Chapter>) => onUpdate(chapter.id, data), [chapter.id, onUpdate]);
   const currentLayout = chapter.layout || 'editorial';
@@ -501,6 +505,22 @@ function ChapterPanel({
           onPositionChange={(x, y) => upd({ imagePosition: { x, y } })}
         />
       </div>
+
+      {/* Section Style Overrides */}
+      {vibeSkin && onOverridesChange && (
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
+          <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+            Section Style
+          </div>
+          <SectionStyleEditor
+            sectionId={chapter.id}
+            sectionType="chapter"
+            currentOverrides={sectionOverrides}
+            vibeSkin={vibeSkin}
+            onChange={(overrides) => onOverridesChange(chapter.id, overrides)}
+          />
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -1101,6 +1121,24 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
     onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } } });
   };
 
+  const handleThemeApply = (newSkin: VibeSkin) => {
+    onChange({
+      ...manifest,
+      vibeSkin: newSkin,
+      theme: {
+        ...manifest.theme,
+        fonts: { heading: newSkin.fonts.heading, body: newSkin.fonts.body },
+        colors: {
+          ...manifest.theme.colors,
+          background: newSkin.palette.background,
+          foreground: newSkin.palette.foreground,
+          accent: newSkin.palette.accent,
+          muted: newSkin.palette.muted,
+        },
+      },
+    });
+  };
+
   const HEADING_FONTS = ['Playfair Display', 'Cormorant Garamond', 'Lora', 'Cinzel', 'DM Serif Display', 'Libre Baskerville', 'Josefin Sans'];
   const BODY_FONTS = ['Inter', 'Outfit', 'DM Sans', 'Work Sans', 'Nunito', 'Roboto', 'Raleway', 'Poppins', 'Lato'];
 
@@ -1112,7 +1150,17 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* ── Theme Switcher ── */}
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
+        <ThemeSwitcher
+          currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
+          manifest={manifest}
+          onApply={handleThemeApply}
+        />
+      </div>
+
       {/* VibeSkin palette swatches */}
+      <div id="design-customization" />
       {paletteColors.length > 0 && (
         <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
           <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
