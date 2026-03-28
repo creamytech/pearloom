@@ -58,17 +58,18 @@ function daysUntil(dateStr: string): number {
   return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 }
 
-function mapRow(row: Record<string, unknown>) {
+function mapRow(row: CapsuleRecord | Record<string, unknown>) {
+  const r = row as Record<string, unknown>;
   return {
-    id: row.id as string,
-    siteId: row.site_id as string,
-    fromName: row.from_name as string,
-    toName: row.to_name as string,
-    unlockDate: row.unlock_date as string,
-    unlockYears: row.unlock_years as number,
-    delivered: row.delivered as boolean,
-    sealed: new Date(row.unlock_date as string) > new Date(),
-    createdAt: row.created_at as string,
+    id: r.id as string,
+    siteId: r.site_id as string,
+    fromName: r.from_name as string,
+    toName: r.to_name as string,
+    unlockDate: r.unlock_date as string,
+    unlockYears: r.unlock_years as number,
+    delivered: r.delivered as boolean,
+    sealed: new Date(r.unlock_date as string) > new Date(),
+    createdAt: r.created_at as string,
   };
 }
 
