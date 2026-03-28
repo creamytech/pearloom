@@ -654,7 +654,7 @@ export default function DashboardPage() {
             >
               {publishedUrl ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: 'var(--eg-accent, #A3B18A)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
                     <Check size={32} />
                   </div>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginTop: '0.5rem' }}>It&apos;s Live.</h2>
@@ -714,7 +714,7 @@ export default function DashboardPage() {
                       style={{ flex: 1, padding: '1rem', fontSize: '1rem', border: 'none', outline: 'none' }}
                       disabled={isPublishing}
                       autoFocus
-                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = '#A3B18A'; }}
+                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'var(--eg-accent)'; }}
                       onBlur={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
                     />
                     <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>

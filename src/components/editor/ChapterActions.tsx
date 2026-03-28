@@ -47,7 +47,7 @@ function CompletionDot({
           width: '7px',
           height: '7px',
           borderRadius: '50%',
-          background: filled ? '#4ade80' : 'rgba(255,255,255,0.15)',
+          background: filled ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.15)',
           border: filled ? 'none' : '1px solid rgba(255,255,255,0.2)',
           transition: 'background 0.2s',
           cursor: 'default',
@@ -203,9 +203,9 @@ export function ChapterActions({
             gap: '4px',
             padding: '4px 8px',
             borderRadius: '5px',
-            border: '1px solid rgba(184,146,106,0.3)',
-            background: rewriting ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.1)',
-            color: rewriting ? 'rgba(255,255,255,0.3)' : '#b8926a',
+            border: '1px solid rgba(163,177,138,0.3)',
+            background: rewriting ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
+            color: rewriting ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent, #A3B18A)',
             fontSize: '0.65rem',
             fontWeight: 700,
             cursor: rewriting ? 'not-allowed' : 'pointer',
@@ -214,8 +214,8 @@ export function ChapterActions({
             whiteSpace: 'nowrap',
             height: '26px',
           }}
-          onMouseOver={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.2)'; }}
-          onMouseOut={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.1)'; }}
+          onMouseOver={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
+          onMouseOut={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
         >
           {rewriting
             ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
@@ -258,10 +258,10 @@ export function ChapterActions({
                   textAlign: 'left',
                   transition: 'background 0.1s',
                 }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.12)'; }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#b8926a' }}>{label}</span>
+                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)' }}>{label}</span>
                 <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>{desc}</span>
               </button>
             ))}

@@ -42,7 +42,7 @@ const BLOCKS: BlockDef[] = [
     label: 'Venue & Logistics',
     icon: MapPin,
     description: 'Date, time, venue, address, parking, and shuttle info',
-    color: '#b8926a',
+    color: 'var(--eg-accent, #A3B18A)',
     promptPlaceholder: 'The ceremony is at The Rosewood Estate in Newport, RI at 5pm...',
   },
   {
@@ -96,7 +96,7 @@ function MiniField({ label, value, onChange, placeholder, rows }: {
         value={value} onChange={e => onChange(e.target.value)}
         rows={rows} placeholder={placeholder}
         style={{ ...inp, resize: 'vertical', lineHeight: 1.55 }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.5)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
       />
     </div>
@@ -107,7 +107,7 @@ function MiniField({ label, value, onChange, placeholder, rows }: {
       <input
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.5)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
       />
     </div>
@@ -159,7 +159,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
                   <MiniField label="Description" value={evt.description || ''} onChange={v => upd(evt.id, { description: v })} rows={2} />
                   <button
                     onClick={() => remove(evt.id)}
-                    style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '5px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.08)', color: '#f87171', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
+                    style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '5px', border: '1px solid rgba(109,89,122,0.2)', background: 'rgba(109,89,122,0.08)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
                   >
                     <Trash2 size={10} /> Remove
                   </button>
@@ -193,7 +193,7 @@ function FaqEditor({ faqs, onChange }: { faqs: FaqItem[]; onChange: (f: FaqItem[
           <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', fontWeight: 700, letterSpacing: '0.1em' }}>FAQ {i + 1}</span>
           <MiniField label="Question" value={faq.question} onChange={v => upd(faq.id, { question: v })} placeholder="What is the dress code?" />
           <MiniField label="Answer" value={faq.answer} onChange={v => upd(faq.id, { answer: v })} rows={2} placeholder="We'd love for you to..." />
-          <button onClick={() => remove(faq.id)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(239,68,68,0.08)', color: '#f87171', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+          <button onClick={() => remove(faq.id)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(109,89,122,0.08)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
             <X size={9} /> Remove
           </button>
         </div>
@@ -221,7 +221,7 @@ function TravelEditor({ travel, onChange }: { travel: TravelInfo; onChange: (t: 
       <MiniField label="Directions" value={travel.directions || ''} onChange={v => onChange({ ...travel, directions: v })} rows={2} placeholder="Take I-95 North to Exit 12..." />
       <MiniField label="Parking Info" value={travel.parkingInfo || ''} onChange={v => onChange({ ...travel, parkingInfo: v })} placeholder="Complimentary valet available" />
 
-      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginTop: '4px' }}>Hotels</div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginTop: '4px' }}>Hotels</div>
       {(travel.hotels || []).map((h, i) => (
         <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.07)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', fontWeight: 700, letterSpacing: '0.1em' }}>Hotel {i + 1}</span>
@@ -230,7 +230,7 @@ function TravelEditor({ travel, onChange }: { travel: TravelInfo; onChange: (t: 
           <MiniField label="Group Rate" value={h.groupRate || ''} onChange={v => updHotel(i, { groupRate: v })} placeholder="$179/night with code SMITH2025" />
           <MiniField label="Booking URL" value={h.bookingUrl || ''} onChange={v => updHotel(i, { bookingUrl: v })} placeholder="https://..." />
           <MiniField label="Notes" value={h.notes || ''} onChange={v => updHotel(i, { notes: v })} placeholder="Our recommended hotel, 10 min from venue" />
-          <button onClick={() => removeHotel(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(239,68,68,0.08)', color: '#f87171', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+          <button onClick={() => removeHotel(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(109,89,122,0.08)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
             <X size={9} /> Remove
           </button>
         </div>
@@ -260,13 +260,13 @@ function RegistryEditor({ registry, onChange }: {
       <MiniField label="Cash Fund URL (Honeyfund, etc.)" value={registry.cashFundUrl || ''} onChange={v => onChange({ ...registry, cashFundUrl: v })} placeholder="https://www.honeyfund.com/..." />
       <MiniField label="Cash Fund Message" value={registry.cashFundMessage || ''} onChange={v => onChange({ ...registry, cashFundMessage: v })} placeholder="Contribute to our honeymoon in Italy" />
 
-      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginTop: '4px' }}>Registry Links</div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginTop: '4px' }}>Registry Links</div>
       {entries.map((entry, i) => (
         <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.07)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <MiniField label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Zola" />
           <MiniField label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://www.zola.com/registry/..." />
           <MiniField label="Note" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our main registry..." />
-          <button onClick={() => removeEntry(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(239,68,68,0.08)', color: '#f87171', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
+          <button onClick={() => removeEntry(i)} style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 6px', borderRadius: '4px', border: 'none', background: 'rgba(109,89,122,0.08)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700 }}>
             <X size={9} /> Remove
           </button>
         </div>
@@ -530,7 +530,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       {/* Header with Regenerate button */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.3rem' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginBottom: '0.3rem' }}>
             AI Content Blocks
           </div>
           <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.5, margin: 0 }}>
@@ -543,9 +543,9 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           style={{
             display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
             padding: '6px 10px', borderRadius: '7px',
-            border: '1px solid rgba(184,146,106,0.25)',
-            background: isRegenerating ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.1)',
-            color: isRegenerating ? 'rgba(255,255,255,0.3)' : '#b8926a',
+            border: '1px solid rgba(163,177,138,0.25)',
+            background: isRegenerating ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
+            color: isRegenerating ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent, #A3B18A)',
             fontSize: '0.65rem', fontWeight: 700, cursor: isRegenerating ? 'not-allowed' : 'pointer',
             transition: 'all 0.15s', whiteSpace: 'nowrap',
           }}
@@ -602,9 +602,9 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.75rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ background: 'rgba(109,89,122,0.1)', border: '1px solid rgba(109,89,122,0.2)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.75rem', color: 'var(--eg-plum, #6D597A)', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <X size={12} /> {error}
-          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#f87171' }}><X size={10} /></button>
+          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-plum, #6D597A)' }}><X size={10} /></button>
         </div>
       )}
 
@@ -631,10 +631,10 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           padding: '8px 12px', borderRadius: '8px',
-          background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.15)',
+          background: 'rgba(163,177,138,0.08)', border: '1px solid rgba(163,177,138,0.15)',
         }}>
           <Check size={12} color="#4ade80" />
-          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#4ade80' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)' }}>
             {generatedCount} section{generatedCount > 1 ? 's' : ''} generated and added to your site
           </span>
         </div>

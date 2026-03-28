@@ -38,7 +38,7 @@ function HeroSection({
 }) {
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#b8926a';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
   const tagline = manifest.poetry?.heroTagline || 'A story of love and forever';
@@ -106,7 +106,7 @@ function ChapterCard({
 }) {
   const bg = vibeSkin?.palette?.card || manifest.theme?.colors?.cardBg || '#fff';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#b8926a';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
   const muted = vibeSkin?.palette?.muted || manifest.theme?.colors?.muted || '#888';
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
@@ -245,7 +245,7 @@ export function PreviewPane({
 
   const containerWidth = DEVICE_WIDTHS[previewDevice];
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#b8926a';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
   const chapters = [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   // The outer pane fills all available space; the inner content div is scaled

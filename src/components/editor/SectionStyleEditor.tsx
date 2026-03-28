@@ -77,10 +77,10 @@ export function SectionStyleEditor({
                 width: '28px', height: '28px', borderRadius: '50%',
                 background: color,
                 border: currentBg === color
-                  ? '2px solid #b8926a'
+                  ? '2px solid var(--eg-accent, #A3B18A)'
                   : '1px solid rgba(255,255,255,0.15)',
                 cursor: 'pointer', flexShrink: 0,
-                boxShadow: currentBg === color ? '0 0 0 2px rgba(184,146,106,0.3)' : 'none',
+                boxShadow: currentBg === color ? '0 0 0 2px rgba(163,177,138,0.3)' : 'none',
                 transition: 'all 0.15s',
               }}
             />

@@ -15,7 +15,7 @@ import type { StoryManifest } from '@/types';
 // ── Brand palette ──────────────────────────────────────────────
 const C = {
   ivory:    '#F5F1E8',
-  gold:     '#b8926a',
+  gold:     '#D6C6A8',
   sage:     '#A3B18A',
   espresso: '#3D3530',
   muted:    '#9A8F87',

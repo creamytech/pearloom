@@ -102,7 +102,7 @@ function Field({ label, value, onChange, rows, placeholder }: {
         value={value} onChange={e => onChange(e.target.value)} rows={rows}
         placeholder={placeholder}
         style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
       />
     </div>
@@ -114,7 +114,7 @@ function Field({ label, value, onChange, rows, placeholder }: {
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
       />
     </div>
@@ -131,7 +131,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
         color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
         minHeight: '44px',
       }}
-      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.8)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
     >
       <GripIcon size={14} />
@@ -155,12 +155,12 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
         cursor: isDragging ? 'grabbing' : 'grab',
         padding: '2px 6px 2px 2px',
         display: 'flex', alignItems: 'center',
-        color: isDragging ? 'rgba(184,146,106,0.9)' : 'rgba(255,255,255,0.18)',
+        color: isDragging ? 'rgba(163,177,138,0.9)' : 'rgba(255,255,255,0.18)',
         touchAction: 'none', userSelect: 'none', flexShrink: 0,
         borderRadius: '4px',
         transition: 'color 0.15s, background 0.15s',
       }}
-      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.08)'; }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.8)'; (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.18)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
     >
       ⌖
@@ -193,14 +193,14 @@ function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '8px 10px', borderRadius: '7px',
         border: '1px solid rgba(255,255,255,0.08)',
-        background: isDragging ? 'rgba(184,146,106,0.2)' : 'rgba(255,255,255,0.04)',
+        background: isDragging ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.04)',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none', touchAction: 'none',
         transition: 'all 0.15s',
         marginBottom: '4px',
         opacity: isDragging ? 0.5 : 1,
       }}
-      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(184,146,106,0.3)'; }}
+      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(163,177,138,0.3)'; }}
       onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.04)'; el.style.borderColor = 'rgba(255,255,255,0.08)'; }}
     >
       <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{emoji}</span>
@@ -243,8 +243,8 @@ function SectionItem({
       <div
         style={{
           borderRadius: '8px',
-          background: isActive ? 'rgba(184,146,106,0.18)' : 'rgba(255,255,255,0.04)',
-          border: isActive ? '1px solid rgba(184,146,106,0.35)' : '1px solid transparent',
+          background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.04)',
+          border: isActive ? '1px solid rgba(163,177,138,0.35)' : '1px solid transparent',
           transition: 'all 0.15s',
           position: 'relative',
           overflow: 'hidden',
@@ -437,7 +437,7 @@ function ImageManager({
             border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '10px',
             background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.25)',
           }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.4)'; (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
         >
           <Camera size={20} />
@@ -474,7 +474,7 @@ function ImageManager({
                   transition: 'background 0.15s',
                   zIndex: 2,
                 }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#ef4444'; }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--eg-plum, #6D597A)'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.7)'; }}
               >
                 <X size={10} />
@@ -483,7 +483,7 @@ function ImageManager({
               {i === 0 && (
                 <div style={{
                   position: 'absolute', bottom: '4px', left: '4px',
-                  background: 'rgba(184,146,106,0.9)', color: '#fff',
+                  background: 'rgba(163,177,138,0.9)', color: '#fff',
                   fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em',
                   textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
                   zIndex: 2,
@@ -500,7 +500,7 @@ function ImageManager({
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'rgba(255,255,255,0.25)', transition: 'all 0.15s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.4)'; (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
           >
             <Plus size={16} />
@@ -517,14 +517,14 @@ function ImageManager({
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               width: '100%', padding: '7px 12px', borderRadius: '6px',
-              border: '1px solid rgba(184,146,106,0.3)',
-              background: generatingCaptions ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.1)',
+              border: '1px solid rgba(163,177,138,0.3)',
+              background: generatingCaptions ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
               color: generatingCaptions ? 'rgba(255,255,255,0.4)' : 'var(--eg-accent, #A3B18A)',
               fontSize: '0.82rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
               letterSpacing: '0.04em', transition: 'all 0.15s',
             }}
-            onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.2)'; }}
-            onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.1)'; }}
+            onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
+            onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
           >
             {generatingCaptions
               ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Generating captions…</>
@@ -586,7 +586,7 @@ function ChapterPanel({
           onChange={e => upd({ title: e.target.value })}
           placeholder="The Rooftop, Brooklyn"
           style={{ ...inp, fontSize: 'max(16px, 1rem)', fontWeight: 700, letterSpacing: '-0.01em' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
           onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
@@ -600,7 +600,7 @@ function ChapterPanel({
             value={chapter.date ? chapter.date.slice(0, 10) : ''}
             onChange={e => upd({ date: e.target.value })}
             style={{ ...inp, colorScheme: 'dark' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
         </div>
@@ -616,7 +616,7 @@ function ChapterPanel({
           rows={5}
           placeholder="Write your memory here..."
           style={{ ...inp, resize: 'vertical', lineHeight: 1.65, minHeight: '120px' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
           onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
@@ -653,14 +653,14 @@ function ChapterPanel({
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           padding: '10px 16px', borderRadius: '8px',
-          border: '1px solid rgba(184,146,106,0.35)',
-          background: isRewriting ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.12)',
+          border: '1px solid rgba(163,177,138,0.35)',
+          background: isRewriting ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.12)',
           color: isRewriting ? 'rgba(255,255,255,0.4)' : 'var(--eg-accent, #A3B18A)',
           fontSize: '0.85rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
           letterSpacing: '0.04em', transition: 'all 0.15s',
         }}
-        onMouseOver={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.22)'; }}
-        onMouseOut={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.12)'; }}
+        onMouseOver={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.22)'; }}
+        onMouseOut={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
       >
         {isRewriting
           ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Rewriting this chapter…</>
@@ -812,7 +812,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
                             value={evt.date || ''}
                             onChange={e => updateEvent(evt.id, { date: e.target.value })}
                             style={{ ...inp, colorScheme: 'dark' }}
-                            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+                            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
                             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
                           />
                         </div>
@@ -825,7 +825,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
                       {/* Remove button */}
                       <button
                         onClick={() => removeEvent(evt.id)}
-                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#f87171', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}
+                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(109,89,122,0.2)', background: 'rgba(109,89,122,0.06)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}
                       >
                         <Trash2 size={11} /> Remove Event
                       </button>
@@ -842,7 +842,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
       <button
         onClick={addEvent}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.4)', background: 'transparent', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s' }}
-        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.08)'; }}
+        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; }}
         onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <Plus size={13} /> Add Event
@@ -938,7 +938,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
               value={logistics.date || ''}
               onChange={e => upd({ date: e.target.value })}
               style={{ ...inp, colorScheme: 'dark' }}
-              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
             />
           </div>
@@ -956,7 +956,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
             style={{
               width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: manifest.registry?.enabled !== false ? '#b8926a' : 'rgba(255,255,255,0.12)',
+              background: manifest.registry?.enabled !== false ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -1002,7 +1002,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             value={logistics.rsvpDeadline || ''}
             onChange={e => upd({ rsvpDeadline: e.target.value })}
             style={{ ...inp, colorScheme: 'dark' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
         </div>
@@ -1087,7 +1087,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             rows={3}
             placeholder="intimate, golden hour, wildflower meadow..."
             style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
           <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.4rem', lineHeight: 1.5 }}>
@@ -1190,7 +1190,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             style={{ overflow: 'hidden', marginBottom: '8px' }}
           >
-            <div style={{ background: 'rgba(184,146,106,0.08)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(184,146,106,0.2)' }}>
+            <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(163,177,138,0.2)' }}>
               <label style={lbl}>Page Name</label>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <input
@@ -1205,7 +1205,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
                   disabled={!newPageTitle.trim()}
                   style={{
                     padding: '6px 12px', borderRadius: '5px', border: 'none',
-                    background: newPageTitle.trim() ? '#b8926a' : 'rgba(255,255,255,0.1)',
+                    background: newPageTitle.trim() ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.1)',
                     color: newPageTitle.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
                     fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                   }}
@@ -1238,8 +1238,8 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
           <div key={page.id} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             padding: '8px 10px 8px 12px', borderRadius: '10px',
-            background: isActive && !isHidden ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${isActive && !isHidden ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            background: isActive && !isHidden ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${isActive && !isHidden ? 'rgba(163,177,138,0.3)' : 'rgba(255,255,255,0.06)'}`,
             opacity: isHidden ? 0.4 : 1,
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1277,8 +1277,8 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
             <div key={page.id} style={{
               display: 'flex', alignItems: 'center', gap: '10px',
               padding: '8px 10px 8px 12px', borderRadius: '10px',
-              background: 'rgba(184,146,106,0.08)',
-              border: '1px solid rgba(184,146,106,0.2)',
+              background: 'rgba(163,177,138,0.08)',
+              border: '1px solid rgba(163,177,138,0.2)',
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
@@ -1303,7 +1303,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
         </>
       )}
 
-      <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(184,146,106,0.06)', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.2)' }}>
+      <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(163,177,138,0.06)', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.2)' }}>
         <p style={{ fontSize: '0.82rem', color: 'rgba(163,177,138,0.8)', lineHeight: 1.5, margin: 0 }}>
           To activate built-in pages, add content in the <strong style={{ color: 'var(--eg-accent, #A3B18A)' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: 'var(--eg-accent, #A3B18A)' }}>Canvas</strong> tab.
         </p>
@@ -1427,14 +1427,14 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
             style={{
               marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px',
               padding: '7px 14px', borderRadius: '7px',
-              border: '1px solid rgba(184,146,106,0.25)',
-              background: isRegenerating ? 'rgba(184,146,106,0.15)' : 'rgba(184,146,106,0.07)',
+              border: '1px solid rgba(163,177,138,0.25)',
+              background: isRegenerating ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.07)',
               color: 'var(--eg-accent, #A3B18A)', cursor: isRegenerating ? 'not-allowed' : 'pointer',
               fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s',
               opacity: isRegenerating ? 0.7 : 1,
             }}
-            onMouseOver={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.15)'; }}
-            onMouseOut={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.07)'; }}
+            onMouseOver={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.15)'; }}
+            onMouseOut={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.07)'; }}
           >
             <DesignIcon size={13} />
             {isRegenerating ? 'Generating new design…' : 'Regenerate design'}
@@ -1488,11 +1488,11 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
             </div>
             <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.75rem', marginBottom: '10px' }}>The beginning of everything.</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <div style={{ background: colors.accent || '#b8926a', color: '#fff', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>RSVP</div>
-              <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || '#b8926a', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>View Story</div>
+              <div style={{ background: colors.accent || 'var(--eg-accent, #A3B18A)', color: '#fff', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>RSVP</div>
+              <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || 'var(--eg-accent, #A3B18A)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>View Story</div>
             </div>
           </div>
-          <div style={{ height: '4px', background: colors.accent || '#b8926a' }} />
+          <div style={{ height: '4px', background: colors.accent || 'var(--eg-accent, #A3B18A)' }} />
         </div>
       </div>
     </div>
@@ -1897,7 +1897,7 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* Site name — centered */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <Heart size={12} color="#b8926a" fill="#b8926a" />
+          <Heart size={12} color="var(--eg-gold, #D6C6A8)" fill="var(--eg-gold, #D6C6A8)" />
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
             {coupleNames[0]} & {coupleNames[1]}
           </span>
@@ -1969,9 +1969,9 @@ Return JSON with: title, subtitle, description, mood`,
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '6px 10px', borderRadius: '6px',
-              border: `1px solid ${splitView ? 'rgba(184,146,106,0.5)' : 'rgba(255,255,255,0.12)'}`,
-              background: splitView ? 'rgba(184,146,106,0.15)' : 'transparent',
-              color: splitView ? '#b8926a' : 'rgba(255,255,255,0.6)',
+              border: `1px solid ${splitView ? 'rgba(163,177,138,0.5)' : 'rgba(255,255,255,0.12)'}`,
+              background: splitView ? 'rgba(163,177,138,0.15)' : 'transparent',
+              color: splitView ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.6)',
               cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
             }}
             onMouseOver={e => { if (!splitView) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
@@ -2007,8 +2007,8 @@ Return JSON with: title, subtitle, description, mood`,
               boxShadow: '0 2px 10px rgba(163,177,138,0.3)',
               transition: 'all 0.2s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(184,146,106,0.45)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(184,146,106,0.3)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(163,177,138,0.45)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(163,177,138,0.3)'; }}
           >
             <PublishIcon size={13} /> Publish
           </button>
@@ -2390,8 +2390,8 @@ Return JSON with: title, subtitle, description, mood`,
                           onClick={() => setActiveId(ch.id)}
                           style={{
                             flexShrink: 0, width: '100px', borderRadius: '10px', border: 'none',
-                            background: isActive ? 'rgba(184,146,106,0.18)' : 'rgba(255,255,255,0.05)',
-                            outline: isActive ? '2px solid rgba(184,146,106,0.5)' : 'none',
+                            background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.05)',
+                            outline: isActive ? '2px solid rgba(163,177,138,0.5)' : 'none',
                             cursor: 'pointer', padding: 0, overflow: 'hidden',
                             minHeight: '44px',
                           }}
@@ -2509,7 +2509,7 @@ Return JSON with: title, subtitle, description, mood`,
               background: 'rgba(20,18,16,0.92)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(184,146,106,0.3)',
+              border: '1px solid rgba(163,177,138,0.3)',
               borderRadius: '100px',
               padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: '8px',
@@ -2569,7 +2569,7 @@ Return JSON with: title, subtitle, description, mood`,
                   </div>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', margin: 0 }}>It&apos;s Live.</h2>
                   <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</p>
-                  <code style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: '#b8926a', wordBreak: 'break-all' }}>
+                  <code style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all' }}>
                     {publishedUrl}
                   </code>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
@@ -2593,7 +2593,7 @@ Return JSON with: title, subtitle, description, mood`,
                   <p style={{ color: 'rgba(255,255,255,0.45)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
 
                   {publishError && (
-                    <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                    <div style={{ background: 'rgba(109,89,122,0.1)', border: '1px solid rgba(109,89,122,0.2)', color: 'var(--eg-plum, #6D597A)', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
                       {publishError}
                     </div>
                   )}
@@ -2640,7 +2640,7 @@ Return JSON with: title, subtitle, description, mood`,
         {canvasDragId && (
           <div style={{
             padding: '8px 14px', borderRadius: '8px',
-            background: 'rgba(184,146,106,0.95)',
+            background: 'rgba(163,177,138,0.95)',
             boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
             color: '#fff', fontSize: '0.78rem', fontWeight: 700,
             letterSpacing: '0.04em',

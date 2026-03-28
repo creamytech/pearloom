@@ -581,7 +581,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
           }}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: '0.65rem', color: 'rgba(184,146,106,0.7)',
+            fontSize: '0.65rem', color: 'rgba(163,177,138,0.7)',
             textDecoration: 'underline', padding: '2px',
           }}
         >

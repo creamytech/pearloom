@@ -31,7 +31,7 @@ const PRESET_PALETTES: PresetPalette[] = [
     name: 'Warm Ivory',
     emoji: '🕯️',
     description: 'Classic, romantic, timeless',
-    colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+    colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: 'var(--eg-accent, #A3B18A)', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
     fonts: { heading: 'Playfair Display', body: 'Inter' },
     borderRadius: '1rem',
   },
@@ -187,7 +187,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
   const [genError, setGenError] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
 
-  const accent = colors.accent || '#b8926a';
+  const accent = colors.accent || 'var(--eg-accent, #A3B18A)';
   const bg = colors.background || '#faf9f6';
 
   // Apply colors + optional SVG background to manifest
@@ -296,8 +296,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             onClick={() => setActiveTab(t.id)}
             style={{
               flex: 1, padding: '5px 0', borderRadius: '6px', border: 'none',
-              background: activeTab === t.id ? 'rgba(184,146,106,0.2)' : 'transparent',
-              color: activeTab === t.id ? '#b8926a' : 'rgba(255,255,255,0.35)',
+              background: activeTab === t.id ? 'rgba(163,177,138,0.2)' : 'transparent',
+              color: activeTab === t.id ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.35)',
               cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
               transition: 'all 0.15s', whiteSpace: 'nowrap',
             }}
@@ -375,13 +375,13 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
 
           {/* Explainer */}
           <div style={{
-            background: 'linear-gradient(135deg, rgba(155,127,217,0.1), rgba(184,146,106,0.08))',
-            border: '1px solid rgba(184,146,106,0.2)',
+            background: 'linear-gradient(135deg, rgba(155,127,217,0.1), rgba(163,177,138,0.08))',
+            border: '1px solid rgba(163,177,138,0.2)',
             borderRadius: '10px', padding: '10px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <Sparkles size={12} color="#b8926a" />
-              <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b8926a' }}>
+              <Sparkles size={12} color="var(--eg-accent, #A3B18A)" />
+              <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)' }}>
                 Bespoke AI Background Art
               </span>
             </div>
@@ -411,7 +411,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                   color: '#fff', fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
-                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.5)'; }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
               />
             </div>
@@ -433,9 +433,9 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     title={s.hint}
                     style={{
                       padding: '5px 4px', borderRadius: '6px',
-                      border: `1px solid ${artStyle === s.id ? '#b8926a' : 'rgba(255,255,255,0.07)'}`,
-                      background: artStyle === s.id ? 'rgba(184,146,106,0.15)' : 'transparent',
-                      color: artStyle === s.id ? '#b8926a' : 'rgba(255,255,255,0.4)',
+                      border: `1px solid ${artStyle === s.id ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.07)'}`,
+                      background: artStyle === s.id ? 'rgba(163,177,138,0.15)' : 'transparent',
+                      color: artStyle === s.id ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
                       cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
                       textAlign: 'center', transition: 'all 0.15s', lineHeight: 1.3,
                     }}
@@ -467,7 +467,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                   color: '#fff', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
                 }}
-                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.5)'; }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
               />
             </div>
@@ -484,7 +484,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               padding: '12px', borderRadius: '8px', border: 'none',
               background: generating
                 ? 'rgba(255,255,255,0.06)'
-                : 'linear-gradient(135deg, #9b7fd9, #b8926a)',
+                : 'linear-gradient(135deg, #9b7fd9, var(--eg-accent, #A3B18A))',
               color: generating ? 'rgba(255,255,255,0.4)' : '#fff',
               fontSize: '0.82rem', fontWeight: 800, cursor: generating ? 'not-allowed' : 'pointer',
               letterSpacing: '0.05em', boxShadow: generating ? 'none' : '0 4px 20px rgba(155,127,217,0.3)',
@@ -508,8 +508,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           {genError && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px',
-              borderRadius: '7px', background: 'rgba(239,68,68,0.1)',
-              border: '1px solid rgba(239,68,68,0.2)', fontSize: '0.72rem', color: '#f87171',
+              borderRadius: '7px', background: 'rgba(109,89,122,0.1)',
+              border: '1px solid rgba(109,89,122,0.2)', fontSize: '0.72rem', color: 'var(--eg-plum, #6D597A)',
             }}>
               <AlertTriangle size={12} /> {genError}
             </div>
@@ -543,8 +543,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     style={{
                       flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       gap: '4px', padding: '7px', borderRadius: '6px',
-                      border: '1px solid rgba(184,146,106,0.3)', background: 'rgba(184,146,106,0.08)',
-                      color: '#b8926a', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
+                      border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.08)',
+                      color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
                     }}
                   >
                     <RefreshCw size={11} /> Regenerate
@@ -587,7 +587,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                       border: '1px solid rgba(255,255,255,0.08)',
                       cursor: 'pointer', transition: 'border-color 0.15s',
                     }}
-                    onMouseOver={e => { e.currentTarget.style.borderColor = '#b8926a'; }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--eg-accent, #A3B18A)'; }}
                     onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                   />
                 ))}
