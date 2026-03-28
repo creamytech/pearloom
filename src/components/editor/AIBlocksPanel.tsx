@@ -134,9 +134,6 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
             onClick={() => setExpanded(expanded === evt.id ? null : evt.id)}
             style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', gap: '8px' }}
           >
-            <span style={{ fontSize: '1rem' }}>
-              {evt.name.toLowerCase().includes('ceremony') ? '💒' : evt.name.toLowerCase().includes('reception') ? '🥂' : evt.name.toLowerCase().includes('rehearsal') ? '🎭' : '🎊'}
-            </span>
             <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 700, textAlign: 'left' }}>{evt.name || 'Event'}</span>
             <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)' }}>{evt.time}</span>
             {expanded === evt.id ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -261,7 +258,7 @@ function RegistryEditor({ registry, onChange }: {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <MiniField label="Message" value={registry.message || ''} onChange={v => onChange({ ...registry, message: v })} rows={2} placeholder="Your presence is the greatest gift..." />
       <MiniField label="Cash Fund URL (Honeyfund, etc.)" value={registry.cashFundUrl || ''} onChange={v => onChange({ ...registry, cashFundUrl: v })} placeholder="https://www.honeyfund.com/..." />
-      <MiniField label="Cash Fund Message" value={registry.cashFundMessage || ''} onChange={v => onChange({ ...registry, cashFundMessage: v })} placeholder="Contribute to our honeymoon in Italy 🇮🇹" />
+      <MiniField label="Cash Fund Message" value={registry.cashFundMessage || ''} onChange={v => onChange({ ...registry, cashFundMessage: v })} placeholder="Contribute to our honeymoon in Italy" />
 
       <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginTop: '4px' }}>Registry Links</div>
       {entries.map((entry, i) => (

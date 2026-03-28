@@ -862,7 +862,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
 
       <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(184,146,106,0.06)', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.2)' }}>
         <p style={{ fontSize: '0.68rem', color: 'rgba(184,146,106,0.7)', lineHeight: 1.5, margin: 0 }}>
-          💡 To activate built-in pages, add content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: '#b8926a' }}>Canvas</strong> tab.
+          To activate built-in pages, add content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: '#b8926a' }}>Canvas</strong> tab.
         </p>
       </div>
     </div>
@@ -1242,19 +1242,22 @@ Return JSON with: title, subtitle, description, mood`,
         <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           <button
             onClick={undo} disabled={!canUndo} title="Undo"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', fontSize: '0.75rem', fontWeight: 700 }}
-          >↩</button>
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
+          ><UndoIcon size={14} /></button>
           <button
             onClick={redo} disabled={!canRedo} title="Redo"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', fontSize: '0.75rem', fontWeight: 700 }}
-          >↪</button>
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
+          ><RedoIcon size={14} /></button>
           <span style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
             fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em',
             color: saveState === 'saved' ? '#4ade80' : '#facc15',
             background: saveState === 'saved' ? 'rgba(74,222,128,0.1)' : 'rgba(250,204,21,0.1)',
             padding: '3px 8px', borderRadius: '100px', transition: 'all 0.3s',
           }}>
-            {saveState === 'saved' ? '✓ Saved' : '● Unsaved'}
+            {saveState === 'saved'
+              ? <><SavedIcon size={12} color="#4ade80" /> Saved</>
+              : <><UnsavedIcon size={12} color="#facc15" /> Unsaved</>}
           </span>
         </div>
         {/* Device switcher — desktop only */}
