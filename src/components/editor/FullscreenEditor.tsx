@@ -1140,6 +1140,40 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
   );
 }
 function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState('');
+
+  const handleRegenerateDesign = async () => {
+    setIsRegenerating(true);
+    setRegenError('');
+    try {
+      const res = await fetch('/api/regenerate-design', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vibeString: manifest.vibeString,
+          coupleNames: [
+            manifest.chapters?.[0]?.title?.split(' ')[0] ?? 'Partner',
+            manifest.chapters?.[1]?.title?.split(' ')[0] ?? 'Partner',
+          ],
+          chapters: manifest.chapters?.map(c => ({
+            title: c.title, subtitle: c.subtitle,
+            mood: c.mood, location: c.location,
+            description: c.description,
+          })),
+        }),
+      });
+      if (!res.ok) throw new Error('Generation failed');
+      const { vibeSkin } = await res.json();
+      handleThemeApply(vibeSkin);
+    } catch (e) {
+      setRegenError('Try again in a moment');
+      console.error(e);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   const updateFont = (key: 'heading' | 'body', val: string) => {
     onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } } });
   };
@@ -1216,19 +1250,28 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
           )}
           {/* Regenerate design button */}
           <button
-            onClick={() => {/* existing ColorPalettePanel handles regeneration */}}
+            onClick={handleRegenerateDesign}
+            disabled={isRegenerating}
             style={{
               marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px',
               padding: '7px 14px', borderRadius: '7px',
-              border: '1px solid rgba(184,146,106,0.25)', background: 'rgba(184,146,106,0.07)',
-              color: '#b8926a', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
-              transition: 'all 0.15s',
+              border: '1px solid rgba(184,146,106,0.25)',
+              background: isRegenerating ? 'rgba(184,146,106,0.15)' : 'rgba(184,146,106,0.07)',
+              color: '#b8926a', cursor: isRegenerating ? 'not-allowed' : 'pointer',
+              fontSize: '0.72rem', fontWeight: 700, transition: 'all 0.15s',
+              opacity: isRegenerating ? 0.7 : 1,
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.15)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.07)'; }}
+            onMouseOver={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.15)'; }}
+            onMouseOut={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.07)'; }}
           >
-            <DesignIcon size={13} /> Regenerate design
+            <DesignIcon size={13} />
+            {isRegenerating ? 'Generating new design…' : 'Regenerate design'}
           </button>
+          {regenError && (
+            <p style={{ fontSize: '0.65rem', color: '#e87a7a', marginTop: '4px', marginLeft: '2px' }}>
+              {regenError}
+            </p>
+          )}
         </div>
       )}
 

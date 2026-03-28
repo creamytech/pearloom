@@ -8,6 +8,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import type { Transition, TargetAndTransition } from 'framer-motion';
 import type { Chapter } from '@/types';
 import { MoodDecorator } from '@/components/mood-decorator';
 import { LocationPinIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
@@ -17,6 +18,44 @@ interface TimelineItemProps {
   chapter: Chapter;
   index: number;
   chapterIcon?: string; // AI-generated SVG icon specific to this chapter
+}
+
+/**
+ * Maps mood tag + emotional intensity to a Framer Motion entrance variant.
+ * High-intensity dramatic moments snap in fast. Quiet intimate moments drift slowly.
+ */
+type MoodVariant = { initial: TargetAndTransition; animate: TargetAndTransition; transition: Transition };
+
+function moodEntrance(mood: string, intensity = 5): MoodVariant {
+  const m = (mood || '').toLowerCase();
+  const dur = intensity >= 8 ? 0.65 : intensity >= 5 ? 0.9 : 1.2;
+
+  // Night / moody / dark → pure opacity fade, no movement
+  if (m.includes('night') || m.includes('dark') || m.includes('moody') || m.includes('midnight'))
+    return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: dur * 1.3, ease: 'easeInOut' } };
+
+  // High-intensity milestone → sharp rise from below, fast overshoot
+  if (intensity >= 8)
+    return { initial: { opacity: 0, y: 70 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur, ease: [0.16, 1, 0.3, 1] } };
+
+  // Dreamy / golden / warm → gentle diagonal drift
+  if (m.includes('golden') || m.includes('sunset') || m.includes('warm') || m.includes('dreamy'))
+    return { initial: { opacity: 0, y: 28, x: 12 }, animate: { opacity: 1, y: 0, x: 0 }, transition: { duration: dur, ease: [0.25, 1, 0.5, 1] } };
+
+  // Adventure / mountain / travel → strong vertical rise
+  if (m.includes('mountain') || m.includes('travel') || m.includes('adventure') || m.includes('outdoor'))
+    return { initial: { opacity: 0, y: 60 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur * 0.85, ease: [0.16, 1, 0.3, 1] } };
+
+  // Cozy / lazy / intimate → slow, barely-moving float
+  if (m.includes('cozy') || m.includes('lazy') || m.includes('sunday') || m.includes('intimate') || m.includes('winter'))
+    return { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur * 1.4, ease: 'easeOut' } };
+
+  // Playful / fun → light upward spring
+  if (m.includes('playful') || m.includes('fun') || m.includes('summer'))
+    return { initial: { opacity: 0, y: 40, scale: 0.97 }, animate: { opacity: 1, y: 0, scale: 1 }, transition: { duration: dur, ease: [0.34, 1.56, 0.64, 1] } };
+
+  // Default: standard fade-up
+  return { initial: { opacity: 0, y: 50 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur, ease: [0.16, 1, 0.3, 1] } };
 }
 
 /** Returns CSS object-position from AI-detected focal point, or 'center' as default */
@@ -272,10 +311,11 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
           position: 'relative',
         }}
         className="max-md:flex-col max-md:gap-8 max-md:px-6"
-        initial={{ opacity: 0, y: 60 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* Editorial Image Stack — 60% */}
         <div style={{ flex: '0 0 56%', position: 'relative', minHeight: '600px' }} className="max-md:w-full max-md:min-h-[360px]">
@@ -401,10 +441,11 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
     <motion.article
       ref={ref}
       style={{ position: 'relative', height: '100dvh', minHeight: '600px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
+      {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+      whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+      initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
       viewport={{ once: true }}
-      transition={{ duration: 1.4 }}
+      transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
     >
       {/* Video replaces image when playing */}
       {chapter.videoUrl && videoPlaying ? (
@@ -538,10 +579,11 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
       <motion.article
         ref={ref}
         style={{ position: 'relative', padding: '10rem 2rem', textAlign: 'center', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '600px' }}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1.2 }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* Video replaces blurred background when playing */}
         {chapter.videoUrl && videoPlaying ? (
@@ -671,10 +713,11 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
           minHeight: '500px',
         }}
         className="max-md:flex-col max-md:px-4"
-        initial={{ opacity: 0, y: 60 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* Photo — fills its half completely */}
         {hasImages && mainImage && (
@@ -756,10 +799,11 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
       <ChapterDivider />
       <motion.article
         style={{ maxWidth: '1300px', margin: '4rem auto', padding: '0 3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-100px' }}
-        transition={{ duration: 1 }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
         className="max-md:px-4"
       >
         {/* Centered editorial header */}
@@ -876,10 +920,11 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
       <motion.article
         style={{ maxWidth: '1300px', margin: '4rem auto', padding: '5rem 3rem', display: 'flex', gap: '5rem', alignItems: 'flex-start' }}
         className="max-md:flex-col max-md:px-4 max-md:gap-8 max-md:pt-8"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
         viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.8 }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
       >
         {/* On mobile: text first so heading is never hidden behind polaroids */}
         {isMobile && (
