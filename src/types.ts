@@ -85,6 +85,11 @@ export interface StoryManifest {
   publishedAt?: string;
   // Page ids to hide from nav: 'schedule' | 'rsvp' | 'registry' | 'travel' | 'faq' | 'venue'
   hiddenPages?: string[];
+  // Feature flags for optional site sections
+  features?: {
+    guestbook?: boolean;
+    liveUpdates?: boolean;
+  };
 }
 
 export interface Chapter {
