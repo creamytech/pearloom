@@ -42,6 +42,7 @@ import FontPicker from '@/components/dashboard/FontPicker';
 import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { AIEditorChat } from './AIEditorChat';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -1709,6 +1710,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     pushToPreview(newManifest);
   }, [manifest, onChange, pushToPreview, pushHistory]);
 
+  const handleChatManifestUpdate = useCallback((updates: Partial<StoryManifest>) => {
+    const next = { ...manifest, ...updates };
+    pushHistory(next);
+    onChange(next);
+    pushToPreview(next);
+  }, [manifest, onChange, pushToPreview, pushHistory]);
+
   const updateChapter = useCallback((id: string, data: Partial<Chapter>) => {
     const next = chapters.map(ch => ch.id === id ? { ...ch, ...data } : ch);
     setChapters(next);
@@ -2671,6 +2679,14 @@ Return JSON with: title, subtitle, description, mood`,
           </div>
         )}
       </DragOverlay>
+
+      {/* ── Floating AI chat assistant ── */}
+      <AIEditorChat
+        manifest={manifest}
+        activeChapterId={activeId}
+        onUpdateChapter={updateChapter}
+        onUpdateManifest={handleChatManifestUpdate}
+      />
     </div>
     </DndContext>
   );
