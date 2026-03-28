@@ -346,6 +346,11 @@ function ImageManager({
 }
 
 // ── Chapter Property Panel ─────────────────────────────────────
+const LAYOUT_LABELS: Record<string, string> = {
+  editorial: 'Editorial', fullbleed: 'Full Bleed', split: 'Split',
+  cinematic: 'Cinematic', gallery: 'Gallery', mosaic: 'Mosaic',
+};
+
 function ChapterPanel({
   chapter, onUpdate, onAIRewrite, isRewriting,
 }: {
@@ -355,63 +360,114 @@ function ChapterPanel({
   isRewriting: boolean;
 }) {
   const upd = useCallback((data: Partial<Chapter>) => onUpdate(chapter.id, data), [chapter.id, onUpdate]);
+  const currentLayout = chapter.layout || 'editorial';
 
   return (
     <motion.div
       key={chapter.id}
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
       transition={{ duration: 0.22 }}
-      style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}
     >
-      {/* Chapter header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-        <div>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.2rem' }}>Chapter</div>
-          <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
-            {chapter.title || 'Untitled'}
-          </div>
-        </div>
-        <button
-          onClick={() => onAIRewrite(chapter.id)}
-          disabled={isRewriting}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(184,146,106,0.3)',
-            background: 'rgba(184,146,106,0.12)', color: 'rgba(184,146,106,1)',
-            fontSize: '0.7rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
-            opacity: isRewriting ? 0.6 : 1, letterSpacing: '0.05em',
-          }}
-        >
-          {isRewriting
-            ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} />
-            : <Sparkles size={11} />}
-          {isRewriting ? 'Rewriting…' : 'AI Rewrite'}
-        </button>
+      {/* Section heading */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+        <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.7)', whiteSpace: 'nowrap' }}>
+          Chapter Editor
+        </span>
+        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
       </div>
 
-      <Field label="Title" value={chapter.title || ''} onChange={v => upd({ title: v })} placeholder="The Rooftop, Brooklyn" />
-      <Field label="Subtitle" value={chapter.subtitle || ''} onChange={v => upd({ subtitle: v })} placeholder="in all the best ways" />
-      <Field label="Story" value={chapter.description || ''} onChange={v => upd({ description: v })} rows={5} placeholder="Write your memory here..." />
+      {/* Title — large inline style */}
+      <div>
+        <label style={lbl}>Title</label>
+        <input
+          value={chapter.title || ''}
+          onChange={e => upd({ title: e.target.value })}
+          placeholder="The Rooftop, Brooklyn"
+          style={{ ...inp, fontSize: 'max(16px, 1rem)', fontWeight: 700, letterSpacing: '-0.01em' }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
+        />
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-        <Field label="Mood Tag" value={chapter.mood || ''} onChange={v => upd({ mood: v })} placeholder="golden hour" />
+      {/* Date + Subtitle row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
         <div>
-          <label style={lbl}>Layout</label>
-          <select
-            value={chapter.layout || 'editorial'}
-            onChange={e => upd({ layout: e.target.value as Chapter['layout'] })}
-            style={{ ...inp, cursor: 'pointer' }}
-          >
-            {LAYOUT_OPTS.map(l => (
-              <option key={l} value={l} style={{ background: '#1a1a1a' }}>
-                {l.charAt(0).toUpperCase() + l.slice(1)}
-              </option>
-            ))}
-          </select>
+          <label style={lbl}>Date</label>
+          <input
+            type="date"
+            value={chapter.date ? chapter.date.slice(0, 10) : ''}
+            onChange={e => upd({ date: e.target.value })}
+            style={{ ...inp, colorScheme: 'dark' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
+          />
+        </div>
+        <Field label="Subtitle" value={chapter.subtitle || ''} onChange={v => upd({ subtitle: v })} placeholder="in all the best ways" />
+      </div>
+
+      {/* Description — auto-grows */}
+      <div>
+        <label style={lbl}>Story</label>
+        <textarea
+          value={chapter.description || ''}
+          onChange={e => upd({ description: e.target.value })}
+          rows={5}
+          placeholder="Write your memory here..."
+          style={{ ...inp, resize: 'vertical', lineHeight: 1.65, minHeight: '120px' }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
+        />
+      </div>
+
+      {/* Layout selector — pill buttons */}
+      <div>
+        <label style={lbl}>Layout</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          {LAYOUT_OPTS.map(l => (
+            <button
+              key={l}
+              onClick={() => upd({ layout: l })}
+              style={{
+                padding: '5px 10px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+                fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.04em',
+                background: currentLayout === l ? '#5c6b3a' : 'rgba(255,255,255,0.07)',
+                color: currentLayout === l ? '#fff' : 'rgba(255,255,255,0.45)',
+                transition: 'all 0.15s',
+              }}
+            >
+              {LAYOUT_LABELS[l] || l}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Mood field */}
+      <Field label="Mood" value={chapter.mood || ''} onChange={v => upd({ mood: v })} placeholder="e.g. golden hour, cozy winter" />
+
+      {/* AI Rewrite button — prominent */}
+      <button
+        onClick={() => onAIRewrite(chapter.id)}
+        disabled={isRewriting}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+          padding: '10px 16px', borderRadius: '8px',
+          border: '1px solid rgba(184,146,106,0.35)',
+          background: isRewriting ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.12)',
+          color: isRewriting ? 'rgba(255,255,255,0.4)' : '#b8926a',
+          fontSize: '0.78rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
+          letterSpacing: '0.04em', transition: 'all 0.15s',
+        }}
+        onMouseOver={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.22)'; }}
+        onMouseOut={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.12)'; }}
+      >
+        {isRewriting
+          ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Rewriting this chapter…</>
+          : <><AIBlocksIcon size={13} /> Rewrite this chapter</>}
+      </button>
 
       {/* Image Manager */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
@@ -425,8 +481,18 @@ function ChapterPanel({
 }
 
 // ── Events Panel ───────────────────────────────────────────────
+const EVENT_TYPE_OPTS: Array<{ type: WeddingEvent['type']; label: string; color: string }> = [
+  { type: 'ceremony',      label: 'Ceremony',         color: '#7c5cbf' },
+  { type: 'reception',     label: 'Reception',        color: '#e8927a' },
+  { type: 'rehearsal',     label: 'Rehearsal Dinner', color: '#4a9b8a' },
+  { type: 'welcome-party', label: 'Welcome Party',    color: '#8b4a6a' },
+  { type: 'brunch',        label: 'Farewell Brunch',  color: '#c4774a' },
+  { type: 'other',         label: 'Other',            color: '#6a8b4a' },
+];
+
 function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const events = manifest.events || [];
+  const [expandedId, setExpandedId] = useState<string | null>(events[0]?.id || null);
 
   const addEvent = () => {
     const newEvent: WeddingEvent = {
@@ -438,7 +504,9 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
       venue: '',
       address: '',
     };
-    onChange({ ...manifest, events: [...events, newEvent] });
+    const next = [...events, newEvent];
+    onChange({ ...manifest, events: next });
+    setExpandedId(newEvent.id);
   };
 
   const updateEvent = (id: string, data: Partial<WeddingEvent>) => {
@@ -447,51 +515,118 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
   const removeEvent = (id: string) => {
     onChange({ ...manifest, events: events.filter(e => e.id !== id) });
+    if (expandedId === id) setExpandedId(null);
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+        <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>
           {manifest.occasion === 'birthday' ? 'Party Events' : manifest.occasion === 'anniversary' ? 'Anniversary Events' : 'Wedding Events'}
         </span>
-        <button
-          onClick={addEvent}
-          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
-        >
-          <Plus size={11} /> Add
-        </button>
+        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
       </div>
 
       {events.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem 0', color: 'rgba(255,255,255,0.2)' }}>
-          <Calendar size={24} style={{ marginBottom: '8px' }} />
-          <div style={{ fontSize: '0.78rem' }}>No events yet</div>
-          <div style={{ fontSize: '0.68rem', marginTop: '4px' }}>Add your ceremony, reception, etc.</div>
+        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.2)', borderRadius: '10px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+          <Calendar size={24} style={{ marginBottom: '8px', opacity: 0.4 }} />
+          <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>No events yet</div>
+          <div style={{ fontSize: '0.68rem', marginTop: '4px' }}>Add your ceremony, reception, and more</div>
         </div>
       ) : (
-        events.map((evt) => (
-          <div key={evt.id} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.07)', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b8926a' }}>{evt.name || 'Event'}</div>
-              <button onClick={() => removeEvent(evt.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: '2px', display: 'flex' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+        events.map((evt) => {
+          const evtTypeOpt = EVENT_TYPE_OPTS.find(o => o.type === (evt.type || 'other')) || EVENT_TYPE_OPTS[EVENT_TYPE_OPTS.length - 1];
+          const isExpanded = expandedId === evt.id;
+          return (
+            <div key={evt.id} style={{ borderRadius: '10px', border: `1px solid ${isExpanded ? `${evtTypeOpt.color}35` : 'rgba(255,255,255,0.07)'}`, background: isExpanded ? `${evtTypeOpt.color}08` : 'rgba(255,255,255,0.04)', overflow: 'hidden', transition: 'all 0.15s' }}>
+              {/* Card header — click to expand */}
+              <button
+                onClick={() => setExpandedId(isExpanded ? null : evt.id)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
               >
-                <X size={12} />
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: evtTypeOpt.color, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.name || 'Event'}</div>
+                  <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>{evt.date}{evt.time ? ` · ${evt.time}` : ''}{evt.venue ? ` · ${evt.venue}` : ''}</div>
+                </div>
+                <ChevronDown size={13} color="rgba(255,255,255,0.3)" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
               </button>
+
+              {/* Expanded editor */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div style={{ padding: '0 12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {/* Event type pills */}
+                      <div>
+                        <label style={lbl}>Event Type</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {EVENT_TYPE_OPTS.map(opt => (
+                            <button
+                              key={opt.type}
+                              onClick={() => updateEvent(evt.id, { type: opt.type })}
+                              style={{
+                                padding: '4px 10px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+                                fontSize: '0.65rem', fontWeight: 700,
+                                background: (evt.type || 'other') === opt.type ? opt.color : 'rgba(255,255,255,0.08)',
+                                color: (evt.type || 'other') === opt.type ? '#fff' : 'rgba(255,255,255,0.45)',
+                                transition: 'all 0.15s',
+                              }}
+                            >{opt.label}</button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <Field label="Event Name" value={evt.name} onChange={v => updateEvent(evt.id, { name: v })} placeholder="Ceremony" />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        <div>
+                          <label style={lbl}>Date</label>
+                          <input
+                            type="date"
+                            value={evt.date || ''}
+                            onChange={e => updateEvent(evt.id, { date: e.target.value })}
+                            style={{ ...inp, colorScheme: 'dark' }}
+                            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+                            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
+                          />
+                        </div>
+                        <Field label="Time" value={evt.time} onChange={v => updateEvent(evt.id, { time: v })} placeholder="5:00 PM" />
+                      </div>
+                      <Field label="Venue" value={evt.venue} onChange={v => updateEvent(evt.id, { venue: v })} placeholder="The Grand Ballroom" />
+                      <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St, New York, NY" />
+                      <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
+
+                      {/* Remove button */}
+                      <button
+                        onClick={() => removeEvent(evt.id)}
+                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#f87171', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
+                      >
+                        <Trash2 size={11} /> Remove Event
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <Field label="Event Name" value={evt.name} onChange={v => updateEvent(evt.id, { name: v })} placeholder="Ceremony" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-              <Field label="Date" value={evt.date} onChange={v => updateEvent(evt.id, { date: v })} placeholder="2024-09-14" />
-              <Field label="Time" value={evt.time} onChange={v => updateEvent(evt.id, { time: v })} placeholder="5:00 PM" />
-            </div>
-            <Field label="Venue" value={evt.venue} onChange={v => updateEvent(evt.id, { venue: v })} placeholder="The Grand Ballroom" />
-            <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St, New York, NY" />
-            <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
-          </div>
-        ))
+          );
+        })
       )}
+
+      {/* Add event button */}
+      <button
+        onClick={addEvent}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.3)', background: 'transparent', color: '#b8926a', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s' }}
+        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.08)'; }}
+        onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+      >
+        <Plus size={13} /> Add Event
+      </button>
     </div>
   );
 }
@@ -499,7 +634,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 // ── Details Panel — Travel, FAQ, Registry, Logistics ──────────
 function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const logistics = manifest.logistics || {};
-  const [openSection, setOpenSection] = useState<'logistics' | 'travel' | 'faq' | 'registry' | 'vibe'>('logistics');
+  const [openSection, setOpenSection] = useState<'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe'>('couple');
 
   const upd = (data: Partial<typeof logistics>) =>
     onChange({ ...manifest, logistics: { ...logistics, ...data } });
@@ -537,10 +672,11 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
   const delHotel = (i: number) =>
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
 
-  const Section = ({ id, label, children }: { id: typeof openSection; label: string; emoji?: string; children: React.ReactNode }) => (
+  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe';
+  const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <button
-        onClick={() => setOpenSection(openSection === id ? 'logistics' : id)}
+        onClick={() => setOpenSection(openSection === id ? 'couple' : id)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',
@@ -556,16 +692,104 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
     </div>
   );
 
+  // Section heading divider style
+  const sectionHead = (label: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+      <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{label}</span>
+      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-      <Section id="logistics" label="Logistics">
-        <Field label="Wedding Date" value={logistics.date || ''} onChange={v => upd({ date: v })} placeholder="2025-09-14" />
-        <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
-        <Field label="Venue" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
-        <Field label="RSVP Deadline" value={logistics.rsvpDeadline || ''} onChange={v => upd({ rsvpDeadline: v })} placeholder="2025-08-01" />
+      <Section id="couple" label="Couple">
+        {sectionHead('Couple')}
+        <Field label="Dress Code" value={logistics.dresscode || ''} onChange={v => upd({ dresscode: v })} placeholder="Black Tie Optional" />
+        <Field label="Couple Notes" value={logistics.notes || ''} onChange={v => upd({ notes: v })} placeholder="Additional notes for guests..." />
+      </Section>
+
+      <Section id="theday" label="The Day">
+        {sectionHead('The Day')}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+          <div>
+            <label style={lbl}>Wedding Date</label>
+            <input
+              type="date"
+              value={logistics.date || ''}
+              onChange={e => upd({ date: e.target.value })}
+              style={{ ...inp, colorScheme: 'dark' }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
+            />
+          </div>
+          <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
+        </div>
+        <Field label="Venue Name" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
+      </Section>
+
+      <Section id="registry" label="Registry">
+        {sectionHead('Registry')}
+        {/* Registry enabled toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Registry enabled</span>
+          <button
+            onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
+            style={{
+              width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
+              background: manifest.registry?.enabled !== false ? '#b8926a' : 'rgba(255,255,255,0.12)',
+              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+            }}
+          >
+            <span style={{
+              position: 'absolute', top: '2px', left: manifest.registry?.enabled !== false ? '18px' : '2px',
+              width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
+              transition: 'left 0.2s', display: 'block',
+            }} />
+          </button>
+        </div>
+        <Field label="Cash Fund URL" value={manifest.registry?.cashFundUrl || ''} onChange={v => updRegistry({ cashFundUrl: v })} placeholder="https://hitchd.com/..." />
+        <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We are saving for our honeymoon!" />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
+          <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
+          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
+            <Plus size={10} /> Add Registry
+          </button>
+        </div>
+        {entries.map((entry, i) => (
+          <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#b8926a' }}>Registry {i + 1}</span>
+              <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}>
+                <Trash2 size={11} />
+              </button>
+            </div>
+            <Field label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Williams Sonoma" />
+            <Field label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://..." />
+            <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
+          </div>
+        ))}
+        {entries.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
+      </Section>
+
+      <Section id="rsvp" label="RSVP">
+        {sectionHead('RSVP')}
+        <div>
+          <label style={lbl}>RSVP Deadline</label>
+          <input
+            type="date"
+            value={logistics.rsvpDeadline || ''}
+            onChange={e => upd({ rsvpDeadline: e.target.value })}
+            style={{ ...inp, colorScheme: 'dark' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
+          />
+        </div>
       </Section>
 
       <Section id="travel" label="Travel & Hotels">
+        {sectionHead('Travel & Hotels')}
         <div>
           <label style={lbl}>Airports (one per line)</label>
           <textarea
@@ -611,6 +835,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
       </Section>
 
       <Section id="faq" label="FAQ">
+        {sectionHead('FAQ')}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
@@ -632,34 +857,8 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         {faqs.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
       </Section>
 
-      <Section id="registry" label="Registry">
-        <Field label="Cash Fund URL (optional)" value={manifest.registry?.cashFundUrl || ''} onChange={v => updRegistry({ cashFundUrl: v })} placeholder="https://hitchd.com/..." />
-        <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We're saving for our honeymoon!" />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
-          <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
-          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
-            <Plus size={10} /> Add Registry
-          </button>
-        </div>
-        {entries.map((entry, i) => (
-          <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#b8926a' }}>Registry {i + 1}</span>
-              <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}>
-                <Trash2 size={11} />
-              </button>
-            </div>
-            <Field label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Williams Sonoma" />
-            <Field label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://..." />
-            <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
-          </div>
-        ))}
-        {entries.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
-      </Section>
-
       <Section id="vibe" label="Site Vibe">
+        {sectionHead('Site Vibe')}
         <div>
           <label style={lbl}>Vibe String</label>
           <textarea
@@ -881,16 +1080,81 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
   const BODY_FONTS = ['Inter', 'Outfit', 'DM Sans', 'Work Sans', 'Nunito', 'Roboto', 'Raleway', 'Poppins', 'Lato'];
 
   const colors = manifest.theme?.colors || {};
+  const vibeSkin = manifest.vibeSkin;
+  const paletteColors = vibeSkin?.palette
+    ? Object.values(vibeSkin.palette).slice(0, 5)
+    : [colors.background, colors.foreground, colors.accent, colors.accentLight, colors.muted].filter(Boolean);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* VibeSkin palette swatches */}
+      {paletteColors.length > 0 && (
+        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
+          <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+            Current Palette
+          </div>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {paletteColors.map((c, i) => (
+              <div
+                key={i}
+                title={String(c)}
+                style={{
+                  width: '28px', height: '28px', borderRadius: '50%',
+                  background: String(c),
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </div>
+          {/* Tone badge */}
+          {vibeSkin?.tone && (
+            <div style={{ marginTop: '8px' }}>
+              <span style={{
+                display: 'inline-block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em',
+                textTransform: 'uppercase', color: '#b8926a',
+                background: 'rgba(184,146,106,0.12)', padding: '3px 10px', borderRadius: '100px',
+                border: '1px solid rgba(184,146,106,0.25)',
+              }}>
+                {vibeSkin.tone}
+              </span>
+            </div>
+          )}
+          {/* Regenerate design button */}
+          <button
+            onClick={() => {/* existing ColorPalettePanel handles regeneration */}}
+            style={{
+              marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '7px 14px', borderRadius: '7px',
+              border: '1px solid rgba(184,146,106,0.25)', background: 'rgba(184,146,106,0.07)',
+              color: '#b8926a', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+              transition: 'all 0.15s',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.15)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.07)'; }}
+          >
+            <DesignIcon size={13} /> Regenerate design
+          </button>
+        </div>
+      )}
+
       {/* AI palette + pattern picker */}
       <ColorPalettePanel manifest={manifest} onChange={onChange} />
 
-      {/* Typography */}
+      {/* Typography — font pair display */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.75rem' }}>
+        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '10px' }}>
           Typography
+        </div>
+        {/* Font pair preview */}
+        <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '12px', marginBottom: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
+            {manifest.theme?.fonts?.heading || 'Playfair Display'}
+          </div>
+          <div style={{ fontFamily: `"${manifest.theme?.fonts?.body || 'Inter'}", sans-serif`, fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+            {manifest.theme?.fonts?.body || 'Inter'} — body text
+          </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
           <div>
@@ -910,7 +1174,7 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
       {/* Live color preview swatch */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
-        <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '0.75rem' }}>Preview</div>
+        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '10px' }}>Preview</div>
         <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
           <div style={{ background: colors.background || '#faf9f6', padding: '16px' }}>
             <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: colors.foreground || '#1a1a1a', marginBottom: '4px' }}>
@@ -1194,17 +1458,19 @@ Return JSON with: title, subtitle, description, mood`,
         height: '52px', flexShrink: 0,
         display: 'flex', alignItems: 'center',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#110f0d', padding: '0 1rem', gap: '1rem',
+        background: '#110f0d', padding: '0 1rem', gap: '0.75rem',
         zIndex: 10,
       }}>
         {/* Exit */}
         <button
           onClick={onExit}
+          title="Exit editor"
           style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
+            display: 'flex', alignItems: 'center', gap: '5px',
             padding: '6px 10px', borderRadius: '6px', border: 'none',
             background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.65)',
-            cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, flexShrink: 0,
+            cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, flexShrink: 0,
+            transition: 'background 0.15s',
           }}
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
@@ -1212,59 +1478,52 @@ Return JSON with: title, subtitle, description, mood`,
           <ExitIcon size={14} /> Exit
         </button>
 
-        {/* Site name + Cmd+K search trigger */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-          <Heart size={13} color="#b8926a" fill="#b8926a" />
-          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
+        {/* Site name — centered */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <Heart size={12} color="#b8926a" fill="#b8926a" />
+          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
             {coupleNames[0]} & {coupleNames[1]}
           </span>
           <button
             onClick={() => setCmdPaletteOpen(true)}
-            title="Command Palette (⌘K)"
+            title="Command Palette (Cmd+K)"
             style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
+              display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px',
+              padding: '3px 9px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
               background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)',
-              cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
+              cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700,
               letterSpacing: '0.04em', transition: 'all 0.15s',
             }}
             onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}
           >
-            <CommandIcon size={11} />
+            <CommandIcon size={10} />
             <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
           </button>
-          <span style={{
-            fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em',
-            textTransform: 'uppercase', background: 'rgba(184,146,106,0.2)',
-            color: 'rgba(184,146,106,0.9)', padding: '2px 8px', borderRadius: '100px',
-          }}>
-            {chapters.length} chapters
-          </span>
         </div>
 
-        {/* Save state + Undo/Redo */}
+        {/* Save status + Undo/Redo — desktop only */}
         <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           <button
-            onClick={undo} disabled={!canUndo} title="Undo"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
-          ><UndoIcon size={14} /></button>
+            onClick={undo} disabled={!canUndo} title="Undo (Cmd+Z)"
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+          ><UndoIcon size={13} /></button>
           <button
-            onClick={redo} disabled={!canRedo} title="Redo"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
-          ><RedoIcon size={14} /></button>
-          <span style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em',
-            color: saveState === 'saved' ? '#4ade80' : '#facc15',
-            background: saveState === 'saved' ? 'rgba(74,222,128,0.1)' : 'rgba(250,204,21,0.1)',
-            padding: '3px 8px', borderRadius: '100px', transition: 'all 0.3s',
+            onClick={redo} disabled={!canRedo} title="Redo (Cmd+Shift+Z)"
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+          ><RedoIcon size={13} /></button>
+          {/* Save status — dot + text */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '5px',
+            padding: '4px 9px', borderRadius: '100px', transition: 'all 0.3s',
+            background: saveState === 'saved' ? 'rgba(74,222,128,0.08)' : 'rgba(251,146,60,0.1)',
           }}>
             {saveState === 'saved'
-              ? <><SavedIcon size={12} color="#4ade80" /> Saved</>
-              : <><UnsavedIcon size={12} color="#facc15" /> Unsaved</>}
-          </span>
+              ? <><SavedIcon size={10} color="#4ade80" /><span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#4ade80', letterSpacing: '0.06em' }}>All changes saved</span></>
+              : <><UnsavedIcon size={10} color="#fb923c" /><span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.06em' }}>Unsaved changes</span></>}
+          </div>
         </div>
+
         {/* Device switcher — desktop only */}
         <div style={{ display: isMobile ? 'none' : 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px', flexShrink: 0 }}>
           {(Object.entries(DEVICE_DIMS) as [DeviceMode, typeof DEVICE_DIMS[DeviceMode]][]).map(([mode, { icon: Icon, label }]) => (
@@ -1284,33 +1543,38 @@ Return JSON with: title, subtitle, description, mood`,
           ))}
         </div>
 
-        {/* Preview + Publish — desktop only (mobile uses floating buttons) */}
-        <div style={{ display: isMobile ? 'none' : 'flex', gap: '8px', flexShrink: 0 }}>
+        {/* Preview + Publish — desktop only */}
+        <div style={{ display: isMobile ? 'none' : 'flex', gap: '6px', flexShrink: 0 }}>
           <button
             onClick={() => {
               sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
               window.open(`/preview?key=${previewKey}`, '_blank');
             }}
+            title="Preview site (Cmd+P)"
             style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '6px 14px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '6px 13px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)',
               background: 'transparent', color: 'rgba(255,255,255,0.8)',
-              cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
+              cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
             }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           >
             <PreviewIcon size={13} /> Preview
           </button>
-          {/* Publish */}
           <button
             onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
+            title="Publish your site"
             style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '6px 18px', borderRadius: '6px', border: 'none',
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '6px 16px', borderRadius: '6px', border: 'none',
               background: 'linear-gradient(135deg, #b8926a, #d4a574)',
-              color: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
-              boxShadow: '0 4px 12px rgba(184,146,106,0.35)',
+              color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+              boxShadow: '0 2px 10px rgba(184,146,106,0.3)',
               transition: 'all 0.2s',
             }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(184,146,106,0.45)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(184,146,106,0.3)'; }}
           >
             <PublishIcon size={13} /> Publish
           </button>
@@ -1327,15 +1591,17 @@ Return JSON with: title, subtitle, description, mood`,
           background: '#110f0d',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
+          paddingBottom: isMobile ? 'calc(64px + env(safe-area-inset-bottom, 0px))' : '0',
         }}>
-          {/* Tab strip — primary nav */}
+          {/* Tab strip — primary nav (desktop: top strip; mobile: hidden here, shown at bottom) */}
           <div style={{
-            display: 'flex', padding: '8px 8px 0',
+            display: isMobile ? 'none' : 'flex', padding: '6px 6px 0',
             borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
-          }}>
+            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+          } as React.CSSProperties}>
             {(['canvas', 'story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
               const Icon = TAB_ICONS[tab];
-              const isHighlight = tab === 'blocks';
+              const isActive = activeTab === tab;
               const labels: Record<string, string> = {
                 story: 'Story', canvas: 'Sections', events: 'Events', design: 'Design',
                 details: 'Details', blocks: 'AI', voice: 'Voice',
@@ -1345,19 +1611,19 @@ Return JSON with: title, subtitle, description, mood`,
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   style={{
-                    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    gap: '3px', padding: '7px 4px 9px', borderRadius: '6px 6px 0 0',
+                    flex: 1, minWidth: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    gap: '3px', padding: '7px 6px 8px', borderRadius: '7px 7px 0 0',
                     border: 'none', cursor: 'pointer',
-                    background: activeTab === tab
-                      ? (isHighlight ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.05)')
-                      : 'transparent',
-                    borderBottom: activeTab === tab ? '2px solid #b8926a' : '2px solid transparent',
-                    color: activeTab === tab ? '#b8926a' : 'rgba(255,255,255,0.3)',
+                    background: isActive ? '#5c6b3a' : 'transparent',
+                    borderBottom: isActive ? '2px solid #8a9e56' : '2px solid transparent',
+                    color: isActive ? '#fff' : 'rgba(255,255,255,0.3)',
                     transition: 'all 0.15s',
                   }}
+                  onMouseOver={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(244,240,232,0.06)'; }}
+                  onMouseOut={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 >
-                  <Icon size={14} />
-                  <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  <Icon size={14} color={isActive ? '#fff' : 'rgba(255,255,255,0.3)'} />
+                  <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1.1 }}>
                     {labels[tab] || tab}
                   </span>
                 </button>
@@ -1510,40 +1776,70 @@ Return JSON with: title, subtitle, description, mood`,
 
       </div>
 
-      {/* ── Mobile floating Preview button ── */}
+      {/* ── Mobile bottom tab bar ── */}
       {isMobile && (
         <div style={{
-          position: 'fixed', bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))', right: '1.5rem',
-          zIndex: 1100, display: 'flex', gap: '10px',
-        }}>
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          zIndex: 1100,
+          background: '#0e0d0b',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          display: 'flex', alignItems: 'stretch',
+          overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+        } as React.CSSProperties}>
+          {(['canvas', 'story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
+            const Icon = TAB_ICONS[tab];
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  flex: '0 0 auto', minWidth: '56px',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: '3px', padding: '8px 10px',
+                  border: 'none', cursor: 'pointer',
+                  background: isActive ? '#5c6b3a' : 'transparent',
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.3)',
+                  borderTop: isActive ? '2px solid #8a9e56' : '2px solid transparent',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <Icon size={16} color={isActive ? '#fff' : 'rgba(255,255,255,0.35)'} />
+              </button>
+            );
+          })}
+          {/* Spacer to push preview/publish to right */}
+          <div style={{ flex: 1 }} />
+          {/* Preview FAB */}
           <button
             onClick={() => {
               sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
               window.open(`/preview?key=${previewKey}`, '_blank');
             }}
             style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '14px 20px', borderRadius: '100px', border: 'none',
-              background: 'linear-gradient(135deg, #b8926a, #d4a574)',
-              color: '#fff', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700,
-              boxShadow: '0 8px 24px rgba(184,146,106,0.4)',
-              minHeight: '52px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              padding: '8px 14px', border: 'none',
+              background: 'transparent', color: 'rgba(255,255,255,0.7)',
+              cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+              borderTop: '2px solid transparent',
             }}
           >
-            <PreviewIcon size={16} /> Preview
+            <PreviewIcon size={16} />
           </button>
+          {/* Publish */}
           <button
             onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
             style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '14px 20px', borderRadius: '100px', border: 'none',
-              background: 'linear-gradient(135deg, #1a3a2a, #2a5a3a)',
-              color: '#4ade80', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-              minHeight: '52px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              padding: '8px 16px', border: 'none',
+              background: 'linear-gradient(135deg, #b8926a, #d4a574)',
+              color: '#fff', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+              borderTop: '2px solid transparent',
             }}
           >
-            <PublishIcon size={16} /> Publish
+            <PublishIcon size={14} />
           </button>
         </div>
       )}
