@@ -322,14 +322,21 @@ function SectionItem({
 // ── ImageManager ───────────────────────────────────────────────
 function ImageManager({
   images, onUpdate, imagePosition, onPositionChange,
+  chapterTitle, chapterMood, chapterDescription, vibeString,
 }: {
   images: ChapterImage[];
   onUpdate: (imgs: ChapterImage[]) => void;
   imagePosition?: { x: number; y: number };
   onPositionChange?: (x: number, y: number) => void;
+  chapterTitle?: string;
+  chapterMood?: string;
+  chapterDescription?: string;
+  vibeString?: string;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [generatingCaptions, setGeneratingCaptions] = useState(false);
+  const [captionSuccess, setCaptionSuccess] = useState(false);
 
   const removeImage = (idx: number) => {
     onUpdate(images.filter((_, i) => i !== idx));
@@ -356,6 +363,35 @@ function ImageManager({
     }
     onUpdate([...images, ...results]);
     setUploading(false);
+  };
+
+  const handleGenerateCaptions = async () => {
+    if (!images.length) return;
+    setGeneratingCaptions(true);
+    try {
+      const res = await fetch('/api/generate-captions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photoUrls: images.map(img => img.url),
+          chapterTitle: chapterTitle || '',
+          chapterMood: chapterMood || '',
+          chapterDescription: chapterDescription || '',
+          vibeString: vibeString || '',
+        }),
+      });
+      const data = await res.json();
+      if (data.captions && Array.isArray(data.captions)) {
+        const updated = images.map((img, i) => ({ ...img, caption: data.captions[i] || img.caption }));
+        onUpdate(updated);
+        setCaptionSuccess(true);
+        setTimeout(() => setCaptionSuccess(false), 3000);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setGeneratingCaptions(false);
+    }
   };
 
   return (
@@ -469,6 +505,33 @@ function ImageManager({
           </button>
         </div>
       )}
+
+      {/* Generate Captions button */}
+      {images.length > 0 && (
+        <div style={{ marginTop: '0.75rem' }}>
+          <button
+            onClick={handleGenerateCaptions}
+            disabled={generatingCaptions}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              width: '100%', padding: '7px 12px', borderRadius: '6px',
+              border: '1px solid rgba(184,146,106,0.3)',
+              background: generatingCaptions ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.1)',
+              color: generatingCaptions ? 'rgba(255,255,255,0.4)' : '#b8926a',
+              fontSize: '0.68rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
+              letterSpacing: '0.04em', transition: 'all 0.15s',
+            }}
+            onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.2)'; }}
+            onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.1)'; }}
+          >
+            {generatingCaptions
+              ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Generating captions…</>
+              : captionSuccess
+                ? <><Sparkles size={10} /> Captions added!</>
+                : <><Sparkles size={10} /> Generate Captions</>}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -481,7 +544,7 @@ const LAYOUT_LABELS: Record<string, string> = {
 
 function ChapterPanel({
   chapter, onUpdate, onAIRewrite, isRewriting, vibeSkin,
-  sectionOverrides, onOverridesChange,
+  sectionOverrides, onOverridesChange, vibeString,
 }: {
   chapter: Chapter;
   onUpdate: (id: string, data: Partial<Chapter>) => void;
@@ -490,6 +553,7 @@ function ChapterPanel({
   vibeSkin?: VibeSkin;
   sectionOverrides?: SectionStyleOverrides;
   onOverridesChange?: (id: string, overrides: SectionStyleOverrides) => void;
+  vibeString?: string;
 }) {
   const upd = useCallback((data: Partial<Chapter>) => onUpdate(chapter.id, data), [chapter.id, onUpdate]);
   const currentLayout = chapter.layout || 'editorial';
@@ -608,6 +672,10 @@ function ChapterPanel({
           onUpdate={imgs => upd({ images: imgs })}
           imagePosition={chapter.imagePosition}
           onPositionChange={(x, y) => upd({ imagePosition: { x, y } })}
+          chapterTitle={chapter.title}
+          chapterMood={chapter.mood}
+          chapterDescription={chapter.description}
+          vibeString={vibeString || ''}
         />
       </div>
 
@@ -2009,6 +2077,7 @@ Return JSON with: title, subtitle, description, mood`,
                         onAIRewrite={handleAIRewrite}
                         isRewriting={rewritingId === activeChapter.id}
                         vibeSkin={manifest.vibeSkin}
+                        vibeString={manifest.vibeString}
                         sectionOverrides={sectionOverridesMap[activeChapter.id]}
                         onOverridesChange={(id, overrides) =>
                           setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))
@@ -2342,6 +2411,7 @@ Return JSON with: title, subtitle, description, mood`,
                           onAIRewrite={handleAIRewrite}
                           isRewriting={rewritingId === activeChapter.id}
                           vibeSkin={manifest.vibeSkin}
+                          vibeString={manifest.vibeString}
                           sectionOverrides={sectionOverridesMap[activeChapter.id]}
                           onOverridesChange={(id, overrides) =>
                             setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))

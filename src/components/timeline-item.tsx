@@ -801,6 +801,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
 // ─── LAYOUT: GALLERY (editorial asymmetric masonry grid) ───
 function GalleryLayout({ chapter, index }: TimelineItemProps) {
   const images = chapter.images.slice(0, 4);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   return (
     <>
@@ -858,41 +859,65 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
           }} className="max-md:flex max-md:flex-col max-md:gap-2">
             {images[0] && (
               <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
-                className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                className="max-md:w-full max-md:rounded-[8px]"
+                onMouseOver={() => setHoveredIdx(0)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 0 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 0 ? 'brightness(1.05)' : 'none' }}
                   className="max-md:[aspect-ratio:4/3]"
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
+                {images[0].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 0 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[0].caption}
+                  </div>
+                )}
               </div>
             )}
             {images[1] && (
               <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
-                className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                className="max-md:w-full max-md:rounded-[8px]"
+                onMouseOver={() => setHoveredIdx(1)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 1 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 1 ? 'brightness(1.05)' : 'none' }}
                   className="max-md:[aspect-ratio:4/3]"
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
+                {images[1].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 1 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[1].caption}
+                  </div>
+                )}
               </div>
             )}
             {images[2] && (
               <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
-                className="max-md:w-full max-md:rounded-[8px]">
-                <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
+                className="max-md:w-full max-md:rounded-[8px]"
+                onMouseOver={() => setHoveredIdx(2)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 2 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 2 ? 'brightness(1.05)' : 'none' }}
                   className="max-md:[aspect-ratio:4/3]"
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
                 />
+                {images[2].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 2 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[2].caption}
+                  </div>
+                )}
               </div>
             )}
             {images[3] && (
               <div style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
-                className="max-md:hidden">
-                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease' }}
-                  onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
-                  onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
+                className="max-md:hidden"
+                onMouseOver={() => setHoveredIdx(3)}
+                onMouseOut={() => setHoveredIdx(null)}
+              >
+                <img src={proxyUrl(images[3].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', transform: hoveredIdx === 3 ? 'scale(1.03)' : 'scale(1)', filter: hoveredIdx === 3 ? 'brightness(1.05)' : 'none' }}
                 />
+                {images[3].caption && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredIdx === 3 ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                    {images[3].caption}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -912,6 +937,7 @@ const OFFSETS: Array<{ x: number | string; y: number }> = [
 function MosaicLayout({ chapter, index }: TimelineItemProps) {
   const images = chapter.images.slice(0, 5);
   const [isMobile, setIsMobile] = useState(false);
+  const [hoveredMosaicIdx, setHoveredMosaicIdx] = useState<number | null>(null);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -1001,15 +1027,23 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                     transform: `rotate(${rotate}deg)`,
                     transformOrigin: 'center center',
                   }}
+                  onMouseOver={() => setHoveredMosaicIdx(i)}
+                  onMouseOut={() => setHoveredMosaicIdx(null)}
                 >
                   <div style={{
                     background: '#fff',
                     padding: '8px 8px 28px',
                     boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
                     borderRadius: '2px',
+                    position: 'relative',
                   }}>
-                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
+                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)', position: 'relative' }}>
                       <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
+                      {img.caption && (
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredMosaicIdx === i ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                          {img.caption}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -1033,6 +1067,8 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   cursor: 'pointer',
                   transformOrigin: 'center center',
                 }}
+                onMouseOver={() => setHoveredMosaicIdx(i)}
+                onMouseOut={() => setHoveredMosaicIdx(null)}
               >
                 {/* Polaroid frame */}
                 <div style={{
@@ -1041,8 +1077,13 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
                   borderRadius: '2px',
                 }}>
-                  <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)' }}>
+                  <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)', position: 'relative' }}>
                     <img src={proxyUrl(img.url, 600, 800)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
+                    {img.caption && (
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredMosaicIdx === i ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+                        {img.caption}
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
