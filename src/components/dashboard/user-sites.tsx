@@ -182,10 +182,14 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
     }
   };
 
-  const getSiteUrl = (domain: string) =>
-    typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? `http://${domain}.localhost:3000`
-      : `https://${domain}.pearloom.app`;
+  const getSiteUrl = (domain: string) => {
+    if (typeof window === 'undefined') return `https://${domain}.pearloom.app`;
+    const { hostname, origin } = window.location;
+    if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
+    // On Vercel preview deployments use path-based routing
+    if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
+    return `https://${domain}.pearloom.app`;
+  };
 
   const handleCopyUrl = async (site: UserSite, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -528,7 +532,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           fontFamily: 'ui-monospace, monospace',
                           border: '1px solid rgba(0,0,0,0.06)',
                         }}>
-                          {site.domain}.pearloom.app
+                          {getSiteUrl(site.domain).replace(/^https?:\/\//, '')}
                         </code>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--eg-muted)', fontSize: '0.72rem' }}>
                           <Calendar size={11} />
