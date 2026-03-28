@@ -89,7 +89,23 @@ export default function DashboardPage() {
     setSelectedPhotos(photos);
   }, []);
 
-  const handleVibeSubmit = useCallback(async (data: { names: [string, string]; vibeString: string; occasion: string }) => {
+  const handleVibeSubmit = useCallback(async (data: {
+    names: [string, string];
+    vibeString: string;
+    occasion: string;
+    eventDate?: string;
+    ceremonyVenue?: string;
+    ceremonyAddress?: string;
+    ceremonyTime?: string;
+    receptionVenue?: string;
+    receptionAddress?: string;
+    receptionTime?: string;
+    dresscode?: string;
+    officiant?: string;
+    celebrationVenue?: string;
+    celebrationTime?: string;
+    guestNotes?: string;
+  }) => {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
     setCurrentStep('generating');
@@ -116,6 +132,18 @@ export default function DashboardPage() {
           vibeString: data.vibeString,
           names: data.names,
           occasion: data.occasion,
+          eventDate: data.eventDate,
+          ceremonyVenue: data.ceremonyVenue,
+          ceremonyAddress: data.ceremonyAddress,
+          ceremonyTime: data.ceremonyTime,
+          receptionVenue: data.receptionVenue,
+          receptionAddress: data.receptionAddress,
+          receptionTime: data.receptionTime,
+          dresscode: data.dresscode,
+          officiant: data.officiant,
+          celebrationVenue: data.celebrationVenue,
+          celebrationTime: data.celebrationTime,
+          guestNotes: data.guestNotes,
         }),
         signal: controller.signal,
       });

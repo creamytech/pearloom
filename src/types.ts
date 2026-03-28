@@ -23,6 +23,8 @@ export interface StoryManifest {
     date?: string;
     time?: string;
     rsvpDeadline?: string;
+    dresscode?: string;
+    notes?: string;
   };
   registry?: {
     enabled: boolean;
@@ -232,6 +234,8 @@ export interface WeddingEvent {
   description?: string;
   dressCode?: string;
   mapUrl?: string;
+  notes?: string;
+  order?: number;
 
   // ── Ceremony-specific ──────────────────────
   ceremony?: {
