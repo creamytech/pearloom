@@ -1255,33 +1255,37 @@ Return JSON with: title, subtitle, description, mood`,
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
         }}>
-          {/* Tab strip */}
+          {/* Tab strip — primary nav */}
           <div style={{
             display: 'flex', padding: '8px 8px 0',
             borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
           }}>
-            {(['story', 'events', 'canvas', 'design', 'details', 'pages', 'blocks', 'voice'] as EditorTab[]).map(tab => {
+            {(['story', 'canvas', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
               const Icon = TAB_ICONS[tab];
-              const isBlocks = tab === 'blocks';
+              const isHighlight = tab === 'blocks';
+              const labels: Record<string, string> = {
+                story: 'Story', canvas: 'Build', events: 'Events', design: 'Design',
+                details: 'Details', blocks: 'AI', voice: 'Voice',
+              };
               return (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   style={{
                     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    gap: '3px', padding: '6px 4px 8px', borderRadius: '6px 6px 0 0',
+                    gap: '3px', padding: '7px 4px 9px', borderRadius: '6px 6px 0 0',
                     border: 'none', cursor: 'pointer',
                     background: activeTab === tab
-                      ? (isBlocks ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.05)')
+                      ? (isHighlight ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.05)')
                       : 'transparent',
                     borderBottom: activeTab === tab ? '2px solid #b8926a' : '2px solid transparent',
                     color: activeTab === tab ? '#b8926a' : 'rgba(255,255,255,0.3)',
                     transition: 'all 0.15s',
                   }}
                 >
-                  <Icon size={13} />
-                  <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    {tab}
+                  <Icon size={14} />
+                  <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    {labels[tab] || tab}
                   </span>
                 </button>
               );

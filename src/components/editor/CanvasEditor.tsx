@@ -7,7 +7,7 @@
 // click to configure per-block in a floating right panel.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   GripVertical, Plus, Eye, EyeOff, Trash2, Settings,
@@ -433,16 +433,214 @@ function BlockRow({
   );
 }
 
+// ── Section Styling Controls ────────────────────────────────────
+function SectionStylePanel({
+  block, blocksKey, manifest, onChange,
+}: {
+  block: PageBlock;
+  blocksKey: 'blocks' | { customPageId: string };
+  manifest: StoryManifest;
+  onChange: (m: StoryManifest) => void;
+}) {
+  const config = block.config || {};
+
+  const updateConfig = (patch: Record<string, unknown>) => {
+    if (typeof blocksKey === 'string') {
+      // Main page blocks
+      onChange({
+        ...manifest,
+        blocks: (manifest.blocks || []).map(b =>
+          b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b
+        ),
+      });
+    } else {
+      // Custom page blocks
+      onChange({
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === blocksKey.customPageId
+            ? { ...p, blocks: p.blocks.map(b => b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b) }
+            : p
+        ),
+      });
+    }
+  };
+
+  const PRESET_BG_COLORS = [
+    { label: 'None', value: '' },
+    { label: 'Light', value: '#ffffff' },
+    { label: 'Cream', value: '#faf8f4' },
+    { label: 'Warm', value: '#f5efe6' },
+    { label: 'Blush', value: '#fdf0f3' },
+    { label: 'Sage', value: '#eef2ed' },
+    { label: 'Slate', value: '#f0f2f5' },
+    { label: 'Dark', value: '#1a1a1a' },
+    { label: 'Navy', value: '#1a2332' },
+    { label: 'Mocha', value: '#2c2420' },
+    { label: 'Accent', value: 'accent' },
+  ];
+
+  const PADDING_OPTS = [
+    { label: 'S', value: '2rem' },
+    { label: 'M', value: '4rem' },
+    { label: 'L', value: '6rem' },
+    { label: 'XL', value: '8rem' },
+  ];
+
+  const ALIGN_OPTS = ['left', 'center', 'right'];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', marginTop: '4px' }}>
+      <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.7)' }}>
+        Section Style
+      </div>
+
+      {/* Background color */}
+      <div>
+        <label style={lbl}>Background</label>
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {PRESET_BG_COLORS.map(bg => {
+            const isActive = (config.bgColor || '') === bg.value;
+            return (
+              <button
+                key={bg.value}
+                title={bg.label}
+                onClick={() => updateConfig({ bgColor: bg.value })}
+                style={{
+                  width: '24px', height: '24px', borderRadius: '6px',
+                  border: isActive ? '2px solid #b8926a' : '1px solid rgba(255,255,255,0.15)',
+                  background: bg.value === 'accent' ? 'linear-gradient(135deg, #b8926a, #d4a572)' : bg.value || 'transparent',
+                  cursor: 'pointer', position: 'relative', transition: 'border 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {!bg.value && <X size={10} color="rgba(255,255,255,0.3)" />}
+              </button>
+            );
+          })}
+        </div>
+        {/* Custom hex input */}
+        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+          <input
+            type="color"
+            value={config.bgColor as string || '#ffffff'}
+            onChange={e => updateConfig({ bgColor: e.target.value })}
+            style={{ width: '28px', height: '28px', border: 'none', borderRadius: '4px', cursor: 'pointer', background: 'transparent', padding: 0 }}
+          />
+          <input
+            value={config.bgColor as string || ''}
+            onChange={e => updateConfig({ bgColor: e.target.value })}
+            placeholder="Custom #hex"
+            style={{ ...inp, flex: 1, fontSize: '0.72rem', padding: '4px 8px' }}
+          />
+        </div>
+      </div>
+
+      {/* Padding */}
+      <div>
+        <label style={lbl}>Vertical Padding</label>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {PADDING_OPTS.map(p => {
+            const isActive = (config.verticalPadding || '4rem') === p.value;
+            return (
+              <button
+                key={p.value}
+                onClick={() => updateConfig({ verticalPadding: p.value })}
+                style={{
+                  flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
+                  background: isActive ? 'rgba(184,146,106,0.25)' : 'rgba(255,255,255,0.06)',
+                  color: isActive ? '#b8926a' : 'rgba(255,255,255,0.4)',
+                  fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Text alignment */}
+      <div>
+        <label style={lbl}>Text Align</label>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {ALIGN_OPTS.map(a => {
+            const isActive = (config.textAlign || 'center') === a;
+            return (
+              <button
+                key={a}
+                onClick={() => updateConfig({ textAlign: a })}
+                style={{
+                  flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
+                  background: isActive ? 'rgba(184,146,106,0.25)' : 'rgba(255,255,255,0.06)',
+                  color: isActive ? '#b8926a' : 'rgba(255,255,255,0.4)',
+                  fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
+                }}
+              >
+                {a}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Text color override */}
+      <div>
+        <label style={lbl}>Text Color</label>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {['', '#1a1a1a', '#ffffff', '#8c8c8c', '#b8926a'].map(c => {
+            const isActive = (config.textColor || '') === c;
+            return (
+              <button
+                key={c || 'auto'}
+                onClick={() => updateConfig({ textColor: c })}
+                style={{
+                  width: '28px', height: '28px', borderRadius: '6px',
+                  border: isActive ? '2px solid #b8926a' : '1px solid rgba(255,255,255,0.15)',
+                  background: c || 'transparent', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {!c && <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>A</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Block Config Panel ──────────────────────────────────────────
 function BlockConfigPanel({
-  block, def, manifest, onChange,
+  block, def, manifest, onChange, blocksKey,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
+  blocksKey: 'blocks' | { customPageId: string };
 }) {
-  const color = def?.color || '#b8926a';
+  const updateBlockConfig = (patch: Record<string, unknown>) => {
+    if (typeof blocksKey === 'string') {
+      onChange({
+        ...manifest,
+        blocks: (manifest.blocks || []).map(b =>
+          b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b
+        ),
+      });
+    } else {
+      onChange({
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === blocksKey.customPageId
+            ? { ...p, blocks: p.blocks.map(b => b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b) }
+            : p
+        ),
+      });
+    }
+  };
 
   const noConfig = (
     <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.6 }}>
@@ -450,85 +648,79 @@ function BlockConfigPanel({
     </p>
   );
 
-  switch (block.type) {
-    case 'event':
-      return (
-        <EventBlockConfig
-          events={manifest.events || []}
-          onChange={events => onChange({ ...manifest, events })}
-        />
-      );
+  const blockContent = (() => {
+    switch (block.type) {
+      case 'event':
+        return (
+          <EventBlockConfig
+            events={manifest.events || []}
+            onChange={events => onChange({ ...manifest, events })}
+          />
+        );
 
-    case 'quote':
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      case 'quote':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <MiniInput
+              label="Quote text"
+              value={String(block.config?.text || '')}
+              onChange={v => updateBlockConfig({ text: v })}
+              placeholder='"Two souls, one heart."'
+            />
+            <MiniInput
+              label="Attribution (optional)"
+              value={String(block.config?.attribution || '')}
+              onChange={v => updateBlockConfig({ attribution: v })}
+              placeholder="— Pablo Neruda"
+            />
+          </div>
+        );
+
+      case 'text':
+        return (
+          <div>
+            <label style={lbl}>Content</label>
+            <textarea
+              value={String(block.config?.text || '')}
+              onChange={e => updateBlockConfig({ text: e.target.value })}
+              rows={5}
+              placeholder="Write anything here — a welcome message, a story, a note to guests..."
+              style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
+            />
+          </div>
+        );
+
+      case 'video':
+        return (
           <MiniInput
-            label="Quote text"
-            value={String(block.config?.text || '')}
-            onChange={v => onChange({
-              ...manifest,
-              blocks: (manifest.blocks || []).map(b => b.id === block.id ? { ...b, config: { ...b.config, text: v } } : b),
-            })}
-            placeholder='"Two souls, one heart."'
+            label="YouTube or Vimeo URL"
+            value={String(block.config?.url || '')}
+            onChange={v => updateBlockConfig({ url: v })}
+            placeholder="https://www.youtube.com/watch?v=..."
           />
+        );
+
+      case 'countdown':
+        return (
           <MiniInput
-            label="Attribution (optional)"
-            value={String(block.config?.attribution || '')}
-            onChange={v => onChange({
-              ...manifest,
-              blocks: (manifest.blocks || []).map(b => b.id === block.id ? { ...b, config: { ...b.config, attribution: v } } : b),
-            })}
-            placeholder="— Pablo Neruda"
+            label="Target date (YYYY-MM-DD)"
+            value={String(block.config?.date || manifest.events?.[0]?.date || '')}
+            onChange={v => updateBlockConfig({ date: v })}
+            placeholder={manifest.events?.[0]?.date || '2025-06-14'}
           />
-        </div>
-      );
+        );
 
-    case 'text':
-      return (
-        <div>
-          <label style={lbl}>Content</label>
-          <textarea
-            value={String(block.config?.text || '')}
-            onChange={e => onChange({
-              ...manifest,
-              blocks: (manifest.blocks || []).map(b => b.id === block.id ? { ...b, config: { ...b.config, text: e.target.value } } : b),
-            })}
-            rows={5}
-            placeholder="Write anything here — a welcome message, a story, a note to guests..."
-            style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-          />
-        </div>
-      );
+      default:
+        return noConfig;
+    }
+  })();
 
-    case 'video':
-      return (
-        <MiniInput
-          label="YouTube or Vimeo URL"
-          value={String(block.config?.url || '')}
-          onChange={v => onChange({
-            ...manifest,
-            blocks: (manifest.blocks || []).map(b => b.id === block.id ? { ...b, config: { ...b.config, url: v } } : b),
-          })}
-          placeholder="https://www.youtube.com/watch?v=..."
-        />
-      );
-
-    case 'countdown':
-      return (
-        <MiniInput
-          label="Target date (YYYY-MM-DD)"
-          value={String(block.config?.date || manifest.events?.[0]?.date || '')}
-          onChange={v => onChange({
-            ...manifest,
-            blocks: (manifest.blocks || []).map(b => b.id === block.id ? { ...b, config: { ...b.config, date: v } } : b),
-          })}
-          placeholder={manifest.events?.[0]?.date || '2025-06-14'}
-        />
-      );
-
-    default:
-      return noConfig;
-  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {blockContent}
+      <SectionStylePanel block={block} blocksKey={blocksKey} manifest={manifest} onChange={onChange} />
+    </div>
+  );
 }
 
 // ── Add Block Picker ───────────────────────────────────────────
@@ -630,19 +822,55 @@ interface CanvasEditorProps {
 }
 
 export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditorProps) {
-  const [blocks, setBlocks] = useState<PageBlock[]>(() => {
-    if (manifest.blocks && manifest.blocks.length > 0) return manifest.blocks;
-    return DEFAULT_BLOCKS;
-  });
+  // 'main' = main page, otherwise a custom page ID
+  const [activePage, setActivePage] = useState<string>('main');
+  const [showAddPage, setShowAddPage] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState('');
+
+  const customPages = manifest.customPages || [];
+  const isCustomPage = activePage !== 'main';
+  const currentCustomPage = isCustomPage ? customPages.find(p => p.id === activePage) : null;
+
+  // Resolve current blocks based on which page is selected
+  const currentBlocks = isCustomPage
+    ? (currentCustomPage?.blocks || [])
+    : (manifest.blocks && manifest.blocks.length > 0 ? manifest.blocks : DEFAULT_BLOCKS);
+
+  const [blocks, setBlocks] = useState<PageBlock[]>(currentBlocks);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+
+  // Sync blocks when page changes
+  useEffect(() => {
+    const newBlocks = isCustomPage
+      ? (currentCustomPage?.blocks || [])
+      : (manifest.blocks && manifest.blocks.length > 0 ? manifest.blocks : DEFAULT_BLOCKS);
+    setBlocks(newBlocks);
+    setActiveBlockId(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePage]);
+
+  const blocksKey: 'blocks' | { customPageId: string } = isCustomPage
+    ? { customPageId: activePage }
+    : 'blocks';
 
   const commit = useCallback((newBlocks: PageBlock[]) => {
     const sorted = newBlocks.map((b, i) => ({ ...b, order: i }));
     setBlocks(sorted);
-    const updated = { ...manifest, blocks: sorted };
+
+    let updated: StoryManifest;
+    if (isCustomPage && currentCustomPage) {
+      updated = {
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === activePage ? { ...p, blocks: sorted } : p
+        ),
+      };
+    } else {
+      updated = { ...manifest, blocks: sorted };
+    }
     onChange(updated);
     pushToPreview(updated);
-  }, [manifest, onChange, pushToPreview]);
+  }, [manifest, onChange, pushToPreview, isCustomPage, currentCustomPage, activePage]);
 
   const handleReorder = (newBlocks: PageBlock[]) => commit(newBlocks);
 
@@ -682,6 +910,36 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
     }
   }, [blocks, commit, manifest, onChange, pushToPreview]);
 
+  const addCustomPage = () => {
+    if (!newPageTitle.trim()) return;
+    const slug = newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newPage = {
+      id: `page-${Date.now()}`,
+      slug,
+      title: newPageTitle.trim(),
+      icon: '📄',
+      blocks: [
+        { id: `b-text-${Date.now()}`, type: 'text' as BlockType, order: 0, visible: true },
+      ],
+      visible: true,
+      order: customPages.length,
+    };
+    const updated = { ...manifest, customPages: [...customPages, newPage] };
+    onChange(updated);
+    pushToPreview(updated);
+    setNewPageTitle('');
+    setShowAddPage(false);
+    // Auto-switch to the new page
+    setActivePage(newPage.id);
+  };
+
+  const deleteCustomPage = (id: string) => {
+    const updated = { ...manifest, customPages: customPages.filter(p => p.id !== id) };
+    onChange(updated);
+    pushToPreview(updated);
+    if (activePage === id) setActivePage('main');
+  };
+
   const activeBlock = blocks.find(b => b.id === activeBlockId);
   const activeDef = activeBlock ? BLOCK_CATALOGUE.find(d => d.type === activeBlock.type) : null;
   const existingTypes = new Set(blocks.map(b => b.type));
@@ -690,9 +948,95 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
     <div style={{ display: 'flex', gap: '0', height: '100%', overflow: 'hidden' }}>
       {/* ── Left: Block list ──────────────────────────────── */}
       <div style={{ width: activeBlock ? '50%' : '100%', display: 'flex', flexDirection: 'column', gap: '6px', transition: 'width 0.2s', overflowY: 'auto' }}>
-        <div style={{ padding: '2px 0 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>
+
+        {/* ── Page Selector ── */}
+        <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>
+          <label style={{ ...lbl, marginBottom: '6px' }}>Editing Page</label>
+          <select
+            value={activePage}
+            onChange={e => setActivePage(e.target.value)}
+            style={{
+              ...inp, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+              background: 'rgba(184,146,106,0.1)', borderColor: 'rgba(184,146,106,0.3)',
+              color: '#b8926a', padding: '8px 10px',
+            }}
+          >
+            <option value="main" style={{ background: '#1a1a1a', color: '#fff' }}>
+              🏠 Main Page
+            </option>
+            {customPages.map(p => (
+              <option key={p.id} value={p.id} style={{ background: '#1a1a1a', color: '#fff' }}>
+                {p.icon} {p.title}
+              </option>
+            ))}
+          </select>
+
+          {/* Add page + delete custom page */}
+          <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+            <button
+              onClick={() => setShowAddPage(s => !s)}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                padding: '6px', borderRadius: '6px', border: '1px dashed rgba(184,146,106,0.4)',
+                background: 'rgba(184,146,106,0.06)', color: '#b8926a', cursor: 'pointer',
+                fontSize: '0.7rem', fontWeight: 700, transition: 'all 0.15s',
+              }}
+            >
+              <Plus size={11} /> Add Page
+            </button>
+            {isCustomPage && currentCustomPage && (
+              <button
+                onClick={() => deleteCustomPage(activePage)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                  padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)',
+                  background: 'rgba(239,68,68,0.06)', color: '#ef4444', cursor: 'pointer',
+                  fontSize: '0.65rem', fontWeight: 700, transition: 'all 0.15s',
+                }}
+              >
+                <Trash2 size={10} /> Delete Page
+              </button>
+            )}
+          </div>
+
+          {/* Add page form inline */}
+          <AnimatePresence>
+            {showAddPage && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                style={{ overflow: 'hidden', marginTop: '6px' }}
+              >
+                <div style={{ background: 'rgba(184,146,106,0.08)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(184,146,106,0.2)' }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <input
+                      value={newPageTitle}
+                      onChange={e => setNewPageTitle(e.target.value)}
+                      placeholder="e.g. Our Venue, Engagement"
+                      style={{ ...inp, flex: 1, fontSize: '0.78rem', padding: '6px 8px' }}
+                      onKeyDown={e => e.key === 'Enter' && addCustomPage()}
+                      autoFocus
+                    />
+                    <button
+                      onClick={addCustomPage}
+                      disabled={!newPageTitle.trim()}
+                      style={{
+                        padding: '6px 12px', borderRadius: '5px', border: 'none',
+                        background: newPageTitle.trim() ? '#b8926a' : 'rgba(255,255,255,0.1)',
+                        color: newPageTitle.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+                        fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
+                      }}
+                    >Add</button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Section header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 4px' }}>
           <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
-            Page sections · drag to reorder
+            {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Main Sections'} · drag to reorder
           </span>
         </div>
 
@@ -746,7 +1090,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
-                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>Block settings</div>
+                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>Block settings · Section style</div>
               </div>
               <button
                 onClick={() => setActiveBlockId(null)}
@@ -761,6 +1105,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
               block={activeBlock}
               def={activeDef}
               manifest={manifest}
+              blocksKey={blocksKey}
               onChange={m => {
                 onChange(m);
                 pushToPreview(m);
