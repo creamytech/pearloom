@@ -81,7 +81,7 @@ export default function PhotosPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           >
-            <PhotoGallery />
+            <PhotoGallery siteId="demo" />
           </motion.div>
         </div>
       </main>

@@ -2,12 +2,13 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/rsvp-form.tsx
-// Premium RSVP form with rich visual styling
+// Premium multi-step RSVP form with confetti on success
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Heart, Check, Loader2, PartyPopper, HeartCrack } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Check, Loader2, PartyPopper, HeartCrack, ChevronRight, ChevronLeft } from 'lucide-react';
+import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import type { RsvpStatus, WeddingEvent } from '@/types';
 
 // ── Canvas Confetti ─────────────────────────────────────────────
@@ -24,13 +25,24 @@ function ConfettiBurst({ active }: { active: boolean }) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const COLORS = ['#A3B18A', '#f0c080', '#f87171', '#a78bfa', '#34d399', '#60a5fa', '#fb923c', '#e879f9'];
+    const COLORS = [
+      '#A3B18A', '#f0c080', '#f87171', '#a78bfa', '#34d399',
+      '#60a5fa', '#fb923c', '#e879f9',
+    ];
     const SHAPES = ['circle', 'rect', 'heart'] as const;
 
     interface Particle {
-      x: number; y: number; vx: number; vy: number;
-      size: number; color: string; rotation: number; rotSpeed: number;
-      shape: typeof SHAPES[number]; alpha: number; gravity: number;
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+      color: string;
+      rotation: number;
+      rotSpeed: number;
+      shape: (typeof SHAPES)[number];
+      alpha: number;
+      gravity: number;
     }
 
     const particles: Particle[] = Array.from({ length: 140 }, () => ({
@@ -72,7 +84,6 @@ function ConfettiBurst({ active }: { active: boolean }) {
         } else if (p.shape === 'rect') {
           ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
         } else {
-          // heart
           const s = p.size * 0.4;
           ctx.beginPath();
           ctx.moveTo(0, s * 0.4);
@@ -93,10 +104,34 @@ function ConfettiBurst({ active }: { active: boolean }) {
     <canvas
       ref={canvasRef}
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        pointerEvents: 'none', width: '100%', height: '100%',
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        pointerEvents: 'none',
+        width: '100%',
+        height: '100%',
       }}
     />
+  );
+}
+
+// ── Step progress indicator ─────────────────────────────────────
+function StepDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginBottom: '2rem' }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            width: i === current ? '24px' : '6px',
+            height: '6px',
+            borderRadius: '100px',
+            background: i === current ? 'var(--eg-accent)' : 'rgba(0,0,0,0.12)',
+            transition: 'all 0.35s ease',
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -105,7 +140,44 @@ interface RsvpFormProps {
   siteId: string;
 }
 
+// ── Shared input style ───────────────────────────────────────────
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.75rem 0',
+  borderTop: 'none',
+  borderLeft: 'none',
+  borderRight: 'none',
+  borderBottom: '1.5px solid rgba(0,0,0,0.1)',
+  background: 'transparent',
+  fontSize: 'max(16px, 0.9rem)',
+  fontFamily: 'var(--eg-font-body)',
+  color: 'var(--eg-fg)',
+  outline: 'none',
+  transition: 'border-color 0.2s ease',
+  borderRadius: 0,
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  color: 'var(--eg-muted)',
+  marginBottom: '0.3rem',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+};
+
+function focusBorder(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  e.target.style.borderBottomColor = 'var(--eg-accent)';
+}
+function blurBorder(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  e.target.style.borderBottomColor = 'rgba(0,0,0,0.1)';
+}
+
 export function RsvpForm({ events, siteId }: RsvpFormProps) {
+  // Multi-step state
+  const [step, setStep] = useState(0);
+
   const [status, setStatus] = useState<RsvpStatus>('attending');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -115,16 +187,18 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
   const [mealPreference, setMealPreference] = useState('');
   const [dietaryRestrictions, setDietaryRestrictions] = useState('');
   const [songRequest, setSongRequest] = useState('');
-  const [mailingAddress, setMailingAddress] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  // Step count: step 0 always, step 1 if attending, step 2 (message) always
+  const totalSteps = status === 'attending' ? 3 : 2;
 
+  const canAdvanceStep0 = name.trim().length > 0 && email.trim().length > 0;
+
+  const handleSubmit = async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/rsvp', {
         method: 'POST',
@@ -141,10 +215,8 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           dietaryRestrictions: status === 'attending' ? dietaryRestrictions : null,
           songRequest: status === 'attending' ? songRequest : null,
           message,
-          mailingAddress: mailingAddress || null,
         }),
       });
-
       if (res.ok) {
         setSubmitted(true);
         if (status === 'attending') {
@@ -164,336 +236,522 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
     return (
       <>
         <ConfettiBurst active={showConfetti} />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        style={{
-          textAlign: 'center',
-          padding: '4rem 2rem',
-        }}
-      >
-        <div style={{
-          width: '5rem', height: '5rem', borderRadius: '50%',
-          background: status === 'attending' ? '#ecfdf5' : '#fef2f2',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 1.5rem',
-        }}>
-          {status === 'attending'
-            ? <PartyPopper size={28} color="#059669" />
-            : <HeartCrack size={28} color="#dc2626" />
-          }
-        </div>
-        <h3 style={{
-          fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem',
-          fontWeight: 600, marginBottom: '0.75rem',
-        }}>
-          {status === 'attending' ? "We Can't Wait to See You!" : "We'll Miss You!"}
-        </h3>
-        <p style={{ color: 'var(--eg-muted)', maxWidth: '380px', margin: '0 auto', lineHeight: 1.7 }}>
-          {status === 'attending'
-            ? `Thank you, ${name}. Your RSVP has been recorded. We're so excited to celebrate with you.`
-            : `Thank you for letting us know, ${name}. You'll be in our hearts.`}
-        </p>
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          style={{ textAlign: 'center', padding: '4rem 2rem' }}
+        >
+          <div
+            style={{
+              width: '5rem',
+              height: '5rem',
+              borderRadius: '50%',
+              background: status === 'attending' ? '#ecfdf5' : '#fef2f2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem',
+            }}
+          >
+            {status === 'attending' ? (
+              <PartyPopper size={28} color="#059669" />
+            ) : (
+              <HeartCrack size={28} color="#dc2626" />
+            )}
+          </div>
+          <h3
+            style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: '1.75rem',
+              fontWeight: 400,
+              marginBottom: '0.75rem',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {status === 'attending'
+              ? "We can't wait to celebrate with you!"
+              : "We'll Miss You!"}
+          </h3>
+          <p
+            style={{
+              color: 'var(--eg-muted)',
+              maxWidth: '380px',
+              margin: '0 auto',
+              lineHeight: 1.7,
+              fontSize: '0.95rem',
+            }}
+          >
+            {status === 'attending'
+              ? `Thank you, ${name}. Your RSVP has been recorded. We're so excited to celebrate with you.`
+              : `Thank you for letting us know, ${name}. You'll be in our hearts.`}
+          </p>
+        </motion.div>
       </>
     );
   }
 
-  // ── Shared styles ──
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '0.85rem 1rem',
-    borderRadius: '0.75rem',
-    border: '1.5px solid rgba(0,0,0,0.1)',
-    background: '#F5F1E8',
-    fontSize: 'max(16px, 0.9rem)',
-    fontFamily: 'var(--eg-font-body)',
-    color: 'var(--eg-fg)',
-    outline: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '0.8rem',
-    fontWeight: 500,
-    color: 'var(--eg-muted)',
-    marginBottom: '0.5rem',
-    letterSpacing: '0.02em',
-  };
-
-  const sectionGap: React.CSSProperties = {
-    marginBottom: '1.5rem',
-  };
-
   return (
-    <form onSubmit={handleSubmit}>
-      {/* ── Attendance toggle ── */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
-        {(['attending', 'declined'] as RsvpStatus[]).map((s) => (
-          <button
-            type="button"
-            key={s}
-            onClick={() => setStatus(s)}
-            style={{
-              flex: 1,
-              padding: '1rem',
-              borderRadius: '0.75rem',
-              border: `2px solid ${status === s
-                ? (s === 'attending' ? '#059669' : '#dc2626')
-                : 'rgba(0,0,0,0.08)'}`,
-              background: status === s
-                ? (s === 'attending' ? '#ecfdf5' : '#fef2f2')
-                : '#F5F1E8',
-              color: status === s
-                ? (s === 'attending' ? '#059669' : '#dc2626')
-                : 'var(--eg-muted)',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              fontFamily: 'var(--eg-font-body)',
-            }}
+    <div>
+      {/* Step progress dots */}
+      <StepDots current={step} total={totalSteps} />
+
+      {/* Animated step content */}
+      <AnimatePresence mode="wait">
+        {/* ── Step 0: Name + Email + Attending toggle ── */}
+        {step === 0 && (
+          <motion.div
+            key="step-0"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
-            {s === 'attending' ? 'Joyfully Accepts' : 'Respectfully Declines'}
-          </button>
-        ))}
-      </div>
+            {/* Attending pill toggle */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
+              {(['attending', 'declined'] as RsvpStatus[]).map((s) => {
+                const isActive = status === s;
+                const isAttending = s === 'attending';
+                return (
+                  <button
+                    type="button"
+                    key={s}
+                    onClick={() => setStatus(s)}
+                    style={{
+                      flex: 1,
+                      padding: '1rem',
+                      borderRadius: '100px',
+                      border: `2px solid ${
+                        isActive
+                          ? isAttending
+                            ? 'var(--eg-accent)'
+                            : '#dc2626'
+                          : 'rgba(0,0,0,0.08)'
+                      }`,
+                      background: isActive
+                        ? isAttending
+                          ? 'var(--eg-accent)'
+                          : '#fef2f2'
+                        : 'transparent',
+                      color: isActive
+                        ? isAttending
+                          ? '#fff'
+                          : '#dc2626'
+                        : 'var(--eg-muted)',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.25s ease',
+                      fontFamily: 'var(--eg-font-body)',
+                      letterSpacing: '0.01em',
+                    }}
+                  >
+                    {s === 'attending' ? 'Joyfully Attending' : 'Regretfully Declining'}
+                  </button>
+                );
+              })}
+            </div>
 
-      {/* ── Name & Email ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', ...sectionGap }}>
-        <div>
-          <label style={labelStyle}>Your Name *</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="First and last name"
-            style={inputStyle}
-            onFocus={(e) => {
-              e.target.style.borderColor = 'var(--eg-accent)';
-              e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(0,0,0,0.1)';
-              e.target.style.boxShadow = 'none';
-            }}
-          />
-        </div>
-        <div>
-          <label style={labelStyle}>Email *</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="your@email.com"
-            style={inputStyle}
-            onFocus={(e) => {
-              e.target.style.borderColor = 'var(--eg-accent)';
-              e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(0,0,0,0.1)';
-              e.target.style.boxShadow = 'none';
-            }}
-          />
-        </div>
-      </div>
+            {/* Name */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={labelStyle}>Your Name *</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="First and last name"
+                style={inputStyle}
+                onFocus={focusBorder}
+                onBlur={blurBorder}
+              />
+            </div>
 
-      {/* ── Mailing Address ── */}
-      <div style={sectionGap}>
-        <label style={labelStyle}>Mailing Address (optional)</label>
-        <textarea
-          value={mailingAddress}
-          onChange={(e) => setMailingAddress(e.target.value)}
-          placeholder="123 Main St, City, State ZIP"
-          rows={2}
-          style={{
-            ...inputStyle,
-            resize: 'none',
-            lineHeight: 1.6,
-          }}
-        />
-      </div>
+            {/* Email */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={labelStyle}>Email *</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="your@email.com"
+                style={inputStyle}
+                onFocus={focusBorder}
+                onBlur={blurBorder}
+              />
+            </div>
 
-      {/* ── Events ── */}
-      {events.length > 1 && (
-        <div style={sectionGap}>
-          <label style={labelStyle}>Which events will you attend?</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {events.map((evt) => (
-              <label
-                key={evt.id}
+            {/* Events (if multiple) */}
+            {events.length > 1 && (
+              <div style={{ marginBottom: '2rem' }}>
+                <label style={labelStyle}>Which events will you attend?</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  {events.map((evt) => (
+                    <label
+                      key={evt.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '0.75rem',
+                        border: `1.5px solid ${
+                          selectedEvents.includes(evt.id)
+                            ? 'var(--eg-accent)'
+                            : 'rgba(0,0,0,0.08)'
+                        }`,
+                        background: selectedEvents.includes(evt.id)
+                          ? 'var(--eg-accent-light)'
+                          : 'transparent',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedEvents.includes(evt.id)}
+                        onChange={() => {
+                          setSelectedEvents((prev) =>
+                            prev.includes(evt.id)
+                              ? prev.filter((id) => id !== evt.id)
+                              : [...prev, evt.id]
+                          );
+                        }}
+                        style={{ accentColor: 'var(--eg-accent)' }}
+                      />
+                      <span style={{ fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--eg-font-body)' }}>
+                        {evt.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Next button */}
+            <button
+              type="button"
+              disabled={!canAdvanceStep0}
+              onClick={() => setStep(status === 'attending' ? 1 : 2)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                padding: '1rem 2rem',
+                borderRadius: '100px',
+                background: canAdvanceStep0 ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)',
+                color: canAdvanceStep0 ? '#fff' : 'var(--eg-muted)',
+                fontSize: 'max(16px, 0.9rem)',
+                fontWeight: 600,
+                fontFamily: 'var(--eg-font-body)',
+                border: 'none',
+                cursor: canAdvanceStep0 ? 'pointer' : 'not-allowed',
+                transition: 'all 0.25s ease',
+              }}
+            >
+              Continue
+              <ChevronRight size={17} />
+            </button>
+          </motion.div>
+        )}
+
+        {/* ── Step 1: Plus one + Meal + Song (attending only) ── */}
+        {step === 1 && status === 'attending' && (
+          <motion.div
+            key="step-1"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Plus one toggle */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setPlusOne(!plusOne)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  padding: '0.75rem 1rem', borderRadius: '0.75rem',
-                  border: `1.5px solid ${selectedEvents.includes(evt.id) ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
-                  background: selectedEvents.includes(evt.id) ? 'var(--eg-accent-light)' : '#fff',
-                  cursor: 'pointer', transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  cursor: 'pointer',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontFamily: 'var(--eg-font-body)',
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={selectedEvents.includes(evt.id)}
-                  onChange={() => {
-                    setSelectedEvents((prev) =>
-                      prev.includes(evt.id)
-                        ? prev.filter((id) => id !== evt.id)
-                        : [...prev, evt.id]
-                    );
-                  }}
-                  style={{ accentColor: 'var(--eg-accent)' }}
-                />
-                <span style={{ fontSize: '0.9rem' }}>{evt.name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Plus one ── */}
-      <div style={sectionGap}>
-        <label
-          style={{
-            display: 'flex', alignItems: 'center', gap: '0.75rem',
-            cursor: 'pointer', userSelect: 'none',
-          }}
-          onClick={() => setPlusOne(!plusOne)}
-        >
-          <div style={{
-            width: '1.25rem', height: '1.25rem', borderRadius: '0.375rem',
-            border: `2px solid ${plusOne ? 'var(--eg-accent)' : 'rgba(0,0,0,0.15)'}`,
-            background: plusOne ? 'var(--eg-accent)' : 'transparent',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}>
-            {plusOne && <Check size={12} color="#fff" />}
-          </div>
-          <span style={{ fontSize: '0.9rem' }}>I&apos;m Bringing a Plus One</span>
-        </label>
-        {plusOne && (
-          <motion.input
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            type="text"
-            value={plusOneName}
-            onChange={(e) => setPlusOneName(e.target.value)}
-            placeholder="Their name"
-            style={{ ...inputStyle, marginTop: '0.75rem' }}
-          />
-        )}
-      </div>
-
-      {/* ── Attending-only fields ── */}
-      {status === 'attending' && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.5rem' }}
-        >
-          {/* Meal */}
-          <div>
-            <label style={labelStyle}>Meal Preference</label>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {['Chicken', 'Fish', 'Beef', 'Vegetarian', 'Vegan'].map((m) => (
-                <button
-                  type="button"
-                  key={m}
-                  onClick={() => setMealPreference(m)}
+                <div
                   style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '999px',
-                    border: `1.5px solid ${mealPreference === m ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
-                    background: mealPreference === m ? 'var(--eg-accent-light)' : '#F5F1E8',
-                    color: mealPreference === m ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    cursor: 'pointer',
+                    width: '1.25rem',
+                    height: '1.25rem',
+                    borderRadius: '0.375rem',
+                    border: `2px solid ${plusOne ? 'var(--eg-accent)' : 'rgba(0,0,0,0.15)'}`,
+                    background: plusOne ? 'var(--eg-accent)' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     transition: 'all 0.2s',
-                    fontFamily: 'var(--eg-font-body)',
+                    flexShrink: 0,
                   }}
                 >
-                  {m}
-                </button>
-              ))}
+                  {plusOne && <Check size={12} color="#fff" />}
+                </div>
+                <span style={{ fontSize: 'max(16px, 0.9rem)', color: 'var(--eg-fg)' }}>
+                  I&apos;m bringing a plus one
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {plusOne && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    style={{ marginTop: '0.75rem' }}
+                  >
+                    <input
+                      type="text"
+                      value={plusOneName}
+                      onChange={(e) => setPlusOneName(e.target.value)}
+                      placeholder="Their name"
+                      style={inputStyle}
+                      onFocus={focusBorder}
+                      onBlur={blurBorder}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
 
-          {/* Dietary */}
-          <div>
-            <label style={labelStyle}>Dietary Restrictions</label>
-            <input
-              type="text"
-              value={dietaryRestrictions}
-              onChange={(e) => setDietaryRestrictions(e.target.value)}
-              placeholder="Allergies, preferences, etc."
-              style={inputStyle}
-            />
-          </div>
+            {/* Meal preference pills */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={labelStyle}>Meal Preference</label>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
+                  marginTop: '0.5rem',
+                }}
+              >
+                {['Chicken', 'Fish', 'Beef', 'Vegetarian', 'Vegan'].map((m) => (
+                  <button
+                    type="button"
+                    key={m}
+                    onClick={() => setMealPreference(m === mealPreference ? '' : m)}
+                    style={{
+                      padding: '0.45rem 1rem',
+                      borderRadius: '100px',
+                      border: `1.5px solid ${
+                        mealPreference === m ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'
+                      }`,
+                      background:
+                        mealPreference === m ? 'var(--eg-accent-light)' : 'transparent',
+                      color: mealPreference === m ? 'var(--eg-accent)' : 'var(--eg-muted)',
+                      fontSize: '0.85rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      fontFamily: 'var(--eg-font-body)',
+                    }}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* Song */}
-          <div>
-            <label style={labelStyle}>Song Request</label>
-            <input
-              type="text"
-              value={songRequest}
-              onChange={(e) => setSongRequest(e.target.value)}
-              placeholder="What song gets you on the dance floor?"
-              style={inputStyle}
-            />
-          </div>
-        </motion.div>
-      )}
+            {/* Dietary restrictions */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={labelStyle}>Dietary Restrictions</label>
+              <input
+                type="text"
+                value={dietaryRestrictions}
+                onChange={(e) => setDietaryRestrictions(e.target.value)}
+                placeholder="Allergies, preferences, etc."
+                style={inputStyle}
+                onFocus={focusBorder}
+                onBlur={blurBorder}
+              />
+            </div>
 
-      {/* ── Message ── */}
-      <div style={sectionGap}>
-        <label style={labelStyle}>Leave a Note</label>
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="A message for the couple..."
-          rows={3}
-          style={{
-            ...inputStyle,
-            resize: 'none',
-            lineHeight: 1.6,
-          }}
-        />
-      </div>
+            {/* Song request with LoomThreadIcon prefix */}
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={labelStyle}>Song Request</label>
+              <div style={{ position: 'relative' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    color: 'var(--eg-accent)',
+                    opacity: 0.6,
+                  }}
+                >
+                  <LoomThreadIcon size={16} />
+                </div>
+                <input
+                  type="text"
+                  value={songRequest}
+                  onChange={(e) => setSongRequest(e.target.value)}
+                  placeholder="Name a song that should be on our playlist."
+                  style={{
+                    ...inputStyle,
+                    paddingLeft: '1.5rem',
+                  }}
+                  onFocus={focusBorder}
+                  onBlur={blurBorder}
+                />
+              </div>
+            </div>
 
-      {/* ── Submit ── */}
-      <button
-        type="submit"
-        disabled={!name || !email || loading}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.5rem',
-          padding: '1rem 2rem',
-          borderRadius: '0.75rem',
-          background: 'var(--eg-fg)',
-          color: '#F5F1E8',
-          fontSize: '0.9rem',
-          fontWeight: 500,
-          fontFamily: 'var(--eg-font-body)',
-          border: 'none',
-          cursor: (!name || !email || loading) ? 'not-allowed' : 'pointer',
-          opacity: (!name || !email || loading) ? 0.35 : 1,
-          transition: 'all 0.25s ease',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-        }}
-      >
-        {loading ? (
-          <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-        ) : (
-          <Heart size={16} />
+            {/* Nav buttons */}
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => setStep(0)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.9rem 1.5rem',
+                  borderRadius: '100px',
+                  border: '1.5px solid rgba(0,0,0,0.1)',
+                  background: 'transparent',
+                  color: 'var(--eg-muted)',
+                  fontSize: 'max(16px, 0.88rem)',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--eg-font-body)',
+                }}
+              >
+                <ChevronLeft size={16} />
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  padding: '0.9rem 2rem',
+                  borderRadius: '100px',
+                  background: 'var(--eg-accent)',
+                  color: '#fff',
+                  fontSize: 'max(16px, 0.9rem)',
+                  fontWeight: 600,
+                  fontFamily: 'var(--eg-font-body)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.25s ease',
+                }}
+              >
+                Continue
+                <ChevronRight size={17} />
+              </button>
+            </div>
+          </motion.div>
         )}
-        {loading ? 'Submitting...' : 'Send RSVP'}
-      </button>
-    </form>
+
+        {/* ── Step 2 (final): Message to couple ── */}
+        {step === 2 && (
+          <motion.div
+            key="step-2"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -30 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={labelStyle}>Leave a Note for the Couple</label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="A few words of love, excitement, or a memory..."
+                rows={4}
+                style={{
+                  ...inputStyle,
+                  resize: 'none' as const,
+                  lineHeight: 1.6,
+                  paddingTop: '0.5rem',
+                }}
+                onFocus={focusBorder}
+                onBlur={blurBorder}
+              />
+            </div>
+
+            {/* Nav buttons */}
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => setStep(status === 'attending' ? 1 : 0)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.9rem 1.5rem',
+                  borderRadius: '100px',
+                  border: '1.5px solid rgba(0,0,0,0.1)',
+                  background: 'transparent',
+                  color: 'var(--eg-muted)',
+                  fontSize: 'max(16px, 0.88rem)',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--eg-font-body)',
+                }}
+              >
+                <ChevronLeft size={16} />
+                Back
+              </button>
+
+              {/* Full-width olive gradient submit */}
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleSubmit}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  padding: '1rem 2rem',
+                  borderRadius: '100px',
+                  background: loading
+                    ? 'rgba(0,0,0,0.08)'
+                    : 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
+                  color: loading ? 'var(--eg-muted)' : '#fff',
+                  fontSize: 'max(16px, 0.9rem)',
+                  fontWeight: 700,
+                  fontFamily: 'var(--eg-font-body)',
+                  border: 'none',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1,
+                  transition: 'all 0.25s ease',
+                  boxShadow: loading
+                    ? 'none'
+                    : '0 4px 16px color-mix(in srgb, var(--eg-accent) 35%, transparent)',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {loading ? (
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <Check size={16} />
+                )}
+                {loading ? 'Submitting...' : 'Send my RSVP'}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

@@ -12,7 +12,7 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Plus, Eye, EyeOff, Trash2,
   ChevronDown, ChevronRight, X,
-  Sparkles,
+  Sparkles, LayoutTemplate,
 } from 'lucide-react';
 import {
   BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,

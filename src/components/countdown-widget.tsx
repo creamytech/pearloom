@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 
 interface CountdownWidgetProps {
   targetDate: string; // ISO date string
@@ -70,16 +71,19 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
     );
   }
 
-  const textColor = onPhoto ? 'rgba(255,255,255,0.95)' : 'var(--eg-fg)';
-  const mutedColor = onPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-muted)';
-  const borderColor = onPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
-  const bgColor = onPhoto ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)';
+  const textColor = onPhoto ? 'rgba(255,255,255,0.97)' : 'var(--eg-fg)';
+  const mutedColor = onPhoto ? 'rgba(255,255,255,0.52)' : 'var(--eg-muted)';
+  const cardBg = onPhoto ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.85)';
+  const cardBorder = onPhoto ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.07)';
+  const cardShadow = onPhoto
+    ? '0 4px 20px rgba(0,0,0,0.15)'
+    : '0 4px 20px rgba(43,43,43,0.07), 0 1px 4px rgba(43,43,43,0.04)';
 
   const segments = [
     { value: timeLeft.days, label: 'Days' },
     { value: timeLeft.hours, label: 'Hours' },
     { value: timeLeft.minutes, label: 'Min' },
-    { value: timeLeft.seconds, label: 'Sec' },
+    { value: timeLeft.seconds, label: 'Sec', isTick: true },
   ];
 
   return (
@@ -91,30 +95,39 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '1rem',
-        marginTop: '2.5rem',
+        gap: '1.25rem',
+        marginTop: '2.75rem',
       }}
     >
-      <div style={{
-        fontSize: '0.6rem',
-        letterSpacing: '0.4em',
-        textTransform: 'uppercase',
-        color: mutedColor,
-        fontWeight: 700,
-      }}>
-        Counting Down
+      {/* Section icon + label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+        <CalendarHeartIcon size={14} color={onPhoto ? 'rgba(255,255,255,0.6)' : 'var(--eg-accent)'} />
+        <span style={{
+          fontSize: '0.58rem',
+          letterSpacing: '0.38em',
+          textTransform: 'uppercase',
+          color: mutedColor,
+          fontWeight: 700,
+        }}>
+          Counting Down
+        </span>
       </div>
 
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
         {segments.map((seg, i) => (
           <div key={seg.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {/* Unit card */}
             <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              background: bgColor,
-              border: `1px solid ${borderColor}`,
-              borderRadius: '0.6rem',
-              padding: '0.6rem 0.9rem',
-              minWidth: '52px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: cardBg,
+              border: `1px solid ${cardBorder}`,
+              borderRadius: '1rem',
+              padding: '1rem 1.5rem',
+              minWidth: '64px',
+              boxShadow: cardShadow,
+              backdropFilter: onPhoto ? 'blur(12px)' : 'none',
             }}>
               <motion.span
                 key={seg.value}
@@ -122,34 +135,38 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.3 }}
                 style={{
-                  fontSize: '1.6rem',
+                  fontSize: '2rem',
                   fontWeight: 700,
                   color: textColor,
                   lineHeight: 1,
                   fontFamily: 'var(--eg-font-body)',
-                  // monospace-style number to prevent layout shift
                   fontVariantNumeric: 'tabular-nums',
+                  // CSS tick animation on seconds
+                  ...(seg.isTick ? {
+                    animation: 'countdown-tick 1s steps(1) infinite',
+                  } : {}),
                 }}
               >
                 {String(seg.value).padStart(2, '0')}
               </motion.span>
               <span style={{
-                fontSize: '0.55rem',
+                fontSize: '0.52rem',
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 color: mutedColor,
-                marginTop: '0.25rem',
+                marginTop: '0.4rem',
                 fontWeight: 700,
               }}>
                 {seg.label}
               </span>
             </div>
-            {/* Colon separator (not after last) */}
+
+            {/* Blinking colon separator (not after last) */}
             {i < 3 && (
               <motion.span
-                animate={{ opacity: [1, 0, 1] }}
+                animate={{ opacity: [1, 0.2, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
-                style={{ color: mutedColor, fontSize: '1.2rem', fontWeight: 300, marginBottom: '14px' }}
+                style={{ color: mutedColor, fontSize: '1.4rem', fontWeight: 300, marginBottom: '14px' }}
               >
                 :
               </motion.span>
@@ -157,6 +174,14 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
           </div>
         ))}
       </div>
+
+      {/* Inline CSS for tick animation */}
+      <style>{`
+        @keyframes countdown-tick {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0.6; }
+        }
+      `}</style>
     </motion.div>
   );
 }
