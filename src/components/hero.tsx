@@ -8,6 +8,32 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useRef } from 'react';
+
+// Letter-by-letter staggered name reveal
+function AnimatedName({ text, delay = 0, color }: { text: string; delay?: number; color?: string }) {
+  return (
+    <motion.span
+      style={{ display: 'inline-block', overflow: 'visible' }}
+      initial="hidden"
+      animate="visible"
+      variants={{ visible: { transition: { staggerChildren: 0.04, delayChildren: delay } } }}
+    >
+      {text.split('').map((char, i) => (
+        <motion.span
+          key={i}
+          style={{ display: 'inline-block', color }}
+          variants={{
+            hidden: { opacity: 0, y: 48, rotateX: -50, filter: 'blur(8px)' },
+            visible: { opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)',
+              transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
+          }}
+        >
+          {char === ' ' ? '\u00A0' : char}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
+}
 import { CountdownWidget } from '@/components/countdown-widget';
 import { VibeParticles } from '@/components/vibe/VibeParticles';
 import type { VibeSkin } from '@/lib/vibe-engine';
@@ -167,13 +193,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
           flexDirection: 'column',
           alignItems: 'center',
         }}>
-          <motion.span
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.3, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {names[0]}
-          </motion.span>
+          <AnimatedName
+            text={names[0]}
+            delay={0.35}
+            color={coverPhoto ? '#ffffff' : undefined}
+          />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
@@ -191,13 +215,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
             &
           </motion.div>
 
-          <motion.span
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.3, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {names[1]}
-          </motion.span>
+          <AnimatedName
+            text={names[1]}
+            delay={names[0].length * 0.04 + 0.6}
+            color={coverPhoto ? '#ffffff' : undefined}
+          />
         </h1>
 
         {/* Subtitle / date row */}
