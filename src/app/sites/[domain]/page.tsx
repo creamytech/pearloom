@@ -27,43 +27,70 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { domain } = await params;
   const siteConfig = await getSiteConfig(domain);
-  if (!siteConfig) return {};
+
+  if (!siteConfig) return { title: 'Pearloom' };
 
   const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
-  const title = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
-  const tagline = siteConfig.tagline || 'A love story beautifully told.';
-  const accent = siteConfig.manifest?.theme?.colors?.accent || '#A3B18A';
-  const bg = siteConfig.manifest?.theme?.colors?.background || '#2B2B2B';
-  const coverPhoto = siteConfig.manifest?.chapters?.[0]?.images?.[0]?.url || '';
-  const weddingDate = siteConfig.manifest?.logistics?.date || '';
+  const displayNames = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).filter(Boolean).join(' & ');
+
+  const manifest = siteConfig.manifest;
+
+  // Build title with names + date
+  const eventDate = manifest?.logistics?.date;
+  const venue = manifest?.logistics?.venue || manifest?.events?.[0]?.venue;
+  const dateStr = eventDate
+    ? new Date(eventDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : '';
+
+  const shortTitle = [displayNames, dateStr].filter(Boolean).join(' · ') || 'Our Wedding';
+  const fullTitle = `${shortTitle} | Pearloom`;
+
+  // Build description
+  const vibeString = manifest?.vibeString || '';
+  const chapterCount = manifest?.chapters?.length || 0;
+  const description = vibeString
+    ? `${displayNames}'s love story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
+    : `${displayNames}'s wedding website. ${chapterCount} chapters of their love story, event details, and RSVP.`;
+
+  // OG image: prefer the AI-generated OG route, fall back to first chapter photo
+  const accent = manifest?.theme?.colors?.accent || '#A3B18A';
+  const bg = manifest?.theme?.colors?.background || '#2B2B2B';
+  const coverPhoto = manifest?.chapters?.[0]?.images?.[0]?.url || '';
+  const weddingDate = eventDate || '';
+  const tagline = siteConfig.tagline || vibeString || 'A love story beautifully told.';
   const [n1, n2] = names;
 
   const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
 
-  const occasionLabel = (() => {
-    switch (siteConfig.manifest?.occasion) {
-      case 'birthday': return 'Birthday Celebration';
-      case 'anniversary': return 'Anniversary';
-      case 'engagement': return 'Engagement';
-      case 'story': return 'Love Story';
-      default: return 'Wedding Website';
-    }
-  })();
+  const siteUrl = `https://${domain}.pearloom.app`;
 
   return {
-    title: `${title} — ${occasionLabel}`,
-    description: tagline,
+    metadataBase: new URL('https://pearloom.app'),
+    title: fullTitle,
+    description,
+    alternates: {
+      canonical: siteUrl,
+    },
+    icons: {
+      icon: '/favicon.ico',
+    },
     openGraph: {
-      title: `${title} — ${occasionLabel}`,
-      description: tagline,
-      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${title} ${occasionLabel.toLowerCase()}` }],
+      title: shortTitle,
+      description,
+      url: siteUrl,
+      siteName: 'Pearloom',
       type: 'website',
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${displayNames}${dateStr ? ` — ${dateStr}` : ''}` }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} — ${occasionLabel}`,
-      description: tagline,
+      title: shortTitle,
+      description,
       images: [ogUrl],
+    },
+    other: {
+      // Prevent search engine indexing of private wedding sites
+      robots: 'noindex, nofollow',
     },
   };
 }
@@ -100,6 +127,23 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     ? [siteConfig.names[0], siteConfig.names[1]]
     : ['Our', 'Story'];
   const title = safeNames.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
+
+  // JSON-LD structured data for the wedding event
+  const jsonLd = manifest.events?.length ? {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: `${title} Wedding`,
+    startDate: manifest.events[0].date || manifest.logistics?.date,
+    location: manifest.events[0].venue ? {
+      '@type': 'Place',
+      name: manifest.events[0].venue,
+      address: manifest.events[0].address || '',
+    } : undefined,
+    organizer: {
+      '@type': 'Person',
+      name: title,
+    },
+  } : null;
 
   // Use cached AI skin if available, fall back to deterministic
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
@@ -500,6 +544,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   const siteContent = (
     <ThemeProvider theme={resolvedTheme}>
+      {/* JSON-LD structured data for search engines */}
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
+      )}
       {/* Inject AI-selected Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
