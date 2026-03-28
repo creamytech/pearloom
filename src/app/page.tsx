@@ -34,6 +34,79 @@ const FullscreenEditor = nextDynamic(
 
 type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'cluster-review' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
 
+function PhotosStep({
+  selectedPhotos,
+  onPhotosSelected,
+  onContinue,
+  onLocalUpload,
+}: {
+  selectedPhotos: GooglePhotoMetadata[];
+  onPhotosSelected: (photos: GooglePhotoMetadata[]) => void;
+  onContinue: () => void;
+  onLocalUpload: () => void;
+}) {
+  const [attemptedContinue, setAttemptedContinue] = useState(false);
+
+  const handleContinue = () => {
+    if (selectedPhotos.length === 0) {
+      setAttemptedContinue(true);
+      return;
+    }
+    onContinue();
+  };
+
+  return (
+    <div>
+      <PhotoBrowser
+        onSelectionChange={onPhotosSelected}
+        maxSelection={30}
+      />
+
+      <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+        <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+          Google Photos refusing to sync?
+        </p>
+        <button
+          onClick={onLocalUpload}
+          style={{
+            padding: '0.75rem 2rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.1)',
+            background: '#ffffff', color: 'var(--eg-fg)', fontSize: '0.95rem',
+            fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+          }}
+        >
+          Bypass API and Upload Locally
+        </button>
+      </div>
+
+      <div style={{ position: 'sticky', bottom: '1rem', marginTop: '2rem' }}>
+        <button
+          onClick={handleContinue}
+          disabled={selectedPhotos.length === 0}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '0.5rem', padding: '1rem 1.5rem', borderRadius: '0.75rem',
+            background: selectedPhotos.length === 0 ? 'rgba(43,43,43,0.35)' : 'var(--eg-fg)',
+            color: '#fff', fontSize: '0.9rem',
+            fontWeight: 500, cursor: selectedPhotos.length === 0 ? 'not-allowed' : 'pointer',
+            border: 'none',
+            boxShadow: selectedPhotos.length === 0 ? 'none' : '0 8px 30px rgba(0,0,0,0.15)',
+            transition: 'all 0.2s',
+          }}
+        >
+          {selectedPhotos.length > 0 ? `Continue with ${selectedPhotos.length} photos` : 'Select photos to continue'}
+          <ArrowRight size={16} />
+        </button>
+        {attemptedContinue && selectedPhotos.length === 0 && (
+          <p style={{ textAlign: 'center', marginTop: '0.6rem', fontSize: '0.85rem', color: 'var(--eg-muted)' }}>
+            Select at least 1 photo to continue
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Generates a memorable random slug like "shauna-and-ben-x7q2"
 function generateSlug(names: [string, string]): string {
   const n1 = names[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'us';
@@ -65,6 +138,14 @@ export default function DashboardPage() {
   const [manifest, setManifest] = useState<StoryManifest | null>(null);
   const [generationStep, setGenerationStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [lastVibeData, setLastVibeData] = useState<{
+    names: [string, string]; vibeString: string; occasion: string;
+    subdomain?: string; eventDate?: string; ceremonyVenue?: string;
+    ceremonyAddress?: string; ceremonyTime?: string; receptionVenue?: string;
+    receptionAddress?: string; receptionTime?: string; dresscode?: string;
+    officiant?: string; celebrationVenue?: string; celebrationTime?: string;
+    guestNotes?: string; inspirationUrls?: string[];
+  } | null>(null);
 
   // Publish Flow State
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -72,6 +153,39 @@ export default function DashboardPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+
+  // ── Wizard draft persistence ──────────────────────────────────
+  const WIZARD_STORAGE_KEY = 'pearloom_wizard_draft';
+  const [draftBanner, setDraftBanner] = useState<{ savedAt: number; coupleNames: [string, string]; vibeString: string; step: Step } | null>(null);
+
+  // On mount: check for a recent draft (< 24h) and show the banner
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(WIZARD_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft?.savedAt && Date.now() - draft.savedAt < 24 * 60 * 60 * 1000) {
+        setDraftBanner(draft);
+      } else {
+        localStorage.removeItem(WIZARD_STORAGE_KEY);
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save wizard state whenever we're in an active wizard step
+  useEffect(() => {
+    if (currentStep === 'vibe' || currentStep === 'photos' || currentStep === 'cluster-review' || currentStep === 'local-upload') {
+      try {
+        localStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          coupleNames,
+          vibeString,
+          step: currentStep,
+        }));
+      } catch {}
+    }
+  }, [coupleNames, vibeString, currentStep]);
 
   // Redirect to dashboard once auth is confirmed — must be in useEffect,
   // NOT inline during render, to avoid React's infinite update loop
@@ -110,6 +224,7 @@ export default function DashboardPage() {
   }) => {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
+    setLastVibeData(data);
     setCurrentStep('generating');
     setGenerationStep(0);
     setError(null);
@@ -176,6 +291,10 @@ export default function DashboardPage() {
       const autoSlug = data.subdomain || generateSlug(data.names);
       console.log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
       setSubdomain(autoSlug);
+
+      // Clear wizard draft on successful generation
+      try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
+      setDraftBanner(null);
 
       setCurrentStep('edit');
     } catch (err) {
@@ -374,29 +493,63 @@ export default function DashboardPage() {
                   gap: '1.25rem',
                 }}
               >
-                <div style={{
-                  width: '44px', height: '44px', borderRadius: '50%',
-                  background: '#fef2f2', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.25rem',
-                }}>⚠</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Generation failed</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: 1.5 }}>{error}</div>
+                <div style={{ display: 'flex', gap: '1.25rem', width: '100%' }}>
+                  <div style={{
+                    width: '44px', height: '44px', borderRadius: '50%',
+                    background: '#fef2f2', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.25rem',
+                  }}>⚠</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '0.25rem' }}>Generation failed</div>
+                    <div style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.5rem' }}>{error}</div>
+                    <div style={{ fontSize: '0.82rem', color: '#6b7280', lineHeight: 1.5, fontStyle: 'italic' }}>
+                      This sometimes happens when our AI is busy. It usually works on the second try.
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                      {lastVibeData && (
+                        <button
+                          onClick={() => { setError(null); handleVibeSubmit(lastVibeData); }}
+                          style={{
+                            padding: '0.5rem 1.25rem', borderRadius: '100px',
+                            background: 'var(--eg-accent)', color: '#fff',
+                            border: 'none', cursor: 'pointer',
+                            fontSize: '0.82rem', fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            fontFamily: 'var(--eg-font-body)',
+                          }}
+                        >
+                          Try Again
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { setError(null); setCurrentStep('photos'); }}
+                        style={{
+                          padding: '0.5rem 1.25rem', borderRadius: '100px',
+                          background: 'transparent', color: '#6b7280',
+                          border: '1px solid rgba(0,0,0,0.12)', cursor: 'pointer',
+                          fontSize: '0.82rem', fontWeight: 600,
+                          letterSpacing: '0.04em',
+                          fontFamily: 'var(--eg-font-body)',
+                        }}
+                      >
+                        Start Over
+                      </button>
+                      <button
+                        onClick={() => setError(null)}
+                        style={{
+                          padding: '0.5rem 1rem', borderRadius: '100px',
+                          background: 'transparent', color: '#9ca3af',
+                          border: 'none', cursor: 'pointer',
+                          fontSize: '0.82rem', fontWeight: 500,
+                          fontFamily: 'var(--eg-font-body)',
+                        }}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setError(null)}
-                  style={{
-                    padding: '0.5rem 1.25rem', borderRadius: '100px',
-                    background: '#2B2B2B', color: '#fff',
-                    border: 'none', cursor: 'pointer',
-                    fontSize: '0.82rem', fontWeight: 700,
-                    letterSpacing: '0.04em', flexShrink: 0,
-                    fontFamily: 'var(--eg-font-body)',
-                  }}
-                >
-                  Dismiss
-                </button>
               </motion.div>
             )}
 
@@ -411,63 +564,81 @@ export default function DashboardPage() {
               >
               {/* -- DASHBOARD -- */}
               {currentStep === 'dashboard' && (
-                <UserSites 
-                  onStartNew={() => setCurrentStep('photos')}
-                  onEditSite={(site) => {
-                    setManifest(site.manifest);
-                    setSubdomain(site.domain);
-                    setCoupleNames(site.names || ['', '']);
-                    setCurrentStep('edit');
-                  }}
-                  onManageGuests={(site) => {
-                    setSubdomain(site.domain);
-                    setCurrentStep('guests');
-                  }}
-                />
+                <>
+                  {/* Draft resume banner */}
+                  {draftBanner && (
+                    <div style={{
+                      background: '#FFFBF0',
+                      border: '1px solid #D4A847',
+                      borderRadius: '0.75rem',
+                      padding: '0.85rem 1.25rem',
+                      marginBottom: '1.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '1rem',
+                      flexWrap: 'wrap',
+                    }}>
+                      <span style={{ fontSize: '0.88rem', color: '#5C4A1A', lineHeight: 1.4 }}>
+                        You have an unfinished site
+                      </span>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
+                        <button
+                          onClick={() => {
+                            setCoupleNames(draftBanner.coupleNames);
+                            setVibeString(draftBanner.vibeString);
+                            setCurrentStep(draftBanner.step || 'vibe');
+                            setDraftBanner(null);
+                          }}
+                          style={{
+                            fontSize: '0.85rem', fontWeight: 600, color: '#6B7B3A',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            textDecoration: 'underline', textUnderlineOffset: '2px', padding: 0,
+                          }}
+                        >
+                          Continue where you left off
+                        </button>
+                        <span style={{ color: '#C4A050', fontSize: '0.8rem' }}>or</span>
+                        <button
+                          onClick={() => {
+                            try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
+                            setDraftBanner(null);
+                            setCurrentStep('photos');
+                          }}
+                          style={{
+                            fontSize: '0.85rem', color: '#9A9488', background: 'none',
+                            border: 'none', cursor: 'pointer', padding: 0,
+                          }}
+                        >
+                          Start fresh
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <UserSites
+                    onStartNew={() => setCurrentStep('photos')}
+                    onEditSite={(site) => {
+                      setManifest(site.manifest);
+                      setSubdomain(site.domain);
+                      setCoupleNames(site.names || ['', '']);
+                      setCurrentStep('edit');
+                    }}
+                    onManageGuests={(site) => {
+                      setSubdomain(site.domain);
+                      setCurrentStep('guests');
+                    }}
+                  />
+                </>
               )}
 
               {/* -- PHOTOS -- */}
               {currentStep === 'photos' && (
-                <div>
-                  <PhotoBrowser
-                    onSelectionChange={handlePhotosSelected}
-                    maxSelection={30}
-                  />
-                  
-                  <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-                    <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                      Google Photos refusing to sync?
-                    </p>
-                    <button
-                      onClick={() => setCurrentStep('local-upload')}
-                      style={{
-                        padding: '0.75rem 2rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.1)',
-                        background: '#ffffff', color: 'var(--eg-fg)', fontSize: '0.95rem',
-                        fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
-                      }}
-                    >
-                      Bypass API and Upload Locally
-                    </button>
-                  </div>
-                  {selectedPhotos.length > 0 && (
-                    <div style={{ position: 'sticky', bottom: '1rem', marginTop: '2rem' }}>
-                      <button
-                        onClick={() => setCurrentStep('cluster-review')}
-                        style={{
-                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          gap: '0.5rem', padding: '1rem 1.5rem', borderRadius: '0.75rem',
-                          background: 'var(--eg-fg)', color: '#fff', fontSize: '0.9rem',
-                          fontWeight: 500, cursor: 'pointer', border: 'none',
-                          boxShadow: '0 8px 30px rgba(0,0,0,0.15)'
-                        }}
-                      >
-                        Continue with {selectedPhotos.length} photos
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <PhotosStep
+                  selectedPhotos={selectedPhotos}
+                  onPhotosSelected={handlePhotosSelected}
+                  onContinue={() => setCurrentStep('cluster-review')}
+                  onLocalUpload={() => setCurrentStep('local-upload')}
+                />
               )}
               {/* CLUSTER REVIEW */}
 
@@ -518,11 +689,15 @@ export default function DashboardPage() {
               {currentStep === 'vibe' && (
                 <div style={{ paddingBottom: '2rem' }}>
                   <button
-                    onClick={() => setCurrentStep('photos')}
+                    onClick={() => {
+                      const hasData = coupleNames[0] || coupleNames[1] || vibeString;
+                      if (hasData && !confirm('You\'ll lose your progress. Go back anyway?')) return;
+                      setCurrentStep('photos');
+                    }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '0.4rem', 
-                      fontSize: '0.9rem', color: 'var(--eg-muted)', 
-                      marginBottom: '2rem', background: 'none', border: 'none', 
+                      display: 'flex', alignItems: 'center', gap: '0.4rem',
+                      fontSize: '0.9rem', color: 'var(--eg-muted)',
+                      marginBottom: '2rem', background: 'none', border: 'none',
                       cursor: 'pointer',
                     }}
                   >
@@ -654,7 +829,7 @@ export default function DashboardPage() {
             >
               {publishedUrl ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: 'var(--eg-accent, #A3B18A)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
                     <Check size={32} />
                   </div>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginTop: '0.5rem' }}>It&apos;s Live.</h2>
@@ -714,7 +889,7 @@ export default function DashboardPage() {
                       style={{ flex: 1, padding: '1rem', fontSize: '1rem', border: 'none', outline: 'none' }}
                       disabled={isPublishing}
                       autoFocus
-                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = '#A3B18A'; }}
+                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'var(--eg-accent)'; }}
                       onBlur={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
                     />
                     <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>

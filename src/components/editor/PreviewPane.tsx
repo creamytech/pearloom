@@ -19,6 +19,8 @@ export interface PreviewPaneProps {
   onSectionClick?: (chapterId: string) => void;
   /** When set, drop zones appear between chapters for drag-and-drop reorder/insert */
   draggingId?: string | null;
+  /** When set, the matching chapter will show a selection ring */
+  selectedChapterId?: string | null;
 }
 
 type PreviewDevice = 'desktop' | 'mobile';
@@ -38,7 +40,7 @@ function HeroSection({
 }) {
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#b8926a';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
   const tagline = manifest.poetry?.heroTagline || 'A story of love and forever';
@@ -106,7 +108,7 @@ function ChapterCard({
 }) {
   const bg = vibeSkin?.palette?.card || manifest.theme?.colors?.cardBg || '#fff';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#b8926a';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
   const muted = vibeSkin?.palette?.muted || manifest.theme?.colors?.muted || '#888';
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
@@ -216,11 +218,11 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
     <div
       ref={setNodeRef}
       style={{
-        height: isOver ? '72px' : '10px',
+        height: isOver ? '80px' : '24px',
         margin: '0 48px',
         borderRadius: '8px',
-        border: isOver ? `2px dashed ${accent}` : `2px dashed transparent`,
-        background: isOver ? `${accent}15` : 'transparent',
+        border: isOver ? `2px solid ${accent}` : `2px dotted ${accent}30`,
+        background: isOver ? `${accent}22` : `${accent}06`,
         transition: 'all 0.18s ease',
         display: 'flex',
         alignItems: 'center',
@@ -229,8 +231,8 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
       }}
     >
       {isOver && (
-        <span style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          Drop here
+        <span style={{ fontSize: '12px', fontWeight: 700, color: accent, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          Drop here ↓
         </span>
       )}
     </div>
@@ -239,32 +241,32 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
 
 // ── Main PreviewPane ───────────────────────────────────────────
 export function PreviewPane({
-  manifest, coupleNames, vibeSkin, scale = 0.65, onSectionClick, draggingId,
+  manifest, coupleNames, vibeSkin, scale = 0.65, onSectionClick, draggingId, selectedChapterId,
 }: PreviewPaneProps) {
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
 
   const containerWidth = DEVICE_WIDTHS[previewDevice];
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
-  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#b8926a';
+  const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
   const chapters = [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   // The outer pane fills all available space; the inner content div is scaled
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100%',
-      background: '#1a1916', overflow: 'hidden',
+      background: 'var(--eg-dark-2, #3D3530)', overflow: 'hidden',
     }}>
       {/* ── Header bar ── */}
       <div style={{
         flexShrink: 0, height: '40px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 12px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        background: '#110f0d',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        background: 'rgba(0,0,0,0.2)',
       }}>
         <span style={{
-          fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)',
+          fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)',
         }}>
           Live Preview
         </span>
@@ -318,22 +320,51 @@ export function PreviewPane({
             {/* Top drop zone — insert before first chapter */}
             {draggingId && <DropZone id="drop:before:0" accent={accent} />}
 
-            {chapters.map((ch, i) => (
-              <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
-                <ChapterCard
-                  chapter={ch}
-                  vibeSkin={vibeSkin}
-                  manifest={manifest}
-                  onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
-                />
-                {draggingId
-                  ? <DropZone id={`drop:after:${i}`} accent={accent} />
-                  : i < chapters.length - 1 && (
-                    <div style={{ height: '1px', background: `${accent}18`, margin: '0 48px' }} />
-                  )
-                }
-              </div>
-            ))}
+            {chapters.map((ch, i) => {
+              const isSelected = selectedChapterId === ch.id;
+              return (
+                <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
+                  {isSelected ? (
+                    <div style={{
+                      outline: `2px solid var(--eg-plum, #6D597A)`,
+                      outlineOffset: '-2px',
+                      borderRadius: '4px',
+                      position: 'relative',
+                    }}>
+                      <ChapterCard
+                        chapter={ch}
+                        vibeSkin={vibeSkin}
+                        manifest={manifest}
+                        onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
+                      />
+                      <div style={{
+                        position: 'absolute', top: '8px', right: '8px',
+                        background: 'var(--eg-plum, #6D597A)',
+                        color: '#fff', fontSize: '0.68rem', fontWeight: 700,
+                        padding: '2px 8px', borderRadius: '100px',
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        pointerEvents: 'none',
+                      }}>
+                        Editing
+                      </div>
+                    </div>
+                  ) : (
+                    <ChapterCard
+                      chapter={ch}
+                      vibeSkin={vibeSkin}
+                      manifest={manifest}
+                      onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
+                    />
+                  )}
+                  {draggingId
+                    ? <DropZone id={`drop:after:${i}`} accent={accent} />
+                    : i < chapters.length - 1 && (
+                      <div style={{ height: '1px', background: `${accent}18`, margin: '0 48px' }} />
+                    )
+                  }
+                </div>
+              );
+            })}
 
             {/* Footer */}
             <div style={{

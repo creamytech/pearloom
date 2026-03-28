@@ -182,10 +182,14 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
     }
   };
 
-  const getSiteUrl = (domain: string) =>
-    typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? `http://${domain}.localhost:3000`
-      : `https://${domain}.pearloom.app`;
+  const getSiteUrl = (domain: string) => {
+    if (typeof window === 'undefined') return `https://${domain}.pearloom.app`;
+    const { hostname, origin } = window.location;
+    if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
+    // On Vercel preview deployments use path-based routing
+    if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
+    return `https://${domain}.pearloom.app`;
+  };
 
   const handleCopyUrl = async (site: UserSite, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -291,11 +295,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             borderRadius: '1.25rem',
             padding: '3rem',
             textAlign: 'center',
-            border: '1px solid rgba(239,68,68,0.12)',
+            border: '1px solid rgba(109,89,122,0.12)',
             boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
           }}
         >
-          <AlertTriangle size={36} color="rgba(239,68,68,0.5)" style={{ margin: '0 auto 1.25rem' }} />
+          <AlertTriangle size={36} color="rgba(109,89,122,0.5)" style={{ margin: '0 auto 1.25rem' }} />
           <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.4rem', fontWeight: 400, marginBottom: '0.75rem', color: 'var(--eg-fg)' }}>
             Could not load your sites
           </h3>
@@ -479,15 +483,15 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           <>
                             <div style={{
                               width: '6px', height: '6px', borderRadius: '50%',
-                              background: '#4ade80',
-                              boxShadow: '0 0 6px rgba(74,222,128,0.7)',
+                              background: 'var(--eg-accent, #A3B18A)',
+                              boxShadow: '0 0 6px rgba(163,177,138,0.4)',
                               animation: 'pulse 2s ease-in-out infinite',
                             }} />
                             <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.9)', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
                           </>
                         ) : (
                           <>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fbbf24' }} />
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--eg-gold, #D6C6A8)' }} />
                             <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.75)', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
                           </>
                         )}
@@ -528,7 +532,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           fontFamily: 'ui-monospace, monospace',
                           border: '1px solid rgba(0,0,0,0.06)',
                         }}>
-                          {site.domain}.pearloom.app
+                          {getSiteUrl(site.domain).replace(/^https?:\/\//, '')}
                         </code>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--eg-muted)', fontSize: '0.72rem' }}>
                           <Calendar size={11} />
@@ -601,9 +605,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             flex: 1,
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
-                            background: isCopied ? 'rgba(34,197,94,0.08)' : 'rgba(163,177,138,0.08)',
-                            color: isCopied ? '#16a34a' : 'var(--eg-accent)',
-                            border: isCopied ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(163,177,138,0.2)',
+                            background: isCopied ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.08)',
+                            color: isCopied ? 'var(--eg-accent, #A3B18A)' : 'var(--eg-accent)',
+                            border: isCopied ? '1px solid rgba(163,177,138,0.3)' : '1px solid rgba(163,177,138,0.2)',
                             cursor: 'pointer', fontWeight: 600, fontSize: '0.78rem',
                             fontFamily: 'var(--eg-font-body)',
                             transition: 'all 0.25s',
@@ -672,21 +676,21 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="Delete site"
                           style={{
                             width: '38px', height: '38px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(239,68,68,0.12)',
+                            border: '1px solid rgba(109,89,122,0.12)',
                             background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'rgba(239,68,68,0.45)', cursor: 'pointer',
+                            color: 'rgba(109,89,122,0.45)', cursor: 'pointer',
                             transition: 'all 0.2s',
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.background = '#fef2f2';
-                            e.currentTarget.style.color = '#ef4444';
-                            e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)';
+                            e.currentTarget.style.background = 'rgba(109,89,122,0.08)';
+                            e.currentTarget.style.color = 'var(--eg-plum, #6D597A)';
+                            e.currentTarget.style.borderColor = 'rgba(109,89,122,0.25)';
                           }}
                           onMouseOut={(e) => {
                             e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = 'rgba(239,68,68,0.45)';
-                            e.currentTarget.style.borderColor = 'rgba(239,68,68,0.12)';
+                            e.currentTarget.style.color = 'rgba(109,89,122,0.45)';
+                            e.currentTarget.style.borderColor = 'rgba(109,89,122,0.12)';
                           }}
                         >
                           {isDeleting
@@ -806,11 +810,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               </button>
               <div style={{
                 width: '60px', height: '60px', borderRadius: '50%',
-                background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(109,89,122,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 2rem',
-                boxShadow: '0 8px 24px rgba(239,68,68,0.1)',
+                boxShadow: '0 8px 24px rgba(109,89,122,0.1)',
               }}>
-                <AlertTriangle size={26} color="#ef4444" />
+                <AlertTriangle size={26} color="var(--eg-plum, #6D597A)" />
               </div>
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)', fontSize: '1.9rem',
@@ -842,10 +846,10 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                   onClick={() => handleDelete(confirmDelete)}
                   style={{
                     flex: 1, padding: '0.9rem', borderRadius: '0.875rem',
-                    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                    background: 'linear-gradient(135deg, #6D597A, #5a4a66)',
                     color: '#fff', border: 'none', cursor: 'pointer',
                     fontWeight: 600, fontSize: '0.9rem',
-                    boxShadow: '0 8px 24px rgba(239,68,68,0.28)',
+                    boxShadow: '0 8px 24px rgba(109,89,122,0.28)',
                     fontFamily: 'var(--eg-font-body)',
                   }}
                 >

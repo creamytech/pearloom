@@ -5,9 +5,39 @@
 // Rich "Story DNA" Wizard — captures the couple's full aesthetic
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane, Info } from 'lucide-react';
+
+// Small tooltip component for Phase 2 field hints
+function Tooltip({ text }: { text: string }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: '0.35rem', cursor: 'pointer', verticalAlign: 'middle' }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+      onFocus={() => setVisible(true)}
+      onBlur={() => setVisible(false)}
+      tabIndex={0}
+      aria-label={text}
+    >
+      <Info size={13} style={{ color: 'var(--eg-muted)', flexShrink: 0 }} />
+      {visible && (
+        <span style={{
+          position: 'absolute', bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--eg-bg, #fff)', border: '1px solid var(--eg-gold, #DAA520)',
+          borderRadius: '0.5rem', padding: '0.45rem 0.7rem', fontSize: '0.78rem',
+          color: 'var(--eg-fg)', maxWidth: '240px', whiteSpace: 'normal' as 'normal',
+          lineHeight: 1.4, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', zIndex: 50, pointerEvents: 'none',
+          textTransform: 'none' as 'none', letterSpacing: 'normal', fontWeight: 400,
+        }}>
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
 
 interface DetailsData {
   ceremonyVenue?: string;
@@ -143,7 +173,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [detailsData, setDetailsData] = useState<DetailsData>({});
   const [inspirationUrls, setInspirationUrls] = useState<string[]>([]);
   const [subdomain, setSubdomain] = useState('');
+  const [subdomainStatus, setSubdomainStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
+  const subdomainDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [occasion, setOccasion] = useState<string>('');
+  const [showValidation, setShowValidation] = useState(false);
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
   const totalSteps = isEvent ? 8 : 7;
 
@@ -177,8 +210,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const canProceedStep5 = favPlaces.length > 0;
   const canProceedStep6 = meetCute.trim() !== '';
 
-  const handleNext = () => { if (step < totalSteps) setStep(step + 1); };
-  const handleBack = () => { if (step > 1) setStep(step - 1); };
+  const canProceedCurrentStep = () => {
+    if (step === 1) return !!canProceedStep1;
+    if (step === 2) return !!canProceedStep2;
+    if (step === 3) return !!canProceedStep3;
+    if (step === 4) return !!canProceedStep4;
+    if (step === 5) return !!canProceedStep5;
+    if (step === 6) return !!canProceedStep6;
+    return true;
+  };
+
+  const handleNext = () => {
+    if (!canProceedCurrentStep()) {
+      setShowValidation(true);
+      return;
+    }
+    setShowValidation(false);
+    if (step < totalSteps) setStep(step + 1);
+  };
+  const handleBack = () => {
+    setShowValidation(false);
+    if (step > 1) setStep(step - 1);
+  };
 
   const togglePlace = (id: string) => {
     setFavPlaces(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
@@ -240,6 +293,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       ...details,
     });
   };
+
+  // Debounced subdomain availability check
+  useEffect(() => {
+    if (subdomainDebounceRef.current) clearTimeout(subdomainDebounceRef.current);
+    const clean = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60);
+    if (!clean) { setSubdomainStatus('idle'); return; }
+    if (clean.length < 2) { setSubdomainStatus('error'); return; }
+    setSubdomainStatus('checking');
+    subdomainDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/sites/check-subdomain?slug=${encodeURIComponent(clean)}`);
+        const data = await res.json();
+        setSubdomainStatus(data.available ? 'available' : 'taken');
+      } catch {
+        setSubdomainStatus('idle');
+      }
+    }, 500);
+    return () => {
+      if (subdomainDebounceRef.current) clearTimeout(subdomainDebounceRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subdomain]);
 
   const setDetail = (key: keyof DetailsData, value: string) => {
     setDetailsData(prev => ({ ...prev, [key]: value || undefined }));
@@ -346,7 +421,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <>
               {/* Ceremony block */}
               <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Ceremony</p>
+                <p style={sectionHeading}>Ceremony<Tooltip text="Used to create your events page and guest directions" /></p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue name</label>
@@ -389,7 +464,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
               {/* Reception block */}
               <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Reception</p>
+                <p style={sectionHeading}>Reception<Tooltip text="Used to create your events page and guest directions" /></p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue name</label>
@@ -432,7 +507,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
               {/* Dress code */}
               <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Dress Code <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)' }}>(tap to select, tap again to clear)</span></p>
+                <p style={sectionHeading}>Dress Code<Tooltip text="Displayed on your events page for guests" /> <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)' }}>(tap to select, tap again to clear)</span></p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
                   {DRESSCODE_OPTIONS.map(code => (
                     <button key={code} onClick={() => toggleDresscode(code)} style={pillStyle(detailsData.dresscode === code)}>
@@ -579,7 +654,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           marginTop: '2rem',
         }}>
           <p style={sectionHeading}>
-            <span style={{ marginRight: '0.4rem' }}>✨</span>Visual Inspiration
+            <span style={{ marginRight: '0.4rem' }}>✨</span>Visual Inspiration<Tooltip text="Our AI analyzes these to match your visual style — use direct image links" />
             <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)', marginLeft: '0.5rem' }}>(optional)</span>
           </p>
           <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
@@ -589,10 +664,13 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           {inspirationUrls.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '0.75rem' }}>
               {inspirationUrls.map((url, idx) => {
-                const isDirectImage = /\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(url);
+                const isDirectImage = /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(url);
+                const isKnownCdn = /(?:^|\.)(?:i\.imgur\.com|cdn\.discordapp\.com|images\.unsplash\.com|imagedelivery\.net|cloudinary\.com|res\.cloudinary\.com|live\.staticflickr\.com)(?:\/|$)/i.test(url);
                 const isValid = /^https?:\/\/.+/.test(url.trim());
+                const warnNotDirectImage = isValid && !isDirectImage && !isKnownCdn;
                 return (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {isDirectImage && isValid && (
                       <div style={{
                         width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem',
@@ -640,6 +718,12 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                       ×
                     </button>
                   </div>
+                  {warnNotDirectImage && (
+                    <p style={{ fontSize: '0.8rem', color: 'var(--eg-gold, #B8A04A)', marginTop: '0.1rem' }}>
+                      &#9888; Use a direct image link (not a Pinterest or Instagram page URL)
+                    </p>
+                  )}
+                  </div>
                 );
               })}
             </div>
@@ -670,7 +754,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* URL slug picker */}
         <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginTop: '2rem' }}>
-          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL</p>
+          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.app" /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
@@ -693,20 +777,48 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               pearloom.app/{subdomain}
             </p>
           )}
+          {/* Availability status */}
+          {subdomainStatus === 'checking' && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid var(--eg-muted)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+              Checking availability...
+            </p>
+          )}
+          {subdomainStatus === 'available' && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--eg-accent)', marginTop: '0.5rem', fontWeight: 600 }}>
+              ✓ Available
+            </p>
+          )}
+          {subdomainStatus === 'taken' && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--eg-plum, #7C3D73)', marginTop: '0.5rem', fontWeight: 600 }}>
+              ✗ Already taken — try a different URL
+            </p>
+          )}
+          {subdomainStatus === 'error' && subdomain.length > 0 && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.5rem' }}>
+              Enter at least 2 characters
+            </p>
+          )}
         </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
         {/* Build my site button */}
         <div style={{ marginTop: '2.5rem' }}>
           <button
             onClick={() => handleFinalSubmit(false)}
+            disabled={subdomainStatus === 'taken'}
             style={{
               ...btnPrimaryStyle,
               width: '100%',
               justifyContent: 'center',
-              background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
-              boxShadow: '0 12px 36px rgba(163,177,138,0.4)',
+              background: subdomainStatus === 'taken'
+                ? 'rgba(0,0,0,0.12)'
+                : 'linear-gradient(135deg, #A3B18A, #8FA876)',
+              boxShadow: subdomainStatus === 'taken' ? 'none' : '0 12px 36px rgba(163,177,138,0.4)',
               fontSize: '1rem',
               padding: '1.1rem 2rem',
+              cursor: subdomainStatus === 'taken' ? 'not-allowed' : 'pointer',
+              color: subdomainStatus === 'taken' ? 'var(--eg-muted)' : '#fff',
             }}
           >
             Build my site <Sparkles size={18} />
@@ -720,9 +832,20 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     <div style={{
       maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem',
     }}>
-      {/* Step 1 of 2 indicator */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-        <span style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', fontWeight: 500 }}>Step 1 of 2</span>
+      {/* Linear progress bar — spans full wizard flow */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
+            Step {step} of {totalSteps + 1}
+          </span>
+        </div>
+        <div style={{ width: '100%', height: '3px', background: 'var(--eg-divider, rgba(0,0,0,0.08))', overflow: 'hidden' }}>
+          <motion.div
+            animate={{ width: `${Math.round((step / (totalSteps + 1)) * 100)}%` }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            style={{ height: '100%', background: 'var(--eg-accent)' }}
+          />
+        </div>
       </div>
       {/* Pear progress dots */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '3rem', alignItems: 'center', justifyContent: 'center' }}>
@@ -766,18 +889,42 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>First Person</label>
-                <input type="text" placeholder="e.g. Ben" value={name1} onChange={e => { setName1(e.target.value); setSubdomain(slugFromNames(e.target.value, name2)); }} style={{ ...inputStyle, fontSize: '1.25rem' }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <input type="text" placeholder="e.g. Ben" value={name1} onChange={e => { setName1(e.target.value); setSubdomain(slugFromNames(e.target.value, name2)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name1.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                {showValidation && !name1.trim() && (
+                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span className="shimmer-text" style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', color: 'var(--eg-accent)' }}>&</span>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Second Person</label>
-                <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem' }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name2.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                {showValidation && !name2.trim() && (
+                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
+                )}
               </div>
             </div>
+            {/* Slug preview + non-ASCII warning */}
+            {(name1.trim() || name2.trim()) && (() => {
+              const slug = slugFromNames(name1, name2);
+              const simpleSlug = `${name1.toLowerCase().replace(/\s+/g, '-')}-and-${name2.toLowerCase().replace(/\s+/g, '-')}`;
+              const hasNonAscii = slug !== simpleSlug;
+              return (
+                <div style={{ marginTop: '1rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: hasNonAscii ? '0.35rem' : 0 }}>
+                    Your site URL: <span style={{ fontWeight: 600 }}>{slug}.pearloom.app</span>
+                  </p>
+                  {hasNonAscii && (
+                    <p style={{ fontSize: '0.82rem', color: 'var(--eg-gold, #B8A04A)' }}>
+                      &#9888; Special characters removed from your URL: {slug}.pearloom.app
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>
-              <button onClick={handleNext} disabled={!canProceedStep1} style={{ ...btnPrimaryStyle, opacity: canProceedStep1 ? 1 : 0.5, pointerEvents: canProceedStep1 ? 'auto' : 'none' }}>
+              <button onClick={handleNext} style={{ ...btnPrimaryStyle, opacity: canProceedStep1 ? 1 : 0.5 }}>
                 Continue <ArrowRight size={18} />
               </button>
             </div>
@@ -961,7 +1108,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>How did you meet? *</label>
-                <textarea value={meetCute} onChange={e => setMeetCute(e.target.value)} placeholder="We matched on Hinge and had our first date at a little Italian place..." style={{ ...inputStyle, minHeight: '140px', resize: 'none', lineHeight: 1.6 }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <textarea value={meetCute} onChange={e => setMeetCute(e.target.value)} placeholder="We matched on Hinge and had our first date at a little Italian place..." style={{ ...inputStyle, minHeight: '140px', resize: 'none', lineHeight: 1.6, ...(showValidation && !meetCute.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                {showValidation && !meetCute.trim() && (
+                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
+                )}
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>What makes your relationship special? <span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span></label>
@@ -1033,7 +1183,24 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>When is the event?</label>
-                <input type="text" placeholder="e.g. October 12th, 2026" value={eventDate} onChange={e => setEventDate(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                <input
+                  type="text"
+                  placeholder="e.g. October 12th, 2026"
+                  value={eventDate
+                    ? (/^\d{4}-\d{2}-\d{2}$/.test(eventDate)
+                        ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                        : eventDate)
+                    : ''}
+                  onChange={e => setEventDate(e.target.value)}
+                  style={inputStyle}
+                  onFocus={getFocusStyle}
+                  onBlur={getBlurStyle}
+                />
+                {eventDate && /^\d{4}-\d{2}-\d{2}$/.test(eventDate) && (
+                  <p style={{ fontSize: '0.8rem', color: 'var(--eg-accent)', marginTop: '0.4rem', fontWeight: 500 }}>
+                    Using date from earlier — change if needed
+                  </p>
+                )}
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Where is the venue?</label>

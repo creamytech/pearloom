@@ -55,9 +55,9 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* Explainer */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(184,146,106,0.08), rgba(184,146,106,0.03))',
+        background: 'linear-gradient(135deg, rgba(163,177,138,0.08), rgba(163,177,138,0.03))',
         borderRadius: '0.75rem', padding: '1rem 1.25rem',
-        border: '1px solid rgba(184,146,106,0.15)',
+        border: '1px solid rgba(163,177,138,0.15)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <Sparkles size={15} color="var(--eg-accent)" />
@@ -95,7 +95,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                 </span>
                 <button
                   onClick={() => removeSample(i)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.5)', display: 'flex', flexShrink: 0 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(109,89,122,0.5)', display: 'flex', flexShrink: 0 }}
                 >
                   <Trash2 size={13} />
                 </button>
@@ -125,7 +125,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
             padding: '0.65rem 1rem', borderRadius: '0.6rem',
-            background: saved ? '#10b981' : 'var(--eg-fg)', color: '#fff',
+            background: saved ? 'var(--eg-accent, #A3B18A)' : 'var(--eg-fg)', color: '#fff',
             border: 'none', cursor: newSample.trim() ? 'pointer' : 'not-allowed',
             fontSize: '0.8rem', fontWeight: 700, opacity: newSample.trim() ? 1 : 0.4,
             transition: 'all 0.2s',

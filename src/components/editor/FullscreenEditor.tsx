@@ -18,6 +18,7 @@ import {
   Globe, Monitor, Tablet, Smartphone,
   Image, Calendar, Upload, X, Camera,
   Heart, MapPin, Clock, ChevronDown, Columns2,
+  Eye, EyeOff,
 } from 'lucide-react';
 import { PreviewPane } from './PreviewPane';
 import { PhotoReposition } from './PhotoReposition';
@@ -41,6 +42,7 @@ import FontPicker from '@/components/dashboard/FontPicker';
 import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { AIEditorChat } from './AIEditorChat';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -77,16 +79,17 @@ function slugDate(iso: string) {
 
 // ── Label/Input shared styles ──────────────────────────────────
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.6rem', fontWeight: 800,
-  letterSpacing: '0.16em', textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.35)', marginBottom: '0.45rem',
+  display: 'block', fontSize: '0.82rem', fontWeight: 700,
+  letterSpacing: '0.1em', textTransform: 'uppercase',
+  color: 'var(--eg-muted, #9A9488)', marginBottom: '0.5rem',
 };
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.65rem 0.8rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.05)',
-  color: '#fff', fontSize: 'max(16px, 0.85rem)', outline: 'none', fontFamily: 'inherit',
+  border: '1px solid var(--eg-divider, #E6DFD2)', background: 'rgba(255,255,255,0.8)',
+  color: 'var(--eg-fg, #2B2B2B)', fontSize: 'max(16px, 0.88rem)', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
+  minHeight: '38px',
 };
 
 function Field({ label, value, onChange, rows, placeholder }: {
@@ -100,7 +103,7 @@ function Field({ label, value, onChange, rows, placeholder }: {
         value={value} onChange={e => onChange(e.target.value)} rows={rows}
         placeholder={placeholder}
         style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
       />
     </div>
@@ -112,7 +115,7 @@ function Field({ label, value, onChange, rows, placeholder }: {
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
       />
     </div>
@@ -129,7 +132,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
         color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
         minHeight: '44px',
       }}
-      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.8)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
     >
       <GripIcon size={14} />
@@ -153,12 +156,12 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
         cursor: isDragging ? 'grabbing' : 'grab',
         padding: '2px 6px 2px 2px',
         display: 'flex', alignItems: 'center',
-        color: isDragging ? 'rgba(184,146,106,0.9)' : 'rgba(255,255,255,0.18)',
+        color: isDragging ? 'rgba(163,177,138,0.9)' : 'rgba(255,255,255,0.18)',
         touchAction: 'none', userSelect: 'none', flexShrink: 0,
         borderRadius: '4px',
         transition: 'color 0.15s, background 0.15s',
       }}
-      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.08)'; }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.8)'; (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.18)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
     >
       ⌖
@@ -186,27 +189,36 @@ function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      title={desc}
+      title="Drag to insert →"
       style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '8px 10px', borderRadius: '7px',
-        border: '1px solid rgba(255,255,255,0.08)',
-        background: isDragging ? 'rgba(184,146,106,0.2)' : 'rgba(255,255,255,0.04)',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '10px 12px', borderRadius: '8px', minHeight: '60px',
+        border: '1px solid rgba(255,255,255,0.1)',
+        background: isDragging ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.06)',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none', touchAction: 'none',
         transition: 'all 0.15s',
-        marginBottom: '4px',
+        marginBottom: '6px',
         opacity: isDragging ? 0.5 : 1,
+        transform: isDragging ? 'none' : undefined,
       }}
-      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(184,146,106,0.3)'; }}
-      onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.04)'; el.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.1)'; el.style.borderColor = 'rgba(163,177,138,0.35)'; el.style.transform = 'translateX(2px)'; }}
+      onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.06)'; el.style.borderColor = 'rgba(255,255,255,0.1)'; el.style.transform = 'translateX(0)'; }}
     >
-      <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{emoji}</span>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: '0.73rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', lineHeight: 1.2 }}>{label}</div>
-        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+      {/* Drag handle */}
+      <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '1rem', flexShrink: 0, lineHeight: 1 }}>✦</div>
+      {/* Emoji icon with colored bg */}
+      <div style={{
+        width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
+        background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', fontSize: '1.15rem',
+      }}>
+        {emoji}
       </div>
-      <div style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem', flexShrink: 0 }}>⠿</div>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.42)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+      </div>
     </div>
   );
 }
@@ -241,8 +253,8 @@ function SectionItem({
       <div
         style={{
           borderRadius: '8px',
-          background: isActive ? 'rgba(184,146,106,0.18)' : 'rgba(255,255,255,0.04)',
-          border: isActive ? '1px solid rgba(184,146,106,0.35)' : '1px solid transparent',
+          background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.04)',
+          border: isActive ? '1px solid rgba(163,177,138,0.35)' : '1px solid transparent',
           transition: 'all 0.15s',
           position: 'relative',
           overflow: 'hidden',
@@ -277,13 +289,13 @@ function SectionItem({
           {/* Labels */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: '0.75rem', fontWeight: 700, color: isActive ? 'rgba(184,146,106,1)' : 'rgba(255,255,255,0.85)',
+              fontSize: '0.85rem', fontWeight: 700, color: isActive ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.9)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               lineHeight: 1.3,
             }}>
               {chapter.title || 'Untitled'}
             </div>
-            <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
+            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
               Ch. {index + 1} · {slugDate(chapter.date)}
             </div>
           </div>
@@ -403,10 +415,10 @@ function ImageManager({
           disabled={uploading}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 10px', borderRadius: '5px', border: '1px solid rgba(184,146,106,0.3)',
-            background: 'rgba(184,146,106,0.1)', color: '#b8926a',
-            fontSize: '0.68rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
-            opacity: uploading ? 0.6 : 1,
+            padding: '5px 12px', borderRadius: '5px', border: '1px solid rgba(163,177,138,0.4)',
+            background: 'rgba(163,177,138,0.15)', color: 'var(--eg-accent, #A3B18A)',
+            fontSize: '0.82rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
+            opacity: uploading ? 0.6 : 1, minHeight: '32px',
           }}
         >
           {uploading
@@ -435,11 +447,11 @@ function ImageManager({
             border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '10px',
             background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.25)',
           }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.4)'; (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
         >
           <Camera size={20} />
-          <span style={{ fontSize: '0.72rem', fontWeight: 600 }}>Add photos</span>
+          <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Add photos</span>
         </button>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -472,7 +484,7 @@ function ImageManager({
                   transition: 'background 0.15s',
                   zIndex: 2,
                 }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#ef4444'; }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--eg-plum, #6D597A)'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.7)'; }}
               >
                 <X size={10} />
@@ -481,7 +493,7 @@ function ImageManager({
               {i === 0 && (
                 <div style={{
                   position: 'absolute', bottom: '4px', left: '4px',
-                  background: 'rgba(184,146,106,0.9)', color: '#fff',
+                  background: 'rgba(163,177,138,0.9)', color: '#fff',
                   fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em',
                   textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
                   zIndex: 2,
@@ -498,7 +510,7 @@ function ImageManager({
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'rgba(255,255,255,0.25)', transition: 'all 0.15s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.4)'; (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
           >
             <Plus size={16} />
@@ -515,14 +527,14 @@ function ImageManager({
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               width: '100%', padding: '7px 12px', borderRadius: '6px',
-              border: '1px solid rgba(184,146,106,0.3)',
-              background: generatingCaptions ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.1)',
-              color: generatingCaptions ? 'rgba(255,255,255,0.4)' : '#b8926a',
-              fontSize: '0.68rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
+              border: '1px solid rgba(163,177,138,0.3)',
+              background: generatingCaptions ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
+              color: generatingCaptions ? 'rgba(255,255,255,0.4)' : 'var(--eg-accent, #A3B18A)',
+              fontSize: '0.82rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
               letterSpacing: '0.04em', transition: 'all 0.15s',
             }}
-            onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.2)'; }}
-            onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.1)'; }}
+            onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
+            onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
           >
             {generatingCaptions
               ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Generating captions…</>
@@ -570,7 +582,7 @@ function ChapterPanel({
       {/* Section heading */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-        <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.7)', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-gold, #D6C6A8)', whiteSpace: 'nowrap' }}>
           Chapter Editor
         </span>
         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
@@ -584,7 +596,7 @@ function ChapterPanel({
           onChange={e => upd({ title: e.target.value })}
           placeholder="The Rooftop, Brooklyn"
           style={{ ...inp, fontSize: 'max(16px, 1rem)', fontWeight: 700, letterSpacing: '-0.01em' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
           onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
@@ -598,7 +610,7 @@ function ChapterPanel({
             value={chapter.date ? chapter.date.slice(0, 10) : ''}
             onChange={e => upd({ date: e.target.value })}
             style={{ ...inp, colorScheme: 'dark' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
         </div>
@@ -614,7 +626,7 @@ function ChapterPanel({
           rows={5}
           placeholder="Write your memory here..."
           style={{ ...inp, resize: 'vertical', lineHeight: 1.65, minHeight: '120px' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
           onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
@@ -628,10 +640,10 @@ function ChapterPanel({
               key={l}
               onClick={() => upd({ layout: l })}
               style={{
-                padding: '5px 10px', borderRadius: '100px', border: 'none', cursor: 'pointer',
-                fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.04em',
-                background: currentLayout === l ? '#5c6b3a' : 'rgba(255,255,255,0.07)',
-                color: currentLayout === l ? '#fff' : 'rgba(255,255,255,0.45)',
+                padding: '6px 12px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+                fontSize: '0.82rem', fontWeight: 700, letterSpacing: '0.04em',
+                background: currentLayout === l ? 'var(--eg-plum, #6D597A)' : 'rgba(255,255,255,0.09)',
+                color: currentLayout === l ? '#fff' : 'rgba(255,255,255,0.55)',
                 transition: 'all 0.15s',
               }}
             >
@@ -651,14 +663,14 @@ function ChapterPanel({
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           padding: '10px 16px', borderRadius: '8px',
-          border: '1px solid rgba(184,146,106,0.35)',
-          background: isRewriting ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.12)',
-          color: isRewriting ? 'rgba(255,255,255,0.4)' : '#b8926a',
-          fontSize: '0.78rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
+          border: '1px solid rgba(163,177,138,0.35)',
+          background: isRewriting ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.12)',
+          color: isRewriting ? 'rgba(255,255,255,0.4)' : 'var(--eg-accent, #A3B18A)',
+          fontSize: '0.85rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
           letterSpacing: '0.04em', transition: 'all 0.15s',
         }}
-        onMouseOver={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.22)'; }}
-        onMouseOut={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.12)'; }}
+        onMouseOver={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.22)'; }}
+        onMouseOut={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
       >
         {isRewriting
           ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Rewriting this chapter…</>
@@ -682,7 +694,7 @@ function ChapterPanel({
       {/* Section Style Overrides */}
       {vibeSkin && onOverridesChange && (
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
-          <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '8px' }}>
             Section Style
           </div>
           <SectionStyleEditor
@@ -741,7 +753,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-        <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', whiteSpace: 'nowrap' }}>
           {manifest.occasion === 'birthday' ? 'Party Events' : manifest.occasion === 'anniversary' ? 'Anniversary Events' : 'Wedding Events'}
         </span>
         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
@@ -750,8 +762,8 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
       {events.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.2)', borderRadius: '10px', border: '1px dashed rgba(255,255,255,0.1)' }}>
           <Calendar size={24} style={{ marginBottom: '8px', opacity: 0.4 }} />
-          <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>No events yet</div>
-          <div style={{ fontSize: '0.68rem', marginTop: '4px' }}>Add your ceremony, reception, and more</div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>No events yet</div>
+          <div style={{ fontSize: '0.82rem', marginTop: '4px' }}>Add your ceremony, reception, and more</div>
         </div>
       ) : (
         events.map((evt) => {
@@ -766,8 +778,8 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
               >
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: evtTypeOpt.color, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.name || 'Event'}</div>
-                  <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>{evt.date}{evt.time ? ` · ${evt.time}` : ''}{evt.venue ? ` · ${evt.venue}` : ''}</div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.name || 'Event'}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>{evt.date}{evt.time ? ` · ${evt.time}` : ''}{evt.venue ? ` · ${evt.venue}` : ''}</div>
                 </div>
                 <ChevronDown size={13} color="rgba(255,255,255,0.3)" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
               </button>
@@ -790,10 +802,10 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
                               key={opt.type}
                               onClick={() => updateEvent(evt.id, { type: opt.type })}
                               style={{
-                                padding: '4px 10px', borderRadius: '100px', border: 'none', cursor: 'pointer',
-                                fontSize: '0.65rem', fontWeight: 700,
+                                padding: '5px 12px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+                                fontSize: '0.82rem', fontWeight: 700,
                                 background: (evt.type || 'other') === opt.type ? opt.color : 'rgba(255,255,255,0.08)',
-                                color: (evt.type || 'other') === opt.type ? '#fff' : 'rgba(255,255,255,0.45)',
+                                color: (evt.type || 'other') === opt.type ? '#fff' : 'rgba(255,255,255,0.55)',
                                 transition: 'all 0.15s',
                               }}
                             >{opt.label}</button>
@@ -810,7 +822,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
                             value={evt.date || ''}
                             onChange={e => updateEvent(evt.id, { date: e.target.value })}
                             style={{ ...inp, colorScheme: 'dark' }}
-                            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+                            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
                             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
                           />
                         </div>
@@ -823,7 +835,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
                       {/* Remove button */}
                       <button
                         onClick={() => removeEvent(evt.id)}
-                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.06)', color: '#f87171', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
+                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(109,89,122,0.2)', background: 'rgba(109,89,122,0.06)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}
                       >
                         <Trash2 size={11} /> Remove Event
                       </button>
@@ -839,8 +851,8 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
       {/* Add event button */}
       <button
         onClick={addEvent}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.3)', background: 'transparent', color: '#b8926a', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s' }}
-        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.08)'; }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.4)', background: 'transparent', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s' }}
+        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; }}
         onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <Plus size={13} /> Add Event
@@ -898,10 +910,10 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',
-          color: openSection === id ? '#b8926a' : 'rgba(255,255,255,0.5)',
+          color: openSection === id ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.6)',
         }}
       >
-        <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           {label}
         </span>
         <ChevronDown size={12} style={{ transform: openSection === id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
@@ -913,7 +925,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
   // Section heading divider style
   const sectionHead = (label: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-      <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', whiteSpace: 'nowrap' }}>{label}</span>
       <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
     </div>
   );
@@ -936,7 +948,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
               value={logistics.date || ''}
               onChange={e => upd({ date: e.target.value })}
               style={{ ...inp, colorScheme: 'dark' }}
-              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
             />
           </div>
@@ -949,12 +961,12 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         {sectionHead('Registry')}
         {/* Registry enabled toggle */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Registry enabled</span>
+          <span style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Registry enabled</span>
           <button
             onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
             style={{
               width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: manifest.registry?.enabled !== false ? '#b8926a' : 'rgba(255,255,255,0.12)',
+              background: manifest.registry?.enabled !== false ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -969,14 +981,14 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We are saving for our honeymoon!" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
           <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
-          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
+          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Registry
           </button>
         </div>
         {entries.map((entry, i) => (
           <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#b8926a' }}>Registry {i + 1}</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)' }}>Registry {i + 1}</span>
               <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}>
@@ -988,7 +1000,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
           </div>
         ))}
-        {entries.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
+        {entries.length === 0 && <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
       </Section>
 
       <Section id="rsvp" label="RSVP">
@@ -1000,7 +1012,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             value={logistics.rsvpDeadline || ''}
             onChange={e => upd({ rsvpDeadline: e.target.value })}
             style={{ ...inp, colorScheme: 'dark' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
         </div>
@@ -1029,14 +1041,14 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
           <label style={{ ...lbl, margin: 0 }}>Hotels ({(travel.hotels || []).length})</label>
-          <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
+          <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Hotel
           </button>
         </div>
         {(travel.hotels || []).map((hotel, i) => (
           <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#b8926a' }}>Hotel {i + 1}</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)' }}>Hotel {i + 1}</span>
               <button onClick={() => delHotel(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}>
@@ -1055,7 +1067,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
       <Section id="faq" label="FAQ">
         {sectionHead('FAQ')}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
+          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
           </button>
         </div>
@@ -1072,7 +1084,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             <Field label="Answer" value={faq.answer} onChange={v => updFaq(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />
           </div>
         ))}
-        {faqs.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
+        {faqs.length === 0 && <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
       </Section>
 
       <Section id="vibe" label="Site Vibe">
@@ -1085,10 +1097,10 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
             rows={3}
             placeholder="intimate, golden hour, wildflower meadow..."
             style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.6)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
-          <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.2)', marginTop: '0.4rem', lineHeight: 1.5 }}>
+          <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.4rem', lineHeight: 1.5 }}>
             Used by the AI when rewriting chapters and generating art.
           </div>
         </div>
@@ -1113,8 +1125,10 @@ const ALL_SITE_PAGES: PresetPage[] = [
   { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
   { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
   { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'registry', slug: 'registry', label: 'Registry', icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'registry',  slug: 'registry',  label: 'Registry',      icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'faq',       slug: 'faq',       label: 'FAQ',           icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'guestbook', slug: 'guestbook', label: 'Guest Wishes',  icon: '', alwaysOn: false, occasions: ['wedding', 'anniversary', 'birthday'] },
+  { id: 'live',      slug: 'live',      label: 'Day-Of Updates', icon: '', alwaysOn: false, occasions: ['wedding'] },
 ];
 
 function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest; subdomain: string; onChange: (m: StoryManifest) => void }) {
@@ -1123,6 +1137,13 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
 
   const occasion = (manifest.occasion || 'wedding') as OccasionType;
   const filteredPresets = ALL_SITE_PAGES.filter(p => p.occasions.includes(occasion));
+
+  const togglePageVisibility = (pageId: string) => {
+    const hidden = manifest.hiddenPages || [];
+    const isHidden = hidden.includes(pageId);
+    const next = isHidden ? hidden.filter(id => id !== pageId) : [...hidden, pageId];
+    onChange({ ...manifest, hiddenPages: next });
+  };
 
   const enabled = new Set<string>(
     manifest.blocks?.flatMap(b =>
@@ -1158,16 +1179,16 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
           Site Pages
         </span>
         <button
           onClick={() => setShowAddPage(!showAddPage)}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '5px', border: 'none',
-            background: 'rgba(184,146,106,0.18)', color: '#b8926a',
-            cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
+            padding: '5px 10px', borderRadius: '5px', border: 'none',
+            background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)',
+            cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
           }}
         >
           <Plus size={11} /> Add Page
@@ -1181,7 +1202,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             style={{ overflow: 'hidden', marginBottom: '8px' }}
           >
-            <div style={{ background: 'rgba(184,146,106,0.08)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(184,146,106,0.2)' }}>
+            <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(163,177,138,0.2)' }}>
               <label style={lbl}>Page Name</label>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <input
@@ -1196,13 +1217,13 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
                   disabled={!newPageTitle.trim()}
                   style={{
                     padding: '6px 12px', borderRadius: '5px', border: 'none',
-                    background: newPageTitle.trim() ? '#b8926a' : 'rgba(255,255,255,0.1)',
+                    background: newPageTitle.trim() ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.1)',
                     color: newPageTitle.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
                     fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                   }}
                 >Add</button>
               </div>
-              <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>
                 URL: {baseUrl}/{newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '...'}
               </div>
             </div>
@@ -1211,7 +1232,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
       </AnimatePresence>
 
       {/* Preset pages */}
-      <div style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '4px', marginTop: '4px' }}>
+      <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '4px', marginTop: '8px' }}>
         Built-in Pages
       </div>
       {filteredPresets.map(page => {
@@ -1223,24 +1244,37 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
           (page.slug === 'rsvp' && !!(manifest.events?.length)) ||
           (page.slug === 'venue' && !!(manifest.logistics?.venue));
         const url = page.slug === '' ? baseUrl : `${baseUrl}/${page.slug}`;
+        const isHidden = !page.alwaysOn && (manifest.hiddenPages || []).includes(page.id);
 
         return (
           <div key={page.id} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             padding: '8px 10px 8px 12px', borderRadius: '10px',
-            background: isActive ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${isActive ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            background: isActive && !isHidden ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${isActive && !isHidden ? 'rgba(163,177,138,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            opacity: isHidden ? 0.4 : 1,
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
-              {subdomain && <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: isActive && !isHidden ? '#fff' : 'rgba(255,255,255,0.45)' }}>{page.label}</div>
+              {subdomain && <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
             </div>
             <span style={{
-              fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: isActive ? '#4ade80' : 'rgba(255,255,255,0.2)',
-              background: isActive ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.05)',
-              padding: '2px 6px', borderRadius: '100px',
-            }}>{isActive ? 'Live' : 'Inactive'}</span>
+              fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: isActive && !isHidden ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)',
+              background: isActive && !isHidden ? 'rgba(163,177,138,0.15)' : 'rgba(255,255,255,0.05)',
+              padding: '3px 8px', borderRadius: '100px',
+            }}>{isActive && !isHidden ? 'Live' : 'Inactive'}</span>
+            {!page.alwaysOn && (
+              <button
+                onClick={() => togglePageVisibility(page.id)}
+                title={isHidden ? 'Show page' : 'Hide page'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: isHidden ? '#f87171' : 'rgba(255,255,255,0.3)', display: 'flex', padding: '2px', flexShrink: 0 }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#fca5a5' : 'rgba(255,255,255,0.7)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#f87171' : 'rgba(255,255,255,0.3)'; }}
+              >
+                {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
+            )}
           </div>
         );
       })}
@@ -1248,24 +1282,24 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
       {/* Custom pages */}
       {customPages.length > 0 && (
         <>
-          <div style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', margin: '12px 0 4px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', margin: '12px 0 4px' }}>
             Custom Pages
           </div>
           {customPages.map(page => (
             <div key={page.id} style={{
               display: 'flex', alignItems: 'center', gap: '10px',
               padding: '8px 10px 8px 12px', borderRadius: '10px',
-              background: 'rgba(184,146,106,0.08)',
-              border: '1px solid rgba(184,146,106,0.2)',
+              background: 'rgba(163,177,138,0.08)',
+              border: '1px solid rgba(163,177,138,0.2)',
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
-                <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px' }}>{baseUrl}/{page.slug}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
+                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>{baseUrl}/{page.slug}</div>
               </div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 <span style={{
-                  fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: '#4ade80', background: 'rgba(74,222,128,0.12)', padding: '2px 6px', borderRadius: '100px',
+                  fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  color: 'var(--eg-accent, #A3B18A)', background: 'rgba(163,177,138,0.15)', padding: '3px 8px', borderRadius: '100px',
                 }}>Live</span>
                 <button
                   onClick={() => deleteCustomPage(page.id)}
@@ -1281,9 +1315,9 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
         </>
       )}
 
-      <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(184,146,106,0.06)', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.2)' }}>
-        <p style={{ fontSize: '0.68rem', color: 'rgba(184,146,106,0.7)', lineHeight: 1.5, margin: 0 }}>
-          To activate built-in pages, add content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: '#b8926a' }}>Canvas</strong> tab.
+      <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(163,177,138,0.06)', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.2)' }}>
+        <p style={{ fontSize: '0.82rem', color: 'rgba(163,177,138,0.8)', lineHeight: 1.5, margin: 0 }}>
+          To activate built-in pages, add content in the <strong style={{ color: 'var(--eg-accent, #A3B18A)' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: 'var(--eg-accent, #A3B18A)' }}>Canvas</strong> tab.
         </p>
       </div>
     </div>
@@ -1367,7 +1401,7 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
       <div id="design-customization" />
       {paletteColors.length > 0 && (
         <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
-          <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '8px' }}>
             Current Palette
           </div>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1389,10 +1423,10 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
           {vibeSkin?.tone && (
             <div style={{ marginTop: '8px' }}>
               <span style={{
-                display: 'inline-block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em',
-                textTransform: 'uppercase', color: '#b8926a',
-                background: 'rgba(184,146,106,0.12)', padding: '3px 10px', borderRadius: '100px',
-                border: '1px solid rgba(184,146,106,0.25)',
+                display: 'inline-block', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
+                textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)',
+                background: 'rgba(163,177,138,0.12)', padding: '4px 12px', borderRadius: '100px',
+                border: '1px solid rgba(163,177,138,0.25)',
               }}>
                 {vibeSkin.tone}
               </span>
@@ -1405,20 +1439,20 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
             style={{
               marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px',
               padding: '7px 14px', borderRadius: '7px',
-              border: '1px solid rgba(184,146,106,0.25)',
-              background: isRegenerating ? 'rgba(184,146,106,0.15)' : 'rgba(184,146,106,0.07)',
-              color: '#b8926a', cursor: isRegenerating ? 'not-allowed' : 'pointer',
-              fontSize: '0.72rem', fontWeight: 700, transition: 'all 0.15s',
+              border: '1px solid rgba(163,177,138,0.25)',
+              background: isRegenerating ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.07)',
+              color: 'var(--eg-accent, #A3B18A)', cursor: isRegenerating ? 'not-allowed' : 'pointer',
+              fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s',
               opacity: isRegenerating ? 0.7 : 1,
             }}
-            onMouseOver={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.15)'; }}
-            onMouseOut={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.07)'; }}
+            onMouseOver={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.15)'; }}
+            onMouseOut={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.07)'; }}
           >
             <DesignIcon size={13} />
             {isRegenerating ? 'Generating new design…' : 'Regenerate design'}
           </button>
           {regenError && (
-            <p style={{ fontSize: '0.65rem', color: '#e87a7a', marginTop: '4px', marginLeft: '2px' }}>
+            <p style={{ fontSize: '0.82rem', color: '#e87a7a', marginTop: '4px', marginLeft: '2px' }}>
               {regenError}
             </p>
           )}
@@ -1430,7 +1464,7 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
       {/* Typography — full font pair picker */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.4)', marginBottom: '10px' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-gold, #D6C6A8)', marginBottom: '10px' }}>
           Typography
         </div>
         <FontPicker
@@ -1442,10 +1476,10 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
       {/* Asset Library */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.4)', marginBottom: '10px' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-gold, #D6C6A8)', marginBottom: '10px' }}>
           Asset Library
         </div>
-        <p style={{ fontSize: '0.68rem', color: 'rgba(214,198,168,0.3)', marginBottom: '10px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.82rem', color: 'rgba(214,198,168,0.5)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
         <AssetPicker
@@ -1458,19 +1492,19 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
       {/* Live color preview swatch */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
-        <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '10px' }}>Preview</div>
+        <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '10px' }}>Preview</div>
         <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
           <div style={{ background: colors.background || '#faf9f6', padding: '16px' }}>
-            <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: colors.foreground || '#1a1a1a', marginBottom: '4px' }}>
+            <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: colors.foreground || 'var(--eg-fg, #2B2B2B)', marginBottom: '4px' }}>
               Shauna & Ben
             </div>
             <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.75rem', marginBottom: '10px' }}>The beginning of everything.</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <div style={{ background: colors.accent || '#b8926a', color: '#fff', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>RSVP</div>
-              <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || '#b8926a', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>View Story</div>
+              <div style={{ background: colors.accent || 'var(--eg-accent, #A3B18A)', color: '#fff', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>RSVP</div>
+              <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || 'var(--eg-accent, #A3B18A)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>View Story</div>
             </div>
           </div>
-          <div style={{ height: '4px', background: colors.accent || '#b8926a' }} />
+          <div style={{ height: '4px', background: colors.accent || 'var(--eg-accent, #A3B18A)' }} />
         </div>
       </div>
     </div>
@@ -1523,6 +1557,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const historyIndexRef = useRef(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+
+  // ── Auto-enable split view when canvas tab is active ──
+  useEffect(() => {
+    if (activeTab === 'canvas') setSplitView(true);
+  }, [activeTab]);
 
   // ── Show "Click to jump" hint when split view first opens ──
   const hintShownRef = useRef(false);
@@ -1663,6 +1702,45 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Autosave to localStorage (debounced 1.5s) ──
+  const AUTOSAVE_KEY = 'pearloom_draft_manifest';
+  const [draftBanner, setDraftBanner] = useState<'visible' | 'hidden' | null>(null);
+  const [recoveredDraft, setRecoveredDraft] = useState<StoryManifest | null>(null);
+
+  // On mount: check for a saved draft newer than the prop manifest
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(AUTOSAVE_KEY);
+      if (!raw) return;
+      const saved: { manifest: StoryManifest; savedAt: number } = JSON.parse(raw);
+      const propTime = manifest.generatedAt ? new Date(manifest.generatedAt).getTime() : 0;
+      if (saved.savedAt > propTime) {
+        setRecoveredDraft(saved.manifest);
+        setDraftBanner('visible');
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Autosave whenever manifest changes
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ manifest, savedAt: Date.now() }));
+      } catch {}
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [manifest]);
+
+  const handleRestoreDraft = useCallback(() => {
+    if (!recoveredDraft) return;
+    onChange(recoveredDraft);
+    pushToPreview(recoveredDraft);
+    pushHistory(recoveredDraft);
+    setDraftBanner('hidden');
+    setRecoveredDraft(null);
+  }, [recoveredDraft, onChange, pushToPreview, pushHistory]);
+
   const syncManifest = useCallback((newChapters: Chapter[]) => {
     const newManifest = {
       ...manifest,
@@ -1671,6 +1749,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     pushHistory(newManifest);
     onChange(newManifest);
     pushToPreview(newManifest);
+  }, [manifest, onChange, pushToPreview, pushHistory]);
+
+  const handleChatManifestUpdate = useCallback((updates: Partial<StoryManifest>) => {
+    const next = { ...manifest, ...updates };
+    pushHistory(next);
+    onChange(next);
+    pushToPreview(next);
   }, [manifest, onChange, pushToPreview, pushHistory]);
 
   const updateChapter = useCallback((id: string, data: Partial<Chapter>) => {
@@ -1836,7 +1921,7 @@ Return JSON with: title, subtitle, description, mood`,
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       display: 'flex', flexDirection: 'column',
-      background: '#100f0d', fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
+      background: 'var(--eg-dark-2, #3D3530)', fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
     }}>
       {/* ── Command Palette ── */}
       <CommandPalette
@@ -1848,12 +1933,44 @@ Return JSON with: title, subtitle, description, mood`,
         canRedo={canRedo}
       />
 
+      {/* ── Draft Recovery Banner ── */}
+      {draftBanner === 'visible' && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
+          background: 'var(--eg-gold, #D6C6A8)', color: '#2B2B2B',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: '0.75rem', padding: '0.6rem 1rem',
+          fontSize: '0.85rem', fontWeight: 600,
+        }}>
+          <span>Unsaved draft recovered</span>
+          <span style={{ opacity: 0.4 }}>—</span>
+          <button
+            onClick={handleRestoreDraft}
+            style={{
+              background: '#2B2B2B', color: '#fff', border: 'none', borderRadius: '4px',
+              padding: '3px 10px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+            }}
+          >
+            restore draft
+          </button>
+          <button
+            onClick={() => setDraftBanner('hidden')}
+            style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: '#2B2B2B', fontSize: '0.78rem', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
+            }}
+          >
+            dismiss
+          </button>
+        </div>
+      )}
+
       {/* ── TOP BAR ── */}
       <div style={{
         height: '52px', flexShrink: 0,
         display: 'flex', alignItems: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#110f0d', padding: '0 1rem', gap: '0.75rem',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        background: 'var(--eg-dark-2, #3D3530)', padding: '0 1rem', gap: '0.75rem',
         zIndex: 10,
       }}>
         {/* Exit */}
@@ -1875,7 +1992,7 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* Site name — centered */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <Heart size={12} color="#b8926a" fill="#b8926a" />
+          <Heart size={12} color="var(--eg-gold, #D6C6A8)" fill="var(--eg-gold, #D6C6A8)" />
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
             {coupleNames[0]} & {coupleNames[1]}
           </span>
@@ -1886,7 +2003,7 @@ Return JSON with: title, subtitle, description, mood`,
               display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px',
               padding: '3px 9px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
               background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)',
-              cursor: 'pointer', fontSize: '0.62rem', fontWeight: 700,
+              cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
               letterSpacing: '0.04em', transition: 'all 0.15s',
             }}
             onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
@@ -1911,11 +2028,11 @@ Return JSON with: title, subtitle, description, mood`,
           <div style={{
             display: 'flex', alignItems: 'center', gap: '5px',
             padding: '4px 9px', borderRadius: '100px', transition: 'all 0.3s',
-            background: saveState === 'saved' ? 'rgba(74,222,128,0.08)' : 'rgba(251,146,60,0.1)',
+            background: saveState === 'saved' ? 'rgba(163,177,138,0.12)' : 'rgba(251,146,60,0.1)',
           }}>
             {saveState === 'saved'
-              ? <><SavedIcon size={10} color="#4ade80" /><span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#4ade80', letterSpacing: '0.06em' }}>All changes saved</span></>
-              : <><UnsavedIcon size={10} color="#fb923c" /><span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.06em' }}>Unsaved changes</span></>}
+              ? <><SavedIcon size={10} color="var(--eg-accent, #A3B18A)" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)', letterSpacing: '0.04em' }}>All changes saved</span></>
+              : <><UnsavedIcon size={10} color="#fb923c" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved changes</span></>}
           </div>
         </div>
 
@@ -1947,9 +2064,9 @@ Return JSON with: title, subtitle, description, mood`,
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '6px 10px', borderRadius: '6px',
-              border: `1px solid ${splitView ? 'rgba(184,146,106,0.5)' : 'rgba(255,255,255,0.12)'}`,
-              background: splitView ? 'rgba(184,146,106,0.15)' : 'transparent',
-              color: splitView ? '#b8926a' : 'rgba(255,255,255,0.6)',
+              border: `1px solid ${splitView ? 'rgba(163,177,138,0.5)' : 'rgba(255,255,255,0.12)'}`,
+              background: splitView ? 'rgba(163,177,138,0.15)' : 'transparent',
+              color: splitView ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.6)',
               cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
             }}
             onMouseOver={e => { if (!splitView) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
@@ -1980,13 +2097,13 @@ Return JSON with: title, subtitle, description, mood`,
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '6px 16px', borderRadius: '6px', border: 'none',
-              background: 'linear-gradient(135deg, #b8926a, #d4a574)',
-              color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
-              boxShadow: '0 2px 10px rgba(184,146,106,0.3)',
+              background: 'var(--eg-accent, #A3B18A)',
+              color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
+              boxShadow: '0 2px 10px rgba(163,177,138,0.3)',
               transition: 'all 0.2s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(184,146,106,0.45)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(184,146,106,0.3)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(163,177,138,0.45)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(163,177,138,0.3)'; }}
           >
             <PublishIcon size={13} /> Publish
           </button>
@@ -2009,16 +2126,16 @@ Return JSON with: title, subtitle, description, mood`,
             {activeTab === 'story' && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
                     Story Chapters ({chapters.length})
                   </span>
                   <button
                     onClick={addChapter}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '4px',
-                      padding: '4px 8px', borderRadius: '5px', border: 'none',
-                      background: 'rgba(184,146,106,0.18)', color: '#b8926a',
-                      cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
+                      padding: '5px 10px', borderRadius: '5px', border: 'none',
+                      background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)',
+                      cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                     }}
                   >
                     <Plus size={11} /> Add
@@ -2042,23 +2159,21 @@ Return JSON with: title, subtitle, description, mood`,
                   </AnimatePresence>
                 </Reorder.Group>
 
-                {/* Blocks palette — drag to canvas */}
-                {splitView && (
-                  <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                    <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: '10px' }}>
-                      Drag to canvas
-                    </div>
-                    {CANVAS_BLOCK_TYPES.map(b => (
-                      <BlockTypeCard
-                        key={b.id}
-                        blockId={b.id}
-                        label={b.label}
-                        emoji={b.emoji}
-                        desc={b.desc}
-                      />
-                    ))}
+                {/* Blocks palette — drag to canvas — always visible */}
+                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-olive, #A3B18A)', marginBottom: '10px' }}>
+                    Add Sections — Drag to Canvas
                   </div>
-                )}
+                  {CANVAS_BLOCK_TYPES.map(b => (
+                    <BlockTypeCard
+                      key={b.id}
+                      blockId={b.id}
+                      label={b.label}
+                      emoji={b.emoji}
+                      desc={b.desc}
+                    />
+                  ))}
+                </div>
 
                 {/* Inline chapter editor */}
                 <AnimatePresence mode="wait">
@@ -2079,9 +2194,10 @@ Return JSON with: title, subtitle, description, mood`,
                         vibeSkin={manifest.vibeSkin}
                         vibeString={manifest.vibeString}
                         sectionOverrides={sectionOverridesMap[activeChapter.id]}
-                        onOverridesChange={(id, overrides) =>
-                          setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))
-                        }
+                        onOverridesChange={(id, overrides) => {
+                          setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }));
+                          updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });
+                        }}
                       />
                     </motion.div>
                   )}
@@ -2116,10 +2232,10 @@ Return JSON with: title, subtitle, description, mood`,
             {activeTab === 'voice' && (
               <div style={{ padding: '4px 0' }}>
                 <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
                     AI Voice Training
                   </span>
-                  <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: '4px', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>
                     Teach the chatbot to speak like you.
                   </p>
                 </div>
@@ -2162,6 +2278,7 @@ Return JSON with: title, subtitle, description, mood`,
               vibeSkin={manifest.vibeSkin}
               scale={0.55}
               draggingId={canvasDragId}
+              selectedChapterId={activeId}
               onSectionClick={(chapterId) => {
                 setActiveId(chapterId);
                 setActiveTab('story');
@@ -2207,7 +2324,7 @@ Return JSON with: title, subtitle, description, mood`,
           height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           zIndex: 1100,
-          background: '#0e0d0b',
+          background: 'var(--eg-dark-2, #3D3530)',
           borderTop: '1px solid rgba(255,255,255,0.08)',
           display: 'flex', alignItems: 'stretch',
           overflowX: 'auto', WebkitOverflowScrolling: 'touch',
@@ -2235,15 +2352,15 @@ Return JSON with: title, subtitle, description, mood`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   gap: '3px', padding: '6px 8px',
                   border: 'none', cursor: 'pointer',
-                  background: isActive ? '#5c6b3a' : 'transparent',
-                  color: isActive ? '#fff' : 'rgba(255,255,255,0.3)',
-                  borderTop: isActive ? '2px solid #8a9e56' : '2px solid transparent',
+                  background: isActive ? 'rgba(109,89,122,0.3)' : 'transparent',
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                  borderTop: isActive ? '2px solid var(--eg-plum, #6D597A)' : '2px solid transparent',
                   transition: 'all 0.15s',
                   minHeight: '48px',
                 }}
               >
                 <Icon size={18} color={isActive ? '#fff' : 'rgba(255,255,255,0.35)'} />
-                <span style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
                   {labels[tab] || tab}
                 </span>
               </button>
@@ -2257,8 +2374,8 @@ Return JSON with: title, subtitle, description, mood`,
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '8px 16px', border: 'none',
-              background: 'linear-gradient(135deg, #b8926a, #d4a574)',
-              color: '#fff', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+              background: 'var(--eg-accent, #A3B18A)',
+              color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
               borderTop: '2px solid transparent',
               minHeight: '48px',
             }}
@@ -2282,7 +2399,7 @@ Return JSON with: title, subtitle, description, mood`,
               left: 0, right: 0,
               height: 'calc(80vh - 52px)',
               zIndex: 1050,
-              background: '#110f0d',
+              background: 'var(--eg-dark-2, #3D3530)',
               borderRadius: '16px 16px 0 0',
               borderTop: '1px solid rgba(255,255,255,0.12)',
               display: 'flex', flexDirection: 'column',
@@ -2309,8 +2426,8 @@ Return JSON with: title, subtitle, description, mood`,
               }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <span style={{
-                  fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em',
-                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+                  fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)',
                 }}>
                   {activeTab === 'story' ? 'Story' : activeTab === 'events' ? 'Events' :
                    activeTab === 'design' ? 'Design' : activeTab === 'details' ? 'Details' :
@@ -2337,7 +2454,7 @@ Return JSON with: title, subtitle, description, mood`,
               {activeTab === 'story' && (
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
                       Story Chapters
                     </span>
                     <button
@@ -2345,8 +2462,8 @@ Return JSON with: title, subtitle, description, mood`,
                       style={{
                         display: 'flex', alignItems: 'center', gap: '4px',
                         padding: '8px 14px', borderRadius: '5px', border: 'none',
-                        background: 'rgba(184,146,106,0.18)', color: '#b8926a',
-                        cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+                        background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)',
+                        cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                         minHeight: '44px',
                       }}
                     >
@@ -2367,8 +2484,8 @@ Return JSON with: title, subtitle, description, mood`,
                           onClick={() => setActiveId(ch.id)}
                           style={{
                             flexShrink: 0, width: '100px', borderRadius: '10px', border: 'none',
-                            background: isActive ? 'rgba(184,146,106,0.18)' : 'rgba(255,255,255,0.05)',
-                            outline: isActive ? '2px solid rgba(184,146,106,0.5)' : 'none',
+                            background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.05)',
+                            outline: isActive ? '2px solid rgba(163,177,138,0.5)' : 'none',
                             cursor: 'pointer', padding: 0, overflow: 'hidden',
                             minHeight: '44px',
                           }}
@@ -2386,10 +2503,10 @@ Return JSON with: title, subtitle, description, mood`,
                                 </div>}
                           </div>
                           <div style={{ padding: '6px 8px', textAlign: 'left' }}>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: isActive ? '#b8926a' : 'rgba(255,255,255,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isActive ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {ch.title || 'Untitled'}
                             </div>
-                            <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.3)' }}>Ch. {i + 1}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>Ch. {i + 1}</div>
                           </div>
                         </button>
                       );
@@ -2413,9 +2530,10 @@ Return JSON with: title, subtitle, description, mood`,
                           vibeSkin={manifest.vibeSkin}
                           vibeString={manifest.vibeString}
                           sectionOverrides={sectionOverridesMap[activeChapter.id]}
-                          onOverridesChange={(id, overrides) =>
-                            setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))
-                          }
+                          onOverridesChange={(id, overrides) => {
+                            setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }));
+                            updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });
+                          }}
                         />
                       </motion.div>
                     )}
@@ -2485,7 +2603,7 @@ Return JSON with: title, subtitle, description, mood`,
               background: 'rgba(20,18,16,0.92)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(184,146,106,0.3)',
+              border: '1px solid rgba(163,177,138,0.3)',
               borderRadius: '100px',
               padding: '8px 18px',
               display: 'flex', alignItems: 'center', gap: '8px',
@@ -2531,7 +2649,7 @@ Return JSON with: title, subtitle, description, mood`,
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
               onClick={e => e.stopPropagation()}
               style={{
-                background: '#1a1917', borderRadius: '1.5rem',
+                background: 'var(--eg-dark-2, #3D3530)', borderRadius: '1.5rem',
                 padding: '2.5rem', maxWidth: '460px', width: '100%',
                 boxShadow: '0 40px 100px rgba(0,0,0,0.6)',
                 border: '1px solid rgba(255,255,255,0.08)',
@@ -2540,18 +2658,18 @@ Return JSON with: title, subtitle, description, mood`,
             >
               {publishedUrl ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Globe size={24} color="#22c55e" />
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Globe size={24} color="var(--eg-accent, #A3B18A)" />
                   </div>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', margin: 0 }}>It&apos;s Live.</h2>
                   <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</p>
-                  <code style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: '#b8926a', wordBreak: 'break-all' }}>
+                  <code style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all' }}>
                     {publishedUrl}
                   </code>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                     <a
                       href={publishedUrl!} target="_blank" rel="noreferrer"
-                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #b8926a, #d4a574)', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem' }}
+                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem' }}
                     >
                       Open Site →
                     </a>
@@ -2569,7 +2687,7 @@ Return JSON with: title, subtitle, description, mood`,
                   <p style={{ color: 'rgba(255,255,255,0.45)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
 
                   {publishError && (
-                    <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                    <div style={{ background: 'rgba(109,89,122,0.1)', border: '1px solid rgba(109,89,122,0.2)', color: 'var(--eg-plum, #6D597A)', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
                       {publishError}
                     </div>
                   )}
@@ -2599,7 +2717,7 @@ Return JSON with: title, subtitle, description, mood`,
                     <button
                       onClick={handlePublishSubmit}
                       disabled={isPublishing || !subdomain}
-                      style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.85rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #b8926a, #d4a574)', color: '#fff', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.88rem', opacity: isPublishing || !subdomain ? 0.7 : 1 }}
+                      style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.88rem', opacity: isPublishing || !subdomain ? 0.7 : 1 }}
                     >
                       {isPublishing ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</> : <><Globe size={14} /> Publish Site</>}
                     </button>
@@ -2615,18 +2733,33 @@ Return JSON with: title, subtitle, description, mood`,
       <DragOverlay dropAnimation={null}>
         {canvasDragId && (
           <div style={{
-            padding: '8px 14px', borderRadius: '8px',
-            background: 'rgba(184,146,106,0.95)',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
-            color: '#fff', fontSize: '0.78rem', fontWeight: 700,
-            letterSpacing: '0.04em',
-            display: 'flex', alignItems: 'center', gap: '6px',
-            pointerEvents: 'none', whiteSpace: 'nowrap',
+            padding: '10px 14px',
+            background: 'var(--eg-accent, #A3B18A)',
+            color: '#F5F1E8',
+            borderRadius: '8px',
+            fontSize: '0.88rem', fontWeight: 700,
+            boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', gap: '8px',
+            pointerEvents: 'none',
+            border: '1px solid rgba(255,255,255,0.2)',
+            whiteSpace: 'nowrap',
           }}>
-            <span>⠿</span> {canvasDragLabel}
+            <span style={{ fontSize: '1.2rem' }}>
+              {CANVAS_BLOCK_TYPES.find(b => b.id === canvasDragId)?.emoji ||
+               (canvasDragId.startsWith('chapter:') ? '⌖' : '✦')}
+            </span>
+            {canvasDragLabel}
           </div>
         )}
       </DragOverlay>
+
+      {/* ── Floating AI chat assistant ── */}
+      <AIEditorChat
+        manifest={manifest}
+        activeChapterId={activeId}
+        onUpdateChapter={updateChapter}
+        onUpdateManifest={handleChatManifestUpdate}
+      />
     </div>
     </DndContext>
   );

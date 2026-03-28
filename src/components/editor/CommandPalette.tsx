@@ -50,8 +50,8 @@ const TAB_COMMANDS: Command[] = [
   { id: 'tab-canvas',  label: 'Build',    description: 'Drag-and-drop page builder',    icon: LayoutTemplate,     iconColor: '#a78bfa', group: 'Switch Tab', action: { type: 'tab', tab: 'canvas'  } },
   { id: 'tab-design',  label: 'Design',   description: 'Colors, fonts & patterns',      icon: Palette,            iconColor: '#ec4899', group: 'Switch Tab', action: { type: 'tab', tab: 'design'  } },
   { id: 'tab-details', label: 'Details',  description: 'Names, date & location',        icon: Settings,           iconColor: '#6b7280', group: 'Switch Tab', action: { type: 'tab', tab: 'details' } },
-  { id: 'tab-pages',   label: 'Pages',    description: 'Manage site pages',             icon: Globe,              iconColor: '#10b981', group: 'Switch Tab', action: { type: 'tab', tab: 'pages'  } },
-  { id: 'tab-blocks',  label: 'AI',       description: 'AI-generated content blocks',   icon: Sparkles,           iconColor: '#b8926a', group: 'Switch Tab', action: { type: 'tab', tab: 'blocks' } },
+  { id: 'tab-pages',   label: 'Pages',    description: 'Manage site pages',             icon: Globe,              iconColor: 'var(--eg-accent, #A3B18A)', group: 'Switch Tab', action: { type: 'tab', tab: 'pages'  } },
+  { id: 'tab-blocks',  label: 'AI',       description: 'AI-generated content blocks',   icon: Sparkles,           iconColor: 'var(--eg-accent, #A3B18A)', group: 'Switch Tab', action: { type: 'tab', tab: 'blocks' } },
   { id: 'tab-voice',   label: 'Voice',    description: 'AI voice & TTS training',       icon: MessageCircleHeart, iconColor: '#f43f5e', group: 'Switch Tab', action: { type: 'tab', tab: 'voice'  } },
 ];
 
@@ -62,9 +62,9 @@ const DEVICE_COMMANDS: Command[] = [
 ];
 
 const ACTION_COMMANDS: Command[] = [
-  { id: 'add-chapter', label: 'Add new chapter',  description: 'Insert a blank chapter', icon: Plus,  iconColor: '#4ade80', group: 'Actions', action: { type: 'add-chapter' } },
+  { id: 'add-chapter', label: 'Add new chapter',  description: 'Insert a blank chapter', icon: Plus,  iconColor: 'var(--eg-accent, #A3B18A)', group: 'Actions', action: { type: 'add-chapter' } },
   { id: 'preview',     label: 'Preview site',      description: 'Open live preview tab',  icon: Eye,   iconColor: '#38bdf8', group: 'Actions', shortcut: '⌘P', action: { type: 'preview'     } },
-  { id: 'publish',     label: 'Publish site',      description: 'Go live on pearloom.app',icon: Globe, iconColor: '#b8926a', group: 'Actions', action: { type: 'publish'     } },
+  { id: 'publish',     label: 'Publish site',      description: 'Go live on pearloom.app',icon: Globe, iconColor: 'var(--eg-accent, #A3B18A)', group: 'Actions', action: { type: 'publish'     } },
   { id: 'undo',        label: 'Undo',              description: 'Undo last change',       icon: RotateCcw, iconColor: '#e2e8f0', group: 'Actions', shortcut: '⌘Z',  action: { type: 'undo' } },
   { id: 'redo',        label: 'Redo',              description: 'Redo last change',       icon: RotateCw,  iconColor: '#e2e8f0', group: 'Actions', shortcut: '⌘⇧Z', action: { type: 'redo' } },
 ];
@@ -102,7 +102,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
       label: ch.title || `Chapter ${i + 1}`,
       description: `Jump to chapter ${i + 1}`,
       icon: Hash,
-      iconColor: '#b8926a',
+      iconColor: 'var(--eg-accent, #A3B18A)',
       group: 'Chapters',
       action: { type: 'chapter' as const, id: ch.id },
     })),
@@ -211,7 +211,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
                   color: '#fff', fontSize: '0.95rem', fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
-                  caretColor: '#b8926a',
+                  caretColor: 'var(--eg-accent, #A3B18A)',
                 }}
               />
               <kbd style={{
@@ -252,14 +252,14 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           data-index={idx}
                           onClick={() => execute(cmd)}
                           onMouseEnter={() => setSelectedIndex(idx)}
-                          animate={{ background: isSelected ? 'rgba(184,146,106,0.12)' : 'transparent' }}
+                          animate={{ background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent' }}
                           transition={{ duration: 0.1 }}
                           style={{
                             display: 'flex', alignItems: 'center', gap: '12px',
                             width: '100%', padding: '9px 10px', borderRadius: '8px',
-                            border: isSelected ? '1px solid rgba(184,146,106,0.2)' : '1px solid transparent',
+                            border: isSelected ? '1px solid rgba(163,177,138,0.2)' : '1px solid transparent',
                             cursor: 'pointer', textAlign: 'left',
-                            background: isSelected ? 'rgba(184,146,106,0.12)' : 'transparent',
+                            background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent',
                             transition: 'border 0.1s',
                           }}
                         >
@@ -297,7 +297,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                               {cmd.shortcut}
                             </kbd>
                           ) : isSelected ? (
-                            <ArrowRight size={14} color="rgba(184,146,106,0.6)" />
+                            <ArrowRight size={14} color="rgba(163,177,138,0.6)" />
                           ) : null}
                         </motion.button>
                       );

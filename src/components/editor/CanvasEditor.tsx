@@ -39,7 +39,7 @@ interface BlockDef {
 }
 
 const BLOCK_CATALOGUE: BlockDef[] = [
-  { type: 'hero',      label: 'Hero',              icon: BlockHeroIcon,      description: 'Full-screen hero with names & cover photo',  color: '#b8926a', occasions: ALL_OCCASIONS },
+  { type: 'hero',      label: 'Hero',              icon: BlockHeroIcon,      description: 'Full-screen hero with names & cover photo',  color: 'var(--eg-accent, #A3B18A)', occasions: ALL_OCCASIONS },
   { type: 'story',     label: 'Our Story',         icon: BlockStoryIcon,     description: 'Chapter timeline & photo narrative',          color: '#7c5cbf', occasions: ALL_OCCASIONS },
   { type: 'event',     label: 'Event Cards',       icon: BlockEventIcon,     description: 'Ceremony, reception & event details',         color: '#e8927a', occasions: ['wedding', 'engagement'] },
   { type: 'countdown', label: 'Countdown',         icon: BlockCountdownIcon, description: 'Live countdown to your big day',              color: '#4a9b8a', occasions: ['wedding', 'engagement', 'birthday'] },
@@ -154,7 +154,7 @@ function MiniInput({ label, value, onChange, placeholder, type = 'text' }: {
       <input
         type={type} value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(184,146,106,0.5)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
       />
     </div>
@@ -169,7 +169,7 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
         onClick={() => onChange(!value)}
         style={{
           width: '36px', height: '20px', borderRadius: '100px',
-          background: value ? '#b8926a' : 'rgba(255,255,255,0.12)',
+          background: value ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
           border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
         }}
       >
@@ -367,7 +367,7 @@ function BlockRow({
   dragHandleProps: DragHandleProps;
 }) {
   const Icon = def?.icon || LayoutTemplate;
-  const color = def?.color || '#b8926a';
+  const color = def?.color || 'var(--eg-accent, #A3B18A)';
 
   return (
     <motion.div
@@ -502,7 +502,7 @@ function SectionStylePanel({
     { label: 'Blush', value: '#fdf0f3' },
     { label: 'Sage', value: '#eef2ed' },
     { label: 'Slate', value: '#f0f2f5' },
-    { label: 'Dark', value: '#1a1a1a' },
+    { label: 'Dark', value: 'var(--eg-dark-2, #3D3530)' },
     { label: 'Navy', value: '#1a2332' },
     { label: 'Mocha', value: '#2c2420' },
     { label: 'Accent', value: 'accent' },
@@ -519,7 +519,7 @@ function SectionStylePanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', marginTop: '4px' }}>
-      <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.7)' }}>
+      <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
         Section Style
       </div>
 
@@ -536,8 +536,8 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ bgColor: bg.value })}
                 style={{
                   width: '24px', height: '24px', borderRadius: '6px',
-                  border: isActive ? '2px solid #b8926a' : '1px solid rgba(255,255,255,0.15)',
-                  background: bg.value === 'accent' ? 'linear-gradient(135deg, #b8926a, #d4a572)' : bg.value || 'transparent',
+                  border: isActive ? '2px solid var(--eg-accent, #A3B18A)' : '1px solid rgba(255,255,255,0.15)',
+                  background: bg.value === 'accent' ? 'linear-gradient(135deg, #A3B18A, #8FA876)' : bg.value || 'transparent',
                   cursor: 'pointer', position: 'relative', transition: 'border 0.15s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
@@ -576,8 +576,8 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ verticalPadding: p.value })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(184,146,106,0.25)' : 'rgba(255,255,255,0.06)',
-                  color: isActive ? '#b8926a' : 'rgba(255,255,255,0.4)',
+                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.06)',
+                  color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
                   fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
@@ -601,8 +601,8 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textAlign: a })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(184,146,106,0.25)' : 'rgba(255,255,255,0.06)',
-                  color: isActive ? '#b8926a' : 'rgba(255,255,255,0.4)',
+                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.06)',
+                  color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
                   fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
                 }}
               >
@@ -617,7 +617,7 @@ function SectionStylePanel({
       <div>
         <label style={lbl}>Text Color</label>
         <div style={{ display: 'flex', gap: '4px' }}>
-          {['', '#1a1a1a', '#ffffff', '#8c8c8c', '#b8926a'].map(c => {
+          {['', 'var(--eg-dark-2, #3D3530)', '#ffffff', '#8c8c8c', 'var(--eg-accent, #A3B18A)'].map(c => {
             const isActive = (config.textColor || '') === c;
             return (
               <button
@@ -625,7 +625,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textColor: c })}
                 style={{
                   width: '28px', height: '28px', borderRadius: '6px',
-                  border: isActive ? '2px solid #b8926a' : '1px solid rgba(255,255,255,0.15)',
+                  border: isActive ? '2px solid var(--eg-accent, #A3B18A)' : '1px solid rgba(255,255,255,0.15)',
                   background: c || 'transparent', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
@@ -769,8 +769,8 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-          padding: '10px', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.3)',
-          background: 'rgba(184,146,106,0.05)', color: '#b8926a', cursor: 'pointer',
+          padding: '10px', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.3)',
+          background: 'rgba(163,177,138,0.05)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer',
           fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em', transition: 'all 0.15s',
         }}
       >
@@ -997,15 +997,15 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
             onChange={e => setActivePage(e.target.value)}
             style={{
               ...inp, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
-              background: 'rgba(184,146,106,0.1)', borderColor: 'rgba(184,146,106,0.3)',
-              color: '#b8926a', padding: '8px 10px',
+              background: 'rgba(163,177,138,0.1)', borderColor: 'rgba(163,177,138,0.3)',
+              color: 'var(--eg-accent, #A3B18A)', padding: '8px 10px',
             }}
           >
-            <option value="main" style={{ background: '#1a1a1a', color: '#fff' }}>
+            <option value="main" style={{ background: 'var(--eg-dark-2, #3D3530)', color: '#fff' }}>
               Main Page
             </option>
             {customPages.map(p => (
-              <option key={p.id} value={p.id} style={{ background: '#1a1a1a', color: '#fff' }}>
+              <option key={p.id} value={p.id} style={{ background: 'var(--eg-dark-2, #3D3530)', color: '#fff' }}>
                 {p.title}
               </option>
             ))}
@@ -1017,8 +1017,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
               onClick={() => setShowAddPage(s => !s)}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                padding: '6px', borderRadius: '6px', border: '1px dashed rgba(184,146,106,0.4)',
-                background: 'rgba(184,146,106,0.06)', color: '#b8926a', cursor: 'pointer',
+                padding: '6px', borderRadius: '6px', border: '1px dashed rgba(163,177,138,0.4)',
+                background: 'rgba(163,177,138,0.06)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer',
                 fontSize: '0.7rem', fontWeight: 700, transition: 'all 0.15s',
               }}
             >
@@ -1029,8 +1029,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                 onClick={() => deleteCustomPage(activePage)}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                  padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.2)',
-                  background: 'rgba(239,68,68,0.06)', color: '#ef4444', cursor: 'pointer',
+                  padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(109,89,122,0.2)',
+                  background: 'rgba(109,89,122,0.06)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer',
                   fontSize: '0.65rem', fontWeight: 700, transition: 'all 0.15s',
                 }}
               >
@@ -1046,7 +1046,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                 initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                 style={{ overflow: 'hidden', marginTop: '6px' }}
               >
-                <div style={{ background: 'rgba(184,146,106,0.08)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(184,146,106,0.2)' }}>
+                <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(163,177,138,0.2)' }}>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <input
                       value={newPageTitle}
@@ -1061,7 +1061,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                       disabled={!newPageTitle.trim()}
                       style={{
                         padding: '6px 12px', borderRadius: '5px', border: 'none',
-                        background: newPageTitle.trim() ? '#b8926a' : 'rgba(255,255,255,0.1)',
+                        background: newPageTitle.trim() ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.1)',
                         color: newPageTitle.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
                         fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                       }}

@@ -21,6 +21,8 @@ import { CountdownBlock } from '@/components/site/CountdownBlock';
 import { SitePasswordWrapper } from '@/components/site/SitePasswordWrapper';
 import { WeddingDayBanner } from '@/components/site/WeddingDayBanner';
 import { WeddingDayPhotoFeed } from '@/components/site/WeddingDayPhotoFeed';
+import { GuestbookSection } from '@/components/site/GuestbookSection';
+import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 
 export const dynamic = 'force-dynamic';
 
@@ -179,17 +181,18 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
 
   // Build real nav pages from manifest content
+  const hidden = new Set(manifest.hiddenPages || []);
   const sitePages = [
     { id: 'story',    slug: 'our-story', label: 'Our Story', enabled: true,  order: 0 },
-    manifest.events?.length
+    (!hidden.has('schedule') && manifest.events?.length)
       ? { id: 'schedule', slug: 'schedule', label: 'Schedule',   enabled: true,  order: 1 } : null,
-    manifest.events?.length
+    (!hidden.has('rsvp') && manifest.events?.length)
       ? { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',       enabled: true,  order: 2 } : null,
-    (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)
+    (!hidden.has('registry') && (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl))
       ? { id: 'registry', slug: 'registry', label: 'Registry',   enabled: true,  order: 3 } : null,
-    manifest.travelInfo
+    (!hidden.has('travel') && manifest.travelInfo)
       ? { id: 'travel',   slug: 'travel',   label: 'Travel',     enabled: true,  order: 4 } : null,
-    manifest.faqs?.length
+    (!hidden.has('faq') && manifest.faqs?.length)
       ? { id: 'faq',      slug: 'faq',      label: 'FAQ',        enabled: true,  order: 5 } : null,
   ].filter(Boolean) as import('@/types').SitePage[];
 
@@ -267,10 +270,23 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </section>
         );
       case 'guestbook':
+        if (manifest.features?.guestbook === false) return null;
         return (
-          <section key={key} id="guestbook" style={{ background: cardBg }}>
-            <SiteGallerySection siteId={domain} coupleNames={safeNames} />
-          </section>
+          <GuestbookSection
+            key={key}
+            subdomain={domain}
+            vibeSkin={vibeSkin}
+            manifest={manifest}
+          />
+        );
+      case 'live':
+        return (
+          <LiveUpdatesFeed
+            key={key}
+            subdomain={domain}
+            weddingDate={manifest.logistics?.date || manifest.events?.[0]?.date}
+            vibeSkin={vibeSkin}
+          />
         );
       case 'countdown': {
         const eventDate = manifest.logistics?.date || manifest.events?.[0]?.date;
@@ -648,6 +664,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   <section id="faq"><FaqSection faqs={manifest.faqs} /></section>
                 </>
               ) : null}
+              {manifest.features?.guestbook !== false && (
+                <>
+                  <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={70} />
+                  <GuestbookSection subdomain={domain} vibeSkin={vibeSkin} manifest={manifest} />
+                  <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
+                </>
+              )}
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
               <SiteGallerySection siteId={domain} coupleNames={safeNames} />
               <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />

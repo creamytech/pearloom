@@ -58,6 +58,18 @@ function moodEntrance(mood: string, intensity = 5): MoodVariant {
   return { initial: { opacity: 0, y: 50 }, animate: { opacity: 1, y: 0 }, transition: { duration: dur, ease: [0.16, 1, 0.3, 1] } };
 }
 
+/** Applies chapter.styleOverrides to a base CSS style object */
+function applyOverrides(chapter: Chapter, base: React.CSSProperties = {}): React.CSSProperties {
+  const ov = chapter.styleOverrides;
+  if (!ov) return base;
+  const paddingMap = { compact: '2rem', normal: '4rem', spacious: '8rem' };
+  return {
+    ...base,
+    ...(ov.backgroundColor ? { background: ov.backgroundColor } : {}),
+    ...(ov.padding ? { paddingTop: paddingMap[ov.padding], paddingBottom: paddingMap[ov.padding] } : {}),
+  };
+}
+
 /** Returns CSS object-position from AI-detected focal point, or 'center' as default */
 function focalPos(chapter: Chapter): string {
   if (!chapter.imagePosition) return 'center';
@@ -306,7 +318,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
       <ChapterDivider />
       <motion.article
         ref={ref}
-        style={{
+        style={applyOverrides(chapter, {
           display: 'flex',
           flexDirection: isEven ? 'row' : 'row-reverse',
           alignItems: 'center',
@@ -317,7 +329,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
           margin: '0 auto',
           width: '100%',
           position: 'relative',
-        }}
+        })}
         className="max-md:flex-col max-md:gap-8 max-md:px-6"
         {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
         whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
@@ -403,7 +415,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                 fontWeight: 400,
-                color: 'var(--eg-fg)',
+                color: chapter.styleOverrides?.textColor || 'var(--eg-fg)',
                 lineHeight: 1.05,
                 margin: '0 0 1rem 0',
                 letterSpacing: '-0.02em',
@@ -448,7 +460,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   return (
     <motion.article
       ref={ref}
-      style={{ position: 'relative', height: '100dvh', minHeight: '600px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+      style={{ position: 'relative', height: '100dvh', minHeight: '600px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', ...(chapter.styleOverrides?.backgroundColor ? { background: chapter.styleOverrides.backgroundColor } : {}) }}
       {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
       whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
       initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
@@ -586,7 +598,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
       <ChapterDivider />
       <motion.article
         ref={ref}
-        style={{ position: 'relative', padding: '10rem 2rem', textAlign: 'center', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '600px' }}
+        style={{ position: 'relative', padding: '10rem 2rem', textAlign: 'center', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '600px', ...(chapter.styleOverrides?.backgroundColor ? { background: chapter.styleOverrides.backgroundColor } : {}) }}
         {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
         whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
         initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
@@ -664,7 +676,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                 fontSize: 'clamp(2.5rem, 6vw, 4.8rem)',
                 fontWeight: 400,
                 fontStyle: 'italic',
-                color: 'var(--eg-fg)',
+                color: chapter.styleOverrides?.textColor || 'var(--eg-fg)',
                 lineHeight: 1.15,
                 margin: '0 0 2.5rem 0',
                 letterSpacing: '-0.025em',
@@ -709,7 +721,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
     <>
       <ChapterDivider />
       <motion.article
-        style={{
+        style={applyOverrides(chapter, {
           display: 'flex',
           flexDirection: isEven ? 'row' : 'row-reverse',
           maxWidth: '1300px',
@@ -719,7 +731,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
           position: 'relative',
           padding: '0 3rem',
           minHeight: '500px',
-        }}
+        })}
         className="max-md:flex-col max-md:px-4"
         {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
         whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
@@ -807,7 +819,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
     <>
       <ChapterDivider />
       <motion.article
-        style={{ maxWidth: '1300px', margin: '4rem auto', padding: '0 3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        style={applyOverrides(chapter, { maxWidth: '1300px', margin: '4rem auto', padding: '0 3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' })}
         {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
         whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
         initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
@@ -952,7 +964,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
     <>
       <ChapterDivider />
       <motion.article
-        style={{ maxWidth: '1300px', margin: '4rem auto', padding: '5rem 3rem', display: 'flex', gap: '5rem', alignItems: 'flex-start' }}
+        style={applyOverrides(chapter, { maxWidth: '1300px', margin: '4rem auto', padding: '5rem 3rem', display: 'flex', gap: '5rem', alignItems: 'flex-start' })}
         className="max-md:flex-col max-md:px-4 max-md:gap-8 max-md:pt-8"
         {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
         whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}

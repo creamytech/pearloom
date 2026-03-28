@@ -26,9 +26,9 @@ export interface SectionStyleEditorProps {
 }
 
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.6rem', fontWeight: 800,
-  letterSpacing: '0.16em', textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.35)', marginBottom: '0.45rem',
+  display: 'block', fontSize: '0.82rem', fontWeight: 700,
+  letterSpacing: '0.1em', textTransform: 'uppercase',
+  color: 'var(--eg-muted, #9A9488)', marginBottom: '0.5rem',
 };
 
 const PADDING_OPTS: Array<{ value: SectionStyleOverrides['padding']; label: string }> = [
@@ -60,8 +60,8 @@ export function SectionStyleEditor({
 
   return (
     <div style={{
-      background: '#1A1915', borderRadius: '10px', padding: '12px',
-      border: '1px solid rgba(255,255,255,0.08)',
+      background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '14px',
+      border: '1px solid rgba(255,255,255,0.1)',
       display: 'flex', flexDirection: 'column', gap: '12px',
     }}>
       {/* Background Color */}
@@ -77,10 +77,10 @@ export function SectionStyleEditor({
                 width: '28px', height: '28px', borderRadius: '50%',
                 background: color,
                 border: currentBg === color
-                  ? '2px solid #b8926a'
+                  ? '2px solid var(--eg-accent, #A3B18A)'
                   : '1px solid rgba(255,255,255,0.15)',
                 cursor: 'pointer', flexShrink: 0,
-                boxShadow: currentBg === color ? '0 0 0 2px rgba(184,146,106,0.3)' : 'none',
+                boxShadow: currentBg === color ? '0 0 0 2px rgba(163,177,138,0.3)' : 'none',
                 transition: 'all 0.15s',
               }}
             />
@@ -114,9 +114,9 @@ export function SectionStyleEditor({
             onClick={() => upd({ textColor: vibeSkin.palette.ink })}
             style={{
               flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
-              cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
-              background: isDark ? '#5c6b3a' : 'rgba(255,255,255,0.07)',
-              color: isDark ? '#fff' : 'rgba(255,255,255,0.4)',
+              cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+              background: isDark ? 'var(--eg-plum, #6D597A)' : 'rgba(255,255,255,0.07)',
+              color: isDark ? '#fff' : 'rgba(255,255,255,0.55)',
               transition: 'all 0.15s',
               minHeight: '36px',
             }}
@@ -127,9 +127,9 @@ export function SectionStyleEditor({
             onClick={() => upd({ textColor: vibeSkin.palette.card })}
             style={{
               flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
-              cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
-              background: !isDark ? '#5c6b3a' : 'rgba(255,255,255,0.07)',
-              color: !isDark ? '#fff' : 'rgba(255,255,255,0.4)',
+              cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+              background: !isDark ? 'var(--eg-plum, #6D597A)' : 'rgba(255,255,255,0.07)',
+              color: !isDark ? '#fff' : 'rgba(255,255,255,0.55)',
               transition: 'all 0.15s',
               minHeight: '36px',
             }}
@@ -149,9 +149,9 @@ export function SectionStyleEditor({
               onClick={() => upd({ padding: opt.value })}
               style={{
                 flex: 1, padding: '7px 6px', borderRadius: '6px', border: 'none',
-                cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
-                background: padding === opt.value ? '#5c6b3a' : 'rgba(255,255,255,0.07)',
-                color: padding === opt.value ? '#fff' : 'rgba(255,255,255,0.4)',
+                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+                background: padding === opt.value ? 'var(--eg-plum, #6D597A)' : 'rgba(255,255,255,0.07)',
+                color: padding === opt.value ? '#fff' : 'rgba(255,255,255,0.55)',
                 transition: 'all 0.15s',
                 minHeight: '36px',
               }}
@@ -166,12 +166,12 @@ export function SectionStyleEditor({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {/* Full bleed */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Full bleed</span>
+          <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Full bleed</span>
           <button
             onClick={() => upd({ fullWidth: !currentOverrides.fullWidth })}
             style={{
               width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: currentOverrides.fullWidth ? '#b8926a' : 'rgba(255,255,255,0.12)',
+              background: currentOverrides.fullWidth ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -185,12 +185,12 @@ export function SectionStyleEditor({
         </div>
         {/* Divider before */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Divider before</span>
+          <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Divider before</span>
           <button
             onClick={() => upd({ dividerBefore: !currentOverrides.dividerBefore })}
             style={{
               width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: currentOverrides.dividerBefore ? '#b8926a' : 'rgba(255,255,255,0.12)',
+              background: currentOverrides.dividerBefore ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -204,12 +204,12 @@ export function SectionStyleEditor({
         </div>
         {/* Divider after */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: '36px' }}>
-          <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Divider after</span>
+          <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Divider after</span>
           <button
             onClick={() => upd({ dividerAfter: !currentOverrides.dividerAfter })}
             style={{
               width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: currentOverrides.dividerAfter ? '#b8926a' : 'rgba(255,255,255,0.12)',
+              background: currentOverrides.dividerAfter ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
