@@ -172,29 +172,36 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.65 }}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}
           >
             <button
               onClick={handleSignIn}
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.85rem',
-                padding: '1.15rem 3.5rem', borderRadius: '100px',
+                display: 'inline-flex', alignItems: 'center', gap: '0.9rem',
+                padding: '1.2rem 3.75rem', borderRadius: '100px',
                 background: 'linear-gradient(135deg, var(--eg-dark) 0%, var(--eg-dark-2) 100%)',
                 color: '#fff', fontSize: '1.05rem', fontWeight: 600,
-                border: 'none', cursor: 'pointer', letterSpacing: '0.01em',
-                boxShadow: '0 16px 50px rgba(26,23,19,0.22)',
-                transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
+                border: 'none', cursor: 'pointer', letterSpacing: '0.02em',
+                boxShadow: '0 18px 55px rgba(26,23,19,0.25), 0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
                 fontFamily: 'var(--eg-font-body)',
+                position: 'relative', overflow: 'hidden',
               }}
-              onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.04) translateY(-3px)'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(26,26,26,0.3)'; }}
-              onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 16px 50px rgba(26,26,26,0.22)'; }}
+              onMouseOver={e => {
+                e.currentTarget.style.transform = 'scale(1.04) translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 28px 70px rgba(26,26,26,0.35), 0 4px 12px rgba(0,0,0,0.12)';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 18px 55px rgba(26,23,19,0.25), 0 2px 8px rgba(0,0,0,0.1)';
+              }}
             >
               {status === 'loading' ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <PearloomMark size={24} color="#fff" />}
               Begin Your Story
-              <ArrowRight size={16} style={{ opacity: 0.6 }} />
+              <ArrowRight size={15} style={{ opacity: 0.55 }} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.78rem', color: '#b0b0b0' }}>
-              <div style={{ display: 'flex', gap: '0.2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', fontSize: '0.75rem', color: '#b0b0b0', letterSpacing: '0.02em' }}>
+              <div style={{ display: 'flex', gap: '0.18rem' }}>
                 {[...Array(5)].map((_, i) => <Star key={i} size={11} fill="#b8926a" color="#b8926a" />)}
               </div>
               <span>4.9 rating · No credit card · Free forever</span>
@@ -206,7 +213,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.9 }}
-            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '5rem', flexWrap: 'wrap' }}
+            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '5.5rem', flexWrap: 'wrap' }}
           >
             {[
               { value: '< 90s', label: 'To your story' },
@@ -216,14 +223,15 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             ].map((s) => (
               <div key={s.label} style={{
                 padding: '1.25rem 2rem', textAlign: 'center',
-                background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)',
-                borderRadius: '1rem',
-                border: '1px solid rgba(184,146,106,0.15)',
-                boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
+                background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(24px)',
+                borderRadius: '0.75rem',
+                border: '1px solid rgba(184,146,106,0.18)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.04)',
                 minWidth: '110px',
               }}>
                 <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', fontWeight: 400, color: 'var(--eg-fg)', lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: '0.65rem', color: '#b0b0b0', marginTop: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700 }}>{s.label}</div>
+                <div style={{ width: '20px', height: '1px', background: 'rgba(184,146,106,0.4)', margin: '0.5rem auto' }} />
+                <div style={{ fontSize: '0.6rem', color: '#b0b0b0', textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 700 }}>{s.label}</div>
               </div>
             ))}
           </motion.div>
@@ -405,30 +413,37 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           </h2>
 
           {/* Carousel */}
-          <div style={{ position: 'relative', minHeight: '200px' }}>
+          <div style={{ position: 'relative', minHeight: '220px' }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTestimonial}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
                 style={{
-                  background: 'rgba(255,255,255,0.04)',
-                  borderRadius: '2rem', padding: '3rem',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(255,255,255,0.045)',
+                  borderRadius: '1.25rem', padding: '3rem 3.5rem',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  backdropFilter: 'blur(8px)',
                 }}
               >
-                <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', marginBottom: '2rem' }}>
-                  {[...Array(5)].map((_, j) => <Star key={j} size={16} fill="#b8926a" color="#b8926a" />)}
-                </div>
+                {/* Opening quote mark */}
+                <div style={{
+                  fontFamily: 'var(--eg-font-heading)', fontSize: '5rem',
+                  color: '#b8926a', opacity: 0.25, lineHeight: 0.7,
+                  marginBottom: '1rem', textAlign: 'left',
+                }}>&ldquo;</div>
                 <p style={{
-                  fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)',
+                  fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.15rem, 2.5vw, 1.55rem)',
                   fontWeight: 400, fontStyle: 'italic',
-                  color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, marginBottom: '2.5rem',
+                  color: 'rgba(255,255,255,0.92)', lineHeight: 1.65, marginBottom: '2.5rem',
+                  marginTop: '-0.5rem',
                 }}>
-                  &ldquo;{TESTIMONIALS[activeTestimonial].quote}&rdquo;
+                  {TESTIMONIALS[activeTestimonial].quote}
                 </p>
+                {/* Divider line */}
+                <div style={{ width: '30px', height: '1px', background: 'rgba(184,146,106,0.4)', margin: '0 auto 2rem' }} />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
                   <WovenCircle
                     size={44}
@@ -441,8 +456,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     </span>
                   </WovenCircle>
                   <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.9rem' }}>{TESTIMONIALS[activeTestimonial].name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.1rem' }}>{TESTIMONIALS[activeTestimonial].wedding}</div>
+                    <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem', letterSpacing: '0.02em' }}>{TESTIMONIALS[activeTestimonial].name}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginTop: '0.15rem', letterSpacing: '0.04em' }}>{TESTIMONIALS[activeTestimonial].wedding}</div>
                   </div>
                 </div>
               </motion.div>
@@ -450,17 +465,17 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           </div>
 
           {/* Dots */}
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '2rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '2rem', alignItems: 'center' }}>
             {TESTIMONIALS.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActiveTestimonial(i)}
                 style={{
-                  width: i === activeTestimonial ? '24px' : '8px',
-                  height: '8px', borderRadius: '999px',
-                  background: i === activeTestimonial ? '#b8926a' : 'rgba(255,255,255,0.2)',
+                  width: i === activeTestimonial ? '28px' : '7px',
+                  height: '7px', borderRadius: '999px',
+                  background: i === activeTestimonial ? '#b8926a' : 'rgba(255,255,255,0.18)',
                   border: 'none', cursor: 'pointer',
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
                 }}
               />
             ))}
