@@ -60,10 +60,14 @@ export default async function SiteSubPage(
 ) {
   const { domain, page } = await params;
 
-  if (!VALID_PAGES.includes(page)) return notFound();
-
   const siteConfig = await getSiteConfig(domain);
   if (!siteConfig || !siteConfig.manifest) return notFound();
+
+  // Allow built-in pages + any user-created custom page slugs
+  const customSlugs = (siteConfig.manifest.customPages || [])
+    .filter((p: { visible?: boolean }) => p.visible !== false)
+    .map((p: { slug: string }) => p.slug);
+  if (!VALID_PAGES.includes(page) && !customSlugs.includes(page)) return notFound();
 
   const manifest = siteConfig.manifest;
   const safeNames: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
@@ -263,6 +267,61 @@ export default async function SiteSubPage(
         <FaqSection faqs={manifest.faqs} />
       </>
     );
+  }
+
+  // ── Check custom pages if no built-in page matched ──
+  if (!content && manifest.customPages?.length) {
+    const customPage = manifest.customPages.find(cp => cp.slug === page && cp.visible !== false);
+    if (customPage) {
+      content = (
+        <>
+          <PageHeader
+            title={customPage.title}
+          />
+          <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
+          <section style={{ padding: '3rem 2rem', background: cardBg }}>
+            <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {customPage.blocks?.map(block => (
+                <div key={block.id} style={{ padding: '2rem 0' }}>
+                  {block.type === 'text' && (
+                    <div style={{ fontFamily: 'var(--eg-font-body)', color: 'var(--eg-fg)', fontSize: '1.05rem', lineHeight: 1.8 }}>
+                      {(block.config?.content as string) || 'Content coming soon...'}
+                    </div>
+                  )}
+                  {block.type === 'quote' && (
+                    <blockquote style={{
+                      fontFamily: 'var(--eg-font-heading)', fontSize: '1.6rem', fontStyle: 'italic',
+                      color: 'var(--eg-fg)', textAlign: 'center', padding: '2rem',
+                      borderLeft: '3px solid var(--eg-accent)', opacity: 0.9,
+                    }}>
+                      {(block.config?.text as string) || '"..."'}
+                    </blockquote>
+                  )}
+                  {block.type === 'photos' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                      {((block.config?.urls as string[]) || []).slice(0, 12).map((url: string, i: number) => (
+                        <div key={i} style={{ borderRadius: '1rem', overflow: 'hidden', aspectRatio: '4/3' }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {block.type === 'video' && (block.config?.embedUrl as string) && (
+                    <div style={{ borderRadius: '1rem', overflow: 'hidden', aspectRatio: '16/9' }}>
+                      <iframe src={block.config?.embedUrl as string} width="100%" height="100%" style={{ border: 0 }} allowFullScreen title="Video" />
+                    </div>
+                  )}
+                  {block.type === 'divider' && (
+                    <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={cardBg} height={50} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
+      );
+    }
   }
 
   if (!content) return notFound();

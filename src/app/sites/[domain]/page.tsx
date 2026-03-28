@@ -16,6 +16,7 @@ import type { Chapter } from '@/types';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { SiteClientSections, SiteGallerySection } from '@/components/site/SiteClientSections';
+import { CountdownBlock } from '@/components/site/CountdownBlock';
 import { SitePasswordWrapper } from '@/components/site/SitePasswordWrapper';
 
 export const dynamic = 'force-dynamic';
@@ -214,14 +215,27 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
           </section>
         );
-      case 'countdown':
+      case 'countdown': {
+        const eventDate = manifest.logistics?.date || manifest.events?.[0]?.date;
+        if (!eventDate) return null;
+        const occasion = manifest.occasion || 'wedding';
+        const countdownLabel = occasion === 'birthday' ? 'Until the celebration!' 
+          : occasion === 'anniversary' ? 'Until our anniversary!' 
+          : 'Until we say I do';
         return (
-          <section key={key} id="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
-            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground }}>
-              {manifest.logistics?.date ? '⏳ Countdown will render live' : 'Set a date in Details to see countdown'}
-            </div>
-          </section>
+          <CountdownBlock
+            key={key}
+            targetDate={eventDate}
+            accentColor={pal.accent}
+            headingFont={vibeSkin.fonts.heading}
+            bodyFont={vibeSkin.fonts.body}
+            bgColor={cardBg}
+            fgColor={pal.foreground}
+            mutedColor={pal.muted}
+            label={countdownLabel}
+          />
         );
+      }
       case 'text':
         return (
           <section key={key} style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
