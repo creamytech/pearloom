@@ -1281,6 +1281,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   );
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id || null);
   const [activeTab, setActiveTab] = useState<EditorTab>('canvas');
+  const [sectionOverridesMap, setSectionOverridesMap] = useState<Record<string, SectionStyleOverrides>>({});
+  // Mobile: which panel is open as a bottom sheet
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const mobileSheetRef = useRef<HTMLDivElement>(null);
+  // Swipe-to-dismiss tracking
+  const swipeStartY = useRef<number | null>(null);
   const [device, setDevice] = useState<DeviceMode>('desktop');
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [rewritingId, setRewritingId] = useState<string | null>(null);
@@ -1701,15 +1707,15 @@ Return JSON with: title, subtitle, description, mood`,
       {/* ── BODY ── */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* ── LEFT SIDEBAR — Section Nav ── */}
+        {/* ── LEFT SIDEBAR — Section Nav (desktop only) ── */}
         <div style={{
-          width: isMobile ? '100%' : (splitView ? '50%' : '420px'), flexShrink: 0,
+          width: isMobile ? '0' : (splitView ? '50%' : '420px'), flexShrink: 0,
           transition: 'width 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
           borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)',
           background: '#110f0d',
-          display: 'flex', flexDirection: 'column',
+          display: isMobile ? 'none' : 'flex', flexDirection: 'column',
           overflow: 'hidden',
-          paddingBottom: isMobile ? 'calc(64px + env(safe-area-inset-bottom, 0px))' : '0',
+          paddingBottom: '0',
         }}>
           {/* Tab strip — primary nav (desktop: top strip; mobile: hidden here, shown at bottom) */}
           <div style={{
@@ -1801,6 +1807,11 @@ Return JSON with: title, subtitle, description, mood`,
                         onUpdate={updateChapter}
                         onAIRewrite={handleAIRewrite}
                         isRewriting={rewritingId === activeChapter.id}
+                        vibeSkin={manifest.vibeSkin}
+                        sectionOverrides={sectionOverridesMap[activeChapter.id]}
+                        onOverridesChange={(id, overrides) =>
+                          setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))
+                        }
                       />
                     </motion.div>
                   )}
@@ -1865,11 +1876,12 @@ Return JSON with: title, subtitle, description, mood`,
           </div>
         </div>
 
-        {/* ── CENTER — Live Preview Canvas (hidden on mobile) ── */}
-        {/* In split view: show PreviewPane directly. Otherwise show iframe. */}
-        {splitView ? (
+        {/* ── CENTER — Live Preview Canvas ── */}
+        {/* On mobile: always show the iframe preview full-screen (tabs at bottom for editing) */}
+        {/* In split view (desktop only): show PreviewPane directly. Otherwise show iframe. */}
+        {splitView && !isMobile ? (
           <div style={{
-            flex: 1, display: isMobile ? 'none' : 'flex', flexDirection: 'column',
+            flex: 1, display: 'flex', flexDirection: 'column',
             borderLeft: '1px solid rgba(255,255,255,0.06)',
             transition: 'flex 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
             overflow: 'hidden',
@@ -1888,25 +1900,27 @@ Return JSON with: title, subtitle, description, mood`,
         ) : (
           <div style={{
             flex: 1, background: '#1a1916',
-            display: isMobile ? 'none' : 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: 'column',
             alignItems: 'center', overflow: 'auto',
-            padding: device === 'desktop' ? '0' : '2rem 2rem 4rem',
+            padding: isMobile ? '0' : device === 'desktop' ? '0' : '2rem 2rem 4rem',
+            // On mobile: add padding at bottom so content isn't hidden behind tab bar
+            paddingBottom: isMobile ? 'calc(56px + env(safe-area-inset-bottom, 0px))' : undefined,
           }}>
             <div style={{
-              width: DEVICE_DIMS[device].width,
-              height: '100%',
+              width: isMobile ? '100%' : DEVICE_DIMS[device].width,
+              height: isMobile ? '100%' : '100%',
               flexShrink: 0,
               display: 'flex', flexDirection: 'column',
-              boxShadow: device !== 'desktop' ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
-              borderRadius: device !== 'desktop' ? '12px' : 0,
+              boxShadow: !isMobile && device !== 'desktop' ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
+              borderRadius: !isMobile && device !== 'desktop' ? '12px' : 0,
               overflow: 'hidden',
-              border: device !== 'desktop' ? '1px solid rgba(255,255,255,0.08)' : 'none',
+              border: !isMobile && device !== 'desktop' ? '1px solid rgba(255,255,255,0.08)' : 'none',
               transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
             }}>
               <iframe
                 ref={iframeRef}
                 src={`/preview?key=${previewKey}`}
-                style={{ flex: 1, border: 'none', width: '100%', minHeight: '600px' }}
+                style={{ flex: 1, border: 'none', width: '100%', minHeight: isMobile ? '100%' : '600px' }}
                 title="Live Preview"
               />
             </div>
@@ -1929,44 +1943,43 @@ Return JSON with: title, subtitle, description, mood`,
         } as React.CSSProperties}>
           {(['canvas', 'story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
             const Icon = TAB_ICONS[tab];
-            const isActive = activeTab === tab;
+            const isActive = activeTab === tab && mobileSheetOpen;
+            const labels: Record<string, string> = {
+              story: 'Story', canvas: 'Sections', events: 'Events', design: 'Design',
+              details: 'Details', blocks: 'AI', voice: 'Voice',
+            };
             return (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  if (activeTab === tab && mobileSheetOpen) {
+                    setMobileSheetOpen(false);
+                  } else {
+                    setActiveTab(tab);
+                    setMobileSheetOpen(true);
+                  }
+                }}
                 style={{
-                  flex: '0 0 auto', minWidth: '56px',
+                  flex: '0 0 auto', minWidth: '52px',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: '3px', padding: '8px 10px',
+                  gap: '3px', padding: '6px 8px',
                   border: 'none', cursor: 'pointer',
                   background: isActive ? '#5c6b3a' : 'transparent',
                   color: isActive ? '#fff' : 'rgba(255,255,255,0.3)',
                   borderTop: isActive ? '2px solid #8a9e56' : '2px solid transparent',
                   transition: 'all 0.15s',
+                  minHeight: '48px',
                 }}
               >
-                <Icon size={16} color={isActive ? '#fff' : 'rgba(255,255,255,0.35)'} />
+                <Icon size={18} color={isActive ? '#fff' : 'rgba(255,255,255,0.35)'} />
+                <span style={{ fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
+                  {labels[tab] || tab}
+                </span>
               </button>
             );
           })}
           {/* Spacer to push preview/publish to right */}
           <div style={{ flex: 1 }} />
-          {/* Preview FAB */}
-          <button
-            onClick={() => {
-              sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
-              window.open(`/preview?key=${previewKey}`, '_blank');
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              padding: '8px 14px', border: 'none',
-              background: 'transparent', color: 'rgba(255,255,255,0.7)',
-              cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
-              borderTop: '2px solid transparent',
-            }}
-          >
-            <PreviewIcon size={16} />
-          </button>
           {/* Publish */}
           <button
             onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
@@ -1976,12 +1989,214 @@ Return JSON with: title, subtitle, description, mood`,
               background: 'linear-gradient(135deg, #b8926a, #d4a574)',
               color: '#fff', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
               borderTop: '2px solid transparent',
+              minHeight: '48px',
             }}
           >
             <PublishIcon size={14} />
           </button>
         </div>
       )}
+
+      {/* ── Mobile bottom sheet panel ── */}
+      <AnimatePresence>
+        {isMobile && mobileSheetOpen && (
+          <motion.div
+            ref={mobileSheetRef}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            style={{
+              position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+              left: 0, right: 0,
+              height: 'calc(80vh - 52px)',
+              zIndex: 1050,
+              background: '#110f0d',
+              borderRadius: '16px 16px 0 0',
+              borderTop: '1px solid rgba(255,255,255,0.12)',
+              display: 'flex', flexDirection: 'column',
+              boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
+              overflow: 'hidden',
+            }}
+            onTouchStart={e => { swipeStartY.current = e.touches[0].clientY; }}
+            onTouchEnd={e => {
+              if (swipeStartY.current !== null) {
+                const delta = e.changedTouches[0].clientY - swipeStartY.current;
+                if (delta > 80) setMobileSheetOpen(false);
+                swipeStartY.current = null;
+              }
+            }}
+          >
+            {/* Drag handle */}
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+              padding: '10px 16px 6px', flexShrink: 0,
+            }}>
+              <div style={{
+                width: '36px', height: '4px', borderRadius: '100px',
+                background: 'rgba(255,255,255,0.2)',
+              }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span style={{
+                  fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em',
+                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)',
+                }}>
+                  {activeTab === 'story' ? 'Story' : activeTab === 'events' ? 'Events' :
+                   activeTab === 'design' ? 'Design' : activeTab === 'details' ? 'Details' :
+                   activeTab === 'blocks' ? 'AI Blocks' : activeTab === 'voice' ? 'Voice' : 'Sections'}
+                </span>
+                <button
+                  onClick={() => setMobileSheetOpen(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '6px',
+                    color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: '5px 12px',
+                    fontSize: '0.72rem', fontWeight: 700, minHeight: '32px',
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable panel content — same as desktop sidebar */}
+            <div style={{
+              flex: 1, overflowY: 'auto', padding: '8px 12px 16px',
+              WebkitOverflowScrolling: 'touch',
+            } as React.CSSProperties}>
+              {activeTab === 'story' && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                      Story Chapters
+                    </span>
+                    <button
+                      onClick={addChapter}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '4px',
+                        padding: '8px 14px', borderRadius: '5px', border: 'none',
+                        background: 'rgba(184,146,106,0.18)', color: '#b8926a',
+                        cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+                        minHeight: '44px',
+                      }}
+                    >
+                      <Plus size={13} /> Add
+                    </button>
+                  </div>
+                  {/* Horizontal swipeable chapter cards on mobile */}
+                  <div style={{
+                    display: 'flex', gap: '10px', overflowX: 'auto',
+                    WebkitOverflowScrolling: 'touch', paddingBottom: '8px', marginBottom: '12px',
+                  } as React.CSSProperties}>
+                    {chapters.map((ch, i) => {
+                      const thumb = getThumb(ch);
+                      const isActive = activeId === ch.id;
+                      return (
+                        <button
+                          key={ch.id}
+                          onClick={() => setActiveId(ch.id)}
+                          style={{
+                            flexShrink: 0, width: '100px', borderRadius: '10px', border: 'none',
+                            background: isActive ? 'rgba(184,146,106,0.18)' : 'rgba(255,255,255,0.05)',
+                            outline: isActive ? '2px solid rgba(184,146,106,0.5)' : 'none',
+                            cursor: 'pointer', padding: 0, overflow: 'hidden',
+                            minHeight: '44px',
+                          }}
+                        >
+                          <div style={{
+                            width: '100%', height: '60px',
+                            background: thumb ? 'transparent' : 'rgba(255,255,255,0.06)',
+                            overflow: 'hidden',
+                          }}>
+                            {thumb
+                              // eslint-disable-next-line @next/next/no-img-element
+                              ? <img src={thumb} alt={ch.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                  <Image size={16} color="rgba(255,255,255,0.2)" />
+                                </div>}
+                          </div>
+                          <div style={{ padding: '6px 8px', textAlign: 'left' }}>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: isActive ? '#b8926a' : 'rgba(255,255,255,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {ch.title || 'Untitled'}
+                            </div>
+                            <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.3)' }}>Ch. {i + 1}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Inline chapter editor */}
+                  <AnimatePresence mode="wait">
+                    {activeChapter && (
+                      <motion.div
+                        key={activeChapter.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ChapterPanel
+                          chapter={activeChapter}
+                          onUpdate={updateChapter}
+                          onAIRewrite={handleAIRewrite}
+                          isRewriting={rewritingId === activeChapter.id}
+                          vibeSkin={manifest.vibeSkin}
+                          sectionOverrides={sectionOverridesMap[activeChapter.id]}
+                          onOverridesChange={(id, overrides) =>
+                            setSectionOverridesMap(prev => ({ ...prev, [id]: overrides }))
+                          }
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              )}
+              {activeTab === 'design' && (
+                <DesignPanel manifest={manifest} onChange={handleDesignChange} />
+              )}
+              {activeTab === 'events' && (
+                <EventsPanel manifest={manifest} onChange={handleDesignChange} />
+              )}
+              {activeTab === 'details' && (
+                <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
+              )}
+              {activeTab === 'pages' && (
+                <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
+              )}
+              {activeTab === 'blocks' && (
+                <AIBlocksPanel
+                  manifest={manifest}
+                  coupleNames={coupleNames}
+                  onChange={(m) => { onChange(m); pushToPreview(m); }}
+                />
+              )}
+              {activeTab === 'voice' && (
+                <div style={{ padding: '4px 0' }}>
+                  <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginBottom: '12px', lineHeight: 1.5 }}>
+                    Teach the chatbot to speak like you.
+                  </p>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
+                    <VoiceTrainerPanel
+                      voiceSamples={manifest.voiceSamples || []}
+                      onChange={(samples) => {
+                        const updated = { ...manifest, voiceSamples: samples };
+                        onChange(updated);
+                        pushToPreview(updated);
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              {activeTab === 'canvas' && (
+                <CanvasEditor
+                  manifest={manifest}
+                  onChange={(m) => { onChange(m); }}
+                  pushToPreview={pushToPreview}
+                />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── "Click to jump" hint toast ── */}
       <AnimatePresence>
