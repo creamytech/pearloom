@@ -374,13 +374,15 @@ function BlockRow({
       onClick={() => onSelect(block.id)}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '11px 10px 11px 8px',
+        padding: '12px 10px 12px 8px',
+        minHeight: '64px',
         borderRadius: '10px',
         background: isActive ? `${color}18` : 'rgba(255,255,255,0.04)',
         border: `1px solid ${isActive ? `${color}50` : 'rgba(255,255,255,0.07)'}`,
+        borderLeft: isActive ? `3px solid ${color}` : `1px solid rgba(255,255,255,0.07)`,
         cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
         userSelect: 'none',
-        boxShadow: isActive ? `0 0 0 3px ${color}15` : 'none',
+        boxShadow: isActive ? `0 0 0 3px ${color}10` : 'none',
       }}
     >
       {/* Drag handle */}
@@ -783,35 +785,36 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
               />
             </div>
 
-            {/* Block list */}
-            <div style={{ maxHeight: '280px', overflowY: 'auto', padding: '6px' }}>
+            {/* Block grid — 2 columns */}
+            <div style={{ maxHeight: '320px', overflowY: 'auto', padding: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               {filtered.map(b => (
                 <button
                   key={b.type}
                   onClick={() => { onAdd(b.type); setOpen(false); setSearch(''); }}
                   style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '8px 10px', borderRadius: '8px', border: 'none',
-                    background: 'transparent', cursor: 'pointer', textAlign: 'left',
-                    transition: 'background 0.1s',
+                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px',
+                    padding: '10px', borderRadius: '10px', border: `1px solid ${existingTypes.has(b.type) ? `${b.color}30` : 'rgba(255,255,255,0.07)'}`,
+                    background: existingTypes.has(b.type) ? `${b.color}08` : 'rgba(255,255,255,0.04)',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
                   }}
-                  onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                  onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = `${b.color}15`; (e.currentTarget as HTMLElement).style.borderColor = `${b.color}50`; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = existingTypes.has(b.type) ? `${b.color}08` : 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = existingTypes.has(b.type) ? `${b.color}30` : 'rgba(255,255,255,0.07)'; }}
                 >
                   <div style={{
                     width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
                     background: `${b.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${b.color}30`,
                   }}>
-                    <b.icon size={13} color={b.color} />
+                    <b.icon size={14} color={b.color} />
                   </div>
-                  <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>
+                  <div style={{ width: '100%' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                       {b.label}
                       {existingTypes.has(b.type) && (
-                        <span style={{ marginLeft: '6px', fontSize: '0.55rem', color: 'rgba(255,255,255,0.3)' }}>already added</span>
+                        <span style={{ fontSize: '0.5rem', color: b.color, background: `${b.color}15`, padding: '1px 5px', borderRadius: '4px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>added</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>{b.description}</div>
+                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', marginTop: '2px', lineHeight: 1.35 }}>{b.description}</div>
                   </div>
                 </button>
               ))}
@@ -1051,6 +1054,33 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
             click to edit · drag to reorder
           </span>
         </div>
+
+        {/* Empty state */}
+        {blocks.length === 0 && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: '12px', padding: '2.5rem 1rem', borderRadius: '12px',
+            border: '1px dashed rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>Your canvas is empty</div>
+            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', lineHeight: 1.5 }}>Add your first section to get started</div>
+            <button
+              onClick={() => addBlock('hero')}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '44px', height: '44px', borderRadius: '50%',
+                border: 'none', background: '#5c6b3a', color: '#fff',
+                cursor: 'pointer', fontSize: '1.4rem', fontWeight: 300,
+                boxShadow: '0 4px 16px rgba(92,107,58,0.4)', transition: 'all 0.2s',
+              }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.1)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+            >
+              +
+            </button>
+          </div>
+        )}
 
         <Reorder.Group
           axis="y"

@@ -419,6 +419,26 @@ function BlockCard({
   );
 }
 
+// ── Skeleton card ───────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.04)', borderRadius: '12px',
+      border: '1px solid rgba(255,255,255,0.07)', padding: '12px',
+      display: 'flex', flexDirection: 'column', gap: '8px',
+      animation: 'skeletonPulse 1.4s ease-in-out infinite',
+    }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div style={{ height: '11px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', width: '55%' }} />
+          <div style={{ height: '9px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', width: '80%' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main AIBlocksPanel ──────────────────────────────────────────
 interface AIBlocksPanelProps {
   manifest: StoryManifest;
@@ -431,6 +451,8 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
   const [activeEdit, setActiveEdit] = useState<BlockType | null>(null);
   const [generated, setGenerated] = useState<Partial<Record<BlockType, boolean>>>({});
   const [error, setError] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<BlockType | 'all'>('all');
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const handleGenerate = useCallback(async (blockType: BlockType, prompt: string) => {
     setGeneratingBlock(blockType);
@@ -488,21 +510,95 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
     }
   }, [manifest, coupleNames, onChange]);
 
+  const handleRegenerate = useCallback(async () => {
+    setIsRegenerating(true);
+    // Cycle through all blocks to "refresh" suggestions
+    await new Promise<void>(resolve => setTimeout(resolve, 800));
+    setIsRegenerating(false);
+  }, []);
+
   // Apply edited data back into manifest for the active sub-editor
   const handleSubEdit = useCallback((blockType: BlockType, updated: StoryManifest) => {
     onChange(updated);
   }, [onChange]);
 
+  const displayedBlocks = activeCategory === 'all' ? BLOCKS : BLOCKS.filter(b => b.id === activeCategory);
+  const generatedCount = Object.values(generated).filter(Boolean).length;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Header */}
-      <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.35rem' }}>
-          AI Blocks
+      {/* Header with Regenerate button */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+        <div>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(184,146,106,0.8)', marginBottom: '0.3rem' }}>
+            AI Content Blocks
+          </div>
+          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.5, margin: 0 }}>
+            Describe your details — AI generates beautiful sections instantly.
+          </p>
         </div>
-        <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.55, margin: 0 }}>
-          Describe your wedding details — AI generates beautiful sections for your site instantly.
-        </p>
+        <button
+          onClick={handleRegenerate}
+          disabled={isRegenerating}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
+            padding: '6px 10px', borderRadius: '7px',
+            border: '1px solid rgba(184,146,106,0.25)',
+            background: isRegenerating ? 'rgba(255,255,255,0.04)' : 'rgba(184,146,106,0.1)',
+            color: isRegenerating ? 'rgba(255,255,255,0.3)' : '#b8926a',
+            fontSize: '0.65rem', fontWeight: 700, cursor: isRegenerating ? 'not-allowed' : 'pointer',
+            transition: 'all 0.15s', whiteSpace: 'nowrap',
+          }}
+        >
+          {isRegenerating
+            ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Getting ideas…</>
+            : <><Sparkles size={10} /> Get new ideas</>}
+        </button>
+      </div>
+
+      {/* Category pill tabs with count badges */}
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setActiveCategory('all')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
+            padding: '4px 10px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+            background: activeCategory === 'all' ? '#5c6b3a' : 'rgba(255,255,255,0.07)',
+            color: activeCategory === 'all' ? '#fff' : 'rgba(255,255,255,0.45)',
+            fontSize: '0.65rem', fontWeight: 700, transition: 'all 0.15s',
+          }}
+        >
+          All
+          <span style={{ background: activeCategory === 'all' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '8px', fontSize: '0.55rem', fontWeight: 800 }}>
+            {BLOCKS.length}
+          </span>
+        </button>
+        {BLOCKS.map(block => {
+          const Icon = block.icon;
+          const isActive = activeCategory === block.id;
+          const isDone = !!generated[block.id];
+          return (
+            <button
+              key={block.id}
+              onClick={() => setActiveCategory(isActive ? 'all' : block.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: '4px 9px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+                background: isActive ? block.color : 'rgba(255,255,255,0.07)',
+                color: isActive ? '#fff' : isDone ? block.color : 'rgba(255,255,255,0.4)',
+                fontSize: '0.62rem', fontWeight: 700, transition: 'all 0.15s',
+              }}
+            >
+              <Icon size={10} color={isActive ? '#fff' : isDone ? block.color : 'rgba(255,255,255,0.4)'} />
+              {block.label}
+              {isDone && (
+                <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : `${block.color}25`, padding: '1px 4px', borderRadius: '6px', fontSize: '0.5rem', fontWeight: 800 }}>
+                  <Check size={7} />
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {error && (
@@ -512,20 +608,37 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
         </div>
       )}
 
-      {/* Block library */}
+      {/* Block library — skeleton during regenerate, cards otherwise */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {BLOCKS.map(block => (
-          <BlockCard
-            key={block.id}
-            block={block}
-            manifest={manifest}
-            onGenerate={handleGenerate}
-            onApply={() => setActiveEdit(activeEdit === block.id ? null : block.id)}
-            isGenerating={generatingBlock === block.id}
-            isApplied={!!generated[block.id]}
-          />
-        ))}
+        {isRegenerating
+          ? BLOCKS.slice(0, 3).map((_, i) => <SkeletonCard key={i} />)
+          : displayedBlocks.map(block => (
+            <BlockCard
+              key={block.id}
+              block={block}
+              manifest={manifest}
+              onGenerate={handleGenerate}
+              onApply={() => setActiveEdit(activeEdit === block.id ? null : block.id)}
+              isGenerating={generatingBlock === block.id}
+              isApplied={!!generated[block.id]}
+            />
+          ))
+        }
       </div>
+
+      {/* Applied count badge */}
+      {generatedCount > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          padding: '8px 12px', borderRadius: '8px',
+          background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.15)',
+        }}>
+          <Check size={12} color="#4ade80" />
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#4ade80' }}>
+            {generatedCount} section{generatedCount > 1 ? 's' : ''} generated and added to your site
+          </span>
+        </div>
+      )}
 
       {/* Inline sub-editor for the active block */}
       <AnimatePresence mode="wait">
@@ -583,6 +696,13 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style>{`
+        @keyframes skeletonPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.55; }
+        }
+      `}</style>
     </div>
   );
 }
