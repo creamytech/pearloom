@@ -19,6 +19,8 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { SiteClientSections, SiteGallerySection } from '@/components/site/SiteClientSections';
 import { CountdownBlock } from '@/components/site/CountdownBlock';
 import { SitePasswordWrapper } from '@/components/site/SitePasswordWrapper';
+import { WeddingDayBanner } from '@/components/site/WeddingDayBanner';
+import { WeddingDayPhotoFeed } from '@/components/site/WeddingDayPhotoFeed';
 
 export const dynamic = 'force-dynamic';
 
@@ -371,6 +373,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Photos will appear here once added.</p>
               </div>
             )}
+            {/* Wedding day guest photo feed — shown on/after wedding date */}
+            {manifest.logistics?.date && (
+              <WeddingDayPhotoFeed siteId={domain} vibeSkin={vibeSkin} />
+            )}
           </section>
         );
       }
@@ -557,6 +563,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
       <div style={{ ...siteVarsStyle, scrollBehavior: 'smooth' }}>
         <SiteNav names={safeNames} pages={sitePages} />
+
+        {manifest.logistics?.date && (
+          <WeddingDayBanner
+            weddingDate={manifest.logistics.date}
+            coupleNames={safeNames}
+            vibeSkin={vibeSkin}
+          />
+        )}
 
         <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
           {visibleBlocks ? (
