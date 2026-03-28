@@ -2,12 +2,28 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/hero.tsx
-// Ultra-Premium Cinematic Hero
+// Ultra-Premium Cinematic Hero — full-bleed parallax, editorial
+// typography, date/venue badge, poetry tagline, PearBackground watermark
 // ─────────────────────────────────────────────────────────────
 
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 import { useRef } from 'react';
+import { CountdownWidget } from '@/components/countdown-widget';
+import { VibeParticles } from '@/components/vibe/VibeParticles';
+import { PearBackground } from '@/components/icons/PearShapes';
+import type { VibeSkin } from '@/lib/vibe-engine';
+
+interface HeroProps {
+  names: [string, string];
+  anniversaryLabel?: string;
+  subtitle?: string;
+  date?: string;
+  venue?: string;
+  coverPhoto?: string;
+  weddingDate?: string;
+  vibeSkin?: VibeSkin;
+  heroTagline?: string; // from manifest.poetry?.heroTagline
+}
 
 // Letter-by-letter staggered name reveal
 function AnimatedName({ text, delay = 0, color }: { text: string; delay?: number; color?: string }) {
@@ -24,8 +40,10 @@ function AnimatedName({ text, delay = 0, color }: { text: string; delay?: number
           style={{ display: 'inline-block', color }}
           variants={{
             hidden: { opacity: 0, y: 48, rotateX: -50, filter: 'blur(8px)' },
-            visible: { opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)',
-              transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
+            visible: {
+              opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)',
+              transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+            },
           }}
         >
           {char === ' ' ? '\u00A0' : char}
@@ -33,19 +51,6 @@ function AnimatedName({ text, delay = 0, color }: { text: string; delay?: number
       ))}
     </motion.span>
   );
-}
-import { CountdownWidget } from '@/components/countdown-widget';
-import { VibeParticles } from '@/components/vibe/VibeParticles';
-import type { VibeSkin } from '@/lib/vibe-engine';
-
-interface HeroProps {
-  names: [string, string];
-  anniversaryLabel?: string;
-  subtitle?: string;
-  date?: string;
-  coverPhoto?: string;
-  weddingDate?: string;
-  vibeSkin?: VibeSkin;
 }
 
 // Animated film grain overlay via SVG turbulence
@@ -63,14 +68,27 @@ function FilmGrain() {
   );
 }
 
-export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, weddingDate, vibeSkin }: HeroProps) {
+// Format date for the badge: "June 14, 2025"
+function formatDateBadge(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  } catch { return dateStr; }
+}
+
+export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
 
-  const yImage = useTransform(scrollYProgress, [0, 1], ['0%', '28%']);
+  // Cover photo parallax: moves at ~0.4x scroll speed
+  const yImage = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
   const opacityImage = useTransform(scrollYProgress, [0, 1], [1, 0.1]);
+
+  // Text layer fades out as user scrolls
   const yText = useTransform(scrollYProgress, [0, 1], ['0%', '45%']);
   const opacityText = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
+
+  const hasBadge = !!(date || weddingDate || venue);
+  const badgeDateStr = weddingDate || date;
 
   return (
     <section
@@ -89,33 +107,54 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
       {/* ── Visual Backdrop ── */}
       {coverPhoto ? (
         <>
+          {/* Full-bleed parallax cover photo at 0.4x scroll speed */}
           <motion.div
             style={{
               position: 'absolute',
-              inset: -80,
+              inset: 0,
               y: yImage,
-              opacity: opacityImage,
-              backgroundImage: `url(${coverPhoto})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-              filter: 'brightness(0.38) contrast(1.25) saturate(0.95)',
+              willChange: 'transform',
             }}
-          />
-          {/* Layered gradient system for deep editorial look */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 28%)', zIndex: 1, pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--eg-bg) 0%, rgba(0,0,0,0) 35%)', zIndex: 1, pointerEvents: 'none' }} />
-          {/* Vignette — soft dark edges for a cinematic frame */}
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%)', zIndex: 1, pointerEvents: 'none' }} />
+          >
+            <img
+              src={coverPhoto}
+              alt=""
+              style={{
+                width: '100%',
+                height: '110%',
+                objectFit: 'cover',
+                objectPosition: 'center top',
+                display: 'block',
+              }}
+            />
+          </motion.div>
+
+          {/* Dark gradient: transparent top → rgba(0,0,0,0.35) bottom — text readability */}
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 30%, rgba(0,0,0,0.35) 100%)',
+          }} />
+          {/* Top vignette */}
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 22%)',
+          }} />
+          {/* Radial vignette for cinematic frame */}
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+            background: 'radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,0.48) 100%)',
+          }} />
           <FilmGrain />
         </>
       ) : (
-        /* Stunning no-photo fallback: multi-tone gradient + noise + animated orbs */
+        /* No-photo fallback: gradient + orbs + PearBackground watermark */
         <>
           <div style={{
             position: 'absolute', inset: 0,
             background: 'radial-gradient(ellipse at 20% 60%, var(--eg-accent-light) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--eg-accent) 15%, transparent) 0%, transparent 55%), var(--eg-bg)',
           }} />
           <FilmGrain />
+
           {/* Animated soft orbs */}
           <motion.div
             animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
@@ -135,14 +174,24 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
               bottom: '-10%', right: '-10%', filter: 'blur(80px)', zIndex: 0,
             }}
           />
+
           {/* Fine dot grid */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 0,
             backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1.2px, transparent 0)',
             backgroundSize: '32px 32px',
           }} />
-          {/* Vibe ambient particles over the no-photo gradient */}
+
+          {/* Vibe ambient particles */}
           {vibeSkin && <VibeParticles particle={vibeSkin.particle} />}
+
+          {/* PearBackground watermark — bottom-right, no cover photo only */}
+          <div style={{
+            position: 'absolute', bottom: '-20px', right: '-20px',
+            zIndex: 1, pointerEvents: 'none',
+          }}>
+            <PearBackground color="var(--eg-fg)" opacity={0.07} size={350} />
+          </div>
         </>
       )}
 
@@ -183,17 +232,19 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
           </motion.div>
         )}
 
-        {/* Names */}
+        {/* Names — cinematic size, light weight, italic elegance */}
         <h1 style={{
           fontFamily: 'var(--eg-font-heading)',
-          fontSize: 'clamp(4.5rem, 13vw, 10rem)',
+          fontSize: 'clamp(4rem, 12vw, 10rem)',
           lineHeight: 0.88,
-          fontWeight: 400,
-          letterSpacing: '-0.025em',
+          fontWeight: 300,
+          fontStyle: 'italic',
+          letterSpacing: '-0.04em',
           margin: '0',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          color: coverPhoto ? '#ffffff' : 'var(--eg-fg)',
         }}>
           <AnimatedName
             text={names[0]}
@@ -201,6 +252,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
             color={coverPhoto ? '#ffffff' : undefined}
           />
 
+          {/* "&" — smaller, accent color */}
           <motion.div
             initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
@@ -208,13 +260,15 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
             style={{
               fontFamily: 'var(--eg-font-heading)',
               fontStyle: 'italic',
-              fontSize: 'clamp(2.5rem, 6vw, 5.5rem)',
-              color: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-accent)',
-              margin: '-1.8rem 0 -1.5rem',
+              fontWeight: 300,
+              fontSize: 'clamp(2.2rem, 5.5vw, 5rem)',
+              color: coverPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
+              margin: '-1.6rem 0 -1.4rem',
               display: 'block',
+              letterSpacing: '0.02em',
             }}
           >
-            &
+            &amp;
           </motion.div>
 
           <AnimatedName
@@ -224,53 +278,92 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
           />
         </h1>
 
-        {/* Subtitle / date row */}
-        {(subtitle || date) && (
+        {/* Date + venue pill badge */}
+        {hasBadge && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1.6 }}
+            style={{ marginTop: '3.5rem', display: 'flex', justifyContent: 'center' }}
+          >
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5em',
+              padding: '0.6rem 1.75rem',
+              borderRadius: '100px',
+              background: coverPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(163,177,138,0.12)',
+              backdropFilter: 'blur(12px)',
+              border: coverPhoto ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(163,177,138,0.22)',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              color: coverPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-fg)',
+              fontFamily: 'var(--eg-font-body)',
+            }}>
+              {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> {formatDateBadge(badgeDateStr)} </>}
+              {venue && <><span style={{ opacity: 0.5 }}>·</span> {venue} </>}
+              {(badgeDateStr || venue) && <span style={{ opacity: 0.5 }}>·</span>}
+            </span>
+          </motion.div>
+        )}
+
+        {/* Poetry tagline — AI-generated poetic subtitle */}
+        {heroTagline && (
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1.9 }}
+            style={{
+              fontFamily: 'var(--eg-font-body)',
+              fontStyle: 'italic',
+              fontSize: '1.1rem',
+              lineHeight: 1.65,
+              color: coverPhoto ? 'rgba(255,255,255,0.7)' : 'var(--eg-muted)',
+              marginTop: '1.25rem',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {heroTagline}
+          </motion.p>
+        )}
+
+        {/* Legacy subtitle */}
+        {subtitle && !heroTagline && (
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1.9 }}
+            style={{
+              fontFamily: 'var(--eg-font-body)',
+              fontStyle: 'italic',
+              fontSize: '1.1rem',
+              lineHeight: 1.65,
+              color: coverPhoto ? 'rgba(255,255,255,0.7)' : 'var(--eg-muted)',
+              marginTop: '1.25rem',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {subtitle}
+          </motion.p>
+        )}
+
+        {/* Ornamental divider — shown if any text below names */}
+        {(hasBadge || heroTagline || subtitle) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, delay: 1.6 }}
-            style={{ marginTop: '5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}
+            transition={{ duration: 1, delay: 2.1 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', marginTop: '2rem' }}
           >
-            {/* Ornamental divider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent)', opacity: 0.6 }} />
-              <div style={{
-                width: '5px', height: '5px', borderRadius: '0',
-                background: coverPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
-                transform: 'rotate(45deg)',
-                opacity: 0.7,
-              }} />
-              <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent)', opacity: 0.6 }} />
-            </div>
-            {subtitle && (
-              <p style={{
-                fontSize: '1.1rem',
-                fontWeight: 300,
-                letterSpacing: '0.08em',
-                opacity: coverPhoto ? 0.88 : 0.75,
-                fontFamily: 'var(--eg-font-body)',
-                fontStyle: 'italic',
-                margin: 0,
-                lineHeight: 1.6,
-              }}>
-                {subtitle}
-              </p>
-            )}
-            {date && (
-              <span style={{
-                display: 'block',
-                fontSize: '0.72rem',
-                opacity: 0.55,
-                fontStyle: 'normal',
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                fontFamily: 'var(--eg-font-body)',
-              }}>
-                {date}
-              </span>
-            )}
+            <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5 }} />
+            <div style={{
+              width: '5px', height: '5px', borderRadius: '0',
+              background: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-accent)',
+              transform: 'rotate(45deg)', opacity: 0.65,
+            }} />
+            <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5 }} />
           </motion.div>
         )}
 
@@ -298,7 +391,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
           zIndex: 20,
         }}
       >
-        {/* Refined mouse-scroll icon */}
+        {/* Mouse-scroll icon */}
         <div style={{
           width: '22px', height: '34px', borderRadius: '11px',
           border: `1.5px solid ${coverPhoto ? 'rgba(255,255,255,0.28)' : 'currentColor'}`,
@@ -314,7 +407,15 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
             }}
           />
         </div>
-        <span style={{ fontSize: '0.55rem', letterSpacing: '0.35em', textTransform: 'uppercase', fontWeight: 600, opacity: 0.45 }}>Scroll</span>
+        <span style={{
+          fontSize: '0.55rem',
+          letterSpacing: '0.35em',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+          opacity: 0.45,
+        }}>
+          Scroll
+        </span>
       </motion.div>
     </section>
   );
