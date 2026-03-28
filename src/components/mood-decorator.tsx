@@ -377,11 +377,11 @@ export function MoodDecoratedHeader({
             fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.2em',
             textTransform: 'uppercase', padding: '0.25rem 0.75rem',
             borderRadius: '100px',
-            background: light ? 'rgba(255,255,255,0.1)' : 'var(--eg-accent-light)',
-            color: light ? 'rgba(255,255,255,0.7)' : 'var(--eg-accent)',
-            border: light ? '1px solid rgba(255,255,255,0.15)' : 'none',
+            background: light ? 'rgba(255,255,255,0.1)' : 'var(--eg-plum-light)',
+            color: light ? 'rgba(255,255,255,0.7)' : 'var(--eg-plum)',
+            border: light ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(109,89,122,0.12)',
           }}>
-            ✦ {mood}
+            {mood}
           </span>
         </motion.div>
       )}

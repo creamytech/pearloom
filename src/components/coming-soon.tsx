@@ -2,12 +2,14 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/coming-soon.tsx
-// High-fidelity Coming Soon + email capture waitlist (#13)
+// Save-the-date aesthetic — elegant, restrained, breathtaking
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Sparkles, Mail, Check, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, Check, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { PearBackground } from '@/components/icons/PearShapes';
+import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 import type { ComingSoonConfig } from '@/types';
 
 interface ComingSoonProps {
@@ -16,7 +18,7 @@ interface ComingSoonProps {
   onUnlock?: () => void;
 }
 
-// ── Countdown ─────────────────────────────────────────────────
+// ── Countdown hook ─────────────────────────────────────────────
 function useCountdown(targetDate?: string) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -44,34 +46,52 @@ function useCountdown(targetDate?: string) {
   return timeLeft;
 }
 
-function CountdownUnit({ value, label }: { value: number; label: string }) {
+function CountdownUnit({ value, label, isTick = false }: { value: number; label: string; isTick?: boolean }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', minWidth: '64px' }}>
-      <AnimatePresence mode="popLayout">
-        <motion.div
-          key={value}
-          initial={{ y: -16, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 16, opacity: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: 'clamp(2rem, 5vw, 3.25rem)',
-            fontWeight: 400,
-            color: 'var(--eg-fg)',
-            letterSpacing: '-0.02em',
-            lineHeight: 1,
-            display: 'block',
-            minWidth: '2ch',
-            textAlign: 'center',
-          }}
-        >
-          {String(value).padStart(2, '0')}
-        </motion.div>
-      </AnimatePresence>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', minWidth: '72px' }}>
+      <div style={{
+        background: 'rgba(255,255,255,0.72)',
+        backdropFilter: 'blur(16px)',
+        borderRadius: '1rem',
+        padding: '1.25rem 1.5rem',
+        boxShadow: '0 8px 32px rgba(43,43,43,0.08), 0 1px 4px rgba(43,43,43,0.04)',
+        border: '1px solid rgba(255,255,255,0.9)',
+        minWidth: '72px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={value}
+            initial={{ y: -14, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 14, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: 'clamp(2.25rem, 5vw, 3.25rem)',
+              fontWeight: 400,
+              color: 'var(--eg-fg)',
+              letterSpacing: '-0.03em',
+              lineHeight: 1,
+              display: 'block',
+              minWidth: '2ch',
+              textAlign: 'center',
+              fontVariantNumeric: 'tabular-nums',
+              ...(isTick ? { animation: 'cs-tick 1s steps(1) infinite' } : {}),
+            }}
+          >
+            {String(value).padStart(2, '0')}
+          </motion.div>
+        </AnimatePresence>
+      </div>
       <span style={{
-        fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.15em',
-        textTransform: 'uppercase', color: 'var(--eg-muted)',
+        fontSize: '0.58rem',
+        fontWeight: 700,
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: 'var(--eg-muted)',
       }}>
         {label}
       </span>
@@ -115,8 +135,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
     e.preventDefault();
     if (!password.trim()) return;
     setPwStatus('checking');
-    // Check password against config
-    await new Promise(r => setTimeout(r, 400)); // subtle delay for UX
+    await new Promise(r => setTimeout(r, 400));
     if (password === config.password) {
       setPwStatus('idle');
       onUnlock?.();
@@ -137,34 +156,60 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
       justifyContent: 'center',
       overflow: 'hidden',
     }}>
+      {/* PearBackground watermark — bottom-right, very low opacity */}
+      <div style={{
+        position: 'absolute',
+        bottom: '-40px',
+        right: '-40px',
+        zIndex: 0,
+        pointerEvents: 'none',
+      }}>
+        <PearBackground color="var(--eg-fg)" opacity={0.05} size={480} />
+      </div>
+
+      {/* Additional watermark top-left for depth */}
+      <div style={{
+        position: 'absolute',
+        top: '-60px',
+        left: '-60px',
+        zIndex: 0,
+        pointerEvents: 'none',
+        transform: 'rotate(180deg)',
+      }}>
+        <PearBackground color="var(--eg-accent)" opacity={0.04} size={340} />
+      </div>
+
       {/* Layered ambient glows */}
       <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.35, 0.2] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.18, 0.28, 0.18] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         style={{
           position: 'absolute', top: '30%', left: '50%',
           transform: 'translate(-50%, -50%)',
           width: '800px', height: '800px',
           background: 'radial-gradient(circle, var(--eg-accent-light) 0%, transparent 65%)',
           pointerEvents: 'none',
+          zIndex: 0,
         }}
       />
       <motion.div
-        animate={{ scale: [1.1, 1, 1.1], opacity: [0.1, 0.2, 0.1] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+        animate={{ scale: [1.1, 1, 1.1], opacity: [0.08, 0.16, 0.08] }}
+        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
         style={{
           position: 'absolute', top: '70%', left: '30%',
           width: '500px', height: '500px',
           background: 'radial-gradient(circle, var(--eg-accent-light) 0%, transparent 70%)',
           pointerEvents: 'none',
+          zIndex: 0,
         }}
       />
 
-      {/* Decorative top divider */}
+      {/* Top ornamental rule */}
       <div style={{
         position: 'absolute', top: '3.5rem', left: '50%',
         transform: 'translateX(-50%)',
-        display: 'flex', alignItems: 'center', gap: '1rem', opacity: 0.18,
+        display: 'flex', alignItems: 'center', gap: '1rem', opacity: 0.2,
+        zIndex: 1,
       }}>
         <div style={{ width: '80px', height: '1px', background: 'var(--eg-fg)' }} />
         <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)', transform: 'rotate(45deg)' }} />
@@ -174,143 +219,173 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 32 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-        viewport={{ once: true, margin: '-80px' }}
         style={{
           position: 'relative', zIndex: 10,
           textAlign: 'center',
-          maxWidth: '640px',
+          maxWidth: '620px',
           width: '100%',
         }}
       >
+        {/* Eyebrow label */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.2 }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '0.75rem', marginBottom: '2.5rem', opacity: 0.65,
+          }}
+        >
+          <div style={{ width: '40px', height: '1px', background: 'var(--eg-accent)' }} />
+          <span style={{
+            fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.32em',
+            textTransform: 'uppercase', color: 'var(--eg-accent)',
+          }}>
+            Save the Date
+          </span>
+          <div style={{ width: '40px', height: '1px', background: 'var(--eg-accent)' }} />
+        </motion.div>
+
         {/* Icon */}
         <motion.div
-          animate={{ rotate: [0, 6, -6, 0], scale: [1, 1.05, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ scale: [1, 1.04, 1] }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             color: 'var(--eg-accent)', marginBottom: '2.5rem',
             display: 'flex', justifyContent: 'center',
           }}
         >
           <div style={{
-            width: '72px', height: '72px', borderRadius: '50%',
-            background: 'var(--eg-accent-light)',
-            border: '1.5px solid color-mix(in srgb, var(--eg-accent) 20%, transparent)',
+            width: '80px', height: '80px', borderRadius: '50%',
+            background: 'rgba(255,255,255,0.7)',
+            border: '1.5px solid rgba(163,177,138,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 12px 40px color-mix(in srgb, var(--eg-accent) 18%, transparent)',
+            boxShadow: '0 12px 40px rgba(163,177,138,0.2)',
+            backdropFilter: 'blur(8px)',
           }}>
             {config.passwordProtected ? (
-              <Lock size={28} strokeWidth={1.5} />
+              <Lock size={30} strokeWidth={1.3} color="var(--eg-accent)" />
             ) : (
-              <Sparkles size={28} strokeWidth={1.5} />
+              <CalendarHeartIcon size={30} color="var(--eg-accent)" />
             )}
           </div>
         </motion.div>
 
         {/* Title */}
-        <h2 style={{
+        <h1 style={{
           fontFamily: 'var(--eg-font-heading)',
-          fontSize: 'clamp(2.75rem, 6vw, 4.5rem)',
+          fontSize: 'clamp(2.75rem, 7vw, 5rem)',
           fontWeight: 400,
+          fontStyle: 'italic',
           color: 'var(--eg-fg)',
           lineHeight: 1.0,
           marginBottom: '1.5rem',
           letterSpacing: '-0.03em',
         }}>
           {config.title}
-        </h2>
+        </h1>
 
         <p style={{
           fontFamily: 'var(--eg-font-body)',
           fontSize: '1.1rem',
           fontWeight: 300,
           color: 'var(--eg-muted)',
-          lineHeight: 1.75,
-          marginBottom: isCountdownActive ? '3rem' : config.revealDate ? '2rem' : '3.5rem',
+          lineHeight: 1.8,
+          marginBottom: isCountdownActive ? '3.5rem' : config.revealDate ? '2rem' : '3.5rem',
           fontStyle: 'italic',
+          maxWidth: '440px',
+          margin: `0 auto ${isCountdownActive ? '3.5rem' : config.revealDate ? '2rem' : '3.5rem'}`,
         }}>
           {config.subtitle}
         </p>
 
-        {/* ── Countdown ── */}
+        {/* Countdown — large display units */}
         {isCountdownActive && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
+            transition={{ delay: 0.4, duration: 0.9 }}
             style={{ marginBottom: '3.5rem' }}
           >
             <div style={{
               display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
-              gap: '1.5rem',
-              background: 'color-mix(in srgb, var(--eg-card-bg, #fff) 80%, transparent)',
-              backdropFilter: 'blur(16px)',
-              borderRadius: '1.5rem',
-              padding: '2rem 2.5rem',
-              border: '1px solid rgba(0,0,0,0.05)',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.05)',
+              gap: '1.75rem',
+              background: 'rgba(245,241,232,0.6)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '2rem',
+              padding: '2.25rem 2.75rem',
+              border: '1px solid rgba(214,198,168,0.3)',
+              boxShadow: '0 8px 40px rgba(43,43,43,0.05), 0 1px 0 rgba(255,255,255,0.9) inset',
             }}>
               <div style={{
-                fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: 'var(--eg-muted)',
+                display: 'flex', alignItems: 'center', gap: '0.55rem', opacity: 0.6,
               }}>
-                Revealing in
+                <CalendarHeartIcon size={12} color="var(--eg-accent)" />
+                <span style={{
+                  fontSize: '0.58rem', fontWeight: 700,
+                  letterSpacing: '0.3em', textTransform: 'uppercase',
+                  color: 'var(--eg-muted)',
+                }}>
+                  Revealing in
+                </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                 <CountdownUnit value={countdown.days} label="days" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: '2rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.3, paddingTop: '0.1rem' }}>·</div>
+                <div style={{ color: 'var(--eg-muted)', fontSize: '2.5rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
                 <CountdownUnit value={countdown.hours} label="hours" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: '2rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.3, paddingTop: '0.1rem' }}>·</div>
-                <CountdownUnit value={countdown.minutes} label="minutes" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: '2rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.3, paddingTop: '0.1rem' }}>·</div>
-                <CountdownUnit value={countdown.seconds} label="seconds" />
+                <div style={{ color: 'var(--eg-muted)', fontSize: '2.5rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <CountdownUnit value={countdown.minutes} label="min" />
+                <div style={{ color: 'var(--eg-muted)', fontSize: '2.5rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <CountdownUnit value={countdown.seconds} label="sec" isTick />
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Reveal date badge — only when countdown is past */}
+        {/* Reveal date badge — when countdown is past */}
         {config.revealDate && !isCountdownActive && (
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
             background: 'var(--eg-accent-light)',
             color: 'var(--eg-accent)',
-            padding: '0.6rem 1.5rem',
+            padding: '0.65rem 1.75rem',
             borderRadius: '100px',
-            fontSize: '0.8rem',
+            fontSize: '0.72rem',
             fontWeight: 700,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
             marginBottom: '3.5rem',
-            border: '1px solid color-mix(in srgb, var(--eg-accent) 15%, transparent)',
+            border: '1px solid rgba(163,177,138,0.2)',
           }}>
-            <Sparkles size={12} />
+            <CalendarHeartIcon size={12} color="var(--eg-accent)" />
             {new Date(config.revealDate).toLocaleDateString('en-US', {
               month: 'long', day: 'numeric', year: 'numeric',
             })}
           </div>
         )}
 
-        {/* ── Password Gate ── */}
+        {/* Password Gate */}
         {config.passwordProtected && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
+            transition={{ delay: 0.35, duration: 0.9 }}
             style={{
-              background: 'var(--eg-card-bg, #fff)',
-              borderRadius: '1.5rem',
+              background: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '1.75rem',
               padding: '2.5rem',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.07)',
-              border: '1px solid rgba(0,0,0,0.05)',
+              boxShadow: '0 20px 60px rgba(43,43,43,0.07), 0 1px 0 rgba(255,255,255,0.95) inset',
+              border: '1px solid rgba(214,198,168,0.25)',
               marginBottom: siteId ? '1.5rem' : '0',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.75rem', justifyContent: 'center' }}>
-              <Lock size={15} color="var(--eg-accent)" strokeWidth={2} />
-              <span style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
+              <Lock size={14} color="var(--eg-accent)" strokeWidth={1.8} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
                 Enter password to view
               </span>
             </div>
@@ -324,17 +399,17 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   required
                   style={{
                     width: '100%', padding: '1rem 3rem 1rem 1.25rem',
-                    borderRadius: '0.875rem',
-                    border: `1.5px solid ${pwStatus === 'error' ? '#ef4444' : 'rgba(0,0,0,0.08)'}`,
+                    borderRadius: '1rem',
+                    border: `1.5px solid ${pwStatus === 'error' ? '#ef4444' : 'rgba(163,177,138,0.25)'}`,
                     outline: 'none', fontSize: '1rem',
                     fontFamily: 'var(--eg-font-body)',
-                    background: pwStatus === 'error' ? '#fef2f2' : 'rgba(0,0,0,0.02)',
+                    background: pwStatus === 'error' ? '#fef2f2' : 'rgba(255,255,255,0.6)',
                     boxSizing: 'border-box',
                     transition: 'border-color 0.2s, background 0.2s',
                     letterSpacing: showPassword ? '0' : '0.15em',
                   }}
                   onFocus={e => { if (pwStatus !== 'error') e.target.style.borderColor = 'var(--eg-accent)'; }}
-                  onBlur={e => { if (pwStatus !== 'error') e.target.style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                  onBlur={e => { if (pwStatus !== 'error') e.target.style.borderColor = 'rgba(163,177,138,0.25)'; }}
                 />
                 <button
                   type="button"
@@ -366,7 +441,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                 type="submit"
                 disabled={pwStatus === 'checking' || !password.trim()}
                 style={{
-                  padding: '1rem', borderRadius: '0.875rem',
+                  padding: '1rem', borderRadius: '1rem',
                   background: 'var(--eg-fg)', color: '#fff', border: 'none',
                   cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
@@ -385,7 +460,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   />
                 ) : (
                   <>
-                    <Lock size={15} />
+                    <Lock size={14} />
                     Unlock Site
                   </>
                 )}
@@ -394,26 +469,30 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
           </motion.div>
         )}
 
-        {/* ── Email Capture Form ── */}
+        {/* Email Capture Form — styled UI (save the date aesthetic) */}
         {siteId && captureStatus !== 'success' && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            transition={{ delay: 0.55, duration: 0.9 }}
             style={{
-              background: 'var(--eg-card-bg, #fff)',
-              borderRadius: '1.5rem',
+              background: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '1.75rem',
               padding: '2.5rem',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(0,0,0,0.05)',
+              boxShadow: '0 20px 60px rgba(43,43,43,0.06), 0 1px 0 rgba(255,255,255,0.95) inset',
+              border: '1px solid rgba(214,198,168,0.25)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
-              <Mail size={15} color="var(--eg-accent)" />
-              <span style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', justifyContent: 'center' }}>
+              <Mail size={14} color="var(--eg-accent)" strokeWidth={1.8} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
                 Be the first to know
               </span>
             </div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', textAlign: 'center', marginBottom: '1.75rem', fontStyle: 'italic', fontWeight: 300, lineHeight: 1.6 }}>
+              Leave your email and we will notify you the moment this site goes live.
+            </p>
             <form onSubmit={handleCapture} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <input
                 type="text"
@@ -421,14 +500,15 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 style={{
-                  width: '100%', padding: '1rem 1.25rem', borderRadius: '0.875rem',
-                  border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none',
-                  fontSize: '0.95rem', fontFamily: 'var(--eg-font-body)',
-                  background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box',
+                  width: '100%', padding: '1rem 1.25rem', borderRadius: '1rem',
+                  border: '1.5px solid rgba(163,177,138,0.22)', outline: 'none',
+                  fontSize: '1rem', fontFamily: 'var(--eg-font-body)',
+                  background: 'rgba(255,255,255,0.6)', boxSizing: 'border-box',
                   transition: 'border-color 0.2s',
+                  color: 'var(--eg-fg)',
                 }}
                 onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                onBlur={e => { e.target.style.borderColor = 'rgba(163,177,138,0.22)'; }}
               />
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <input
@@ -438,20 +518,21 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{
-                    flex: 1, padding: '1rem 1.25rem', borderRadius: '0.875rem',
-                    border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none',
-                    fontSize: '0.95rem', fontFamily: 'var(--eg-font-body)',
-                    background: 'rgba(0,0,0,0.02)', transition: 'border-color 0.2s',
+                    flex: 1, padding: '1rem 1.25rem', borderRadius: '1rem',
+                    border: '1.5px solid rgba(163,177,138,0.22)', outline: 'none',
+                    fontSize: '1rem', fontFamily: 'var(--eg-font-body)',
+                    background: 'rgba(255,255,255,0.6)', transition: 'border-color 0.2s',
+                    color: 'var(--eg-fg)',
                   }}
                   onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(163,177,138,0.22)'; }}
                 />
                 <button
                   type="submit"
                   disabled={captureStatus === 'loading'}
                   style={{
-                    padding: '1rem 1.5rem', borderRadius: '0.875rem',
-                    background: 'var(--eg-accent)', color: '#fff', border: 'none',
+                    padding: '1rem 1.5rem', borderRadius: '1rem',
+                    background: 'var(--eg-fg)', color: '#fff', border: 'none',
                     cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     flexShrink: 0, transition: 'opacity 0.2s, transform 0.15s',
@@ -487,15 +568,17 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         {/* Success state */}
         {siteId && captureStatus === 'success' && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
-              background: 'var(--eg-card-bg, #fff)', borderRadius: '1.5rem',
+              background: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '1.75rem',
               padding: '3rem 2.5rem',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(0,0,0,0.05)',
+              boxShadow: '0 20px 60px rgba(43,43,43,0.06)',
+              border: '1px solid rgba(214,198,168,0.25)',
             }}
           >
             <motion.div
@@ -506,7 +589,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                 width: '56px', height: '56px', borderRadius: '50%',
                 background: 'linear-gradient(135deg, #10b981, #34d399)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(16,185,129,0.3)',
+                boxShadow: '0 8px 24px rgba(16,185,129,0.28)',
               }}
             >
               <Check size={24} color="#fff" strokeWidth={2.5} />
@@ -517,7 +600,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             }}>
               You&apos;re on the list!
             </p>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: '320px' }}>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: '320px', textAlign: 'center' }}>
               We&apos;ll reach out the moment this chapter is ready to be shared.
             </p>
           </motion.div>
@@ -528,12 +611,21 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
       <div style={{
         position: 'absolute', bottom: '3.5rem', left: '50%',
         transform: 'translateX(-50%)',
-        display: 'flex', alignItems: 'center', gap: '1rem', opacity: 0.14,
+        display: 'flex', alignItems: 'center', gap: '1rem', opacity: 0.15,
+        zIndex: 1,
       }}>
         <div style={{ width: '40px', height: '1px', background: 'var(--eg-fg)' }} />
         <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)', transform: 'rotate(45deg)' }} />
         <div style={{ width: '40px', height: '1px', background: 'var(--eg-fg)' }} />
       </div>
+
+      {/* Tick animation for seconds */}
+      <style>{`
+        @keyframes cs-tick {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0.55; }
+        }
+      `}</style>
     </section>
   );
 }

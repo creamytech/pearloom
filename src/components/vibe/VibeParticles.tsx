@@ -62,6 +62,11 @@ const PARTICLE_CONFIGS: Record<VibeSkin['particle'], {
     colors: ['#c8ff8a', '#d4f56e', '#a8ff5c', '#e8ffb0', '#f0ffcc'],
     count: 28, speed: 0.15, drift: 0.4, spin: false,
   },
+  sakura: {
+    symbols: ['✿', '❀', '⚘', '✾', '❁'],
+    colors: ['#ffb7c5', '#ffccd5', '#ff9db0', '#ffdde3', '#ffc0cb'],
+    count: 20, speed: 0.35, drift: 1.0, spin: true,
+  },
 };
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
