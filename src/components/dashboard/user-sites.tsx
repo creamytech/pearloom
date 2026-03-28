@@ -399,8 +399,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             <AnimatePresence>
               {sites.map((site, i) => {
                 const vibeSkin = site.manifest?.vibeSkin;
-                const accentColor = vibeSkin?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
-                const accentDark = vibeSkin?.accentDark || site.manifest?.theme?.colors?.muted || '#8FA876';
+                const accentColor = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
+                const accentDark = vibeSkin?.palette?.highlight || site.manifest?.theme?.colors?.muted || '#8FA876';
                 const formattedDate = getFormattedDate(site.created_at);
                 const isDeleting = deletingDomain === site.domain;
                 const isHovered = hoveredId === site.id;
