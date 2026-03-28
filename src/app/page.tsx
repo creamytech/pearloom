@@ -146,6 +146,39 @@ export default function DashboardPage() {
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
+  // ── Wizard draft persistence ──────────────────────────────────
+  const WIZARD_STORAGE_KEY = 'pearloom_wizard_draft';
+  const [draftBanner, setDraftBanner] = useState<{ savedAt: number; coupleNames: [string, string]; vibeString: string; step: Step } | null>(null);
+
+  // On mount: check for a recent draft (< 24h) and show the banner
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(WIZARD_STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft?.savedAt && Date.now() - draft.savedAt < 24 * 60 * 60 * 1000) {
+        setDraftBanner(draft);
+      } else {
+        localStorage.removeItem(WIZARD_STORAGE_KEY);
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save wizard state whenever we're in an active wizard step
+  useEffect(() => {
+    if (currentStep === 'vibe' || currentStep === 'photos' || currentStep === 'cluster-review' || currentStep === 'local-upload') {
+      try {
+        localStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          coupleNames,
+          vibeString,
+          step: currentStep,
+        }));
+      } catch {}
+    }
+  }, [coupleNames, vibeString, currentStep]);
+
   // Redirect to dashboard once auth is confirmed — must be in useEffect,
   // NOT inline during render, to avoid React's infinite update loop
   useEffect(() => {
@@ -249,6 +282,10 @@ export default function DashboardPage() {
       const autoSlug = data.subdomain || generateSlug(data.names);
       console.log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
       setSubdomain(autoSlug);
+
+      // Clear wizard draft on successful generation
+      try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
+      setDraftBanner(null);
 
       setCurrentStep('edit');
     } catch (err) {
@@ -484,19 +521,71 @@ export default function DashboardPage() {
               >
               {/* -- DASHBOARD -- */}
               {currentStep === 'dashboard' && (
-                <UserSites 
-                  onStartNew={() => setCurrentStep('photos')}
-                  onEditSite={(site) => {
-                    setManifest(site.manifest);
-                    setSubdomain(site.domain);
-                    setCoupleNames(site.names || ['', '']);
-                    setCurrentStep('edit');
-                  }}
-                  onManageGuests={(site) => {
-                    setSubdomain(site.domain);
-                    setCurrentStep('guests');
-                  }}
-                />
+                <>
+                  {/* Draft resume banner */}
+                  {draftBanner && (
+                    <div style={{
+                      background: '#FFFBF0',
+                      border: '1px solid #D4A847',
+                      borderRadius: '0.75rem',
+                      padding: '0.85rem 1.25rem',
+                      marginBottom: '1.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '1rem',
+                      flexWrap: 'wrap',
+                    }}>
+                      <span style={{ fontSize: '0.88rem', color: '#5C4A1A', lineHeight: 1.4 }}>
+                        You have an unfinished site
+                      </span>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
+                        <button
+                          onClick={() => {
+                            setCoupleNames(draftBanner.coupleNames);
+                            setVibeString(draftBanner.vibeString);
+                            setCurrentStep(draftBanner.step || 'vibe');
+                            setDraftBanner(null);
+                          }}
+                          style={{
+                            fontSize: '0.85rem', fontWeight: 600, color: '#6B7B3A',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            textDecoration: 'underline', textUnderlineOffset: '2px', padding: 0,
+                          }}
+                        >
+                          Continue where you left off
+                        </button>
+                        <span style={{ color: '#C4A050', fontSize: '0.8rem' }}>or</span>
+                        <button
+                          onClick={() => {
+                            try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
+                            setDraftBanner(null);
+                            setCurrentStep('photos');
+                          }}
+                          style={{
+                            fontSize: '0.85rem', color: '#9A9488', background: 'none',
+                            border: 'none', cursor: 'pointer', padding: 0,
+                          }}
+                        >
+                          Start fresh
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <UserSites
+                    onStartNew={() => setCurrentStep('photos')}
+                    onEditSite={(site) => {
+                      setManifest(site.manifest);
+                      setSubdomain(site.domain);
+                      setCoupleNames(site.names || ['', '']);
+                      setCurrentStep('edit');
+                    }}
+                    onManageGuests={(site) => {
+                      setSubdomain(site.domain);
+                      setCurrentStep('guests');
+                    }}
+                  />
+                </>
               )}
 
               {/* -- PHOTOS -- */}
