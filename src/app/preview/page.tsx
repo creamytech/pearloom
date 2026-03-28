@@ -271,7 +271,6 @@ function PreviewContent() {
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <div style={{ fontSize: '2.5rem', opacity: 0.35 }}>🎬</div>
                   <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a YouTube or Vimeo URL in the Sections editor</span>
                 </div>
               )}
@@ -293,7 +292,6 @@ function PreviewContent() {
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <div style={{ fontSize: '2.5rem', opacity: 0.35 }}>📍</div>
                   <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a venue address in Details to show the map</span>
                 </div>
               )}
@@ -340,7 +338,7 @@ function PreviewContent() {
               fontFamily: `"${vibeSkin.fonts.heading}", serif`,
               fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '1rem',
             }}>
-              📖 Guestbook
+              Guestbook
             </div>
             <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Guest wishes will appear here on the live site.</p>
           </section>
@@ -465,7 +463,7 @@ function CountdownDisplay({ targetDate, accentColor }: { targetDate: string; acc
   const minutes = Math.floor((diff / (1000 * 60)) % 60);
   const seconds = Math.floor((diff / 1000) % 60);
 
-  if (diff <= 0) return <span style={{ color: accentColor }}>🎉 Today is the day!</span>;
+  if (diff <= 0) return <span style={{ color: accentColor }}>Today is the day!</span>;
 
   const unitStyle: React.CSSProperties = {
     display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '4px',

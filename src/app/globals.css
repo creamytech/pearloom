@@ -7,31 +7,48 @@
 
 /* ─── Design Tokens ─── */
 :root {
-  --eg-bg: #faf9f6;
-  --eg-fg: #1a1713;
-  --eg-accent: #b8926a;
-  --eg-accent-light: #f3e8d8;
-  --eg-accent-dark: #96724c;
-  --eg-accent-warm: #c9a27c;        /* softer accent for body accents */
-  --eg-muted: #8c8680;              /* warm-shifted muted (was cool grey) */
-  --eg-card-bg: #ffffff;
-  --eg-dark: #1a1713;               /* warm dark — replaces cold #1a1a1a */
-  --eg-dark-2: #2a2118;             /* deeper warm dark for gradients */
+  /* ── Core Palette ── */
+  --eg-bg: #F5F1E8;                  /* Pear Cream — main background */
+  --eg-bg-section: #EEE8DC;          /* slightly deeper cream for alternating sections */
+  --eg-fg: #2B2B2B;                  /* Charcoal Ink — never pure black */
+  --eg-accent: #A3B18A;              /* Soft Olive — primary brand color */
+  --eg-accent-hover: #8FA876;        /* darker olive for hover states */
+  --eg-accent-light: #EEE8DC;        /* cream tint for accent backgrounds */
+  --eg-gold: #D6C6A8;                /* Dusty Gold — premium accent, dividers, glows */
+  --eg-plum: #6D597A;                /* Muted Plum — emotional highlights, selected states */
+  --eg-plum-light: rgba(109,89,122,0.12); /* plum tint for selected backgrounds */
+  --eg-muted: #9A9488;               /* warm muted text */
+  --eg-divider: #E6DFD2;             /* super-subtle warm divider lines */
+  --eg-card-bg: rgba(255,255,255,0.55); /* soft glass cards */
+  --eg-dark: #2B2B2B;                /* Charcoal Ink */
+  --eg-dark-2: #3D3530;              /* deeper warm dark for editor/dark surfaces */
+
+  /* ── Typography ── */
   --eg-font-heading: "Playfair Display", serif;
   --eg-font-body: "Lora", Georgia, serif;
+
+  /* ── Shape ── */
   --eg-radius: 1rem;
   --eg-radius-sm: 0.75rem;
-  --eg-shadow-sm: 0 2px 8px rgba(26,23,19,0.04);
-  --eg-shadow-md: 0 8px 32px rgba(26,23,19,0.06);
-  --eg-shadow-lg: 0 20px 60px rgba(26,23,19,0.08);
-  --eg-shadow-xl: 0 32px 80px rgba(26,23,19,0.1);
-  --eg-gradient-warm: linear-gradient(135deg, #f8e8d4 0%, #faf9f6 50%, #e8ddd0 100%);
-  --eg-gradient-hero: linear-gradient(180deg, #f5ead6 0%, #faf9f6 40%, #faf9f6 100%);
-  --eg-glass: rgba(255, 255, 255, 0.72);
-  --eg-glass-border: rgba(255, 255, 255, 0.3);
-  /* Thread / weave metaphor tokens */
-  --eg-thread: rgba(184,146,106,0.25);       /* thread line color */
-  --eg-thread-glow: rgba(184,146,106,0.08);  /* soft thread glow fill */
+
+  /* ── Shadows (warm-tinted) ── */
+  --eg-shadow-sm: 0 2px 8px rgba(43,43,43,0.05);
+  --eg-shadow-md: 0 8px 32px rgba(43,43,43,0.07);
+  --eg-shadow-lg: 0 20px 60px rgba(43,43,43,0.09);
+  --eg-shadow-xl: 0 32px 80px rgba(43,43,43,0.11);
+
+  /* ── Gradients ── */
+  --eg-gradient-warm: linear-gradient(135deg, #EEE8DC 0%, #F5F1E8 50%, #E8E2D8 100%);
+  --eg-gradient-hero: linear-gradient(180deg, #EBE5D5 0%, #F5F1E8 40%, #F5F1E8 100%);
+
+  /* ── Glass ── */
+  --eg-glass: rgba(245,241,232,0.72);
+  --eg-glass-border: rgba(214,198,168,0.35);  /* Dusty Gold border on glass */
+
+  /* ── Thread / weave metaphor ── */
+  --eg-thread: rgba(163,177,138,0.30);        /* Soft Olive thread */
+  --eg-thread-glow: rgba(163,177,138,0.10);   /* soft olive glow fill */
+  --eg-thread-gold: rgba(214,198,168,0.40);   /* Dusty Gold thread highlight */
 }
 
 @theme inline {
@@ -97,8 +114,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::selection {
-  background: var(--eg-accent-light);
-  color: var(--eg-accent-dark);
+  background: var(--eg-plum-light);
+  color: var(--eg-plum);
 }
 
 /* ═══════════════════════════

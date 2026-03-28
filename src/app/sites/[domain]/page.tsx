@@ -285,7 +285,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: pal.muted, fontSize: '1rem' }}>🎬 Video embed — add YouTube or Vimeo URL in Canvas config</span>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>Video embed — add YouTube or Vimeo URL in Canvas config</span>
                 </div>
               )}
             </div>
@@ -306,7 +306,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: pal.muted, fontSize: '1rem' }}>📍 Venue map — add address in Details</span>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>Venue map — add address in Details</span>
                 </div>
               )}
             </div>
