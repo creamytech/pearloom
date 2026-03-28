@@ -69,7 +69,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, guest: { name: guestName, status } });
     }
 
-    return NextResponse.json({ success: true, guest: data });
+    // Always log new RSVP responses
+    console.log('[RSVP] New response from:', guestName, '| Status:', status, '| Site:', siteId);
+
+    // Non-blocking notification — fire and forget
+    try {
+      const notifEmail = process.env.NOTIFICATION_EMAIL;
+      if (notifEmail) {
+        // Could integrate with Resend, SendGrid, etc. in future
+        // For now, just log that we would notify
+        console.log(`[RSVP] Would notify ${notifEmail}: ${guestName} ${status} for ${siteId}`);
+      }
+    } catch (e) {
+      // Never let notification failure affect the RSVP response
+    }
+
+    return NextResponse.json({
+      success: true,
+      guest: data,
+      message: status === 'attending'
+        ? "We can't wait to celebrate with you!"
+        : "Thank you for letting us know. You'll be missed!",
+    });
   } catch (err) {
     console.error('RSVP route error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

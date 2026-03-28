@@ -337,12 +337,15 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['-18%', '18%']);
+  const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
+
+  if (!hasImages) return <EditorialLayout chapter={chapter} index={0} />;
 
   return (
     <motion.article
       ref={ref}
-      style={{ position: 'relative', height: '100dvh', minHeight: '700px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+      style={{ position: 'relative', height: '100dvh', minHeight: '600px', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
@@ -354,9 +357,9 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
         </motion.div>
       )}
 
-      {/* Multi-layer cinematic overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.48) 30%, transparent 60%)' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.38) 0%, transparent 20%)' }} />
+      {/* Multi-layer cinematic overlay — strengthened for readability */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.72) 35%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.15) 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 30%)' }} />
 
       {/* Content anchored at bottom */}
       <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '5rem 2rem 7rem', maxWidth: '900px', color: '#ffffff', width: '100%' }}>
@@ -366,33 +369,44 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ delay: 0.3, duration: 0.9 }}
         >
-          <MoodBadge mood={chapter.mood} light />
-          <span style={{ fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase', opacity: 0.6, display: 'block', marginBottom: '1.75rem' }}>
-            {formatDateFull(chapter.date)}
-          </span>
-          <h3 style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: 'clamp(3rem, 7vw, 5.5rem)',
-            fontWeight: 400,
-            lineHeight: 1.0,
-            margin: '0 0 2rem 0',
-            textShadow: '0 10px 30px rgba(0,0,0,0.4)',
-            letterSpacing: '-0.02em',
+          {/* Text content block with subtle dark backing for readability */}
+          <div style={{
+            background: 'rgba(0,0,0,0.25)',
+            backdropFilter: 'blur(2px)',
+            WebkitBackdropFilter: 'blur(2px)',
+            borderRadius: '8px',
+            padding: '2rem',
+            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))',
           }}>
-            {chapter.title}
-          </h3>
-          <div style={{ marginBottom: '2rem' }}>
-            <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={true} />
-          </div>
-          <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.2)', margin: '0 auto 2.5rem' }} />
-          <div style={{ maxWidth: '600px', margin: '0 auto 2rem' }}>
-            <EnhancedDescription text={chapter.description} light />
-          </div>
-          {chapter.location && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-              <LocationPill label={chapter.location.label} light />
+            <MoodBadge mood={chapter.mood} light />
+            <span style={{ fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase', opacity: 0.8, display: 'block', marginBottom: '1.75rem', color: '#ffffff', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+              {formatDateFull(chapter.date)}
+            </span>
+            <h3 style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: 'clamp(3rem, 7vw, 5.5rem)',
+              fontWeight: 400,
+              lineHeight: 1.0,
+              margin: '0 0 2rem 0',
+              color: '#ffffff',
+              textShadow: '0 2px 20px rgba(0,0,0,0.8)',
+              letterSpacing: '-0.02em',
+            }}>
+              {chapter.title}
+            </h3>
+            <div style={{ marginBottom: '2rem' }}>
+              <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={true} />
             </div>
-          )}
+            <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.2)', margin: '0 auto 2.5rem' }} />
+            <div style={{ maxWidth: '600px', margin: '0 auto 2rem', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+              <EnhancedDescription text={chapter.description} light />
+            </div>
+            {chapter.location && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+                <LocationPill label={chapter.location.label} light />
+              </div>
+            )}
+          </div>
         </motion.div>
       </div>
     </motion.article>
@@ -404,6 +418,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const blur = useTransform(scrollYProgress, [0, 0.5, 1], [60, 80, 60]);
+  const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
 
   return (
@@ -411,13 +426,13 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
       <ChapterDivider />
       <motion.article
         ref={ref}
-        style={{ position: 'relative', padding: '10rem 2rem', textAlign: 'center', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '70vh' }}
+        style={{ position: 'relative', padding: '10rem 2rem', textAlign: 'center', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '600px' }}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 1.2 }}
       >
-        {mainImage && (
+        {hasImages && mainImage && (
           <>
             <motion.div style={{
               position: 'absolute', inset: -120,
@@ -426,7 +441,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
               filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
               opacity: 0.35, zIndex: 0,
             }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'var(--eg-bg)', opacity: 0.72, zIndex: 1 }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--eg-bg)', opacity: 0.82, zIndex: 1 }} />
           </>
         )}
 
@@ -475,6 +490,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
 // ─── LAYOUT: SPLIT (50/50 — large photo + overlapping story card) ───
 function SplitLayout({ chapter, index }: TimelineItemProps) {
   const isEven = index % 2 === 0;
+  const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
 
   return (
@@ -490,6 +506,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
           gap: '0',
           position: 'relative',
           padding: '0 3rem',
+          minHeight: '500px',
         }}
         className="max-md:flex-col max-md:px-4"
         initial={{ opacity: 0, y: 60 }}
@@ -498,11 +515,11 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Photo — fills its half completely */}
-        <div
-          style={{ flex: '0 0 50%', height: '660px', position: 'relative', zIndex: 1, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 30px 70px rgba(0,0,0,0.12)' }}
-          className="max-md:w-full max-md:h-[380px]"
-        >
-          {mainImage && (
+        {hasImages && mainImage && (
+          <div
+            style={{ flex: '0 0 50%', height: '660px', position: 'relative', zIndex: 1, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 30px 70px rgba(0,0,0,0.12)' }}
+            className="max-md:w-full max-md:h-[380px]"
+          >
             <img
               src={proxyUrl(mainImage, 1400, 1100)}
               alt=""
@@ -510,21 +527,21 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
               onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
               onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
             />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Story card — overlaps the photo */}
         <div style={{
           flex: 1,
-          padding: '3.5rem 4rem',
+          padding: '3rem 4rem',
           background: 'var(--eg-card-bg)',
           borderRadius: '8px',
           boxShadow: '0 25px 60px rgba(0,0,0,0.07)',
           position: 'relative',
           zIndex: 2,
-          marginLeft: isEven ? '-5rem' : '0',
-          marginRight: isEven ? '0' : '-5rem',
-          marginTop: '2.5rem',
+          marginLeft: hasImages && isEven ? '-5rem' : '0',
+          marginRight: hasImages && !isEven ? '-5rem' : '0',
+          marginTop: hasImages ? '2.5rem' : '0',
           backdropFilter: 'blur(12px)',
         }} className="max-md:m-0 max-md:-mt-12 max-md:mx-6 max-md:p-8">
           {/* Ghost number */}
@@ -763,7 +780,10 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
 const LAYOUT_CYCLE: Array<Chapter['layout']> = ['editorial', 'fullbleed', 'split', 'mosaic', 'cinematic', 'gallery'];
 
 export function TimelineItem({ chapter, index }: TimelineItemProps) {
-  const layout = chapter.layout || LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  const hasImages = (chapter.images?.length ?? 0) > 0;
+  // Fall back to editorial (text-only) when no images are available
+  const rawLayout = chapter.layout || LAYOUT_CYCLE[index % LAYOUT_CYCLE.length];
+  const layout = hasImages ? rawLayout : 'editorial';
 
   switch (layout) {
     case 'fullbleed': return <FullbleedLayout chapter={chapter} index={index} />;

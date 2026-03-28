@@ -8,21 +8,26 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, ArrowRight, Check, Star, Heart } from 'lucide-react';
-import { PearloomMark, PearloomWordmark, FloatingThread, WovenCircle } from '@/components/brand/PearloomMark';
+import { Sparkles, Loader2, ArrowRight, Check, Star } from 'lucide-react';
+import { PearloomMark, FloatingThread, WovenCircle } from '@/components/brand/PearloomMark';
+import {
+  LoomThreadIcon, ElegantHeartIcon, EnvelopeIcon, PearlIcon,
+  LocationPinIcon, LeafSprigIcon, WeddingRingsIcon, BouquetIcon,
+  CalendarHeartIcon, StarburstIcon,
+} from '@/components/icons/PearloomIcons';
 
 interface LandingPageProps {
   handleSignIn: () => void;
   status: 'authenticated' | 'loading' | 'unauthenticated';
 }
 
-const FEATURES = [
-  { emoji: '🧠', title: 'Your story, written for you', body: 'Gemini reads your photos, maps your timeline, and writes an intimate narrative in your voice — never a template.' },
-  { emoji: '📸', title: 'Photos stay where they live', body: 'Select memories directly from Google Photos. Nothing to download, compress, or re-upload.' },
-  { emoji: '💌', title: 'Guests feel taken care of', body: 'RSVPs, meal preferences, song requests, and plus-ones — collected gracefully in one place.' },
-  { emoji: '🎨', title: 'Layouts that feel like memory', body: 'Cinematic parallax, editorial type, and gentle motion — every page feels handcrafted, never generic.' },
-  { emoji: '🗺', title: 'All the details, already there', body: 'Hotels, airports, travel notes — written by AI and shown beautifully for every guest who needs them.' },
-  { emoji: '✨', title: 'Rewrite any moment, any time', body: 'One touch rewrites any chapter with fresh, intimate language. The story stays yours, just more beautifully told.' },
+const FEATURES: { Icon: React.ComponentType<{ size?: number; color?: string }>; title: string; body: string }[] = [
+  { Icon: LoomThreadIcon, title: 'Your story, written for you', body: 'Gemini reads your photos, maps your timeline, and writes an intimate narrative in your voice — never a template.' },
+  { Icon: PearlIcon, title: 'Photos stay where they live', body: 'Select memories directly from Google Photos. Nothing to download, compress, or re-upload.' },
+  { Icon: EnvelopeIcon, title: 'Guests feel taken care of', body: 'RSVPs, meal preferences, song requests, and plus-ones — collected gracefully in one place.' },
+  { Icon: BouquetIcon, title: 'Layouts that feel like memory', body: 'Cinematic parallax, editorial type, and gentle motion — every page feels handcrafted, never generic.' },
+  { Icon: LocationPinIcon, title: 'All the details, already there', body: 'Hotels, airports, travel notes — written by AI and shown beautifully for every guest who needs them.' },
+  { Icon: StarburstIcon, title: 'Rewrite any moment, any time', body: 'One touch rewrites any chapter with fresh, intimate language. The story stays yours, just more beautifully told.' },
 ];
 
 const TESTIMONIALS = [
@@ -281,7 +286,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 }}
               >
                 <WovenCircle size={52} style={{ marginBottom: '1.5rem' }}>
-                  <span style={{ fontSize: '1.4rem' }}>{f.emoji}</span>
+                  <f.Icon size={22} color="#A3B18A" />
                 </WovenCircle>
                 <h3 style={{
                   fontFamily: 'var(--eg-font-heading)', fontSize: '1.35rem',
@@ -336,9 +341,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             </div>
 
             {[
-              { emoji: '📸', step: '01', title: 'Bring your memories', body: 'Connect Google Photos or upload directly. Select the moments that tell your story.' },
-              { emoji: '✍️', step: '02', title: 'Describe how it feels', body: 'Tell us your occasion and mood. The AI weaves your words and photos into something intimate.' },
-              { emoji: '🌿', step: '03', title: 'Share something beautiful', body: 'Your site is live at yourname.pearloom.app — a shared space that grows with you.' },
+              { Icon: PearlIcon, step: '01', title: 'Bring your memories', body: 'Connect Google Photos or upload directly. Select the moments that tell your story.' },
+              { Icon: ElegantHeartIcon, step: '02', title: 'Describe how it feels', body: 'Tell us your occasion and mood. The AI weaves your words and photos into something intimate.' },
+              { Icon: LeafSprigIcon, step: '03', title: 'Share something beautiful', body: 'Your site is live at yourname.pearloom.app — a shared space that grows with you.' },
             ].map((item, i) => (
               <motion.div
                 key={item.step}
@@ -357,7 +362,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     boxShadow: i === 0 ? '0 8px 24px rgba(163,177,138,0.3)' : 'none',
                   }}
                 >
-                  <span style={{ fontSize: '1.3rem' }}>{item.emoji}</span>
+                  <item.Icon size={20} color={i === 0 ? '#8B6914' : '#A3B18A'} />
                 </WovenCircle>
 
                 <div style={{ paddingTop: '0.5rem' }}>
@@ -399,7 +404,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
 
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <WovenCircle size={44} color="rgba(163,177,138,0.1)" borderColor="rgba(163,177,138,0.3)" style={{ margin: '0 auto 2rem' }}>
-            <span style={{ fontSize: '1.1rem' }}>💬</span>
+            <ElegantHeartIcon size={20} color="#A3B18A" />
           </WovenCircle>
           <h2 style={{
             fontFamily: 'var(--eg-font-heading)',
@@ -574,7 +579,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                 onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
               >
-                <Heart size={18} />
+                <WeddingRingsIcon size={18} color="#fff" />
                 Begin Your Story
                 <ArrowRight size={16} style={{ opacity: 0.7 }} />
               </button>

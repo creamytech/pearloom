@@ -11,7 +11,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
-import type { GooglePhotoMetadata, PhotoCluster } from '@/types';
+import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent } from '@/types';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -36,12 +36,36 @@ export async function POST(req: NextRequest) {
       vibeString,
       names,
       occasion,
+      eventDate,
+      ceremonyVenue,
+      ceremonyAddress,
+      ceremonyTime,
+      receptionVenue,
+      receptionAddress,
+      receptionTime,
+      dresscode,
+      officiant,
+      celebrationVenue,
+      celebrationTime,
+      guestNotes,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
       vibeString: string;
       names: [string, string];
       occasion?: string;
+      eventDate?: string;
+      ceremonyVenue?: string;
+      ceremonyAddress?: string;
+      ceremonyTime?: string;
+      receptionVenue?: string;
+      receptionAddress?: string;
+      receptionTime?: string;
+      dresscode?: string;
+      officiant?: string;
+      celebrationVenue?: string;
+      celebrationTime?: string;
+      guestNotes?: string;
     } = body;
 
     if (!photos?.length) {
@@ -89,8 +113,82 @@ export async function POST(req: NextRequest) {
       names,
       apiKey,
       session.accessToken,
-      occasion
+      occasion,
+      eventDate
     );
+
+    // Pre-populate logistics date from user-provided eventDate
+    if (eventDate) {
+      manifest.logistics = {
+        ...(manifest.logistics ?? {}),
+        date: eventDate,
+      };
+    }
+
+    // Auto-create WeddingEvent entries from user-supplied details
+    const events: WeddingEvent[] = [];
+
+    if (ceremonyVenue || ceremonyTime) {
+      events.push({
+        id: 'ceremony',
+        name: 'Ceremony',
+        type: 'ceremony',
+        date: eventDate ?? '',
+        time: ceremonyTime ?? '',
+        venue: ceremonyVenue ?? '',
+        address: ceremonyAddress ?? '',
+        notes: officiant ? `Officiated by ${officiant}` : undefined,
+        dressCode: dresscode,
+        order: 0,
+      });
+    }
+
+    if (receptionVenue || receptionTime) {
+      events.push({
+        id: 'reception',
+        name: 'Reception',
+        type: 'reception',
+        date: eventDate ?? '',
+        time: receptionTime ?? '',
+        venue: receptionVenue ?? '',
+        address: receptionAddress ?? '',
+        dressCode: dresscode,
+        order: 1,
+      });
+    }
+
+    // Anniversary / birthday / engagement celebration venue
+    if (celebrationVenue || celebrationTime) {
+      const celebrationName =
+        occasion === 'birthday'
+          ? 'Birthday Celebration'
+          : occasion === 'anniversary'
+          ? 'Anniversary Celebration'
+          : 'Engagement Party';
+      events.push({
+        id: 'celebration',
+        name: celebrationName,
+        type: 'reception',
+        date: eventDate ?? '',
+        time: celebrationTime ?? '',
+        venue: celebrationVenue ?? '',
+        address: '',
+        dressCode: dresscode,
+        order: 0,
+      });
+    }
+
+    if (events.length > 0) {
+      manifest.events = events;
+    }
+
+    // Set top-level logistics fields from user-supplied details
+    if (dresscode) {
+      manifest.logistics = { ...(manifest.logistics ?? {}), dresscode };
+    }
+    if (guestNotes) {
+      manifest.logistics = { ...(manifest.logistics ?? {}), notes: guestNotes };
+    }
 
     // Map actual photo URLs + REAL locations into generated chapters.
     // CRITICAL: cluster location (from GPS or user input) ALWAYS overrides

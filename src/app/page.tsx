@@ -89,7 +89,24 @@ export default function DashboardPage() {
     setSelectedPhotos(photos);
   }, []);
 
-  const handleVibeSubmit = useCallback(async (data: { names: [string, string]; vibeString: string; occasion: string }) => {
+  const handleVibeSubmit = useCallback(async (data: {
+    names: [string, string];
+    vibeString: string;
+    occasion: string;
+    subdomain?: string;
+    eventDate?: string;
+    ceremonyVenue?: string;
+    ceremonyAddress?: string;
+    ceremonyTime?: string;
+    receptionVenue?: string;
+    receptionAddress?: string;
+    receptionTime?: string;
+    dresscode?: string;
+    officiant?: string;
+    celebrationVenue?: string;
+    celebrationTime?: string;
+    guestNotes?: string;
+  }) => {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
     setCurrentStep('generating');
@@ -116,6 +133,18 @@ export default function DashboardPage() {
           vibeString: data.vibeString,
           names: data.names,
           occasion: data.occasion,
+          eventDate: data.eventDate,
+          ceremonyVenue: data.ceremonyVenue,
+          ceremonyAddress: data.ceremonyAddress,
+          ceremonyTime: data.ceremonyTime,
+          receptionVenue: data.receptionVenue,
+          receptionAddress: data.receptionAddress,
+          receptionTime: data.receptionTime,
+          dresscode: data.dresscode,
+          officiant: data.officiant,
+          celebrationVenue: data.celebrationVenue,
+          celebrationTime: data.celebrationTime,
+          guestNotes: data.guestNotes,
         }),
         signal: controller.signal,
       });
@@ -141,9 +170,9 @@ export default function DashboardPage() {
       result.manifest.occasion = data.occasion || 'wedding';
       setManifest(result.manifest);
 
-      // Auto-generate a random slug so Publish works immediately from the editor
-      const autoSlug = generateSlug(data.names);
-      console.log('[Generate] Auto-generated subdomain:', autoSlug);
+      // Use slug from wizard if provided, otherwise auto-generate from names
+      const autoSlug = data.subdomain || generateSlug(data.names);
+      console.log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
       setSubdomain(autoSlug);
 
       setCurrentStep('edit');

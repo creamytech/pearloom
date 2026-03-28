@@ -48,9 +48,10 @@ export async function generateStoryManifest(
   coupleNames: [string, string],
   apiKey: string,
   googleAccessToken?: string,
-  occasion?: string
+  occasion?: string,
+  eventDate?: string
 ): Promise<StoryManifest> {
-  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion);
+  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate);
 
   // Build the multimodal parts array
   const parts: Record<string, unknown>[] = [{ text: prompt }];
@@ -548,7 +549,8 @@ function buildPrompt(
   clusters: PhotoCluster[],
   vibeString: string,
   coupleNames: [string, string],
-  occasion?: string
+  occasion?: string,
+  eventDate?: string
 ): string {
   // Build richly detailed cluster summaries including per-photo metadata
   const clusterSummary = clusters.map((c, i) => {
@@ -564,7 +566,14 @@ function buildPrompt(
       clusterIndex: i,
       dateRange: `${c.startDate.slice(0, 10)} to ${c.endDate.slice(0, 10)}`,
       photoCount: c.photos.length,
-      location: c.location?.label || 'unknown location',
+      location: c.location?.label || null,
+      locationInstruction: c.location?.label
+        ? `This chapter takes place in ${c.location.label}. Weave this place into the narrative naturally — the light there, the feeling of arriving, what made it memorable. Do NOT invent a location if none is provided.`
+        : 'No specific location was given for this chapter. Do NOT make up or invent a location. Write about the emotional space and feeling instead of a geographical place.',
+      note: c.note || null,
+      noteInstruction: c.note
+        ? `Context from the couple about this moment: '${c.note}'. Use this as emotional grounding for the chapter.`
+        : null,
       photos: photoDetails,
     };
   });
@@ -580,17 +589,27 @@ function buildPrompt(
   const ctxLabel = occasionLabels[occ] || occasionLabels.wedding;
   const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
 
+  const eventDateCtx = eventDate
+    ? `\n- The couple's event is on ${eventDate}. If this chapter predates the event, write with anticipation building toward it. If the chapter is recent, write with the joy of imminence.`
+    : '';
+
   return `You are the "Memory Engine" for Pearloom \u2014 a world-class storytelling AI that crafts ${ctxLabel}. Your output powers a live, editorial-quality website. It must be stunning.
 
 ## The Couple / Honorees
 - Names: ${coupleNames[0]} & ${coupleNames[1]}
-- Occasion type: ${occCap}
+- Occasion type: ${occCap}${eventDateCtx}
 
 ## Their Vibe & Personality
 ${vibeString}
 
 ## Photo Clusters (rich metadata)
 ${JSON.stringify(clusterSummary, null, 2)}
+
+## CRITICAL LOCATION AND CONTEXT RULES (non-negotiable)
+- Each cluster above has a "locationInstruction" field. You MUST follow it exactly for that chapter.
+- Each cluster above has a "noteInstruction" field. If present, ground the chapter description in that specific memory — it is what the couple themselves remembers.
+- NEVER invent a location if "location" is null. Use the locationInstruction's fallback language instead.
+- If "noteInstruction" is present, the chapter description must be rooted in that context — do not ignore or replace it with generic narrative.
 
 ---
 ## NARRATIVE QUALITY STANDARDS (non-negotiable)

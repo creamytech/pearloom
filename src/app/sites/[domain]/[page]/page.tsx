@@ -42,16 +42,57 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { domain, page } = await params;
   const siteConfig = await getSiteConfig(domain);
-  if (!siteConfig) return {};
+  if (!siteConfig) return { title: 'Pearloom' };
 
   const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
   const coupleTitle = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
   const pageMeta = PAGE_META[page];
   if (!pageMeta) return {};
 
+  const manifest = siteConfig.manifest;
+
+  // OG image: same AI-generated route as the main page
+  const accent = manifest?.theme?.colors?.accent || '#A3B18A';
+  const bg = manifest?.theme?.colors?.background || '#2B2B2B';
+  const coverPhoto = manifest?.chapters?.[0]?.images?.[0]?.url || '';
+  const weddingDate = manifest?.logistics?.date || '';
+  const tagline = siteConfig.tagline || manifest?.vibeString || 'A love story beautifully told.';
+  const [n1, n2] = names;
+
+  const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
+
+  const pageTitle = `${coupleTitle} · ${pageMeta.title}`;
+  const fullTitle = `${pageTitle} | Pearloom`;
+  const siteUrl = `https://${domain}.pearloom.app/${page}`;
+
   return {
-    title: `${pageMeta.title} — ${coupleTitle}`,
+    metadataBase: new URL('https://pearloom.app'),
+    title: fullTitle,
     description: pageMeta.description,
+    alternates: {
+      canonical: siteUrl,
+    },
+    icons: {
+      icon: '/favicon.ico',
+    },
+    openGraph: {
+      title: pageTitle,
+      description: pageMeta.description,
+      url: siteUrl,
+      siteName: 'Pearloom',
+      type: 'website',
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${coupleTitle} — ${pageMeta.title}` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: pageTitle,
+      description: pageMeta.description,
+      images: [ogUrl],
+    },
+    other: {
+      // Prevent search engine indexing of private wedding sites
+      robots: 'noindex, nofollow',
+    },
   };
 }
 
