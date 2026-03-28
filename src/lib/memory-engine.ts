@@ -266,6 +266,7 @@ export async function generateStoryManifest(
     const vibeSkin = await generateVibeSkin(manifest.vibeString, apiKey, coupleNames, {
       chapters: chapterContext,
       photoUrls,
+      inspirationUrls,  // Pass user's inspiration images so VibeSkin uses them
     });
     manifest.vibeSkin = vibeSkin;
     console.log('[Memory Engine] Pass 2: VibeSkin generated');

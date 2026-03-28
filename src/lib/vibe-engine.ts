@@ -156,6 +156,16 @@ const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
   minimalist: { curve: 'ribbon',    particle: 'stars',      decorIcons: ['◦','•','◈','◇','✦'],    particleColor: '#d0ccc4', tone: 'luxurious'},
   vintage:    { curve: 'cascade',   particle: 'petals',     decorIcons: ['◈','✿','◇','✦','•'],    particleColor: '#d4b896', tone: 'rustic'   },
   sakura:     { curve: 'petal',     particle: 'sakura',     decorIcons: ['✿','❀','◦','✦','•'],    particleColor: '#ffb7c5', tone: 'dreamy'   },
+  festival:   { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','◆','✿','★','◉'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  fiesta:     { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','◆','✿','◉'],    particleColor: '#F5A800', tone: 'playful',
+    palette: { background: '#FFF8F0', foreground: '#1A0A00', accent: '#C45C1A', accent2: '#F5A800', card: '#FFF5EC', muted: '#9A6040', highlight: '#D4225A', subtle: '#FFF2E8', ink: '#1A3A8F' } as VibeSkin['palette'] },
+  vibrant:    { curve: 'wave',      particle: 'confetti',   decorIcons: ['✦','★','◆','✿','◉'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F5841F', card: '#FFFAFC', muted: '#9A6080', highlight: '#F8C000', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  colorful:   { curve: 'wave',      particle: 'confetti',   decorIcons: ['✦','★','◆','✿','●'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
+  coco:       { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','✿','◆','●'],    particleColor: '#F8C000', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
 };
 
 // — Seed-based deterministic number in [0,1) from a string ——————————————————————————————————————————
@@ -503,13 +513,16 @@ The couple's vibe is: "${vibeString}"
 ${storyContext}
 Your job: design a COMPLETELY UNIQUE, ELEGANT visual identity for their wedding site. The result should be refined and beautiful—no two sites should ever look the same.
 
+## MANDATORY COLOR RULE — READ FIRST
+If the vibe string contains "Color inspiration:" with hex values (e.g. "#E84393, #F8C000"), those are the couple's CHOSEN colors. You MUST build the palette from those exact hex values. Do NOT substitute muted or desaturated alternatives. If the inspiration images show vibrant colors, use them vibrantly. The couple's explicit choice OVERRIDES everything below.
+
 ## CORE AESTHETIC PHILOSOPHY
-Default to MINIMALISM and ELEGANCE. Less is more. Avoid visual noise. Prefer:
-- Sophisticated desaturated tones with ONE warm or jewel-toned accent
-- Generous whitespace and restraint
-- For a luxurious feel: muted, aged tones (dusty rose, warm ivory, slate, sage) + one warm metallic or deep accent
-- Analogous color schemes (colors close on the wheel) with high-contrast ink for text
-- When in doubt: simplify the palette, let the typography breathe
+Match the couple's actual vibe — whether that's minimalist elegance OR bold festival color. Read the tone:
+- If vibeString has vibrant/festive/colorful/bold keywords OR bright hex colors: use FULL SATURATION. Embrace it.
+- If vibeString has words like minimal/clean/subtle/soft: prefer desaturated tones.
+- Never force muted tones when the couple chose vibrant. Never force vibrant when they chose soft.
+- Analogous color schemes work well, but analogous doesn't mean dull.
+- When in doubt: trust the hex colors and inspiration images over generic defaults.
 
 ## TONE-TO-PALETTE MAPPING
 Read the actual emotional tone words in the vibe and derive the palette from them:
@@ -523,6 +536,9 @@ Read the actual emotional tone words in the vibe and derive the palette from the
 - "art deco roaring twenties" → black (#0d0d0d), gold (#c4a438), cream (#f5f0e0), bg: #0d0d0d
 - "wildflower meadow boho" → lavender (#9a84b4), sage (#7a9a6a), terracotta (#b4724a), cream (#f5f0e4), bg: #f0ece4
 - "japanese zen cherry" → blush (#e8bcc0), white (#f5f2f0), charcoal (#2a2828), bamboo green (#6a8a68), bg: #f8f4f2
+- "vibrant festival fiesta colorful bold celebration" → hot pink (#E84393), golden yellow (#F8C000), deep orange (#F5841F), deep navy (#2A2690), bg: #FFF5F8
+- "tropical neon pop maximalist" → electric teal (#00C9B1), hot pink (#FF4D8D), deep violet (#3D0066), lime (#B8F400), bg: #0A0A1A
+- "warm festive mexican boho colorful" → terracotta (#C45C1A), magenta (#D4225A), golden (#F5A800), cobalt (#1A3A8F), bg: #FFF8F0
 
 ## SECTION LABEL GUIDANCE
 Avoid generic defaults. Use personality-driven labels:
@@ -611,7 +627,7 @@ CRITICAL DESIGN RULES:
 12. cardStyle: glass for dreamy/cosmic, elevated for luxurious, outlined for minimal, solid for rustic, minimal for zen.
 13. sectionGradient: use palette.subtle → palette.card → palette.background for a gentle wash.
 14. curve / wavePath: The wave dividers between sections should be GENTLE and SUBTLE. Prefer: ribbon (wide sinusoid), arch (smooth arc), organic (soft flowing). Reserve mountain/geometric for bold/modern vibes. The rendered height is max 80px — the SVG path coords should reflect gentle height changes, NOT dramatic peaks.
-15. ELEGANCE FIRST: When uncertain about palette choices, default to sophisticated muted tones + one warm accent. Avoid neon, high-saturation primaries, or jarring color contrasts. The site should feel like a luxury editorial magazine.`;
+15. RESPECT THE BRIEF: If the couple chose vibrant hex colors or submitted vibrant inspiration images, USE THOSE COLORS at full saturation. Do not desaturate or mute colors that the couple chose. A Coco / festival / fiesta vibe should look like hot pink, deep navy, and golden yellow — not dusty rose and cream. Serve the couple's actual vision.`;
 
   try {
     // Build multimodal parts array — start with the text prompt
@@ -619,7 +635,7 @@ CRITICAL DESIGN RULES:
 
     // Add inspiration images to the Gemini parts array
     if (context?.inspirationUrls?.length) {
-      parts.push({ text: `\n\nINSPIRATION IMAGES: The couple has provided ${context.inspirationUrls.length} inspiration image(s) below. Analyze each for: dominant color palette, typography style (serif/sans/script), decorative density (minimal/medium/ornate), overall mood. Let these HEAVILY influence your palette, typography, and decoration choices.\n` });
+      parts.push({ text: `\n\nINSPIRATION IMAGES (HIGHEST PRIORITY): The couple uploaded ${context.inspirationUrls.length} inspiration image(s) below. These represent EXACTLY the visual world they want. Extract the dominant colors, mood, and style from these images and let them COMPLETELY DEFINE your palette and aesthetic choices. If the images show vibrant or bold colors, reproduce them faithfully — do NOT soften or desaturate. These images OVERRIDE the default tone mapping guidelines.\n` });
 
       for (const url of context.inspirationUrls.slice(0, 4)) {
         try {
