@@ -1,0 +1,410 @@
+'use client';
+
+// ─────────────────────────────────────────────────────────────
+// Pearloom / components/dashboard/FontPicker.tsx
+// Beautiful font pair picker for the site editor.
+// Dark panel theme with category filters and live font previews.
+// ─────────────────────────────────────────────────────────────
+
+import { useState, useEffect, useRef } from 'react';
+import {
+  FONT_CATALOG,
+  FONT_CATEGORIES,
+  buildFontsUrl,
+  type FontPair,
+} from '@/lib/font-catalog';
+
+interface FontPickerProps {
+  currentHeading: string;
+  currentBody: string;
+  onChange: (heading: string, body: string) => void;
+}
+
+type CategoryFilter = 'all' | FontPair['category'];
+
+const CATEGORY_LABELS: Record<FontPair['category'], string> = {
+  romantic: 'Romantic',
+  modern: 'Modern',
+  classic: 'Classic',
+  playful: 'Playful',
+  editorial: 'Editorial',
+  rustic: 'Rustic',
+  luxe: 'Luxe',
+};
+
+// Track which fonts have already been injected into <head>
+const injectedFonts = new Set<string>();
+
+function injectFontLink(pair: FontPair): void {
+  if (typeof document === 'undefined') return;
+  const url = buildFontsUrl(pair);
+  if (injectedFonts.has(url)) return;
+  injectedFonts.add(url);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = url;
+  document.head.appendChild(link);
+}
+
+export default function FontPicker({
+  currentHeading,
+  currentBody,
+  onChange,
+}: FontPickerProps) {
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
+  const [hovered, setHovered] = useState<string | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
+
+  const filtered = activeCategory === 'all'
+    ? FONT_CATALOG
+    : FONT_CATALOG.filter((p) => p.category === activeCategory);
+
+  // Inject fonts for visible cards via IntersectionObserver
+  useEffect(() => {
+    observerRef.current?.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const id = (entry.target as HTMLElement).dataset.pairId;
+            if (id) {
+              const pair = FONT_CATALOG.find((p) => p.id === id);
+              if (pair) injectFontLink(pair);
+            }
+          }
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    for (const [, el] of cardRefs.current) {
+      observerRef.current.observe(el);
+    }
+
+    return () => observerRef.current?.disconnect();
+  }, [filtered]);
+
+  // When category changes, scroll back to top
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeCategory]);
+
+  const isSelected = (pair: FontPair) =>
+    pair.heading === currentHeading && pair.body === currentBody;
+
+  return (
+    <div
+      style={{
+        background: '#1E1B16',
+        color: '#FFFFFF',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          padding: '16px 20px 12px',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          flexShrink: 0,
+        }}
+      >
+        <h2
+          style={{
+            margin: '0 0 4px',
+            fontSize: '1rem',
+            fontWeight: 600,
+            letterSpacing: '0.02em',
+            color: '#FFFFFF',
+          }}
+        >
+          Font Pairing
+        </h2>
+        <p
+          style={{
+            margin: 0,
+            fontSize: '0.75rem',
+            color: 'rgba(255,255,255,0.45)',
+          }}
+        >
+          {FONT_CATALOG.length} curated pairings across 7 styles
+        </p>
+      </div>
+
+      {/* Category filter pills */}
+      <div
+        style={{
+          padding: '12px 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          flexShrink: 0,
+          overflowX: 'auto',
+          display: 'flex',
+          gap: '6px',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {/* All pill */}
+        <button
+          onClick={() => setActiveCategory('all')}
+          style={pillStyle(activeCategory === 'all')}
+        >
+          All
+        </button>
+        {FONT_CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            style={pillStyle(activeCategory === cat)}
+          >
+            {CATEGORY_LABELS[cat]}
+          </button>
+        ))}
+      </div>
+
+      {/* Font grid */}
+      <div
+        ref={scrollRef}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '16px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '12px',
+          alignContent: 'start',
+        }}
+      >
+        {filtered.map((pair) => {
+          const selected = isSelected(pair);
+          const hover = hovered === pair.id;
+
+          return (
+            <button
+              key={pair.id}
+              data-pair-id={pair.id}
+              ref={(el) => {
+                if (el) cardRefs.current.set(pair.id, el);
+                else cardRefs.current.delete(pair.id);
+              }}
+              onClick={() => onChange(pair.heading, pair.body)}
+              onMouseEnter={() => setHovered(pair.id)}
+              onMouseLeave={() => setHovered(null)}
+              title={pair.pairRationale}
+              style={{
+                all: 'unset',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                padding: '14px',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                background: selected
+                  ? 'rgba(163, 177, 138, 0.12)'
+                  : hover
+                  ? 'rgba(255,255,255,0.05)'
+                  : 'rgba(255,255,255,0.03)',
+                border: selected
+                  ? '1.5px solid #A3B18A'
+                  : hover
+                  ? '1.5px solid rgba(255,255,255,0.15)'
+                  : '1.5px solid rgba(255,255,255,0.07)',
+                transition: 'all 0.15s ease',
+                position: 'relative',
+                textAlign: 'left',
+                boxSizing: 'border-box',
+              }}
+            >
+              {/* Selected checkmark */}
+              {selected && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: '#A3B18A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    color: '#1E1B16',
+                    fontWeight: 700,
+                    lineHeight: 1,
+                  }}
+                >
+                  ✓
+                </span>
+              )}
+
+              {/* Sample phrase in heading font */}
+              <span
+                style={{
+                  fontFamily: `'${pair.heading}', serif`,
+                  fontSize: '1.1rem',
+                  fontWeight: pair.headingWeight,
+                  fontStyle: pair.headingStyle ?? 'normal',
+                  color: '#FFFFFF',
+                  lineHeight: 1.2,
+                  display: 'block',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {pair.preview}
+              </span>
+
+              {/* Heading font name */}
+              <span
+                style={{
+                  fontFamily: `'${pair.heading}', serif`,
+                  fontSize: '0.78rem',
+                  fontWeight: pair.headingWeight,
+                  fontStyle: pair.headingStyle ?? 'normal',
+                  color: 'rgba(255,255,255,0.55)',
+                  letterSpacing: '0.01em',
+                  display: 'block',
+                }}
+              >
+                {pair.heading}
+              </span>
+
+              {/* Divider */}
+              <span
+                style={{
+                  display: 'block',
+                  height: '1px',
+                  background: 'rgba(255,255,255,0.08)',
+                }}
+              />
+
+              {/* Body font name */}
+              <span
+                style={{
+                  fontFamily: `'${pair.body}', sans-serif`,
+                  fontSize: '0.78rem',
+                  fontWeight: pair.bodyWeight,
+                  color: 'rgba(255,255,255,0.5)',
+                  letterSpacing: '0.01em',
+                  display: 'block',
+                }}
+              >
+                {pair.body}
+              </span>
+
+              {/* Category + mood badges */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '4px',
+                  flexWrap: 'wrap',
+                  marginTop: '2px',
+                }}
+              >
+                <span style={badgeStyle('#A3B18A', '#1E1B16')}>
+                  {CATEGORY_LABELS[pair.category]}
+                </span>
+                <span style={badgeStyle('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.5)')}>
+                  {pair.mood}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Footer: current selection summary */}
+      <div
+        style={{
+          padding: '12px 20px',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2px',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '0.65rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.12em',
+            color: 'rgba(255,255,255,0.3)',
+          }}
+        >
+          Current Pairing
+        </span>
+        <span
+          style={{
+            fontSize: '0.8rem',
+            color: 'rgba(255,255,255,0.7)',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: `'${currentHeading}', serif`,
+              color: '#FFFFFF',
+            }}
+          >
+            {currentHeading}
+          </span>
+          {' '}
+          <span style={{ color: 'rgba(255,255,255,0.3)' }}>+</span>
+          {' '}
+          <span
+            style={{
+              fontFamily: `'${currentBody}', sans-serif`,
+              color: 'rgba(255,255,255,0.6)',
+            }}
+          >
+            {currentBody}
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Style helpers ────────────────────────────────────────────
+
+function pillStyle(active: boolean): React.CSSProperties {
+  return {
+    all: 'unset',
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '5px 12px',
+    borderRadius: '100px',
+    fontSize: '0.72rem',
+    fontWeight: active ? 600 : 400,
+    letterSpacing: '0.03em',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+    background: active ? '#A3B18A' : 'rgba(255,255,255,0.07)',
+    color: active ? '#1E1B16' : 'rgba(255,255,255,0.6)',
+    border: active ? '1px solid #A3B18A' : '1px solid rgba(255,255,255,0.1)',
+    transition: 'all 0.15s ease',
+    flexShrink: 0,
+  };
+}
+
+function badgeStyle(bg: string, color: string): React.CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    fontSize: '0.6rem',
+    fontWeight: 500,
+    letterSpacing: '0.04em',
+    background: bg,
+    color,
+    lineHeight: 1.5,
+  };
+}

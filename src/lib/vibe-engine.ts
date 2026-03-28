@@ -192,14 +192,62 @@ function deriveFallback(vibeString: string): VibeSkin {
   const palettePick = FALLBACK_PALETTE_VARIANTS[paletteIdx];
   const art = buildFallbackArt(palettePick.accent, curve);
 
-  // Seed-based heading/body font variation
+  // Seed-based heading/body font variation — 40+ curated Google Fonts pairings
   const FALLBACK_FONT_PAIRS: Array<{ heading: string; body: string }> = [
-    { heading: 'Playfair Display', body: 'Inter' },
-    { heading: 'Cormorant Garamond', body: 'Raleway' },
-    { heading: 'DM Serif Display', body: 'DM Sans' },
-    { heading: 'Libre Baskerville', body: 'Karla' },
-    { heading: 'Fraunces', body: 'Mulish' },
-    { heading: 'Cinzel', body: 'Lato' },
+    // Romantic
+    { heading: 'Playfair Display',    body: 'Inter' },
+    { heading: 'Cormorant Garamond',  body: 'Jost' },
+    { heading: 'Cormorant Garamond',  body: 'Raleway' },
+    { heading: 'Great Vibes',         body: 'Montserrat' },
+    { heading: 'Libre Baskerville',   body: 'Lato' },
+    { heading: 'EB Garamond',         body: 'Source Sans 3' },
+    { heading: 'Mrs Saint Delafield', body: 'Josefin Sans' },
+    { heading: 'Tangerine',           body: 'Open Sans' },
+    { heading: 'Cinzel Decorative',   body: 'Cinzel' },
+    { heading: 'Alex Brush',          body: 'Nunito' },
+    // Modern
+    { heading: 'DM Serif Display',    body: 'DM Sans' },
+    { heading: 'Bodoni Moda',         body: 'Inter' },
+    { heading: 'Bebas Neue',          body: 'Roboto' },
+    { heading: 'Fraunces',            body: 'Figtree' },
+    { heading: 'Syne',                body: 'Nunito Sans' },
+    { heading: 'Outfit',              body: 'Plus Jakarta Sans' },
+    { heading: 'Tenor Sans',          body: 'Source Sans 3' },
+    // Classic
+    { heading: 'Crimson Text',        body: 'Merriweather' },
+    { heading: 'Libre Baskerville',   body: 'EB Garamond' },
+    { heading: 'Cardo',               body: 'Cabin' },
+    { heading: 'Spectral',            body: 'Karla' },
+    { heading: 'Lora',                body: 'Open Sans' },
+    { heading: 'Rokkitt',             body: 'Source Sans 3' },
+    { heading: 'GFS Didot',           body: 'Lato' },
+    { heading: 'Old Standard TT',     body: 'Merriweather' },
+    // Playful
+    { heading: 'Pacifico',            body: 'Quicksand' },
+    { heading: 'Dancing Script',      body: 'Nunito' },
+    { heading: 'Sacramento',          body: 'Raleway' },
+    { heading: 'Kaushan Script',      body: 'Poppins' },
+    { heading: 'Satisfy',             body: 'Open Sans' },
+    { heading: 'Parisienne',          body: 'Josefin Sans' },
+    // Editorial
+    { heading: 'Josefin Sans',        body: 'Josefin Slab' },
+    { heading: 'Unbounded',           body: 'Outfit' },
+    { heading: 'Space Grotesk',       body: 'Space Mono' },
+    { heading: 'Epilogue',            body: 'Work Sans' },
+    { heading: 'Instrument Serif',    body: 'Instrument Sans' },
+    { heading: 'Syne',                body: 'DM Sans' },
+    // Rustic
+    { heading: 'Abril Fatface',       body: 'Lora' },
+    { heading: 'Rozha One',           body: 'Poppins' },
+    { heading: 'Zilla Slab',          body: 'Mulish' },
+    { heading: 'Aleo',                body: 'Lato' },
+    // Luxe
+    { heading: 'Cormorant',           body: 'Cormorant Infant' },
+    { heading: 'Marcellus SC',        body: 'Marcellus' },
+    { heading: 'Poiret One',          body: 'Montserrat' },
+    { heading: 'Julius Sans One',     body: 'Raleway' },
+    { heading: 'Bodoni Moda',         body: 'Cormorant Garamond' },
+    { heading: 'Cinzel',              body: 'Lato' },
   ];
   const fontIdx = Math.floor(seededRandom(vibeString + '_font') * FALLBACK_FONT_PAIRS.length);
   const fontPick = FALLBACK_FONT_PAIRS[fontIdx];
