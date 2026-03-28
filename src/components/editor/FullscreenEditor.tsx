@@ -28,6 +28,10 @@ import { CanvasEditor } from './CanvasEditor';
 import { ColorPalettePanel } from './ColorPalettePanel';
 import { CommandPalette } from './CommandPalette';
 import type { CommandAction } from './CommandPalette';
+import { ThemeSwitcher } from './ThemeSwitcher';
+import { SectionStyleEditor } from './SectionStyleEditor';
+import type { SectionStyleOverrides } from './SectionStyleEditor';
+import type { VibeSkin } from '@/lib/vibe-engine';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
