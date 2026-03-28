@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // everglow / app/dashboard/page.tsx
@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const [publishError, setPublishError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
 
-  // Redirect to dashboard once auth is confirmed ”” must be in useEffect,
+  // Redirect to dashboard once auth is confirmed — must be in useEffect,
   // NOT inline during render, to avoid React's infinite update loop
   useEffect(() => {
     if (status === 'authenticated' && currentStep === 'auth') {
@@ -85,7 +85,7 @@ export default function DashboardPage() {
     setSelectedPhotos(photos);
   }, []);
 
-  const handleVibeSubmit = useCallback(async (data: { names: [string, string]; vibeString: string }) => {
+  const handleVibeSubmit = useCallback(async (data: { names: [string, string]; vibeString: string; occasion: string }) => {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
     setCurrentStep('generating');
@@ -97,7 +97,7 @@ export default function DashboardPage() {
       setGenerationStep((prev) => Math.min(prev + 1, 5));
     }, 2000);
 
-    // 90-second timeout ”” Gemini can be slow on large photo sets
+    // 90-second timeout — Gemini can be slow on large photo sets
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 180_000); // 3-pass pipeline: critique + vibeSkin can take ~60s extra
 
@@ -111,6 +111,7 @@ export default function DashboardPage() {
           clusters: reviewedClusters.length > 0 ? reviewedClusters : undefined,
           vibeString: data.vibeString,
           names: data.names,
+          occasion: data.occasion,
         }),
         signal: controller.signal,
       });
@@ -130,8 +131,10 @@ export default function DashboardPage() {
         console.error('[Generate] No manifest in response:', result);
         throw new Error('AI returned an empty manifest. Please try again.');
       }
-      console.log('[Generate] Manifest received âœ“ chapters:', result.manifest.chapters?.length);
+      console.log('[Generate] Manifest received ✓ chapters:', result.manifest.chapters?.length);
 
+      // Stamp the occasion onto the manifest so the editor can use it
+      result.manifest.occasion = data.occasion || 'wedding';
       setManifest(result.manifest);
 
       // Auto-generate a random slug so Publish works immediately from the editor

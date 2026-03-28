@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane } from 'lucide-react';
 
 interface VibeInputProps {
-  onSubmit: (data: { names: [string, string]; vibeString: string }) => void;
+  onSubmit: (data: { names: [string, string]; vibeString: string; occasion: string }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
 }
@@ -163,6 +163,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     onSubmit({
       names: [name1.trim(), name2.trim()],
       vibeString: synthesizedVibe,
+      occasion,
     });
   };
 

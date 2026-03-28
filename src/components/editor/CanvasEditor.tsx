@@ -19,31 +19,35 @@ import {
 import type { StoryManifest, PageBlock, BlockType, WeddingEvent } from '@/types';
 
 // ── Block Catalogue ────────────────────────────────────────────
+type OccasionTag = 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
+const ALL_OCCASIONS: OccasionTag[] = ['wedding', 'anniversary', 'engagement', 'birthday', 'story'];
+
 interface BlockDef {
   type: BlockType;
   label: string;
   icon: React.ElementType;
   description: string;
   color: string;
+  occasions: OccasionTag[]; // which occasion types this block applies to
   defaultConfig?: Record<string, unknown>;
 }
 
 const BLOCK_CATALOGUE: BlockDef[] = [
-  { type: 'hero',      label: 'Hero',              icon: LayoutTemplate, description: 'Full-screen hero with names & cover photo', color: '#b8926a' },
-  { type: 'story',     label: 'Our Story',         icon: AlignLeft,      description: 'Chapter timeline & photo narrative', color: '#7c5cbf' },
-  { type: 'event',     label: 'Event Cards',       icon: Calendar,       description: 'Ceremony, reception & event details', color: '#e8927a' },
-  { type: 'countdown', label: 'Countdown',         icon: Clock,          description: 'Live countdown to your big day', color: '#4a9b8a' },
-  { type: 'rsvp',      label: 'RSVP',              icon: Heart,          description: 'Guest RSVP form with meal preferences', color: '#e87ab8' },
-  { type: 'registry',  label: 'Registry',          icon: Gift,           description: 'Registry links & honeymoon fund', color: '#c4774a' },
-  { type: 'travel',    label: 'Travel & Hotels',   icon: Plane,          description: 'Hotels, airports & directions', color: '#4a7a9b' },
-  { type: 'faq',       label: 'FAQ',               icon: HelpCircle,     description: 'Common guest questions & answers', color: '#8b7a4a' },
-  { type: 'photos',    label: 'Photo Wall',        icon: Camera,         description: 'Guest photo gallery with uploads', color: '#4a8b6a' },
-  { type: 'guestbook', label: 'Guestbook',         icon: BookOpen,       description: 'Public guest wishes & AI highlights', color: '#7a4a8b' },
-  { type: 'map',       label: 'Map',               icon: MapPin,         description: 'Embedded venue map', color: '#4a6a8b' },
-  { type: 'quote',     label: 'Quote',             icon: Quote,          description: 'Romantic quote or vow snippet', color: '#8b4a6a' },
-  { type: 'text',      label: 'Text Block',        icon: AlignLeft,      description: 'Custom text section', color: '#6a8b4a' },
-  { type: 'video',     label: 'Video',             icon: Film,           description: 'YouTube or Vimeo embed', color: '#4a4a8b' },
-  { type: 'divider',   label: 'Divider',           icon: Minus,          description: 'Visual section separator', color: '#8b8b4a' },
+  { type: 'hero',      label: 'Hero',              icon: LayoutTemplate, description: 'Full-screen hero with names & cover photo',  color: '#b8926a', occasions: ALL_OCCASIONS },
+  { type: 'story',     label: 'Our Story',         icon: AlignLeft,      description: 'Chapter timeline & photo narrative',          color: '#7c5cbf', occasions: ALL_OCCASIONS },
+  { type: 'event',     label: 'Event Cards',       icon: Calendar,       description: 'Ceremony, reception & event details',         color: '#e8927a', occasions: ['wedding', 'engagement'] },
+  { type: 'countdown', label: 'Countdown',         icon: Clock,          description: 'Live countdown to your big day',              color: '#4a9b8a', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'rsvp',      label: 'RSVP',              icon: Heart,          description: 'Guest RSVP form with meal preferences',       color: '#e87ab8', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'registry',  label: 'Registry',          icon: Gift,           description: 'Registry links & honeymoon fund',             color: '#c4774a', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'travel',    label: 'Travel & Hotels',   icon: Plane,          description: 'Hotels, airports & directions',               color: '#4a7a9b', occasions: ['wedding', 'engagement'] },
+  { type: 'faq',       label: 'FAQ',               icon: HelpCircle,     description: 'Common guest questions & answers',            color: '#8b7a4a', occasions: ['wedding', 'engagement'] },
+  { type: 'photos',    label: 'Photo Wall',        icon: Camera,         description: 'Guest photo gallery with uploads',            color: '#4a8b6a', occasions: ALL_OCCASIONS },
+  { type: 'guestbook', label: 'Guestbook',         icon: BookOpen,       description: 'Public guest wishes & AI highlights',         color: '#7a4a8b', occasions: ALL_OCCASIONS },
+  { type: 'map',       label: 'Map',               icon: MapPin,         description: 'Embedded venue map',                          color: '#4a6a8b', occasions: ['wedding', 'engagement', 'anniversary'] },
+  { type: 'quote',     label: 'Quote',             icon: Quote,          description: 'Romantic quote or vow snippet',               color: '#8b4a6a', occasions: ALL_OCCASIONS },
+  { type: 'text',      label: 'Text Block',        icon: AlignLeft,      description: 'Custom text section',                         color: '#6a8b4a', occasions: ALL_OCCASIONS },
+  { type: 'video',     label: 'Video',             icon: Film,           description: 'YouTube or Vimeo embed',                      color: '#4a4a8b', occasions: ALL_OCCASIONS },
+  { type: 'divider',   label: 'Divider',           icon: Minus,          description: 'Visual section separator',                    color: '#8b8b4a', occasions: ALL_OCCASIONS },
 ];
 
 const DEFAULT_BLOCKS: PageBlock[] = [
@@ -528,14 +532,16 @@ function BlockConfigPanel({
 }
 
 // ── Add Block Picker ───────────────────────────────────────────
-function AddBlockPicker({ onAdd, existingTypes }: { onAdd: (type: BlockType) => void; existingTypes: Set<BlockType> }) {
+function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd: (type: BlockType) => void; existingTypes: Set<BlockType>; occasion?: OccasionTag }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
-  const filtered = BLOCK_CATALOGUE.filter(b =>
-    b.label.toLowerCase().includes(search.toLowerCase()) ||
-    b.description.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = BLOCK_CATALOGUE
+    .filter(b => b.occasions.includes(occasion))
+    .filter(b =>
+      b.label.toLowerCase().includes(search.toLowerCase()) ||
+      b.description.toLowerCase().includes(search.toLowerCase())
+    );
 
   return (
     <div style={{ position: 'relative' }}>
@@ -714,7 +720,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
           })}
         </Reorder.Group>
 
-        <AddBlockPicker onAdd={addBlock} existingTypes={existingTypes} />
+        <AddBlockPicker onAdd={addBlock} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
       </div>
 
       {/* ── Right: Config panel ───────────────────────────── */}

@@ -445,7 +445,9 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>Wedding Events</span>
+        <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+          {manifest.occasion === 'birthday' ? 'Party Events' : manifest.occasion === 'anniversary' ? 'Anniversary Events' : 'Wedding Events'}
+        </span>
         <button
           onClick={addEvent}
           style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700 }}
@@ -672,35 +674,123 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
 }
 
 // ── Pages Panel ────────────────────────────────────────────────
-const ALL_SITE_PAGES = [
-  { id: 'home',     slug: '',         label: 'Home',     icon: '🏠', alwaysOn: true },
-  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '📅', alwaysOn: false },
-  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '💌', alwaysOn: false },
-  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '✈️', alwaysOn: false },
-  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '🏛️', alwaysOn: false },
-  { id: 'registry', slug: 'registry', label: 'Registry', icon: '🎁', alwaysOn: false },
-  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '❓', alwaysOn: false },
+// Occasion-aware preset pages + user-created custom pages
+type OccasionType = 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
+
+interface PresetPage {
+  id: string; slug: string; label: string; icon: string;
+  alwaysOn: boolean;
+  occasions: OccasionType[]; // which occasion types this page applies to
+}
+
+const ALL_SITE_PAGES: PresetPage[] = [
+  { id: 'home',     slug: '',         label: 'Home',     icon: '🏠', alwaysOn: true,  occasions: ['wedding', 'anniversary', 'engagement', 'birthday', 'story'] },
+  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '📅', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '💌', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '✈️', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '🏛️', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'registry', slug: 'registry', label: 'Registry', icon: '🎁', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '❓', alwaysOn: false, occasions: ['wedding', 'engagement'] },
 ];
 
 function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest; subdomain: string; onChange: (m: StoryManifest) => void }) {
+  const [showAddPage, setShowAddPage] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState('');
+
+  const occasion = (manifest.occasion || 'wedding') as OccasionType;
+  const filteredPresets = ALL_SITE_PAGES.filter(p => p.occasions.includes(occasion));
+
   const enabled = new Set<string>(
     manifest.blocks?.flatMap(b =>
       b.type === 'event' ? ['schedule', 'rsvp'] : [b.type]
     ) || []
   );
-
   const baseUrl = subdomain ? `https://${subdomain}.pearloom.app` : '';
+  const customPages = manifest.customPages || [];
+
+  const addCustomPage = () => {
+    if (!newPageTitle.trim()) return;
+    const slug = newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newPage = {
+      id: `page-${Date.now()}`,
+      slug,
+      title: newPageTitle.trim(),
+      icon: '📄',
+      blocks: [
+        { id: `b-text-${Date.now()}`, type: 'text' as const, order: 0, visible: true },
+      ],
+      visible: true,
+      order: customPages.length,
+    };
+    onChange({ ...manifest, customPages: [...customPages, newPage] });
+    setNewPageTitle('');
+    setShowAddPage(false);
+  };
+
+  const deleteCustomPage = (id: string) => {
+    onChange({ ...manifest, customPages: customPages.filter(p => p.id !== id) });
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
-        Site Pages
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+          Site Pages
+        </span>
+        <button
+          onClick={() => setShowAddPage(!showAddPage)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
+            padding: '4px 8px', borderRadius: '5px', border: 'none',
+            background: 'rgba(184,146,106,0.18)', color: '#b8926a',
+            cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
+          }}
+        >
+          <Plus size={11} /> Add Page
+        </button>
       </div>
-      <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', lineHeight: 1.5, marginBottom: '8px' }}>
-        Each page gets its own URL. Enable sections in the Canvas tab to activate them.
-      </p>
 
-      {ALL_SITE_PAGES.map(page => {
+      {/* Add page form */}
+      <AnimatePresence>
+        {showAddPage && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            style={{ overflow: 'hidden', marginBottom: '8px' }}
+          >
+            <div style={{ background: 'rgba(184,146,106,0.08)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(184,146,106,0.2)' }}>
+              <label style={lbl}>Page Name</label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <input
+                  value={newPageTitle}
+                  onChange={e => setNewPageTitle(e.target.value)}
+                  placeholder="e.g. Our Engagement, The Venue"
+                  style={{ ...inp, flex: 1 }}
+                  onKeyDown={e => e.key === 'Enter' && addCustomPage()}
+                />
+                <button
+                  onClick={addCustomPage}
+                  disabled={!newPageTitle.trim()}
+                  style={{
+                    padding: '6px 12px', borderRadius: '5px', border: 'none',
+                    background: newPageTitle.trim() ? '#b8926a' : 'rgba(255,255,255,0.1)',
+                    color: newPageTitle.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+                    fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
+                  }}
+                >Add</button>
+              </div>
+              <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>
+                URL: {baseUrl}/{newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '...'}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Preset pages */}
+      <div style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '4px', marginTop: '4px' }}>
+        Built-in Pages
+      </div>
+      {filteredPresets.map(page => {
         const isActive = page.alwaysOn || enabled.has(page.slug) ||
           (page.slug === 'travel' && !!manifest.travelInfo?.hotels?.length) ||
           (page.slug === 'registry' && !!(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)) ||
@@ -708,55 +798,70 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
           (page.slug === 'schedule' && !!(manifest.events?.length)) ||
           (page.slug === 'rsvp' && !!(manifest.events?.length)) ||
           (page.slug === 'venue' && !!(manifest.logistics?.venue));
-
         const url = page.slug === '' ? baseUrl : `${baseUrl}/${page.slug}`;
 
         return (
-          <div
-            key={page.id}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '10px 10px 10px 12px', borderRadius: '10px',
-              background: isActive ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${isActive ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
-            }}
-          >
-            <span style={{ fontSize: '1rem', flexShrink: 0 }}>{page.icon}</span>
+          <div key={page.id} style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '8px 10px 8px 12px', borderRadius: '10px',
+            background: isActive ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${isActive ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
+          }}>
+            <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{page.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
-              {subdomain && (
-                <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.2)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {url}
-                </div>
-              )}
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
+              {subdomain && <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-              {isActive ? (
-                <span style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ade80', background: 'rgba(74,222,128,0.12)', padding: '2px 6px', borderRadius: '100px' }}>Live</span>
-              ) : (
-                <span style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '100px' }}>
-                  {page.alwaysOn ? 'Always On' : 'Inactive'}
-                </span>
-              )}
-              {subdomain && isActive && (
-                <a
-                  href={url} target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', padding: '4px', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}
-                  title="Open page"
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#b8926a'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
-                >
-                  <Globe size={12} />
-                </a>
-              )}
-            </div>
+            <span style={{
+              fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: isActive ? '#4ade80' : 'rgba(255,255,255,0.2)',
+              background: isActive ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.05)',
+              padding: '2px 6px', borderRadius: '100px',
+            }}>{isActive ? 'Live' : 'Inactive'}</span>
           </div>
         );
       })}
 
+      {/* Custom pages */}
+      {customPages.length > 0 && (
+        <>
+          <div style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', margin: '12px 0 4px' }}>
+            Custom Pages
+          </div>
+          {customPages.map(page => (
+            <div key={page.id} style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '8px 10px 8px 12px', borderRadius: '10px',
+              background: 'rgba(184,146,106,0.08)',
+              border: '1px solid rgba(184,146,106,0.2)',
+            }}>
+              <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{page.icon}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
+                <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px' }}>{baseUrl}/{page.slug}</div>
+              </div>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <span style={{
+                  fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  color: '#4ade80', background: 'rgba(74,222,128,0.12)', padding: '2px 6px', borderRadius: '100px',
+                }}>Live</span>
+                <button
+                  onClick={() => deleteCustomPage(page.id)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+                >
+                  <Trash2 size={11} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
       <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(184,146,106,0.06)', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.2)' }}>
         <p style={{ fontSize: '0.68rem', color: 'rgba(184,146,106,0.7)', lineHeight: 1.5, margin: 0 }}>
-          💡 To activate Travel, FAQ, Registry, Venue pages — add your content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab, then they&apos;ll appear as live sub-pages automatically.
+          💡 To activate built-in pages, add content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: '#b8926a' }}>Canvas</strong> tab.
         </p>
       </div>
     </div>

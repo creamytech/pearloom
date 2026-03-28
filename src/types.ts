@@ -16,6 +16,8 @@ export interface StoryManifest {
   theme: ThemeSchema;
   chapters: Chapter[];
   comingSoon: ComingSoonConfig;
+  // What type of life event is this site for?
+  occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
   logistics?: {
     venue?: string;
     date?: string;
@@ -44,6 +46,8 @@ export interface StoryManifest {
   blocks?: PageBlock[];
   // Custom SVG background pattern CSS (e.g. url("data:image/svg+xml,..."))
   backgroundPatternCss?: string;
+  // User-created custom pages (photo gallery, our venue, etc.)
+  customPages?: CustomPage[];
 }
 
 export interface Chapter {
@@ -365,4 +369,18 @@ export interface HotelBlock {
   bookingUrl?: string;
   groupRate?: string;
   notes?: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Custom Pages — user-created pages with their own block lists
+// ─────────────────────────────────────────────────────────────
+
+export interface CustomPage {
+  id: string;
+  slug: string;       // URL slug (e.g. "our-engagement", "the-venue")
+  title: string;      // Display title
+  icon: string;       // Emoji icon for sidebar
+  blocks: PageBlock[];
+  visible: boolean;
+  order: number;
 }
