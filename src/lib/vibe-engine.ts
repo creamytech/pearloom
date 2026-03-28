@@ -59,6 +59,14 @@ export interface VibeSkin {
   // Centered medallion/wreath ornament (viewBox 120x120)
   medallionSvg?: string;
 
+  // — Large-format prominent art (noticeable, fills significant screen space) —
+  // Large editorial illustration for hero section right side (viewBox "0 0 500 700")
+  heroBlobSvg?: string;
+  // Organic blob decoration for section backgrounds (viewBox "0 0 600 400")
+  accentBlobSvg?: string;
+  // SVG path only for organic full-width section shape (viewBox 0 0 1440 500)
+  sectionBlobPath?: string;
+
   aiGenerated: boolean;
 }
 
@@ -180,6 +188,7 @@ function isValidSvg(svg: string): boolean {
 
 function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
   heroPatternSvg: string; sectionBorderSvg: string; cornerFlourishSvg: string; medallionSvg: string;
+  heroBlobSvg: string; accentBlobSvg: string; sectionBlobPath: string;
 } {
   const a = accent || '#b8926a';
 
@@ -251,7 +260,67 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
   <circle cx="60" cy="60" r="1.5" fill="${a}" opacity="0.6"/>
 </svg>`;
 
-  return { heroPatternSvg, sectionBorderSvg, cornerFlourishSvg, medallionSvg };
+  // — Large-format prominent art ———————————————————————————
+  const heroBlobSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 700">
+  <g fill="none" stroke="${a}" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M250,680 C240,580 260,480 240,380 C220,280 230,180 250,80" stroke-width="2" opacity="0.20"/>
+    <path d="M247,520 C200,480 158,468 118,448" stroke-width="1.4" opacity="0.17"/>
+    <path d="M244,420 C190,388 148,368 98,338" stroke-width="1.3" opacity="0.15"/>
+    <path d="M253,560 C300,518 342,508 382,488" stroke-width="1.4" opacity="0.17"/>
+    <path d="M256,460 C308,428 350,408 400,378" stroke-width="1.3" opacity="0.15"/>
+    <path d="M248,320 C210,288 178,268 148,238" stroke-width="1.1" opacity="0.13"/>
+    <path d="M252,280 C290,248 322,228 362,198" stroke-width="1.1" opacity="0.13"/>
+  </g>
+  <g fill="${a}">
+    <path d="M118,448 Q93,426 109,404 Q134,426 118,448 Z" opacity="0.18"/>
+    <path d="M145,488 Q120,463 138,438 Q162,463 145,488 Z" opacity="0.16"/>
+    <path d="M98,338 Q73,315 90,293 Q116,315 98,338 Z" opacity="0.16"/>
+    <path d="M382,488 Q406,465 390,442 Q365,465 382,488 Z" opacity="0.18"/>
+    <path d="M400,378 Q424,354 407,332 Q383,354 400,378 Z" opacity="0.16"/>
+    <path d="M148,238 Q125,218 140,198 Q163,218 148,238 Z" opacity="0.14"/>
+    <path d="M362,198 Q385,176 368,155 Q344,176 362,198 Z" opacity="0.14"/>
+    <circle cx="250" cy="75" r="16" opacity="0.14"/>
+    <circle cx="250" cy="75" r="8" opacity="0.22"/>
+    <circle cx="180" cy="350" r="2.5" opacity="0.28"/>
+    <circle cx="320" cy="430" r="2.5" opacity="0.28"/>
+    <circle cx="148" cy="458" r="2" opacity="0.22"/>
+    <circle cx="370" cy="378" r="2" opacity="0.22"/>
+    <circle cx="200" cy="250" r="2" opacity="0.20"/>
+    <circle cx="300" cy="220" r="2" opacity="0.20"/>
+    <circle cx="168" cy="580" r="1.5" opacity="0.16"/>
+    <circle cx="332" cy="548" r="1.5" opacity="0.16"/>
+  </g>
+</svg>`;
+
+  const accentBlobSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+  <path d="M480,200 L448,312 L358,374 L248,362 L162,290 L148,180 L206,98 L308,72 L408,112 Z" fill="${a}" opacity="0.07"/>
+  <g fill="none" stroke="${a}">
+    <circle cx="300" cy="200" r="96" opacity="0.13"/>
+    <circle cx="300" cy="200" r="64" opacity="0.10"/>
+    <circle cx="300" cy="200" r="32" opacity="0.08"/>
+  </g>
+  <g fill="${a}" opacity="0.20">
+    <circle cx="300" cy="104" r="4"/>
+    <circle cx="393" cy="152" r="4"/>
+    <circle cx="393" cy="248" r="4"/>
+    <circle cx="300" cy="296" r="4"/>
+    <circle cx="207" cy="248" r="4"/>
+    <circle cx="207" cy="152" r="4"/>
+  </g>
+  <circle cx="300" cy="200" r="9" fill="${a}" opacity="0.22"/>
+  <circle cx="300" cy="200" r="3" fill="${a}" opacity="0.45"/>
+</svg>`;
+
+  const SECTION_BLOB_PATHS: Record<VibeSkin['curve'], string> = {
+    organic:   'M0,80 C360,20 720,120 1080,50 C1260,15 1380,55 1440,40 L1440,500 L0,500 Z',
+    arch:      'M0,60 Q360,0 720,60 Q1080,120 1440,60 L1440,500 L0,500 Z',
+    wave:      'M0,80 C180,40 240,100 360,70 C480,40 600,90 720,65 C840,40 960,95 1080,70 C1200,45 1380,75 1440,60 L1440,500 L0,500 Z',
+    petal:     'M0,60 Q180,10 360,60 Q540,110 720,60 Q900,10 1080,60 Q1260,110 1440,60 L1440,500 L0,500 Z',
+    geometric: 'M0,40 L240,85 L480,20 L720,85 L960,20 L1200,85 L1440,40 L1440,500 L0,500 Z',
+  };
+  const sectionBlobPath = SECTION_BLOB_PATHS[curve];
+
+  return { heroPatternSvg, sectionBorderSvg, cornerFlourishSvg, medallionSvg, heroBlobSvg, accentBlobSvg, sectionBlobPath };
 }
 
 // — Gemini-powered skin generation ——————————————————————————————————————————————————————————————————
@@ -313,7 +382,10 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
   "heroPatternSvg": "<FULL SVG: subtle repeating bg pattern. viewBox='0 0 200 200'. 8–12 thematic elements. All opacities 0.06–0.15. Use the accent color. Complete <svg>...</svg> on one line.>",
   "sectionBorderSvg": "<FULL SVG: ornamental border strip. viewBox='0 0 800 40'. Wavy or foliate line with motifs. Complete <svg>...</svg> on one line.>",
   "cornerFlourishSvg": "<FULL SVG: corner bracket ornament. viewBox='0 0 80 80'. Art Nouveau style. Complete <svg>...</svg> on one line.>",
-  "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox='0 0 120 120'. Complete <svg>...</svg> on one line.>"
+  "medallionSvg": "<FULL SVG: circular ornament for section headers. viewBox='0 0 120 120'. Complete <svg>...</svg> on one line.>",
+  "heroBlobSvg": "<FULL SVG: large editorial illustration for the hero section right panel. viewBox='0 0 500 700'. Draw 20-30 thematic botanical branches with leaf shapes, constellations with connecting lines and star dots, vineyard/architectural linework, or other vibe-specific illustrations that FILL 70%+ of the canvas richly. This displays at ~40% page width — it must look impressive and artistic. Use ONLY the accent color. Opacity range 0.12–0.25. Complete <svg>...</svg> on one line.>",
+  "accentBlobSvg": "<FULL SVG: organic decorative shape for section backgrounds. viewBox='0 0 600 400'. One large irregular polygon blob fill (opacity 0.07) PLUS concentric rings (stroke, opacity 0.08–0.14) and 6 radial accent dots (opacity 0.20). Used layered behind section content. Complete <svg>...</svg> on one line.>",
+  "sectionBlobPath": "<SVG path string ONLY — no svg tags. Organic full-width top edge for section containers. ViewBox coords 0 0 1440 500. Creates an organic curved top that then fills down. Match the style of the 'curve' field. Example for organic: M0,80 C360,20 720,120 1080,50 C1260,15 1380,55 1440,40 L1440,500 L0,500 Z>"
 }
 
 CRITICAL DESIGN RULES:
@@ -327,7 +399,10 @@ CRITICAL DESIGN RULES:
 4. SVG opacities: 0.06–0.20 only—ultra subtle, never solid.
 5. decorIcons: thematically specific (botanical, celestial, nautical, architectural)—NOT generic hearts.
 6. dividerQuote: original, intimate, specific to their vibe.
-7. palette colors must create a cohesive, premium visual system. Test contrast mentally.`;
+7. palette colors must create a cohesive, premium visual system. Test contrast mentally.
+8. heroBlobSvg: Must fill 70%+ of the 500x700 canvas with rich botanical/celestial/architectural linework — this is the signature art piece displayed prominently beside the couple's names.
+9. accentBlobSvg: The blob polygon must be irregular and organic (not a circle or rectangle), filling ~60% of the 600x400 canvas.
+10. sectionBlobPath: Match the 'curve' choice — organic=flowing bezier curves, arch=smooth arcs, wave=rhythmic waves, petal=petal scallops, geometric=sharp zigzag.`;
 
   try {
     const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
@@ -414,6 +489,11 @@ CRITICAL DESIGN RULES:
       sectionBorderSvg: resolvesvg('sectionBorderSvg'),
       cornerFlourishSvg: resolvesvg('cornerFlourishSvg'),
       medallionSvg: resolvesvg('medallionSvg'),
+      heroBlobSvg: resolvesvg('heroBlobSvg'),
+      accentBlobSvg: resolvesvg('accentBlobSvg'),
+      sectionBlobPath: typeof parsed.sectionBlobPath === 'string' && parsed.sectionBlobPath.startsWith('M')
+        ? parsed.sectionBlobPath
+        : fallbackArt.sectionBlobPath,
       aiGenerated: true,
     };
   } catch (err) {

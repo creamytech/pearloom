@@ -69,6 +69,17 @@ export async function generateMetadata(
 
 
 
+// ── Helpers ───────────────────────────────────────────────────
+
+function getVideoEmbedUrl(url?: string): string | null {
+  if (!url) return null;
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/\s]+)/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&showinfo=0&modestbranding=1`;
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}?title=0&byline=0&portrait=0`;
+  return null;
+}
+
 export default async function SubdomainSite({ params }: { params: Promise<{ domain: string }> }) {
   // Wait for params as standard in NextJS App Router
   const { domain } = await params;
@@ -139,6 +150,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   // ── Block renderer: ordered by manifest.blocks ─────────────────
   const renderBlock = (type: string, key: string) => {
+    const blockCfg = (manifest.blocks || []).find((b: { id: string }) => b.id === key)?.config || {};
     switch (type) {
       case 'hero':
         return (
@@ -160,7 +172,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'event':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="schedule">
+          <section key={key} id="schedule" style={{ position: 'relative', overflow: 'hidden' }}>
+            {vibeSkin.accentBlobSvg && (
+              <div
+                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
+                dangerouslySetInnerHTML={{ __html: vibeSkin.accentBlobSvg }}
+              />
+            )}
             <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
             <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
@@ -253,31 +271,72 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             </p>
           </section>
         );
-      case 'video':
+      case 'video': {
+        const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
         return (
           <section key={key} style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
-            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', background: cardBg, border: `1px solid ${pal.muted}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: pal.muted, fontSize: '1rem' }}>🎬 Video embed — add URL in Canvas config</span>
+            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
+              {videoEmbedUrl ? (
+                <iframe
+                  src={videoEmbedUrl}
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>🎬 Video embed — add YouTube or Vimeo URL in Canvas config</span>
+                </div>
+              )}
             </div>
           </section>
         );
-      case 'map':
+      }
+      case 'map': {
+        const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
         return (
           <section key={key} style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
-            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', background: cardBg, border: `1px solid ${pal.muted}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: pal.muted, fontSize: '1rem' }}>📍 Venue map — add address in Details</span>
+            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
+              {mapAddress ? (
+                <iframe
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`}
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>📍 Venue map — add address in Details</span>
+                </div>
+              )}
             </div>
           </section>
         );
+      }
       case 'divider':
         return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
-      case 'photos':
+      case 'photos': {
+        const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
         return (
-          <section key={key} style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '1rem' }}>📸 Photo Wall</div>
-            <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Guest photo gallery will appear on the live site.</p>
+          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '1100px', margin: '0 auto' }}>
+            {allPhotos.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
+                  <div key={i} style={{ gridColumn: i === 0 ? 'span 2' : undefined, aspectRatio: i === 0 ? '2/1.2' : '1/1', borderRadius: '0.75rem', overflow: 'hidden', background: cardBg }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.url} alt={img.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '0.75rem' }}>Our Photos</div>
+                <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Photos will appear here once added.</p>
+              </div>
+            )}
           </section>
         );
+      }
       default:
         return null;
     }
@@ -290,28 +349,44 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   // Vibe-intro quote section (always rendered after hero, not a removable block)
   const VibeQuote = () => (
-    <div style={{ position: 'relative', zIndex: 10, padding: '7rem 2rem 5rem', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
-      {/* Custom medallion ornament */}
-      {vibeSkin.medallionSvg && (
+    <div style={{ position: 'relative', zIndex: 10, overflow: 'hidden' }}>
+      {/* Large hero blob art — right side */}
+      {vibeSkin.heroBlobSvg && (
         <div
-          style={{ width: '80px', height: '80px', margin: '0 auto 2rem', opacity: 0.45 }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }}
+          style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
+          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
         />
       )}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
-        <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
-        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-        <span style={{ fontSize: '1.75rem', color: 'var(--eg-accent)', opacity: 0.7 }}>{vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}</span>
-        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-        <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}</span>
-      </div>
-      <p style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: 'var(--eg-fg)', opacity: 0.75, letterSpacing: '-0.01em' }}>
-        &ldquo;{vibeSkin.aiGenerated ? vibeSkin.dividerQuote : manifest.vibeString}&rdquo;
-      </p>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem' }}>
-        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-        <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.5 }}>{vibeSkin.decorIcons[3] || '•'}</span>
-        <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+      {/* Large hero blob art — left side (mirrored) */}
+      {vibeSkin.heroBlobSvg && (
+        <div
+          style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
+          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
+        />
+      )}
+      <div style={{ padding: '7rem 2rem 5rem', textAlign: 'center', maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* Custom medallion ornament */}
+        {vibeSkin.medallionSvg && (
+          <div
+            style={{ width: '80px', height: '80px', margin: '0 auto 2rem', opacity: 0.55 }}
+            dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }}
+          />
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
+          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.75rem', color: 'var(--eg-accent)', opacity: 0.7 }}>{vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}</span>
+        </div>
+        <p style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: 'var(--eg-fg)', opacity: 0.75, letterSpacing: '-0.01em' }}>
+          &ldquo;{vibeSkin.aiGenerated ? vibeSkin.dividerQuote : manifest.vibeString}&rdquo;
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem' }}>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.5 }}>{vibeSkin.decorIcons[3] || '•'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+        </div>
       </div>
     </div>
   );
@@ -338,7 +413,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
       <SiteNav names={safeNames} pages={sitePages} />
 
-      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor }}>
+      <main style={{ minHeight: '100vh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
         {visibleBlocks ? (
           // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
           <>
@@ -346,9 +421,9 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             {vibeSkin.heroPatternSvg && (
               <div
                 style={{
-                  position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+                  position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
                   backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
-                  backgroundRepeat: 'repeat', backgroundSize: '200px 200px', opacity: 0.08,
+                  backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.13,
                 }}
               />
             )}
