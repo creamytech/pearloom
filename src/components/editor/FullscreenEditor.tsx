@@ -932,7 +932,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   );
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id || null);
-  const [activeTab, setActiveTab] = useState<EditorTab>('story');
+  const [activeTab, setActiveTab] = useState<EditorTab>('canvas');
   const [device, setDevice] = useState<DeviceMode>('desktop');
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [rewritingId, setRewritingId] = useState<string | null>(null);
@@ -1307,7 +1307,7 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* ── LEFT SIDEBAR — Section Nav ── */}
         <div style={{
-          width: '248px', flexShrink: 0,
+          width: '420px', flexShrink: 0,
           borderRight: '1px solid rgba(255,255,255,0.06)',
           background: '#110f0d',
           display: 'flex', flexDirection: 'column',
@@ -1318,11 +1318,11 @@ Return JSON with: title, subtitle, description, mood`,
             display: 'flex', padding: '8px 8px 0',
             borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
           }}>
-            {(['story', 'canvas', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
+            {(['canvas', 'story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
               const Icon = TAB_ICONS[tab];
               const isHighlight = tab === 'blocks';
               const labels: Record<string, string> = {
-                story: 'Story', canvas: 'Build', events: 'Events', design: 'Design',
+                story: 'Story', canvas: 'Sections', events: 'Events', design: 'Design',
                 details: 'Details', blocks: 'AI', voice: 'Voice',
               };
               return (
@@ -1385,6 +1385,27 @@ Return JSON with: title, subtitle, description, mood`,
                     ))}
                   </AnimatePresence>
                 </Reorder.Group>
+
+                {/* Inline chapter editor */}
+                <AnimatePresence mode="wait">
+                  {activeChapter && (
+                    <motion.div
+                      key={activeChapter.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}
+                    >
+                      <ChapterPanel
+                        chapter={activeChapter}
+                        onUpdate={updateChapter}
+                        onAIRewrite={handleAIRewrite}
+                        isRewriting={rewritingId === activeChapter.id}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </>
             )}
 
@@ -1472,47 +1493,6 @@ Return JSON with: title, subtitle, description, mood`,
           </div>
         </div>
 
-        {/* ── RIGHT PANEL — Property Inspector ── */}
-        <AnimatePresence>
-          {activeTab === 'story' && activeChapter && (
-            <motion.div
-              key="right-panel"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 300, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                flexShrink: 0, overflow: 'hidden',
-                borderLeft: '1px solid rgba(255,255,255,0.06)',
-                background: '#131211',
-              }}
-            >
-              <div style={{
-                width: '300px', height: '100%', overflowY: 'auto',
-                padding: '1rem',
-              }}>
-                {/* Panel header */}
-                <div style={{
-                  fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em',
-                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)',
-                  marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px',
-                }}>
-                  <Settings size={10} /> Properties
-                </div>
-
-                <AnimatePresence mode="wait">
-                  <ChapterPanel
-                    key={activeChapter!.id}
-                    chapter={activeChapter!}
-                    onUpdate={updateChapter}
-                    onAIRewrite={handleAIRewrite}
-                    isRewriting={rewritingId === activeChapter!.id}
-                  />
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       <style>{`

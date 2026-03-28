@@ -368,14 +368,16 @@ function BlockRow({
       layout
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: block.visible ? 1 : 0.38 }}
+      onClick={() => onSelect(block.id)}
       style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '10px 10px 10px 8px',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '11px 10px 11px 8px',
         borderRadius: '10px',
         background: isActive ? `${color}18` : 'rgba(255,255,255,0.04)',
         border: `1px solid ${isActive ? `${color}50` : 'rgba(255,255,255,0.07)'}`,
         cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
         userSelect: 'none',
+        boxShadow: isActive ? `0 0 0 3px ${color}15` : 'none',
       }}
     >
       {/* Drag handle */}
@@ -384,49 +386,53 @@ function BlockRow({
       </div>
 
       {/* Icon */}
-      <div
-        style={{
-          width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-          background: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
-        onClick={() => onSelect(block.id)}
-      >
-        <Icon size={13} color={color} />
+      <div style={{
+        width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+        background: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        border: `1px solid ${color}30`,
+      }}>
+        <Icon size={15} color={color} />
       </div>
 
       {/* Label */}
-      <div style={{ flex: 1 }} onClick={() => onSelect(block.id)}>
-        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: block.visible ? '#fff' : 'rgba(255,255,255,0.4)' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: block.visible ? '#fff' : 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>
           {def?.label || block.type}
         </div>
-        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)', marginTop: '1px' }}>
+        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {def?.description}
         </div>
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: '2px', alignItems: 'center', flexShrink: 0 }}>
         <button
           onClick={e => { e.stopPropagation(); onToggle(block.id); }}
-          title={block.visible ? 'Hide' : 'Show'}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)', display: 'flex', padding: '4px', borderRadius: '4px' }}
+          title={block.visible ? 'Hide section' : 'Show section'}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'rgba(255,255,255,0.3)' : '#f87171', display: 'flex', padding: '5px', borderRadius: '5px', transition: 'color 0.15s' }}
         >
-          {block.visible ? <Eye size={12} /> : <EyeOff size={12} />}
+          {block.visible ? <Eye size={13} /> : <EyeOff size={13} />}
         </button>
         <button
           onClick={e => { e.stopPropagation(); onDelete(block.id); }}
           title="Remove block"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '4px', borderRadius: '4px' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '5px', borderRadius: '5px', transition: 'color 0.15s' }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+          onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
         >
-          <Trash2 size={11} />
+          <Trash2 size={12} />
         </button>
+        {/* Expand chevron */}
+        <div style={{ color: isActive ? color : 'rgba(255,255,255,0.2)', display: 'flex', padding: '5px', transition: 'all 0.2s' }}>
+          <ChevronDown size={13} style={{ transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+        </div>
       </div>
 
-      {/* Active indicator */}
+      {/* Active indicator bar */}
       {isActive && (
         <div style={{
           position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
-          width: '3px', height: '60%', borderRadius: '0 2px 2px 0', background: color,
+          width: '3px', height: '65%', borderRadius: '0 3px 3px 0', background: color,
         }} />
       )}
     </motion.div>
@@ -945,9 +951,9 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
   const existingTypes = new Set(blocks.map(b => b.type));
 
   return (
-    <div style={{ display: 'flex', gap: '0', height: '100%', overflow: 'hidden' }}>
-      {/* ── Left: Block list ──────────────────────────────── */}
-      <div style={{ width: activeBlock ? '50%' : '100%', display: 'flex', flexDirection: 'column', gap: '6px', transition: 'width 0.2s', overflowY: 'auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      {/* ── Block list (scrollable) ── */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
 
         {/* ── Page Selector ── */}
         <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>
@@ -1034,9 +1040,12 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
         </div>
 
         {/* Section header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
           <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
-            {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Main Sections'} · drag to reorder
+            {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Page Sections'}
+          </span>
+          <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)' }}>
+            click to edit · drag to reorder
           </span>
         </div>
 
@@ -1067,50 +1076,55 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
         <AddBlockPicker onAdd={addBlock} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
       </div>
 
-      {/* ── Right: Config panel ───────────────────────────── */}
+      {/* ── Config panel (slides up from bottom) ── */}
       <AnimatePresence>
         {activeBlock && activeDef && (
           <motion.div
-            initial={{ opacity: 0, x: 12, width: 0 }}
-            animate={{ opacity: 1, x: 0, width: '50%' }}
-            exit={{ opacity: 0, x: 12, width: 0 }}
-            transition={{ duration: 0.2 }}
+            key={activeBlock.id}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 340, opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              paddingLeft: '10px', borderLeft: `1px solid ${activeDef.color}30`,
-              overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px',
+              overflow: 'hidden', flexShrink: 0,
+              borderTop: `2px solid ${activeDef.color}50`,
+              background: `${activeDef.color}06`,
             }}
           >
-            {/* Panel header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <div style={{
-                width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-                background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <activeDef.icon size={13} color={activeDef.color} />
+            <div style={{ height: 340, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {/* Panel header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{
+                  width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
+                  background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: `1px solid ${activeDef.color}30`,
+                }}>
+                  <activeDef.icon size={14} color={activeDef.color} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
+                  <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>Block settings · Section style</div>
+                </div>
+                <button
+                  onClick={() => setActiveBlockId(null)}
+                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', padding: '5px' }}
+                >
+                  <X size={13} />
+                </button>
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
-                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>Block settings · Section style</div>
-              </div>
-              <button
-                onClick={() => setActiveBlockId(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', display: 'flex', padding: '4px' }}
-              >
-                <X size={13} />
-              </button>
-            </div>
 
-            {/* Config content */}
-            <BlockConfigPanel
-              block={activeBlock}
-              def={activeDef}
-              manifest={manifest}
-              blocksKey={blocksKey}
-              onChange={m => {
-                onChange(m);
-                pushToPreview(m);
-              }}
-            />
+              {/* Config content */}
+              <BlockConfigPanel
+                block={activeBlock}
+                def={activeDef}
+                manifest={manifest}
+                blocksKey={blocksKey}
+                onChange={m => {
+                  onChange(m);
+                  pushToPreview(m);
+                }}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
