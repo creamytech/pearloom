@@ -36,12 +36,14 @@ export async function POST(req: NextRequest) {
       vibeString,
       names,
       occasion,
+      eventDate,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
       vibeString: string;
       names: [string, string];
       occasion?: string;
+      eventDate?: string;
     } = body;
 
     if (!photos?.length) {
@@ -89,8 +91,17 @@ export async function POST(req: NextRequest) {
       names,
       apiKey,
       session.accessToken,
-      occasion
+      occasion,
+      eventDate
     );
+
+    // Pre-populate logistics date from user-provided eventDate
+    if (eventDate) {
+      manifest.logistics = {
+        ...(manifest.logistics ?? {}),
+        date: eventDate,
+      };
+    }
 
     // Map actual photo URLs + REAL locations into generated chapters.
     // CRITICAL: cluster location (from GPS or user input) ALWAYS overrides
