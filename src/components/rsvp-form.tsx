@@ -5,10 +5,100 @@
 // Premium RSVP form with rich visual styling
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Check, Loader2, PartyPopper, HeartCrack } from 'lucide-react';
 import type { RsvpStatus, WeddingEvent } from '@/types';
+
+// ── Canvas Confetti ─────────────────────────────────────────────
+function ConfettiBurst({ active }: { active: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const COLORS = ['#b8926a', '#f0c080', '#f87171', '#a78bfa', '#34d399', '#60a5fa', '#fb923c', '#e879f9'];
+    const SHAPES = ['circle', 'rect', 'heart'] as const;
+
+    interface Particle {
+      x: number; y: number; vx: number; vy: number;
+      size: number; color: string; rotation: number; rotSpeed: number;
+      shape: typeof SHAPES[number]; alpha: number; gravity: number;
+    }
+
+    const particles: Particle[] = Array.from({ length: 140 }, () => ({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+      y: canvas.height * 0.4,
+      vx: (Math.random() - 0.5) * 18,
+      vy: -(Math.random() * 18 + 8),
+      size: Math.random() * 8 + 4,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.25,
+      shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+      alpha: 1,
+      gravity: 0.45 + Math.random() * 0.2,
+    }));
+
+    let raf: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = 0;
+      for (const p of particles) {
+        p.vy += p.gravity;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rotation += p.rotSpeed;
+        if (p.y < canvas.height + 40) {
+          p.alpha = Math.max(0, p.alpha - 0.008);
+          alive++;
+        }
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        if (p.shape === 'circle') {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.shape === 'rect') {
+          ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        } else {
+          // heart
+          const s = p.size * 0.4;
+          ctx.beginPath();
+          ctx.moveTo(0, s * 0.4);
+          ctx.bezierCurveTo(-s * 1.2, -s * 0.6, -s * 2, s * 0.4, 0, s * 1.6);
+          ctx.bezierCurveTo(s * 2, s * 0.4, s * 1.2, -s * 0.6, 0, s * 0.4);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+      if (alive > 0) raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, [active]);
+
+  if (!active) return null;
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        pointerEvents: 'none', width: '100%', height: '100%',
+      }}
+    />
+  );
+}
 
 interface RsvpFormProps {
   events: WeddingEvent[];
@@ -28,6 +118,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +143,13 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
         }),
       });
 
-      if (res.ok) setSubmitted(true);
+      if (res.ok) {
+        setSubmitted(true);
+        if (status === 'attending') {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 4500);
+        }
+      }
     } catch {
       console.error('RSVP submission failed');
     } finally {
@@ -63,6 +160,8 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
   // ── Success state ──
   if (submitted) {
     return (
+      <>
+        <ConfettiBurst active={showConfetti} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -94,6 +193,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             : `Thank you for letting us know, ${name}. You'll be in our hearts.`}
         </p>
       </motion.div>
+      </>
     );
   }
 

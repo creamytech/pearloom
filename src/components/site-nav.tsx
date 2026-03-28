@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { Menu, X, LayoutDashboard, Plus } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -33,6 +33,10 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+
+  // Scroll progress bar (only for non-studio/published sites)
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -90,6 +94,17 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       >
+        {/* Scroll progress bar — published sites only */}
+        {!isStudio && (
+          <motion.div
+            style={{
+              position: 'absolute', top: 0, left: 0, right: 0,
+              height: '2px', scaleX, transformOrigin: '0%',
+              background: 'linear-gradient(90deg, var(--eg-accent), color-mix(in srgb, var(--eg-accent) 60%, #fff))',
+            }}
+          />
+        )}
+
         <div style={{
           maxWidth: '1400px', margin: '0 auto',
           padding: '0 2rem',

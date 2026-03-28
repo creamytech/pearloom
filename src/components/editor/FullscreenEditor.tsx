@@ -13,13 +13,15 @@ import {
   Globe, Monitor, Tablet, Smartphone, GripVertical,
   Image, Calendar, Upload, X, Camera, LayoutTemplate,
   Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
-  MessageCircleHeart,
+  MessageCircleHeart, Search,
 } from 'lucide-react';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent, FaqItem, HotelBlock, TravelInfo } from '@/types';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
 import { ColorPalettePanel } from './ColorPalettePanel';
+import { CommandPalette } from './CommandPalette';
+import type { CommandAction } from './CommandPalette';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -932,6 +934,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id || null);
   const [activeTab, setActiveTab] = useState<EditorTab>('story');
   const [device, setDevice] = useState<DeviceMode>('desktop');
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [rewritingId, setRewritingId] = useState<string | null>(null);
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -944,6 +947,18 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const historyIndexRef = useRef(0);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+
+  // ── Command Palette keyboard shortcut ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const pushHistory = useCallback((m: StoryManifest) => {
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
@@ -1078,6 +1093,23 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     syncManifest(next);
   }, [chapters, syncManifest]);
 
+  const handleCommandAction = useCallback((action: CommandAction) => {
+    switch (action.type) {
+      case 'tab':    setActiveTab(action.tab); break;
+      case 'device': setDevice(action.mode); break;
+      case 'chapter': setActiveId(action.id); setActiveTab('story'); break;
+      case 'add-chapter': addChapter(); break;
+      case 'preview':
+        sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+        window.open(`/preview?key=${previewKey}`, '_blank');
+        break;
+      case 'publish': setPublishError(null); setPublishedUrl(null); setShowPublish(true); break;
+      case 'undo': undo(); break;
+      case 'redo': redo(); break;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addChapter, setActiveTab, setDevice, setActiveId, manifest, coupleNames, previewKey, undo, redo]);
+
   const handleReorder = useCallback((newOrder: Chapter[]) => {
     setChapters(newOrder);
     syncManifest(newOrder);
@@ -1135,6 +1167,16 @@ Return JSON with: title, subtitle, description, mood`,
       display: 'flex', flexDirection: 'column',
       background: '#0e0d0c', fontFamily: 'Inter, sans-serif',
     }}>
+      {/* ── Command Palette ── */}
+      <CommandPalette
+        open={cmdPaletteOpen}
+        onClose={() => setCmdPaletteOpen(false)}
+        onAction={handleCommandAction}
+        chapters={chapters.map(c => ({ id: c.id, title: c.title || '' }))}
+        canUndo={canUndo}
+        canRedo={canRedo}
+      />
+
       {/* ── TOP BAR ── */}
       <div style={{
         height: '52px', flexShrink: 0,
@@ -1158,12 +1200,28 @@ Return JSON with: title, subtitle, description, mood`,
           <ArrowLeft size={14} /> Exit
         </button>
 
-        {/* Site name */}
+        {/* Site name + Cmd+K search trigger */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
           <Heart size={13} color="#b8926a" fill="#b8926a" />
           <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
             {coupleNames[0]} & {coupleNames[1]}
           </span>
+          <button
+            onClick={() => setCmdPaletteOpen(true)}
+            title="Command Palette (⌘K)"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '3px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)',
+              cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
+              letterSpacing: '0.04em', transition: 'all 0.15s',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}
+          >
+            <Search size={11} />
+            <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
+          </button>
           <span style={{
             fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em',
             textTransform: 'uppercase', background: 'rgba(184,146,106,0.2)',

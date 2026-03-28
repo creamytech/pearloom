@@ -1,10 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Trash2, X, AlertTriangle, Users, Heart, Sparkles } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearloomMark, WovenCircle } from '@/components/brand/PearloomMark';
+
+// ── Magnetic Button ─────────────────────────────────────────────
+function MagneticButton({ onClick, style, children, strength = 0.35 }: {
+  onClick: () => void;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+  strength?: number;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    setPos({ x: (e.clientX - cx) * strength, y: (e.clientY - cy) * strength });
+  };
+
+  const handleMouseLeave = () => setPos({ x: 0, y: 0 });
+
+  return (
+    <motion.button
+      ref={ref}
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      animate={{ x: pos.x, y: pos.y }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      style={style}
+    >
+      {children}
+    </motion.button>
+  );
+}
 
 interface UserSite {
   id: string;
@@ -24,6 +60,16 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<UserSite | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [tilt, setTilt] = useState<Record<string, { x: number; y: number }>>({});
+
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLElement>, id: string) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
+    const y = -((e.clientY - rect.top) / rect.height - 0.5) * 14;
+    setTilt(prev => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const clearTilt = (id: string) => setTilt(prev => ({ ...prev, [id]: { x: 0, y: 0 } }));
 
   useEffect(() => {
     fetch('/api/sites')
@@ -86,7 +132,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
           </p>
         </div>
 
-        <button
+        <MagneticButton
           onClick={onStartNew}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.65rem',
@@ -95,15 +141,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             color: '#fff', fontWeight: 600, fontSize: '0.9rem',
             border: 'none', cursor: 'pointer', letterSpacing: '0.01em',
             boxShadow: '0 8px 30px rgba(26,26,26,0.2)',
-            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             fontFamily: 'var(--eg-font-body)',
           }}
-          onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(26,26,26,0.25)'; }}
-          onMouseOut={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(26,26,26,0.2)'; }}
         >
           <Plus size={18} />
           Create New Site
-        </button>
+        </MagneticButton>
       </div>
 
       {/* ── Loading ── */}
@@ -184,6 +227,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
               const accentColor = site.manifest?.theme?.colors?.accent || '#b8926a';
               const weddingDate = site.manifest?.events?.[0]?.date;
 
+              const cardTilt = tilt[site.id] || { x: 0, y: 0 };
+
               return (
                 <motion.article
                   key={site.id}
@@ -192,17 +237,25 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                   exit={{ opacity: 0, scale: 0.94, y: -10 }}
                   transition={{ duration: 0.6, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
                   onHoverStart={() => setHoveredId(site.id)}
-                  onHoverEnd={() => setHoveredId(null)}
+                  onHoverEnd={() => { setHoveredId(null); clearTilt(site.id); }}
+                  onMouseMove={e => handleCardMouseMove(e, site.id)}
                   style={{
                     background: '#fff',
                     borderRadius: '1.5rem',
                     overflow: 'hidden',
                     border: isHovered ? '1px solid rgba(184,146,106,0.25)' : '1px solid rgba(0,0,0,0.05)',
                     boxShadow: isHovered
-                      ? '0 20px 60px rgba(0,0,0,0.1), 0 4px 16px rgba(184,146,106,0.08)'
+                      ? '0 24px 70px rgba(0,0,0,0.12), 0 4px 16px rgba(184,146,106,0.1)'
                       : '0 4px 24px rgba(0,0,0,0.05)',
-                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                    transform: isHovered ? 'translateY(-6px)' : 'none',
+                    transition: 'box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s',
+                    transform: isHovered
+                      ? `perspective(800px) rotateX(${cardTilt.y}deg) rotateY(${cardTilt.x}deg) translateY(-6px) scale(1.01)`
+                      : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)',
+                    transformStyle: 'preserve-3d',
+                    willChange: 'transform',
+                    transitionProperty: isHovered ? 'box-shadow, border-color' : 'all',
+                    transitionDuration: isHovered ? '0.05s, 0.4s' : '0.5s',
+                    transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
                 >
                   {/* Cover photo */}
