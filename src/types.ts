@@ -150,6 +150,7 @@ export interface PhotoCluster {
   location: GeoLocation | null;
   photos: GooglePhotoMetadata[];
   suggestedTitle?: string;
+  note?: string;
 }
 
 // ─────────────────────────────────────────────────────────────

@@ -172,16 +172,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'event':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="schedule" style={{ position: 'relative', overflow: 'hidden' }}>
+          <section key={key} id="schedule" style={{ position: 'relative', overflow: 'hidden', background: cardBg }}>
             {vibeSkin.accentBlobSvg && (
               <div
                 style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
                 dangerouslySetInnerHTML={{ __html: vibeSkin.accentBlobSvg }}
               />
             )}
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
-            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
           </section>
         );
       case 'rsvp':
@@ -198,22 +196,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'registry':
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
         return (
-          <section key={key} id="registry">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
+          <section key={key} id="registry" style={{ background: accentLight }}>
             <RegistryShowcase
               registries={manifest.registry?.entries || []}
               cashFundUrl={manifest.registry?.cashFundUrl}
               cashFundMessage={manifest.registry?.cashFundMessage}
               title={vibeSkin.sectionLabels.registry}
             />
-            <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={bgColor} height={70} inverted />
           </section>
         );
       case 'travel':
         if (!manifest.travelInfo) return null;
         return (
-          <section key={key} id="travel">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={70} />
+          <section key={key} id="travel" style={{ background: cardBg }}>
             <TravelSection info={manifest.travelInfo} />
           </section>
         );
@@ -221,16 +216,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         if (!manifest.faqs?.length) return null;
         return (
           <section key={key} id="faq">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
             <FaqSection faqs={manifest.faqs} />
           </section>
         );
       case 'guestbook':
         return (
-          <section key={key} id="guestbook">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
+          <section key={key} id="guestbook" style={{ background: cardBg }}>
             <SiteGallerySection siteId={domain} coupleNames={safeNames} />
-            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
           </section>
         );
       case 'countdown': {

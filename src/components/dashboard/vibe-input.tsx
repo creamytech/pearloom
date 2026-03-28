@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane } from 'lucide-react';
 
 interface VibeInputProps {
-  onSubmit: (data: { names: [string, string]; vibeString: string; occasion: string }) => void;
+  onSubmit: (data: { names: [string, string]; vibeString: string; occasion: string; eventDate?: string }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
 }
@@ -164,6 +164,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       names: [name1.trim(), name2.trim()],
       vibeString: synthesizedVibe,
       occasion,
+      eventDate: eventDate || undefined,
     });
   };
 
@@ -279,6 +280,33 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 </button>
               ))}
             </div>
+
+            {/* Date picker — shown for all occasions except "story" */}
+            {occasion !== '' && occasion !== 'story' && (
+              <div style={{ marginTop: '2rem' }}>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
+                  {occasion === 'wedding' ? 'Wedding Date' :
+                   occasion === 'anniversary' ? 'Anniversary Date' :
+                   occasion === 'birthday' ? 'Birthday' :
+                   occasion === 'engagement' ? 'Engagement Date' :
+                   'When is the big day?'}
+                  {' '}<span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
+                </label>
+                <input
+                  type="date"
+                  value={eventDate}
+                  onChange={e => setEventDate(e.target.value)}
+                  style={{
+                    ...inputStyle,
+                    fontSize: 'max(16px, 0.9rem)',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={getFocusStyle}
+                  onBlur={getBlurStyle}
+                />
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ ...btnPrimaryStyle, background: 'transparent', color: 'var(--eg-muted)', boxShadow: 'none' }}><ArrowLeft size={18} /> Back</button>
               <button onClick={handleNext} disabled={!canProceedStep2} style={{ ...btnPrimaryStyle, opacity: canProceedStep2 ? 1 : 0.5, pointerEvents: canProceedStep2 ? 'auto' : 'none' }}>
