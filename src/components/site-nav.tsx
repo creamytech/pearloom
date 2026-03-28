@@ -5,7 +5,7 @@
 // Premium glass-morphism navigation — studio wizard + site viewer
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { Menu, X, LayoutDashboard, Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { SitePage } from '@/types';
 import { UserNav } from '@/components/dashboard/user-nav';
+import { PearIcon } from '@/components/icons/PearloomIcons';
 
 interface SiteNavProps {
   names: [string, string];
@@ -30,48 +31,60 @@ interface SiteNavProps {
 }
 
 export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
-  const [scrolled, setScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [scrollingDown, setScrollingDown] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const prevScrollY = useRef(0);
 
-  // Scroll progress bar (only for non-studio/published sites)
+  // Scroll progress bar
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 });
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => {
+      const current = window.scrollY;
+      setScrollY(current);
+      setScrollingDown(current > prevScrollY.current && current > 60);
+      prevScrollY.current = current;
+      setLastScrollY(current);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const isStudio = names[0] === 'Pearloom'; // Studio mode (wizard) vs published site
+  const isAtTop = scrollY < 20;
+  const scrolled = scrollY > 60;
+
+  const isStudio = names[0] === 'Pearloom';
   const enabledPages = pages.filter((p) => p.enabled).sort((a, b) => a.order - b.order);
 
   const isActive = (slug: string) => {
-    // Server-provided currentPage takes priority
     if (currentPage !== undefined) {
       return slug === '' ? currentPage === '' : currentPage === slug;
     }
-    // Client-side fallback using pathname
     if (slug === '') return pathname.split('/').filter(Boolean).length === 1;
     return pathname.endsWith(`/${slug}`);
   };
 
-  const getHref = (slug: string, basePath: string) => {
-    // basePath is extracted from window.location in client, or passed in via pathname
-    // For SEO, use real URLs for all pages
-    if (slug === '') return basePath; // homepage
+  const basePath = (() => {
+    const parts = pathname.split('/');
+    if (parts[1] === 'sites') return `/${parts[1]}/${parts[2]}`;
+    return '/' + parts[1];
+  })();
+
+  const getHref = (slug: string) => {
+    if (slug === '') return basePath;
     return `${basePath}/${slug}`;
   };
 
-  // Extract base domain path: e.g. '/sites/shaunaandben' from pathname
-  const basePath = (() => {
-    const parts = pathname.split('/');
-    // pathname: /sites/domain[/page]
-    if (parts[1] === 'sites') return `/${parts[1]}/${parts[2]}`;
-    // Direct subdomain: pathname IS the page
-    return '/' + parts[1];
-  })();
+  // Background behavior: scroll down = opaque, at top = transparent
+  const navBg = isAtTop && !isStudio
+    ? 'transparent'
+    : 'rgba(245,241,232,0.95)';
+  const navBackdrop = isAtTop && !isStudio ? 'none' : 'blur(12px) saturate(1.5)';
+  const navBorder = isAtTop && !isStudio ? '1px solid transparent' : '1px solid rgba(0,0,0,0.04)';
 
   return (
     <>
@@ -80,22 +93,20 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
           position: 'fixed',
           top: 0, left: 0, right: 0,
           zIndex: 50,
-          transition: 'all 0.35s ease',
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          background: scrolled || pathname !== '/'
-            ? 'rgba(245,241,232,0.88)'
-            : 'transparent',
-          backdropFilter: scrolled || pathname !== '/' ? 'blur(20px) saturate(1.6)' : 'none',
-          WebkitBackdropFilter: scrolled || pathname !== '/' ? 'blur(20px) saturate(1.6)' : 'none',
-          borderBottom: scrolled || pathname !== '/' ? '1px solid rgba(0,0,0,0.04)' : '1px solid transparent',
-          boxShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.04)' : 'none',
-          padding: scrolled ? '0.75rem 0' : '1.5rem 0',
+          background: navBg,
+          backdropFilter: navBackdrop,
+          WebkitBackdropFilter: navBackdrop,
+          borderBottom: navBorder,
+          boxShadow: scrolled && !isAtTop ? '0 4px 30px rgba(0,0,0,0.04)' : 'none',
+          transition: 'background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, padding 0.35s ease',
+          padding: scrolled ? '0.6rem 0' : '1.25rem 0',
         }}
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
       >
-        {/* Scroll progress bar — published sites only */}
+        {/* Scroll progress bar */}
         {!isStudio && (
           <motion.div
             style={{
@@ -111,14 +122,13 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
           padding: '0 2rem',
           position: 'relative',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          height: '3.5rem',
+          height: '3.25rem',
           overflow: 'visible',
         }}>
 
-          {/* ── Left: Nav links or Studio actions ── */}
+          {/* ── Left: Nav links ── */}
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.25rem' }} className="hidden md:flex">
             {isStudio && user ? (
-              // Studio wizard navigation
               <>
                 {onGoToDashboard && (
                   <button
@@ -165,7 +175,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               // Published site — real page links
               enabledPages.map((pg) => {
                 const active = isActive(pg.slug);
-                const href = getHref(pg.slug, basePath);
+                const href = getHref(pg.slug);
                 return (
                   <Link
                     key={pg.id}
@@ -175,10 +185,12 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                       fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
                       color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
                       borderRadius: '0.5rem',
-                      background: active ? 'rgba(0,0,0,0.04)' : 'transparent',
-                      transition: 'all 0.2s ease', position: 'relative',
-                      textDecoration: 'none', fontFamily: 'var(--eg-font-body)',
-                      display: 'inline-flex', alignItems: 'center',
+                      background: 'transparent',
+                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                      textDecoration: 'none',
+                      fontFamily: 'var(--eg-font-body)',
+                      display: 'inline-flex', alignItems: 'center', flexDirection: 'column',
                     }}
                     onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-fg)'; }}
                     onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.color = active ? 'var(--eg-fg)' : 'var(--eg-muted)'; }}
@@ -188,8 +200,10 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                       <motion.div
                         layoutId="nav-underline"
                         style={{
-                          position: 'absolute', bottom: '0.25rem', left: '1rem', right: '1rem',
-                          height: '2px', borderRadius: '100px', background: 'var(--eg-accent)',
+                          position: 'absolute', bottom: '0.2rem', left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: '5px', height: '5px', borderRadius: '50%',
+                          background: 'var(--eg-accent)',
                         }}
                         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       />
@@ -209,7 +223,9 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               transform: 'translateX(-50%)',
               zIndex: 10,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '0.5rem',
               transition: 'transform 0.3s ease',
+              textDecoration: 'none',
             }}
             onMouseOver={(e) => { e.currentTarget.style.transform = 'translateX(-50%) scale(1.04)'; }}
             onMouseOut={(e) => { e.currentTarget.style.transform = 'translateX(-50%) scale(1)'; }}
@@ -220,19 +236,22 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                 alt="Pearloom"
                 width={130}
                 height={40}
-                style={{ objectFit: 'contain', width: 'auto', height: '34px', maxWidth: '140px' }}
+                style={{ objectFit: 'contain', width: 'auto', height: '32px', maxWidth: '140px' }}
                 priority
               />
             ) : (
-              <span style={{
-                fontFamily: 'var(--eg-font-heading)',
-                fontWeight: 600,
-                fontSize: '1.15rem',
-                color: 'var(--eg-fg)',
-                letterSpacing: '-0.01em',
-              }}>
-                {names[0]} & {names[1]}
-              </span>
+              <>
+                <PearIcon size={20} color="var(--eg-accent)" />
+                <span style={{
+                  fontFamily: 'var(--eg-font-heading)',
+                  fontWeight: 600,
+                  fontSize: '1.1rem',
+                  color: 'var(--eg-fg)',
+                  letterSpacing: '-0.01em',
+                }}>
+                  {names[0]} & {names[1]}
+                </span>
+              </>
             )}
           </Link>
 
@@ -243,8 +262,6 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                 <UserNav user={user} />
               </div>
             )}
-
-            {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden"
@@ -261,74 +278,153 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
         </div>
       </motion.nav>
 
-      {/* ── Mobile menu ── */}
+      {/* ── Mobile menu — slides in from right ── */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden"
-            style={{
-              position: 'fixed', inset: 0, zIndex: 40,
-              background: 'rgba(245,241,232,0.97)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              gap: '2rem',
-              paddingTop: 'env(safe-area-inset-top, 0px)',
-              paddingBottom: 'env(safe-area-inset-bottom, 24px)',
-            }}
-          >
-            {/* Mobile: studio actions */}
-            {isStudio && user && onGoToDashboard && (
-              <motion.button
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-                onClick={() => { onGoToDashboard(); setMobileOpen(false); }}
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="md:hidden"
+              onClick={() => setMobileOpen(false)}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 48,
+                background: 'rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+              }}
+            />
+
+            {/* Slide-in panel from right */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="md:hidden"
+              style={{
+                position: 'fixed', top: 0, right: 0, bottom: 0,
+                zIndex: 49,
+                width: 'min(320px, 85vw)',
+                background: 'rgba(245,241,232,0.98)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                display: 'flex', flexDirection: 'column',
+                paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4rem)',
+                paddingBottom: 'env(safe-area-inset-bottom, 24px)',
+                paddingLeft: '2rem', paddingRight: '2rem',
+                gap: '0.25rem',
+                borderLeft: '1px solid rgba(0,0,0,0.05)',
+                boxShadow: '-20px 0 60px rgba(0,0,0,0.08)',
+              }}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setMobileOpen(false)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  fontFamily: 'var(--eg-font-heading)', fontSize: '2rem',
-                  color: 'var(--eg-fg)', background: 'transparent', border: 'none', cursor: 'pointer',
+                  position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 1rem)',
+                  right: '1.25rem',
+                  background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%',
+                  width: '36px', height: '36px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--eg-fg)',
                 }}
               >
-                <LayoutDashboard size={24} />
-                My Sites
-              </motion.button>
-            )}
+                <X size={16} />
+              </button>
 
-            {/* Mobile: published pages */}
-            {enabledPages.map((page, i) => (
-              <motion.div
-                key={page.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.07 + 0.1 }}
-              >
-                <Link
-                  href={getHref(page.slug, basePath)}
-                  onClick={() => setMobileOpen(false)}
+              {/* PearIcon brand mark */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                <PearIcon size={22} color="var(--eg-accent)" />
+                <span style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1rem', color: 'var(--eg-fg)', fontWeight: 600 }}>
+                  Pearloom
+                </span>
+              </div>
+
+              {/* Studio actions */}
+              {isStudio && user && onGoToDashboard && (
+                <motion.button
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 }}
+                  onClick={() => { onGoToDashboard(); setMobileOpen(false); }}
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
-                    fontSize: '2.5rem', letterSpacing: '-0.01em',
-                    color: isActive(page.slug) ? 'var(--eg-fg)' : 'var(--eg-muted)',
-                    textDecoration: 'none',
+                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                    padding: '0.875rem 0',
+                    fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem',
+                    color: 'var(--eg-fg)', background: 'transparent', border: 'none',
+                    cursor: 'pointer', textAlign: 'left',
+                    borderBottom: '1px solid rgba(0,0,0,0.06)',
+                    marginBottom: '0.25rem',
                   }}
                 >
-                  {page.label}
-                </Link>
-              </motion.div>
-            ))}
+                  <LayoutDashboard size={20} />
+                  My Sites
+                </motion.button>
+              )}
 
-            {user && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-                <UserNav user={user} />
-              </motion.div>
-            )}
-          </motion.div>
+              {/* Published pages */}
+              {enabledPages.map((page, i) => {
+                const active = isActive(page.slug);
+                return (
+                  <motion.div
+                    key={page.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.06 + 0.1 }}
+                  >
+                    <Link
+                      href={getHref(page.slug)}
+                      onClick={() => setMobileOpen(false)}
+                      style={{
+                        display: 'flex', alignItems: 'center',
+                        padding: '0.875rem 0',
+                        fontFamily: 'var(--eg-font-heading)',
+                        fontSize: '1.5rem', letterSpacing: '-0.01em',
+                        color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                        textDecoration: 'none',
+                        borderBottom: '1px solid rgba(0,0,0,0.06)',
+                        position: 'relative',
+                      }}
+                    >
+                      {page.label}
+                      {active && (
+                        <span style={{
+                          marginLeft: '0.5rem',
+                          width: '6px', height: '6px', borderRadius: '50%',
+                          background: 'var(--eg-accent)', display: 'inline-block', flexShrink: 0,
+                        }} />
+                      )}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+
+              {user && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  style={{ marginTop: 'auto' }}
+                >
+                  <UserNav user={user} />
+                </motion.div>
+              )}
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .hidden.md\\:flex { display: flex; }
+          .hidden.md\\:block { display: block; }
+          .md\\:hidden { display: none; }
+        }
+      `}</style>
     </>
   );
 }
