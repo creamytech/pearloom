@@ -568,11 +568,11 @@ function buildPrompt(
       photoCount: c.photos.length,
       location: c.location?.label || null,
       locationInstruction: c.location?.label
-        ? `Chapter location: "${c.location.label}" — weave this place into the narrative. Reference it naturally: the light there, the feeling of arriving, what it meant.`
-        : 'No location data for this cluster. Do NOT make one up. Instead reference "a place that felt like home" or leave geography out entirely.',
+        ? `This chapter takes place in ${c.location.label}. Weave this place into the narrative naturally — the light there, the feeling of arriving, what made it memorable. Do NOT invent a location if none is provided.`
+        : 'No specific location was given for this chapter. Do NOT make up or invent a location. Write about the emotional space and feeling instead of a geographical place.',
       note: c.note || null,
       noteInstruction: c.note
-        ? `What was happening: "${c.note}" — use this as the primary emotional context for the chapter. This is exactly what the couple remembers about this moment.`
+        ? `Context from the couple about this moment: '${c.note}'. Use this as emotional grounding for the chapter.`
         : null,
       photos: photoDetails,
     };
@@ -590,7 +590,7 @@ function buildPrompt(
   const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
 
   const eventDateCtx = eventDate
-    ? `\n- Event date: ${eventDate} — if a chapter predates this event, write with anticipation and a sense of building toward it. If it is near the event date, write with imminence and excitement.`
+    ? `\n- The couple's event is on ${eventDate}. If this chapter predates the event, write with anticipation building toward it. If the chapter is recent, write with the joy of imminence.`
     : '';
 
   return `You are the "Memory Engine" for Pearloom \u2014 a world-class storytelling AI that crafts ${ctxLabel}. Your output powers a live, editorial-quality website. It must be stunning.
