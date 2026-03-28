@@ -255,7 +255,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
               fontFamily: 'var(--eg-font-body)',
             }}
           >
-            {s === 'attending' ? '🎉 Joyfully Accepts' : '💌 Respectfully Declines'}
+            {s === 'attending' ? 'Joyfully Accepts' : 'Respectfully Declines'}
           </button>
         ))}
       </div>
@@ -435,7 +435,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
 
           {/* Song */}
           <div>
-            <label style={labelStyle}>Song Request 🎵</label>
+            <label style={labelStyle}>Song Request</label>
             <input
               type="text"
               value={songRequest}
@@ -449,7 +449,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
 
       {/* ── Message ── */}
       <div style={sectionGap}>
-        <label style={labelStyle}>Leave a Note 💌</label>
+        <label style={labelStyle}>Leave a Note</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}

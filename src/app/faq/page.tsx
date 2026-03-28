@@ -36,7 +36,7 @@ const FAQS: FaqItem[] = [
   { id: 'faq-4', question: 'What about dietary restrictions?', answer: 'We\'ve got you covered. Please note any dietary needs in your RSVP — whether it\'s allergies, vegetarian, vegan, kosher, or anything else.', order: 3 },
   { id: 'faq-5', question: 'Can I share photos on social media?', answer: 'Yes please! We\'d love for you to share. Also head to our Photos page to upload your pictures directly.', order: 4 },
   { id: 'faq-6', question: 'What time should I arrive?', answer: 'Cocktails begin at 7:00 PM. We suggest arriving by 6:45 PM so you can settle in and grab a drink.', order: 5 },
-  { id: 'faq-7', question: 'Will there be an open bar?', answer: 'You know it. Full open bar all night — cocktails, wine, beer, and a custom signature drink we created just for the occasion. 🍸', order: 6 },
+  { id: 'faq-7', question: 'Will there be an open bar?', answer: 'You know it. Full open bar all night — cocktails, wine, beer, and a custom signature drink we created just for the occasion.', order: 6 },
   { id: 'faq-8', question: 'Who do I contact with questions?', answer: 'Reach out to either of us directly! You can text, call, or email. We\'re an open book.', order: 7 },
 ];
 
