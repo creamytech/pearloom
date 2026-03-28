@@ -1715,61 +1715,21 @@ Return JSON with: title, subtitle, description, mood`,
       {/* ── BODY ── */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* ── LEFT SIDEBAR — Section Nav (desktop only) ── */}
-        <div style={{
-          width: isMobile ? '0' : (splitView ? '50%' : '420px'), flexShrink: 0,
-          transition: 'width 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-          borderRight: isMobile ? 'none' : '1px solid rgba(255,255,255,0.06)',
-          background: '#110f0d',
-          display: isMobile ? 'none' : 'flex', flexDirection: 'column',
-          overflow: 'hidden',
-          paddingBottom: '0',
-        }}>
-          {/* Tab strip — primary nav (desktop: top strip; mobile: hidden here, shown at bottom) */}
-          <div style={{
-            display: isMobile ? 'none' : 'flex', padding: '6px 6px 0',
-            borderBottom: '1px solid rgba(255,255,255,0.06)', gap: '2px',
-            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-          } as React.CSSProperties}>
-            {(['canvas', 'story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
-              const Icon = TAB_ICONS[tab];
-              const isActive = activeTab === tab;
-              const labels: Record<string, string> = {
-                story: 'Story', canvas: 'Sections', events: 'Events', design: 'Design',
-                details: 'Details', blocks: 'AI', voice: 'Voice',
-              };
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  style={{
-                    flex: 1, minWidth: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    gap: '3px', padding: '7px 6px 8px', borderRadius: '7px 7px 0 0',
-                    border: 'none', cursor: 'pointer',
-                    background: isActive ? '#5c6b3a' : 'transparent',
-                    borderBottom: isActive ? '2px solid #8a9e56' : '2px solid transparent',
-                    color: isActive ? '#fff' : 'rgba(255,255,255,0.3)',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseOver={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(244,240,232,0.06)'; }}
-                  onMouseOut={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-                >
-                  <Icon size={14} color={isActive ? '#fff' : 'rgba(255,255,255,0.3)'} />
-                  <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1.1 }}>
-                    {labels[tab] || tab}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Tab content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 10px', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        {/* ── LEFT SIDEBAR — Premium icon rail + resizable panel (desktop only) ── */}
+        {!isMobile && !splitView && (
+          <EditorSidebar
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+            collapsed={sidebarCollapsed}
+            onCollapsedChange={setSidebarCollapsed}
+          >
             {activeTab === 'story' && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <span style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
-                    Story Chapters
+                    Story Chapters ({chapters.length})
                   </span>
                   <button
                     onClick={addChapter}
@@ -1881,8 +1841,8 @@ Return JSON with: title, subtitle, description, mood`,
                 pushToPreview={pushToPreview}
               />
             )}
-          </div>
-        </div>
+          </EditorSidebar>
+        )}
 
         {/* ── CENTER — Live Preview Canvas ── */}
         {/* On mobile: always show the iframe preview full-screen (tabs at bottom for editing) */}
