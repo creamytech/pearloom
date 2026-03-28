@@ -47,9 +47,10 @@ export async function generateStoryManifest(
   vibeString: string,
   coupleNames: [string, string],
   apiKey: string,
-  googleAccessToken?: string
+  googleAccessToken?: string,
+  occasion?: string
 ): Promise<StoryManifest> {
-  const prompt = buildPrompt(clusters, vibeString, coupleNames);
+  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion);
 
   // Build the multimodal parts array
   const parts: Record<string, unknown>[] = [{ text: prompt }];
@@ -457,7 +458,8 @@ function hydrateChapterImages(
 function buildPrompt(
   clusters: PhotoCluster[],
   vibeString: string,
-  coupleNames: [string, string]
+  coupleNames: [string, string],
+  occasion?: string
 ): string {
   // Build richly detailed cluster summaries including per-photo metadata
   const clusterSummary = clusters.map((c, i) => {
@@ -478,10 +480,22 @@ function buildPrompt(
     };
   });
 
-  return `You are the "Memory Engine" for Pearloom â€” a world-class relationship storytelling AI that crafts breathtakingly personal anniversary and love story websites. Your output powers a live, editorial-quality website. It must be stunning.
+  const occ = occasion || 'wedding';
+  const occasionLabels: Record<string, string> = {
+    wedding: 'a breathtaking wedding website with ceremony & reception events',
+    engagement: 'a stunning engagement announcement & celebration website',
+    anniversary: 'a beautiful anniversary celebration documenting years of love',
+    birthday: 'a joyful birthday celebration gift website',
+    story: 'a deeply personal love story documentary website',
+  };
+  const ctxLabel = occasionLabels[occ] || occasionLabels.wedding;
+  const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
 
-## The Couple
+  return `You are the "Memory Engine" for Pearloom \u2014 a world-class storytelling AI that crafts ${ctxLabel}. Your output powers a live, editorial-quality website. It must be stunning.
+
+## The Couple / Honorees
 - Names: ${coupleNames[0]} & ${coupleNames[1]}
+- Occasion type: ${occCap}
 
 ## Their Vibe & Personality
 ${vibeString}

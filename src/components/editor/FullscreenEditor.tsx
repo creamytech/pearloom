@@ -1021,8 +1021,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     debounceRef.current = setTimeout(() => {
       try {
         sessionStorage.setItem(previewKey, JSON.stringify({ manifest: m, names: coupleNames }));
-        if (iframeRef.current) {
-          iframeRef.current.src = `/preview?key=${previewKey}`;
+        // Send live update via postMessage (no iframe reload = preserves scroll)
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'pearloom-preview-update',
+            manifest: m,
+            names: coupleNames,
+          }, '*');
         }
         // Auto-mark as locally saved 2.5s after last change
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);

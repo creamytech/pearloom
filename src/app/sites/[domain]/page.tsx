@@ -38,18 +38,28 @@ export async function generateMetadata(
 
   const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
 
+  const occasionLabel = (() => {
+    switch (siteConfig.manifest?.occasion) {
+      case 'birthday': return 'Birthday Celebration';
+      case 'anniversary': return 'Anniversary';
+      case 'engagement': return 'Engagement';
+      case 'story': return 'Love Story';
+      default: return 'Wedding Website';
+    }
+  })();
+
   return {
-    title: `${title} — Wedding Website`,
+    title: `${title} — ${occasionLabel}`,
     description: tagline,
     openGraph: {
-      title: `${title} — Wedding Website`,
+      title: `${title} — ${occasionLabel}`,
       description: tagline,
-      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${title} wedding website` }],
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${title} ${occasionLabel.toLowerCase()}` }],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${title} — Wedding Website`,
+      title: `${title} — ${occasionLabel}`,
       description: tagline,
       images: [ogUrl],
     },
@@ -205,7 +215,55 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </section>
         );
       case 'countdown':
-        return null; // handled client-side only
+        return (
+          <section key={key} id="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
+            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground }}>
+              {manifest.logistics?.date ? '⏳ Countdown will render live' : 'Set a date in Details to see countdown'}
+            </div>
+          </section>
+        );
+      case 'text':
+        return (
+          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}>
+              Custom text block — edit in the Canvas tab.
+            </p>
+          </section>
+        );
+      case 'quote':
+        return (
+          <section key={key} style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: pal.foreground, opacity: 0.75 }}>
+              &ldquo;{vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.'}&rdquo;
+            </p>
+          </section>
+        );
+      case 'video':
+        return (
+          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', background: cardBg, border: `1px solid ${pal.muted}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: pal.muted, fontSize: '1rem' }}>🎬 Video embed — add URL in Canvas config</span>
+            </div>
+          </section>
+        );
+      case 'map':
+        return (
+          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', background: cardBg, border: `1px solid ${pal.muted}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: pal.muted, fontSize: '1rem' }}>📍 Venue map — add address in Details</span>
+            </div>
+          </section>
+        );
+      case 'divider':
+        return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
+      case 'photos':
+        return (
+          <section key={key} style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '1rem' }}>📸 Photo Wall</div>
+            <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Guest photo gallery will appear on the live site.</p>
+          </section>
+        );
       default:
         return null;
     }
@@ -315,6 +373,22 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       </main>
 
       <SiteClientSections siteId={domain} coupleNames={safeNames} vibeSkin={vibeSkin} />
+
+      {/* Site footer */}
+      <footer style={{
+        padding: '3rem 2rem', textAlign: 'center',
+        background: pal.foreground, color: `${pal.background}cc`,
+        fontSize: '0.75rem', letterSpacing: '0.05em',
+      }}>
+        <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
+        <div style={{
+          fontFamily: `"${vibeSkin.fonts.heading}", serif`,
+          fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem',
+        }}>
+          {safeNames[0]} & {safeNames[1]}
+        </div>
+        <div style={{ opacity: 0.5 }}>Made with Pearloom</div>
+      </footer>
     </ThemeProvider>
   );
 

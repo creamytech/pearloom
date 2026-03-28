@@ -35,11 +35,13 @@ export async function POST(req: NextRequest) {
       clusters: prebuiltClusters,
       vibeString,
       names,
+      occasion,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
       vibeString: string;
       names: [string, string];
+      occasion?: string;
     } = body;
 
     if (!photos?.length) {
@@ -86,7 +88,8 @@ export async function POST(req: NextRequest) {
       vibeString,
       names,
       apiKey,
-      session.accessToken
+      session.accessToken,
+      occasion
     );
 
     // Map actual photo URLs + REAL locations into generated chapters.
