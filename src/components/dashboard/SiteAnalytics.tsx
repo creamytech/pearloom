@@ -90,8 +90,8 @@ export function SiteAnalytics({ siteId }: SiteAnalyticsProps) {
       {stats && stats.visits > 0 && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)' }}>📱 {mobilePercent}% mobile</span>
-            <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)' }}>{100 - mobilePercent}% desktop 🖥</span>
+            <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)' }}>{mobilePercent}% mobile</span>
+            <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)' }}>{100 - mobilePercent}% desktop</span>
           </div>
           <div style={{ background: 'rgba(0,0,0,0.06)', borderRadius: '100px', height: '5px', overflow: 'hidden' }}>
             <motion.div

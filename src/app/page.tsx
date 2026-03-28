@@ -208,7 +208,7 @@ export default function DashboardPage() {
     <ThemeProvider theme={{
       name: 'pearloom-ivory',
       fonts: { heading: 'Playfair Display', body: 'Inter' },
-      colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+      colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
       borderRadius: '1rem',
     }}>
       <SiteNav
@@ -229,11 +229,11 @@ export default function DashboardPage() {
         minHeight: '100dvh',
         paddingTop: '8rem',
         paddingBottom: '5rem',
-        background: '#faf9f6',
+        background: '#F5F1E8',
       }}>
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: '500px',
-          background: 'linear-gradient(180deg, rgba(184,146,106,0.08) 0%, rgba(250,249,246,0) 100%)',
+          background: 'linear-gradient(180deg, rgba(163,177,138,0.08) 0%, rgba(245,241,232,0) 100%)',
           pointerEvents: 'none', zIndex: 0
         }} />
         <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem', position: 'relative', zIndex: 1 }}>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                           fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                           background: isActive ? 'var(--eg-accent)' : isDone ? 'var(--eg-accent-light)' : '#f5f5f5',
                           color: isActive ? '#fff' : isDone ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                          boxShadow: isActive ? '0 8px 20px rgba(184,146,106,0.35)' : 'none',
+                          boxShadow: isActive ? '0 8px 20px rgba(163,177,138,0.35)' : 'none',
                           transform: isActive ? 'scale(1.05)' : 'scale(1)'
                         }}
                       >
@@ -353,7 +353,7 @@ export default function DashboardPage() {
                   onClick={() => setError(null)}
                   style={{
                     padding: '0.5rem 1.25rem', borderRadius: '100px',
-                    background: '#1a1a1a', color: '#fff',
+                    background: '#2B2B2B', color: '#fff',
                     border: 'none', cursor: 'pointer',
                     fontSize: '0.82rem', fontWeight: 700,
                     letterSpacing: '0.04em', flexShrink: 0,
@@ -679,7 +679,7 @@ export default function DashboardPage() {
                       style={{ flex: 1, padding: '1rem', fontSize: '1rem', border: 'none', outline: 'none' }}
                       disabled={isPublishing}
                       autoFocus
-                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = '#b8926a'; }}
+                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = '#A3B18A'; }}
                       onBlur={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
                     />
                     <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>

@@ -75,7 +75,7 @@ export default async function SiteSubPage(
     : ['Our', 'Story'];
 
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const bgColor = manifest.theme?.colors?.background || '#faf9f6';
+  const bgColor = manifest.theme?.colors?.background || '#F5F1E8';
   const cardBg  = manifest.theme?.colors?.cardBg     || '#ffffff';
 
   // Build nav pages — same as main page

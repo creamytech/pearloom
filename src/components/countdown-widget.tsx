@@ -65,7 +65,7 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
           marginTop: '2rem',
         }}
       >
-        🎉 Today is the day!
+        Today is the day!
       </motion.div>
     );
   }

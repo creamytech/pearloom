@@ -44,14 +44,14 @@ const COLOR_PALETTES = [
 ];
 
 const PLACES = [
-  { id: 'beach', label: '🏖 Beach / Coast', vibe: 'coastal, sandy, sun-kissed' },
-  { id: 'mountains', label: '⛰ Mountains', vibe: 'alpine, crisp, panoramic views' },
-  { id: 'city', label: '🏙 City / Urban', vibe: 'skyline, nightlife, rooftop drinks' },
-  { id: 'countryside', label: '🌾 Countryside', vibe: 'rolling fields, golden light, rustic' },
-  { id: 'tropical', label: '🌴 Tropical', vibe: 'lush, warm, paradise' },
-  { id: 'europe', label: '🇪🇺 European', vibe: 'cobblestone, cafés, old-world charm' },
-  { id: 'desert', label: '🏜 Desert', vibe: 'vast, terracotta, sunset tones' },
-  { id: 'home', label: '🏡 Home Sweet Home', vibe: 'domestic bliss, couch cuddles, kitchen dances' },
+  { id: 'beach', label: 'Beach / Coast', vibe: 'coastal, sandy, sun-kissed' },
+  { id: 'mountains', label: 'Mountains', vibe: 'alpine, crisp, panoramic views' },
+  { id: 'city', label: 'City / Urban', vibe: 'skyline, nightlife, rooftop drinks' },
+  { id: 'countryside', label: 'Countryside', vibe: 'rolling fields, golden light, rustic' },
+  { id: 'tropical', label: 'Tropical', vibe: 'lush, warm, paradise' },
+  { id: 'europe', label: 'European', vibe: 'cobblestone, cafés, old-world charm' },
+  { id: 'desert', label: 'Desert', vibe: 'vast, terracotta, sunset tones' },
+  { id: 'home', label: 'Home Sweet Home', vibe: 'domestic bliss, couch cuddles, kitchen dances' },
 ];
 
 const inputStyle: React.CSSProperties = {
@@ -64,7 +64,7 @@ const inputStyle: React.CSSProperties = {
 
 const getFocusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   e.target.style.borderColor = 'var(--eg-accent)';
-  e.target.style.boxShadow = '0 0 0 4px rgba(184,146,106,0.1)';
+  e.target.style.boxShadow = '0 0 0 4px rgba(163,177,138,0.1)';
   e.target.style.transform = 'translateY(-1px)';
 };
 
@@ -181,7 +181,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer',
     transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
     transform: active ? 'translateY(-1px)' : 'none',
-    boxShadow: active ? '0 4px 12px rgba(184,146,106,0.15)' : 'none',
+    boxShadow: active ? '0 4px 12px rgba(163,177,138,0.15)' : 'none',
     color: 'var(--eg-fg)',
   });
 
@@ -208,10 +208,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 background: active
                   ? 'var(--eg-accent)'
                   : done
-                  ? 'rgba(184,146,106,0.45)'
+                  ? 'rgba(163,177,138,0.45)'
                   : 'rgba(0,0,0,0.08)',
                 transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
-                boxShadow: active ? '0 4px 12px rgba(184,146,106,0.35)' : 'none',
+                boxShadow: active ? '0 4px 12px rgba(163,177,138,0.35)' : 'none',
               }}
             />
           );
@@ -266,7 +266,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   border: `2px solid ${occasion === occ.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
                   background: occasion === occ.id ? 'var(--eg-accent-light)' : '#fff',
                   cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: occasion === occ.id ? '0 8px 24px rgba(184,146,106,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
+                  boxShadow: occasion === occ.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
                   transform: occasion === occ.id ? 'translateY(-2px)' : 'none',
                 }}>
                   <div>
@@ -305,7 +305,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   border: `2px solid ${mood === m.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
                   background: mood === m.id ? 'var(--eg-accent-light)' : '#fff',
                   cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: mood === m.id ? '0 8px 24px rgba(184,146,106,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
+                  boxShadow: mood === m.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
                   transform: mood === m.id ? 'translateY(-2px)' : 'none',
                 }}>
                   <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', background: mood === m.id ? '#fff' : 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--eg-accent)' }}>
@@ -343,7 +343,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   background: palette === p.id ? 'var(--eg-accent-light)' : '#fff',
                   cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                   transform: palette === p.id ? 'translateY(-2px)' : 'none',
-                  boxShadow: palette === p.id ? '0 8px 24px rgba(184,146,106,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
+                  boxShadow: palette === p.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
                 }}>
                   <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.75rem' }}>
                     {p.colors.map((c, i) => (
@@ -421,11 +421,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <div style={{
                 width: '5rem', height: '6.4rem',
                 borderRadius: '42% 42% 52% 52% / 30% 30% 52% 52%',
-                background: 'linear-gradient(160deg, rgba(184,146,106,0.15), rgba(184,146,106,0.08))',
-                border: '1.5px solid rgba(184,146,106,0.25)',
+                background: 'linear-gradient(160deg, rgba(163,177,138,0.15), rgba(163,177,138,0.08))',
+                border: '1.5px solid rgba(163,177,138,0.25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 1.5rem',
-                boxShadow: '0 8px 24px rgba(184,146,106,0.15)',
+                boxShadow: '0 8px 24px rgba(163,177,138,0.15)',
               }}>
                 <Sparkles size={28} color="var(--eg-accent)" />
               </div>
@@ -452,8 +452,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
               <button onClick={handleSubmit} style={{
                 ...btnPrimaryStyle,
-                background: 'linear-gradient(135deg, #b8926a, #8b6b4a)',
-                boxShadow: '0 12px 36px rgba(184,146,106,0.4)',
+                background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
+                boxShadow: '0 12px 36px rgba(163,177,138,0.4)',
               }}>Generate My Site <Sparkles size={18} /></button>
             </div>
           </motion.div>
@@ -490,8 +490,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
               <button onClick={handleSubmit} style={{
                 ...btnPrimaryStyle,
-                background: 'linear-gradient(135deg, #b8926a, #8b6b4a)',
-                boxShadow: '0 12px 36px rgba(184,146,106,0.4)',
+                background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
+                boxShadow: '0 12px 36px rgba(163,177,138,0.4)',
               }}>Generate My Site <Sparkles size={18} /></button>
             </div>
           </motion.div>

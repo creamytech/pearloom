@@ -25,7 +25,7 @@ const PAGES: SitePage[] = [
 const THEME: ThemeSchema = {
   name: 'pearloom-ivory',
   fonts: { heading: 'Playfair Display', body: 'Inter' },
-  colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+  colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
   borderRadius: '1rem',
 };
 
@@ -76,7 +76,7 @@ function FaqAccordion({ faq }: { faq: FaqItem }) {
           transition={{ duration: 0.25 }}
           style={{ flexShrink: 0 }}
         >
-          <ChevronDown size={18} color="#8c8c8c" />
+          <ChevronDown size={18} color="#9A9488" />
         </motion.div>
       </button>
       <AnimatePresence>
@@ -91,7 +91,7 @@ function FaqAccordion({ faq }: { faq: FaqItem }) {
             <p style={{
               paddingBottom: '1.25rem',
               fontSize: '0.9rem',
-              color: '#8c8c8c',
+              color: '#9A9488',
               lineHeight: 1.75,
             }}>
               {faq.answer}
@@ -112,7 +112,7 @@ export default function FaqPage() {
         minHeight: '100dvh',
         paddingTop: '8rem',
         paddingBottom: '5rem',
-        background: 'linear-gradient(180deg, #f5ead6 0%, #faf9f6 35%, #faf9f6 100%)',
+        background: 'linear-gradient(180deg, #f5ead6 0%, #F5F1E8 35%, #F5F1E8 100%)',
       }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '0 1.5rem' }}>
           {/* Header */}
@@ -124,11 +124,11 @@ export default function FaqPage() {
           >
             <div style={{
               width: '4.5rem', height: '4.5rem', borderRadius: '50%',
-              background: '#f3e8d8', border: '2px solid rgba(184,146,106,0.15)',
+              background: '#EEE8DC', border: '2px solid rgba(163,177,138,0.15)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 1.5rem',
             }}>
-              <HelpCircle size={22} color="#b8926a" />
+              <HelpCircle size={22} color="#A3B18A" />
             </div>
             <h1 style={{
               fontFamily: 'var(--eg-font-heading)',
@@ -140,7 +140,7 @@ export default function FaqPage() {
               FAQ
             </h1>
             <p style={{
-              color: '#8c8c8c',
+              color: '#9A9488',
               maxWidth: '380px',
               margin: '0 auto',
               lineHeight: 1.7,

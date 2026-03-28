@@ -104,12 +104,12 @@ function PreviewContent() {
 
   if (!manifest) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#faf9f6' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F1E8' }}>
         <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 300, letterSpacing: '0.04em', color: '#1a1a1a', marginBottom: '0.75rem' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 300, letterSpacing: '0.04em', color: '#2B2B2B', marginBottom: '0.75rem' }}>
             Preview
           </h1>
-          <p style={{ color: '#8c8c8c', fontSize: '0.95rem' }}>
+          <p style={{ color: '#9A9488', fontSize: '0.95rem' }}>
             No story data yet. Generate your story from the dashboard.
           </p>
         </div>
@@ -493,7 +493,7 @@ export default function PreviewPage() {
     <Suspense
       fallback={
         <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ color: '#8c8c8c' }}>Loading preview…</p>
+          <p style={{ color: '#9A9488' }}>Loading preview…</p>
         </div>
       }
     >

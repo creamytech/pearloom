@@ -7,11 +7,11 @@
 
 export interface VibeSkin {
   // — Structural choices (maps to pre-built SVG variants) —
-  curve: 'organic' | 'arch' | 'geometric' | 'wave' | 'petal';
-  particle: 'petals' | 'stars' | 'bubbles' | 'leaves' | 'confetti' | 'snowflakes' | 'fireflies';
+  curve: 'organic' | 'arch' | 'geometric' | 'wave' | 'petal' | 'cascade' | 'ribbon' | 'mountain';
+  particle: 'petals' | 'stars' | 'bubbles' | 'leaves' | 'confetti' | 'snowflakes' | 'fireflies' | 'sakura';
   accentShape: 'ring' | 'arch' | 'diamond' | 'leaf' | 'infinity';
   sectionEntrance: 'fade-up' | 'bloom' | 'drift' | 'float' | 'reveal';
-  texture: 'none' | 'linen' | 'floral' | 'marble' | 'bokeh' | 'starfield';
+  texture: 'none' | 'linen' | 'floral' | 'marble' | 'bokeh' | 'starfield' | 'paper';
 
   // — AI-generated open-ended fields —
   decorIcons: string[];      // unicode chars — Gemini picks freely
@@ -29,7 +29,14 @@ export interface VibeSkin {
   cornerStyle: string;
   tone: 'dreamy' | 'playful' | 'luxurious' | 'wild' | 'intimate' | 'cosmic' | 'rustic';
 
-  // — Full 6-color AI palette —
+  // — Style descriptors —
+  headingStyle: 'italic-serif' | 'uppercase-tracked' | 'thin-elegant' | 'bold-editorial' | 'script-like';
+  cardStyle: 'glass' | 'solid' | 'outlined' | 'minimal' | 'elevated';
+
+  // — Section gradient (CSS linear-gradient string) —
+  sectionGradient: string;
+
+  // — Full 9-color AI palette —
   palette: {
     background: string;   // primary page background (e.g. moody dark or warm ivory)
     foreground: string;   // primary text color
@@ -37,6 +44,9 @@ export interface VibeSkin {
     accent2: string;      // secondary accent (softer, complementary)
     card: string;         // card/section background
     muted: string;        // muted text, captions, timestamps
+    highlight: string;    // hover/selected states — contrasting emotional color
+    subtle: string;       // very light tint for section alternation
+    ink: string;          // darkest color, for headings and high-contrast text
   };
 
   // — Font pairing (Google Fonts) —
@@ -92,6 +102,18 @@ export const WAVE_PATHS: Record<VibeSkin['curve'], { d: string; di: string }> = 
     d: 'M0,60 L200,120 L400,40 L600,120 L800,40 L1000,80 L1000,150 L0,150 Z',
     di: 'M0,90 L200,30 L400,110 L600,30 L800,110 L1000,70 L1000,0 L0,0 Z',
   },
+  cascade: {
+    d: 'M0,40 C100,80 150,10 250,60 C350,110 400,20 500,70 C600,120 650,30 750,80 C850,130 900,40 1000,90 L1000,150 L0,150 Z',
+    di: 'M0,110 C100,70 150,140 250,90 C350,40 400,130 500,80 C600,30 650,120 750,70 C850,20 900,110 1000,60 L1000,0 L0,0 Z',
+  },
+  ribbon: {
+    d: 'M0,75 C200,20 300,130 500,75 C700,20 800,130 1000,75 L1000,150 L0,150 Z',
+    di: 'M0,75 C200,130 300,20 500,75 C700,130 800,20 1000,75 L1000,0 L0,0 Z',
+  },
+  mountain: {
+    d: 'M0,130 L150,40 L300,100 L450,20 L600,80 L750,10 L900,70 L1000,50 L1000,150 L0,150 Z',
+    di: 'M0,20 L150,110 L300,50 L450,130 L600,70 L750,140 L900,80 L1000,100 L1000,0 L0,0 Z',
+  },
 };
 
 const CORNER_STYLES: Record<VibeSkin['curve'], string> = {
@@ -100,27 +122,56 @@ const CORNER_STYLES: Record<VibeSkin['curve'], string> = {
   geometric: '0',
   wave: '1.5rem',
   petal: '40% 40% 2rem 2rem / 3rem 3rem 2rem 2rem',
+  cascade: '1rem 3rem 1rem 3rem',
+  ribbon: '3rem',
+  mountain: '0.5rem',
 };
 
 // — Deterministic fallback (keyword scoring) ——————————————————————————————————————————————————————
 const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
-  garden:     { curve: 'petal',     particle: 'petals',     decorIcons: ['âœ¿','â¦','âš˜','âœ¾','âš˜'], particleColor: '#f9c6c9', tone: 'dreamy'    },
-  floral:     { curve: 'petal',     particle: 'petals',     decorIcons: ['âœ¿','â¦','âš˜','âš˜','â¦¿'], particleColor: '#f3d1d8', tone: 'dreamy'    },
-  wildflower: { curve: 'organic',   particle: 'petals',     decorIcons: ['âœ¿','â¦','âš˜','ðŸŒ¾','âœ¦'], particleColor: '#e8b4bc', tone: 'wild'     },
-  forest:     { curve: 'organic',   particle: 'leaves',     decorIcons: ['â§±','âš˜','âœ¦','ðŸŒ¿','â¦¿'], particleColor: '#a8d5a2', tone: 'rustic'   },
-  beach:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['ðŸŒŠ','ðŸš','âš“','âœ¦','â—‹'], particleColor: '#b8e0ff', tone: 'playful'  },
-  ocean:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['ðŸŒŠ','â—‹','â—¯','âœ¦','âš“'], particleColor: '#9dd0f5', tone: 'dreamy'   },
-  celestial:  { curve: 'arch',      particle: 'stars',      decorIcons: ['âœ¦','âœ§','â˜½','â‹†','âœ©'], particleColor: '#ffe98a', tone: 'cosmic'   },
-  starry:     { curve: 'arch',      particle: 'stars',      decorIcons: ['âœ¦','â‹†','âœ©','â˜½','âœ§'], particleColor: '#fff3b0', tone: 'cosmic'   },
-  night:      { curve: 'arch',      particle: 'fireflies',  decorIcons: ['âœ¦','âœ§','â‹†','â—¦','â˜½'], particleColor: '#c8ff8a', tone: 'cosmic'   },
-  golden:     { curve: 'organic',   particle: 'petals',     decorIcons: ['âœ¦','â—‡','â€¢','âœ§','â—¦'],  particleColor: '#ffd966', tone: 'luxurious'},
-  romantic:   { curve: 'petal',     particle: 'petals',     decorIcons: ['â™¡','âœ¿','âœ¦','â€¢','â—¦'],  particleColor: '#f9c6c9', tone: 'intimate' },
-  boho:       { curve: 'organic',   particle: 'leaves',     decorIcons: ['âœ¿','âœ¦','â€¢','â§±','âš˜'], particleColor: '#c5e5c0', tone: 'wild'     },
-  elegant:    { curve: 'arch',      particle: 'stars',      decorIcons: ['â—ˆ','â—‡','âœ¦','â—‰','â—‹'],  particleColor: '#fff9e6', tone: 'luxurious'},
-  luxury:     { curve: 'geometric', particle: 'stars',      decorIcons: ['â—ˆ','â—‡','â–£','âœ¦','â—¦'],  particleColor: '#ffe98a', tone: 'luxurious'},
-  winter:     { curve: 'geometric', particle: 'snowflakes', decorIcons: ['â„','â…','â†','âœ»','âœ¼'],  particleColor: '#e0f0ff', tone: 'dreamy'   },
-  tropical:   { curve: 'wave',      particle: 'confetti',   decorIcons: ['ðŸŒº','ðŸŒ¿','âœ¦','â¦','ðŸŒ´'], particleColor: '#c3f5a9', tone: 'playful'},
+  garden:     { curve: 'petal',     particle: 'petals',     decorIcons: ['✿','❦','✾','◦','•'],   particleColor: '#f9c6c9', tone: 'dreamy'    },
+  floral:     { curve: 'petal',     particle: 'petals',     decorIcons: ['✿','❦','✾','⦿','◦'],   particleColor: '#f3d1d8', tone: 'dreamy'    },
+  wildflower: { curve: 'organic',   particle: 'petals',     decorIcons: ['✿','❦','✦','◦','•'],   particleColor: '#e8b4bc', tone: 'wild'      },
+  forest:     { curve: 'organic',   particle: 'leaves',     decorIcons: ['⧱','◦','✦','⦿','•'],   particleColor: '#a8d5a2', tone: 'rustic'   },
+  beach:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['◯','○','◦','✦','•'],    particleColor: '#b8e0ff', tone: 'playful'  },
+  ocean:      { curve: 'wave',      particle: 'bubbles',    decorIcons: ['○','◯','◦','✦','•'],    particleColor: '#9dd0f5', tone: 'dreamy'   },
+  celestial:  { curve: 'arch',      particle: 'stars',      decorIcons: ['✦','✧','☽','⋆','✩'],   particleColor: '#ffe98a', tone: 'cosmic'   },
+  starry:     { curve: 'arch',      particle: 'stars',      decorIcons: ['✦','⋆','✩','☽','✧'],   particleColor: '#fff3b0', tone: 'cosmic'   },
+  night:      { curve: 'arch',      particle: 'fireflies',  decorIcons: ['✦','✧','⋆','◦','☽'],   particleColor: '#c8ff8a', tone: 'cosmic'   },
+  golden:     { curve: 'organic',   particle: 'petals',     decorIcons: ['✦','◇','•','✧','◦'],    particleColor: '#ffd966', tone: 'luxurious'},
+  romantic:   { curve: 'petal',     particle: 'petals',     decorIcons: ['♡','✿','✦','•','◦'],    particleColor: '#f9c6c9', tone: 'intimate' },
+  boho:       { curve: 'organic',   particle: 'leaves',     decorIcons: ['✿','✦','•','⧱','◦'],    particleColor: '#c5e5c0', tone: 'wild'     },
+  elegant:    { curve: 'arch',      particle: 'stars',      decorIcons: ['◈','◇','✦','◉','○'],    particleColor: '#fff9e6', tone: 'luxurious'},
+  luxury:     { curve: 'geometric', particle: 'stars',      decorIcons: ['◈','◇','▣','✦','◦'],    particleColor: '#ffe98a', tone: 'luxurious'},
+  winter:     { curve: 'geometric', particle: 'snowflakes', decorIcons: ['❄','✻','✼','✦','◦'],    particleColor: '#e0f0ff', tone: 'dreamy'   },
+  tropical:   { curve: 'wave',      particle: 'confetti',   decorIcons: ['✿','◦','✦','❦','•'],    particleColor: '#c3f5a9', tone: 'playful'  },
 };
+
+// — Seed-based deterministic number in [0,1) from a string ——————————————————————————————————————————
+function seededRandom(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return (Math.abs(hash) % 1000) / 1000;
+}
+
+// — Fallback palette variants keyed by vibe seed ——————————————————————————————————————————————————
+const FALLBACK_PALETTE_VARIANTS = [
+  // Pearloom Olive / Cream (default)
+  { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accent2: '#D6C6A8', card: '#FDFAF4', muted: '#9A9488', highlight: '#7D9B6A', subtle: '#F9F6EF', ink: '#1C1C1C' },
+  // Dusty Rose / Blush
+  { background: '#F7EEE8', foreground: '#2E2020', accent: '#C4837A', accent2: '#E8BDB8', card: '#FDF5F3', muted: '#9E8580', highlight: '#A8594F', subtle: '#FBF1EF', ink: '#1A1010' },
+  // Deep Navy / Ivory
+  { background: '#F0EDE6', foreground: '#1A2340', accent: '#3D5A80', accent2: '#8EA8C3', card: '#F8F5EE', muted: '#7A8A9E', highlight: '#2A4060', subtle: '#F4F1EA', ink: '#0D1620' },
+  // Sage / Warm White
+  { background: '#EEF2EB', foreground: '#252820', accent: '#6B8F71', accent2: '#A8C5AD', card: '#F5F8F3', muted: '#7A8C7D', highlight: '#4E7455', subtle: '#F1F5EF', ink: '#151A12' },
+  // Terracotta / Sand
+  { background: '#F4EDE6', foreground: '#2C1E14', accent: '#B5633A', accent2: '#D4A086', card: '#FAF4EE', muted: '#9E7D68', highlight: '#8F4620', subtle: '#F8F2EC', ink: '#1E1008' },
+  // Lavender / Cream
+  { background: '#EFECF5', foreground: '#201A2C', accent: '#7B68AE', accent2: '#B8AED4', card: '#F7F5FB', muted: '#8A82A0', highlight: '#5C4E8C', subtle: '#F3F0F9', ink: '#150E20' },
+];
 
 function deriveFallback(vibeString: string): VibeSkin {
   const lower = vibeString.toLowerCase();
@@ -134,7 +185,24 @@ function deriveFallback(vibeString: string): VibeSkin {
 
   const curve = merged.curve || 'organic';
   const waveDef = WAVE_PATHS[curve];
-  const art = buildFallbackArt('#b8926a', curve);
+
+  // Seed-based palette variation — different vibeStrings get noticeably different fallback palettes
+  const seed = seededRandom(vibeString);
+  const paletteIdx = Math.floor(seed * FALLBACK_PALETTE_VARIANTS.length);
+  const palettePick = FALLBACK_PALETTE_VARIANTS[paletteIdx];
+  const art = buildFallbackArt(palettePick.accent, curve);
+
+  // Seed-based heading/body font variation
+  const FALLBACK_FONT_PAIRS: Array<{ heading: string; body: string }> = [
+    { heading: 'Playfair Display', body: 'Inter' },
+    { heading: 'Cormorant Garamond', body: 'Raleway' },
+    { heading: 'DM Serif Display', body: 'DM Sans' },
+    { heading: 'Libre Baskerville', body: 'Karla' },
+    { heading: 'Fraunces', body: 'Mulish' },
+    { heading: 'Cinzel', body: 'Lato' },
+  ];
+  const fontIdx = Math.floor(seededRandom(vibeString + '_font') * FALLBACK_FONT_PAIRS.length);
+  const fontPick = FALLBACK_FONT_PAIRS[fontIdx];
 
   return {
     curve,
@@ -142,9 +210,9 @@ function deriveFallback(vibeString: string): VibeSkin {
     accentShape: 'ring',
     sectionEntrance: 'fade-up',
     texture: 'none',
-    decorIcons: merged.decorIcons || ['âœ¦', 'â€¢', 'â—¦', 'âœ§', 'Â·'],
-    accentSymbol: merged.decorIcons?.[0] || 'âœ¦',
-    particleColor: merged.particleColor || '#f9c6c9',
+    decorIcons: merged.decorIcons || ['✦', '•', '◦', '✧', '·'],
+    accentSymbol: merged.decorIcons?.[0] || '✦',
+    particleColor: merged.particleColor || palettePick.accent2,
     sectionLabels: {
       story: 'Our Story',
       events: 'Our Celebration',
@@ -156,18 +224,11 @@ function deriveFallback(vibeString: string): VibeSkin {
     dividerQuote: vibeString || 'A love story worth telling.',
     cornerStyle: CORNER_STYLES[curve],
     tone: merged.tone || 'dreamy',
-    palette: {
-      background: '#faf9f6',
-      foreground: '#1a1a1a',
-      accent: '#b8926a',
-      accent2: '#d4b896',
-      card: '#ffffff',
-      muted: '#8c8c8c',
-    },
-    fonts: {
-      heading: 'Playfair Display',
-      body: 'Inter',
-    },
+    headingStyle: 'italic-serif',
+    cardStyle: 'elevated',
+    sectionGradient: `linear-gradient(135deg, ${palettePick.subtle} 0%, ${palettePick.card} 100%)`,
+    palette: palettePick,
+    fonts: fontPick,
     wavePath: waveDef.d,
     wavePathInverted: waveDef.di,
     ...art,
@@ -190,7 +251,7 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
   heroPatternSvg: string; sectionBorderSvg: string; cornerFlourishSvg: string; medallionSvg: string;
   heroBlobSvg: string; accentBlobSvg: string; sectionBlobPath: string;
 } {
-  const a = accent || '#b8926a';
+  const a = accent || '#A3B18A';
 
   const heroPatternSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <g fill="none" stroke="${a}" stroke-width="0.6" opacity="0.12">
@@ -389,7 +450,7 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
 }
 
 CRITICAL DESIGN RULES:
-1. palette.background: NEVER #ffffff or #faf9f6. Derived from their vibe:
+1. palette.background: NEVER #ffffff or #F5F1E8. Derived from their vibe:
    - dreamy/intimate: warm blush (#f5ede4), dusty rose (#f0e0d8), soft sage (#eef2eb)
    - luxurious/cosmic: deep navy (#0d1b2a), charcoal (#1a1a2e), midnight (#191923)
    - wild/rustic: warm cream (#fdf6ec), desert sand (#f4ece1), moss (#e8ede3)
@@ -435,7 +496,7 @@ CRITICAL DESIGN RULES:
     const curve: VibeSkin['curve'] = VALID_CURVES.includes(parsed.curve) ? parsed.curve : 'organic';
     const waveDef = WAVE_PATHS[curve];
     const accentForFallback = typeof parsed.particleColor === 'string' && parsed.particleColor.startsWith('#')
-      ? parsed.particleColor : '#b8926a';
+      ? parsed.particleColor : '#A3B18A';
     const fallbackArt = buildFallbackArt(accentForFallback, curve);
 
     // Extract and validate SVG fields — fall back to deterministic art if invalid
@@ -456,8 +517,8 @@ CRITICAL DESIGN RULES:
       texture: VALID_TEXTURES.includes(parsed.texture) ? parsed.texture : 'none',
       decorIcons: Array.isArray(parsed.decorIcons) && parsed.decorIcons.length > 0
         ? parsed.decorIcons.slice(0, 5)
-        : ['âœ¦', 'â€¢', 'â—¦', 'âœ§', 'Â·'],
-      accentSymbol: typeof parsed.accentSymbol === 'string' ? parsed.accentSymbol : 'âœ¦',
+        : ['✦', '•', '◦', '✧', '·'],
+      accentSymbol: typeof parsed.accentSymbol === 'string' ? parsed.accentSymbol : '✦',
       particleColor: typeof parsed.particleColor === 'string' && parsed.particleColor.startsWith('#')
         ? parsed.particleColor : '#f9c6c9',
       sectionLabels: {
@@ -472,12 +533,12 @@ CRITICAL DESIGN RULES:
       cornerStyle: CORNER_STYLES[curve],
       tone: VALID_TONES.includes(parsed.tone) ? parsed.tone : 'dreamy',
       palette: {
-        background: (parsed.palette?.background?.startsWith?.('#')) ? parsed.palette.background : '#faf9f6',
-        foreground: (parsed.palette?.foreground?.startsWith?.('#')) ? parsed.palette.foreground : '#1a1a1a',
-        accent:     (parsed.palette?.accent?.startsWith?.('#'))     ? parsed.palette.accent     : '#b8926a',
-        accent2:    (parsed.palette?.accent2?.startsWith?.('#'))    ? parsed.palette.accent2    : '#d4b896',
-        card:       (parsed.palette?.card?.startsWith?.('#'))       ? parsed.palette.card       : '#ffffff',
-        muted:      (parsed.palette?.muted?.startsWith?.('#'))      ? parsed.palette.muted      : '#8c8c8c',
+        background: (parsed.palette?.background?.startsWith?.('#')) ? parsed.palette.background : '#F5F1E8',
+        foreground: (parsed.palette?.foreground?.startsWith?.('#')) ? parsed.palette.foreground : '#2B2B2B',
+        accent:     (parsed.palette?.accent?.startsWith?.('#'))     ? parsed.palette.accent     : '#A3B18A',
+        accent2:    (parsed.palette?.accent2?.startsWith?.('#'))    ? parsed.palette.accent2    : '#D6C6A8',
+        card:       (parsed.palette?.card?.startsWith?.('#') || parsed.palette?.card?.startsWith?.('rgba')) ? parsed.palette.card : 'rgba(255,255,255,0.55)',
+        muted:      (parsed.palette?.muted?.startsWith?.('#'))      ? parsed.palette.muted      : '#9A9488',
       },
       fonts: {
         heading: (typeof parsed.fonts?.heading === 'string' && parsed.fonts.heading.length > 0) ? parsed.fonts.heading : 'Playfair Display',
@@ -502,12 +563,12 @@ CRITICAL DESIGN RULES:
   }
 }
 
-// â”€â”€ Synchronous fallback for SSR/Server Components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Synchronous fallback for SSR/Server Components ----------------------------
 export function deriveVibeSkin(vibeString: string): VibeSkin {
   return deriveFallback(vibeString);
 }
 
-// â”€â”€ React hook for client components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- React hook for client components -----------------------------------------
 import { useMemo } from 'react';
 
 export function useVibeSkin(vibeString: string | undefined, cached?: VibeSkin): VibeSkin {
