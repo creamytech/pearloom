@@ -5,21 +5,36 @@
 // Animated accordion FAQ with editorial styling
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, HelpCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { LeafSprigIcon } from '@/components/icons/PearloomIcons';
 import type { FaqItem } from '@/types';
 
-function FaqAccordionItem({ item, index }: { item: FaqItem; index: number }) {
+// FaqItem from types doesn't have a category field — extend locally
+interface FaqItemWithCategory extends FaqItem {
+  category?: string;
+}
+
+function FaqAccordionItem({
+  item,
+  index,
+}: {
+  item: FaqItemWithCategory;
+  index: number;
+}) {
   const [open, setOpen] = useState(false);
-  const ordinal = String(index + 1).padStart(2, '0');
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.65, delay: index * 0.055, ease: [0.16, 1, 0.3, 1] }}
+      transition={{
+        duration: 0.65,
+        delay: index * 0.055,
+        ease: [0.16, 1, 0.3, 1],
+      }}
       style={{
         borderBottom: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
@@ -28,39 +43,50 @@ function FaqAccordionItem({ item, index }: { item: FaqItem; index: number }) {
       <button
         onClick={() => setOpen(!open)}
         style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', padding: '1.85rem 0', background: 'none', border: 'none',
-          cursor: 'pointer', textAlign: 'left', gap: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          padding: '1.85rem 0',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+          gap: '1.5rem',
         }}
+        aria-expanded={open}
       >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.25rem', flex: 1, minWidth: 0 }}>
-          {/* Ordinal number label */}
-          <span style={{
-            fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em',
-            color: 'var(--eg-accent)', opacity: 0.6, flexShrink: 0,
+        <span
+          style={{
             fontFamily: 'var(--eg-font-body)',
-          }}>
-            {ordinal}
-          </span>
-          <span style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: 'clamp(1.05rem, 2vw, 1.25rem)', fontWeight: 400,
-            color: open ? 'var(--eg-fg)' : 'var(--eg-fg)',
-            lineHeight: 1.35, letterSpacing: '-0.005em',
-            transition: 'color 0.3s ease',
-          }}>
-            {item.question}
-          </span>
-        </div>
-        {/* Animated plus/cross icon */}
-        <div style={{
-          flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%',
-          border: '1px solid',
-          borderColor: open ? 'var(--eg-accent)' : 'rgba(0,0,0,0.12)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: open ? 'var(--eg-accent)' : 'var(--eg-muted)',
-          transition: 'border-color 0.3s ease, color 0.3s ease',
-        }}>
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: 'var(--eg-fg)',
+            lineHeight: 1.4,
+            letterSpacing: '-0.005em',
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          {item.question}
+        </span>
+
+        {/* Animated + / x toggle */}
+        <div
+          style={{
+            flexShrink: 0,
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            border: '1px solid',
+            borderColor: open ? 'var(--eg-accent)' : 'rgba(0,0,0,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: open ? 'var(--eg-accent)' : 'var(--eg-muted)',
+            transition: 'border-color 0.3s ease, color 0.3s ease',
+          }}
+        >
           <motion.div
             animate={{ rotate: open ? 45 : 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
@@ -80,14 +106,25 @@ function FaqAccordionItem({ item, index }: { item: FaqItem; index: number }) {
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ paddingLeft: 'calc(0.65rem + 1.25rem + 0.65rem)' }}>
-              <p style={{
-                color: 'var(--eg-muted)',
-                fontSize: '0.97rem',
-                lineHeight: 1.85,
-                paddingBottom: '2rem',
-                fontWeight: 300,
-              }}>
+            <div
+              style={{
+                paddingLeft: '0',
+                borderLeft: '2px solid var(--eg-accent)',
+                marginLeft: '0',
+                paddingRight: '2.5rem',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <p
+                style={{
+                  color: 'var(--eg-muted)',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.7,
+                  paddingBottom: '2rem',
+                  paddingLeft: '1rem',
+                  fontWeight: 300,
+                }}
+              >
                 {item.answer}
               </p>
             </div>
@@ -99,18 +136,37 @@ function FaqAccordionItem({ item, index }: { item: FaqItem; index: number }) {
 }
 
 interface FaqSectionProps {
-  faqs: FaqItem[];
+  faqs: FaqItemWithCategory[];
   title?: string;
+  subtitle?: string;
 }
 
-export function FaqSection({ faqs, title = 'Questions & Answers' }: FaqSectionProps) {
+export function FaqSection({
+  faqs,
+  title = 'Questions & Answers',
+  subtitle = 'Everything you need to know.',
+}: FaqSectionProps) {
   if (!faqs || faqs.length === 0) return null;
 
   const sorted = [...faqs].sort((a, b) => a.order - b.order);
 
+  // Extract unique categories if any faq has a category
+  const hasCategories = sorted.some((f) => f.category);
+  const allCategories = hasCategories
+    ? ['All', ...Array.from(new Set(sorted.map((f) => f.category || 'General')))]
+    : [];
+
+  const [activeCategory, setActiveCategory] = useState<string>('All');
+
+  const filtered =
+    !hasCategories || activeCategory === 'All'
+      ? sorted
+      : sorted.filter((f) => (f.category || 'General') === activeCategory);
+
   return (
     <section style={{ padding: '8rem 2rem', background: 'var(--eg-bg)' }}>
       <div style={{ maxWidth: '780px', margin: '0 auto' }}>
+        {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -118,30 +174,143 @@ export function FaqSection({ faqs, title = 'Questions & Answers' }: FaqSectionPr
           transition={{ duration: 0.9 }}
           style={{ textAlign: 'center', marginBottom: '5.5rem' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', marginBottom: '2.5rem' }}>
-            <div style={{ width: '50px', height: '1px', background: 'var(--eg-accent)', opacity: 0.25 }} />
-            <HelpCircle size={15} color="var(--eg-accent)" strokeWidth={1.5} style={{ opacity: 0.7 }} />
-            <div style={{ width: '50px', height: '1px', background: 'var(--eg-accent)', opacity: 0.25 }} />
+          {/* Eyebrow with LeafSprigIcon */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem',
+              marginBottom: '2rem',
+            }}
+          >
+            <div
+              style={{
+                width: '48px',
+                height: '1px',
+                background: 'var(--eg-accent)',
+                opacity: 0.3,
+              }}
+            />
+            <LeafSprigIcon size={20} color="var(--eg-accent)" style={{ opacity: 0.75 }} />
+            <div
+              style={{
+                width: '48px',
+                height: '1px',
+                background: 'var(--eg-accent)',
+                opacity: 0.3,
+              }}
+            />
           </div>
-          <h2 style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: 'clamp(2.75rem, 5.5vw, 4.25rem)',
-            fontWeight: 400, letterSpacing: '-0.025em',
-            color: 'var(--eg-fg)', lineHeight: 1.05,
-            marginBottom: '1.5rem',
-          }}>
+
+          <h2
+            style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: 'clamp(2.75rem, 5.5vw, 4.25rem)',
+              fontWeight: 400,
+              letterSpacing: '-0.025em',
+              color: 'var(--eg-fg)',
+              lineHeight: 1.05,
+              marginBottom: '1.5rem',
+            }}
+          >
             {title}
           </h2>
+
           {/* Ornamental rule */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '24px', height: '1px', background: 'var(--eg-accent)', opacity: 0.35 }} />
-            <div style={{ width: '4px', height: '4px', background: 'var(--eg-accent)', transform: 'rotate(45deg)', opacity: 0.5 }} />
-            <div style={{ width: '24px', height: '1px', background: 'var(--eg-accent)', opacity: 0.35 }} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              marginBottom: '1.25rem',
+            }}
+          >
+            <div
+              style={{
+                width: '24px',
+                height: '1px',
+                background: 'var(--eg-accent)',
+                opacity: 0.35,
+              }}
+            />
+            <div
+              style={{
+                width: '4px',
+                height: '4px',
+                background: 'var(--eg-accent)',
+                transform: 'rotate(45deg)',
+                opacity: 0.5,
+              }}
+            />
+            <div
+              style={{
+                width: '24px',
+                height: '1px',
+                background: 'var(--eg-accent)',
+                opacity: 0.35,
+              }}
+            />
           </div>
+
+          <p
+            style={{
+              color: 'var(--eg-muted)',
+              fontSize: '1.05rem',
+              fontStyle: 'italic',
+              lineHeight: 1.65,
+            }}
+          >
+            {subtitle}
+          </p>
         </motion.div>
 
+        {/* Category pill filters */}
+        {hasCategories && allCategories.length > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.5rem',
+              justifyContent: 'center',
+              marginBottom: '3rem',
+            }}
+          >
+            {allCategories.map((cat) => {
+              const isActive = activeCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  style={{
+                    padding: '0.4rem 1rem',
+                    borderRadius: '100px',
+                    border: `1.5px solid ${isActive ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
+                    background: isActive ? 'var(--eg-accent)' : 'transparent',
+                    color: isActive ? '#fff' : 'var(--eg-muted)',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.05em',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'var(--eg-font-body)',
+                  }}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+
+        {/* Accordion list */}
         <div>
-          {sorted.map((faq, i) => (
+          {filtered.map((faq, i) => (
             <FaqAccordionItem key={faq.id} item={faq} index={i} />
           ))}
         </div>
