@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe, LayoutDashboard, Users } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { LocalUploader } from '@/components/dashboard/local-uploader';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { VibeInput } from '@/components/dashboard/vibe-input';
 import { GuestManager } from '@/components/dashboard/guest-manager';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -27,7 +27,7 @@ import type { GooglePhotoMetadata, StoryManifest, PhotoCluster } from '@/types';
 import { ClusterReview } from '@/components/dashboard/cluster-review';
 
 // Full-screen editor -- SSR disabled (uses browser APIs + framer Reorder)
-const FullscreenEditor = dynamic(
+const FullscreenEditor = nextDynamic(
   () => import('@/components/editor/FullscreenEditor').then(m => m.FullscreenEditor),
   { ssr: false }
 );
