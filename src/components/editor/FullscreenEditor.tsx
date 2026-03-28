@@ -1092,15 +1092,16 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       const res = await fetch('/api/generate-block', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `Rewrite this wedding chapter with fresh, intimate, specific language. Keep the same emotional theme but use richer storytelling.
+          prompt: `Rewrite this ${manifest.occasion || 'wedding'} chapter with fresh, intimate, specific language. Keep the same emotional theme but use richer storytelling.
 
 Current title: "${ch.title}"
 Current story: "${ch.description}"
 Mood: ${ch.mood || 'romantic'}
 Vibe: ${manifest.vibeString || ''}
+Occasion: ${manifest.occasion || 'wedding'}
 
 Return JSON with: title, subtitle, description, mood`,
-          systemPrompt: 'You are a romantic storytelling AI for Pearloom wedding websites. Write in a warm, cinematic, intimate voice. Return ONLY valid JSON with keys: title, subtitle, description, mood.',
+          systemPrompt: `You are a storytelling AI for Pearloom ${manifest.occasion || 'wedding'} websites. Write in a warm, cinematic, intimate voice appropriate for this type of life event. Return ONLY valid JSON with keys: title, subtitle, description, mood.`,
         }),
       });
       if (res.ok) {
