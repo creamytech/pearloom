@@ -200,7 +200,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             width: '100%', boxSizing: 'border-box',
                             padding: '0.6rem 0.75rem 0.6rem 2.25rem',
                             borderRadius: '0.5rem', border: '1.5px solid var(--eg-accent)',
-                            fontSize: '0.9rem', fontFamily: 'var(--eg-font-body)',
+                            fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--eg-font-body)',
                             outline: 'none', background: '#fff',
                           }}
                         />
@@ -267,6 +267,47 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                       </button>
                     </div>
                   )}
+
+                  {/* Note / blurb field */}
+                  <div style={{ marginTop: '0.85rem' }}>
+                    <div style={{ position: 'relative' }}>
+                      <textarea
+                        value={draftNotes[idx] ?? cluster.note ?? ''}
+                        onChange={e => {
+                          const val = e.target.value.slice(0, 120);
+                          setDraftNotes(prev => ({ ...prev, [idx]: val }));
+                          setClusterNote(idx, val);
+                        }}
+                        placeholder="e.g. Our first trip abroad, hiking in the mountains"
+                        maxLength={120}
+                        rows={1}
+                        style={{
+                          width: '100%', boxSizing: 'border-box',
+                          padding: '0.55rem 0.75rem',
+                          borderRadius: '0.5rem',
+                          border: '1.5px solid rgba(0,0,0,0.08)',
+                          fontSize: 'max(16px, 0.9rem)',
+                          fontFamily: 'var(--eg-font-body)',
+                          color: 'var(--eg-fg)',
+                          outline: 'none',
+                          resize: 'none',
+                          background: '#fafafa',
+                          lineHeight: 1.5,
+                          transition: 'border-color 0.2s',
+                        }}
+                        onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; }}
+                        onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+                      <label style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontWeight: 500 }}>
+                        What was happening here?
+                      </label>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)' }}>
+                        {120 - ((draftNotes[idx] ?? cluster.note ?? '').length)} remaining
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Done indicator */}

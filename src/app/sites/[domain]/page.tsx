@@ -485,18 +485,21 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     return result;
   };
 
+  // Build final theme: merge base theme with vibeSkin palette so colors always come from the AI skin
+  const resolvedTheme = {
+    ...(manifest.theme || siteConfig.theme || dynamicTheme),
+    colors: {
+      background: pal.background,
+      foreground: pal.foreground,
+      accent: pal.accent,
+      accentLight: pal.accent2,
+      muted: pal.muted,
+      cardBg: pal.card,
+    },
+  };
+
   const siteContent = (
-    <ThemeProvider theme={{
-      ...( manifest.theme || siteConfig.theme || dynamicTheme),
-      colors: {
-        background: pal.background,
-        foreground: pal.foreground,
-        accent: pal.accent,
-        accentLight: pal.accent2,
-        muted: pal.muted,
-        cardBg: pal.card,
-      },
-    }}>
+    <ThemeProvider theme={resolvedTheme}>
       {/* Inject AI-selected Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
