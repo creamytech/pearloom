@@ -138,6 +138,14 @@ export default function DashboardPage() {
   const [manifest, setManifest] = useState<StoryManifest | null>(null);
   const [generationStep, setGenerationStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [lastVibeData, setLastVibeData] = useState<{
+    names: [string, string]; vibeString: string; occasion: string;
+    subdomain?: string; eventDate?: string; ceremonyVenue?: string;
+    ceremonyAddress?: string; ceremonyTime?: string; receptionVenue?: string;
+    receptionAddress?: string; receptionTime?: string; dresscode?: string;
+    officiant?: string; celebrationVenue?: string; celebrationTime?: string;
+    guestNotes?: string; inspirationUrls?: string[];
+  } | null>(null);
 
   // Publish Flow State
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -216,6 +224,7 @@ export default function DashboardPage() {
   }) => {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
+    setLastVibeData(data);
     setCurrentStep('generating');
     setGenerationStep(0);
     setError(null);
@@ -484,29 +493,63 @@ export default function DashboardPage() {
                   gap: '1.25rem',
                 }}
               >
-                <div style={{
-                  width: '44px', height: '44px', borderRadius: '50%',
-                  background: '#fef2f2', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.25rem',
-                }}>⚠</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Generation failed</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: 1.5 }}>{error}</div>
+                <div style={{ display: 'flex', gap: '1.25rem', width: '100%' }}>
+                  <div style={{
+                    width: '44px', height: '44px', borderRadius: '50%',
+                    background: '#fef2f2', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.25rem',
+                  }}>⚠</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '0.25rem' }}>Generation failed</div>
+                    <div style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.5rem' }}>{error}</div>
+                    <div style={{ fontSize: '0.82rem', color: '#6b7280', lineHeight: 1.5, fontStyle: 'italic' }}>
+                      This sometimes happens when our AI is busy. It usually works on the second try.
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                      {lastVibeData && (
+                        <button
+                          onClick={() => { setError(null); handleVibeSubmit(lastVibeData); }}
+                          style={{
+                            padding: '0.5rem 1.25rem', borderRadius: '100px',
+                            background: 'var(--eg-accent)', color: '#fff',
+                            border: 'none', cursor: 'pointer',
+                            fontSize: '0.82rem', fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            fontFamily: 'var(--eg-font-body)',
+                          }}
+                        >
+                          Try Again
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { setError(null); setCurrentStep('photos'); }}
+                        style={{
+                          padding: '0.5rem 1.25rem', borderRadius: '100px',
+                          background: 'transparent', color: '#6b7280',
+                          border: '1px solid rgba(0,0,0,0.12)', cursor: 'pointer',
+                          fontSize: '0.82rem', fontWeight: 600,
+                          letterSpacing: '0.04em',
+                          fontFamily: 'var(--eg-font-body)',
+                        }}
+                      >
+                        Start Over
+                      </button>
+                      <button
+                        onClick={() => setError(null)}
+                        style={{
+                          padding: '0.5rem 1rem', borderRadius: '100px',
+                          background: 'transparent', color: '#9ca3af',
+                          border: 'none', cursor: 'pointer',
+                          fontSize: '0.82rem', fontWeight: 500,
+                          fontFamily: 'var(--eg-font-body)',
+                        }}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setError(null)}
-                  style={{
-                    padding: '0.5rem 1.25rem', borderRadius: '100px',
-                    background: '#2B2B2B', color: '#fff',
-                    border: 'none', cursor: 'pointer',
-                    fontSize: '0.82rem', fontWeight: 700,
-                    letterSpacing: '0.04em', flexShrink: 0,
-                    fontFamily: 'var(--eg-font-body)',
-                  }}
-                >
-                  Dismiss
-                </button>
               </motion.div>
             )}
 

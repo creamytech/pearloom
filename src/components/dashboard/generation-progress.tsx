@@ -35,6 +35,11 @@ export function GenerationProgress({ step = 0 }: GenerationProgressProps) {
   const [words] = useState(() =>
     FLOATING_WORDS.sort(() => Math.random() - 0.5).slice(0, 10)
   );
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setElapsed(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   return (
     <div style={{
@@ -168,6 +173,23 @@ export function GenerationProgress({ step = 0 }: GenerationProgressProps) {
           <span>Memory Engine</span>
           <span>{pct}%</span>
         </div>
+
+        <p style={{
+          fontSize: '0.82rem', color: 'var(--eg-muted)',
+          textAlign: 'center', marginTop: '1rem',
+          letterSpacing: '0.04em',
+        }}>
+          Estimated time: 60–90 seconds
+        </p>
+        {elapsed > 5 && (
+          <p style={{
+            fontSize: '0.78rem', color: 'var(--eg-muted)',
+            textAlign: 'center', marginTop: '0.25rem',
+            letterSpacing: '0.04em',
+          }}>
+            {elapsed}s elapsed
+          </p>
+        )}
       </div>
     </div>
   );

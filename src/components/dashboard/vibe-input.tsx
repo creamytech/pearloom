@@ -421,7 +421,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <>
               {/* Ceremony block */}
               <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Ceremony</p>
+                <p style={sectionHeading}>Ceremony<Tooltip text="Used to create your events page and guest directions" /></p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue name</label>
