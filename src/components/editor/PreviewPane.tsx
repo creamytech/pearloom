@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { Monitor, Smartphone } from 'lucide-react';
+import { useDroppable } from '@dnd-kit/core';
 import type { StoryManifest, Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
@@ -16,6 +17,8 @@ export interface PreviewPaneProps {
   vibeSkin?: VibeSkin;
   scale?: number; // default 0.65
   onSectionClick?: (chapterId: string) => void;
+  /** When set, drop zones appear between chapters for drag-and-drop reorder/insert */
+  draggingId?: string | null;
 }
 
 type PreviewDevice = 'desktop' | 'mobile';
@@ -206,9 +209,37 @@ function ChapterCard({
   );
 }
 
+// ── Drop Zone (appears between chapters during drag) ──────────────
+function DropZone({ id, accent }: { id: string; accent: string }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        height: isOver ? '72px' : '10px',
+        margin: '0 48px',
+        borderRadius: '8px',
+        border: isOver ? `2px dashed ${accent}` : `2px dashed transparent`,
+        background: isOver ? `${accent}15` : 'transparent',
+        transition: 'all 0.18s ease',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        pointerEvents: 'all',
+      }}
+    >
+      {isOver && (
+        <span style={{ fontSize: '11px', fontWeight: 700, color: accent, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          Drop here
+        </span>
+      )}
+    </div>
+  );
+}
+
 // ── Main PreviewPane ───────────────────────────────────────────
 export function PreviewPane({
-  manifest, coupleNames, vibeSkin, scale = 0.65, onSectionClick,
+  manifest, coupleNames, vibeSkin, scale = 0.65, onSectionClick, draggingId,
 }: PreviewPaneProps) {
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
 
@@ -284,17 +315,23 @@ export function PreviewPane({
             <div style={{ height: '2px', background: `linear-gradient(to right, transparent, ${accent}40, transparent)` }} />
 
             {/* Chapters */}
+            {/* Top drop zone — insert before first chapter */}
+            {draggingId && <DropZone id="drop:before:0" accent={accent} />}
+
             {chapters.map((ch, i) => (
-              <div key={ch.id}>
+              <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
                 <ChapterCard
                   chapter={ch}
                   vibeSkin={vibeSkin}
                   manifest={manifest}
                   onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
                 />
-                {i < chapters.length - 1 && (
-                  <div style={{ height: '1px', background: `${accent}18`, margin: '0 48px' }} />
-                )}
+                {draggingId
+                  ? <DropZone id={`drop:after:${i}`} accent={accent} />
+                  : i < chapters.length - 1 && (
+                    <div style={{ height: '1px', background: `${accent}18`, margin: '0 48px' }} />
+                  )
+                }
               </div>
             ))}
 

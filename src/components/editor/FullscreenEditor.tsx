@@ -9,6 +9,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import {
+  DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors,
+  useDraggable,
+} from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
+import {
   Plus, Trash2, Sparkles, Loader2,
   Globe, Monitor, Tablet, Smartphone,
   Image, Calendar, Upload, X, Camera,
@@ -132,6 +137,80 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
   );
 }
 
+// ── Canvas drag handle (separate from sidebar reorder handle) ──────
+function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chapterTitle: string }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `chapter:${chapterId}`,
+    data: { type: 'chapter', id: chapterId, label: chapterTitle },
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      title="Drag to reorder in canvas"
+      style={{
+        cursor: isDragging ? 'grabbing' : 'grab',
+        padding: '2px 6px 2px 2px',
+        display: 'flex', alignItems: 'center',
+        color: isDragging ? 'rgba(184,146,106,0.9)' : 'rgba(255,255,255,0.18)',
+        touchAction: 'none', userSelect: 'none', flexShrink: 0,
+        borderRadius: '4px',
+        transition: 'color 0.15s, background 0.15s',
+      }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.08)'; }}
+      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.18)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+    >
+      ⌖
+    </div>
+  );
+}
+
+// ── Blocks palette shown at bottom of story tab ─────────────────
+const CANVAS_BLOCK_TYPES = [
+  { id: 'block:editorial',  label: 'Text Chapter',   emoji: '✍️', desc: 'Story text with optional photo' },
+  { id: 'block:split',      label: 'Photo + Story',   emoji: '🖼', desc: 'Side-by-side photo & text' },
+  { id: 'block:fullbleed',  label: 'Full Bleed',      emoji: '🎞', desc: 'Cinematic full-height photo' },
+  { id: 'block:gallery',    label: 'Photo Gallery',   emoji: '🗂', desc: 'Multi-photo grid layout' },
+  { id: 'block:cinematic',  label: 'Cinematic Quote', emoji: '🎬', desc: 'Ambient blurred quote' },
+  { id: 'block:mosaic',     label: 'Polaroid Mosaic', emoji: '📷', desc: 'Scattered polaroid collage' },
+] as const;
+
+function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label: string; emoji: string; desc: string }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: blockId,
+    data: { type: 'block', id: blockId, label },
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      title={desc}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '8px 10px', borderRadius: '7px',
+        border: '1px solid rgba(255,255,255,0.08)',
+        background: isDragging ? 'rgba(184,146,106,0.2)' : 'rgba(255,255,255,0.04)',
+        cursor: isDragging ? 'grabbing' : 'grab',
+        userSelect: 'none', touchAction: 'none',
+        transition: 'all 0.15s',
+        marginBottom: '4px',
+        opacity: isDragging ? 0.5 : 1,
+      }}
+      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.08)'; el.style.borderColor = 'rgba(184,146,106,0.3)'; }}
+      onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.04)'; el.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+    >
+      <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{emoji}</span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: '0.73rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+      </div>
+      <div style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem', flexShrink: 0 }}>⠿</div>
+    </div>
+  );
+}
+
 // ── SectionItem in left nav ─────────────────────────────────────
 function SectionItem({
   chapter, index, isActive, onSelect, onDelete, onUpdate, voiceSamples,
@@ -177,6 +256,9 @@ function SectionItem({
           style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px' }}
         >
           <DragHandle controls={controls} />
+
+          {/* Canvas drag handle — separate from sidebar-reorder handle */}
+          <CanvasDragHandle chapterId={chapter.id} chapterTitle={chapter.title || 'Chapter'} />
 
           {/* Thumbnail */}
           <div style={{
@@ -1356,6 +1438,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
   const [splitView, setSplitView] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  // ── Drag-and-drop state ──
+  const [canvasDragId, setCanvasDragId] = useState<string | null>(null);
+  const [canvasDragLabel, setCanvasDragLabel] = useState('');
+  const canvasDragSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 5 } }),
+  );
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // ── Unsaved changes indicator ──
@@ -1564,6 +1653,65 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     syncManifest(newOrder);
   }, [syncManifest]);
 
+  const handleCanvasDragStart = useCallback((e: DragStartEvent) => {
+    const data = e.active.data.current as { type: string; id: string; label: string } | undefined;
+    setCanvasDragId(String(e.active.id));
+    setCanvasDragLabel(data?.label || '');
+    // Auto-open split view so user can see the canvas drop zones
+    if (!splitView) setSplitView(true);
+  }, [splitView]);
+
+  const handleCanvasDragEnd = useCallback((e: DragEndEvent) => {
+    setCanvasDragId(null);
+    setCanvasDragLabel('');
+    const { over, active } = e;
+    if (!over) return;
+
+    const dropId = String(over.id); // e.g. "drop:after:2" or "drop:before:0"
+    const activeData = active.data.current as { type: string; id: string } | undefined;
+
+    // Parse drop position from zone id
+    const match = dropId.match(/^drop:(after|before):(\d+)$/);
+    if (!match) return;
+    const [, position, idxStr] = match;
+    const targetIndex = parseInt(idxStr, 10) + (position === 'after' ? 1 : 0);
+
+    if (activeData?.type === 'chapter') {
+      // Reorder existing chapter
+      const chapterId = activeData.id;
+      const current = chapters.findIndex(c => c.id === chapterId);
+      if (current === -1) return;
+      const newOrder = [...chapters];
+      const [moved] = newOrder.splice(current, 1);
+      const insertAt = current < targetIndex ? targetIndex - 1 : targetIndex;
+      newOrder.splice(Math.max(0, insertAt), 0, moved);
+      setChapters(newOrder);
+      syncManifest(newOrder);
+    } else if (activeData?.type === 'block') {
+      // Insert a new chapter with the dragged layout
+      const layout = activeData.id.replace('block:', '') as Chapter['layout'];
+      const newId = `ch-${Date.now()}`;
+      const newCh: Chapter = {
+        id: newId,
+        title: 'New Chapter',
+        subtitle: '',
+        description: 'Add your story here...',
+        date: new Date().toISOString().slice(0, 10),
+        images: [],
+        location: null,
+        mood: 'golden hour',
+        layout,
+        order: targetIndex,
+      };
+      const newOrder = [...chapters];
+      newOrder.splice(targetIndex, 0, newCh);
+      setChapters(newOrder);
+      syncManifest(newOrder);
+      setActiveId(newId);
+      setActiveTab('story');
+    }
+  }, [chapters, syncManifest]);
+
   const handleDesignChange = useCallback((m: StoryManifest) => {
     pushHistory(m);
     onChange(m);
@@ -1612,6 +1760,11 @@ Return JSON with: title, subtitle, description, mood`,
   };
 
   return (
+    <DndContext
+      sensors={canvasDragSensors}
+      onDragStart={handleCanvasDragStart}
+      onDragEnd={handleCanvasDragEnd}
+    >
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       display: 'flex', flexDirection: 'column',
@@ -1821,6 +1974,24 @@ Return JSON with: title, subtitle, description, mood`,
                   </AnimatePresence>
                 </Reorder.Group>
 
+                {/* Blocks palette — drag to canvas */}
+                {splitView && (
+                  <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: '10px' }}>
+                      Drag to canvas
+                    </div>
+                    {CANVAS_BLOCK_TYPES.map(b => (
+                      <BlockTypeCard
+                        key={b.id}
+                        blockId={b.id}
+                        label={b.label}
+                        emoji={b.emoji}
+                        desc={b.desc}
+                      />
+                    ))}
+                  </div>
+                )}
+
                 {/* Inline chapter editor */}
                 <AnimatePresence mode="wait">
                   {activeChapter && (
@@ -1921,6 +2092,7 @@ Return JSON with: title, subtitle, description, mood`,
               coupleNames={coupleNames}
               vibeSkin={manifest.vibeSkin}
               scale={0.55}
+              draggingId={canvasDragId}
               onSectionClick={(chapterId) => {
                 setActiveId(chapterId);
                 setActiveTab('story');
@@ -2368,6 +2540,24 @@ Return JSON with: title, subtitle, description, mood`,
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Drag Overlay — ghost card floating under cursor ── */}
+      <DragOverlay dropAnimation={null}>
+        {canvasDragId && (
+          <div style={{
+            padding: '8px 14px', borderRadius: '8px',
+            background: 'rgba(184,146,106,0.95)',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+            color: '#fff', fontSize: '0.78rem', fontWeight: 700,
+            letterSpacing: '0.04em',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            pointerEvents: 'none', whiteSpace: 'nowrap',
+          }}>
+            <span>⠿</span> {canvasDragLabel}
+          </div>
+        )}
+      </DragOverlay>
     </div>
+    </DndContext>
   );
 }
