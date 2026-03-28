@@ -27,8 +27,8 @@ const BlockEditor = dynamic(
         <div style={{
           width: '40px', height: '51px',
           borderRadius: '42% 42% 52% 52% / 30% 30% 52% 52%',
-          background: 'rgba(184,146,106,0.12)',
-          border: '1px solid rgba(184,146,106,0.2)',
+          background: 'rgba(163,177,138,0.12)',
+          border: '1px solid rgba(163,177,138,0.2)',
           animation: 'pulse 1.5s ease-in-out infinite',
         }} />
         <span>Loading editor…</span>
@@ -269,7 +269,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: '0.65rem 1.5rem', borderRadius: '100px',
-                background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)',
+                background: 'linear-gradient(135deg, #2B2B2B, #2d2d2d)',
                 color: '#fff', border: 'none',
                 fontSize: '0.78rem', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',

@@ -9,8 +9,8 @@ export async function GET(req: NextRequest) {
   const name2 = searchParams.get('n2') || 'Forever';
   const date = searchParams.get('date') || '';
   const tagline = searchParams.get('tag') || 'A love story beautifully told.';
-  const bg = searchParams.get('bg') || '#1a1a1a';
-  const accent = searchParams.get('accent') || '#b8926a';
+  const bg = searchParams.get('bg') || '#2B2B2B';
+  const accent = searchParams.get('accent') || '#A3B18A';
   const photo = searchParams.get('photo') || '';
 
   return new ImageResponse(

@@ -37,7 +37,7 @@ interface SiteGalleryProps {
 
 export function SiteGallerySection({ siteId, coupleNames }: SiteGalleryProps) {
   // Provide a minimal vibeSkin to Guestbook (full skin only available server-side)
-  const minimalVibeSkin: VibeSkin = { tone: 'dreamy', decorIcons: ['✦'], accentSymbol: '♡', particleColor: '#b8926a', dividerQuote: '', sectionLabels: { story: '', events: '', registry: '', travel: '', faqs: '', rsvp: '' }, aiGenerated: false, curve: 'wave', particle: 'petals', accentShape: 'ring', sectionEntrance: 'fade-up', texture: 'none', cornerStyle: '1rem', wavePath: '', wavePathInverted: '', palette: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accent2: '#d4b896', card: '#ffffff', muted: '#8c8c8c' }, fonts: { heading: 'Playfair Display', body: 'Inter' } };
+  const minimalVibeSkin: VibeSkin = { tone: 'dreamy', decorIcons: ['✦'], accentSymbol: '♡', particleColor: '#A3B18A', dividerQuote: '', sectionLabels: { story: '', events: '', registry: '', travel: '', faqs: '', rsvp: '' }, aiGenerated: false, curve: 'wave', particle: 'petals', accentShape: 'ring', sectionEntrance: 'fade-up', texture: 'none', cornerStyle: '1rem', wavePath: '', wavePathInverted: '', palette: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accent2: '#D6C6A8', card: 'rgba(255,255,255,0.55)', muted: '#9A9488' }, fonts: { heading: 'Playfair Display', body: 'Inter' } };
   return (
     <>
       <RsvpLiveCounter siteId={siteId} coupleNames={coupleNames} />

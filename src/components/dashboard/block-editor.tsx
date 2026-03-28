@@ -138,7 +138,7 @@ function ChapterCard({
         border: isEditing ? '2px solid var(--eg-accent)' : '1.5px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
         boxShadow: isEditing
-          ? '0 8px 30px rgba(184,146,106,0.16)'
+          ? '0 8px 30px rgba(163,177,138,0.16)'
           : '0 2px 12px rgba(0,0,0,0.04)',
         marginBottom: '0.75rem',
         transition: 'border-color 0.2s, box-shadow 0.2s',
@@ -337,8 +337,8 @@ function ChapterCard({
             >
               <div style={{
                 padding: '1.25rem 1.25rem 1.5rem',
-                borderTop: '1.5px solid rgba(184,146,106,0.15)',
-                background: 'linear-gradient(to bottom, rgba(184,146,106,0.03), transparent)',
+                borderTop: '1.5px solid rgba(163,177,138,0.15)',
+                background: 'linear-gradient(to bottom, rgba(163,177,138,0.03), transparent)',
                 display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem',
               }}>
                 {/* Title */}
@@ -349,7 +349,7 @@ function ChapterCard({
                     onChange={e => onUpdate(block.id, { title: e.target.value })}
                     style={inputStyle}
                     placeholder="The Rooftop, Brooklyn"
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -361,7 +361,7 @@ function ChapterCard({
                     onChange={e => onUpdate(block.id, { subtitle: e.target.value })}
                     style={inputStyle}
                     placeholder="in all the best ways"
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -374,7 +374,7 @@ function ChapterCard({
                     rows={4}
                     style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.65 }}
                     placeholder="Write your memory here..."
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -386,7 +386,7 @@ function ChapterCard({
                     onChange={e => onUpdate(block.id, { mood: e.target.value })}
                     style={inputStyle}
                     placeholder="golden hour"
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -423,7 +423,7 @@ const labelStyle: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '0.7rem 0.9rem', borderRadius: '0.6rem',
   border: '1.5px solid rgba(0,0,0,0.1)', outline: 'none',
-  fontSize: '0.88rem', background: '#faf9f6', fontFamily: 'inherit',
+  fontSize: '0.88rem', background: '#F5F1E8', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
   color: 'var(--eg-fg)',
 };
@@ -481,7 +481,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{ padding: '0.3rem', borderRadius: '0.4rem', background: 'rgba(184,146,106,0.2)' }}>
+          <div style={{ padding: '0.3rem', borderRadius: '0.4rem', background: 'rgba(163,177,138,0.2)' }}>
             <Wand2 size={13} color="var(--eg-accent)" />
           </div>
           <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.75)' }}>
@@ -824,7 +824,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                   padding: '0.7rem 1.5rem', borderRadius: '100px',
                   background: 'var(--eg-accent)', color: '#fff', border: 'none',
                   cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem',
-                  boxShadow: '0 8px 20px rgba(184,146,106,0.3)',
+                  boxShadow: '0 8px 20px rgba(163,177,138,0.3)',
                 }}
               >
                 <Plus size={15} /> Add Your First Block

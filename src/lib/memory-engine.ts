@@ -194,11 +194,11 @@ export async function generateStoryManifest(
     name: 'pearloom-ivory',
     fonts: { heading: 'Playfair Display', body: 'Inter' },
     colors: {
-      background: '#faf9f6',
-      foreground: '#1a1a1a',
-      accent: '#b8926a',
-      accentLight: '#f3e8d8',
-      muted: '#8c8c8c',
+      background: '#F5F1E8',
+      foreground: '#2B2B2B',
+      accent: '#A3B18A',
+      accentLight: '#EEE8DC',
+      muted: '#9A9488',
       cardBg: '#ffffff',
     },
     borderRadius: '1rem',
@@ -533,7 +533,7 @@ Titles must feel like chapter headings from a memoir or short film. They should 
 - Colors come from the vibe input. If a specific palette or hex was mentioned, use it
 - Heading fonts: Cormorant Garamond, EB Garamond, Lora, Playfair Display, Libre Baskerville
 - Body fonts: Inter, Outfit, DM Sans, Work Sans, Nunito (all from Google Fonts)
-- Background: NEVER pure white. Use warm off-whites (#faf9f6), soft creams, moody deep tones, dusty greens, rose blush â€” whatever fits the vibe
+- Background: NEVER pure white. Use warm off-whites (#F5F1E8), soft creams, moody deep tones, dusty greens, rose blush â€” whatever fits the vibe
 - Contrast must remain readable at all times
 
 ---
@@ -757,7 +757,7 @@ Rules: Use premium Google Fonts only. Colors should be warm, intimate, and high-
     return {
       name: 'Warm Ivory',
       fonts: { heading: 'Playfair Display', body: 'Inter' },
-      colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+      colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
       borderRadius: '1rem',
     };
   }

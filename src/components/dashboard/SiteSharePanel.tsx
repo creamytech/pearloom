@@ -132,7 +132,7 @@ export function SiteSharePanel({ siteUrl, siteId }: SiteSharePanelProps) {
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.6rem 1.1rem', borderRadius: '0.6rem',
               background: 'transparent', color: 'var(--eg-accent)',
-              border: '1.5px solid rgba(184,146,106,0.25)', cursor: 'pointer',
+              border: '1.5px solid rgba(163,177,138,0.25)', cursor: 'pointer',
               fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none',
               transition: 'all 0.2s',
             }}

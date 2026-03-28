@@ -185,7 +185,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
         flexWrap: 'wrap', gap: '1.5rem',
       }}>
         <div>
-          <div style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b8926a', marginBottom: '0.5rem' }}>
+          <div style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A3B18A', marginBottom: '0.5rem' }}>
             Your Stories
           </div>
           <h2 style={{
@@ -234,10 +234,10 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', padding: '8rem 2rem',
-            background: 'linear-gradient(160deg, #fffdf9 0%, #fdf5eb 100%)',
+            background: 'linear-gradient(160deg, #F5F1E8 0%, #EEE8DC 100%)',
             borderRadius: '2rem',
-            border: '1px solid rgba(184,146,106,0.15)',
-            boxShadow: '0 8px 60px rgba(184,146,106,0.08)',
+            border: '1px solid rgba(163,177,138,0.15)',
+            boxShadow: '0 8px 60px rgba(163,177,138,0.08)',
             textAlign: 'center',
             position: 'relative',
             overflow: 'hidden',
@@ -249,7 +249,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             transform: 'translate(-50%, -50%)',
             width: '600px', height: '600px',
             borderRadius: '50%',
-            border: '1px solid rgba(184,146,106,0.08)',
+            border: '1px solid rgba(163,177,138,0.08)',
             pointerEvents: 'none',
           }} />
           <div style={{
@@ -257,7 +257,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             transform: 'translate(-50%, -50%)',
             width: '400px', height: '400px',
             borderRadius: '50%',
-            border: '1px solid rgba(184,146,106,0.12)',
+            border: '1px solid rgba(163,177,138,0.12)',
             pointerEvents: 'none',
           }} />
 
@@ -266,11 +266,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             style={{ position: 'relative', zIndex: 1, marginBottom: '2.5rem' }}
           >
-            <WovenCircle size={100} color="linear-gradient(135deg, #f3e8d8, #e8d4b8)" borderColor="rgba(184,146,106,0.3)" style={{
-              background: 'linear-gradient(135deg, #f3e8d8, #e8d4b8)',
-              boxShadow: '0 20px 60px rgba(184,146,106,0.25), 0 0 0 1px rgba(184,146,106,0.15)',
+            <WovenCircle size={100} color="linear-gradient(135deg, #EEE8DC, #e8d4b8)" borderColor="rgba(163,177,138,0.3)" style={{
+              background: 'linear-gradient(135deg, #EEE8DC, #e8d4b8)',
+              boxShadow: '0 20px 60px rgba(163,177,138,0.25), 0 0 0 1px rgba(163,177,138,0.15)',
             }}>
-              <PearloomMark size={48} color="#b8926a" />
+              <PearloomMark size={48} color="#A3B18A" />
             </WovenCircle>
           </motion.div>
 
@@ -289,7 +289,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
               Connect your photos and describe how it feels. Pearloom weaves them into a beautiful wedding site — in under 90 seconds.
             </p>
             <p style={{
-              color: 'rgba(184,146,106,0.7)', fontSize: '0.82rem',
+              color: 'rgba(163,177,138,0.7)', fontSize: '0.82rem',
               letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
               marginBottom: '2.75rem',
             }}>
@@ -301,15 +301,15 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
                 padding: '1rem 2.25rem', borderRadius: '100px',
-                background: 'linear-gradient(135deg, #b8926a, #8b6b4a)',
+                background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
                 color: '#fff', fontWeight: 600, fontSize: '1rem',
                 border: 'none', cursor: 'pointer',
-                boxShadow: '0 12px 40px rgba(184,146,106,0.4)',
+                boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
                 fontFamily: 'var(--eg-font-body)',
                 transition: 'transform 0.2s, box-shadow 0.2s',
               }}
-              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 16px 50px rgba(184,146,106,0.5)'; }}
-              onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(184,146,106,0.4)'; }}
+              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 16px 50px rgba(163,177,138,0.5)'; }}
+              onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(163,177,138,0.4)'; }}
             >
               <Sparkles size={18} />
               Begin Weaving Your Story
@@ -329,7 +329,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
               const isHovered = hoveredId === site.id;
               const isCopied = copiedId === site.id;
               const displayNames = (site.names || ['', '']).map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
-              const accentColor = site.manifest?.theme?.colors?.accent || '#b8926a';
+              const accentColor = site.manifest?.theme?.colors?.accent || '#A3B18A';
               const weddingDate = site.manifest?.events?.[0]?.date;
               // Determine published status: if comingSoon is disabled or not set, it's live
               const isLive = !site.manifest?.comingSoon?.enabled;
@@ -350,9 +350,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                     background: '#fff',
                     borderRadius: '1.5rem',
                     overflow: 'hidden',
-                    border: isHovered ? '1px solid rgba(184,146,106,0.25)' : '1px solid rgba(0,0,0,0.05)',
+                    border: isHovered ? '1px solid rgba(163,177,138,0.25)' : '1px solid rgba(0,0,0,0.05)',
                     boxShadow: isHovered
-                      ? '0 24px 70px rgba(0,0,0,0.12), 0 4px 16px rgba(184,146,106,0.1)'
+                      ? '0 24px 70px rgba(0,0,0,0.12), 0 4px 16px rgba(163,177,138,0.1)'
                       : '0 4px 24px rgba(0,0,0,0.05)',
                     transition: 'box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s',
                     transform: isHovered
@@ -475,13 +475,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                           padding: '0.7rem', borderRadius: '0.75rem', fontSize: '0.75rem',
                           border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
-                          color: '#8c8c8c', cursor: 'pointer', fontWeight: 700,
+                          color: '#9A9488', cursor: 'pointer', fontWeight: 700,
                           letterSpacing: '0.06em', textTransform: 'uppercase',
                           transition: 'all 0.2s',
                           fontFamily: 'var(--eg-font-body)',
                         }}
-                        onMouseOver={(e) => { e.currentTarget.style.background = '#f8f8f8'; e.currentTarget.style.color = '#1a1a1a'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8c8c8c'; }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = '#f8f8f8'; e.currentTarget.style.color = '#2B2B2B'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9A9488'; }}
                       >
                         <ExternalLink size={12} />
                         View
@@ -493,7 +493,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                         style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                           padding: '0.7rem', borderRadius: '0.75rem', fontSize: '0.75rem',
-                          background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)',
+                          background: 'linear-gradient(135deg, #2B2B2B, #2d2d2d)',
                           color: '#fff', border: 'none', cursor: 'pointer',
                           fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
                           transition: 'all 0.2s',
@@ -515,11 +515,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                           border: isCopied ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(0,0,0,0.1)',
                           background: isCopied ? 'rgba(34,197,94,0.08)' : 'transparent',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: isCopied ? '#22c55e' : '#8c8c8c',
+                          color: isCopied ? '#22c55e' : '#9A9488',
                           cursor: 'pointer', transition: 'all 0.2s',
                         }}
-                        onMouseOver={(e) => { if (!isCopied) { e.currentTarget.style.background = '#f3e8d8'; e.currentTarget.style.color = '#b8926a'; e.currentTarget.style.borderColor = 'rgba(184,146,106,0.3)'; } }}
-                        onMouseOut={(e) => { if (!isCopied) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8c8c8c'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; } }}
+                        onMouseOver={(e) => { if (!isCopied) { e.currentTarget.style.background = '#EEE8DC'; e.currentTarget.style.color = '#A3B18A'; e.currentTarget.style.borderColor = 'rgba(163,177,138,0.3)'; } }}
+                        onMouseOut={(e) => { if (!isCopied) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9A9488'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; } }}
                       >
                         {isCopied ? <Check size={14} /> : <Copy size={14} />}
                       </button>
@@ -532,10 +532,10 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                           width: '40px', height: '40px', borderRadius: '0.75rem',
                           border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#8c8c8c', cursor: 'pointer', transition: 'all 0.2s',
+                          color: '#9A9488', cursor: 'pointer', transition: 'all 0.2s',
                         }}
-                        onMouseOver={(e) => { e.currentTarget.style.background = '#f3e8d8'; e.currentTarget.style.color = '#b8926a'; e.currentTarget.style.borderColor = 'rgba(184,146,106,0.3)'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8c8c8c'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = '#EEE8DC'; e.currentTarget.style.color = '#A3B18A'; e.currentTarget.style.borderColor = 'rgba(163,177,138,0.3)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9A9488'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}
                       >
                         <Users size={14} />
                       </button>
@@ -570,9 +570,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
             transition={{ duration: 0.6, delay: sites.length * 0.07 }}
             onClick={onStartNew}
             style={{
-              background: 'rgba(184,146,106,0.04)',
+              background: 'rgba(163,177,138,0.04)',
               borderRadius: '1.5rem', overflow: 'hidden',
-              border: '2px dashed rgba(184,146,106,0.25)',
+              border: '2px dashed rgba(163,177,138,0.25)',
               cursor: 'pointer', minHeight: '340px',
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
@@ -580,25 +580,25 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
               fontFamily: 'var(--eg-font-body)',
             }}
             onMouseOver={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.08)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.5)';
+              (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.5)';
               (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)';
             }}
             onMouseOut={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(184,146,106,0.04)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(184,146,106,0.25)';
+              (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.04)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.25)';
               (e.currentTarget as HTMLElement).style.transform = 'none';
             }}
           >
             <div style={{
               width: '56px', height: '56px', borderRadius: '50%',
-              background: 'rgba(184,146,106,0.12)',
+              background: 'rgba(163,177,138,0.12)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Plus size={24} color="#b8926a" />
+              <Plus size={24} color="#A3B18A" />
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, color: '#b8926a', fontSize: '0.95rem', marginBottom: '0.35rem' }}>New Site</div>
+              <div style={{ fontWeight: 700, color: '#A3B18A', fontSize: '0.95rem', marginBottom: '0.35rem' }}>New Site</div>
               <div style={{ fontSize: '0.82rem', color: '#b0b0b0', maxWidth: '160px', lineHeight: 1.55 }}>Build a new love story in 90 seconds</div>
             </div>
           </motion.button>
@@ -639,7 +639,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                   background: '#f5f5f5', border: 'none', borderRadius: '50%',
                   width: '32px', height: '32px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#8c8c8c',
+                  color: '#9A9488',
                 }}
               >
                 <X size={16} />
@@ -656,13 +656,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
 
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)', fontSize: '2rem',
-                fontWeight: 400, marginBottom: '0.875rem', color: '#1a1a1a',
+                fontWeight: 400, marginBottom: '0.875rem', color: '#2B2B2B',
                 letterSpacing: '-0.015em',
               }}>
                 Delete this site?
               </h3>
-              <p style={{ color: '#8c8c8c', lineHeight: 1.65, marginBottom: '2.5rem', fontSize: '0.95rem' }}>
-                <strong style={{ color: '#1a1a1a' }}>{confirmDelete.domain}.pearloom.app</strong> will be permanently gone.
+              <p style={{ color: '#9A9488', lineHeight: 1.65, marginBottom: '2.5rem', fontSize: '0.95rem' }}>
+                <strong style={{ color: '#2B2B2B' }}>{confirmDelete.domain}.pearloom.app</strong> will be permanently gone.
                 Your guests will no longer be able to access it. This cannot be undone.
               </p>
 
@@ -673,7 +673,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests }: {
                     flex: 1, padding: '0.95rem', borderRadius: '0.875rem',
                     border: '1px solid rgba(0,0,0,0.1)', background: 'none',
                     cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
-                    transition: 'background 0.2s', color: '#1a1a1a',
+                    transition: 'background 0.2s', color: '#2B2B2B',
                     fontFamily: 'var(--eg-font-body)',
                   }}
                   onMouseOver={(e) => { e.currentTarget.style.background = '#f8f8f8'; }}

@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
       margin: 2,
       width: 300,
       color: {
-        dark: '#1a1a1a',
-        light: '#faf9f6',
+        dark: '#2B2B2B',
+        light: '#F5F1E8',
       },
     });
 

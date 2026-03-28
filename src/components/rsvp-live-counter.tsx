@@ -50,11 +50,11 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
         maxWidth: '600px', margin: '0 auto 4rem',
         background: noAttendees
           ? 'linear-gradient(135deg, rgba(var(--eg-accent-rgb, 184,146,106),0.04), rgba(var(--eg-accent-rgb, 184,146,106),0.08))'
-          : '#fff',
+          : '#F5F1E8',
         borderRadius: '1.5rem',
         padding: '2rem 2.25rem',
         border: noAttendees
-          ? '1.5px dashed rgba(184,146,106,0.25)'
+          ? '1.5px dashed rgba(163,177,138,0.25)'
           : '1px solid rgba(0,0,0,0.06)',
         boxShadow: noAttendees
           ? 'none'
@@ -77,12 +77,12 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               style={{
                 width: '48px', height: '48px', borderRadius: '50%',
-                background: 'rgba(184,146,106,0.12)',
+                background: 'rgba(163,177,138,0.12)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 1rem',
               }}
             >
-              <Heart size={20} color="#b8926a" />
+              <Heart size={20} color="#A3B18A" />
             </motion.div>
             <p style={{
               fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem',

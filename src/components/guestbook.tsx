@@ -85,7 +85,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
   const inputSt: React.CSSProperties = {
     width: '100%', padding: '0.85rem 1rem',
     borderRadius: '0.75rem', border: '1.5px solid rgba(0,0,0,0.08)',
-    background: '#fff', fontSize: '0.9rem', outline: 'none',
+    background: '#F5F1E8', fontSize: '0.9rem', outline: 'none',
     fontFamily: 'var(--eg-font-body)', color: 'var(--eg-fg)',
     transition: 'border-color 0.2s', boxSizing: 'border-box',
   };
@@ -164,7 +164,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%',
                   background: 'var(--eg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.75rem', fontWeight: 700, color: '#fff', flexShrink: 0,
+                  fontSize: '0.75rem', fontWeight: 700, color: '#F5F1E8', flexShrink: 0,
                 }}>
                   {highlighted.guestName.charAt(0).toUpperCase()}
                 </div>
@@ -181,7 +181,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.8 }}
           style={{
-            background: '#fff', borderRadius: '1.25rem',
+            background: '#F5F1E8', borderRadius: '1.25rem',
             border: '1px solid rgba(0,0,0,0.06)', padding: '2rem',
             boxShadow: '0 4px 24px rgba(0,0,0,0.04)', marginBottom: '3rem',
           }}
@@ -312,7 +312,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                     padding: '0.9rem 2rem', borderRadius: '0.75rem',
-                    background: 'var(--eg-fg)', color: '#fff', border: 'none',
+                    background: 'var(--eg-fg)', color: '#F5F1E8', border: 'none',
                     fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
                     opacity: (!name.trim() || !message.trim() || submitting || isOverLimit) ? 0.4 : 1,
                     transition: 'all 0.2s',
@@ -338,7 +338,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.04 }}
                 style={{
-                  background: '#fff', borderRadius: '1rem', padding: '1.5rem 1.75rem',
+                  background: '#F5F1E8', borderRadius: '1rem', padding: '1.5rem 1.75rem',
                   border: '1px solid rgba(0,0,0,0.05)',
                   transition: 'box-shadow 0.25s, border-color 0.25s',
                 }}

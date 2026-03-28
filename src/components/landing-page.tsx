@@ -45,7 +45,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
   }, [tick]);
 
   return (
-    <div style={{ backgroundColor: '#faf9f6', minHeight: '100dvh', fontFamily: 'var(--eg-font-body)', overflowX: 'hidden' }}>
+    <div style={{ backgroundColor: '#F5F1E8', minHeight: '100dvh', fontFamily: 'var(--eg-font-body)', overflowX: 'hidden' }}>
 
       {/* ══════════════════════════════════════
           HERO — The Loom
@@ -70,7 +70,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         <div style={{
           position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)',
           width: '700px', height: '700px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(184,146,106,0.1) 0%, transparent 65%)',
+          background: 'radial-gradient(circle, rgba(163,177,138,0.1) 0%, transparent 65%)',
           filter: 'blur(40px)', pointerEvents: 'none',
         }} />
 
@@ -78,10 +78,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         <div style={{
           position: 'absolute', inset: 0,
           backgroundImage: `
-            linear-gradient(45deg, rgba(184,146,106,0.03) 25%, transparent 25%),
-            linear-gradient(-45deg, rgba(184,146,106,0.03) 25%, transparent 25%),
-            linear-gradient(45deg, transparent 75%, rgba(184,146,106,0.03) 75%),
-            linear-gradient(-45deg, transparent 75%, rgba(184,146,106,0.03) 75%)
+            linear-gradient(45deg, rgba(163,177,138,0.03) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(163,177,138,0.03) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(163,177,138,0.03) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(163,177,138,0.03) 75%)
           `,
           backgroundSize: '20px 20px',
           backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
@@ -105,7 +105,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     position: 'absolute',
                     width: 160 + ring * 40, height: 80 + ring * 20,
                     borderRadius: '50%',
-                    border: `1px solid rgba(184,146,106,${0.2 - ring * 0.05})`,
+                    border: `1px solid rgba(163,177,138,${0.2 - ring * 0.05})`,
                     pointerEvents: 'none',
                   }}
                   animate={{ scale: [1, 1.04, 1] }}
@@ -113,7 +113,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 />
               ))}
               {/* Core logo mark — animated draw-in */}
-              <PearloomMark size={160} color="#b8926a" color2="#d4a572" animated />
+              <PearloomMark size={160} color="#A3B18A" color2="#D6C6A8" animated />
             </div>
           </motion.div>
 
@@ -125,8 +125,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.45rem 1.2rem', borderRadius: '2rem',
-              background: 'rgba(184,146,106,0.1)', border: '1px solid rgba(184,146,106,0.2)',
-              color: '#b8926a', fontSize: '0.72rem', fontWeight: 500,
+              background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.2)',
+              color: '#A3B18A', fontSize: '0.72rem', fontWeight: 500,
               letterSpacing: '0.1em', textTransform: 'lowercase',
               marginBottom: '2.5rem',
             }}
@@ -149,7 +149,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             }}
           >
             Your love story,<br />
-            <span style={{ fontStyle: 'italic', color: '#b8926a' }}>beautifully&nbsp;woven.</span>
+            <span style={{ fontStyle: 'italic', color: '#A3B18A' }}>beautifully&nbsp;woven.</span>
           </motion.h1>
 
           {/* Sub */}
@@ -159,7 +159,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             transition={{ duration: 1, delay: 0.5 }}
             style={{
               fontSize: 'clamp(1rem, 2.2vw, 1.2rem)', fontWeight: 300,
-              lineHeight: 1.75, color: '#8c8c8c',
+              lineHeight: 1.75, color: '#9A9488',
               maxWidth: '560px', margin: '0 auto 4rem',
             }}
           >
@@ -202,7 +202,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', fontSize: '0.75rem', color: '#b0b0b0', letterSpacing: '0.02em' }}>
               <div style={{ display: 'flex', gap: '0.18rem' }}>
-                {[...Array(5)].map((_, i) => <Star key={i} size={11} fill="#b8926a" color="#b8926a" />)}
+                {[...Array(5)].map((_, i) => <Star key={i} size={11} fill="#A3B18A" color="#A3B18A" />)}
               </div>
               <span>4.9 rating · No credit card · Free forever</span>
             </div>
@@ -225,12 +225,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 padding: '1.25rem 2rem', textAlign: 'center',
                 background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(24px)',
                 borderRadius: '0.75rem',
-                border: '1px solid rgba(184,146,106,0.18)',
+                border: '1px solid rgba(163,177,138,0.18)',
                 boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.04)',
                 minWidth: '110px',
               }}>
                 <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', fontWeight: 400, color: 'var(--eg-fg)', lineHeight: 1 }}>{s.value}</div>
-                <div style={{ width: '20px', height: '1px', background: 'rgba(184,146,106,0.4)', margin: '0.5rem auto' }} />
+                <div style={{ width: '20px', height: '1px', background: 'rgba(163,177,138,0.4)', margin: '0.5rem auto' }} />
                 <div style={{ fontSize: '0.6rem', color: '#b0b0b0', textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 700 }}>{s.label}</div>
               </div>
             ))}
@@ -250,7 +250,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             style={{ textAlign: 'center', marginBottom: '6rem' }}
           >
             <WovenCircle size={44} style={{ margin: '0 auto 1.5rem' }}>
-              <PearloomMark size={24} color="#b8926a" />
+              <PearloomMark size={24} color="#A3B18A" />
             </WovenCircle>
             <h2 style={{
               fontFamily: 'var(--eg-font-heading)',
@@ -260,7 +260,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               marginTop: '0.5rem',
             }}>
               Every memory deserves to be<br />
-              <span style={{ fontStyle: 'italic', color: '#b8926a' }}>beautifully told</span>
+              <span style={{ fontStyle: 'italic', color: '#A3B18A' }}>beautifully told</span>
             </h2>
           </motion.div>
 
@@ -274,7 +274,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 transition={{ duration: 0.7, delay: i * 0.09 }}
                 whileHover={{ y: -8 }}
                 style={{
-                  background: '#faf9f6', borderRadius: '1.5rem',
+                  background: '#F5F1E8', borderRadius: '1.5rem',
                   padding: '2.25rem', border: '1px solid rgba(0,0,0,0.05)',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
                   cursor: 'default',
@@ -288,7 +288,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   fontWeight: 400, color: 'var(--eg-fg)',
                   marginBottom: '0.75rem', letterSpacing: '-0.01em',
                 }}>{f.title}</h3>
-                <p style={{ color: '#8c8c8c', fontSize: '0.95rem', lineHeight: 1.8 }}>{f.body}</p>
+                <p style={{ color: '#9A9488', fontSize: '0.95rem', lineHeight: 1.8 }}>{f.body}</p>
               </motion.div>
             ))}
           </div>
@@ -298,13 +298,13 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════════════════════════════
           HOW IT WORKS — Thread spine
       ══════════════════════════════════════ */}
-      <section style={{ padding: '9rem 2rem', background: '#faf9f6', position: 'relative' }}>
+      <section style={{ padding: '9rem 2rem', background: '#F5F1E8', position: 'relative' }}>
         {/* Giant background thread outline */}
         <div style={{
           position: 'absolute', top: '50%', right: '-100px', transform: 'translateY(-50%)',
           pointerEvents: 'none', opacity: 0.08,
         }}>
-          <PearloomMark size={500} color="#b8926a" />
+          <PearloomMark size={500} color="#A3B18A" />
         </div>
 
         <div style={{ maxWidth: '820px', margin: '0 auto' }}>
@@ -321,7 +321,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               letterSpacing: '-0.025em', lineHeight: 1.05,
             }}>
               From your photos<br />
-              <span style={{ fontStyle: 'italic', color: '#b8926a' }}>to a living memory</span>
+              <span style={{ fontStyle: 'italic', color: '#A3B18A' }}>to a living memory</span>
             </h2>
           </motion.div>
 
@@ -331,8 +331,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               position: 'absolute', left: '2.35rem', top: '3rem', bottom: '3rem',
               width: '3px', display: 'flex', flexDirection: 'column',
             }}>
-              <div style={{ flex: 1, background: 'linear-gradient(to bottom, rgba(184,146,106,0.35), rgba(184,146,106,0.05))', width: '1px', marginLeft: '0px' }} />
-              <div style={{ position: 'absolute', inset: 0, width: '1px', marginLeft: '2px', background: 'linear-gradient(to bottom, rgba(184,146,106,0.2), rgba(184,146,106,0.03))' }} />
+              <div style={{ flex: 1, background: 'linear-gradient(to bottom, rgba(163,177,138,0.35), rgba(163,177,138,0.05))', width: '1px', marginLeft: '0px' }} />
+              <div style={{ position: 'absolute', inset: 0, width: '1px', marginLeft: '2px', background: 'linear-gradient(to bottom, rgba(163,177,138,0.2), rgba(163,177,138,0.03))' }} />
             </div>
 
             {[
@@ -350,18 +350,18 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               >
                 <WovenCircle
                   size={48}
-                  color={i === 0 ? 'linear-gradient(160deg, #e8cba8, #d4a572)' : 'rgba(184,146,106,0.1)'}
-                  borderColor="rgba(184,146,106,0.3)"
+                  color={i === 0 ? 'linear-gradient(160deg, #e8cba8, #D6C6A8)' : 'rgba(163,177,138,0.1)'}
+                  borderColor="rgba(163,177,138,0.3)"
                   style={{
-                    background: i === 0 ? 'linear-gradient(160deg, #e8cba8, #d4a572)' : 'rgba(184,146,106,0.08)',
-                    boxShadow: i === 0 ? '0 8px 24px rgba(184,146,106,0.3)' : 'none',
+                    background: i === 0 ? 'linear-gradient(160deg, #e8cba8, #D6C6A8)' : 'rgba(163,177,138,0.08)',
+                    boxShadow: i === 0 ? '0 8px 24px rgba(163,177,138,0.3)' : 'none',
                   }}
                 >
                   <span style={{ fontSize: '1.3rem' }}>{item.emoji}</span>
                 </WovenCircle>
 
                 <div style={{ paddingTop: '0.5rem' }}>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.1em', color: '#b8926a', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.1em', color: '#A3B18A', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                     {item.step}
                   </div>
                   <h3 style={{
@@ -371,7 +371,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   }}>
                     {item.title}
                   </h3>
-                  <p style={{ color: '#8c8c8c', lineHeight: 1.8, fontSize: '1rem', maxWidth: '480px' }}>{item.body}</p>
+                  <p style={{ color: '#9A9488', lineHeight: 1.8, fontSize: '1rem', maxWidth: '480px' }}>{item.body}</p>
                 </div>
               </motion.div>
             ))}
@@ -388,17 +388,17 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           position: 'absolute', left: '-60px', top: '50%', transform: 'translateY(-50%)',
           pointerEvents: 'none', opacity: 0.06,
         }}>
-          <PearloomMark size={400} color="#b8926a" />
+          <PearloomMark size={400} color="#A3B18A" />
         </div>
         <div style={{
           position: 'absolute', right: '-40px', bottom: '-20px',
           pointerEvents: 'none', opacity: 0.04,
         }}>
-          <PearloomMark size={300} color="#b8926a" />
+          <PearloomMark size={300} color="#A3B18A" />
         </div>
 
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          <WovenCircle size={44} color="rgba(184,146,106,0.1)" borderColor="rgba(184,146,106,0.3)" style={{ margin: '0 auto 2rem' }}>
+          <WovenCircle size={44} color="rgba(163,177,138,0.1)" borderColor="rgba(163,177,138,0.3)" style={{ margin: '0 auto 2rem' }}>
             <span style={{ fontSize: '1.1rem' }}>💬</span>
           </WovenCircle>
           <h2 style={{
@@ -409,7 +409,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             marginBottom: '5rem',
           }}>
             Couples who trusted<br />
-            <span style={{ fontStyle: 'italic', color: '#b8926a' }}>Pearloom</span>
+            <span style={{ fontStyle: 'italic', color: '#A3B18A' }}>Pearloom</span>
           </h2>
 
           {/* Carousel */}
@@ -431,7 +431,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 {/* Opening quote mark */}
                 <div style={{
                   fontFamily: 'var(--eg-font-heading)', fontSize: '5rem',
-                  color: '#b8926a', opacity: 0.25, lineHeight: 0.7,
+                  color: '#A3B18A', opacity: 0.25, lineHeight: 0.7,
                   marginBottom: '1rem', textAlign: 'left',
                 }}>&ldquo;</div>
                 <p style={{
@@ -443,13 +443,13 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   {TESTIMONIALS[activeTestimonial].quote}
                 </p>
                 {/* Divider line */}
-                <div style={{ width: '30px', height: '1px', background: 'rgba(184,146,106,0.4)', margin: '0 auto 2rem' }} />
+                <div style={{ width: '30px', height: '1px', background: 'rgba(163,177,138,0.4)', margin: '0 auto 2rem' }} />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
                   <WovenCircle
                     size={44}
-                    color="linear-gradient(135deg, #b8926a, #8b6b4a)"
-                    borderColor="rgba(184,146,106,0.3)"
-                    style={{ background: 'linear-gradient(135deg, #b8926a, #8b6b4a)' }}
+                    color="linear-gradient(135deg, #A3B18A, #8b6b4a)"
+                    borderColor="rgba(163,177,138,0.3)"
+                    style={{ background: 'linear-gradient(135deg, #A3B18A, #8b6b4a)' }}
                   >
                     <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
                       {TESTIMONIALS[activeTestimonial].name[0]}
@@ -473,7 +473,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 style={{
                   width: i === activeTestimonial ? '28px' : '7px',
                   height: '7px', borderRadius: '999px',
-                  background: i === activeTestimonial ? '#b8926a' : 'rgba(255,255,255,0.18)',
+                  background: i === activeTestimonial ? '#A3B18A' : 'rgba(255,255,255,0.18)',
                   border: 'none', cursor: 'pointer',
                   transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
                 }}
@@ -486,7 +486,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════════════════════════════
           PRICING — All Included
       ══════════════════════════════════════ */}
-      <section style={{ padding: '9rem 2rem', background: '#faf9f6' }}>
+      <section style={{ padding: '9rem 2rem', background: '#F5F1E8' }}>
         <div style={{ maxWidth: '680px', margin: '0 auto' }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -501,7 +501,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               letterSpacing: '-0.025em', lineHeight: 1.05,
             }}>
               Start free.<br />
-              <span style={{ fontStyle: 'italic', color: '#b8926a' }}>Stay beautiful.</span>
+              <span style={{ fontStyle: 'italic', color: '#A3B18A' }}>Stay beautiful.</span>
             </h2>
           </motion.div>
 
@@ -522,8 +522,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               padding: '2.5rem 3rem',
               display: 'flex', alignItems: 'center', gap: '1.5rem',
             }}>
-              <WovenCircle size={52} color="rgba(184,146,106,0.15)" borderColor="rgba(184,146,106,0.4)" style={{ flexShrink: 0 }}>
-                <PearloomMark size={28} color="#b8926a" />
+              <WovenCircle size={52} color="rgba(163,177,138,0.15)" borderColor="rgba(163,177,138,0.4)" style={{ flexShrink: 0 }}>
+                <PearloomMark size={28} color="#A3B18A" />
               </WovenCircle>
               <div>
                 <div style={{ color: '#fff', fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', fontWeight: 400, letterSpacing: '-0.01em' }}>Free Forever</div>
@@ -553,7 +553,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   borderBottom: '1px solid rgba(0,0,0,0.04)',
                 }}>
                   <WovenCircle size={22} style={{ flexShrink: 0 }}>
-                    <Check size={11} color="#b8926a" strokeWidth={2.5} />
+                    <Check size={11} color="#A3B18A" strokeWidth={2.5} />
                   </WovenCircle>
                   <span style={{ fontSize: '0.95rem', color: '#3a3a3a' }}>{feat}</span>
                 </div>
@@ -564,10 +564,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 style={{
                   width: '100%', marginTop: '2rem',
                   padding: '1.15rem', borderRadius: '100px',
-                  background: 'linear-gradient(135deg, #b8926a, #8b6b4a)',
+                  background: 'linear-gradient(135deg, #A3B18A, #8b6b4a)',
                   color: '#fff', fontSize: '1rem', fontWeight: 700,
                   border: 'none', cursor: 'pointer',
-                  boxShadow: '0 12px 40px rgba(184,146,106,0.4)',
+                  boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
                   fontFamily: 'var(--eg-font-body)', letterSpacing: '0.01em',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
                 }}
@@ -592,7 +592,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
           pointerEvents: 'none', opacity: 0.05,
         }}>
-          <PearloomMark size={500} color="#b8926a" />
+          <PearloomMark size={500} color="#A3B18A" />
         </div>
 
         <motion.div
@@ -602,7 +602,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}
         >
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem' }}>
-            <PearloomMark size={80} color="#b8926a" color2="rgba(184,146,106,0.5)" />
+            <PearloomMark size={80} color="#A3B18A" color2="rgba(163,177,138,0.5)" />
           </div>
           <h2 style={{
             fontFamily: 'var(--eg-font-heading)',
@@ -612,7 +612,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             marginBottom: '1.5rem',
           }}>
             Ready to weave<br />
-            <span style={{ fontStyle: 'italic', color: '#b8926a' }}>your love story?</span>
+            <span style={{ fontStyle: 'italic', color: '#A3B18A' }}>your love story?</span>
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', lineHeight: 1.65, marginBottom: '4rem' }}>
             Thousands of couples building beautiful sites for every milestone.
@@ -623,10 +623,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.75rem',
               padding: '1.15rem 3.5rem', borderRadius: '100px',
-              background: 'linear-gradient(135deg, #b8926a, #8b6b4a)',
+              background: 'linear-gradient(135deg, #A3B18A, #8b6b4a)',
               color: '#fff', fontSize: '1.05rem', fontWeight: 600,
               border: 'none', cursor: 'pointer',
-              boxShadow: '0 14px 50px rgba(184,146,106,0.4)',
+              boxShadow: '0 14px 50px rgba(163,177,138,0.4)',
               fontFamily: 'var(--eg-font-body)',
             }}
             onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.04) translateY(-3px)'; }}

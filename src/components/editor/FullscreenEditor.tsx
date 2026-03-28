@@ -533,7 +533,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
   const delHotel = (i: number) =>
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
 
-  const Section = ({ id, label, emoji, children }: { id: typeof openSection; label: string; emoji: string; children: React.ReactNode }) => (
+  const Section = ({ id, label, children }: { id: typeof openSection; label: string; emoji?: string; children: React.ReactNode }) => (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <button
         onClick={() => setOpenSection(openSection === id ? 'logistics' : id)}
@@ -544,7 +544,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         }}
       >
         <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          {emoji} {label}
+          {label}
         </span>
         <ChevronDown size={12} style={{ transform: openSection === id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
@@ -554,14 +554,14 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-      <Section id="logistics" label="Logistics" emoji="📅">
+      <Section id="logistics" label="Logistics">
         <Field label="Wedding Date" value={logistics.date || ''} onChange={v => upd({ date: v })} placeholder="2025-09-14" />
         <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
         <Field label="Venue" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
         <Field label="RSVP Deadline" value={logistics.rsvpDeadline || ''} onChange={v => upd({ rsvpDeadline: v })} placeholder="2025-08-01" />
       </Section>
 
-      <Section id="travel" label="Travel & Hotels" emoji="✈️">
+      <Section id="travel" label="Travel & Hotels">
         <div>
           <label style={lbl}>Airports (one per line)</label>
           <textarea
@@ -606,7 +606,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         ))}
       </Section>
 
-      <Section id="faq" label="FAQ" emoji="❓">
+      <Section id="faq" label="FAQ">
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
@@ -628,7 +628,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         {faqs.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
       </Section>
 
-      <Section id="registry" label="Registry" emoji="🎁">
+      <Section id="registry" label="Registry">
         <Field label="Cash Fund URL (optional)" value={manifest.registry?.cashFundUrl || ''} onChange={v => updRegistry({ cashFundUrl: v })} placeholder="https://hitchd.com/..." />
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We're saving for our honeymoon!" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
@@ -655,7 +655,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         {entries.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
       </Section>
 
-      <Section id="vibe" label="Site Vibe" emoji="✨">
+      <Section id="vibe" label="Site Vibe">
         <div>
           <label style={lbl}>Vibe String</label>
           <textarea
@@ -687,13 +687,13 @@ interface PresetPage {
 }
 
 const ALL_SITE_PAGES: PresetPage[] = [
-  { id: 'home',     slug: '',         label: 'Home',     icon: '🏠', alwaysOn: true,  occasions: ['wedding', 'anniversary', 'engagement', 'birthday', 'story'] },
-  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '📅', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '💌', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '✈️', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '🏛️', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'registry', slug: 'registry', label: 'Registry', icon: '🎁', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '❓', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'home',     slug: '',         label: 'Home',     icon: '', alwaysOn: true,  occasions: ['wedding', 'anniversary', 'engagement', 'birthday', 'story'] },
+  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'registry', slug: 'registry', label: 'Registry', icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
 ];
 
 function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest; subdomain: string; onChange: (m: StoryManifest) => void }) {
@@ -810,7 +810,6 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
             background: isActive ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
             border: `1px solid ${isActive ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
           }}>
-            <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{page.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
               {subdomain && <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
@@ -1524,7 +1523,7 @@ Return JSON with: title, subtitle, description, mood`,
               minHeight: '52px',
             }}
           >
-            <Eye size={16} /> Preview
+            <PreviewIcon size={16} /> Preview
           </button>
           <button
             onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
@@ -1537,7 +1536,7 @@ Return JSON with: title, subtitle, description, mood`,
               minHeight: '52px',
             }}
           >
-            <Globe size={16} /> Publish
+            <PublishIcon size={16} /> Publish
           </button>
         </div>
       )}

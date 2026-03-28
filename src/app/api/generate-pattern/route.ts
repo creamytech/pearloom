@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
       vibeString: vibeString || 'romantic and timeless',
       place: place || '',
       accent,
-      bg: bg || '#faf9f6',
+      bg: bg || '#F5F1E8',
       style: style || 'elegant botanical',
     });
 
@@ -324,7 +324,7 @@ export async function POST(req: NextRequest) {
     // Always return something
     const body = await req.json().catch(() => ({}));
     const fallback = buildFallbackSvg(
-      (body as { accent?: string }).accent || '#b8926a',
+      (body as { accent?: string }).accent || '#A3B18A',
       (body as { vibeString?: string }).vibeString || '',
       (body as { place?: string }).place || ''
     );
