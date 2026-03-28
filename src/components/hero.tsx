@@ -228,28 +228,47 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.2, delay: 1.6 }}
-            style={{ marginTop: '4.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}
+            style={{ marginTop: '5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}
           >
-            <div style={{
-              width: '50px', height: '1px',
-              background: coverPhoto ? 'rgba(255,255,255,0.35)' : 'var(--eg-accent)',
-            }} />
-            <p style={{
-              fontSize: '1.15rem',
-              fontWeight: 300,
-              letterSpacing: '0.06em',
-              opacity: coverPhoto ? 0.85 : 0.8,
-              fontFamily: 'var(--eg-font-body)',
-              fontStyle: 'italic',
-              margin: 0,
-            }}>
-              {subtitle && <span>{subtitle}</span>}
-              {date && (
-                <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.85rem', opacity: 0.65, fontStyle: 'normal', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                  {date}
-                </span>
-              )}
-            </p>
+            {/* Ornamental divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent)', opacity: 0.6 }} />
+              <div style={{
+                width: '5px', height: '5px', borderRadius: '0',
+                background: coverPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
+                transform: 'rotate(45deg)',
+                opacity: 0.7,
+              }} />
+              <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent)', opacity: 0.6 }} />
+            </div>
+            {subtitle && (
+              <p style={{
+                fontSize: '1.1rem',
+                fontWeight: 300,
+                letterSpacing: '0.08em',
+                opacity: coverPhoto ? 0.88 : 0.75,
+                fontFamily: 'var(--eg-font-body)',
+                fontStyle: 'italic',
+                margin: 0,
+                lineHeight: 1.6,
+              }}>
+                {subtitle}
+              </p>
+            )}
+            {date && (
+              <span style={{
+                display: 'block',
+                fontSize: '0.72rem',
+                opacity: 0.55,
+                fontStyle: 'normal',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                fontFamily: 'var(--eg-font-body)',
+              }}>
+                {date}
+              </span>
+            )}
           </motion.div>
         )}
 
