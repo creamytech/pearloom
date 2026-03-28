@@ -10,7 +10,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Camera, Loader2, ImagePlus } from 'lucide-react';
 import type { GalleryPhoto } from '@/types';
 
-export function PhotoGallery() {
+interface PhotoGalleryProps {
+  siteId: string;
+}
+
+export function PhotoGallery({ siteId }: PhotoGalleryProps) {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -20,7 +24,7 @@ export function PhotoGallery() {
 
   const fetchPhotos = useCallback(async () => {
     try {
-      const res = await fetch('/api/gallery');
+      const res = await fetch(`/api/gallery?siteId=${encodeURIComponent(siteId)}`);
       const data = await res.json();
       setPhotos(data.photos || []);
     } catch {
@@ -28,7 +32,7 @@ export function PhotoGallery() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [siteId]);
 
   useEffect(() => {
     fetchPhotos();
@@ -40,6 +44,7 @@ export function PhotoGallery() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('uploadedBy', uploadName || 'Guest');
+      formData.append('siteId', siteId);
       const res = await fetch('/api/gallery', { method: 'POST', body: formData });
       return res.json();
     });
@@ -68,7 +73,7 @@ export function PhotoGallery() {
           textAlign: 'center',
           marginBottom: '1.5rem',
           cursor: 'pointer',
-          background: '#fff',
+          background: '#F5F1E8',
           transition: 'border-color 0.3s',
         }}
       >
@@ -82,9 +87,9 @@ export function PhotoGallery() {
         />
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
           {uploading ? (
-            <Loader2 size={32} color="#b8926a" style={{ animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={32} color="#A3B18A" style={{ animation: 'spin 1s linear infinite' }} />
           ) : (
-            <ImagePlus size={32} color="#8c8c8c" />
+            <ImagePlus size={32} color="#9A9488" />
           )}
           <div>
             <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--eg-fg)' }}>
@@ -101,7 +106,7 @@ export function PhotoGallery() {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem',
       }}>
-        <Camera size={16} color="#8c8c8c" />
+        <Camera size={16} color="#9A9488" />
         <input
           type="text"
           value={uploadName}
@@ -110,7 +115,7 @@ export function PhotoGallery() {
           style={{
             flex: 1, padding: '0.6rem 0.85rem', borderRadius: '0.75rem',
             border: '1.5px solid rgba(0,0,0,0.08)', fontSize: '0.9rem',
-            background: '#fff', outline: 'none', fontFamily: 'var(--eg-font-body)',
+            background: '#F5F1E8', outline: 'none', fontFamily: 'var(--eg-font-body)',
             color: 'var(--eg-fg)',
           }}
         />
@@ -119,12 +124,12 @@ export function PhotoGallery() {
       {/* Gallery grid */}
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
-          <Loader2 size={24} color="#8c8c8c" style={{ animation: 'spin 1s linear infinite' }} />
+          <Loader2 size={24} color="#9A9488" style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : photos.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-          <Upload size={48} color="#8c8c8c" style={{ margin: '0 auto 1rem', opacity: 0.4 }} />
-          <p style={{ color: '#8c8c8c' }}>No photos yet — be the first to share!</p>
+          <Upload size={48} color="#9A9488" style={{ margin: '0 auto 1rem', opacity: 0.4 }} />
+          <p style={{ color: '#9A9488' }}>No photos yet — be the first to share!</p>
         </div>
       ) : (
         <div style={{

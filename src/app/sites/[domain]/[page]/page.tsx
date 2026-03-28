@@ -75,7 +75,7 @@ export default async function SiteSubPage(
     : ['Our', 'Story'];
 
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const bgColor = manifest.theme?.colors?.background || '#faf9f6';
+  const bgColor = manifest.theme?.colors?.background || '#F5F1E8';
   const cardBg  = manifest.theme?.colors?.cardBg     || '#ffffff';
 
   // Build nav pages — same as main page
@@ -160,12 +160,12 @@ export default async function SiteSubPage(
                 </h2>
                 {manifest.logistics?.date && (
                   <p style={{ color: 'var(--eg-muted)', fontSize: '1rem', marginBottom: '0.5rem' }}>
-                    📅 {new Date(manifest.logistics.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    {new Date(manifest.logistics.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                 )}
                 {manifest.logistics?.time && (
                   <p style={{ color: 'var(--eg-muted)', fontSize: '1rem' }}>
-                    🕐 {manifest.logistics.time}
+                    {manifest.logistics.time}
                   </p>
                 )}
                 <a
@@ -180,7 +180,7 @@ export default async function SiteSubPage(
                     textDecoration: 'none', letterSpacing: '0.05em',
                   }}
                 >
-                  📍 Open in Google Maps
+                  Open in Google Maps
                 </a>
               </div>
             )}

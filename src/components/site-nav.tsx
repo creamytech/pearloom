@@ -83,7 +83,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
           transition: 'all 0.35s ease',
           paddingTop: 'env(safe-area-inset-top, 0px)',
           background: scrolled || pathname !== '/'
-            ? 'rgba(250,249,246,0.88)'
+            ? 'rgba(245,241,232,0.88)'
             : 'transparent',
           backdropFilter: scrolled || pathname !== '/' ? 'blur(20px) saturate(1.6)' : 'none',
           WebkitBackdropFilter: scrolled || pathname !== '/' ? 'blur(20px) saturate(1.6)' : 'none',
@@ -150,11 +150,11 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                       display: 'flex', alignItems: 'center', gap: '0.5rem',
                       padding: '0.5rem 1rem', borderRadius: '0.5rem',
                       fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.02em',
-                      color: 'var(--eg-accent)', background: 'rgba(184,146,106,0.08)',
+                      color: 'var(--eg-accent)', background: 'rgba(163,177,138,0.08)',
                       border: 'none', cursor: 'pointer', transition: 'all 0.2s ease',
                     }}
-                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(184,146,106,0.15)'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(184,146,106,0.08)'; }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.15)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
                   >
                     <Plus size={14} />
                     New Site
@@ -272,7 +272,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
             className="md:hidden"
             style={{
               position: 'fixed', inset: 0, zIndex: 40,
-              background: 'rgba(250,249,246,0.97)',
+              background: 'rgba(245,241,232,0.97)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               display: 'flex', flexDirection: 'column',

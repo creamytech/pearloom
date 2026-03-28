@@ -194,11 +194,11 @@ export async function generateStoryManifest(
     name: 'pearloom-ivory',
     fonts: { heading: 'Playfair Display', body: 'Inter' },
     colors: {
-      background: '#faf9f6',
-      foreground: '#1a1a1a',
-      accent: '#b8926a',
-      accentLight: '#f3e8d8',
-      muted: '#8c8c8c',
+      background: '#F5F1E8',
+      foreground: '#2B2B2B',
+      accent: '#A3B18A',
+      accentLight: '#EEE8DC',
+      muted: '#9A9488',
       cardBg: '#ffffff',
     },
     borderRadius: '1rem',
@@ -271,7 +271,96 @@ export async function generateStoryManifest(
       console.warn('[Memory Engine] Design critique pass failed (non-fatal):', err);
     }
   }
+
+  // ── Pass 4: Poetry pass ────────────────────────────────────────────────
+  // Lightweight Gemini call that generates the hero tagline, footer closing
+  // line, and RSVP intro — all personalized to this couple's specific story.
+  try {
+    manifest.poetry = await generatePoetryPass(
+      manifest.vibeString, coupleNames, manifest.chapters, apiKey
+    );
+    console.log('[Memory Engine] Pass 4: Poetry pass complete');
+  } catch (err) {
+    console.warn('[Memory Engine] Poetry pass failed (non-fatal):', err);
+  }
+
   return manifest;
+}
+
+// ── Pass 4: Poetry pass ───────────────────────────────────────────────
+// Lightweight Gemini call that generates 3 couple-specific text pieces:
+//   heroTagline — 5-8 word poetic subtitle for the hero section
+//   closingLine — 10-15 word footer closing line
+//   rsvpIntro   — warm, personal 1-2 sentence intro for the RSVP section
+async function generatePoetryPass(
+  vibeString: string,
+  coupleNames: [string, string] | undefined,
+  chapters: import('@/types').Chapter[],
+  apiKey: string
+): Promise<{ heroTagline: string; closingLine: string; rsvpIntro: string }> {
+  const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
+
+  // Pull a few chapter titles to give Gemini narrative context
+  const chapterTitles = chapters.slice(0, 4).map(c => c.title).join(', ');
+
+  const poetryPrompt = `You are a poet writing for ${namesCtx}'s wedding website on Pearloom.
+Their vibe: "${vibeString}"
+Their story chapters include: ${chapterTitles || 'the beginning of their love'}
+
+Write 3 short pieces of text — each must be specific to THIS couple, not generic:
+
+1. heroTagline: A 5-8 word poetic subtitle for their hero section. Should feel like a beautiful line from a literary novel or indie film. NOT "A love story written in stars" or other cliches. Reference their actual vibe.
+   Examples: "A love story written in light", "Where the mountains remembered everything", "Two people who chose the long way home"
+
+2. closingLine: A 10-15 word closing line for their site footer. Warm, intimate, final. References their story or vibe.
+   Examples: "Two threads, one loom, forever woven in light", "Here is where we began. Here is where we stay."
+
+3. rsvpIntro: A warm, personal 1-2 sentence intro for their RSVP section. Should feel written by the couple, inviting their guests with genuine warmth and a specific nod to their celebration.
+
+Return ONLY valid JSON:
+{
+  "heroTagline": "<5-8 word poetic subtitle>",
+  "closingLine": "<10-15 word closing footer line>",
+  "rsvpIntro": "<1-2 warm, personal sentences inviting guests to RSVP>"
+}`;
+
+  const res = await geminiRetryFetch(
+    `${GEMINI_API_BASE}?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: poetryPrompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 1.0,
+          maxOutputTokens: 512,
+        },
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error(`Poetry pass API ${res.status}`);
+
+  const data = await res.json();
+  let raw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim()
+    .replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+    .replace(/,\s*([}\]])/g, '$1');
+
+  const result = JSON.parse(raw) as {
+    heroTagline?: string;
+    closingLine?: string;
+    rsvpIntro?: string;
+  };
+
+  return {
+    heroTagline: typeof result.heroTagline === 'string' && result.heroTagline.length > 0
+      ? result.heroTagline : 'A love story worth every page',
+    closingLine: typeof result.closingLine === 'string' && result.closingLine.length > 0
+      ? result.closingLine : 'Thank you for being part of our story.',
+    rsvpIntro: typeof result.rsvpIntro === 'string' && result.rsvpIntro.length > 0
+      ? result.rsvpIntro : "We can't wait to celebrate with you. Please let us know if you'll be joining us.",
+  };
 }
 
 // ── Design critique & iterative refinement pass ───────────────────────
@@ -506,18 +595,27 @@ ${JSON.stringify(clusterSummary, null, 2)}
 ---
 ## NARRATIVE QUALITY STANDARDS (non-negotiable)
 
-### Titles â€” Be SPECIFIC, not generic
-âœ… Good: "That October Night", "Sundays with Poppy", "The Rooftop, Brooklyn", "Her Terrible Fake Laugh"
-âŒ Bad: "Our Journey Begins", "Beautiful Memories", "The Start of Us"
+### Titles â€” Be SPECIFIC, evocative, poetic (3-6 words max)
+âœ… Good: "That October Night", "Sundays with Poppy", "The Rooftop, Brooklyn", "Her Terrible Fake Laugh", "How It Started"
+âŒ Bad: "Our Journey Begins", "Beautiful Memories", "The Start of Us", "First Meeting", "A New Chapter"
 
 Titles must feel like chapter headings from a memoir or short film. They should surprise the reader, not telegraph the obvious.
 
-### Descriptions â€” Write from inside the memory
+### Descriptions â€” Write in FIRST PERSON PLURAL, from inside the memory
 - 3â€“4 sentences, intimate and specific
-- Sound like the couple themselves wrote it
+- ALWAYS use "We", "us", "our" â€” written as if the couple themselves are narrating
+- Include SENSORY DETAILS: what the weather was, what song was playing, the smell of the place, the texture of the moment
 - Reference REAL details from their vibe: pets, restaurants, inside jokes, places, rituals
 - Never use: "journey", "adventure", "soulmate", "fairy tale", "happily ever after", "storybook"
-- DO use: sensory details, specific actions, honest emotions, humor if it fits the vibe
+- DO use: specific sensory experiences, honest emotions, humor if it fits the vibe
+- Each chapter description should feel like it could ONLY belong to this couple
+
+### EMOTIONAL ARC â€” The chapters must have a narrative through-line
+- First 1-2 chapters: wonder, excitement, the spark â€” "We found ourselves..."
+- Middle chapters: growth, discovery, challenge overcome â€” "We learned..."
+- Final 1-2 chapters: certainty, commitment, coming home â€” "We knew..."
+
+### Chapter count: Minimum 3, Maximum 7
 
 ### Subtitles â€” One poetic, unusual line
 - Should feel like a line from a poem or a song lyric, not a description
@@ -533,7 +631,7 @@ Titles must feel like chapter headings from a memoir or short film. They should 
 - Colors come from the vibe input. If a specific palette or hex was mentioned, use it
 - Heading fonts: Cormorant Garamond, EB Garamond, Lora, Playfair Display, Libre Baskerville
 - Body fonts: Inter, Outfit, DM Sans, Work Sans, Nunito (all from Google Fonts)
-- Background: NEVER pure white. Use warm off-whites (#faf9f6), soft creams, moody deep tones, dusty greens, rose blush â€” whatever fits the vibe
+- Background: NEVER pure white. Use warm off-whites (#F5F1E8), soft creams, moody deep tones, dusty greens, rose blush â€” whatever fits the vibe
 - Contrast must remain readable at all times
 
 ---
@@ -565,8 +663,9 @@ Available layouts: "editorial", "fullbleed", "split", "cinematic", "gallery", "m
 ---
 ## CHAPTER COUNT
 - Generate EXACTLY one chapter per cluster
-- Maximum: 8 chapters. If there are more than 8 clusters, intelligently merge the least visually distinct ones into nearby chapters.
-- Minimum: 2 chapters
+- Maximum: 7 chapters. If there are more than 7 clusters, intelligently merge the least visually distinct ones into nearby chapters.
+- Minimum: 3 chapters. If there are fewer than 3 clusters, expand the most emotionally significant ones with richer narrative.
+- Each chapter must have emotional momentum — the full arc from first spark to certainty.
 
 ---
 ## OUTPUT SCHEMA (strict JSON, NO markdown)
@@ -757,7 +856,7 @@ Rules: Use premium Google Fonts only. Colors should be warm, intimate, and high-
     return {
       name: 'Warm Ivory',
       fonts: { heading: 'Playfair Display', body: 'Inter' },
-      colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+      colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
       borderRadius: '1rem',
     };
   }

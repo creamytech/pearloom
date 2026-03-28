@@ -98,12 +98,14 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
               backgroundImage: `url(${coverPhoto})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center top',
-              filter: 'brightness(0.42) contrast(1.2) saturate(1.1)',
+              filter: 'brightness(0.38) contrast(1.25) saturate(0.95)',
             }}
           />
           {/* Layered gradient system for deep editorial look */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 30%)', zIndex: 1, pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--eg-bg) 0%, rgba(0,0,0,0) 30%)', zIndex: 1, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 28%)', zIndex: 1, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--eg-bg) 0%, rgba(0,0,0,0) 35%)', zIndex: 1, pointerEvents: 'none' }} />
+          {/* Vignette — soft dark edges for a cinematic frame */}
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%)', zIndex: 1, pointerEvents: 'none' }} />
           <FilmGrain />
         </>
       ) : (
@@ -228,28 +230,47 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.2, delay: 1.6 }}
-            style={{ marginTop: '4.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}
+            style={{ marginTop: '5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}
           >
-            <div style={{
-              width: '50px', height: '1px',
-              background: coverPhoto ? 'rgba(255,255,255,0.35)' : 'var(--eg-accent)',
-            }} />
-            <p style={{
-              fontSize: '1.15rem',
-              fontWeight: 300,
-              letterSpacing: '0.06em',
-              opacity: coverPhoto ? 0.85 : 0.8,
-              fontFamily: 'var(--eg-font-body)',
-              fontStyle: 'italic',
-              margin: 0,
-            }}>
-              {subtitle && <span>{subtitle}</span>}
-              {date && (
-                <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.85rem', opacity: 0.65, fontStyle: 'normal', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                  {date}
-                </span>
-              )}
-            </p>
+            {/* Ornamental divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent)', opacity: 0.6 }} />
+              <div style={{
+                width: '5px', height: '5px', borderRadius: '0',
+                background: coverPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
+                transform: 'rotate(45deg)',
+                opacity: 0.7,
+              }} />
+              <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent)', opacity: 0.6 }} />
+            </div>
+            {subtitle && (
+              <p style={{
+                fontSize: '1.1rem',
+                fontWeight: 300,
+                letterSpacing: '0.08em',
+                opacity: coverPhoto ? 0.88 : 0.75,
+                fontFamily: 'var(--eg-font-body)',
+                fontStyle: 'italic',
+                margin: 0,
+                lineHeight: 1.6,
+              }}>
+                {subtitle}
+              </p>
+            )}
+            {date && (
+              <span style={{
+                display: 'block',
+                fontSize: '0.72rem',
+                opacity: 0.55,
+                fontStyle: 'normal',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                fontFamily: 'var(--eg-font-body)',
+              }}>
+                {date}
+              </span>
+            )}
           </motion.div>
         )}
 
@@ -263,7 +284,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2.5, duration: 1 }}
+        transition={{ delay: 2.8, duration: 1.2 }}
         style={{
           position: 'absolute',
           bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
@@ -272,18 +293,28 @@ export function Hero({ names, anniversaryLabel, subtitle, date, coverPhoto, wedd
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '0.75rem',
-          color: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-muted)',
+          gap: '0.6rem',
+          color: coverPhoto ? 'rgba(255,255,255,0.38)' : 'var(--eg-muted)',
           zIndex: 20,
         }}
       >
-        <span style={{ fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', fontWeight: 700 }}>Scroll</span>
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <ChevronDown size={18} strokeWidth={1.5} />
-        </motion.div>
+        {/* Refined mouse-scroll icon */}
+        <div style={{
+          width: '22px', height: '34px', borderRadius: '11px',
+          border: `1.5px solid ${coverPhoto ? 'rgba(255,255,255,0.28)' : 'currentColor'}`,
+          display: 'flex', justifyContent: 'center', paddingTop: '6px',
+          opacity: 0.55,
+        }}>
+          <motion.div
+            animate={{ y: [0, 8, 0], opacity: [1, 0.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              width: '3px', height: '6px', borderRadius: '2px',
+              background: coverPhoto ? 'rgba(255,255,255,0.8)' : 'currentColor',
+            }}
+          />
+        </div>
+        <span style={{ fontSize: '0.55rem', letterSpacing: '0.35em', textTransform: 'uppercase', fontWeight: 600, opacity: 0.45 }}>Scroll</span>
       </motion.div>
     </section>
   );

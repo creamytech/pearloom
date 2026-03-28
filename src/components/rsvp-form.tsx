@@ -24,7 +24,7 @@ function ConfettiBurst({ active }: { active: boolean }) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const COLORS = ['#b8926a', '#f0c080', '#f87171', '#a78bfa', '#34d399', '#60a5fa', '#fb923c', '#e879f9'];
+    const COLORS = ['#A3B18A', '#f0c080', '#f87171', '#a78bfa', '#34d399', '#60a5fa', '#fb923c', '#e879f9'];
     const SHAPES = ['circle', 'rect', 'heart'] as const;
 
     interface Particle {
@@ -115,6 +115,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
   const [mealPreference, setMealPreference] = useState('');
   const [dietaryRestrictions, setDietaryRestrictions] = useState('');
   const [songRequest, setSongRequest] = useState('');
+  const [mailingAddress, setMailingAddress] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -140,6 +141,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           dietaryRestrictions: status === 'attending' ? dietaryRestrictions : null,
           songRequest: status === 'attending' ? songRequest : null,
           message,
+          mailingAddress: mailingAddress || null,
         }),
       });
 
@@ -203,7 +205,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
     padding: '0.85rem 1rem',
     borderRadius: '0.75rem',
     border: '1.5px solid rgba(0,0,0,0.1)',
-    background: '#ffffff',
+    background: '#F5F1E8',
     fontSize: 'max(16px, 0.9rem)',
     fontFamily: 'var(--eg-font-body)',
     color: 'var(--eg-fg)',
@@ -242,7 +244,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                 : 'rgba(0,0,0,0.08)'}`,
               background: status === s
                 ? (s === 'attending' ? '#ecfdf5' : '#fef2f2')
-                : '#ffffff',
+                : '#F5F1E8',
               color: status === s
                 ? (s === 'attending' ? '#059669' : '#dc2626')
                 : 'var(--eg-muted)',
@@ -253,7 +255,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
               fontFamily: 'var(--eg-font-body)',
             }}
           >
-            {s === 'attending' ? '🎉 Joyfully Accepts' : '💌 Respectfully Declines'}
+            {s === 'attending' ? 'Joyfully Accepts' : 'Respectfully Declines'}
           </button>
         ))}
       </div>
@@ -271,7 +273,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             style={inputStyle}
             onFocus={(e) => {
               e.target.style.borderColor = 'var(--eg-accent)';
-              e.target.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.12)';
+              e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
             }}
             onBlur={(e) => {
               e.target.style.borderColor = 'rgba(0,0,0,0.1)';
@@ -290,7 +292,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             style={inputStyle}
             onFocus={(e) => {
               e.target.style.borderColor = 'var(--eg-accent)';
-              e.target.style.boxShadow = '0 0 0 3px rgba(184,146,106,0.12)';
+              e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
             }}
             onBlur={(e) => {
               e.target.style.borderColor = 'rgba(0,0,0,0.1)';
@@ -298,6 +300,22 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             }}
           />
         </div>
+      </div>
+
+      {/* ── Mailing Address ── */}
+      <div style={sectionGap}>
+        <label style={labelStyle}>Mailing Address (optional)</label>
+        <textarea
+          value={mailingAddress}
+          onChange={(e) => setMailingAddress(e.target.value)}
+          placeholder="123 Main St, City, State ZIP"
+          rows={2}
+          style={{
+            ...inputStyle,
+            resize: 'none',
+            lineHeight: 1.6,
+          }}
+        />
       </div>
 
       {/* ── Events ── */}
@@ -388,7 +406,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                     padding: '0.5rem 1rem',
                     borderRadius: '999px',
                     border: `1.5px solid ${mealPreference === m ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
-                    background: mealPreference === m ? 'var(--eg-accent-light)' : '#ffffff',
+                    background: mealPreference === m ? 'var(--eg-accent-light)' : '#F5F1E8',
                     color: mealPreference === m ? 'var(--eg-accent)' : 'var(--eg-muted)',
                     fontSize: '0.85rem',
                     fontWeight: 500,
@@ -417,7 +435,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
 
           {/* Song */}
           <div>
-            <label style={labelStyle}>Song Request 🎵</label>
+            <label style={labelStyle}>Song Request</label>
             <input
               type="text"
               value={songRequest}
@@ -431,7 +449,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
 
       {/* ── Message ── */}
       <div style={sectionGap}>
-        <label style={labelStyle}>Leave a Note 💌</label>
+        <label style={labelStyle}>Leave a Note</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -458,7 +476,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           padding: '1rem 2rem',
           borderRadius: '0.75rem',
           background: 'var(--eg-fg)',
-          color: '#ffffff',
+          color: '#F5F1E8',
           fontSize: '0.9rem',
           fontWeight: 500,
           fontFamily: 'var(--eg-font-body)',

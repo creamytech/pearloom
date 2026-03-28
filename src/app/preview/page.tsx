@@ -104,12 +104,12 @@ function PreviewContent() {
 
   if (!manifest) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#faf9f6' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F1E8' }}>
         <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 300, letterSpacing: '0.04em', color: '#1a1a1a', marginBottom: '0.75rem' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 300, letterSpacing: '0.04em', color: '#2B2B2B', marginBottom: '0.75rem' }}>
             Preview
           </h1>
-          <p style={{ color: '#8c8c8c', fontSize: '0.95rem' }}>
+          <p style={{ color: '#9A9488', fontSize: '0.95rem' }}>
             No story data yet. Generate your story from the dashboard.
           </p>
         </div>
@@ -271,7 +271,6 @@ function PreviewContent() {
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <div style={{ fontSize: '2.5rem', opacity: 0.35 }}>🎬</div>
                   <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a YouTube or Vimeo URL in the Sections editor</span>
                 </div>
               )}
@@ -293,7 +292,6 @@ function PreviewContent() {
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <div style={{ fontSize: '2.5rem', opacity: 0.35 }}>📍</div>
                   <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a venue address in Details to show the map</span>
                 </div>
               )}
@@ -340,7 +338,7 @@ function PreviewContent() {
               fontFamily: `"${vibeSkin.fonts.heading}", serif`,
               fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '1rem',
             }}>
-              📖 Guestbook
+              Guestbook
             </div>
             <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Guest wishes will appear here on the live site.</p>
           </section>
@@ -465,7 +463,7 @@ function CountdownDisplay({ targetDate, accentColor }: { targetDate: string; acc
   const minutes = Math.floor((diff / (1000 * 60)) % 60);
   const seconds = Math.floor((diff / 1000) % 60);
 
-  if (diff <= 0) return <span style={{ color: accentColor }}>🎉 Today is the day!</span>;
+  if (diff <= 0) return <span style={{ color: accentColor }}>Today is the day!</span>;
 
   const unitStyle: React.CSSProperties = {
     display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
@@ -495,7 +493,7 @@ export default function PreviewPage() {
     <Suspense
       fallback={
         <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ color: '#8c8c8c' }}>Loading preview…</p>
+          <p style={{ color: '#9A9488' }}>Loading preview…</p>
         </div>
       }
     >

@@ -39,7 +39,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
     if (open && messages.length === 0) {
       setMessages([{
         role: 'couple',
-        text: `Hey!! 👋 It's ${name1} & ${name2}. So excited you're here! Ask us anything about the wedding 💕`,
+        text: `Hey! It's ${name1} & ${name2}. So excited you're here! Ask us anything about the wedding.`,
       }]);
     }
     if (open) {
@@ -122,7 +122,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
               zIndex: 99,
               width: 'min(360px, calc(100vw - 3rem))',
               maxHeight: '520px',
-              background: '#fff',
+              background: '#F5F1E8',
               borderRadius: '1.5rem',
               boxShadow: '0 24px 80px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.08)',
               display: 'flex', flexDirection: 'column',
@@ -147,7 +147,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{name1} & {name2}</div>
                 <div style={{ fontSize: '0.65rem', opacity: 0.8 }}>
-                  {typing ? 'typing…' : 'Usually replies instantly ⚡'}
+                  {typing ? 'typing…' : 'Usually replies instantly'}
                 </div>
               </div>
               <button

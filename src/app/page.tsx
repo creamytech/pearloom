@@ -1,9 +1,13 @@
 'use client';
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Force dynamic rendering — this page uses useSession() which requires a live auth context.
+// Static prerendering would cause useSession() to return undefined and crash the build.
+export const dynamic = 'force-dynamic';
+
+// -------------------------------------------------------------
 // everglow / app/dashboard/page.tsx
-// Full wizard flow: Sign In â†’ Dashboard â†’ Select Photos â†’ Set Vibe â†’ Generate â†’ Edit â†’ Preview
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Full wizard flow: Sign In → Dashboard → Select Photos → Set Vibe → Generate → Edit → Preview
+// -------------------------------------------------------------
 
 import { useState, useCallback, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
@@ -22,7 +26,7 @@ import { UserSites } from '@/components/dashboard/user-sites';
 import type { GooglePhotoMetadata, StoryManifest, PhotoCluster } from '@/types';
 import { ClusterReview } from '@/components/dashboard/cluster-review';
 
-// Full-screen editor ”” SSR disabled (uses browser APIs + framer Reorder)
+// Full-screen editor -- SSR disabled (uses browser APIs + framer Reorder)
 const FullscreenEditor = dynamic(
   () => import('@/components/editor/FullscreenEditor').then(m => m.FullscreenEditor),
   { ssr: false }
@@ -44,7 +48,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that tell your story.', icon: Camera },
   'local-upload': { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.', icon: Camera },
   'cluster-review': { title: 'Where Were You?', subtitle: 'Add locations to each memory group for a richer story.', icon: Camera },
-  vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling ”” the AI will do the rest.', icon: Sparkles },
+  vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling -- the AI will do the rest.', icon: Sparkles },
   generating: { title: '', subtitle: '', icon: Sparkles },
   edit: { title: 'Your Story', subtitle: 'Review and edit. Make it perfect.', icon: Pencil },
   preview: { title: 'Preview', subtitle: 'See your site live before publishing.', icon: Eye },
@@ -52,7 +56,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
 };
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() ?? { data: null, status: 'loading' as const };
   const [currentStep, setCurrentStep] = useState<Step>(status === 'authenticated' ? 'dashboard' : 'auth');
   const [selectedPhotos, setSelectedPhotos] = useState<GooglePhotoMetadata[]>([]);
   const [coupleNames, setCoupleNames] = useState<[string, string]>(['', '']);
@@ -178,7 +182,7 @@ export default function DashboardPage() {
       console.log('[Publish] API response:', data);
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
 
-      console.log('[Publish] âœ“ Published! URL:', data.url);
+      console.log('[Publish] ✓ Published! URL:', data.url);
       setPublishedUrl(data.url);
     } catch (err: unknown) {
       console.error('[Publish] Error:', err);
@@ -190,7 +194,7 @@ export default function DashboardPage() {
 
   const meta = STEP_META[currentStep];
 
-  // â”€â”€ Full-screen editor takes over the entire viewport â”€â”€
+  // -- Full-screen editor takes over the entire viewport --
   if (currentStep === 'edit' && manifest) {
     return (
       <FullscreenEditor
@@ -208,7 +212,7 @@ export default function DashboardPage() {
     <ThemeProvider theme={{
       name: 'pearloom-ivory',
       fonts: { heading: 'Playfair Display', body: 'Inter' },
-      colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+      colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
       borderRadius: '1rem',
     }}>
       <SiteNav
@@ -220,7 +224,7 @@ export default function DashboardPage() {
       />
       
       {/* Only unmount to landing on CONFIRMED unauthenticated.
-          Never on 'loading' ”” session revalidation mid-generation would
+          Never on 'loading' -- session revalidation mid-generation would
           destroy the component tree and cause React to crash with 'n is not a function'. */}
       {status === 'unauthenticated' ? (
         <LandingPage handleSignIn={handleSignIn} status={status} />
@@ -229,11 +233,11 @@ export default function DashboardPage() {
         minHeight: '100dvh',
         paddingTop: '8rem',
         paddingBottom: '5rem',
-        background: '#faf9f6',
+        background: '#F5F1E8',
       }}>
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: '500px',
-          background: 'linear-gradient(180deg, rgba(184,146,106,0.08) 0%, rgba(250,249,246,0) 100%)',
+          background: 'linear-gradient(180deg, rgba(163,177,138,0.08) 0%, rgba(245,241,232,0) 100%)',
           pointerEvents: 'none', zIndex: 0
         }} />
         <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem', position: 'relative', zIndex: 1 }}>
@@ -269,7 +273,7 @@ export default function DashboardPage() {
                           fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                           background: isActive ? 'var(--eg-accent)' : isDone ? 'var(--eg-accent-light)' : '#f5f5f5',
                           color: isActive ? '#fff' : isDone ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                          boxShadow: isActive ? '0 8px 20px rgba(184,146,106,0.35)' : 'none',
+                          boxShadow: isActive ? '0 8px 20px rgba(163,177,138,0.35)' : 'none',
                           transform: isActive ? 'scale(1.05)' : 'scale(1)'
                         }}
                       >
@@ -303,7 +307,7 @@ export default function DashboardPage() {
             position: 'relative',
             paddingTop: '1rem'
           }}>
-            {/* Step header ”” hidden during generating & dashboard */}
+            {/* Step header -- hidden during generating & dashboard */}
             {currentStep !== 'dashboard' && currentStep !== 'generating' && (
               <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
                 <h2 style={{
@@ -322,7 +326,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Error display ”” polished card */}
+            {/* Error display -- polished card */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -344,7 +348,7 @@ export default function DashboardPage() {
                   background: '#fef2f2', flexShrink: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '1.25rem',
-                }}>âš ï¸</div>
+                }}>⚠</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, color: '#b91c1c', fontSize: '0.9rem', marginBottom: '0.2rem' }}>Generation failed</div>
                   <div style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: 1.5 }}>{error}</div>
@@ -353,7 +357,7 @@ export default function DashboardPage() {
                   onClick={() => setError(null)}
                   style={{
                     padding: '0.5rem 1.25rem', borderRadius: '100px',
-                    background: '#1a1a1a', color: '#fff',
+                    background: '#2B2B2B', color: '#fff',
                     border: 'none', cursor: 'pointer',
                     fontSize: '0.82rem', fontWeight: 700,
                     letterSpacing: '0.04em', flexShrink: 0,
@@ -374,7 +378,7 @@ export default function DashboardPage() {
                 exit={{ opacity: 0, scale: 0.98, y: -10 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-              {/* â”€â”€ DASHBOARD â”€â”€ */}
+              {/* -- DASHBOARD -- */}
               {currentStep === 'dashboard' && (
                 <UserSites 
                   onStartNew={() => setCurrentStep('photos')}
@@ -391,7 +395,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* â”€â”€ PHOTOS â”€â”€ */}
+              {/* -- PHOTOS -- */}
               {currentStep === 'photos' && (
                 <div>
                   <PhotoBrowser
@@ -456,7 +460,7 @@ export default function DashboardPage() {
 
               )}
 
-              {/* â”€â”€ LOCAL UPLOAD â”€â”€ */}
+              {/* -- LOCAL UPLOAD -- */}
               {currentStep === 'local-upload' && (
                 <div style={{ paddingBottom: '2rem' }}>
                   <button
@@ -479,7 +483,7 @@ export default function DashboardPage() {
                   />
                 </div>
               )}
-              {/* â”€â”€ VIBE â”€â”€ */}
+              {/* -- VIBE -- */}
               {currentStep === 'vibe' && (
                 <div style={{ paddingBottom: '2rem' }}>
                   <button
@@ -502,14 +506,14 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* â”€â”€ GENERATING â”€â”€ */}
+              {/* -- GENERATING -- */}
               {currentStep === 'generating' && (
                 <GenerationProgress step={generationStep} />
               )}
 
-              {/* â”€â”€ EDIT \u2014 handled by FullscreenEditor (early return above) â”€â”€ */}
+              {/* -- EDIT \u2014 handled by FullscreenEditor (early return above) -- */}
 
-              {/* â”€â”€ GUESTS â”€â”€ */}
+              {/* -- GUESTS -- */}
               {currentStep === 'guests' && subdomain && (
                 <div>
                   <button
@@ -528,7 +532,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* â”€â”€ PREVIEW â”€â”€ */}
+              {/* -- PREVIEW -- */}
               {currentStep === 'preview' && manifest && (
                 <div>
                   <button
@@ -573,7 +577,7 @@ export default function DashboardPage() {
                     />
                   </div>
 
-                  {/* â”€â”€ PUBLISH BUTTON (from preview) â”€â”€ */}
+                  {/* -- PUBLISH BUTTON (from preview) -- */}
                   <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
                     <button
                       onClick={() => {
@@ -600,7 +604,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* â”€â”€ GLOBAL PUBLISH MODAL â”€â”€ Works from both edit and preview steps */}
+        {/* -- GLOBAL PUBLISH MODAL -- Works from both edit and preview steps */}
         {showPublishModal && (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -636,7 +640,7 @@ export default function DashboardPage() {
                       color: '#fff', borderRadius: '2rem', textDecoration: 'none', marginTop: '0.5rem', fontWeight: 500
                     }}
                   >
-                    Open Your Site â†’
+                    Open Your Site →
                   </a>
                   <a
                     href={`/rsvps?domain=${subdomain}`}
@@ -659,7 +663,7 @@ export default function DashboardPage() {
                 <>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>Choose your URL</h2>
                   <p style={{ color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>
-                    We&apos;ve pre-filled a unique URL ”” customize it below.
+                    We&apos;ve pre-filled a unique URL -- customize it below.
                   </p>
                   <p style={{ color: 'var(--eg-muted)', fontSize: '0.8rem', marginBottom: '2rem', opacity: 0.7 }}>
                     You can upgrade to a full custom domain later.
@@ -679,7 +683,7 @@ export default function DashboardPage() {
                       style={{ flex: 1, padding: '1rem', fontSize: '1rem', border: 'none', outline: 'none' }}
                       disabled={isPublishing}
                       autoFocus
-                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = '#b8926a'; }}
+                      onFocus={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = '#A3B18A'; }}
                       onBlur={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
                     />
                     <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>

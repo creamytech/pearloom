@@ -104,8 +104,8 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                           style={{ 
                             display: 'inline-block',
                             padding: '0.5rem 1rem', 
-                            background: 'var(--eg-accent-light, #f3e8d8)', 
-                            color: 'var(--eg-accent, #b8926a)',
+                            background: 'var(--eg-accent-light, #EEE8DC)', 
+                            color: 'var(--eg-accent, #A3B18A)',
                             borderRadius: '0.5rem',
                             fontWeight: 500,
                             textDecoration: 'none'

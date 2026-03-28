@@ -286,7 +286,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             style={{
               ...btnPrimaryStyle,
               background: 'var(--eg-accent)',
-              boxShadow: '0 4px 14px rgba(184,146,106,0.35)',
+              boxShadow: '0 4px 14px rgba(163,177,138,0.35)',
             }}
           >
             <Check size={16} /> I&apos;m Done — Load My Photos
@@ -331,7 +331,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <Clock size={32} color="#d97706" />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#1a1a1a' }}>
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#2B2B2B' }}>
           Session Timed Out
         </h3>
         <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
@@ -353,7 +353,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <AlertCircle size={32} color="#dc2626" />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#1a1a1a' }}>
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#2B2B2B' }}>
           Connection Error
         </h3>
         <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
@@ -455,7 +455,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                   position: 'relative', aspectRatio: '1', borderRadius: '0.75rem', overflow: 'hidden', cursor: 'pointer', padding: 0,
                   border: isSelected ? '3px solid var(--eg-accent)' : '3px solid transparent',
                   transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: isSelected ? '0 8px 24px rgba(184,146,106,0.3)' : '0 2px 10px rgba(0,0,0,0.05)',
+                  boxShadow: isSelected ? '0 8px 24px rgba(163,177,138,0.3)' : '0 2px 10px rgba(0,0,0,0.05)',
                   transform: isSelected ? 'translateY(-2px)' : 'none',
                 }}
               >
@@ -471,7 +471,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      style={{ position: 'absolute', inset: 0, background: 'rgba(184,146,106,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ position: 'absolute', inset: 0, background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: 'var(--eg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
                         <Check size={16} color="#fff" strokeWidth={3} />

@@ -88,37 +88,50 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
       {/* Editorial Image Stack */}
       <div style={{ flex: '0 0 44%', position: 'relative', minHeight: '620px' }} className="max-md:w-full max-md:min-h-[380px]">
         {mainImage && (
-          <motion.div style={{
-            position: 'absolute',
-            width: secondImage ? '80%' : '100%',
-            aspectRatio: '3/4',
-            borderRadius: '3px',
-            overflow: 'hidden',
-            zIndex: 2,
-            y: imgY1,
-            left: isEven ? 0 : 'auto',
-            right: isEven ? 'auto' : 0,
-            boxShadow: '0 40px 80px rgba(0,0,0,0.12), 0 10px 20px rgba(0,0,0,0.06)',
-          }}>
-            <img src={proxyUrl(mainImage, 1200, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <motion.div
+            whileHover={{ scale: 1.018 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: 'absolute',
+              width: secondImage ? '80%' : '100%',
+              aspectRatio: '3/4',
+              borderRadius: '6px',
+              overflow: 'hidden',
+              zIndex: 2,
+              y: imgY1,
+              left: isEven ? 0 : 'auto',
+              right: isEven ? 'auto' : 0,
+              boxShadow: '0 40px 80px rgba(0,0,0,0.14), 0 10px 20px rgba(0,0,0,0.06)',
+              cursor: 'default',
+            }}>
+            <img src={proxyUrl(mainImage, 1200, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s cubic-bezier(0.16,1,0.3,1)' }}
+              onMouseOver={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+            />
           </motion.div>
         )}
         {secondImage && (
-          <motion.div style={{
-            position: 'absolute',
-            width: '58%',
-            aspectRatio: '4/5',
-            borderRadius: '3px',
-            overflow: 'hidden',
-            zIndex: 1,
-            y: imgY2,
-            right: isEven ? 0 : 'auto',
-            left: isEven ? 'auto' : 0,
-            top: '12%',
-            boxShadow: '0 25px 50px rgba(0,0,0,0.08)',
-            filter: 'grayscale(18%) brightness(0.97)',
-          }}>
-            <img src={proxyUrl(secondImage, 800, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: 'absolute',
+              width: '58%',
+              aspectRatio: '4/5',
+              borderRadius: '6px',
+              overflow: 'hidden',
+              zIndex: 1,
+              y: imgY2,
+              right: isEven ? 0 : 'auto',
+              left: isEven ? 'auto' : 0,
+              top: '12%',
+              boxShadow: '0 25px 50px rgba(0,0,0,0.1)',
+              filter: 'grayscale(22%) brightness(0.96)',
+            }}>
+            <img src={proxyUrl(secondImage, 800, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s cubic-bezier(0.16,1,0.3,1)' }}
+              onMouseOver={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+            />
           </motion.div>
         )}
       </div>
@@ -300,8 +313,11 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
       viewport={{ once: true }}
       transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div style={{ flex: '0 0 55%', height: '640px', position: 'relative', zIndex: 1, borderRadius: '6px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.1)' }} className="max-md:w-full max-md:h-[380px]">
-        {mainImage && <img src={proxyUrl(mainImage, 1400, 1100)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.8s ease' }} />}
+      <div style={{ flex: '0 0 55%', height: '640px', position: 'relative', zIndex: 1, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 30px 70px rgba(0,0,0,0.12)' }} className="max-md:w-full max-md:h-[380px]">
+        {mainImage && <img src={proxyUrl(mainImage, 1400, 1100)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.9s cubic-bezier(0.16,1,0.3,1)' }}
+          onMouseOver={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+          onMouseOut={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+        />}
       </div>
 
       <div style={{
@@ -377,18 +393,27 @@ function GalleryLayout({ chapter }: TimelineItemProps) {
           width: '100%',
         }} className="max-md:flex max-md:flex-col">
           {images[0] && (
-            <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '4px', background: 'var(--eg-accent-light)' }}>
-              <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }} />
+            <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)' }}>
+              <img src={proxyUrl(images[0].url, 1400, 1000)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)' }}
+                onMouseOver={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+              />
             </div>
           )}
           {images[1] && (
-            <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '4px', background: 'var(--eg-accent-light)' }}>
-              <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }} />
+            <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)' }}>
+              <img src={proxyUrl(images[1].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)' }}
+                onMouseOver={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+              />
             </div>
           )}
           {images[2] && (
-            <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '4px', background: 'var(--eg-accent-light)' }}>
-              <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }} />
+            <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)' }}>
+              <img src={proxyUrl(images[2].url, 800, 600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1)' }}
+                onMouseOver={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+              />
             </div>
           )}
         </div>

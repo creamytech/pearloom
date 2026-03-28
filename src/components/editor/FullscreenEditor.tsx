@@ -9,12 +9,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import {
-  ArrowLeft, Plus, Trash2, Sparkles, Loader2,
-  Globe, Monitor, Tablet, Smartphone, GripVertical,
-  Image, Calendar, Upload, X, Camera, LayoutTemplate,
-  Eye, Settings, AlignLeft, Palette, Heart, MapPin, Clock, ChevronDown,
-  MessageCircleHeart, Search,
+  Plus, Trash2, Sparkles, Loader2,
+  Globe, Monitor, Tablet, Smartphone,
+  Image, Calendar, Upload, X, Camera,
+  Heart, MapPin, Clock, ChevronDown,
 } from 'lucide-react';
+import {
+  SectionsIcon, StoryIcon, EventsIcon, DesignIcon, DetailsIcon,
+  AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
+  UndoIcon, RedoIcon, CommandIcon, GripIcon, SavedIcon, UnsavedIcon,
+} from '@/components/icons/EditorIcons';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent, FaqItem, HotelBlock, TravelInfo } from '@/types';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
@@ -113,7 +117,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
       onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(184,146,106,0.8)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
     >
-      <GripVertical size={14} />
+      <GripIcon size={14} />
     </div>
   );
 }
@@ -533,7 +537,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
   const delHotel = (i: number) =>
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
 
-  const Section = ({ id, label, emoji, children }: { id: typeof openSection; label: string; emoji: string; children: React.ReactNode }) => (
+  const Section = ({ id, label, children }: { id: typeof openSection; label: string; emoji?: string; children: React.ReactNode }) => (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <button
         onClick={() => setOpenSection(openSection === id ? 'logistics' : id)}
@@ -544,7 +548,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         }}
       >
         <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          {emoji} {label}
+          {label}
         </span>
         <ChevronDown size={12} style={{ transform: openSection === id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
@@ -554,14 +558,14 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-      <Section id="logistics" label="Logistics" emoji="📅">
+      <Section id="logistics" label="Logistics">
         <Field label="Wedding Date" value={logistics.date || ''} onChange={v => upd({ date: v })} placeholder="2025-09-14" />
         <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
         <Field label="Venue" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
         <Field label="RSVP Deadline" value={logistics.rsvpDeadline || ''} onChange={v => upd({ rsvpDeadline: v })} placeholder="2025-08-01" />
       </Section>
 
-      <Section id="travel" label="Travel & Hotels" emoji="✈️">
+      <Section id="travel" label="Travel & Hotels">
         <div>
           <label style={lbl}>Airports (one per line)</label>
           <textarea
@@ -606,7 +610,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         ))}
       </Section>
 
-      <Section id="faq" label="FAQ" emoji="❓">
+      <Section id="faq" label="FAQ">
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'rgba(184,146,106,0.18)', color: '#b8926a', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
@@ -628,7 +632,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         {faqs.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
       </Section>
 
-      <Section id="registry" label="Registry" emoji="🎁">
+      <Section id="registry" label="Registry">
         <Field label="Cash Fund URL (optional)" value={manifest.registry?.cashFundUrl || ''} onChange={v => updRegistry({ cashFundUrl: v })} placeholder="https://hitchd.com/..." />
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We're saving for our honeymoon!" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
@@ -655,7 +659,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
         {entries.length === 0 && <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
       </Section>
 
-      <Section id="vibe" label="Site Vibe" emoji="✨">
+      <Section id="vibe" label="Site Vibe">
         <div>
           <label style={lbl}>Vibe String</label>
           <textarea
@@ -687,13 +691,13 @@ interface PresetPage {
 }
 
 const ALL_SITE_PAGES: PresetPage[] = [
-  { id: 'home',     slug: '',         label: 'Home',     icon: '🏠', alwaysOn: true,  occasions: ['wedding', 'anniversary', 'engagement', 'birthday', 'story'] },
-  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '📅', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '💌', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '✈️', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '🏛️', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'registry', slug: 'registry', label: 'Registry', icon: '🎁', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '❓', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'home',     slug: '',         label: 'Home',     icon: '', alwaysOn: true,  occasions: ['wedding', 'anniversary', 'engagement', 'birthday', 'story'] },
+  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'registry', slug: 'registry', label: 'Registry', icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'faq',      slug: 'faq',      label: 'FAQ',      icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
 ];
 
 function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest; subdomain: string; onChange: (m: StoryManifest) => void }) {
@@ -718,7 +722,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
       id: `page-${Date.now()}`,
       slug,
       title: newPageTitle.trim(),
-      icon: '📄',
+      icon: '',
       blocks: [
         { id: `b-text-${Date.now()}`, type: 'text' as const, order: 0, visible: true },
       ],
@@ -810,7 +814,6 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
             background: isActive ? 'rgba(184,146,106,0.1)' : 'rgba(255,255,255,0.03)',
             border: `1px solid ${isActive ? 'rgba(184,146,106,0.3)' : 'rgba(255,255,255,0.06)'}`,
           }}>
-            <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{page.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? '#fff' : 'rgba(255,255,255,0.35)' }}>{page.label}</div>
               {subdomain && <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
@@ -838,7 +841,6 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
               background: 'rgba(184,146,106,0.08)',
               border: '1px solid rgba(184,146,106,0.2)',
             }}>
-              <span style={{ fontSize: '0.9rem', flexShrink: 0 }}>{page.icon}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
                 <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.15)', marginTop: '1px' }}>{baseUrl}/{page.slug}</div>
@@ -864,7 +866,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
 
       <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(184,146,106,0.06)', borderRadius: '8px', border: '1px dashed rgba(184,146,106,0.2)' }}>
         <p style={{ fontSize: '0.68rem', color: 'rgba(184,146,106,0.7)', lineHeight: 1.5, margin: 0 }}>
-          💡 To activate built-in pages, add content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: '#b8926a' }}>Canvas</strong> tab.
+          To activate built-in pages, add content in the <strong style={{ color: '#b8926a' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: '#b8926a' }}>Canvas</strong> tab.
         </p>
       </div>
     </div>
@@ -1167,7 +1169,8 @@ Return JSON with: title, subtitle, description, mood`,
   }, [chapters, manifest, updateChapter]);
 
   const TAB_ICONS: Record<EditorTab, React.ElementType> = {
-    story: AlignLeft, events: Calendar, canvas: LayoutTemplate, design: Palette, details: Settings, pages: Globe, blocks: Sparkles, voice: MessageCircleHeart,
+    canvas: SectionsIcon, story: StoryIcon, events: EventsIcon, design: DesignIcon,
+    details: DetailsIcon, pages: Globe, blocks: AIBlocksIcon, voice: VoiceIcon,
   };
 
   return (
@@ -1206,7 +1209,7 @@ Return JSON with: title, subtitle, description, mood`,
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
           onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
         >
-          <ArrowLeft size={14} /> Exit
+          <ExitIcon size={14} /> Exit
         </button>
 
         {/* Site name + Cmd+K search trigger */}
@@ -1228,7 +1231,7 @@ Return JSON with: title, subtitle, description, mood`,
             onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}
           >
-            <Search size={11} />
+            <CommandIcon size={11} />
             <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
           </button>
           <span style={{
@@ -1244,19 +1247,22 @@ Return JSON with: title, subtitle, description, mood`,
         <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           <button
             onClick={undo} disabled={!canUndo} title="Undo"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', fontSize: '0.75rem', fontWeight: 700 }}
-          >↩</button>
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
+          ><UndoIcon size={14} /></button>
           <button
             onClick={redo} disabled={!canRedo} title="Redo"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', fontSize: '0.75rem', fontWeight: 700 }}
-          >↪</button>
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
+          ><RedoIcon size={14} /></button>
           <span style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
             fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.08em',
             color: saveState === 'saved' ? '#4ade80' : '#facc15',
             background: saveState === 'saved' ? 'rgba(74,222,128,0.1)' : 'rgba(250,204,21,0.1)',
             padding: '3px 8px', borderRadius: '100px', transition: 'all 0.3s',
           }}>
-            {saveState === 'saved' ? '✓ Saved' : '● Unsaved'}
+            {saveState === 'saved'
+              ? <><SavedIcon size={12} color="#4ade80" /> Saved</>
+              : <><UnsavedIcon size={12} color="#facc15" /> Unsaved</>}
           </span>
         </div>
         {/* Device switcher — desktop only */}
@@ -1292,7 +1298,7 @@ Return JSON with: title, subtitle, description, mood`,
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
             }}
           >
-            <Eye size={13} /> Preview
+            <PreviewIcon size={13} /> Preview
           </button>
           {/* Publish */}
           <button
@@ -1306,7 +1312,7 @@ Return JSON with: title, subtitle, description, mood`,
               transition: 'all 0.2s',
             }}
           >
-            <Globe size={13} /> Publish
+            <PublishIcon size={13} /> Publish
           </button>
         </div>
       </div>
@@ -1524,7 +1530,7 @@ Return JSON with: title, subtitle, description, mood`,
               minHeight: '52px',
             }}
           >
-            <Eye size={16} /> Preview
+            <PreviewIcon size={16} /> Preview
           </button>
           <button
             onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
@@ -1537,7 +1543,7 @@ Return JSON with: title, subtitle, description, mood`,
               minHeight: '52px',
             }}
           >
-            <Globe size={16} /> Publish
+            <PublishIcon size={16} /> Publish
           </button>
         </div>
       )}

@@ -43,7 +43,7 @@ const PARTICLE_CONFIGS: Record<VibeSkin['particle'], {
     count: 16, speed: 0.35, drift: 0.5, spin: false,
   },
   leaves: {
-    symbols: ['✿', '❧', '⚘', '🌿', '❦'],
+    symbols: ['✿', '❧', '⚘', '✾', '❦'],
     colors: ['#a8d5a2', '#7ec07a', '#b8ddb4', '#90c98c', '#c5e5c0'],
     count: 14, speed: 0.45, drift: 1.1, spin: true,
   },

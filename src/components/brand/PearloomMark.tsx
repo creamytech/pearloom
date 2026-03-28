@@ -23,7 +23,7 @@ interface PearloomMarkProps {
  */
 export function PearloomMark({
   size = 40,
-  color = '#b8926a',
+  color = '#A3B18A',
   color2,
   animated = false,
   className,
@@ -91,8 +91,8 @@ export function PearloomMark({
  */
 export function PearloomWordmark({
   size = 120,
-  color = '#b8926a',
-  textColor = '#1a1a1a',
+  color = '#A3B18A',
+  textColor = '#2B2B2B',
   style,
 }: {
   size?: number;
@@ -126,7 +126,7 @@ export function FloatingThread({
   size = 60,
   delay = 0,
   opacity = 0.2,
-  color = '#b8926a',
+  color = '#A3B18A',
 }: {
   x: string;
   y: string;
@@ -166,8 +166,8 @@ export function FloatingThread({
  */
 export function WovenCircle({
   size = 52,
-  color = 'rgba(184,146,106,0.1)',
-  borderColor = 'rgba(184,146,106,0.25)',
+  color = 'rgba(163,177,138,0.1)',
+  borderColor = 'rgba(163,177,138,0.25)',
   children,
   style,
 }: {

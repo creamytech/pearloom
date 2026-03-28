@@ -31,8 +31,8 @@ export async function generateMetadata(
   const names = Array.isArray(siteConfig.names) ? siteConfig.names : ['Together', 'Forever'];
   const title = names.map((n: string) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
   const tagline = siteConfig.tagline || 'A love story beautifully told.';
-  const accent = siteConfig.manifest?.theme?.colors?.accent || '#b8926a';
-  const bg = siteConfig.manifest?.theme?.colors?.background || '#1a1a1a';
+  const accent = siteConfig.manifest?.theme?.colors?.accent || '#A3B18A';
+  const bg = siteConfig.manifest?.theme?.colors?.background || '#2B2B2B';
   const coverPhoto = siteConfig.manifest?.chapters?.[0]?.images?.[0]?.url || '';
   const weddingDate = siteConfig.manifest?.logistics?.date || '';
   const [n1, n2] = names;
@@ -285,7 +285,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: pal.muted, fontSize: '1rem' }}>🎬 Video embed — add YouTube or Vimeo URL in Canvas config</span>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>Video embed — add YouTube or Vimeo URL in Canvas config</span>
                 </div>
               )}
             </div>
@@ -306,7 +306,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 />
               ) : (
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: pal.muted, fontSize: '1rem' }}>📍 Venue map — add address in Details</span>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>Venue map — add address in Details</span>
                 </div>
               )}
             </div>

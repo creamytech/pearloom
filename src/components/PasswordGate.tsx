@@ -54,8 +54,8 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
 
   const [name1, name2] = coupleNames;
   const motif = vibeSkin?.accentSymbol || '♡';
-  const accentColor = vibeSkin?.particleColor || '#b8926a';
-  const bgColor = '#faf9f6'; // ThemeProvider sets CSS vars; fallback here is safe
+  const accentColor = vibeSkin?.particleColor || '#A3B18A';
+  const bgColor = '#F5F1E8'; // ThemeProvider sets CSS vars; fallback here is safe
 
   return (
     <div style={{
@@ -79,7 +79,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
         {/* Lock icon */}
         <div style={{
           width: '56px', height: '56px', borderRadius: '50%',
-          background: `rgba(184,146,106,0.1)`,
+          background: `rgba(163,177,138,0.1)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 1.5rem',
         }}>
@@ -94,11 +94,11 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
         <h1 style={{
           fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem',
           fontWeight: 400, letterSpacing: '-0.02em',
-          color: '#1a1a1a', marginBottom: '0.5rem',
+          color: '#2B2B2B', marginBottom: '0.5rem',
         }}>
           {name1} & {name2}
         </h1>
-        <p style={{ color: '#8c8c8c', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: 1.6 }}>
+        <p style={{ color: '#9A9488', fontSize: '0.9rem', marginBottom: '2rem', lineHeight: 1.6 }}>
           This site is private. Enter the password to view.
         </p>
 
@@ -126,7 +126,7 @@ export function PasswordGate({ siteId, coupleNames, password, vibeSkin, children
               onClick={() => setShowPw(p => !p)}
               style={{
                 position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', cursor: 'pointer', color: '#8c8c8c', display: 'flex',
+                background: 'none', border: 'none', cursor: 'pointer', color: '#9A9488', display: 'flex',
               }}
             >
               {showPw ? <EyeOff size={16} /> : <Eye size={16} />}

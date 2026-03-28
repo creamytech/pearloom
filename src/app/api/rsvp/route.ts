@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       songRequest,
       message,
       selectedEvents,
+      mailingAddress,
     } = body;
 
     if (!siteId || !guestName) {
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
           song_request: songRequest || null,
           message: message || null,
           event_ids: selectedEvents || [],
+          mailing_address: mailingAddress || null,
           responded_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
         },

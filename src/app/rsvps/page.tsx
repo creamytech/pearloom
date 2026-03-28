@@ -12,8 +12,8 @@ export default async function RsvpManagementPage({ searchParams }: { searchParam
   
   if (!domain) {
     return (
-      <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center">
-        <p className="text-[#8c8c8c]">No domain provided. Go back to your dashboard to view RSVPs.</p>
+      <div className="min-h-screen bg-[#F5F1E8] flex items-center justify-center">
+        <p className="text-[#9A9488]">No domain provided. Go back to your dashboard to view RSVPs.</p>
       </div>
     );
   }
@@ -41,42 +41,42 @@ export default async function RsvpManagementPage({ searchParams }: { searchParam
     <ThemeProvider theme={{
       name: 'pearloom-ivory',
       fonts: { heading: 'Playfair Display', body: 'Inter' },
-      colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: '#b8926a', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+      colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
       borderRadius: '1rem',
     }}>
       <SiteNav names={['Pearloom', 'Dashboard']} pages={[]} />
 
       <main className="max-w-4xl mx-auto py-12 px-6">
         <div className="flex items-center gap-4 mb-10">
-          <div className="w-12 h-12 rounded-full bg-[#f3e8d8] flex items-center justify-center text-[#b8926a]">
+          <div className="w-12 h-12 rounded-full bg-[#EEE8DC] flex items-center justify-center text-[#A3B18A]">
             <Ticket size={24} />
           </div>
           <div>
             <h1 className="text-4xl font-semibold" style={{ fontFamily: 'var(--eg-font-heading)' }}>Guest RSVPs</h1>
-            <p className="text-[#8c8c8c] text-sm mt-1">Manage attendees for <span className="font-semibold text-[#1a1a1a]">{domain}.pearloom.app</span></p>
+            <p className="text-[#9A9488] text-sm mt-1">Manage attendees for <span className="font-semibold text-[#2B2B2B]">{domain}.pearloom.app</span></p>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           <div className="bg-[#ffffff] border border-black/5 p-6 rounded-2xl flex items-center gap-4">
-            <Users size={32} className="text-[#b8926a]" />
+            <Users size={32} className="text-[#A3B18A]" />
             <div>
-              <p className="text-sm text-[#8c8c8c] font-medium uppercase tracking-wider">Total Responses</p>
+              <p className="text-sm text-[#9A9488] font-medium uppercase tracking-wider">Total Responses</p>
               <p className="text-3xl font-semibold" style={{ fontFamily: 'var(--eg-font-heading)' }}>{list.length}</p>
             </div>
           </div>
           <div className="bg-[#ffffff] border border-black/5 p-6 rounded-2xl flex items-center gap-4">
             <CheckCircle2 size={32} className="text-emerald-500" />
             <div>
-              <p className="text-sm text-[#8c8c8c] font-medium uppercase tracking-wider">Attending</p>
+              <p className="text-sm text-[#9A9488] font-medium uppercase tracking-wider">Attending</p>
               <p className="text-3xl font-semibold text-emerald-600" style={{ fontFamily: 'var(--eg-font-heading)' }}>{attending.length}</p>
             </div>
           </div>
           <div className="bg-[#ffffff] border border-black/5 p-6 rounded-2xl flex items-center gap-4">
             <XCircle size={32} className="text-rose-400" />
             <div>
-              <p className="text-sm text-[#8c8c8c] font-medium uppercase tracking-wider">Declined</p>
+              <p className="text-sm text-[#9A9488] font-medium uppercase tracking-wider">Declined</p>
               <p className="text-3xl font-semibold text-rose-500" style={{ fontFamily: 'var(--eg-font-heading)' }}>{declined.length}</p>
             </div>
           </div>
@@ -86,24 +86,24 @@ export default async function RsvpManagementPage({ searchParams }: { searchParam
         <div className="bg-[#ffffff] border border-black/5 rounded-2xl overflow-hidden">
           {list.length === 0 ? (
             <div className="py-20 text-center">
-              <FileText size={48} className="mx-auto text-[#8c8c8c]/30 mb-4" />
-              <p className="text-[#8c8c8c]">No guests have RSVP'd yet.</p>
+              <FileText size={48} className="mx-auto text-[#9A9488]/30 mb-4" />
+              <p className="text-[#9A9488]">No guests have RSVP'd yet.</p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-black/5 bg-[#faf9f6]">
-                  <th className="p-4 text-sm font-semibold text-[#1a1a1a]">Guest Name</th>
-                  <th className="p-4 text-sm font-semibold text-[#1a1a1a]">Status</th>
-                  <th className="p-4 text-sm font-semibold text-[#1a1a1a]">Email</th>
-                  <th className="p-4 text-sm font-semibold text-[#1a1a1a]">Dietary & Notes</th>
+                <tr className="border-b border-black/5 bg-[#F5F1E8]">
+                  <th className="p-4 text-sm font-semibold text-[#2B2B2B]">Guest Name</th>
+                  <th className="p-4 text-sm font-semibold text-[#2B2B2B]">Status</th>
+                  <th className="p-4 text-sm font-semibold text-[#2B2B2B]">Email</th>
+                  <th className="p-4 text-sm font-semibold text-[#2B2B2B]">Dietary & Notes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
                 {list.map((rsvp) => (
-                  <tr key={rsvp.id} className="hover:bg-[#faf9f6]/50 transition-colors">
+                  <tr key={rsvp.id} className="hover:bg-[#F5F1E8]/50 transition-colors">
                     <td className="p-4">
-                      <p className="font-semibold text-[#1a1a1a]">{rsvp.name}</p>
+                      <p className="font-semibold text-[#2B2B2B]">{rsvp.name}</p>
                     </td>
                     <td className="p-4">
                       {rsvp.attending ? (
@@ -116,8 +116,8 @@ export default async function RsvpManagementPage({ searchParams }: { searchParam
                         </span>
                       )}
                     </td>
-                    <td className="p-4 text-sm text-[#8c8c8c]">{rsvp.email}</td>
-                    <td className="p-4 text-sm text-[#8c8c8c]">
+                    <td className="p-4 text-sm text-[#9A9488]">{rsvp.email}</td>
+                    <td className="p-4 text-sm text-[#9A9488]">
                       {rsvp.dietary ? rsvp.dietary : <span className="opacity-40">—</span>}
                     </td>
                   </tr>

@@ -39,12 +39,12 @@ function calcTimeLeft(target: string): TimeLeft | null {
 
 export function CountdownBlock({
   targetDate,
-  accentColor = '#b8926a',
+  accentColor = '#A3B18A',
   headingFont = 'Playfair Display',
   bodyFont = 'Inter',
-  bgColor = '#ffffff',
-  fgColor = '#1a1a1a',
-  mutedColor = '#8c8c8c',
+  bgColor = '#F5F1E8',
+  fgColor = '#2B2B2B',
+  mutedColor = '#9A9488',
   label = 'Counting Down',
 }: CountdownBlockProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
@@ -80,7 +80,7 @@ export function CountdownBlock({
             color: accentColor,
           }}
         >
-          🎉 The day has arrived!
+          The day has arrived!
         </div>
       </section>
     );

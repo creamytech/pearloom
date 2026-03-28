@@ -48,6 +48,12 @@ export interface StoryManifest {
   backgroundPatternCss?: string;
   // User-created custom pages (photo gallery, our venue, etc.)
   customPages?: CustomPage[];
+  // Poetry pass — 4th AI generation pass: hero tagline, footer closing line, RSVP intro
+  poetry?: {
+    heroTagline: string;    // 5-8 word poetic subtitle for the hero section
+    closingLine: string;    // 10-15 word closing line for the footer
+    rsvpIntro: string;      // warm, personal 1-2 sentence intro for the RSVP section
+  };
 }
 
 export interface Chapter {

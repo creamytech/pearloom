@@ -10,12 +10,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
-  GripVertical, Plus, Eye, EyeOff, Trash2, Settings,
-  LayoutTemplate, AlignLeft, Calendar, Clock, Gift, Plane,
-  HelpCircle, Camera, BookOpen, MapPin, Quote, Film,
-  Minus, Heart, ChevronDown, ChevronRight, X,
-  Sparkles, Users,
+  Plus, Eye, EyeOff, Trash2,
+  ChevronDown, ChevronRight, X,
+  Sparkles,
 } from 'lucide-react';
+import {
+  BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,
+  BlockRsvpIcon, BlockRegistryIcon, BlockTravelIcon, BlockFaqIcon,
+  BlockPhotosIcon, BlockGuestbookIcon, BlockMapIcon, BlockQuoteIcon,
+  BlockTextIcon, BlockVideoIcon, BlockDividerIcon, GripIcon,
+} from '@/components/icons/EditorIcons';
 import type { StoryManifest, PageBlock, BlockType, WeddingEvent } from '@/types';
 
 // ── Block Catalogue ────────────────────────────────────────────
@@ -33,21 +37,21 @@ interface BlockDef {
 }
 
 const BLOCK_CATALOGUE: BlockDef[] = [
-  { type: 'hero',      label: 'Hero',              icon: LayoutTemplate, description: 'Full-screen hero with names & cover photo',  color: '#b8926a', occasions: ALL_OCCASIONS },
-  { type: 'story',     label: 'Our Story',         icon: AlignLeft,      description: 'Chapter timeline & photo narrative',          color: '#7c5cbf', occasions: ALL_OCCASIONS },
-  { type: 'event',     label: 'Event Cards',       icon: Calendar,       description: 'Ceremony, reception & event details',         color: '#e8927a', occasions: ['wedding', 'engagement'] },
-  { type: 'countdown', label: 'Countdown',         icon: Clock,          description: 'Live countdown to your big day',              color: '#4a9b8a', occasions: ['wedding', 'engagement', 'birthday'] },
-  { type: 'rsvp',      label: 'RSVP',              icon: Heart,          description: 'Guest RSVP form with meal preferences',       color: '#e87ab8', occasions: ['wedding', 'engagement', 'birthday'] },
-  { type: 'registry',  label: 'Registry',          icon: Gift,           description: 'Registry links & honeymoon fund',             color: '#c4774a', occasions: ['wedding', 'engagement', 'birthday'] },
-  { type: 'travel',    label: 'Travel & Hotels',   icon: Plane,          description: 'Hotels, airports & directions',               color: '#4a7a9b', occasions: ['wedding', 'engagement'] },
-  { type: 'faq',       label: 'FAQ',               icon: HelpCircle,     description: 'Common guest questions & answers',            color: '#8b7a4a', occasions: ['wedding', 'engagement'] },
-  { type: 'photos',    label: 'Photo Wall',        icon: Camera,         description: 'Guest photo gallery with uploads',            color: '#4a8b6a', occasions: ALL_OCCASIONS },
-  { type: 'guestbook', label: 'Guestbook',         icon: BookOpen,       description: 'Public guest wishes & AI highlights',         color: '#7a4a8b', occasions: ALL_OCCASIONS },
-  { type: 'map',       label: 'Map',               icon: MapPin,         description: 'Embedded venue map',                          color: '#4a6a8b', occasions: ['wedding', 'engagement', 'anniversary'] },
-  { type: 'quote',     label: 'Quote',             icon: Quote,          description: 'Romantic quote or vow snippet',               color: '#8b4a6a', occasions: ALL_OCCASIONS },
-  { type: 'text',      label: 'Text Block',        icon: AlignLeft,      description: 'Custom text section',                         color: '#6a8b4a', occasions: ALL_OCCASIONS },
-  { type: 'video',     label: 'Video',             icon: Film,           description: 'YouTube or Vimeo embed',                      color: '#4a4a8b', occasions: ALL_OCCASIONS },
-  { type: 'divider',   label: 'Divider',           icon: Minus,          description: 'Visual section separator',                    color: '#8b8b4a', occasions: ALL_OCCASIONS },
+  { type: 'hero',      label: 'Hero',              icon: BlockHeroIcon,      description: 'Full-screen hero with names & cover photo',  color: '#b8926a', occasions: ALL_OCCASIONS },
+  { type: 'story',     label: 'Our Story',         icon: BlockStoryIcon,     description: 'Chapter timeline & photo narrative',          color: '#7c5cbf', occasions: ALL_OCCASIONS },
+  { type: 'event',     label: 'Event Cards',       icon: BlockEventIcon,     description: 'Ceremony, reception & event details',         color: '#e8927a', occasions: ['wedding', 'engagement'] },
+  { type: 'countdown', label: 'Countdown',         icon: BlockCountdownIcon, description: 'Live countdown to your big day',              color: '#4a9b8a', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'rsvp',      label: 'RSVP',              icon: BlockRsvpIcon,      description: 'Guest RSVP form with meal preferences',       color: '#e87ab8', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'registry',  label: 'Registry',          icon: BlockRegistryIcon,  description: 'Registry links & honeymoon fund',             color: '#c4774a', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'travel',    label: 'Travel & Hotels',   icon: BlockTravelIcon,    description: 'Hotels, airports & directions',               color: '#4a7a9b', occasions: ['wedding', 'engagement'] },
+  { type: 'faq',       label: 'FAQ',               icon: BlockFaqIcon,       description: 'Common guest questions & answers',            color: '#8b7a4a', occasions: ['wedding', 'engagement'] },
+  { type: 'photos',    label: 'Photo Wall',        icon: BlockPhotosIcon,    description: 'Guest photo gallery with uploads',            color: '#4a8b6a', occasions: ALL_OCCASIONS },
+  { type: 'guestbook', label: 'Guestbook',         icon: BlockGuestbookIcon, description: 'Public guest wishes & AI highlights',         color: '#7a4a8b', occasions: ALL_OCCASIONS },
+  { type: 'map',       label: 'Map',               icon: BlockMapIcon,       description: 'Embedded venue map',                          color: '#4a6a8b', occasions: ['wedding', 'engagement', 'anniversary'] },
+  { type: 'quote',     label: 'Quote',             icon: BlockQuoteIcon,     description: 'Romantic quote or vow snippet',               color: '#8b4a6a', occasions: ALL_OCCASIONS },
+  { type: 'text',      label: 'Text Block',        icon: BlockTextIcon,      description: 'Custom text section',                         color: '#6a8b4a', occasions: ALL_OCCASIONS },
+  { type: 'video',     label: 'Video',             icon: BlockVideoIcon,     description: 'YouTube or Vimeo embed',                      color: '#4a4a8b', occasions: ALL_OCCASIONS },
+  { type: 'divider',   label: 'Divider',           icon: BlockDividerIcon,   description: 'Visual section separator',                    color: '#8b8b4a', occasions: ALL_OCCASIONS },
 ];
 
 const DEFAULT_BLOCKS: PageBlock[] = [
@@ -64,11 +68,11 @@ const DEFAULT_BLOCKS: PageBlock[] = [
 
 // ── Event-Type-Specific Fields ────────────────────────────────
 const EVENT_TYPES: Record<WeddingEvent['type'], {
-  label: string; emoji: string; color: string;
+  label: string; color: string;
   specificFields: Array<{ key: string; label: string; type: 'text' | 'select' | 'toggle' | 'number'; options?: string[] }>;
 }> = {
   ceremony: {
-    label: 'Ceremony', emoji: '💒', color: '#7c5cbf',
+    label: 'Ceremony', color: '#7c5cbf',
     specificFields: [
       { key: 'officiant',        label: 'Officiant name',      type: 'text' },
       { key: 'ceremonyLength',   label: 'Length (e.g. 30 min)', type: 'text' },
@@ -80,7 +84,7 @@ const EVENT_TYPES: Record<WeddingEvent['type'], {
     ],
   },
   reception: {
-    label: 'Reception', emoji: '🥂', color: '#e8927a',
+    label: 'Reception', color: '#e8927a',
     specificFields: [
       { key: 'cocktailHour',       label: 'Cocktail hour',          type: 'toggle' },
       { key: 'cocktailHourTime',   label: 'Cocktail hour time',     type: 'text' },
@@ -97,7 +101,7 @@ const EVENT_TYPES: Record<WeddingEvent['type'], {
     ],
   },
   rehearsal: {
-    label: 'Rehearsal Dinner', emoji: '🎭', color: '#4a9b8a',
+    label: 'Rehearsal Dinner', color: '#4a9b8a',
     specificFields: [
       { key: 'whoIsInvited',   label: 'Who is invited',     type: 'text' },
       { key: 'dinnerFollows',  label: 'Dinner follows',     type: 'toggle' },
@@ -106,21 +110,21 @@ const EVENT_TYPES: Record<WeddingEvent['type'], {
     ],
   },
   brunch: {
-    label: 'Farewell Brunch', emoji: '☕', color: '#c4774a',
+    label: 'Farewell Brunch', color: '#c4774a',
     specificFields: [
       { key: 'foodStyle',    label: 'Food style',       type: 'text' },
       { key: 'kidsWelcome',  label: 'Kids welcome',     type: 'toggle' },
     ],
   },
   'welcome-party': {
-    label: 'Welcome Party', emoji: '🎉', color: '#8b4a6a',
+    label: 'Welcome Party', color: '#8b4a6a',
     specificFields: [
       { key: 'foodStyle',    label: 'Food style',       type: 'text' },
       { key: 'kidsWelcome',  label: 'Kids welcome',     type: 'toggle' },
     ],
   },
   other: {
-    label: 'Custom Event', emoji: '🎊', color: '#6a8b4a',
+    label: 'Custom Event', color: '#6a8b4a',
     specificFields: [],
   },
 };
@@ -225,7 +229,7 @@ function EventBlockConfig({ events, onChange }: {
                 transition: 'all 0.15s',
               }}
             >
-              {def.emoji} {e.name}
+              {e.name}
             </button>
           );
         })}
@@ -244,7 +248,7 @@ function EventBlockConfig({ events, onChange }: {
             }}
             title={`Add ${def.label}`}
           >
-            + {def.emoji}
+            + {def.label}
           </button>
         ))}
       </div>
@@ -263,7 +267,6 @@ function EventBlockConfig({ events, onChange }: {
           <div style={{ background: `${def.color}10`, borderRadius: '12px', border: `1px solid ${def.color}30`, padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {/* Event type badge + name + delete */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <span style={{ fontSize: '1rem' }}>{def.emoji}</span>
               <span style={{ flex: 1, fontSize: '0.72rem', fontWeight: 800, color: def.color, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 {def.label}
               </span>
@@ -281,7 +284,7 @@ function EventBlockConfig({ events, onChange }: {
                 style={{ ...inp, color: '#fff' }}
               >
                 {Object.entries(EVENT_TYPES).map(([t, d]) => (
-                  <option key={t} value={t} style={{ background: '#1a1a18' }}>{d.emoji} {d.label}</option>
+                  <option key={t} value={t} style={{ background: '#1a1a18' }}>{d.label}</option>
                 ))}
               </select>
             </div>
@@ -382,7 +385,7 @@ function BlockRow({
     >
       {/* Drag handle */}
       <div style={{ cursor: 'grab', color: 'rgba(255,255,255,0.2)', display: 'flex', flexShrink: 0 }}>
-        <GripVertical size={14} />
+        <GripIcon size={14} />
       </div>
 
       {/* Icon */}
@@ -923,7 +926,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
       id: `page-${Date.now()}`,
       slug,
       title: newPageTitle.trim(),
-      icon: '📄',
+      icon: '',
       blocks: [
         { id: `b-text-${Date.now()}`, type: 'text' as BlockType, order: 0, visible: true },
       ],
@@ -968,11 +971,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
             }}
           >
             <option value="main" style={{ background: '#1a1a1a', color: '#fff' }}>
-              🏠 Main Page
+              Main Page
             </option>
             {customPages.map(p => (
               <option key={p.id} value={p.id} style={{ background: '#1a1a1a', color: '#fff' }}>
-                {p.icon} {p.title}
+                {p.title}
               </option>
             ))}
           </select>

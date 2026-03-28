@@ -16,11 +16,11 @@ export const defaultTheme: ThemeSchema = {
     body: 'Inter',
   },
   colors: {
-    background: '#faf9f6',
-    foreground: '#1a1a1a',
+    background: '#F5F1E8',
+    foreground: '#2B2B2B',
     accent: '#c9a87c',
     accentLight: '#f5ead6',
-    muted: '#8c8c8c',
+    muted: '#9A9488',
     cardBg: '#ffffff',
   },
   borderRadius: '0.5rem',
@@ -31,8 +31,8 @@ export const defaultTheme: ThemeSchema = {
  * These are injected into :root by the ThemeProvider.
  *
  * Example output:
- *   '--eg-bg': '#faf9f6'
- *   '--eg-fg': '#1a1a1a'
+ *   '--eg-bg': '#F5F1E8'
+ *   '--eg-fg': '#2B2B2B'
  *   '--eg-font-heading': 'Playfair Display, serif'
  */
 export function themeToCssVars(theme: ThemeSchema): Record<string, string> {

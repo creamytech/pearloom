@@ -133,7 +133,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
               style={{
                 background: '#fff',
                 borderRadius: '1rem',
-                border: hasLocation ? '1.5px solid rgba(184,146,106,0.35)' : '1.5px solid rgba(0,0,0,0.08)',
+                border: hasLocation ? '1.5px solid rgba(163,177,138,0.35)' : '1.5px solid rgba(0,0,0,0.08)',
                 overflow: 'hidden',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
                 transition: 'border-color 0.25s ease',
@@ -251,7 +251,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.35rem',
                           padding: '0.45rem 0.9rem', borderRadius: '100px',
-                          border: '1px solid rgba(0,0,0,0.1)', background: hasLocation ? 'rgba(184,146,106,0.08)' : '#f5f5f5',
+                          border: '1px solid rgba(0,0,0,0.1)', background: hasLocation ? 'rgba(163,177,138,0.08)' : '#f5f5f5',
                           color: hasLocation ? 'var(--eg-accent)' : 'var(--eg-muted)',
                           fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
                           transition: 'all 0.2s ease', flexShrink: 0,
