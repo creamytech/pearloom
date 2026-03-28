@@ -11,12 +11,12 @@ interface ShapeProps {
  * A gentle organic wave path evoking pear curves — used as a section break.
  * viewBox="0 0 1440 80"
  */
-export function PearSectionDivider({ color = 'currentColor', opacity = 1, className }: ShapeProps) {
+export function PearSectionDivider({ color = 'currentColor', opacity = 0.65, className }: ShapeProps) {
   return (
     <svg
       width="100%"
-      height="80"
-      viewBox="0 0 1440 80"
+      height="60"
+      viewBox="0 0 1440 60"
       preserveAspectRatio="none"
       fill={color}
       style={{ opacity, display: 'block' }}
@@ -24,19 +24,17 @@ export function PearSectionDivider({ color = 'currentColor', opacity = 1, classN
       aria-hidden="true"
     >
       {/*
-        Organic botanical wave — wider rounded bulges on one side (like the full bottom of a pear)
-        and tighter curves on the other (like the shoulder), not a symmetric sine wave.
+        Softened organic botanical wave — gentler amplitude, pear-inspired curves.
       */}
       <path d="
-        M0 40
-        C60 55, 130 65, 200 55
-        C280 44, 310 28, 400 32
-        C490 36, 520 60, 600 58
-        C680 56, 710 34, 800 30
-        C890 26, 940 52, 1020 56
-        C1100 60, 1130 38, 1220 36
-        C1300 34, 1360 50, 1440 48
-        L1440 80 L0 80 Z
+        M0 30
+        C80 44, 160 48, 240 40
+        C320 32, 360 20, 480 24
+        C600 28, 640 44, 720 42
+        C800 40, 840 26, 960 22
+        C1080 18, 1120 38, 1240 36
+        C1340 34, 1400 40, 1440 38
+        L1440 60 L0 60 Z
       " />
     </svg>
   );

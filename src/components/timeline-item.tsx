@@ -6,7 +6,7 @@
 // Layouts: editorial | fullbleed | split | cinematic | gallery | mosaic
 // ─────────────────────────────────────────────────────────────
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import type { Chapter } from '@/types';
 import { MoodDecorator } from '@/components/mood-decorator';
@@ -492,6 +492,13 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
   const isEven = index % 2 === 0;
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = chapter.images[0]?.url || '';
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   return (
     <>
@@ -518,7 +525,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
         {hasImages && mainImage && (
           <div
             style={{ flex: '0 0 50%', height: '660px', position: 'relative', zIndex: 1, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 30px 70px rgba(0,0,0,0.12)' }}
-            className="max-md:w-full max-md:h-[380px]"
+            className="max-md:w-full max-md:h-[320px] max-md:rounded-none"
           >
             <img
               src={proxyUrl(mainImage, 1400, 1100)}
@@ -533,17 +540,17 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
         {/* Story card — overlaps the photo */}
         <div style={{
           flex: 1,
-          padding: '3rem 4rem',
-          background: 'var(--eg-card-bg)',
+          padding: isMobile ? '2rem 1.5rem' : '3rem 4rem',
+          background: isMobile ? 'rgba(255,255,255,0.97)' : 'var(--eg-card-bg)',
           borderRadius: '8px',
           boxShadow: '0 25px 60px rgba(0,0,0,0.07)',
           position: 'relative',
           zIndex: 2,
-          marginLeft: hasImages && isEven ? '-5rem' : '0',
-          marginRight: hasImages && !isEven ? '-5rem' : '0',
-          marginTop: hasImages ? '2.5rem' : '0',
+          marginLeft: hasImages && isEven && !isMobile ? '-5rem' : '0',
+          marginRight: hasImages && !isEven && !isMobile ? '-5rem' : '0',
+          marginTop: hasImages && !isMobile ? '2.5rem' : '0',
           backdropFilter: 'blur(12px)',
-        }} className="max-md:m-0 max-md:-mt-12 max-md:mx-6 max-md:p-8">
+        }} className="max-md:relative max-md:z-10 max-md:mx-4 max-md:mt-0">
           {/* Ghost number */}
           <div style={{ position: 'relative' }}>
             <ChapterGhost number={index + 1} />

@@ -9,21 +9,26 @@
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 interface WaveDividerProps {
-  skin: VibeSkin;
-  fromColor: string;
-  toColor: string;
-  inverted?: boolean;
-  height?: number;
+  fromColor: string;   // background color of the section above
+  toColor: string;     // background color of the section below
+  skin?: VibeSkin;
+  height?: number;     // default 60, was 80
+  flip?: boolean;
+  opacity?: number;    // default 0.65
 }
 
 export function WaveDivider({
-  skin,
   fromColor,
   toColor,
-  inverted = false,
-  height = 80,
+  skin,
+  height = 60,
+  flip = false,
+  opacity = 0.65,
 }: WaveDividerProps) {
-  const path = inverted ? skin.wavePathInverted : skin.wavePath;
+  // Use vibe skin wave path if available, otherwise fall back to a gentle default
+  const basePath = skin
+    ? (flip ? skin.wavePathInverted : skin.wavePath)
+    : 'M0,40 C180,80 320,10 500,40 C680,70 820,10 1000,40 L1000,150 L0,150 Z';
 
   return (
     <div style={{
@@ -31,16 +36,18 @@ export function WaveDivider({
       width: '100%',
       height: `${height}px`,
       overflow: 'hidden',
-      background: toColor,
-      marginTop: `-${Math.floor(height * 0.6)}px`,
+      background: fromColor,
+      marginTop: `-${Math.floor(height * 0.5)}px`,
       zIndex: 5,
+      opacity,
     }}>
       <svg
         viewBox={`0 0 1000 ${height + 10}`}
         preserveAspectRatio="none"
         style={{ position: 'absolute', bottom: 0, width: '100%', height: '100%' }}
+        aria-hidden="true"
       >
-        <path d={path} fill={fromColor} />
+        <path d={basePath} fill={toColor} />
       </svg>
     </div>
   );
