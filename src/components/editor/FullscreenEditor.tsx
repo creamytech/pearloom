@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { PreviewPane } from './PreviewPane';
 import { PhotoReposition } from './PhotoReposition';
+import { EditorSidebar } from './EditorSidebar';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon, DetailsIcon,
   AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
@@ -1281,6 +1282,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   );
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id || null);
   const [activeTab, setActiveTab] = useState<EditorTab>('canvas');
+  const [sidebarWidth, setSidebarWidth] = useState(380);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sectionOverridesMap, setSectionOverridesMap] = useState<Record<string, SectionStyleOverrides>>({});
   // Mobile: which panel is open as a bottom sheet
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
@@ -1366,6 +1369,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (mod && e.key === 'y') {
         e.preventDefault();
         redo();
+      }
+      // Cmd+\ toggles sidebar
+      if (mod && e.key === '\\') {
+        e.preventDefault();
+        setSidebarCollapsed(prev => !prev);
       }
     };
     window.addEventListener('keydown', handler);
