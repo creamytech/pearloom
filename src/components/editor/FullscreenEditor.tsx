@@ -78,16 +78,17 @@ function slugDate(iso: string) {
 
 // ── Label/Input shared styles ──────────────────────────────────
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.6rem', fontWeight: 800,
-  letterSpacing: '0.16em', textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.35)', marginBottom: '0.45rem',
+  display: 'block', fontSize: '0.82rem', fontWeight: 700,
+  letterSpacing: '0.1em', textTransform: 'uppercase',
+  color: 'var(--eg-muted, #9A9488)', marginBottom: '0.5rem',
 };
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.65rem 0.8rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.05)',
-  color: '#fff', fontSize: 'max(16px, 0.85rem)', outline: 'none', fontFamily: 'inherit',
+  border: '1px solid var(--eg-divider, #E6DFD2)', background: 'rgba(255,255,255,0.8)',
+  color: 'var(--eg-fg, #2B2B2B)', fontSize: 'max(16px, 0.88rem)', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
+  minHeight: '38px',
 };
 
 function Field({ label, value, onChange, rows, placeholder }: {
@@ -204,8 +205,8 @@ function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label
     >
       <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{emoji}</span>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: '0.73rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', lineHeight: 1.2 }}>{label}</div>
-        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
       </div>
       <div style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem', flexShrink: 0 }}>⠿</div>
     </div>
@@ -278,13 +279,13 @@ function SectionItem({
           {/* Labels */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: '0.75rem', fontWeight: 700, color: isActive ? 'rgba(184,146,106,1)' : 'rgba(255,255,255,0.85)',
+              fontSize: '0.85rem', fontWeight: 700, color: isActive ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.9)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               lineHeight: 1.3,
             }}>
               {chapter.title || 'Untitled'}
             </div>
-            <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
+            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
               Ch. {index + 1} · {slugDate(chapter.date)}
             </div>
           </div>
@@ -404,10 +405,10 @@ function ImageManager({
           disabled={uploading}
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 10px', borderRadius: '5px', border: '1px solid rgba(184,146,106,0.3)',
-            background: 'rgba(184,146,106,0.1)', color: '#b8926a',
-            fontSize: '0.68rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
-            opacity: uploading ? 0.6 : 1,
+            padding: '5px 12px', borderRadius: '5px', border: '1px solid rgba(163,177,138,0.4)',
+            background: 'rgba(163,177,138,0.15)', color: 'var(--eg-accent, #A3B18A)',
+            fontSize: '0.82rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
+            opacity: uploading ? 0.6 : 1, minHeight: '32px',
           }}
         >
           {uploading
