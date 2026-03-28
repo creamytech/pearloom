@@ -34,6 +34,79 @@ const FullscreenEditor = nextDynamic(
 
 type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'cluster-review' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
 
+function PhotosStep({
+  selectedPhotos,
+  onPhotosSelected,
+  onContinue,
+  onLocalUpload,
+}: {
+  selectedPhotos: GooglePhotoMetadata[];
+  onPhotosSelected: (photos: GooglePhotoMetadata[]) => void;
+  onContinue: () => void;
+  onLocalUpload: () => void;
+}) {
+  const [attemptedContinue, setAttemptedContinue] = useState(false);
+
+  const handleContinue = () => {
+    if (selectedPhotos.length === 0) {
+      setAttemptedContinue(true);
+      return;
+    }
+    onContinue();
+  };
+
+  return (
+    <div>
+      <PhotoBrowser
+        onSelectionChange={onPhotosSelected}
+        maxSelection={30}
+      />
+
+      <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+        <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+          Google Photos refusing to sync?
+        </p>
+        <button
+          onClick={onLocalUpload}
+          style={{
+            padding: '0.75rem 2rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.1)',
+            background: '#ffffff', color: 'var(--eg-fg)', fontSize: '0.95rem',
+            fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+          }}
+        >
+          Bypass API and Upload Locally
+        </button>
+      </div>
+
+      <div style={{ position: 'sticky', bottom: '1rem', marginTop: '2rem' }}>
+        <button
+          onClick={handleContinue}
+          disabled={selectedPhotos.length === 0}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '0.5rem', padding: '1rem 1.5rem', borderRadius: '0.75rem',
+            background: selectedPhotos.length === 0 ? 'rgba(43,43,43,0.35)' : 'var(--eg-fg)',
+            color: '#fff', fontSize: '0.9rem',
+            fontWeight: 500, cursor: selectedPhotos.length === 0 ? 'not-allowed' : 'pointer',
+            border: 'none',
+            boxShadow: selectedPhotos.length === 0 ? 'none' : '0 8px 30px rgba(0,0,0,0.15)',
+            transition: 'all 0.2s',
+          }}
+        >
+          {selectedPhotos.length > 0 ? `Continue with ${selectedPhotos.length} photos` : 'Select photos to continue'}
+          <ArrowRight size={16} />
+        </button>
+        {attemptedContinue && selectedPhotos.length === 0 && (
+          <p style={{ textAlign: 'center', marginTop: '0.6rem', fontSize: '0.85rem', color: 'var(--eg-muted)' }}>
+            Select at least 1 photo to continue
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Generates a memorable random slug like "shauna-and-ben-x7q2"
 function generateSlug(names: [string, string]): string {
   const n1 = names[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'us';
@@ -428,46 +501,12 @@ export default function DashboardPage() {
 
               {/* -- PHOTOS -- */}
               {currentStep === 'photos' && (
-                <div>
-                  <PhotoBrowser
-                    onSelectionChange={handlePhotosSelected}
-                    maxSelection={30}
-                  />
-                  
-                  <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-                    <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                      Google Photos refusing to sync?
-                    </p>
-                    <button
-                      onClick={() => setCurrentStep('local-upload')}
-                      style={{
-                        padding: '0.75rem 2rem', borderRadius: '2rem', border: '1px solid rgba(0,0,0,0.1)',
-                        background: '#ffffff', color: 'var(--eg-fg)', fontSize: '0.95rem',
-                        fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
-                      }}
-                    >
-                      Bypass API and Upload Locally
-                    </button>
-                  </div>
-                  {selectedPhotos.length > 0 && (
-                    <div style={{ position: 'sticky', bottom: '1rem', marginTop: '2rem' }}>
-                      <button
-                        onClick={() => setCurrentStep('cluster-review')}
-                        style={{
-                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          gap: '0.5rem', padding: '1rem 1.5rem', borderRadius: '0.75rem',
-                          background: 'var(--eg-fg)', color: '#fff', fontSize: '0.9rem',
-                          fontWeight: 500, cursor: 'pointer', border: 'none',
-                          boxShadow: '0 8px 30px rgba(0,0,0,0.15)'
-                        }}
-                      >
-                        Continue with {selectedPhotos.length} photos
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <PhotosStep
+                  selectedPhotos={selectedPhotos}
+                  onPhotosSelected={handlePhotosSelected}
+                  onContinue={() => setCurrentStep('cluster-review')}
+                  onLocalUpload={() => setCurrentStep('local-upload')}
+                />
               )}
               {/* CLUSTER REVIEW */}
 
@@ -518,11 +557,15 @@ export default function DashboardPage() {
               {currentStep === 'vibe' && (
                 <div style={{ paddingBottom: '2rem' }}>
                   <button
-                    onClick={() => setCurrentStep('photos')}
+                    onClick={() => {
+                      const hasData = coupleNames[0] || coupleNames[1] || vibeString;
+                      if (hasData && !confirm('You\'ll lose your progress. Go back anyway?')) return;
+                      setCurrentStep('photos');
+                    }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '0.4rem', 
-                      fontSize: '0.9rem', color: 'var(--eg-muted)', 
-                      marginBottom: '2rem', background: 'none', border: 'none', 
+                      display: 'flex', alignItems: 'center', gap: '0.4rem',
+                      fontSize: '0.9rem', color: 'var(--eg-muted)',
+                      marginBottom: '2rem', background: 'none', border: 'none',
                       cursor: 'pointer',
                     }}
                   >
