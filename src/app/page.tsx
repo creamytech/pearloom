@@ -1,5 +1,9 @@
 'use client';
 
+// Force dynamic rendering — this page uses useSession() which requires a live auth context.
+// Static prerendering would cause useSession() to return undefined and crash the build.
+export const dynamic = 'force-dynamic';
+
 // -------------------------------------------------------------
 // everglow / app/dashboard/page.tsx
 // Full wizard flow: Sign In → Dashboard → Select Photos → Set Vibe → Generate → Edit → Preview
@@ -52,7 +56,7 @@ const STEP_META: Record<Step, { title: string; subtitle: string; icon: React.Ele
 };
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() ?? { data: null, status: 'loading' as const };
   const [currentStep, setCurrentStep] = useState<Step>(status === 'authenticated' ? 'dashboard' : 'auth');
   const [selectedPhotos, setSelectedPhotos] = useState<GooglePhotoMetadata[]>([]);
   const [coupleNames, setCoupleNames] = useState<[string, string]>(['', '']);
