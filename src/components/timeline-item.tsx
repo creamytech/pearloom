@@ -64,6 +64,14 @@ function focalPos(chapter: Chapter): string {
   return `${chapter.imagePosition.x}% ${chapter.imagePosition.y}%`;
 }
 
+/** Returns the hero image URL — AI picks the best photo, falls back to index 0 */
+function heroImage(chapter: Chapter): string {
+  const imgs = chapter.images || [];
+  if (!imgs.length) return '';
+  const idx = chapter.heroPhotoIndex ?? 0;
+  return imgs[Math.min(idx, imgs.length - 1)]?.url || '';
+}
+
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
   if (rawUrl.includes('googleusercontent.com')) {
@@ -290,7 +298,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
   const imgY2 = useTransform(scrollYProgress, [0, 1], ['-8%', '18%']);
   const textY = useTransform(scrollYProgress, [0, 1], ['8%', '-4%']);
 
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const secondImage = chapter.images[1]?.url || '';
 
   return (
@@ -432,7 +440,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['-18%', '18%']);
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
   if (!hasImages) return <EditorialLayout chapter={chapter} index={0} />;
@@ -570,7 +578,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const blur = useTransform(scrollYProgress, [0, 0.5, 1], [60, 80, 60]);
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const [videoPlaying, setVideoPlaying] = useState(false);
 
   return (
@@ -688,7 +696,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
 function SplitLayout({ chapter, index }: TimelineItemProps) {
   const isEven = index % 2 === 0;
   const hasImages = (chapter.images?.length ?? 0) > 0;
-  const mainImage = chapter.images[0]?.url || '';
+  const mainImage = heroImage(chapter);
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);

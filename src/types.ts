@@ -94,6 +94,8 @@ export interface Chapter {
   emotionalIntensity?: number;
   /** Ambient background tint color for this chapter's section (very subtle, ~4% opacity) */
   ambientColor?: string;
+  /** Index into chapter.images[] of the hero/cover photo (AI picks the most visually striking one) */
+  heroPhotoIndex?: number;
   /** Optional video URL (YouTube, Vimeo, or direct mp4) to show instead of/alongside photos */
   videoUrl?: string;
   /** AI-generated quiz question derived from this chapter's content */
