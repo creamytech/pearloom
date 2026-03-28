@@ -536,20 +536,64 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 1.2 }}
       >
-        {hasImages && mainImage && (
+        {/* Video replaces blurred background when playing */}
+        {chapter.videoUrl && videoPlaying ? (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '900px', padding: '0 2rem' }}>
+              <VideoChapterPlayer videoUrl={chapter.videoUrl} />
+            </div>
+            <button
+              type="button"
+              onClick={() => setVideoPlaying(false)}
+              style={{
+                position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
+                background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)',
+                borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
+                cursor: 'pointer', letterSpacing: '0.08em',
+              }}
+            >
+              ✕ Close
+            </button>
+          </div>
+        ) : (
           <>
-            <motion.div style={{
-              position: 'absolute', inset: -120,
-              backgroundImage: `url(${proxyUrl(mainImage, 800, 800)})`,
-              backgroundSize: 'cover', backgroundPosition: 'center',
-              filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
-              opacity: 0.35, zIndex: 0,
-            }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'var(--eg-bg)', opacity: 0.82, zIndex: 1 }} />
+            {hasImages && mainImage && (
+              <>
+                <motion.div style={{
+                  position: 'absolute', inset: -120,
+                  backgroundImage: `url(${proxyUrl(mainImage, 800, 800)})`,
+                  backgroundSize: 'cover', backgroundPosition: 'center',
+                  filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
+                  opacity: 0.35, zIndex: 0,
+                }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'var(--eg-bg)', opacity: 0.82, zIndex: 1 }} />
+              </>
+            )}
+            {/* Play button for cinematic layout */}
+            {chapter.videoUrl && (
+              <button
+                type="button"
+                onClick={() => setVideoPlaying(true)}
+                style={{
+                  position: 'absolute', top: '2rem', right: '2rem', zIndex: 15,
+                  width: '52px', height: '52px', borderRadius: '50%',
+                  background: 'var(--eg-accent)', color: '#fff',
+                  border: 'none', fontSize: '1rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
+                  transition: 'transform 0.18s',
+                }}
+                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+                aria-label="Play video"
+              >
+                ▶
+              </button>
+            )}
           </>
         )}
 
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '820px', width: '100%' }}>
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '820px', width: '100%', display: chapter.videoUrl && videoPlaying ? 'none' : undefined }}>
           {/* Ghost chapter number */}
           <div style={{ position: 'relative' }}>
             <ChapterGhost number={index + 1} />

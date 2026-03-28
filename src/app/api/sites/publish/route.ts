@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     }
 
     const host = req.headers.get('host') || 'localhost:3000';
-    
+
     // Auto-detect the URL format to return
     let finalUrl = '';
     if (host.includes('localhost')) {
@@ -141,7 +141,56 @@ export async function POST(req: NextRequest) {
       finalUrl = `https://${cleanSubdomain}.${host}`;
     }
 
-    return NextResponse.json({ success: true, url: finalUrl });
+    // Generate a preview token and store it alongside the published site
+    let previewToken: string | null = null;
+    try {
+      const token = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID().replace(/-/g, '')
+        : Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+      if (supabaseUrl && serviceKey) {
+        const previewSupabase = createClient(supabaseUrl, serviceKey);
+        const { error: tokenError } = await previewSupabase
+          .from('preview_tokens')
+          .insert({
+            token,
+            site_id: cleanSubdomain,
+            created_at: new Date().toISOString(),
+            expires_at: expiresAt,
+            manifest: persistManifest,
+          });
+
+        if (!tokenError) {
+          previewToken = token;
+        } else {
+          console.warn('[Publish API] Preview token insert skipped:', tokenError.message);
+        }
+
+        // Store vibe tags in the sites table if the column exists
+        if (persistManifest.vibeTags?.length) {
+          await previewSupabase
+            .from('sites')
+            .update({ vibe_tags: persistManifest.vibeTags })
+            .eq('subdomain', cleanSubdomain)
+            .then(({ error: tagsError }) => {
+              if (tagsError) {
+                console.warn('[Publish API] Vibe tags update skipped:', tagsError.message);
+              }
+            });
+        }
+      }
+    } catch (tokenErr) {
+      console.warn('[Publish API] Preview token generation error (non-fatal):', tokenErr);
+    }
+
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const previewUrl = previewToken ? `${protocol}://${host}/preview/${previewToken}` : null;
+
+    return NextResponse.json({ success: true, url: finalUrl, previewToken, previewUrl });
 
   } catch (err: unknown) {
     console.error('Publishing API error:', err);

@@ -16,10 +16,10 @@ const MAX_CHARS = 300;
 
 // ── AI-inspired prompt pills — static starters guests can click ──
 const PROMPT_PILLS = [
-  { label: 'What's your secret to a happy marriage?', starter: "My secret to a happy marriage: " },
-  { label: 'What do you love about this couple?', starter: "What I love most about this couple is " },
-  { label: 'Your favorite memory with them?', starter: "My favorite memory with them is " },
-  { label: 'Advice for their adventure together?', starter: "My advice for your adventure together: " },
+  { label: "What's your secret to a happy marriage?", starter: "My secret to a happy marriage: " },
+  { label: "What do you love about this couple?", starter: "What I love most about this couple is " },
+  { label: "Your favorite memory with them?", starter: "My favorite memory with them is " },
+  { label: "Advice for their adventure together?", starter: "My advice for your adventure together: " },
 ];
 
 interface Wish {
