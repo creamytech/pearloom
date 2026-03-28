@@ -654,7 +654,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           marginTop: '2rem',
         }}>
           <p style={sectionHeading}>
-            <span style={{ marginRight: '0.4rem' }}>✨</span>Visual Inspiration
+            <span style={{ marginRight: '0.4rem' }}>✨</span>Visual Inspiration<Tooltip text="Our AI analyzes these to match your visual style — use direct image links" />
             <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)', marginLeft: '0.5rem' }}>(optional)</span>
           </p>
           <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
@@ -754,7 +754,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* URL slug picker */}
         <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginTop: '2rem' }}>
-          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL</p>
+          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.app" /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
