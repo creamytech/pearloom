@@ -133,14 +133,30 @@ export async function POST(req: NextRequest) {
 
     const host = req.headers.get('host') || 'localhost:3000';
 
-    // Auto-detect the URL format to return
+    // Auto-detect the URL format to return.
+    // NEXT_PUBLIC_SITE_URL (e.g. https://pearloom.com) is the canonical base —
+    // use it when set so we always produce the correct subdomain URL regardless
+    // of which host the API request arrived on (e.g. app.pearloom.com vs pearloom.com).
     let finalUrl = '';
-    if (host.includes('localhost')) {
-      finalUrl = `http://${cleanSubdomain}.localhost:3000`;
-    } else if (host.includes('vercel.app')) {
-      finalUrl = `https://${host}/sites/${cleanSubdomain}`;
-    } else {
-      finalUrl = `https://${cleanSubdomain}.${host}`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (siteUrl) {
+      try {
+        const base = new URL(siteUrl);
+        finalUrl = `${base.protocol}//${cleanSubdomain}.${base.hostname}`;
+      } catch {
+        // fall through to host-based detection below
+      }
+    }
+    if (!finalUrl) {
+      if (host.includes('localhost')) {
+        finalUrl = `http://${cleanSubdomain}.localhost:3000`;
+      } else if (host.includes('vercel.app')) {
+        finalUrl = `https://${host}/sites/${cleanSubdomain}`;
+      } else {
+        // Strip any port and www. prefix so we get clean subdomain URLs
+        const baseDomain = host.replace(/^www\./, '').replace(/:\d+$/, '');
+        finalUrl = `https://${cleanSubdomain}.${baseDomain}`;
+      }
     }
 
     // Generate a preview token and store it alongside the published site

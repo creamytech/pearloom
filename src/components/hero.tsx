@@ -252,30 +252,34 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             color={coverPhoto ? '#ffffff' : undefined}
           />
 
-          {/* "&" — smaller, accent color */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 120, damping: 18, delay: 0.9 }}
-            style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontStyle: 'italic',
-              fontWeight: 300,
-              fontSize: 'clamp(2.2rem, 5.5vw, 5rem)',
-              color: coverPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
-              margin: '-1.6rem 0 -1.4rem',
-              display: 'block',
-              letterSpacing: '0.02em',
-            }}
-          >
-            &amp;
-          </motion.div>
+          {/* "&" and second name — only for two-person occasions (not birthday/solo) */}
+          {names[1] && (
+            <>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 120, damping: 18, delay: 0.9 }}
+                style={{
+                  fontFamily: 'var(--eg-font-heading)',
+                  fontStyle: 'italic',
+                  fontWeight: 300,
+                  fontSize: 'clamp(2.2rem, 5.5vw, 5rem)',
+                  color: coverPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
+                  margin: '-1.6rem 0 -1.4rem',
+                  display: 'block',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                &amp;
+              </motion.div>
 
-          <AnimatedName
-            text={names[1]}
-            delay={names[0].length * 0.04 + 0.6}
-            color={coverPhoto ? '#ffffff' : undefined}
-          />
+              <AnimatedName
+                text={names[1]}
+                delay={names[0].length * 0.04 + 0.6}
+                color={coverPhoto ? '#ffffff' : undefined}
+              />
+            </>
+          )}
         </h1>
 
         {/* Date + venue pill badge */}

@@ -2194,8 +2194,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     const data = e.active.data.current as { type: string; id: string; label: string } | undefined;
     setCanvasDragId(String(e.active.id));
     setCanvasDragLabel(data?.label || '');
-    // PreviewPane is shown automatically during drag via canvasDragId condition
-  }, [splitView]);
+    // Auto-show split view so PreviewPane drop zones become visible during drag
+    if (!isMobile) setSplitView(true);
+  }, [isMobile]);
 
   const handleCanvasDragEnd = useCallback((e: DragEndEvent) => {
     setCanvasDragId(null);
