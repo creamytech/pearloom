@@ -1829,11 +1829,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     }
   }, [splitView]);
 
-  // Auto-enable split view on desktop on first mount
-  useEffect(() => {
-    if (!isMobile) setSplitView(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally run once
+  // Split view is off by default — user can toggle it via the toolbar button
 
   // Auto-dismiss welcome overlay after 2.5s
   useEffect(() => {
