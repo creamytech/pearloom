@@ -58,28 +58,29 @@ export function PearBackground({ color = 'currentColor', opacity = 0.06, classNa
       className={className}
       aria-hidden="true"
     >
-      {/* Single clean pear silhouette path */}
+      {/* Single continuous pear silhouette — narrow neck, wide round belly */}
       <path
         d="
-          M100 60
-          C95 60, 90 58, 88 55
-          C84 48, 86 38, 92 32
-          C96 28, 100 26, 100 26
-          C100 26, 104 28, 108 32
-          C114 38, 116 48, 112 55
-          C110 58, 105 60, 100 60 Z
-
-          M100 60
-          C75 60, 55 75, 45 95
-          C35 115, 35 140, 42 160
-          C52 188, 74 210, 100 214
-          C126 210, 148 188, 158 160
-          C165 140, 165 115, 155 95
-          C145 75, 125 60, 100 60 Z
+          M100 52
+          C100 52, 92 54, 87 60
+          C80 68, 78 76, 80 86
+          C68 90, 58 103, 56 118
+          C53 136, 56 158, 68 174
+          C80 190, 92 200, 100 202
+          C108 200, 120 190, 132 174
+          C144 158, 147 136, 144 118
+          C142 103, 132 90, 120 86
+          C122 76, 120 68, 113 60
+          C108 54, 100 52, 100 52
+          Z
         "
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Stem */}
+      <path d="M100 52 C100 44 101 36 100 28" strokeLinecap="round" />
+      {/* Leaf */}
+      <path d="M100 38 C108 32 122 34 120 42 C113 37 106 37 100 38 Z" fill={color} stroke="none" opacity="0.7" />
     </svg>
   );
 }

@@ -42,14 +42,14 @@ export function PearlIcon({ size = 24, color = 'currentColor', className, style 
 
 /** BRAND MARK — beautiful organic pear silhouette with stem and small leaf. */
 export function PearIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
-  // Custom aspect ratio: 32x40
-  const w = size * (32 / 40);
+  // Custom aspect ratio: 26x36
+  const w = size * (26 / 36);
   const h = size;
   return (
     <svg
       width={w}
       height={h}
-      viewBox="0 0 32 40"
+      viewBox="0 0 26 36"
       fill="none"
       stroke={color}
       strokeWidth="1.5"
@@ -59,12 +59,27 @@ export function PearIcon({ size = 24, color = 'currentColor', className, style }
       style={style}
       aria-hidden="true"
     >
-      {/* Pear body — organic silhouette */}
-      <path d="M16 13 C10 13 5 18 5 25 C5 32 9.5 37 16 37 C22.5 37 27 32 27 25 C27 18 22 13 16 13 Z" />
-      {/* Stem */}
-      <path d="M16 13 C16 10 17.5 7.5 17 5" />
-      {/* Small leaf */}
-      <path d="M17 8.5 C19 7 22 7.5 21.5 9.5 C20.5 8.5 18.5 8.5 17 8.5 Z" fill={color} stroke="none" opacity="0.7" />
+      {/*
+        Pear silhouette: narrow top neck widening dramatically into a fat rounded bottom.
+        Starts from stem base at top-centre, curves inward to a narrow waist,
+        then sweeps out wide to the round belly and closes back up at bottom.
+      */}
+      <path d="
+        M13 11
+        C13 11 10.5 12 9 14
+        C7 16.5 6.5 18.5 7 21
+        C5.5 22 4.5 24 4.5 26.5
+        C4.5 31.5 8.2 35 13 35
+        C17.8 35 21.5 31.5 21.5 26.5
+        C21.5 24 20.5 22 19 21
+        C19.5 18.5 19 16.5 17 14
+        C15.5 12 13 11 13 11
+        Z
+      " />
+      {/* Stem — curves slightly to one side */}
+      <path d="M13 11 C13 9 13.5 7 13 5" />
+      {/* Leaf — small filled oval off the stem */}
+      <path d="M13 7.5 C14.5 6 17.5 6.5 17 8.5 C15.5 7.5 14 7.5 13 7.5 Z" fill={color} stroke="none" opacity="0.75" />
     </svg>
   );
 }
