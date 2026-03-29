@@ -32,7 +32,6 @@ export default function middleware(req: NextRequest) {
   // If the host exactly matches our main domains, render the marketing page / dashboard normally
   if (
     hostname === "pearloom.com" ||
-    hostname === "pearloom.com" ||
     hostname === "www.pearloom.com" ||
     hostname === "pearloom.vercel.app" ||
     hostname.endsWith(".vercel.app") // Treat all random Vercel preview deployments as the base App
