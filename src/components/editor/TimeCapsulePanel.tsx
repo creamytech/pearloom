@@ -297,9 +297,10 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
 
         {/* Seal until dropdown */}
         <div style={styles.fieldGroup}>
-          <label style={styles.label}>Seal until</label>
+          <label htmlFor="seal-until-select" style={styles.label}>Seal until</label>
           <div style={styles.sealRow}>
             <select
+              id="seal-until-select"
               value={unlockYears}
               onChange={(e) => setUnlockYears(Number(e.target.value) as UnlockYears)}
               style={styles.select}
