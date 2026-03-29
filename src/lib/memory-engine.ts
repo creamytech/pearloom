@@ -85,8 +85,8 @@ export async function generateStoryManifest(
         const fetchUrl = isGoogle ? `${bestPhoto.baseUrl}=w1024-h1024` : bestPhoto.baseUrl;
         const headers = isGoogle && googleAccessToken ? { Authorization: `Bearer ${googleAccessToken}` } : undefined;
 
-        const res = await fetch(fetchUrl, { headers });
-        
+        const res = await fetch(fetchUrl, { headers, signal: AbortSignal.timeout(8000) });
+
         if (!res.ok) {
           logWarn(`[Memory Engine] Failed to fetch image: ${res.status} ${res.statusText}`);
           return null;
@@ -296,47 +296,61 @@ export async function generateStoryManifest(
     subtitle: ch.subtitle?.replace(BANNED_WORDS_RE, '').trim() || ch.subtitle,
   }));
 
-  // ── Pass 1.2: Chapter Story Quality Gate ─────────────────────────────
-  // Gemini scores each chapter's specificity 1-10 and rewrites any < 7.
-  // Ensures zero generic “our journey began” chapters reach the user.
-  try {
-    // Extract cluster notes to pass into the quality gate so user context is preserved
-    const clusterNotes = clusters
-      .map((cluster, i) => ({
-        chapterIndex: i,
-        note: cluster.note ?? '',
-        location: cluster.location?.label ?? null,
-      }))
-      .filter(cn => cn.note.length > 0);
-    manifest.chapters = await critiqueAndRefineChapters(
-      manifest.chapters, vibeString, coupleNames, apiKey, occasion, clusterNotes
-    );
+  // ── Passes 1.2, 1.5, 4: Run in parallel ─────────────────────────────
+  // All three depend only on the chapters from Pass 1 and the vibeString.
+  // None depend on each other — run concurrently to save ~40-60s.
+  const clusterNotes = clusters
+    .map((cluster, i) => ({
+      chapterIndex: i,
+      note: cluster.note ?? '',
+      location: cluster.location?.label ?? null,
+    }))
+    .filter(cn => cn.note.length > 0);
+
+  const chaptersSnapshot = manifest.chapters;
+
+  const [pass12Result, pass15Result, pass4Result] = await Promise.allSettled([
+    // Pass 1.2: Chapter quality gate (Flash — scoring/judgment)
+    critiqueAndRefineChapters(chaptersSnapshot, vibeString, coupleNames, apiKey, occasion, clusterNotes),
+    // Pass 1.5: Couple DNA extraction (Lite — lightweight)
+    extractCoupleProfile(
+      vibeString,
+      chaptersSnapshot.map(c => ({ title: c.title, description: c.description, mood: c.mood })),
+      apiKey,
+      occasion
+    ),
+    // Pass 4: Poetry (Flash — only needs chapters + vibe, no design context needed)
+    generatePoetryPass(manifest.vibeString, coupleNames, chaptersSnapshot, apiKey, occasion),
+  ]);
+
+  if (pass12Result.status === 'fulfilled') {
+    manifest.chapters = pass12Result.value;
     log('[Memory Engine] Pass 1.2: Chapter quality gate complete');
-  } catch (err) {
-    logWarn('[Memory Engine] Chapter quality gate failed (non-fatal):', err);
+  } else {
+    logWarn('[Memory Engine] Chapter quality gate failed (non-fatal):', pass12Result.reason);
   }
 
-  // ── Pass 1.5: Extract Couple DNA — pets, interests, locations, motifs ────
-  // Lightweight Gemini call to extract couple's personal world for bespoke illustration
   let coupleProfile: CoupleProfile | undefined;
-  try {
-    const chapterSummaries = manifest.chapters.map(c => ({
-      title: c.title,
-      description: c.description,
-      mood: c.mood,
-    }));
-    coupleProfile = await extractCoupleProfile(vibeString, chapterSummaries, apiKey, occasion);
+  if (pass15Result.status === 'fulfilled') {
+    coupleProfile = pass15Result.value;
     log('[Memory Engine] Pass 1.5: Couple DNA extracted —',
       `pets: [${coupleProfile.pets.join(', ')}]`,
       `interests: [${coupleProfile.interests.join(', ')}]`
     );
-  } catch (err) {
-    logWarn('[Memory Engine] Couple profile extraction failed (non-fatal):', err);
+  } else {
+    logWarn('[Memory Engine] Couple profile extraction failed (non-fatal):', pass15Result.reason);
     coupleProfile = { pets: [], interests: [], locations: [], motifs: [], heritage: [], illustrationPrompt: '' };
   }
 
+  if (pass4Result.status === 'fulfilled') {
+    manifest.poetry = pass4Result.value;
+    log('[Memory Engine] Pass 4: Poetry pass complete');
+  } else {
+    logWarn('[Memory Engine] Poetry pass failed (non-fatal):', pass4Result.reason);
+  }
+
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
-  // Bake the full visual skin in-process before critique.
+  // Depends on refined chapters (1.2) and couple profile (1.5) — runs after both.
   try {
     const chapterContext = manifest.chapters.map(c => ({
       title: c.title,
@@ -366,52 +380,36 @@ export async function generateStoryManifest(
     logWarn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
   }
 
-  // ── Pass 2.5: Raster art generation (Nano Banana) ────────────────────
-  // Generates real painted/illustrated art: hero panel + ambient background + art strip.
-  // Non-fatal — if image generation isn't available, SVG art still runs.
+  // ── Passes 2.5 and 3: Run in parallel after Pass 2 ───────────────────
+  // Both depend only on manifest.vibeSkin from Pass 2.
+  // Pass 2.5: Raster art (hero panel + ambient bg + art strip)
+  // Pass 3: Design critique & iterative refinement
   if (manifest.vibeSkin) {
-    try {
-      const siteArt = await generateSiteArt(
-        manifest.vibeString,
-        manifest.vibeSkin.palette,
-        apiKey,
-        occasion,
-        coupleNames
-      );
+    const vibeSkinForParallel = manifest.vibeSkin;
+
+    const [artResult, critiqueResult] = await Promise.allSettled([
+      generateSiteArt(manifest.vibeString, vibeSkinForParallel.palette, apiKey, occasion, coupleNames),
+      critiqueAndRefineDesign(vibeSkinForParallel, manifest.vibeString, coupleNames, apiKey),
+    ]);
+
+    // Apply design critique first (replaces base vibeSkin with improved version)
+    if (critiqueResult.status === 'fulfilled') {
+      manifest.vibeSkin = critiqueResult.value;
+      log('[Memory Engine] Pass 3: Design critique complete');
+    } else {
+      logWarn('[Memory Engine] Design critique pass failed (non-fatal):', critiqueResult.reason);
+    }
+
+    // Apply raster art on top (additive — sets art DataURLs on the (possibly critiqued) skin)
+    if (artResult.status === 'fulfilled') {
+      const siteArt = artResult.value;
       if (siteArt.heroArtDataUrl) manifest.vibeSkin.heroArtDataUrl = siteArt.heroArtDataUrl;
       if (siteArt.ambientArtDataUrl) manifest.vibeSkin.ambientArtDataUrl = siteArt.ambientArtDataUrl;
       if (siteArt.artStripDataUrl) manifest.vibeSkin.artStripDataUrl = siteArt.artStripDataUrl;
       log('[Memory Engine] Pass 2.5: Raster art generation complete');
-    } catch (err) {
-      logWarn('[Memory Engine] Raster art generation failed (non-fatal):', err);
+    } else {
+      logWarn('[Memory Engine] Raster art generation failed (non-fatal):', artResult.reason);
     }
-  }
-
-  // ── Pass 3: Design critique & iterative refinement ───────────────────
-  // Gemini reviews its own visual design for thematic specificity.
-  // Colors, SVG art, section labels, icons — all scored and patched
-  // if too generic before the user ever sees the result.
-  if (manifest.vibeSkin) {
-    try {
-      manifest.vibeSkin = await critiqueAndRefineDesign(
-        manifest.vibeSkin, manifest.vibeString, coupleNames, apiKey
-      );
-      log('[Memory Engine] Pass 3: Design critique complete');
-    } catch (err) {
-      logWarn('[Memory Engine] Design critique pass failed (non-fatal):', err);
-    }
-  }
-
-  // ── Pass 4: Poetry pass ────────────────────────────────────────────────
-  // Lightweight Gemini call that generates the hero tagline, footer closing
-  // line, and RSVP intro — all personalized to this couple's specific story.
-  try {
-    manifest.poetry = await generatePoetryPass(
-      manifest.vibeString, coupleNames, manifest.chapters, apiKey, occasion
-    );
-    log('[Memory Engine] Pass 4: Poetry pass complete');
-  } catch (err) {
-    logWarn('[Memory Engine] Poetry pass failed (non-fatal):', err);
   }
 
   return manifest;
