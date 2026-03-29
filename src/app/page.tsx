@@ -356,6 +356,8 @@ export default function DashboardPage() {
 
       log('[Publish] ✓ Published! URL:', data.url);
       setPublishedUrl(data.url);
+      // Open the live site in a new tab so the user lands on their actual URL
+      window.open(data.url, '_blank', 'noopener,noreferrer');
     } catch (err: unknown) {
       logError('[Publish] Error:', err);
       setPublishError(err instanceof Error ? err.message : 'Unknown error');

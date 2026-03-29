@@ -31,11 +31,11 @@ function MagneticButton({
   children: React.ReactNode;
   strength?: number;
 }) {
-  const ref = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    const el = ref.current;
+    const el = containerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -46,17 +46,22 @@ function MagneticButton({
   const handleMouseLeave = () => setPos({ x: 0, y: 0 });
 
   return (
-    <motion.button
-      ref={ref}
-      onClick={onClick}
+    // Static container keeps layout stable — only the inner button moves
+    <div
+      ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      animate={{ x: pos.x, y: pos.y }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      style={style}
+      style={{ display: 'inline-flex' }}
     >
-      {children}
-    </motion.button>
+      <motion.button
+        onClick={onClick}
+        animate={{ x: pos.x, y: pos.y }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        style={style}
+      >
+        {children}
+      </motion.button>
+    </div>
   );
 }
 
