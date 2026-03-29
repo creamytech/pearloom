@@ -17,6 +17,9 @@ export async function POST(req: NextRequest) {
     if (!siteId || !name || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
 
     const supabase = getSupabase();
 

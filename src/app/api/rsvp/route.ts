@@ -35,6 +35,9 @@ export async function POST(req: NextRequest) {
     if (!siteId || !guestName) {
       return NextResponse.json({ error: 'siteId and guestName required' }, { status: 400 });
     }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email))) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
 
     const supabase = getSupabase();
 

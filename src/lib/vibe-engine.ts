@@ -29,6 +29,7 @@ export interface VibeSkin {
     travel: string;
     faqs: string;
     rsvp: string;
+    photos: string;
   };
   dividerQuote: string;
   cornerStyle: string;
@@ -354,6 +355,7 @@ function deriveFallback(vibeString: string): VibeSkin {
       travel: 'Getting Here',
       faqs: 'Good to Know',
       rsvp: "We'd Love to See You",
+      photos: 'Our Photos',
     },
     dividerQuote: vibeString || 'A love story worth telling.',
     cornerStyle: CORNER_STYLES[curve],
@@ -840,7 +842,8 @@ Return ONLY this JSON. All SVG strings must be valid JSON-escaped strings:
     "registry": "<label>",
     "travel": "<label>",
     "faqs": "<label>",
-    "rsvp": "<warm personal RSVP invitation in the couple's voice>"
+    "rsvp": "<warm personal RSVP invitation in the couple's voice>",
+    "photos": "<label for the photos section, e.g. 'Our Moments' or 'Our Photos'>"
   },
   "dividerQuote": "<Write a single original poetic phrase (6-10 words MAXIMUM) that is short, lyrical, and emotionally specific to this couple. Evoke their vibe — a place, a feeling, a moment. Think of it as a whispered caption, not a full sentence. NOT a cliche. Examples of good length: 'Where the sea met us first', 'Fog-laced mornings and tangled roots', 'Every city led back to you'>",
   "tone": "<one of: dreamy | playful | luxurious | wild | intimate | cosmic | rustic>",
@@ -1001,6 +1004,7 @@ CRITICAL DESIGN RULES:
         travel: parsed.sectionLabels?.travel || 'Getting There',
         faqs: parsed.sectionLabels?.faqs || 'What to Know',
         rsvp: parsed.sectionLabels?.rsvp || 'Will You Be There?',
+        photos: parsed.sectionLabels?.photos || 'Our Photos',
       },
       dividerQuote: typeof parsed.dividerQuote === 'string' ? parsed.dividerQuote : vibeString,
       cornerStyle: CORNER_STYLES[curve],

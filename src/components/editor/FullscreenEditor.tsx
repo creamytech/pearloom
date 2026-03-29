@@ -1857,6 +1857,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // ── Drag-and-drop state ──
   const [canvasDragId, setCanvasDragId] = useState<string | null>(null);
   const [canvasDragLabel, setCanvasDragLabel] = useState('');
+  const preDragSplitView = useRef(false);
   const canvasDragSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 5 } }),
@@ -1887,6 +1888,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       return () => clearTimeout(t);
     }
   }, [splitView]);
+
+  // Sync local chapters state when manifest.chapters changes from the parent
+  // (e.g., after AI generation completes or an undo/redo operation)
+  useEffect(() => {
+    setChapters([...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
+    setActiveId(prev => {
+      const ids = new Set((manifest.chapters || []).map(c => c.id));
+      return ids.has(prev ?? '') ? prev : manifest.chapters?.[0]?.id || null;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manifest.chapters]);
 
   // Split view is off by default — user can toggle it via the toolbar button
 
@@ -2194,13 +2206,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     const data = e.active.data.current as { type: string; id: string; label: string } | undefined;
     setCanvasDragId(String(e.active.id));
     setCanvasDragLabel(data?.label || '');
-    // Auto-show split view so PreviewPane drop zones become visible during drag
-    if (!isMobile) setSplitView(true);
-  }, [isMobile]);
+    // Auto-show split view so PreviewPane drop zones become visible during drag.
+    // Save previous state so we can restore it when drag ends.
+    if (!isMobile) {
+      preDragSplitView.current = splitView;
+      setSplitView(true);
+    }
+  }, [isMobile, splitView]);
 
   const handleCanvasDragEnd = useCallback((e: DragEndEvent) => {
     setCanvasDragId(null);
     setCanvasDragLabel('');
+    // Restore split view to what it was before the drag started
+    if (!isMobile) setSplitView(preDragSplitView.current);
     const { over, active } = e;
     if (!over) return;
 

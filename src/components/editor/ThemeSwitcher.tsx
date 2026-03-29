@@ -24,6 +24,7 @@ const DEFAULT_LABELS: VibeSkin['sectionLabels'] = {
   travel: 'Getting Here',
   faqs: 'Good to Know',
   rsvp: "We'd Love to See You",
+  photos: 'Our Photos',
 };
 
 // ── 12 Hand-crafted preset themes ─────────────────────────────
