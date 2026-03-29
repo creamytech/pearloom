@@ -149,6 +149,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
   const [fetchError, setFetchError] = useState(false);
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<UserSite | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedCompleteness, setExpandedCompleteness] = useState<string | null>(null);
@@ -169,16 +170,24 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
   const handleDelete = async (site: UserSite) => {
     setDeletingDomain(site.domain);
+    setDeleteError(null);
     try {
       const res = await fetch(`/api/sites/${site.domain}`, { method: 'DELETE' });
       if (res.ok) {
         setSites((prev) => prev.filter((s) => s.domain !== site.domain));
+        setConfirmDelete(null);
+      } else {
+        let msg = 'Delete failed. Please try again.';
+        try {
+          const body = await res.json();
+          if (body?.error) msg = body.error;
+        } catch { /* ignore parse error */ }
+        setDeleteError(msg);
       }
     } catch {
-      // silently fail — modal will close
+      setDeleteError('Network error — please check your connection and try again.');
     } finally {
       setDeletingDomain(null);
-      setConfirmDelete(null);
     }
   };
 
@@ -803,7 +812,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               WebkitBackdropFilter: 'blur(12px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
             }}
-            onClick={() => setConfirmDelete(null)}
+            onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -819,7 +828,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               }}
             >
               <button
-                onClick={() => setConfirmDelete(null)}
+                onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
                 style={{
                   position: 'absolute', top: '1.25rem', right: '1.25rem',
                   background: '#f5f5f5', border: 'none', borderRadius: '50%',
@@ -845,13 +854,22 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               }}>
                 Delete this site?
               </h3>
-              <p style={{ color: 'var(--eg-muted)', lineHeight: 1.65, marginBottom: '2.25rem', fontSize: '0.925rem' }}>
+              <p style={{ color: 'var(--eg-muted)', lineHeight: 1.65, marginBottom: deleteError ? '1rem' : '2.25rem', fontSize: '0.925rem' }}>
                 <strong style={{ color: 'var(--eg-fg)' }}>{confirmDelete.domain}.pearloom.app</strong> will be
                 permanently removed. Guests will no longer be able to access it.
               </p>
+              {deleteError && (
+                <p style={{
+                  fontSize: '0.85rem', color: '#c0392b', background: 'rgba(192,57,43,0.07)',
+                  border: '1px solid rgba(192,57,43,0.18)', borderRadius: '0.6rem',
+                  padding: '0.65rem 0.875rem', marginBottom: '1.5rem', lineHeight: 1.5,
+                }}>
+                  {deleteError}
+                </p>
+              )}
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <button
-                  onClick={() => setConfirmDelete(null)}
+                  onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
                   style={{
                     flex: 1, padding: '0.9rem', borderRadius: '0.875rem',
                     border: '1px solid rgba(0,0,0,0.1)', background: 'none',
@@ -866,16 +884,25 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 </button>
                 <button
                   onClick={() => handleDelete(confirmDelete)}
+                  disabled={deletingDomain === confirmDelete.domain}
                   style={{
                     flex: 1, padding: '0.9rem', borderRadius: '0.875rem',
-                    background: 'linear-gradient(135deg, #6D597A, #5a4a66)',
-                    color: '#fff', border: 'none', cursor: 'pointer',
+                    background: deletingDomain === confirmDelete.domain
+                      ? 'rgba(109,89,122,0.4)'
+                      : 'linear-gradient(135deg, #6D597A, #5a4a66)',
+                    color: '#fff', border: 'none',
+                    cursor: deletingDomain === confirmDelete.domain ? 'wait' : 'pointer',
                     fontWeight: 600, fontSize: '0.9rem',
-                    boxShadow: '0 8px 24px rgba(109,89,122,0.28)',
+                    boxShadow: deletingDomain === confirmDelete.domain ? 'none' : '0 8px 24px rgba(109,89,122,0.28)',
                     fontFamily: 'var(--eg-font-body)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                    transition: 'all 0.2s',
                   }}
                 >
-                  Delete Forever
+                  {deletingDomain === confirmDelete.domain
+                    ? <><Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> Deleting…</>
+                    : 'Delete Forever'
+                  }
                 </button>
               </div>
             </motion.div>

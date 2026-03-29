@@ -217,11 +217,11 @@ const VIBE_MOODS = [
 ];
 
 const OCCASIONS = [
-  { id: 'wedding', label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site' },
-  { id: 'anniversary', label: 'Anniversary', desc: 'A celebration of years together' },
-  { id: 'engagement', label: 'Engagement', desc: 'Popping the question!' },
-  { id: 'birthday', label: 'Birthday / Gift', desc: 'A sweet gift for your partner' },
-  { id: 'story', label: 'Just Because', desc: 'Documenting our love story' },
+  { id: 'wedding', label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site', emoji: '💍' },
+  { id: 'anniversary', label: 'Anniversary', desc: 'A celebration of years together', emoji: '🥂' },
+  { id: 'engagement', label: 'Engagement', desc: 'Sharing the big news', emoji: '✨' },
+  { id: 'birthday', label: 'Birthday Gift', desc: 'A beautiful site as a gift — for anyone you love', emoji: '🎂' },
+  { id: 'story', label: 'Just Because', desc: 'Documenting our love story', emoji: '💌' },
 ];
 
 const COLOR_PALETTES = [
@@ -310,6 +310,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [occasion, setOccasion] = useState<string>('');
   const [showValidation, setShowValidation] = useState(false);
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
+  const isBirthday = occasion === 'birthday';
   // Step 4 = Inspiration (new), Step 5 = Color Palette, Steps 6-9 shifted +1
   // If inspiration URLs provided, Step 5 (color) is auto-skipped → AI decides colors
   const totalSteps = isEvent ? 9 : 8;
@@ -337,7 +338,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [rsvpDeadline, setRsvpDeadline] = useState('');
   const [cashFundUrl, setCashFundUrl] = useState('');
 
-  const canProceedStep1 = name1.trim() && name2.trim();
+  // For birthday only name1 (the birthday person) is required; name2 is optional gift-giver
+  const canProceedStep1 = isBirthday ? !!name1.trim() : !!(name1.trim() && name2.trim());
   const canProceedStep2 = occasion !== '';
   const canProceedStep3 = mood !== '';
   // Step 4 = Inspiration (always optional — can skip)
@@ -442,17 +444,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       if (detailsData.weddingTimeline) occasionContext += `\nWEDDING TIMELINE: ${detailsData.weddingTimeline}`;
     }
 
+    const birthdayCreator = name2.trim() ? `Created as a gift by ${name2.trim()}.` : '';
+
     return [
       `Occasion / Project Type: This site is for a ${selectedOccasionLabel}.`,
+      isBirthday
+        ? `This is a BIRTHDAY TRIBUTE SITE celebrating ${name1.trim()}. Write entirely about them in a warm, celebratory tone. ${birthdayCreator}`
+        : '',
       `Core Vibe: ${selectedMoodLabel}.`,
       paletteInfo,
       placeString,
-      customPlace ? `Specific favorite place: ${customPlace}.` : '',
-      `How they met: ${meetCute}.`,
-      relationship ? `What makes their relationship special: ${relationship}.` : '',
-      petsDetails ? `Important details (pets/inside jokes): ${petsDetails}.` : '',
-      musicSong ? `"Their song" or musical vibe: ${musicSong}.` : '',
-      isEvent && eventDate ? `CRITICAL LOGISTICS: The event takes place on ${eventDate} at ${eventVenue || 'a beautiful venue'}. The RSVP deadline is ${rsvpDeadline || 'soon'}. Include a beautiful formal request for RSVP.` : (!isEvent && eventDate ? `Event date: ${eventDate}.` : ''),
+      customPlace ? (isBirthday ? `Meaningful place to them: ${customPlace}.` : `Specific favorite place: ${customPlace}.`) : '',
+      isBirthday
+        ? `What makes ${name1.trim()} special: ${meetCute}.`
+        : `How they met: ${meetCute}.`,
+      relationship
+        ? isBirthday
+          ? `More about ${name1.trim()}: ${relationship}.`
+          : `What makes their relationship special: ${relationship}.`
+        : '',
+      petsDetails ? `Important details (${isBirthday ? `${name1.trim()}'s interests/personality` : 'pets/inside jokes'}): ${petsDetails}.` : '',
+      musicSong ? (isBirthday ? `${name1.trim()}'s musical taste: ${musicSong}.` : `"Their song" or musical vibe: ${musicSong}.`) : '',
+      isEvent && eventDate ? `CRITICAL LOGISTICS: The event takes place on ${eventDate} at ${eventVenue || 'a beautiful venue'}. The RSVP deadline is ${rsvpDeadline || 'soon'}. Include a beautiful formal request for RSVP.` : (!isEvent && eventDate ? `Date: ${eventDate}.` : ''),
       cashFundUrl ? `REGISTRY: They have a cash fund or registry setup at ${cashFundUrl}. Note this somewhere near the bottom of the story.` : '',
       occasionContext.trim(),
       'The generated site must feel deeply personal and emotionally resonant to the occasion.',
@@ -471,7 +484,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const details = skipDetails ? {} : detailsData;
     const n1 = name1.trim();
     const n2 = name2.trim();
-    const finalSlug = subdomain.trim() || slugFromNames(n1, n2);
+    const autoSlug = isBirthday
+      ? `${n1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday`
+      : slugFromNames(n1, n2);
+    const finalSlug = subdomain.trim() || autoSlug;
     const validUrls = inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/));
     onSubmit({
       names: [n1, n2],
@@ -1175,48 +1191,78 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         {step === 1 && (
           <motion.div key="s1" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              Who is this story about?
+              {isBirthday ? 'Who is this gift for?' : 'Who is this story about?'}
             </h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
-              Let&apos;s start with the most important part.
+              {isBirthday
+                ? 'Start with the birthday star — this site is their gift.'
+                : "Let's start with the most important part."}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>First Person</label>
-                <input type="text" placeholder="e.g. Ben" value={name1} onChange={e => { setName1(e.target.value); setSubdomain(slugFromNames(e.target.value, name2)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name1.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>
+                  {isBirthday ? "Birthday person's name" : 'First Person'}
+                </label>
+                <input
+                  type="text"
+                  placeholder={isBirthday ? 'e.g. Emma' : 'e.g. Ben'}
+                  value={name1}
+                  onChange={e => {
+                    setName1(e.target.value);
+                    if (isBirthday) {
+                      const slug = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday';
+                      setSubdomain(`${slug}-birthday`);
+                    } else {
+                      setSubdomain(slugFromNames(e.target.value, name2));
+                    }
+                  }}
+                  style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name1.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }}
+                  onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus
+                />
                 {showValidation && !name1.trim() && (
                   <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="shimmer-text" style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', color: 'var(--eg-accent)' }}>&</span>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Second Person</label>
-                <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name2.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
-                {showValidation && !name2.trim() && (
-                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
-                )}
-              </div>
-            </div>
-            {/* Slug preview + non-ASCII warning */}
-            {(name1.trim() || name2.trim()) && (() => {
-              const slug = slugFromNames(name1, name2);
-              const simpleSlug = `${name1.toLowerCase().replace(/\s+/g, '-')}-and-${name2.toLowerCase().replace(/\s+/g, '-')}`;
-              const hasNonAscii = slug !== simpleSlug;
-              return (
-                <div style={{ marginTop: '1rem' }}>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: hasNonAscii ? '0.35rem' : 0 }}>
-                    Your site URL: <span style={{ fontWeight: 600 }}>{slug}.pearloom.app</span>
-                  </p>
-                  {hasNonAscii && (
-                    <p style={{ fontSize: '0.82rem', color: 'var(--eg-gold, #B8A04A)' }}>
-                      &#9888; Special characters removed from your URL: {slug}.pearloom.app
-                    </p>
-                  )}
+
+              {isBirthday ? (
+                /* Birthday: gift-giver name — optional */
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>
+                    Your name <span style={{ fontWeight: 400, color: 'var(--eg-muted)', opacity: 0.7 }}>(who&apos;s creating this — optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Mia"
+                    value={name2}
+                    onChange={e => setName2(e.target.value)}
+                    style={{ ...inputStyle, fontSize: '1.25rem' }}
+                    onFocus={getFocusStyle} onBlur={getBlurStyle}
+                  />
                 </div>
-              );
-            })()}
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="shimmer-text" style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', color: 'var(--eg-accent)' }}>&</span>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Second Person</label>
+                    <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name2.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                    {showValidation && !name2.trim() && (
+                      <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+            {name1.trim() && (
+              <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '1rem' }}>
+                Your site URL: <span style={{ fontWeight: 600 }}>
+                  {isBirthday
+                    ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday.pearloom.app`
+                    : `${slugFromNames(name1, name2)}.pearloom.app`}
+                </span>
+              </p>
+            )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>
               <button onClick={handleNext} style={{ ...btnPrimaryStyle, opacity: canProceedStep1 ? 1 : 0.5 }}>
                 Continue <ArrowRight size={18} />
@@ -1234,26 +1280,36 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               The occasion completely changes how we structure your site.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {OCCASIONS.map(occ => (
-                <button key={occ.id} onClick={() => setOccasion(occ.id)} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '1.5rem', borderRadius: '1rem', textAlign: 'left',
-                  border: `2px solid ${occasion === occ.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                  background: occasion === occ.id ? 'var(--eg-accent-light)' : '#fff',
-                  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: occasion === occ.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
-                  transform: occasion === occ.id ? 'translateY(-2px)' : 'none',
-                }}>
-                  <div>
-                    <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</h3>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>{occ.desc}</p>
-                  </div>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${occasion === occ.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {occasion === occ.id && <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--eg-accent)' }} />}
-                  </div>
-                </button>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {OCCASIONS.map(occ => {
+                const active = occasion === occ.id;
+                return (
+                  <motion.button
+                    key={occ.id}
+                    onClick={() => setOccasion(occ.id)}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '1.1rem',
+                      padding: '1.1rem 1.5rem', borderRadius: '1rem', textAlign: 'left',
+                      border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
+                      background: active ? 'var(--eg-accent-light)' : '#fff',
+                      cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
+                      boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    <span style={{ fontSize: '1.5rem', flexShrink: 0, lineHeight: 1 }}>{occ.emoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{occ.desc}</div>
+                    </div>
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {active && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--eg-accent)' }} />}
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
 
             {/* Date picker — shown for all occasions except "story" */}
@@ -1262,7 +1318,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
                   {occasion === 'wedding' ? 'Wedding Date' :
                    occasion === 'anniversary' ? 'Anniversary Date' :
-                   occasion === 'birthday' ? 'Birthday' :
+                   occasion === 'birthday' ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} Birthday` :
                    occasion === 'engagement' ? 'Engagement Date' :
                    'When is the big day?'}
                   {' '}<span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
@@ -1295,10 +1351,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         {step === 3 && (
           <motion.div key="s2" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              What&apos;s your relationship vibe?
+              {isBirthday
+                ? `What's ${name1.trim() ? `${name1.trim()}'s` : 'their'} vibe?`
+                : "What's your relationship vibe?"}
             </h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
-              This shapes the entire tone — colors, fonts, and narrative voice.
+              {isBirthday
+                ? 'Pick the personality that fits them best — it shapes everything.'
+                : 'This shapes the entire tone — colors, fonts, and narrative voice.'}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
               {VIBE_MOODS.map(m => {
@@ -1500,10 +1560,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           <motion.div key="s6" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Globe size={28} color="var(--eg-accent)" />
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Your Favorite Places</h2>
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>
+                {isBirthday ? 'Their World' : 'Your Favorite Places'}
+              </h2>
             </div>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
-              Select the settings that define your adventures. This helps the AI match each photo to the right narrative.
+              {isBirthday
+                ? `Where does ${name1.trim() || 'this person'} feel most alive? Select all that fit.`
+                : 'Select the settings that define your adventures. This helps the AI match each photo to the right narrative.'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '2rem' }}>
               {PLACES.map(p => (
@@ -1512,9 +1576,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>
-                Or name a specific place that&apos;s meaningful to you both:
+                {isBirthday
+                  ? `Or name a place that means something to ${name1.trim() || 'them'}:`
+                  : "Or name a specific place that's meaningful to you both:"}
               </label>
-              <input type="text" placeholder="e.g. Santorini, our back porch, that NYC rooftop..." value={customPlace} onChange={e => setCustomPlace(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+              <input type="text" placeholder={isBirthday ? 'e.g. their favourite café, the family cabin...' : 'e.g. Santorini, our back porch, that NYC rooftop...'} value={customPlace} onChange={e => setCustomPlace(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
@@ -1526,21 +1592,50 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         {/* ── STEP 7: YOUR STORY (was step 6) ── */}
         {step === 7 && (
           <motion.div key="s7" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Tell Us Your Story</h2>
+            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+              {isBirthday
+                ? `Tell us about ${name1.trim() || 'them'}`
+                : 'Tell Us Your Story'}
+            </h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
               The more you share, the more personal and beautiful your site will be.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>How did you meet? *</label>
-                <textarea value={meetCute} onChange={e => setMeetCute(e.target.value)} placeholder="We matched on Hinge and had our first date at a little Italian place..." style={{ ...inputStyle, minHeight: '140px', resize: 'none', lineHeight: 1.6, ...(showValidation && !meetCute.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
+                  {isBirthday
+                    ? `What makes ${name1.trim() || 'this person'} so special? *`
+                    : 'How did you meet? *'}
+                </label>
+                <textarea
+                  value={meetCute}
+                  onChange={e => setMeetCute(e.target.value)}
+                  placeholder={isBirthday
+                    ? `e.g. Emma has the biggest laugh in any room. She's been my best friend since we were 12 and she never stops surprising me...`
+                    : "We matched on Hinge and had our first date at a little Italian place..."}
+                  style={{ ...inputStyle, minHeight: '140px', resize: 'none', lineHeight: 1.6, ...(showValidation && !meetCute.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }}
+                  onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus
+                />
                 {showValidation && !meetCute.trim() && (
                   <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
                 )}
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>What makes your relationship special? <span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span></label>
-                <textarea value={relationship} onChange={e => setRelationship(e.target.value)} placeholder="We balance each other perfectly — she's spontaneous and I'm the planner..." style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
+                  {isBirthday
+                    ? `What do you want everyone to know about ${name1.trim() || 'them'}?`
+                    : 'What makes your relationship special?'}{' '}
+                  <span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
+                </label>
+                <textarea
+                  value={relationship}
+                  onChange={e => setRelationship(e.target.value)}
+                  placeholder={isBirthday
+                    ? `e.g. She's the kind of person who remembers every small detail, always shows up first, and makes everyone around her feel seen...`
+                    : "We balance each other perfectly — she's spontaneous and I'm the planner..."}
+                  style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }}
+                  onFocus={getFocusStyle} onBlur={getBlurStyle}
+                />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
@@ -1566,22 +1661,30 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <Sparkles size={28} color="var(--eg-accent)" />
               </div>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.75rem' }}>Final Magic Touches</h2>
-              <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', maxWidth: '400px', margin: '0 auto' }}>
-                These optional details add warmth and personality.
+              <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', maxWidth: '420px', margin: '0 auto' }}>
+                {isBirthday
+                  ? `The details that make ${name1.trim() || 'this person'} uniquely them.`
+                  : 'These optional details add warmth and personality.'}
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
-                  <Dog size={16} color="var(--eg-accent)" /> Pets, inside jokes, or special traditions
+                  <Dog size={16} color="var(--eg-accent)" />
+                  {isBirthday
+                    ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} pets, passions, or quirks`
+                    : 'Pets, inside jokes, or special traditions'}
                 </label>
-                <textarea value={petsDetails} onChange={e => setPetsDetails(e.target.value)} placeholder="We have two cats named Peaches and Poppy..." style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <textarea value={petsDetails} onChange={e => setPetsDetails(e.target.value)} placeholder={isBirthday ? `e.g. Has a golden retriever called Biscuit, obsessed with Formula 1, makes the best pasta...` : "We have two cats named Peaches and Poppy..."} style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
               </div>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
-                  <Music size={16} color="var(--eg-accent)" /> Your song or musical vibe
+                  <Music size={16} color="var(--eg-accent)" />
+                  {isBirthday
+                    ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} favourite song or musical taste`
+                    : 'Your song or musical vibe'}
                 </label>
-                <input type="text" value={musicSong} onChange={e => setMusicSong(e.target.value)} placeholder={`"At Last" by Etta James, or indie folk, or lo-fi jazz...`} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                <input type="text" value={musicSong} onChange={e => setMusicSong(e.target.value)} placeholder={isBirthday ? `e.g. "Dancing in the Moonlight" — always on in the car...` : `"At Last" by Etta James, or indie folk, or lo-fi jazz...`} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
