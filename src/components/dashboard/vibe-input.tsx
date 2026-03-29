@@ -307,20 +307,20 @@ const DRESSCODE_OPTIONS = [
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '1.25rem', borderRadius: '1rem',
-  border: '2px solid rgba(0,0,0,0.06)', background: '#ffffff',
+  border: '2px solid var(--eg-divider, #E6DFD2)', background: '#ffffff',
   fontSize: '1.1rem', fontFamily: 'var(--eg-font-body)', color: 'var(--eg-fg)',
-  outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+  outline: 'none', transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.2s',
   boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
 };
 
 const getFocusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   e.target.style.borderColor = 'var(--eg-accent)';
-  e.target.style.boxShadow = '0 0 0 4px rgba(163,177,138,0.1)';
+  e.target.style.boxShadow = '0 0 0 4px rgba(163,177,138,0.15), 0 4px 16px rgba(0,0,0,0.04)';
   e.target.style.transform = 'translateY(-1px)';
 };
 
 const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-  e.target.style.borderColor = 'rgba(0,0,0,0.06)';
+  e.target.style.borderColor = 'var(--eg-divider, #E6DFD2)';
   e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)';
   e.target.style.transform = 'none';
 };
@@ -328,11 +328,11 @@ const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
 const btnPrimaryStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '0.5rem',
   padding: '1rem 2.25rem', borderRadius: '100px',
-  background: 'linear-gradient(135deg, var(--eg-dark, #1a1713) 0%, var(--eg-dark-2, #2a2118) 100%)',
+  background: 'linear-gradient(135deg, var(--eg-accent, #A3B18A) 0%, var(--eg-accent-hover, #8FA876) 100%)',
   color: '#fff', border: 'none',
   fontSize: '0.95rem', fontWeight: 600, fontFamily: 'var(--eg-font-body)',
   cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-  boxShadow: '0 8px 24px rgba(26,23,19,0.18)',
+  boxShadow: '0 8px 28px rgba(163,177,138,0.35)',
   letterSpacing: '0.01em',
 };
 
@@ -1312,6 +1312,19 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     );
   }
 
+  const STEP_NAMES: Record<number, string> = {
+    1: 'Occasion',
+    2: 'Names',
+    3: 'Vibe',
+    4: 'Layout',
+    5: 'Aesthetic',
+    6: 'Color Palette',
+    7: 'Places',
+    8: 'Your Story',
+    9: 'Final Details',
+    10: 'Event Details',
+  };
+
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem', position: 'relative' }}>
       {/* ── Ambient orb — shifts with current selection ── */}
@@ -1323,46 +1336,40 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           pointerEvents: 'none', zIndex: 0,
         }}
       />
-      {/* Progress header */}
-      <div style={{ marginBottom: '2.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-        <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          {step} / {totalSteps + 1}
-        </span>
-        <div style={{ flex: 1, height: '2px', background: 'rgba(0,0,0,0.07)', borderRadius: 100, overflow: 'hidden' }}>
+
+      {/* ── Single unified progress system ── */}
+      <div style={{ marginBottom: '2.5rem' }}>
+        {/* Step label row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <motion.span
+            key={step}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const, color: 'var(--eg-accent)',
+            }}
+          >
+            {STEP_NAMES[step] || `Step ${step}`}
+          </motion.span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.04em' }}>
+            {step} <span style={{ opacity: 0.5 }}>/ {totalSteps + 1}</span>
+          </span>
+        </div>
+        {/* Progress bar */}
+        <div style={{ height: '3px', background: 'var(--eg-divider)', borderRadius: 100, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${Math.round((step / (totalSteps + 1)) * 100)}%` }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            style={{ height: '100%', background: 'linear-gradient(90deg, var(--eg-accent), color-mix(in srgb, var(--eg-accent) 70%, #fff))', borderRadius: 100 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              height: '100%',
+              background: 'linear-gradient(90deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
+              borderRadius: 100,
+              boxShadow: '0 0 8px rgba(163,177,138,0.5)',
+            }}
           />
         </div>
-      </div>
-      {/* Pear progress dots */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '3rem', alignItems: 'center', justifyContent: 'center' }}>
-        {Array.from({ length: totalSteps }).map((_, i) => {
-          const done = i + 1 < step;
-          const active = i + 1 === step;
-          return (
-            <div
-              key={i}
-              style={{
-                width: active ? '32px' : '8px',
-                height: active ? '41px' : '10px',
-                borderRadius: active
-                  ? '42% 42% 52% 52% / 30% 30% 52% 52%'
-                  : done
-                  ? '42% 42% 52% 52% / 30% 30% 52% 52%'
-                  : '50%',
-                background: active
-                  ? 'var(--eg-accent)'
-                  : done
-                  ? 'rgba(163,177,138,0.45)'
-                  : 'rgba(0,0,0,0.08)',
-                transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
-                boxShadow: active ? '0 4px 12px rgba(163,177,138,0.35)' : 'none',
-              }}
-            />
-          );
-        })}
       </div>
 
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -2136,7 +2143,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               {isEvent ? (
                 <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
               ) : (
-                <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'linear-gradient(135deg, #A3B18A, #8FA876)', boxShadow: '0 12px 36px rgba(163,177,138,0.4)' }}>Generate My Site <Sparkles size={18} /></button>
+                <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <Sparkles size={18} /></button>
               )}
             </div>
           </motion.div>
@@ -2172,7 +2179,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'linear-gradient(135deg, #A3B18A, #8FA876)', boxShadow: '0 12px 36px rgba(163,177,138,0.4)' }}>Generate My Site <Sparkles size={18} /></button>
+              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <Sparkles size={18} /></button>
             </div>
           </motion.div>
         )}
