@@ -61,7 +61,8 @@ async function uploadPhotoUrl(rawUrl: string): Promise<string> {
     }));
 
     return `${r2.publicBase}/${key}`;
-  } catch {
+  } catch (err) {
+    console.warn('[R2 Upload] Failed to upload photo to R2 — site will use ephemeral Google Photos URL:', err instanceof Error ? err.message : err);
     return rawUrl; // on any failure, fall back gracefully
   }
 }

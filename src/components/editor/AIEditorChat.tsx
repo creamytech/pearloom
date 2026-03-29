@@ -118,15 +118,27 @@ export function AIEditorChat({
         const { id, ...updates } = actionData;
         onUpdateChapter(id, updates);
       } else if (action === 'update_manifest' && actionData?.path) {
-        // Handle nested path like "poetry.heroTagline"
+        // Handle nested path like "poetry.heroTagline" or "chapters.0.title"
         const parts = (actionData.path as string).split('.');
+        // Guard: only handle 1- or 2-level paths to avoid corrupting the manifest
         if (parts.length === 2) {
           const [topKey, subKey] = parts;
           const existing = (manifest as unknown as Record<string, unknown>)[topKey] as Record<string, unknown> | undefined;
           const updated = { [topKey]: { ...(existing || {}), [subKey]: actionData.value } };
           onUpdateManifest(updated as Partial<StoryManifest>);
-        } else {
+        } else if (parts.length === 1) {
           onUpdateManifest({ [parts[0]]: actionData.value } as Partial<StoryManifest>);
+        } else {
+          // 3+ level paths (e.g. chapters.0.title) — route to chapter updater when applicable
+          if (parts[0] === 'chapters' && parts.length === 3) {
+            const chapterIndex = parseInt(parts[1], 10);
+            const fieldKey = parts[2] as keyof Chapter;
+            const targetChapter = manifest.chapters?.[chapterIndex];
+            if (targetChapter && !isNaN(chapterIndex)) {
+              onUpdateChapter(targetChapter.id, { [fieldKey]: actionData.value } as Partial<Chapter>);
+            }
+          }
+          // Otherwise skip unknown deep paths silently — do not corrupt the manifest
         }
       }
 
