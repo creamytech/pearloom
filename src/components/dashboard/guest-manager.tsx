@@ -382,6 +382,42 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         )}
       </AnimatePresence>
 
+      {/* ── Bulk action toolbar ── */}
+      {selectedIds.size > 0 && (
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 10,
+          background: 'rgba(163,177,138,0.12)',
+          border: '1px solid rgba(163,177,138,0.25)',
+          borderRadius: '0.75rem', padding: '0.75rem 1rem',
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+          marginBottom: '0.75rem',
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+            {selectedIds.size} selected
+          </span>
+          {(['attending', 'declined', 'pending'] as const).map(status => (
+            <button
+              key={status}
+              onClick={() => bulkUpdateStatus(status)}
+              style={{
+                padding: '0.35rem 0.75rem', borderRadius: '0.5rem',
+                background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)',
+                cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
+                textTransform: 'capitalize',
+              }}
+            >
+              Mark {status}
+            </button>
+          ))}
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            style={{ marginLeft: 'auto', fontSize: '0.8rem', opacity: 0.5, background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* ── Guest Table / Cards ── */}
       <div style={{ background: '#fff', borderRadius: '0.875rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         {/* Table header (desktop) */}
@@ -389,7 +425,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           className="guest-table-header"
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 180px 110px 70px 120px 36px',
+            gridTemplateColumns: '32px 1fr 180px 110px 70px 120px 36px',
             padding: '0.75rem 1.25rem',
             background: 'rgba(0,0,0,0.015)',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
@@ -397,6 +433,20 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             textTransform: 'uppercase', color: 'var(--eg-muted)',
           }}
         >
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              style={{ accentColor: 'var(--eg-accent)', cursor: 'pointer' }}
+              checked={filtered.length > 0 && filtered.every(g => selectedIds.has(g.id))}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedIds(new Set(filtered.map(g => g.id)));
+                } else {
+                  setSelectedIds(new Set());
+                }
+              }}
+            />
+          </span>
           <span>Guest</span>
           <span>Email</span>
           <span>Status</span>
