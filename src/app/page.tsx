@@ -365,6 +365,9 @@ export default function DashboardPage() {
 
   // -- Full-screen editor takes over the entire viewport --
   if (currentStep === 'edit' && manifest) {
+    // Clear any wizard draft so the "Unsaved draft recovered" banner never
+    // appears while editing an already-loaded/published site.
+    try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
     return (
       <FullscreenEditor
         manifest={manifest}
