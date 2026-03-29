@@ -52,11 +52,17 @@ export interface StoryManifest {
   customPages?: CustomPage[];
   // Last asset selected from the asset library (for canvas insertion)
   lastAsset?: { id: string; type: 'dividers' | 'illustrations' | 'accents'; name: string };
-  // Poetry pass — 4th AI generation pass: hero tagline, footer closing line, RSVP intro
+  // Poetry pass — 4th AI generation pass: hero tagline, footer closing line, RSVP intro, welcome statement
   poetry?: {
-    heroTagline: string;    // 5-8 word poetic subtitle for the hero section
-    closingLine: string;    // 10-15 word closing line for the footer
-    rsvpIntro: string;      // warm, personal 1-2 sentence intro for the RSVP section
+    heroTagline: string;         // 5-8 word poetic subtitle for the hero section
+    closingLine: string;         // 10-15 word closing line for the footer
+    rsvpIntro: string;           // warm, personal 1-2 sentence intro for the RSVP section
+    welcomeStatement?: string;   // 3-5 sentence personal intro in the couple's own voice
+    milestones?: Array<{         // year-by-year milestones (anniversaries & birthdays)
+      year: number;
+      label: string;
+      emoji?: string;
+    }>;
   };
   // AI-generated wedding hashtag suggestions
   hashtags?: string[];
@@ -111,6 +117,8 @@ export interface Chapter {
   ambientColor?: string;
   /** Index into chapter.images[] of the hero/cover photo (AI picks the most visually striking one) */
   heroPhotoIndex?: number;
+  /** True when emotionalIntensity >= 8 — this chapter is the emotional climax of the story */
+  isEmotionalPeak?: boolean;
   /** Optional video URL (YouTube, Vimeo, or direct mp4) to show instead of/alongside photos */
   videoUrl?: string;
   /** AI-generated quiz question derived from this chapter's content */

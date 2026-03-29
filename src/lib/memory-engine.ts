@@ -247,7 +247,24 @@ export async function generateStoryManifest(
 
   manifest.chapters = manifest.chapters
     .sort((a: Chapter, b: Chapter) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map((ch: Chapter, i: number) => ({ ...ch, order: i }));
+    .map((ch: Chapter, i: number) => ({
+      ...ch,
+      order: i,
+      // Mark chapters with high emotional intensity as the story's climax moments
+      isEmotionalPeak: (ch.emotionalIntensity ?? 0) >= 8,
+    }));
+
+  // ── Pass 1.2: Chapter Story Quality Gate ─────────────────────────────
+  // Gemini scores each chapter's specificity 1-10 and rewrites any < 7.
+  // Ensures zero generic “our journey began” chapters reach the user.
+  try {
+    manifest.chapters = await critiqueAndRefineChapters(
+      manifest.chapters, vibeString, coupleNames, apiKey, occasion
+    );
+    console.log('[Memory Engine] Pass 1.2: Chapter quality gate complete');
+  } catch (err) {
+    console.warn('[Memory Engine] Chapter quality gate failed (non-fatal):', err);
+  }
 
   // ── Pass 1.5: Extract Couple DNA — pets, interests, locations, motifs ────
   // Lightweight Gemini call to extract couple's personal world for bespoke illustration
@@ -325,28 +342,151 @@ export async function generateStoryManifest(
   return manifest;
 }
 
+// ── Pass 1.2: Chapter Story Quality Gate ─────────────────────────────
+// Gemini reviews every chapter description and scores it 1–10 for
+// "could this ONLY belong to this specific couple?"
+// Any chapter scoring < 7 is rewritten before the user ever sees it.
+async function critiqueAndRefineChapters(
+  chapters: import('@/types').Chapter[],
+  vibeString: string,
+  coupleNames: [string, string] | undefined,
+  apiKey: string,
+  occasion?: string
+): Promise<import('@/types').Chapter[]> {
+  if (!chapters.length) return chapters;
+  const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
+  const occ = (occasion || 'wedding').charAt(0).toUpperCase() + (occasion || 'wedding').slice(1);
+
+  const chapterList = chapters.map((c, i) =>
+    `Chapter ${i}:\n  Title: "${c.title}"\n  Subtitle: "${c.subtitle}"\n  Description: "${c.description}"\n  Mood: ${c.mood}`
+  ).join('\n\n');
+
+  const prompt = `You are a world-class story editor reviewing chapters for ${namesCtx}'s ${occ} website on Pearloom.
+
+Their vibe: "${vibeString.slice(0, 300)}"
+
+CHAPTERS TO REVIEW:
+${chapterList}
+
+For EACH chapter, score 1–10: "Could this description ONLY belong to this couple, or could it fit any ${occ} site?"
+
+Score guide:
+- 1–3: Generic filler ("Our journey began...", "We started our adventure...", "It was a beautiful day")
+- 4–6: Some personal detail but still fits many couples
+- 7–10: Deeply specific — references THEIR actual vibe, uses unexpected language, feels written for THEM alone
+
+Return ONLY valid JSON (no markdown):
+{
+  "chapters": [
+    {
+      "index": 0,
+      "score": <1-10>,
+      "issue": "<one-sentence reason if score < 7, else null>",
+      "rewrite": {
+        "title": "<improved title, or null if score >= 7>",
+        "subtitle": "<improved subtitle, or null if score >= 7>",
+        "description": "<FULL rewritten description if score < 7 — 3-4 sentences, FIRST PERSON PLURAL (we/us/our), deeply specific to their vibe, zero clichés. null if score >= 7>"
+      }
+    }
+  ]
+}
+
+REWRITE RULES (apply only when score < 7):
+- Preserve the date, mood, location metadata — only rewrite the prose
+- Must use "We" / "us" / "our" throughout
+- Must weave specific details from: "${vibeString.slice(0, 200)}"
+- BANNED WORDS: journey, adventure, soulmate, fairy tale, magical, beautiful memories, new chapter, story of us, chapter of our lives
+- Each rewritten description must feel like it could ONLY be THIS couple's site`;
+
+  try {
+    const res = await geminiRetryFetch(
+      `${GEMINI_API_BASE}?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.9,
+            maxOutputTokens: 4096,
+          },
+        }),
+      }
+    );
+    if (!res.ok) throw new Error(`Chapter critique API ${res.status}`);
+
+    const data = await res.json();
+    const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim()
+      .replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
+      .replace(/,\s*([}\]])/g, '$1');
+
+    const result = JSON.parse(raw) as {
+      chapters: Array<{
+        index: number;
+        score: number;
+        issue?: string | null;
+        rewrite: { title: string | null; subtitle: string | null; description: string | null };
+      }>;
+    };
+
+    let rewriteCount = 0;
+    const improved = [...chapters];
+    for (const review of (result.chapters || [])) {
+      const idx = review.index;
+      if (typeof idx !== 'number' || idx < 0 || idx >= improved.length) continue;
+      if (review.score < 7 && review.rewrite) {
+        const ch = { ...improved[idx] };
+        if (review.rewrite.title) ch.title = review.rewrite.title;
+        if (review.rewrite.subtitle) ch.subtitle = review.rewrite.subtitle;
+        if (review.rewrite.description) ch.description = review.rewrite.description;
+        improved[idx] = ch;
+        rewriteCount++;
+        console.log(`[Chapter Critique] Chapter ${idx} scored ${review.score}/10 — rewritten: ${review.issue}`);
+      } else {
+        console.log(`[Chapter Critique] Chapter ${idx} scored ${review.score}/10 — approved`);
+      }
+    }
+    console.log(`[Chapter Critique] ${rewriteCount}/${chapters.length} chapter(s) rewritten`);
+    return improved;
+  } catch (err) {
+    console.warn('[Chapter Critique] Failed (non-fatal):', err);
+    return chapters;
+  }
+}
+
 // ── Pass 4: Poetry pass ───────────────────────────────────────────────
-// Lightweight Gemini call that generates 3 couple-specific text pieces:
-//   heroTagline — 5-8 word poetic subtitle for the hero section
-//   closingLine — 10-15 word footer closing line
-//   rsvpIntro   — warm, personal 1-2 sentence intro for the RSVP section
+// Gemini call that generates all couple-specific copywriting:
+//   heroTagline      — 5-8 word poetic subtitle for the hero section
+//   closingLine      — 10-15 word footer closing line
+//   rsvpIntro        — warm, personal 1-2 sentence intro for RSVP
+//   welcomeStatement — 3-5 sentence personal intro in the couple's own voice
+//   milestones       — year-by-year highlights (anniversaries/birthdays only)
 async function generatePoetryPass(
   vibeString: string,
   coupleNames: [string, string] | undefined,
   chapters: import('@/types').Chapter[],
   apiKey: string,
   occasion?: string
-): Promise<{ heroTagline: string; closingLine: string; rsvpIntro: string }> {
+): Promise<{
+  heroTagline: string;
+  closingLine: string;
+  rsvpIntro: string;
+  welcomeStatement?: string;
+  milestones?: Array<{ year: number; label: string; emoji?: string }>;
+}> {
   const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
+  const name1 = coupleNames?.[0] ?? 'We';
   const occ = occasion || 'wedding';
 
   // Pull a few chapter titles to give Gemini narrative context
-  const chapterTitles = chapters.slice(0, 4).map(c => c.title).join(', ');
+  const chapterTitles = chapters.slice(0, 5).map(c => `"${c.title}"`).join(', ');
+  const chapterDescSample = chapters[0]?.description?.slice(0, 150) || '';
 
   const occasionSectionLabels: Record<string, string> = {
     wedding:     'Our Story, The Ceremony, The Celebration, Our Registry, Getting There, Good to Know',
     anniversary: 'Our Journey, Through the Years, Still Us, The Celebration, Wishes',
-    birthday:    `Who They Are, Their Story, Celebrating ${coupleNames?.[0] ?? 'Them'}, Wishes & Messages`,
+    birthday:    `Who They Are, Their Story, Celebrating ${name1}, Wishes & Messages`,
     engagement:  "Our Love Story, The Proposal, The Party, What's Next",
     story:       'Our Story, Our Moments, Our World',
   };
@@ -359,33 +499,61 @@ async function generatePoetryPass(
     story:       'Write as a warm personal invitation to share in this moment.',
   };
 
+  const welcomeVoiceGuide: Record<string, string> = {
+    wedding:     `Write as the couple, introducing themselves and their relationship. Reference how they met or something specific from their vibe. End with anticipation for the wedding.`,
+    anniversary: `Write as the couple looking back at years together. Reference the number of years and something specific they've lived through. Celebratory, warm, reflective.`,
+    birthday:    `Write as the host (or the birthday person themselves) introducing ${name1} to guests. Celebrate who they are — specific personality, passions, what makes them unforgettable. First person ("I'm ${name1}…") or third person from the host's perspective.`,
+    engagement:  `Write as the newly-engaged couple, bursting with excitement. Reference the proposal story if available in the vibe. Romantic, electric, full of "what's next" energy.`,
+    story:       `Write as the person/couple behind this site, introducing themselves and why this story matters. Intimate, personal, literary.`,
+  };
+
+  const needsMilestones = ['anniversary', 'birthday'].includes(occ);
+  const milestonesInstruction = needsMilestones ? `
+5. milestones: An array of ${occ === 'anniversary' ? '6-10 year-by-year highlights from their relationship' : '4-8 life highlights from this person\'s story'}. Each milestone should feel like a mini-chapter title — specific, poetic, 3-6 words. Use the chapter titles and vibe string as source material. Include a relevant emoji for each.
+   Example for anniversary: [{"year": 2018, "label": "First terrible date, best story", "emoji": "☕"}, {"year": 2019, "label": "Moved in, chaos ensued", "emoji": "📦"}]
+   Example for birthday: [{"year": 1994, "label": "Arrived, immediately took over", "emoji": "🌟"}, {"year": 2012, "label": "Discovered the mountains", "emoji": "⛰️"}]
+` : '';
+
   const sectionLabels = occasionSectionLabels[occ] || occasionSectionLabels.wedding;
   const rsvpContext = rsvpIntroContext[occ] || rsvpIntroContext.wedding;
+  const welcomeVoice = welcomeVoiceGuide[occ] || welcomeVoiceGuide.wedding;
   const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
 
-  const poetryPrompt = `You are a poet writing for ${namesCtx}'s ${occCap} website on Pearloom.
+  const poetryPrompt = `You are a gifted copywriter and poet writing for ${namesCtx}'s ${occCap} website on Pearloom.
 Their vibe: "${vibeString}"
-Their story chapters include: ${chapterTitles || 'the beginning of their love'}
+Story chapters: ${chapterTitles || 'the beginning of their love'}
+Sample chapter prose: "${chapterDescSample}"
 
-This is a ${occCap} site — NOT a generic wedding site. Write all three pieces with this occasion in mind.
+This is a ${occCap} site — every piece of writing must reflect THIS specific occasion and THIS specific person/couple.
 
 Use section labels appropriate for a ${occCap}: ${sectionLabels}
 
-Write 3 short pieces of text — each must be specific to THIS occasion and THIS person/couple, not generic:
+Write ${needsMilestones ? '5' : '4'} pieces of text — each must be deeply specific, not generic:
 
-1. heroTagline: A 5-8 word poetic subtitle for their hero section. Should feel like a beautiful line from a literary novel or indie film. NOT "A love story written in stars" or other cliches. Reference their actual vibe and occasion.
-   Examples: "A love story written in light", "Where the mountains remembered everything", "Two people who chose the long way home"
+1. heroTagline: A 5-8 word poetic subtitle for their hero section. Should feel like a line from a literary novel or indie film. NOT clichés like "A love story written in stars". Must reference their actual vibe.
+   Strong examples: "Where the mountains remembered everything", "Two people who chose the long way home", "Still the same room, still the same light"
 
-2. closingLine: A 10-15 word closing line for their site footer. Warm, intimate, final. References their story or vibe.
-   Examples: "Two threads, one loom, forever woven in light", "Here is where we began. Here is where we stay."
+2. closingLine: A 10-15 word closing line for their site footer. Warm, intimate, final. References their specific story or vibe — not a generic platitude.
+   Strong examples: "Two threads, one loom, forever woven in light", "Here is where we began. Here is where we stay.", "See you on the other side of forever."
 
-3. rsvpIntro: A warm, personal 1-2 sentence intro for their RSVP section. ${rsvpContext} Should feel genuinely personal, with a specific nod to their celebration.
+3. rsvpIntro: A warm, personal 1-2 sentence intro for their RSVP section. ${rsvpContext} Must feel genuinely personal with a specific nod to their celebration.
 
-Return ONLY valid JSON:
+4. welcomeStatement: ${welcomeVoice}
+   CRITICAL RULES:
+   - 3-5 sentences. No more.
+   - Must feel like a REAL person wrote it, not an AI. Conversational, specific, alive.
+   - Must reference at least ONE specific detail from their vibe: "${vibeString.slice(0, 200)}"
+   - Banned: "journey", "adventure", "fairy tale", "soulmate", "beautifully unique story"
+   - Must make a guest feel like they know these people after reading it.
+   - Strong example tone: "We're Mia and Carlos. We met at a salsa class in Miami — he stepped on her feet twice, she forgave him anyway. Four years later, we're doing this. This site is our way of sharing a little of what got us here before the big day."
+${milestonesInstruction}
+Return ONLY valid JSON (no markdown, no backticks):
 {
   "heroTagline": "<5-8 word poetic subtitle>",
   "closingLine": "<10-15 word closing footer line>",
-  "rsvpIntro": "<1-2 warm, personal sentences inviting guests to RSVP>"
+  "rsvpIntro": "<1-2 warm, personal sentences>",
+  "welcomeStatement": "<3-5 sentence personal intro in their voice>"${needsMilestones ? `,
+  "milestones": [{"year": <number>, "label": "<3-6 word specific highlight>", "emoji": "<single emoji>"}]` : ''}
 }`;
 
   const res = await geminiRetryFetch(
@@ -398,7 +566,7 @@ Return ONLY valid JSON:
         generationConfig: {
           responseMimeType: 'application/json',
           temperature: 1.0,
-          maxOutputTokens: 512,
+          maxOutputTokens: 1024,
         },
       }),
     }
@@ -415,6 +583,8 @@ Return ONLY valid JSON:
     heroTagline?: string;
     closingLine?: string;
     rsvpIntro?: string;
+    welcomeStatement?: string;
+    milestones?: Array<{ year: number; label: string; emoji?: string }>;
   };
 
   return {
@@ -424,6 +594,10 @@ Return ONLY valid JSON:
       ? result.closingLine : 'Thank you for being part of our story.',
     rsvpIntro: typeof result.rsvpIntro === 'string' && result.rsvpIntro.length > 0
       ? result.rsvpIntro : "We can't wait to celebrate with you. Please let us know if you'll be joining us.",
+    ...(typeof result.welcomeStatement === 'string' && result.welcomeStatement.length > 10
+      ? { welcomeStatement: result.welcomeStatement } : {}),
+    ...(Array.isArray(result.milestones) && result.milestones.length > 0
+      ? { milestones: result.milestones } : {}),
   };
 }
 

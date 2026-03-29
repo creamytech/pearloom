@@ -196,6 +196,44 @@ function ChapterDivider() {
   );
 }
 
+// Emotional peak pre-chapter marker — shown above the climax chapter (proposal, wedding day, etc.)
+function EmotionalPeakMarker() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.6rem',
+        padding: '2rem 0 0.5rem',
+        opacity: 0.55,
+      }}
+    >
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.9rem',
+      }}>
+        <div style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', opacity: 0.5 }} />
+        <span style={{ fontSize: '1.1rem', color: 'var(--eg-gold)', letterSpacing: '0.2em' }}>✦ ✦ ✦</span>
+        <div style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', opacity: 0.5 }} />
+      </div>
+      <span style={{
+        fontSize: '0.58rem',
+        letterSpacing: '0.3em',
+        textTransform: 'uppercase',
+        fontVariant: 'small-caps',
+        color: 'var(--eg-gold)',
+        fontWeight: 700,
+        opacity: 0.75,
+      }}>
+        A defining moment
+      </span>
+    </div>
+  );
+}
+
 // Collapsible video panel — "▶ Watch the moment" toggle
 function CollapsibleVideo({ videoUrl }: { videoUrl: string }) {
   const [open, setOpen] = useState(false);
@@ -1180,27 +1218,36 @@ export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps)
     }
   })();
 
-  // Overlay the AI chapter icon as a floating decoration if available
-  if (chapterIcon) {
+  const isPeak = chapter.isEmotionalPeak || intensity >= 8;
+
+  // Wrap with icon overlay + optional peak marker
+  const withIcon = chapterIcon ? (
+    <div style={{ position: 'relative' }}>
+      {inner}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '2.5rem',
+          right: '2.5rem',
+          width: '64px',
+          height: '64px',
+          opacity: 0.22,
+          pointerEvents: 'none',
+        }}
+        dangerouslySetInnerHTML={{ __html: chapterIcon }}
+      />
+    </div>
+  ) : inner;
+
+  if (isPeak && index > 0) {
     return (
-      <div style={{ position: 'relative' }}>
-        {inner}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '2.5rem',
-            right: '2.5rem',
-            width: '64px',
-            height: '64px',
-            opacity: 0.22,
-            pointerEvents: 'none',
-          }}
-          dangerouslySetInnerHTML={{ __html: chapterIcon }}
-        />
-      </div>
+      <>
+        <EmotionalPeakMarker />
+        {withIcon}
+      </>
     );
   }
 
-  return inner;
+  return withIcon;
 }

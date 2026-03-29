@@ -211,6 +211,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             coverPhoto={coverPhoto}
             weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
             vibeSkin={vibeSkin}
+            heroTagline={manifest.poetry?.heroTagline}
           />
         );
       case 'story':
@@ -450,6 +451,27 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     </div>
   );
 
+  // Welcome statement — the couple's personal voice, shown below the vibe quote
+  const WelcomeStatement = () => {
+    const statement = manifest.poetry?.welcomeStatement;
+    if (!statement) return null;
+    return (
+      <div style={{ padding: '0 2rem 5rem', maxWidth: '680px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <p style={{
+          fontFamily: `"${vibeSkin.fonts.body}", sans-serif`,
+          fontSize: 'clamp(1rem, 2.2vw, 1.15rem)',
+          lineHeight: 1.85,
+          color: pal.foreground,
+          opacity: 0.7,
+          fontStyle: 'normal',
+          letterSpacing: '0.01em',
+        }}>
+          {statement}
+        </p>
+      </div>
+    );
+  };
+
   // Custom SVG border art rendered between major sections
   const SvgBorder = ({ flip = false }: { flip?: boolean }) =>
     vibeSkin.sectionBorderSvg ? (
@@ -526,12 +548,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
       result.push(rendered);
 
-      // After hero, inject the vibe quote section (with a single divider already accounted for above)
+      // After hero, inject the vibe quote + welcome statement
       if (block.type === 'hero') {
         result.push(
           <WaveDivider key="divider-hero-quote" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />,
           <SvgBorder key="border-before-quote" />,
           <VibeQuote key="vibe-quote" />,
+          ...(manifest.poetry?.welcomeStatement ? [<WelcomeStatement key="welcome-statement" />] : []),
           <SvgBorder key="border-after-quote" flip />
         );
         // vibe quote exits with bgColor
@@ -632,9 +655,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           ) : (
             // ── LEGACY: hardcoded order (no blocks yet) ──
             <>
-              <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} />
+              <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} />
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
               <VibeQuote />
+              <WelcomeStatement />
               <section id="our-story"><Timeline chapters={manifest.chapters || []} /></section>
               {manifest.events?.length ? (
                 <>
@@ -691,11 +715,20 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
           <div style={{
             fontFamily: `"${vibeSkin.fonts.heading}", serif`,
-            fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem',
+            fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem',
           }}>
             {safeNames[0]} & {safeNames[1]}
           </div>
-          <div style={{ opacity: 0.5 }}>Made with Pearloom</div>
+          {manifest.poetry?.closingLine && (
+            <div style={{
+              fontFamily: `"${vibeSkin.fonts.heading}", serif`,
+              fontSize: '0.75rem', fontStyle: 'italic', opacity: 0.45, marginBottom: '0.75rem',
+              maxWidth: '400px', margin: '0 auto 0.75rem',
+            }}>
+              {manifest.poetry.closingLine}
+            </div>
+          )}
+          <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Made with Pearloom</div>
         </footer>
       </div>
     </ThemeProvider>
