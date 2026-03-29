@@ -14,6 +14,23 @@ import { MoodDecorator } from '@/components/mood-decorator';
 import { LocationPinIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
 import { VideoChapterPlayer } from '@/components/site/VideoChapterPlayer';
 
+// Strip dangerous attributes from AI-generated SVG icons before rendering.
+// We allow only structural/visual SVG attributes — no event handlers, scripts, or external refs.
+function sanitizeSvg(svg: string): string {
+  if (!svg) return '';
+  return svg
+    // Remove script tags and their content
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    // Remove event handler attributes (on*)
+    .replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
+    // Remove javascript: URLs
+    .replace(/href\s*=\s*["']javascript:[^"']*["']/gi, '')
+    // Remove external resource references (xlink:href, href pointing outside)
+    .replace(/xlink:href\s*=\s*["'](?!#)[^"']*["']/gi, '')
+    // Remove <use> elements that reference external resources
+    .replace(/<use[^>]+href\s*=\s*["'][^#][^"']*["'][^>]*\/?>/gi, '');
+}
+
 interface TimelineItemProps {
   chapter: Chapter;
   index: number;
@@ -1235,7 +1252,7 @@ export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps)
           opacity: 0.22,
           pointerEvents: 'none',
         }}
-        dangerouslySetInnerHTML={{ __html: chapterIcon }}
+        dangerouslySetInnerHTML={{ __html: sanitizeSvg(chapterIcon) }}
       />
     </div>
   ) : inner;

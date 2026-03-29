@@ -12,10 +12,29 @@ const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemi
 
 export const dynamic = 'force-dynamic';
 
+// Rate limit: max 30 AI suggestions per user per hour
+const suggestRateMap = new Map<string, { count: number; resetAt: number }>();
+function isSuggestRateLimited(email: string): boolean {
+  const now = Date.now();
+  const entry = suggestRateMap.get(email);
+  if (!entry || now > entry.resetAt) {
+    suggestRateMap.set(email, { count: 1, resetAt: now + 60 * 60 * 1000 });
+    if (suggestRateMap.size > 5000) {
+      for (const [k, v] of suggestRateMap) { if (now > v.resetAt) suggestRateMap.delete(k); }
+    }
+    return false;
+  }
+  entry.count++;
+  return entry.count > 30;
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  }
+  if (isSuggestRateLimited(session.user.email || 'unknown')) {
+    return NextResponse.json({ error: 'Too many requests — please wait before generating more suggestions' }, { status: 429 });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
