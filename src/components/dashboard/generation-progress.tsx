@@ -68,7 +68,6 @@ function buildThoughtLines(
   vibeString: string,
   occasion: string,
   photoCount: number,
-  elapsed: number,
 ): string[] {
   const [n1, n2] = names;
   const vibeWords = vibeString
@@ -77,61 +76,55 @@ function buildThoughtLines(
     .filter(s => s.length > 2)
     .slice(0, 8);
 
-  const displayOccasion = occasion === 'wedding' ? 'wedding'
-    : occasion === 'engagement' ? 'engagement'
-    : occasion === 'anniversary' ? 'anniversary'
-    : occasion === 'birthday' ? 'birthday'
-    : 'celebration';
+  const isCouple = n2 && n2.trim().length > 0;
 
-  const lines: string[] = [];
+  if (passIdx === 0) return [
+    `${photoCount} ${photoCount === 1 ? 'memory' : 'memories'} — each one a small world to explore`,
+    isCouple ? `Getting to know ${n1} & ${n2}...` : `Getting to know ${n1 || 'you'}...`,
+    vibeWords[0] ? `Something ${vibeWords[0]} is already taking shape` : `Feeling the quiet details between the lines`,
+  ];
 
-  if (passIdx === 0) {
-    lines.push(`reading ${photoCount} photo${photoCount !== 1 ? 's' : ''} — scanning dates, cameras, locations`);
-    if (n1) lines.push(`names detected: ${n1}${n2 ? ` & ${n2}` : ''}`);
-    if (vibeWords[0]) lines.push(`vibe signal: "${vibeWords[0]}"${vibeWords[1] ? ` · "${vibeWords[1]}"` : ''}`);
-    lines.push(`occasion: ${displayOccasion} — calibrating narrative tone`);
-  } else if (passIdx === 1) {
-    lines.push(`constructing story arc for ${n1}${n2 ? ` & ${n2}` : ''}`);
-    lines.push(`${photoCount} moments → organising into chapters`);
-    if (vibeWords[0]) lines.push(`"${vibeWords[0]}" → setting chapter one atmosphere`);
-    if (vibeWords[1]) lines.push(`threading "${vibeWords[1]}" through the narrative`);
-    lines.push(`generating opening lines...`);
-  } else if (passIdx === 2) {
-    lines.push(`reviewing each chapter for specificity and depth`);
-    if (n1) lines.push(`cross-checking: does this feel like ${n1}${n2 ? ` & ${n2}` : ''}?`);
-    lines.push(`rewriting any lines that feel too generic`);
-    if (vibeWords[2]) lines.push(`amplifying "${vibeWords[2]}" through the prose`);
-  } else if (passIdx === 3) {
-    lines.push(`extracting couple DNA — motifs, habits, places`);
-    if (n1) lines.push(`building ${n1}'s character signature`);
-    if (n2) lines.push(`building ${n2}'s character signature`);
-    lines.push(`mapping shared moments to visual symbols`);
-    if (vibeWords[3]) lines.push(`motif candidate: "${vibeWords[3]}"`);
-  } else if (passIdx === 4) {
-    if (vibeWords[0]) lines.push(`colour palette seeded from "${vibeWords[0]}"`);
-    if (vibeWords[1]) lines.push(`typography mood: "${vibeWords[1]}"`);
-    lines.push(`generating visual identity — fonts, spacing, palette`);
-    lines.push(`crafting layout structure for ${displayOccasion} format`);
-  } else if (passIdx === 5) {
-    lines.push(`generating hero illustration`);
-    lines.push(`rendering ambient background art`);
-    if (vibeWords[0]) lines.push(`art direction: "${vibeWords[0]}"${vibeWords[4] ? ` meets "${vibeWords[4]}"` : ''}`);
-    lines.push(`compositing accent layers`);
-  } else if (passIdx === 6) {
-    lines.push(`colour harmony check — all ${Math.floor(Math.random() * 6) + 8} palette values`);
-    lines.push(`proportion audit — section spacing`);
-    lines.push(`emotional calibration: does it feel right?`);
-    lines.push(`micro-adjustments applied`);
-  } else {
-    if (n1) lines.push(`writing ${n1}${n2 ? ` & ${n2}` : ''}'s hero tagline`);
-    lines.push(`composing RSVP welcome message`);
-    lines.push(`finding the closing line...`);
-    if (vibeWords[5]) lines.push(`final note: "${vibeWords[5]}"`);
-  }
+  if (passIdx === 1) return [
+    isCouple ? `A story is forming — uniquely ${n1} & ${n2}` : `A story is forming — uniquely ${n1 || 'yours'}`,
+    `Each chapter is its own small universe`,
+    vibeWords[0] ? `"${vibeWords[0]}" is woven through every line` : `Each word chosen with care`,
+  ];
 
-  if (elapsed > 90) lines.push(`deep generation — ${elapsed}s · still going strong`);
+  if (passIdx === 2) return [
+    `Reading back every line with fresh eyes`,
+    isCouple ? `Does this feel like ${n1} & ${n2}? Truly?` : `Does this feel true?`,
+    `Replacing anything that sounds like anyone else`,
+  ];
 
-  return lines;
+  if (passIdx === 3) return [
+    `The little details — habits, places, inside moments`,
+    isCouple ? `Building a portrait of ${n1} & ${n2}` : `Building a portrait of ${n1 || 'you'}`,
+    vibeWords[1] ? `"${vibeWords[1]}" keeps coming back` : `The details that make this story irreplaceable`,
+  ];
+
+  if (passIdx === 4) return [
+    vibeWords[0] ? `A palette born from "${vibeWords[0]}"` : `Designing a visual world from scratch`,
+    `Typography that feels like the story itself`,
+    `Every colour, every curve, chosen with intention`,
+  ];
+
+  if (passIdx === 5) return [
+    `Painting the atmosphere`,
+    vibeWords[0] ? `Art direction: "${vibeWords[0]}"${vibeWords[1] ? ` meets "${vibeWords[1]}"` : ''}` : `Custom imagery made for this moment only`,
+    `Something no one else will ever have`,
+  ];
+
+  if (passIdx === 6) return [
+    `Does it feel balanced? Breathing?`,
+    `Adjusting the light, the weight, the silence between sections`,
+    `Almost there`,
+  ];
+
+  return [
+    isCouple ? `A final line written just for ${n1} & ${n2}` : `The perfect closing line`,
+    `The words that arrive when everything else is ready`,
+    `This is the part that can't be rushed`,
+  ];
 }
 
 // ── Typewriter component ──────────────────────────────────────
@@ -253,7 +246,7 @@ function PhotoTile({
   );
 }
 
-// ── AI Thought Stream ─────────────────────────────────────────
+// ── Poetic Thought Stream ─────────────────────────────────────
 function ThoughtStream({ lines }: { lines: string[] }) {
   const [visibleCount, setVisibleCount] = useState(1);
   const prevLinesRef = useRef<string[]>([]);
@@ -267,41 +260,43 @@ function ThoughtStream({ lines }: { lines: string[] }) {
 
   useEffect(() => {
     if (visibleCount >= lines.length) return;
-    const t = setTimeout(() => setVisibleCount(c => c + 1), 900 + Math.random() * 600);
+    const t = setTimeout(() => setVisibleCount(c => c + 1), 1100 + Math.random() * 700);
     return () => clearTimeout(t);
   }, [visibleCount, lines.length]);
 
   return (
     <div style={{
-      fontFamily: '"SF Mono", "Fira Code", "Consolas", monospace',
-      fontSize: '0.7rem',
-      lineHeight: 1.9,
-      color: 'rgba(163,177,138,0.6)',
-      textAlign: 'left',
-      maxWidth: 340,
-      margin: '0 auto',
-      padding: '0.75rem 1rem',
-      background: 'rgba(163,177,138,0.04)',
-      border: '1px solid rgba(163,177,138,0.1)',
-      borderRadius: 8,
-      minHeight: 80,
-      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '0.6rem',
+      minHeight: '4.5rem',
     }}>
       <AnimatePresence initial={false}>
         {lines.slice(0, visibleCount).map((line, i) => (
-          <motion.div
+          <motion.p
             key={`${line}-${i}`}
-            initial={{ opacity: 0, x: -6 }}
-            animate={{ opacity: i === visibleCount - 1 ? 1 : 0.45, x: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}
+            initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+            animate={{
+              opacity: i === visibleCount - 1 ? 0.72 : 0.32,
+              y: 0,
+              filter: 'blur(0px)',
+            }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              margin: 0,
+              fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: '0.88rem',
+              color: '#FAF7F2',
+              letterSpacing: '0.01em',
+              lineHeight: 1.5,
+              textAlign: 'center',
+            }}
           >
-            <span style={{ color: 'rgba(163,177,138,0.4)', flexShrink: 0 }}>›</span>
-            {i === visibleCount - 1
-              ? <TypewriterText text={line} speed={18} />
-              : <span>{line}</span>
-            }
-          </motion.div>
+            {i === visibleCount - 1 ? <TypewriterText text={line} speed={28} /> : line}
+          </motion.p>
         ))}
       </AnimatePresence>
     </div>
@@ -360,24 +355,24 @@ export function GenerationProgress({
     return () => clearTimeout(t);
   }, [photos.length]);
 
-  // Build photo tiles — pick up to 10 photos
+  // Build photo tiles — pick up to 10 photos, route through proxy for Google Photos
   const photoTiles = useMemo(() => {
     if (photos.length === 0) return [];
     const picked = [...photos].sort(() => Math.random() - 0.5).slice(0, PHOTO_SLOTS.length);
-    return picked.map((p, i) => ({
-      src: `${p.baseUrl}=w400-h400-c`,
-      slot: PHOTO_SLOTS[i % PHOTO_SLOTS.length],
-      idx: i,
-    }));
+    return picked.map((p, i) => {
+      const src = p.baseUrl.includes('googleusercontent.com')
+        ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=400&h=400`
+        : `${p.baseUrl}=w400-h400-c`;
+      return { src, slot: PHOTO_SLOTS[i % PHOTO_SLOTS.length], idx: i };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photos.length]);
 
-  // AI thought lines for current pass
+  // AI thought lines for current pass — rebuild when pass changes
   const thoughtLines = useMemo(
-    () => buildThoughtLines(idx, names, vibeString, occasion, photos.length, elapsed),
-    // rebuild on pass change or every 30s
+    () => buildThoughtLines(idx, names, vibeString, occasion, photos.length),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [idx, elapsed > 0 && Math.floor(elapsed / 30)],
+    [idx],
   );
 
   return (

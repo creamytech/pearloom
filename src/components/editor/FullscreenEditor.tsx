@@ -180,6 +180,32 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
   );
 }
 
+// ── Strip large art blobs before sessionStorage (avoids QuotaExceededError) ──
+function stripArtForStorage(manifest: StoryManifest): StoryManifest {
+  if (!manifest.vibeSkin) return manifest;
+  return {
+    ...manifest,
+    vibeSkin: {
+      ...manifest.vibeSkin,
+      heroArtDataUrl: undefined,
+      ambientArtDataUrl: undefined,
+      artStripDataUrl: undefined,
+    },
+  };
+}
+
+function storePreview(key: string, manifest: StoryManifest, names: [string, string]) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ manifest: stripArtForStorage(manifest), names }));
+  } catch {
+    // Quota exceeded — store without chapters' images as a last resort
+    try {
+      const lean = { ...stripArtForStorage(manifest), chapters: manifest.chapters.map(c => ({ ...c, images: [] })) };
+      sessionStorage.setItem(key, JSON.stringify({ manifest: lean, names }));
+    } catch {}
+  }
+}
+
 // ── Blocks palette shown at bottom of story tab ─────────────────
 const CANVAS_BLOCK_TYPES = [
   { id: 'block:editorial',  label: 'Text Chapter',   Icon: BlockStoryIcon,  desc: 'Story text with optional photo' },
@@ -1880,7 +1906,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // Seed sessionStorage immediately on mount so the iframe has data when it first loads
   useEffect(() => {
     try {
-      sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+      storePreview(previewKey, manifest, coupleNames);
     } catch {}
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1985,10 +2011,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
       setPublishedUrl(data.url);
       setSaveState('saved');
-      // Open the published site in a new tab immediately
-      if (data.url) window.open(data.url, '_blank', 'noopener,noreferrer');
       setIsDirty(false);
       onPublish?.();
+      // Navigate to published site after 2s — window.location.href is never
+      // blocked by popup blockers (unlike window.open after async)
+      if (data.url) setTimeout(() => { window.location.href = data.url; }, 2000);
     } catch (err) {
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -2007,7 +2034,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       try {
-        sessionStorage.setItem(previewKey, JSON.stringify({ manifest: m, names: coupleNames }));
+        storePreview(previewKey, m, coupleNames);
         // Send live update via postMessage (no iframe reload = preserves scroll)
         if (iframeRef.current?.contentWindow) {
           // Strip large art blobs from postMessage payload (art doesn't change during editing)
@@ -2036,7 +2063,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // Initial load — set sessionStorage synchronously so iframe has data the moment it loads
   useEffect(() => {
     try {
-      sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+      storePreview(previewKey, manifest, coupleNames);
     } catch {}
     pushToPreview(manifest);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2148,7 +2175,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       case 'chapter': setActiveId(action.id); setActiveTab('story'); break;
       case 'add-chapter': addChapter(); break;
       case 'preview':
-        sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+        storePreview(previewKey, manifest, coupleNames);
         window.open(`/preview?key=${previewKey}`, '_blank');
         break;
       case 'publish': setPublishError(null); setPublishedUrl(null); setShowPublish(true); break;
@@ -2466,7 +2493,7 @@ Return JSON with: title, subtitle, description, mood`,
           </button>
           <button
             onClick={() => {
-              sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+              storePreview(previewKey, manifest, coupleNames);
               window.open(`/preview?key=${previewKey}`, '_blank');
             }}
             title="Preview site (Cmd+P)"
@@ -2518,7 +2545,7 @@ Return JSON with: title, subtitle, description, mood`,
                 {/* Preview Site — outline */}
                 <button
                   onClick={() => {
-                    sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+                    storePreview(previewKey, manifest, coupleNames);
                     window.open(`/preview?key=${previewKey}`, '_blank');
                   }}
                   style={{
@@ -2751,7 +2778,19 @@ Return JSON with: title, subtitle, description, mood`,
                 src={`/preview?key=${previewKey}`}
                 style={{ flex: 1, border: 'none', width: '100%', minHeight: isMobile ? '100%' : '600px' }}
                 title="Live Preview"
-                onLoad={() => { setIframeReady(true); setPreviewSlow(false); }}
+                onLoad={() => {
+                  setIframeReady(true);
+                  setPreviewSlow(false);
+                  // Always push manifest on load — guarantees preview has data
+                  // even if the sessionStorage write failed (QuotaExceededError)
+                  try {
+                    iframeRef.current?.contentWindow?.postMessage({
+                      type: 'pearloom-preview-update',
+                      manifest: stripArtForStorage(manifest),
+                      names: coupleNames,
+                    }, '*');
+                  } catch {}
+                }}
               />
             </div>
           </div>
