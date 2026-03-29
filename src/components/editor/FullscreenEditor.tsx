@@ -338,7 +338,12 @@ function SectionItem({
 
           {/* Delete */}
           <button
-            onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
+            onClick={e => {
+              e.stopPropagation();
+              if (window.confirm(`Delete "${chapter.title}"? This cannot be undone.`)) {
+                onDelete(chapter.id);
+              }
+            }}
             style={{
               padding: '5px', borderRadius: '5px', border: 'none',
               background: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
@@ -394,9 +399,19 @@ function ImageManager({
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const MAX_MB = 20;
+    const validFiles = Array.from(files).filter(f => {
+      if (!f.type.startsWith('image/')) return false;
+      if (f.size > MAX_MB * 1024 * 1024) {
+        alert(`"${f.name}" is too large (max ${MAX_MB}MB). Please compress and try again.`);
+        return false;
+      }
+      return true;
+    });
+    if (validFiles.length === 0) return;
     setUploading(true);
     const results: ChapterImage[] = [];
-    for (const file of Array.from(files)) {
+    for (const file of validFiles) {
       try {
         const formData = new FormData();
         formData.append('file', file);

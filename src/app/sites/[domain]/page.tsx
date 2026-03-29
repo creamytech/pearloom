@@ -187,7 +187,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
 
   // Determine cover photo
-  const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || 'https://images.unsplash.com/photo-1519741497674-611481863552';
+  const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || '';
 
 
   // Build real nav pages from manifest content
