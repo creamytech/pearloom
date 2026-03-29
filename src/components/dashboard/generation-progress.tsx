@@ -2,13 +2,14 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/dashboard/generation-progress.tsx
-// Cinematic full-screen generation experience — The Atelier
+// Cinematic generation experience — live photo collage + AI thought stream
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { GooglePhotoMetadata } from '@/types';
 
-// ── Pass descriptors (maps to engine passes 1–7 + init) ───────
+// ── Pass descriptors ──────────────────────────────────────────
 const PASSES = [
   {
     headline: 'Listening...',
@@ -60,20 +61,81 @@ const PASSES = [
   },
 ];
 
-// ── Story glimpse lines — revealed typewriter-style per pass ──
-const GLIMPSE_LINES = [
-  '"It started with a glance — the kind neither of them could explain afterward."',
-  '"They ordered the same thing. The universe was not being subtle."',
-  '"She said yes. The world shifted quietly on its axis."',
-  '"Some loves announce themselves loudly. Theirs arrived like a slow, golden afternoon."',
-  '"Every photo holds a chapter. Every chapter holds the truth."',
-  '"The small moments, it turns out, were never small at all."',
-  '"Years later, they could still describe the exact quality of the light."',
-  '"Home became less a place and more a person."',
-];
+// ── Build dynamic AI thought lines from real user inputs ──────
+function buildThoughtLines(
+  passIdx: number,
+  names: [string, string],
+  vibeString: string,
+  occasion: string,
+  photoCount: number,
+  elapsed: number,
+): string[] {
+  const [n1, n2] = names;
+  const vibeWords = vibeString
+    .split(/[,;.]+/)
+    .map(s => s.trim().toLowerCase())
+    .filter(s => s.length > 2)
+    .slice(0, 8);
 
-// Typewriter component — streams text character by character
-function TypewriterText({ text, speed = 24 }: { text: string; speed?: number }) {
+  const displayOccasion = occasion === 'wedding' ? 'wedding'
+    : occasion === 'engagement' ? 'engagement'
+    : occasion === 'anniversary' ? 'anniversary'
+    : occasion === 'birthday' ? 'birthday'
+    : 'celebration';
+
+  const lines: string[] = [];
+
+  if (passIdx === 0) {
+    lines.push(`reading ${photoCount} photo${photoCount !== 1 ? 's' : ''} — scanning dates, cameras, locations`);
+    if (n1) lines.push(`names detected: ${n1}${n2 ? ` & ${n2}` : ''}`);
+    if (vibeWords[0]) lines.push(`vibe signal: "${vibeWords[0]}"${vibeWords[1] ? ` · "${vibeWords[1]}"` : ''}`);
+    lines.push(`occasion: ${displayOccasion} — calibrating narrative tone`);
+  } else if (passIdx === 1) {
+    lines.push(`constructing story arc for ${n1}${n2 ? ` & ${n2}` : ''}`);
+    lines.push(`${photoCount} moments → organising into chapters`);
+    if (vibeWords[0]) lines.push(`"${vibeWords[0]}" → setting chapter one atmosphere`);
+    if (vibeWords[1]) lines.push(`threading "${vibeWords[1]}" through the narrative`);
+    lines.push(`generating opening lines...`);
+  } else if (passIdx === 2) {
+    lines.push(`reviewing each chapter for specificity and depth`);
+    if (n1) lines.push(`cross-checking: does this feel like ${n1}${n2 ? ` & ${n2}` : ''}?`);
+    lines.push(`rewriting any lines that feel too generic`);
+    if (vibeWords[2]) lines.push(`amplifying "${vibeWords[2]}" through the prose`);
+  } else if (passIdx === 3) {
+    lines.push(`extracting couple DNA — motifs, habits, places`);
+    if (n1) lines.push(`building ${n1}'s character signature`);
+    if (n2) lines.push(`building ${n2}'s character signature`);
+    lines.push(`mapping shared moments to visual symbols`);
+    if (vibeWords[3]) lines.push(`motif candidate: "${vibeWords[3]}"`);
+  } else if (passIdx === 4) {
+    if (vibeWords[0]) lines.push(`colour palette seeded from "${vibeWords[0]}"`);
+    if (vibeWords[1]) lines.push(`typography mood: "${vibeWords[1]}"`);
+    lines.push(`generating visual identity — fonts, spacing, palette`);
+    lines.push(`crafting layout structure for ${displayOccasion} format`);
+  } else if (passIdx === 5) {
+    lines.push(`generating hero illustration`);
+    lines.push(`rendering ambient background art`);
+    if (vibeWords[0]) lines.push(`art direction: "${vibeWords[0]}"${vibeWords[4] ? ` meets "${vibeWords[4]}"` : ''}`);
+    lines.push(`compositing accent layers`);
+  } else if (passIdx === 6) {
+    lines.push(`colour harmony check — all ${Math.floor(Math.random() * 6) + 8} palette values`);
+    lines.push(`proportion audit — section spacing`);
+    lines.push(`emotional calibration: does it feel right?`);
+    lines.push(`micro-adjustments applied`);
+  } else {
+    if (n1) lines.push(`writing ${n1}${n2 ? ` & ${n2}` : ''}'s hero tagline`);
+    lines.push(`composing RSVP welcome message`);
+    lines.push(`finding the closing line...`);
+    if (vibeWords[5]) lines.push(`final note: "${vibeWords[5]}"`);
+  }
+
+  if (elapsed > 90) lines.push(`deep generation — ${elapsed}s · still going strong`);
+
+  return lines;
+}
+
+// ── Typewriter component ──────────────────────────────────────
+function TypewriterText({ text, speed = 22 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
   const textRef = useRef(text);
   textRef.current = text;
@@ -96,31 +158,227 @@ function TypewriterText({ text, speed = 24 }: { text: string; speed?: number }) 
         <motion.span
           animate={{ opacity: [1, 0, 1] }}
           transition={{ duration: 0.8, repeat: Infinity }}
-          style={{ display: 'inline-block', width: '1px', height: '1em', background: 'rgba(250,247,242,0.4)', marginLeft: '1px', verticalAlign: 'text-bottom' }}
+          style={{ display: 'inline-block', width: '1px', height: '1em', background: 'rgba(163,177,138,0.7)', marginLeft: '1px', verticalAlign: 'text-bottom' }}
         />
       )}
     </>
   );
 }
 
-// ── Editorial words that drift across the screen ──────────────
-const WORDS = [
-  'forever', 'golden hour', 'together', 'laughter', 'home',
-  'the look', 'our song', 'first dance', 'sunday morning', 'adventure',
-  'love letters', 'dusk', 'honeymoon', 'wild', 'tender',
+// ── Photo tile — floats, scans, and fades ─────────────────────
+function PhotoTile({
+  src,
+  x, y,
+  size,
+  rotation,
+  delay,
+  blurAmount,
+  isActive,
+}: {
+  src: string;
+  x: string; y: string;
+  size: number;
+  rotation: number;
+  delay: number;
+  blurAmount: number;
+  isActive: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{
+        opacity: isActive ? [0.55, 0.85, 0.55] : [0.18, 0.32, 0.18],
+        scale: isActive ? [1, 1.04, 1] : [1, 1.02, 1],
+        y: [0, -12, 4, -8, 0],
+        filter: isActive
+          ? [`blur(0px) brightness(1.1)`, `blur(0px) brightness(1.2)`, `blur(0px) brightness(1.1)`]
+          : [`blur(${blurAmount}px) brightness(0.7)`, `blur(${blurAmount * 0.8}px) brightness(0.8)`, `blur(${blurAmount}px) brightness(0.7)`],
+      }}
+      transition={{
+        opacity: { duration: isActive ? 2.5 : 8, repeat: Infinity, ease: 'easeInOut', delay },
+        scale: { duration: isActive ? 2.5 : 12, repeat: Infinity, ease: 'easeInOut', delay },
+        y: { duration: 14 + delay * 2, repeat: Infinity, ease: 'easeInOut', delay },
+        filter: { duration: isActive ? 2 : 8, repeat: Infinity, ease: 'easeInOut', delay },
+      }}
+      style={{
+        position: 'absolute',
+        left: x, top: y,
+        width: size,
+        height: size * 0.75,
+        transform: `rotate(${rotation}deg)`,
+        borderRadius: 6,
+        overflow: 'hidden',
+        boxShadow: isActive
+          ? '0 8px 40px rgba(163,177,138,0.35), 0 0 0 1px rgba(163,177,138,0.25)'
+          : '0 4px 20px rgba(0,0,0,0.5)',
+        pointerEvents: 'none',
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        loading="lazy"
+      />
+      {/* Scan line animation */}
+      {isActive && (
+        <motion.div
+          initial={{ top: '-8%' }}
+          animate={{ top: ['−8%', '108%'] }}
+          transition={{ duration: 1.6, ease: 'linear', repeat: Infinity, repeatDelay: 1.2 }}
+          style={{
+            position: 'absolute',
+            left: 0, right: 0,
+            height: '22%',
+            background: 'linear-gradient(180deg, transparent 0%, rgba(163,177,138,0.35) 40%, rgba(200,220,170,0.5) 50%, rgba(163,177,138,0.35) 60%, transparent 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+      {/* Corner brackets on active */}
+      {isActive && (
+        <>
+          {[
+            { top: 4, left: 4, borderTop: '1.5px solid rgba(163,177,138,0.8)', borderLeft: '1.5px solid rgba(163,177,138,0.8)' },
+            { top: 4, right: 4, borderTop: '1.5px solid rgba(163,177,138,0.8)', borderRight: '1.5px solid rgba(163,177,138,0.8)' },
+            { bottom: 4, left: 4, borderBottom: '1.5px solid rgba(163,177,138,0.8)', borderLeft: '1.5px solid rgba(163,177,138,0.8)' },
+            { bottom: 4, right: 4, borderBottom: '1.5px solid rgba(163,177,138,0.8)', borderRight: '1.5px solid rgba(163,177,138,0.8)' },
+          ].map((s, i) => (
+            <div key={i} style={{ position: 'absolute', width: 10, height: 10, ...s }} />
+          ))}
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+// ── AI Thought Stream ─────────────────────────────────────────
+function ThoughtStream({ lines }: { lines: string[] }) {
+  const [visibleCount, setVisibleCount] = useState(1);
+  const prevLinesRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    if (lines.join('|') !== prevLinesRef.current.join('|')) {
+      prevLinesRef.current = lines;
+      setVisibleCount(1);
+    }
+  }, [lines]);
+
+  useEffect(() => {
+    if (visibleCount >= lines.length) return;
+    const t = setTimeout(() => setVisibleCount(c => c + 1), 900 + Math.random() * 600);
+    return () => clearTimeout(t);
+  }, [visibleCount, lines.length]);
+
+  return (
+    <div style={{
+      fontFamily: '"SF Mono", "Fira Code", "Consolas", monospace',
+      fontSize: '0.7rem',
+      lineHeight: 1.9,
+      color: 'rgba(163,177,138,0.6)',
+      textAlign: 'left',
+      maxWidth: 340,
+      margin: '0 auto',
+      padding: '0.75rem 1rem',
+      background: 'rgba(163,177,138,0.04)',
+      border: '1px solid rgba(163,177,138,0.1)',
+      borderRadius: 8,
+      minHeight: 80,
+      overflow: 'hidden',
+    }}>
+      <AnimatePresence initial={false}>
+        {lines.slice(0, visibleCount).map((line, i) => (
+          <motion.div
+            key={`${line}-${i}`}
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: i === visibleCount - 1 ? 1 : 0.45, x: 0 }}
+            transition={{ duration: 0.35 }}
+            style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}
+          >
+            <span style={{ color: 'rgba(163,177,138,0.4)', flexShrink: 0 }}>›</span>
+            {i === visibleCount - 1
+              ? <TypewriterText text={line} speed={18} />
+              : <span>{line}</span>
+            }
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Photo layout — deterministic scatter positions ────────────
+const PHOTO_SLOTS = [
+  // left column
+  { x: '2%',  y: '8%',  size: 180, rot: -4,  blur: 4, delay: 0 },
+  { x: '1%',  y: '42%', size: 140, rot: 3,   blur: 6, delay: 1.2 },
+  { x: '4%',  y: '70%', size: 160, rot: -2,  blur: 5, delay: 2.4 },
+  // right column
+  { x: '78%', y: '6%',  size: 170, rot: 4,   blur: 5, delay: 0.6 },
+  { x: '81%', y: '38%', size: 145, rot: -3,  blur: 4, delay: 1.8 },
+  { x: '76%', y: '68%', size: 165, rot: 2,   blur: 6, delay: 3.0 },
+  // scattered extras
+  { x: '15%', y: '5%',  size: 120, rot: -6,  blur: 7, delay: 0.9 },
+  { x: '64%', y: '78%', size: 125, rot: 5,   blur: 7, delay: 1.5 },
+  { x: '18%', y: '80%', size: 110, rot: 3,   blur: 8, delay: 2.1 },
+  { x: '60%', y: '4%',  size: 115, rot: -5,  blur: 8, delay: 2.7 },
 ];
 
 // ── Main component ─────────────────────────────────────────────
-export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCancel?: () => void }) {
+export function GenerationProgress({
+  step = 0,
+  onCancel,
+  photos = [],
+  names = ['', ''],
+  vibeString = '',
+  occasion = 'wedding',
+}: {
+  step?: number;
+  onCancel?: () => void;
+  photos?: GooglePhotoMetadata[];
+  names?: [string, string];
+  vibeString?: string;
+  occasion?: string;
+}) {
   const idx = Math.min(step, PASSES.length - 1);
   const pass = PASSES[idx];
   const [elapsed, setElapsed] = useState(0);
-  const [words] = useState(() => [...WORDS].sort(() => Math.random() - 0.5).slice(0, 9));
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Cycle active photo every 3s
+  useEffect(() => {
+    if (photos.length === 0) return;
+    const t = setInterval(() => {
+      setActivePhotoIdx(i => (i + 1) % Math.min(photos.length, PHOTO_SLOTS.length));
+    }, 3000);
+    return () => clearTimeout(t);
+  }, [photos.length]);
+
+  // Build photo tiles — pick up to 10 photos
+  const photoTiles = useMemo(() => {
+    if (photos.length === 0) return [];
+    const picked = [...photos].sort(() => Math.random() - 0.5).slice(0, PHOTO_SLOTS.length);
+    return picked.map((p, i) => ({
+      src: `${p.baseUrl}=w400-h400-c`,
+      slot: PHOTO_SLOTS[i % PHOTO_SLOTS.length],
+      idx: i,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photos.length]);
+
+  // AI thought lines for current pass
+  const thoughtLines = useMemo(
+    () => buildThoughtLines(idx, names, vibeString, occasion, photos.length, elapsed),
+    // rebuild on pass change or every 30s
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [idx, elapsed > 0 && Math.floor(elapsed / 30)],
+  );
 
   return (
     <div style={{
@@ -151,41 +409,32 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
         }}
       />
 
-      {/* ── Drifting editorial words ── */}
-      {words.map((word, i) => (
-        <motion.span
-          key={word}
-          initial={{ opacity: 0, y: 60 + i * 5 }}
-          animate={{ opacity: [0, 0.055, 0.035, 0], y: [60 + i * 5, -110 - i * 8] }}
-          transition={{
-            duration: 11 + i * 1.4, delay: i * 1.3,
-            repeat: Infinity, ease: 'easeOut',
-          }}
-          style={{
-            position: 'absolute',
-            fontFamily: 'var(--eg-font-heading, Georgia, serif)',
-            fontSize: `${0.85 + (i % 4) * 0.38}rem`,
-            fontStyle: 'italic',
-            color: '#FAF7F2',
-            left: `${8 + (i * 9) % 78}%`,
-            top: `${15 + (i * 11) % 65}%`,
-            userSelect: 'none', pointerEvents: 'none', whiteSpace: 'nowrap',
-          }}
-        >
-          {word}
-        </motion.span>
-      ))}
+      {/* ── Photo collage (only when photos provided) ── */}
+      <AnimatePresence>
+        {photoTiles.map(({ src, slot, idx: tileIdx }) => (
+          <PhotoTile
+            key={src}
+            src={src}
+            x={slot.x} y={slot.y}
+            size={slot.size}
+            rotation={slot.rot}
+            delay={slot.delay}
+            blurAmount={slot.blur}
+            isActive={tileIdx === activePhotoIdx}
+          />
+        ))}
+      </AnimatePresence>
 
       {/* ── Core content ── */}
       <div style={{
         position: 'relative', zIndex: 10,
-        textAlign: 'center', maxWidth: '600px', padding: '0 2rem', width: '100%',
+        textAlign: 'center', maxWidth: '580px', padding: '0 2rem', width: '100%',
       }}>
 
         {/* Pass progress dots */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: '6px', marginBottom: '3.5rem',
+          gap: '6px', marginBottom: '2.75rem',
         }}>
           {PASSES.map((_, i) => (
             <motion.div
@@ -206,8 +455,7 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
         </div>
 
         {/* ── Pear mark ── */}
-        <div style={{ position: 'relative', width: 68, height: 82, margin: '0 auto 2.75rem' }}>
-          {/* Pulse glow */}
+        <div style={{ position: 'relative', width: 68, height: 82, margin: '0 auto 2.25rem' }}>
           <motion.div
             animate={{ opacity: [0.25, 0.65, 0.25], scale: [1, 1.45, 1] }}
             transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -218,7 +466,6 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
               filter: 'blur(14px)',
             }}
           />
-          {/* Rotating rings */}
           {[0, 1, 2].map(i => (
             <motion.div
               key={i}
@@ -231,11 +478,7 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
               }}
             />
           ))}
-          {/* Core orb */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <motion.div
               animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -258,12 +501,12 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
               fontFamily: 'var(--eg-font-heading, Georgia, serif)',
-              fontSize: 'clamp(2.1rem, 5.5vw, 3.4rem)',
+              fontSize: 'clamp(2.1rem, 5.5vw, 3.2rem)',
               fontWeight: 400,
               fontStyle: 'italic',
               color: '#FAF7F2',
               lineHeight: 1.18,
-              margin: '0 0 1.3rem',
+              margin: '0 0 1rem',
               letterSpacing: '-0.01em',
             }}
           >
@@ -280,11 +523,11 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.55, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              fontSize: '1rem',
-              color: 'rgba(250,247,242,0.48)',
+              fontSize: '0.95rem',
+              color: 'rgba(250,247,242,0.45)',
               lineHeight: 1.75,
-              maxWidth: '400px',
-              margin: '0 auto 1.75rem',
+              maxWidth: '380px',
+              margin: '0 auto 1.5rem',
               fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
             }}
           >
@@ -292,37 +535,22 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
           </motion.p>
         </AnimatePresence>
 
-        {/* ── Story glimpse — typewriter ── */}
+        {/* ── AI Thought Stream ── */}
         <AnimatePresence mode="wait">
-          {idx >= 1 && (
-            <motion.p
-              key={`glimpse-${idx}`}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.7, delay: 0.5 }}
-              style={{
-                fontFamily: 'var(--eg-font-heading, Georgia, serif)',
-                fontSize: 'clamp(0.85rem, 2vw, 1.0rem)',
-                fontStyle: 'italic',
-                color: 'rgba(250,247,242,0.32)',
-                lineHeight: 1.8,
-                maxWidth: '360px',
-                margin: '0 auto 2.75rem',
-                letterSpacing: '0.015em',
-                minHeight: '1.8em',
-              }}
-            >
-              <TypewriterText text={GLIMPSE_LINES[idx % GLIMPSE_LINES.length]} speed={26} />
-            </motion.p>
-          )}
-          {idx < 1 && (
-            <div key="spacer" style={{ marginBottom: '2.75rem' }} />
-          )}
+          <motion.div
+            key={`thoughts-${idx}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            style={{ marginBottom: '1.75rem' }}
+          >
+            <ThoughtStream lines={thoughtLines} />
+          </motion.div>
         </AnimatePresence>
 
         {/* ── Progress bar ── */}
-        <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden', marginBottom: '1.25rem' }}>
+        <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden', marginBottom: '1rem' }}>
           <motion.div
             animate={{ width: `${pass.pct}%` }}
             transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
@@ -355,9 +583,7 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
           >
             {pass.meta}
             {elapsed > 10 && (
-              <span style={{ opacity: 0.45, marginLeft: '1.2em' }}>
-                {elapsed}s
-              </span>
+              <span style={{ opacity: 0.45, marginLeft: '1.2em' }}>{elapsed}s</span>
             )}
           </motion.p>
         </AnimatePresence>
@@ -372,7 +598,7 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6 }}
               style={{
-                marginTop: '1.25rem',
+                marginTop: '1rem',
                 fontSize: '0.75rem',
                 color: 'rgba(250,247,242,0.3)',
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
@@ -390,7 +616,7 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6 }}
               style={{
-                marginTop: '1.25rem',
+                marginTop: '1rem',
                 fontSize: '0.75rem',
                 color: 'rgba(250,200,100,0.45)',
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
@@ -402,7 +628,7 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
           )}
         </AnimatePresence>
 
-        {/* ── Cancel button (shown after 30s if onCancel provided) ── */}
+        {/* ── Cancel button (shown after 30s) ── */}
         <AnimatePresence>
           {onCancel && elapsed >= 30 && (
             <motion.button
@@ -413,7 +639,7 @@ export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCa
               transition={{ duration: 0.5 }}
               onClick={onCancel}
               style={{
-                marginTop: '2rem',
+                marginTop: '1.75rem',
                 background: 'transparent',
                 border: '1px solid rgba(250,247,242,0.2)',
                 borderRadius: '8px',

@@ -311,8 +311,11 @@ export default function DashboardPage() {
       log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
       setSubdomain(autoSlug);
 
-      // Clear wizard draft on successful generation
-      try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
+      // Clear wizard draft and editor autosave so stale banners don't appear
+      try {
+        localStorage.removeItem(WIZARD_STORAGE_KEY);
+        localStorage.removeItem('pearloom_draft_manifest');
+      } catch {}
       setDraftBanner(null);
 
       setCurrentStep('edit');
@@ -740,6 +743,10 @@ export default function DashboardPage() {
               {currentStep === 'generating' && (
                 <GenerationProgress
                   step={generationStep}
+                  photos={selectedPhotos}
+                  names={lastVibeData?.names ?? coupleNames}
+                  vibeString={lastVibeData?.vibeString ?? vibeString}
+                  occasion={lastVibeData?.occasion ?? 'wedding'}
                   onCancel={() => {
                     generationControllerRef.current?.abort();
                     generationControllerRef.current = null;

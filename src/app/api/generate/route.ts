@@ -15,6 +15,56 @@ import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent } from '@/types';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
+// ── R2 upload helper — fetches a URL and stores it permanently ─
+function getR2Client() {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey) return null;
+  return {
+    client: new S3Client({
+      region: 'auto',
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: { accessKeyId, secretAccessKey },
+    }),
+    bucket: process.env.R2_BUCKET_NAME || 'pearloom-photos',
+    publicBase: (process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '').replace(/\/$/, ''),
+  };
+}
+
+async function uploadPhotoUrl(rawUrl: string): Promise<string> {
+  const r2 = getR2Client();
+  if (!r2 || !r2.publicBase) return rawUrl; // no R2 → keep original URL
+
+  try {
+    // Fetch at a reasonable size to save R2 storage
+    const fetchUrl = rawUrl.includes('googleusercontent.com')
+      ? `${rawUrl}=w1200-h1200`
+      : rawUrl;
+
+    const res = await fetch(fetchUrl, { signal: AbortSignal.timeout(12000) });
+    if (!res.ok) return rawUrl;
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
+    const key = `chapters/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+
+    await r2.client.send(new PutObjectCommand({
+      Bucket: r2.bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+      CacheControl: 'public, max-age=31536000, immutable',
+    }));
+
+    return `${r2.publicBase}/${key}`;
+  } catch {
+    return rawUrl; // on any failure, fall back gracefully
+  }
+}
 
 function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean) {
   const base = [
@@ -275,14 +325,20 @@ export async function POST(req: NextRequest) {
     }
 
     // Map actual photo URLs + REAL locations into generated chapters.
-    // CRITICAL: cluster location (from GPS or user input) ALWAYS overrides
-    // whatever the AI hallucinated. If no location exists, strip it.
-    manifest.chapters = manifest.chapters.map((chapter, i) => {
+    // Upload each photo to R2 so URLs don't expire (Google Photos baseUrl ~60min TTL).
+    // CRITICAL: cluster location (from GPS or user input) ALWAYS overrides AI hallucination.
+    manifest.chapters = await Promise.all(manifest.chapters.map(async (chapter, i) => {
       const cluster = enrichedClusters[i];
       if (cluster) {
-        chapter.images = cluster.photos.slice(0, 3).map((p) => ({
+        // Upload all chapter photos to R2 in parallel (up to 3 per chapter)
+        const photosToUpload = cluster.photos.slice(0, 3);
+        const uploadedUrls = await Promise.all(
+          photosToUpload.map(p => uploadPhotoUrl(p.baseUrl))
+        );
+
+        chapter.images = photosToUpload.map((p, pi) => ({
           id: p.id,
-          url: p.baseUrl,
+          url: uploadedUrls[pi],
           alt: p.description || chapter.title,
           width: p.width,
           height: p.height,
@@ -292,12 +348,11 @@ export async function POST(req: NextRequest) {
         if (cluster.location && cluster.location.label) {
           chapter.location = cluster.location;
         } else {
-          // No real location data → delete any AI hallucination
           chapter.location = null;
         }
       }
       return chapter;
-    });
+    }));
 
     return NextResponse.json({ manifest });
   } catch (error) {
