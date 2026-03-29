@@ -48,6 +48,9 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
 
     const uploadedPhotos: GooglePhotoMetadata[] = [];
     let completedCount = 0;
+    // Stagger timestamps 30 days apart so each photo lands in its own cluster.
+    // Photo 0 gets today's date, photo 1 gets today-30d, photo 2 gets today-60d, etc.
+    const BASE_DATE = new Date();
 
     try {
       for (const file of selectedFiles) {
@@ -62,11 +65,17 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
 
         const { filename, publicUrl } = await res.json();
 
+        // Use the file's lastModified time if available; otherwise stagger by 30 days per photo
+        // so every upload ends up in its own cluster in ClusterReview.
+        const fileDate = file.lastModified
+          ? new Date(file.lastModified)
+          : new Date(BASE_DATE.getTime() - completedCount * 30 * 24 * 60 * 60 * 1000);
+
         uploadedPhotos.push({
           id: filename,
           filename: file.name,
           mimeType: file.type,
-          creationTime: new Date().toISOString(),
+          creationTime: fileDate.toISOString(),
           width: 1920,
           height: 1080,
           baseUrl: publicUrl,

@@ -498,12 +498,20 @@ REWRITE RULES (apply only when score < 7):
       }>;
     };
 
+    // Build a set of chapter indices that have user notes (they get a higher score floor)
+    const chaptersWithNotes = new Set(
+      (clusterNotes ?? []).map(cn => cn.chapterIndex)
+    );
+
     let rewriteCount = 0;
     const improved = [...chapters];
     for (const review of (result.chapters || [])) {
       const idx = review.index;
       if (typeof idx !== 'number' || idx < 0 || idx >= improved.length) continue;
-      if (review.score < 7 && review.rewrite) {
+      // Chapters with user notes only get rewritten if score < 6 (floor bumped to 6)
+      // so they are only rewritten when truly broken, not just slightly generic.
+      const rewriteThreshold = chaptersWithNotes.has(idx) ? 6 : 7;
+      if (review.score < rewriteThreshold && review.rewrite) {
         const ch = { ...improved[idx] };
         if (review.rewrite.title) ch.title = review.rewrite.title;
         if (review.rewrite.subtitle) ch.subtitle = review.rewrite.subtitle;
