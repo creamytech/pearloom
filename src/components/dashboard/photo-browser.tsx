@@ -2,13 +2,13 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/dashboard/photo-browser.tsx
-// Google Photos Picker API Flow
+// Google Photos Picker API Flow + Device Upload fallback
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, ImageOff, RefreshCw, AlertCircle, ExternalLink, Clock } from 'lucide-react';
+import { Check, Loader2, ImageOff, RefreshCw, AlertCircle, ExternalLink, Clock, Upload, X } from 'lucide-react';
 import type { GooglePhotoMetadata } from '@/types';
 
 interface PhotoBrowserProps {
@@ -32,7 +32,7 @@ const btnPrimaryStyle: React.CSSProperties = {
   boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
 };
 
-type BrowserState = 'idle' | 'creating-session' | 'waiting-for-picker' | 'fetching' | 'done' | 'error' | 'session-expired';
+type BrowserState = 'idle' | 'creating-session' | 'waiting-for-picker' | 'fetching' | 'done' | 'error' | 'session-expired' | 'device-selecting' | 'device-uploading';
 
 // How long after the popup closes we keep polling (user may have picked without closing cleanly)
 const GRACE_PERIOD_MS = 5 * 60 * 1000; // 5 minutes — photo libraries are large, give plenty of time
@@ -200,30 +200,227 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
     return `${Math.floor(sec / 60)}m ${sec % 60}s`;
   };
 
+  // ── Device upload state ──
+  const [deviceFiles, setDeviceFiles] = useState<File[]>([]);
+  const [devicePreviews, setDevicePreviews] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const deviceInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDeviceFileSelect = useCallback((files: FileList | null) => {
+    if (!files) return;
+    const valid = Array.from(files).filter(f => f.type.startsWith('image/') && f.size < 30 * 1024 * 1024);
+    const capped = valid.slice(0, maxSelection);
+    setDeviceFiles(capped);
+    // Create local preview URLs
+    const previews = capped.map(f => URL.createObjectURL(f));
+    setDevicePreviews(previews);
+    if (capped.length > 0) setState('device-selecting');
+  }, [maxSelection]);
+
+  const handleDeviceUpload = useCallback(async () => {
+    if (!deviceFiles.length) return;
+    setState('device-uploading');
+    setUploadProgress({ done: 0, total: deviceFiles.length });
+
+    const results: GooglePhotoMetadata[] = [];
+
+    for (let i = 0; i < deviceFiles.length; i++) {
+      const file = deviceFiles[i];
+      try {
+        // Get image dimensions
+        const dims = await new Promise<{ w: number; h: number }>((res) => {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
+          img.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
+          img.src = url;
+        });
+
+        // Upload to R2
+        const formData = new FormData();
+        formData.append('file', file);
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        const uploadData = await uploadRes.json();
+
+        if (uploadData.publicUrl) {
+          results.push({
+            id: `device-${Date.now()}-${i}`,
+            filename: file.name,
+            mimeType: file.type,
+            creationTime: new Date(file.lastModified || Date.now()).toISOString(),
+            width: dims.w,
+            height: dims.h,
+            baseUrl: uploadData.publicUrl,
+            location: undefined,
+          });
+        }
+      } catch {
+        // Skip failed uploads silently
+      }
+      setUploadProgress({ done: i + 1, total: deviceFiles.length });
+    }
+
+    // Clean up preview URLs
+    devicePreviews.forEach(url => URL.revokeObjectURL(url));
+
+    if (results.length > 0) {
+      setPhotos(results);
+      setSelected(new Set(results.map(p => p.id)));
+      onSelectionChange(results);
+      setState('done');
+    } else {
+      setState('error');
+      setError('No photos could be uploaded. Please try again.');
+    }
+  }, [deviceFiles, devicePreviews, onSelectionChange]);
+
   // ── IDLE ──
   if (state === 'idle') {
     return (
       <div style={cardStyle}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
-          <div style={{ width: '6rem', height: '6rem', borderRadius: '50%', background: 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
-              <path d="M24 4L29.5 14.5H18.5L24 4Z" fill="#EA4335"/>
-              <path d="M4 34.5L14.5 29V40L4 34.5Z" fill="#4285F4"/>
-              <path d="M44 34.5L33.5 40V29L44 34.5Z" fill="#34A853"/>
-              <path d="M24 44L18.5 33.5H29.5L24 44Z" fill="#FBBC05"/>
-              <circle cx="24" cy="24" r="6" fill="var(--eg-fg)" opacity="0.15"/>
-            </svg>
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+          Add your photos
+        </h3>
+        <p style={{ color: 'var(--eg-muted)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '420px', margin: '0 auto 2rem' }}>
+          Select the memories you want to feature — from Google Photos or straight from your device.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 400, margin: '0 auto' }}>
+          {/* Google Photos option */}
+          <button onClick={startPickerFlow} style={{ ...btnPrimaryStyle, justifyContent: 'flex-start', padding: '1rem 1.5rem', gap: '1rem' }}>
+            <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+                <path d="M24 4L29.5 14.5H18.5L24 4Z" fill="#EA4335"/>
+                <path d="M4 34.5L14.5 29V40L4 34.5Z" fill="#4285F4"/>
+                <path d="M44 34.5L33.5 40V29L44 34.5Z" fill="#34A853"/>
+                <path d="M24 44L18.5 33.5H29.5L24 44Z" fill="#FBBC05"/>
+              </svg>
+            </span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Google Photos</div>
+              <div style={{ fontSize: '0.78rem', opacity: 0.65, fontWeight: 400 }}>Browse your synced library</div>
+            </div>
+            <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
+          </button>
+
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.07)' }} />
+            <span style={{ fontSize: '0.78rem', color: 'var(--eg-muted)' }}>or</span>
+            <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.07)' }} />
+          </div>
+
+          {/* Device upload option */}
+          <button
+            onClick={() => deviceInputRef.current?.click()}
+            style={{ ...btnPrimaryStyle, justifyContent: 'flex-start', padding: '1rem 1.5rem', gap: '1rem', background: 'rgba(163,177,138,0.12)', color: 'var(--eg-fg)', boxShadow: 'none', border: '1px solid rgba(163,177,138,0.3)' }}
+          >
+            <span style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Upload size={16} color="var(--eg-accent)" />
+            </span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Upload from device</div>
+              <div style={{ fontSize: '0.78rem', opacity: 0.65, fontWeight: 400 }}>iPhone, Android, computer — any photos</div>
+            </div>
+          </button>
+          <input
+            ref={deviceInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            style={{ display: 'none' }}
+            onChange={e => handleDeviceFileSelect(e.target.files)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ── DEVICE SELECTING (previewing files before upload) ──
+  if (state === 'device-selecting') {
+    return (
+      <div style={{ ...cardStyle, maxWidth: 640 }}>
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.6rem', marginBottom: '0.5rem' }}>
+          {deviceFiles.length} photo{deviceFiles.length !== 1 ? 's' : ''} selected
+        </h3>
+        <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+          Looking good. Click &ldquo;Upload &amp; Continue&rdquo; to add these to your story.
+        </p>
+
+        {/* Thumbnail grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8, marginBottom: '1.5rem', maxHeight: 320, overflowY: 'auto' }}>
+          {devicePreviews.map((src, i) => (
+            <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 8, overflow: 'hidden' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <button
+                onClick={() => {
+                  const nextFiles = deviceFiles.filter((_, fi) => fi !== i);
+                  const nextPreviews = devicePreviews.filter((_, pi) => pi !== i);
+                  URL.revokeObjectURL(devicePreviews[i]);
+                  setDeviceFiles(nextFiles);
+                  setDevicePreviews(nextPreviews);
+                  if (nextFiles.length === 0) setState('idle');
+                }}
+                style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+              >
+                <X size={11} color="#fff" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+          <button
+            onClick={() => deviceInputRef.current?.click()}
+            style={{ ...btnPrimaryStyle, background: 'transparent', border: '1px solid rgba(0,0,0,0.12)', color: 'var(--eg-fg)', boxShadow: 'none', fontSize: '0.88rem', padding: '0.75rem 1.25rem' }}
+          >
+            Add more
+          </button>
+          <button onClick={handleDeviceUpload} style={{ ...btnPrimaryStyle, background: 'var(--eg-accent)', boxShadow: '0 4px 14px rgba(163,177,138,0.4)', fontSize: '0.88rem', padding: '0.75rem 1.5rem' }}>
+            <Upload size={15} /> Upload &amp; Continue
+          </button>
+        </div>
+        <input
+          ref={deviceInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          style={{ display: 'none' }}
+          onChange={e => {
+            if (!e.target.files) return;
+            const extra = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+            const combined = [...deviceFiles, ...extra].slice(0, maxSelection);
+            setDeviceFiles(combined);
+            setDevicePreviews([...devicePreviews, ...extra.map(f => URL.createObjectURL(f))].slice(0, maxSelection));
+          }}
+        />
+      </div>
+    );
+  }
+
+  // ── DEVICE UPLOADING ──
+  if (state === 'device-uploading') {
+    const pct = uploadProgress.total > 0 ? Math.round((uploadProgress.done / uploadProgress.total) * 100) : 0;
+    return (
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ width: '4.5rem', height: '4.5rem', borderRadius: '50%', background: 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Upload size={28} color="var(--eg-accent)" />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.75rem' }}>
-          Select from Google Photos
+        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+          Uploading your photos...
         </h3>
-        <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2.5rem', maxWidth: '450px', margin: '0 auto 2.5rem' }}>
-          Click below to open Google&apos;s secure photo picker. Browse your library and select the memories you want to feature.
+        <p style={{ color: 'var(--eg-muted)', fontSize: '1rem', marginBottom: '1.5rem' }}>
+          {uploadProgress.done} of {uploadProgress.total} uploaded
         </p>
-        <button onClick={startPickerFlow} style={btnPrimaryStyle}>
-          <ExternalLink size={18} /> Open Google Photos Picker
-        </button>
+        <div style={{ width: '100%', maxWidth: 320, height: 6, background: 'rgba(163,177,138,0.15)', borderRadius: 100, overflow: 'hidden', margin: '0 auto' }}>
+          <motion.div
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 0.4 }}
+            style={{ height: '100%', background: 'linear-gradient(90deg, #8FA876, #C4D4A8)', borderRadius: 100 }}
+          />
+        </div>
       </div>
     );
   }

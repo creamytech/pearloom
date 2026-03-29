@@ -7,8 +7,9 @@ export const dynamic = 'force-dynamic';
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Supabase env vars not configured');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  if (!url || !key) return null;
   return createClient(url, key);
 }
 
@@ -25,6 +26,11 @@ export async function DELETE(
     const { domain } = await params;
     const userEmail = session.user.email;
     const supabase = getSupabase();
+
+    if (!supabase) {
+      console.error('[Delete] Supabase not configured');
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    }
 
     console.log('[Delete] Attempting delete:', { domain, userEmail });
 
@@ -68,6 +74,9 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[Delete] Unexpected error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

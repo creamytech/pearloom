@@ -312,20 +312,20 @@ const DRESSCODE_OPTIONS = [
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '1.25rem', borderRadius: '1rem',
-  border: '2px solid rgba(0,0,0,0.06)', background: '#ffffff',
+  border: '2px solid var(--eg-divider, #E6DFD2)', background: '#ffffff',
   fontSize: '1.1rem', fontFamily: 'var(--eg-font-body)', color: 'var(--eg-fg)',
-  outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+  outline: 'none', transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.2s',
   boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
 };
 
 const getFocusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   e.target.style.borderColor = 'var(--eg-accent)';
-  e.target.style.boxShadow = '0 0 0 4px rgba(163,177,138,0.1)';
+  e.target.style.boxShadow = '0 0 0 4px rgba(163,177,138,0.15), 0 4px 16px rgba(0,0,0,0.04)';
   e.target.style.transform = 'translateY(-1px)';
 };
 
 const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-  e.target.style.borderColor = 'rgba(0,0,0,0.06)';
+  e.target.style.borderColor = 'var(--eg-divider, #E6DFD2)';
   e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)';
   e.target.style.transform = 'none';
 };
@@ -333,11 +333,11 @@ const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
 const btnPrimaryStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '0.5rem',
   padding: '1rem 2.25rem', borderRadius: '100px',
-  background: 'linear-gradient(135deg, var(--eg-dark, #1a1713) 0%, var(--eg-dark-2, #2a2118) 100%)',
+  background: 'linear-gradient(135deg, var(--eg-accent, #A3B18A) 0%, var(--eg-accent-hover, #8FA876) 100%)',
   color: '#fff', border: 'none',
   fontSize: '0.95rem', fontWeight: 600, fontFamily: 'var(--eg-font-body)',
   cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-  boxShadow: '0 8px 24px rgba(26,23,19,0.18)',
+  boxShadow: '0 8px 28px rgba(163,177,138,0.35)',
   letterSpacing: '0.01em',
 };
 
@@ -427,6 +427,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [wizardPhase, setWizardPhase] = useState<'main' | 'details'>('main');
   const [detailsData, setDetailsData] = useState<DetailsData>({});
   const [inspirationUrls, setInspirationUrls] = useState<string[]>([]);
+  const [inspoKeywords, setInspoKeywords] = useState<string[]>([]);
+  const [inspoKeywordInput, setInspoKeywordInput] = useState('');
   const [subdomain, setSubdomain] = useState('');
   const [subdomainStatus, setSubdomainStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
   const subdomainDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -474,6 +476,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const canProceedStep8 = meetCute.trim() !== ''; // Step 8 = Story
 
   const hasInspirationUrls = inspirationUrls.some(u => u.trim().match(/^https?:\/\/.+/));
+  const hasInspoInput = inspoKeywords.length > 0 || hasInspirationUrls;
+
+  const INSPO_SUGGESTIONS = [
+    { label: 'NYC Energy', emoji: '🗽' },
+    { label: 'Knicks', emoji: '🏀' },
+    { label: 'Lakers', emoji: '💜' },
+    { label: 'Coco (Pixar)', emoji: '🌼' },
+    { label: 'Moana', emoji: '🌊' },
+    { label: 'La La Land', emoji: '🎷' },
+    { label: 'Paris Café', emoji: '🥐' },
+    { label: 'Tuscany', emoji: '🍷' },
+    { label: 'Tokyo Neon', emoji: '🏮' },
+    { label: 'Santorini', emoji: '🌅' },
+    { label: 'Art Deco', emoji: '✦' },
+    { label: 'Cottagecore', emoji: '🌿' },
+    { label: 'Dark Academia', emoji: '📚' },
+    { label: 'Coastal', emoji: '🐚' },
+    { label: 'Tropical', emoji: '🌺' },
+    { label: 'Golden Hour', emoji: '🌇' },
+    { label: 'Boho', emoji: '🪬' },
+    { label: 'Minimal', emoji: '◻' },
+  ];
 
   // Ambient orb color for background — shifts with mood/palette selection
   const ambientOrb = useMemo(() => {
@@ -511,8 +535,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       return;
     }
     setShowValidation(false);
-    // If inspiration URLs are provided, skip color palette (step 6) — AI extracts from inspo
-    if (step === 5 && hasInspirationUrls) {
+    // If inspiration provided (keywords or images), skip color palette — AI uses the vibes
+    if (step === 5 && hasInspoInput) {
       setPalette('custom');
       setStep(7);
       return;
@@ -521,8 +545,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   };
   const handleBack = () => {
     setShowValidation(false);
-    // If at places (step 7) and we skipped color via inspiration, go back to inspiration (step 5)
-    if (step === 7 && hasInspirationUrls) {
+    // If at places (step 7) and we skipped color via inspiration/keywords, go back to step 5
+    if (step === 7 && hasInspoInput) {
       setStep(5);
       return;
     }
@@ -545,8 +569,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       const p = PLACES.find(pl => pl.id === id);
       return p ? p.vibe : id;
     });
-    const placeString = placeVibes.length > 0
-      ? `Favorite place aesthetics: ${placeVibes.join('; ')}.`
+    // Merge chip selections + custom place into one unified place line (avoid double-counting)
+    const allPlaces = [...placeVibes];
+    if (customPlace.trim()) allPlaces.push(customPlace.trim());
+    const placeString = allPlaces.length > 0
+      ? `Place aesthetics and settings: ${allPlaces.join('; ')}.`
       : '';
 
     // Occasion-specific context
@@ -556,6 +583,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         occasionContext += `\nANNIVERSARY: ${detailsData.anniversaryYears} years together${detailsData.anniversaryMilestone ? `, celebrating their ${detailsData.anniversaryMilestone} anniversary` : ''}. Original date: ${detailsData.originalDate || 'cherished'}.`;
       }
       if (detailsData.coupleEvolution) occasionContext += `\nHOW THEY'VE GROWN: ${detailsData.coupleEvolution}`;
+      if (detailsData.celebrationVenue) occasionContext += `\nCELEBRATION VENUE: ${detailsData.celebrationVenue}.`;
+      if (detailsData.celebrationTime) occasionContext += ` Time: ${detailsData.celebrationTime}.`;
+      if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
     }
     if (occasion === 'birthday') {
       if (detailsData.birthdayAge) {
@@ -563,6 +593,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       }
       if (detailsData.birthdayPassions) occasionContext += `\nTHEY LOVE: ${detailsData.birthdayPassions}`;
       if (detailsData.birthdayTribute) occasionContext += `\nWHO THEY ARE: ${detailsData.birthdayTribute}`;
+      // Party logistics — inject so memory engine sees the event details
+      if (detailsData.celebrationVenue) occasionContext += `\nPARTY VENUE: ${detailsData.celebrationVenue}.`;
+      if (detailsData.celebrationTime) occasionContext += ` Party time: ${detailsData.celebrationTime}.`;
+      if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
     }
     if (occasion === 'engagement') {
       if (detailsData.proposalStory) occasionContext += `\nTHE PROPOSAL: ${detailsData.proposalStory}`;
@@ -573,6 +607,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
     const birthdayCreator = name2.trim() ? `Created as a gift by ${name2.trim()}.` : '';
 
+    const keywordDirective = inspoKeywords.length > 0
+      ? `AESTHETIC REFERENCES (treat these as strong visual and cultural cues for color palette, motifs, and art direction): ${inspoKeywords.join(', ')}. For example, if "Knicks" → orange and blue with NYC energy; if "Coco" → marigolds, papel picado, warm golds and purples; if "Art Deco" → gold geometry, black, cream; if "Coastal" → sea glass greens, sandy neutrals. Translate each reference into its visual DNA.`
+      : '';
+
     return [
       `Occasion / Project Type: This site is for a ${selectedOccasionLabel}.`,
       isBirthday
@@ -581,7 +619,6 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       `Core Vibe: ${selectedMoodLabel}.`,
       paletteInfo,
       placeString,
-      customPlace ? (isBirthday ? `Meaningful place to them: ${customPlace}.` : `Specific favorite place: ${customPlace}.`) : '',
       isBirthday
         ? `What makes ${name1.trim()} special: ${meetCute}.`
         : `How they met: ${meetCute}.`,
@@ -595,6 +632,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       isEvent && eventDate ? `CRITICAL LOGISTICS: The event takes place on ${eventDate} at ${eventVenue || 'a beautiful venue'}. The RSVP deadline is ${rsvpDeadline || 'soon'}. Include a beautiful formal request for RSVP.` : (!isEvent && eventDate ? `Date: ${eventDate}.` : ''),
       cashFundUrl ? `REGISTRY: They have a cash fund or registry setup at ${cashFundUrl}. Note this somewhere near the bottom of the story.` : '',
       occasionContext.trim(),
+      keywordDirective,
       'The generated site must feel deeply personal and emotionally resonant to the occasion.',
       'Make the colors, typography, and narrative flow from these exact feelings and aesthetics.',
     ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
@@ -1169,24 +1207,33 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           )}
         </div>
 
-        {/* ── VISUAL INSPIRATION SUMMARY (collected in Step 4) ── */}
-        {hasInspirationUrls && (
-          <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '1rem', padding: '1rem 1.25rem', border: '1px solid rgba(163,177,138,0.2)', marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>✨</span>
-            <div>
+        {/* ── AESTHETIC VIBES SUMMARY ── */}
+        {hasInspoInput && (
+          <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '1rem', padding: '1rem 1.25rem', border: '1px solid rgba(163,177,138,0.2)', marginTop: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: inspoKeywords.length > 0 ? '0.6rem' : 0 }}>
+              <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>✨</span>
               <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--eg-accent)', margin: 0 }}>
-                {inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length} inspiration image{inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length !== 1 ? 's' : ''} added
-              </p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', margin: 0, marginTop: '0.1rem' }}>
-                Colours will be extracted automatically — no palette selection needed.
+                Aesthetic vibes locked in — AI will match these references
               </p>
             </div>
+            {inspoKeywords.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', paddingLeft: '2rem' }}>
+                {inspoKeywords.map(kw => (
+                  <span key={kw} style={{ padding: '0.2rem 0.65rem', borderRadius: '100px', background: 'var(--eg-accent)', color: '#fff', fontSize: '0.78rem', fontWeight: 600 }}>{kw}</span>
+                ))}
+                {hasInspirationUrls && (
+                  <span style={{ padding: '0.2rem 0.65rem', borderRadius: '100px', background: 'rgba(0,0,0,0.07)', color: 'var(--eg-muted)', fontSize: '0.78rem' }}>
+                    +{inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length} image{inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         {/* URL slug picker */}
         <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginTop: '2rem' }}>
-          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.app" /></p>
+          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.com" /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
@@ -1201,12 +1248,12 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               onBlur={e => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
             />
             <div style={{ padding: '0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
-              .pearloom.app
+              .pearloom.com
             </div>
           </div>
           {subdomain && (
             <p style={{ fontSize: '0.8rem', color: 'var(--eg-accent)', marginTop: '0.5rem', fontWeight: 500 }}>
-              pearloom.app/{subdomain}
+              {subdomain}.pearloom.com
             </p>
           )}
           {/* Availability status */}
@@ -1270,6 +1317,19 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     );
   }
 
+  const STEP_NAMES: Record<number, string> = {
+    1: 'Occasion',
+    2: 'Names',
+    3: 'Vibe',
+    4: 'Layout',
+    5: 'Aesthetic',
+    6: 'Color Palette',
+    7: 'Places',
+    8: 'Your Story',
+    9: 'Final Details',
+    10: 'Event Details',
+  };
+
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem', position: 'relative' }}>
       {/* ── Ambient orb — shifts with current selection ── */}
@@ -1281,46 +1341,40 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           pointerEvents: 'none', zIndex: 0,
         }}
       />
-      {/* Progress header */}
-      <div style={{ marginBottom: '2.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-        <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap', flexShrink: 0 }}>
-          {step} / {totalSteps + 1}
-        </span>
-        <div style={{ flex: 1, height: '2px', background: 'rgba(0,0,0,0.07)', borderRadius: 100, overflow: 'hidden' }}>
+
+      {/* ── Single unified progress system ── */}
+      <div style={{ marginBottom: '2.5rem' }}>
+        {/* Step label row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+          <motion.span
+            key={step}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const, color: 'var(--eg-accent)',
+            }}
+          >
+            {STEP_NAMES[step] || `Step ${step}`}
+          </motion.span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.04em' }}>
+            {step} <span style={{ opacity: 0.5 }}>/ {totalSteps + 1}</span>
+          </span>
+        </div>
+        {/* Progress bar */}
+        <div style={{ height: '3px', background: 'var(--eg-divider)', borderRadius: 100, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${Math.round((step / (totalSteps + 1)) * 100)}%` }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            style={{ height: '100%', background: 'linear-gradient(90deg, var(--eg-accent), color-mix(in srgb, var(--eg-accent) 70%, #fff))', borderRadius: 100 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              height: '100%',
+              background: 'linear-gradient(90deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
+              borderRadius: 100,
+              boxShadow: '0 0 8px rgba(163,177,138,0.5)',
+            }}
           />
         </div>
-      </div>
-      {/* Pear progress dots */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '3rem', alignItems: 'center', justifyContent: 'center' }}>
-        {Array.from({ length: totalSteps }).map((_, i) => {
-          const done = i + 1 < step;
-          const active = i + 1 === step;
-          return (
-            <div
-              key={i}
-              style={{
-                width: active ? '32px' : '8px',
-                height: active ? '41px' : '10px',
-                borderRadius: active
-                  ? '42% 42% 52% 52% / 30% 30% 52% 52%'
-                  : done
-                  ? '42% 42% 52% 52% / 30% 30% 52% 52%'
-                  : '50%',
-                background: active
-                  ? 'var(--eg-accent)'
-                  : done
-                  ? 'rgba(163,177,138,0.45)'
-                  : 'rgba(0,0,0,0.08)',
-                transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
-                boxShadow: active ? '0 4px 12px rgba(163,177,138,0.35)' : 'none',
-              }}
-            />
-          );
-        })}
       </div>
 
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -1406,8 +1460,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '1rem' }}>
                 Your site URL: <span style={{ fontWeight: 600 }}>
                   {isBirthday
-                    ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday.pearloom.app`
-                    : `${slugFromNames(name1, name2)}.pearloom.app`}
+                    ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday.pearloom.com`
+                    : `${slugFromNames(name1, name2)}.pearloom.com`}
                 </span>
               </p>
             )}
@@ -1705,71 +1759,167 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 5: VISUAL INSPIRATION (was step 4) ── */}
+        {/* ── STEP 5: VISUAL INSPIRATION ── */}
         {step === 5 && (
           <motion.div key="s5-inspo" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.75rem' }}>✨</span>
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Visual Inspiration</h2>
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Aesthetic Vibes</h2>
             </div>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '0.75rem' }}>
-              Paste links to images that capture your aesthetic — Pinterest pins, Instagram posts, any direct image URL.
+            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2rem' }}>
+              Tell the AI what to channel — sports teams, films, cities, artists, anything with a visual world.
             </p>
-            <p style={{ color: 'var(--eg-accent)', fontSize: '0.88rem', fontWeight: 600, marginBottom: '2rem' }}>
-              {hasInspirationUrls
-                ? '✓ The AI will extract your colour palette directly from these images — colour selection step is skipped.'
-                : 'Optional — skip this step to choose a colour palette manually on the next screen.'}
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '0.75rem' }}>
-              {(inspirationUrls.length === 0 ? [''] : inspirationUrls).map((url, idx) => {
-                const isDirectImage = /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(url);
-                const isKnownCdn = /(?:^|\.)(?:i\.imgur\.com|cdn\.discordapp\.com|images\.unsplash\.com|imagedelivery\.net|cloudinary\.com|res\.cloudinary\.com|live\.staticflickr\.com)(?:\/|$)/i.test(url);
-                const isValid = /^https?:\/\/.+/.test(url.trim());
-                const warnNotDirectImage = isValid && !isDirectImage && !isKnownCdn;
-                return (
-                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {isDirectImage && isValid && (
-                        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(214,198,168,0.2)' }}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={url} alt="inspiration preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                        </div>
-                      )}
-                      <input
-                        type="url"
-                        value={url}
-                        placeholder="https://i.pinimg.com/..."
-                        onChange={e => {
-                          const next = [...(inspirationUrls.length === 0 ? [''] : inspirationUrls)];
-                          next[idx] = e.target.value;
-                          setInspirationUrls(next.filter((u, i) => i === 0 || u.trim()));
-                        }}
-                        style={{ ...inputStyle, flex: 1, borderColor: url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)' }}
-                        onFocus={getFocusStyle}
-                        onBlur={getBlurStyle}
-                      />
-                      {idx > 0 && (
-                        <button type="button" onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: '0.25rem', flexShrink: 0 }}>✕</button>
+
+            {/* ── Keyword tag input ── */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              {/* Existing tags */}
+              {inspoKeywords.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  {inspoKeywords.map(kw => (
+                    <span key={kw} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                      padding: '0.35rem 0.85rem', borderRadius: '100px',
+                      background: 'var(--eg-accent)', color: '#fff',
+                      fontSize: '0.88rem', fontWeight: 600,
+                    }}>
+                      {kw}
+                      <button
+                        type="button"
+                        onClick={() => setInspoKeywords(prev => prev.filter(k => k !== kw))}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', padding: 0, lineHeight: 1, fontSize: '1rem' }}
+                      >×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Type + add */}
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  value={inspoKeywordInput}
+                  placeholder="e.g. Knicks, Coco, Art Deco, Paris..."
+                  onChange={e => setInspoKeywordInput(e.target.value)}
+                  onKeyDown={e => {
+                    if ((e.key === 'Enter' || e.key === ',') && inspoKeywordInput.trim()) {
+                      e.preventDefault();
+                      const val = inspoKeywordInput.trim().replace(/,$/, '');
+                      if (val && !inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                      setInspoKeywordInput('');
+                    }
+                  }}
+                  style={{ ...inputStyle, flex: 1 }}
+                  onFocus={getFocusStyle}
+                  onBlur={e => {
+                    getBlurStyle(e);
+                    // Also commit on blur if there's text
+                    if (inspoKeywordInput.trim()) {
+                      const val = inspoKeywordInput.trim();
+                      if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                      setInspoKeywordInput('');
+                    }
+                  }}
+                />
+                {inspoKeywordInput.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = inspoKeywordInput.trim();
+                      if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                      setInspoKeywordInput('');
+                    }}
+                    style={{ ...btnPrimaryStyle, padding: '0.65rem 1.25rem', fontSize: '0.875rem' }}
+                  >Add</button>
+                )}
+              </div>
+            </div>
+
+            {/* ── Quick-pick suggestions ── */}
+            <div style={{ marginBottom: '2rem' }}>
+              <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>Quick picks</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {INSPO_SUGGESTIONS.filter(s => !inspoKeywords.includes(s.label)).map(s => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    onClick={() => setInspoKeywords(prev => [...prev, s.label])}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                      padding: '0.35rem 0.85rem', borderRadius: '100px',
+                      background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
+                      color: 'var(--eg-fg)', fontSize: '0.84rem', cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(163,177,138,0.15)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--eg-accent)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                  >
+                    <span>{s.emoji}</span> {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Image URL section (secondary) ── */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '1.5rem', marginBottom: '0.5rem' }}>
+              <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>
+                Or paste direct image URLs <span style={{ fontWeight: 400 }}>(Pinterest, Imgur — ends in .jpg/.png)</span>
+              </p>
+              {hasInspirationUrls && (
+                <p style={{ color: 'var(--eg-accent)', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+                  ✓ AI will extract your palette from these images — colour step skipped.
+                </p>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                {(inspirationUrls.length === 0 ? [''] : inspirationUrls).map((url, idx) => {
+                  const isDirectImage = /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(url);
+                  const isKnownCdn = /(?:^|\.)(?:i\.imgur\.com|cdn\.discordapp\.com|images\.unsplash\.com|imagedelivery\.net|cloudinary\.com|res\.cloudinary\.com|live\.staticflickr\.com)(?:\/|$)/i.test(url);
+                  const isValid = /^https?:\/\/.+/.test(url.trim());
+                  const warnNotDirectImage = isValid && !isDirectImage && !isKnownCdn;
+                  return (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {isDirectImage && isValid && (
+                          <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(214,198,168,0.2)' }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt="inspiration preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          </div>
+                        )}
+                        <input
+                          type="url"
+                          value={url}
+                          placeholder="https://i.pinimg.com/..."
+                          onChange={e => {
+                            const next = [...(inspirationUrls.length === 0 ? [''] : inspirationUrls)];
+                            next[idx] = e.target.value;
+                            setInspirationUrls(next.filter((u, i) => i === 0 || u.trim()));
+                          }}
+                          style={{ ...inputStyle, flex: 1, fontSize: '0.85rem', borderColor: url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)' }}
+                          onFocus={getFocusStyle}
+                          onBlur={getBlurStyle}
+                        />
+                        {idx > 0 && (
+                          <button type="button" onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: '0.25rem', flexShrink: 0 }}>✕</button>
+                        )}
+                      </div>
+                      {warnNotDirectImage && (
+                        <p style={{ fontSize: '0.76rem', color: '#f59e0b', margin: 0, paddingLeft: '0.25rem' }}>
+                          ⚠ Paste a direct image URL (ending in .jpg / .png) for best results
+                        </p>
                       )}
                     </div>
-                    {warnNotDirectImage && (
-                      <p style={{ fontSize: '0.78rem', color: '#f59e0b', margin: 0, paddingLeft: '0.25rem' }}>
-                        ⚠ Paste a direct image URL (ending in .jpg / .png) for best results
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              {inspirationUrls.length < 4 && (
+                <button type="button" onClick={() => setInspirationUrls(prev => [...(prev.length === 0 ? [''] : prev), ''])} style={{ background: 'none', border: '1px dashed rgba(163,177,138,0.45)', borderRadius: '0.5rem', padding: '0.4rem 0.9rem', color: 'var(--eg-accent)', cursor: 'pointer', fontSize: '0.84rem', fontWeight: 600 }}>
+                  + Add image URL
+                </button>
+              )}
             </div>
-            {inspirationUrls.length < 4 && (
-              <button type="button" onClick={() => setInspirationUrls(prev => [...(prev.length === 0 ? [''] : prev), ''])} style={{ background: 'none', border: '1px dashed rgba(163,177,138,0.45)', borderRadius: '0.5rem', padding: '0.5rem 1rem', color: 'var(--eg-accent)', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600 }}>
-                + Add another image
-              </button>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2.5rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
               <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>
-                {hasInspirationUrls ? 'Use my inspiration →' : 'Skip'} <ArrowRight size={18} />
+                {hasInspoInput ? 'Use my vibes →' : 'Skip'} <ArrowRight size={18} />
               </button>
             </div>
           </motion.div>
@@ -1874,8 +2024,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
               {isBirthday
-                ? `Where does ${name1.trim() || 'this person'} feel most alive? Select all that fit.`
-                : 'Select the settings that define your adventures. This helps the AI match each photo to the right narrative.'}
+                ? `What's ${name1.trim() || 'their'} aesthetic world? Pick the settings that feel like them.`
+                : 'What places capture your vibe as a couple? These shape the visual world of your site.'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '2rem' }}>
               {PLACES.map(p => (

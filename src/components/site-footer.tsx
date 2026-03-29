@@ -99,7 +99,7 @@ export function SiteFooter({
               }}>
                 Powered by{' '}
                 <a
-                  href="https://pearloom.app"
+                  href="https://pearloom.com"
                   target="_blank"
                   rel="noreferrer"
                   style={{

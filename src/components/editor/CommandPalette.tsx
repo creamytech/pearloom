@@ -64,7 +64,7 @@ const DEVICE_COMMANDS: Command[] = [
 const ACTION_COMMANDS: Command[] = [
   { id: 'add-chapter', label: 'Add new chapter',  description: 'Insert a blank chapter', icon: Plus,  iconColor: 'var(--eg-accent, #A3B18A)', group: 'Actions', action: { type: 'add-chapter' } },
   { id: 'preview',     label: 'Preview site',      description: 'Open live preview tab',  icon: Eye,   iconColor: '#38bdf8', group: 'Actions', shortcut: '⌘P', action: { type: 'preview'     } },
-  { id: 'publish',     label: 'Publish site',      description: 'Go live on pearloom.app',icon: Globe, iconColor: 'var(--eg-accent, #A3B18A)', group: 'Actions', action: { type: 'publish'     } },
+  { id: 'publish',     label: 'Publish site',      description: 'Go live on pearloom.com',icon: Globe, iconColor: 'var(--eg-accent, #A3B18A)', group: 'Actions', action: { type: 'publish'     } },
   { id: 'undo',        label: 'Undo',              description: 'Undo last change',       icon: RotateCcw, iconColor: '#e2e8f0', group: 'Actions', shortcut: '⌘Z',  action: { type: 'undo' } },
   { id: 'redo',        label: 'Redo',              description: 'Redo last change',       icon: RotateCw,  iconColor: '#e2e8f0', group: 'Actions', shortcut: '⌘⇧Z', action: { type: 'redo' } },
 ];

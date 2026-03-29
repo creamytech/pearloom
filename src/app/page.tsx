@@ -39,6 +39,30 @@ const FullscreenEditor = nextDynamic(
 
 type Step = 'auth' | 'dashboard' | 'photos' | 'local-upload' | 'cluster-review' | 'vibe' | 'generating' | 'edit' | 'preview' | 'guests';
 
+function CopyUrlButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={async () => {
+        try { await navigator.clipboard.writeText(url); } catch {}
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+      style={{
+        padding: '0.75rem 1rem', background: copied ? 'rgba(163,177,138,0.15)' : 'transparent',
+        border: 'none', borderLeft: '1.5px solid var(--eg-gold)',
+        color: copied ? 'var(--eg-accent)' : 'var(--eg-muted)',
+        cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+        letterSpacing: '0.06em', textTransform: 'uppercase' as const,
+        transition: 'all 0.2s', whiteSpace: 'nowrap' as const,
+        flexShrink: 0,
+      }}
+    >
+      {copied ? '✓ Copied' : 'Copy'}
+    </button>
+  );
+}
+
 function PhotosStep({
   selectedPhotos,
   onPhotosSelected,
@@ -311,8 +335,11 @@ export default function DashboardPage() {
       log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
       setSubdomain(autoSlug);
 
-      // Clear wizard draft on successful generation
-      try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
+      // Clear wizard draft and editor autosave so stale banners don't appear
+      try {
+        localStorage.removeItem(WIZARD_STORAGE_KEY);
+        localStorage.removeItem('pearloom_draft_manifest');
+      } catch {}
       setDraftBanner(null);
 
       setCurrentStep('edit');
@@ -353,6 +380,8 @@ export default function DashboardPage() {
 
       log('[Publish] ✓ Published! URL:', data.url);
       setPublishedUrl(data.url);
+      // Open the live site in a new tab so the user lands on their actual URL
+      window.open(data.url, '_blank', 'noopener,noreferrer');
     } catch (err: unknown) {
       logError('[Publish] Error:', err);
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
@@ -740,6 +769,10 @@ export default function DashboardPage() {
               {currentStep === 'generating' && (
                 <GenerationProgress
                   step={generationStep}
+                  photos={selectedPhotos}
+                  names={lastVibeData?.names ?? coupleNames}
+                  vibeString={lastVibeData?.vibeString ?? vibeString}
+                  occasion={lastVibeData?.occasion ?? 'wedding'}
                   onCancel={() => {
                     generationControllerRef.current?.abort();
                     generationControllerRef.current = null;
@@ -801,7 +834,7 @@ export default function DashboardPage() {
                         <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#4ade80' }} />
                       </div>
                       <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', color: 'var(--eg-muted)' }}>
-                        pearloom.app/{subdomain || `${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`}
+                        {subdomain || `${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`}.pearloom.com
                       </div>
                     </div>
                     <iframe
@@ -851,51 +884,135 @@ export default function DashboardPage() {
             zIndex: 200, padding: '2rem'
           }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
               style={{
-                background: '#fff', padding: '3rem', borderRadius: '1.5rem',
-                maxWidth: '500px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
-                textAlign: 'center'
+                background: publishedUrl ? 'var(--eg-bg)' : '#fff',
+                padding: '2.5rem', borderRadius: '1.5rem',
+                maxWidth: '460px', width: '100%',
+                boxShadow: '0 24px 80px rgba(43,43,43,0.14)',
+                border: '1px solid var(--eg-divider)',
+                textAlign: 'center',
               }}
             >
               {publishedUrl ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', background: 'var(--eg-accent, #A3B18A)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                    <Check size={32} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+                  {/* Celebration rings */}
+                  <div style={{ position: 'relative', marginBottom: '0.25rem' }}>
+                    {[1, 2, 3].map(i => (
+                      <motion.div key={i}
+                        initial={{ scale: 0.6, opacity: 0.6 }}
+                        animate={{ scale: 1 + i * 0.45, opacity: 0 }}
+                        transition={{ duration: 1.8, delay: i * 0.25, repeat: Infinity, ease: 'easeOut' }}
+                        style={{
+                          position: 'absolute', inset: 0, borderRadius: '50%',
+                          border: '2px solid var(--eg-accent)',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    ))}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                      style={{
+                        width: '5rem', height: '5rem', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', boxShadow: '0 12px 40px rgba(163,177,138,0.45)',
+                        position: 'relative', zIndex: 1,
+                      }}
+                    >
+                      <Check size={28} strokeWidth={2.5} />
+                    </motion.div>
                   </div>
-                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginTop: '0.5rem' }}>It&apos;s Live.</h2>
-                  <p style={{ color: 'var(--eg-muted)' }}>Your love story is now live at:</p>
-                  <code style={{ background: 'rgba(0,0,0,0.04)', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.85rem', wordBreak: 'break-all' }}>
-                    {publishedUrl}
-                  </code>
-                  <a
+
+                  <motion.h2
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.25rem', fontWeight: 400, letterSpacing: '-0.02em', lineHeight: 1.1 }}
+                  >
+                    Your Story is Live ✨
+                  </motion.h2>
+
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.45 }}
+                    style={{ color: 'var(--eg-muted)', fontSize: '0.95rem' }}
+                  >
+                    Share this link with your guests
+                  </motion.p>
+
+                  {/* URL display with copy */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.55 }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center',
+                      background: 'var(--eg-bg)', border: '1.5px solid var(--eg-gold)',
+                      borderRadius: '0.875rem', overflow: 'hidden',
+                    }}
+                  >
+                    <Globe size={15} style={{ marginLeft: '1rem', color: 'var(--eg-accent)', flexShrink: 0 }} />
+                    <span style={{
+                      flex: 1, padding: '0.85rem 0.75rem',
+                      fontSize: '0.9rem', color: 'var(--eg-fg)', fontWeight: 500,
+                      letterSpacing: '0.01em', wordBreak: 'break-all',
+                    }}>
+                      {publishedUrl.replace(/^https?:\/\//, '')}
+                    </span>
+                    <CopyUrlButton url={publishedUrl} />
+                  </motion.div>
+
+                  <motion.a
                     href={publishedUrl}
                     target="_blank"
                     rel="noreferrer"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.65 }}
                     style={{
-                      display: 'inline-block', padding: '1rem 2rem', background: 'var(--eg-fg)',
-                      color: '#fff', borderRadius: '2rem', textDecoration: 'none', marginTop: '0.5rem', fontWeight: 500
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                      width: '100%', padding: '1rem', borderRadius: '0.875rem',
+                      background: 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
+                      color: '#fff', textDecoration: 'none', fontWeight: 600, fontSize: '1rem',
+                      boxShadow: '0 8px 30px rgba(163,177,138,0.4)',
                     }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    Open Your Site →
-                  </a>
-                  <a
-                    href={`/rsvps?domain=${subdomain}`}
-                    style={{
-                      display: 'inline-block', padding: '1rem 2rem', background: 'transparent',
-                      border: '2px solid var(--eg-fg)', color: 'var(--eg-fg)', borderRadius: '2rem',
-                      textDecoration: 'none', fontWeight: 500
-                    }}
-                  >
-                    Manage RSVPs
-                  </a>
-                  <button
-                    onClick={() => { setShowPublishModal(false); setCurrentStep('dashboard'); }}
-                    style={{ background: 'none', border: 'none', color: 'var(--eg-muted)', marginTop: '0.5rem', cursor: 'pointer', textDecoration: 'underline' }}
-                  >
-                    Go to Dashboard
-                  </button>
+                    Open Your Site <ArrowRight size={16} />
+                  </motion.a>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                    <a
+                      href={`/rsvps?domain=${subdomain}`}
+                      style={{
+                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        padding: '0.85rem', background: 'transparent',
+                        border: '1.5px solid var(--eg-divider)', color: 'var(--eg-fg)',
+                        borderRadius: '0.875rem', textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem',
+                        transition: 'border-color 0.2s',
+                      }}
+                    >
+                      Manage RSVPs
+                    </a>
+                    <button
+                      onClick={() => { setShowPublishModal(false); setCurrentStep('dashboard'); }}
+                      style={{
+                        flex: 1, background: 'none', border: '1.5px solid var(--eg-divider)',
+                        color: 'var(--eg-muted)', borderRadius: '0.875rem',
+                        cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem',
+                        transition: 'border-color 0.2s',
+                      }}
+                    >
+                      Dashboard
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -925,7 +1042,7 @@ export default function DashboardPage() {
                       onBlur={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
                     />
                     <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>
-                      .pearloom.app
+                      .pearloom.com
                     </div>
                   </div>
 

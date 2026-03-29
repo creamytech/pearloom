@@ -13,6 +13,7 @@
   --eg-fg: #2B2B2B;                  /* Charcoal Ink — never pure black */
   --eg-accent: #A3B18A;              /* Soft Olive — primary brand color */
   --eg-accent-hover: #8FA876;        /* darker olive for hover states */
+  --eg-accent-dark: #6E8C5C;         /* deep olive for pressed/active states */
   --eg-accent-light: #EEE8DC;        /* cream tint for accent backgrounds */
   --eg-gold: #D6C6A8;                /* Dusty Gold — premium accent, dividers, glows */
   --eg-plum: #6D597A;                /* Muted Plum — emotional highlights, selected states */

@@ -271,7 +271,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                         Unlimited sites · No branding · Custom domain · Priority AI
                       </p>
                       <button
-                        onClick={() => window.open('mailto:hello@pearloom.app?subject=Pro%20Plan%20Enquiry', '_blank')}
+                        onClick={() => window.open('mailto:hello@pearloom.com?subject=Pro%20Plan%20Enquiry', '_blank')}
                         style={{
                           width: '100%', padding: '0.55rem', borderRadius: '0.5rem', border: 'none',
                           background: '#2B2B2B', color: '#fff',

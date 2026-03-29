@@ -17,13 +17,13 @@ export const config = {
 export default function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
-  // Get hostname of request (e.g. demo.pearloom.app, demo.localhost:3000)
+  // Get hostname of request (e.g. demo.pearloom.com, demo.localhost:3000)
   let hostname = req.headers.get("host")!;
 
   // Strip localhost specific configs
   if (hostname.includes("localhost")) {
-    hostname = hostname.replace(".localhost:3000", ".pearloom.app");
-    hostname = hostname.replace("localhost:3000", "pearloom.app");
+    hostname = hostname.replace(".localhost:3000", ".pearloom.com");
+    hostname = hostname.replace("localhost:3000", "pearloom.com");
   }
 
   const searchParams = req.nextUrl.searchParams.toString();
@@ -31,7 +31,6 @@ export default function middleware(req: NextRequest) {
 
   // If the host exactly matches our main domains, render the marketing page / dashboard normally
   if (
-    hostname === "pearloom.app" ||
     hostname === "pearloom.com" ||
     hostname === "www.pearloom.com" ||
     hostname === "pearloom.vercel.app" ||
@@ -42,8 +41,8 @@ export default function middleware(req: NextRequest) {
 
   // Define subdomain prefix (e.g. "ben-shauna")
   let currentHost;
-  if (hostname.includes(".pearloom.app")) {
-    currentHost = hostname.replace(".pearloom.app", "");
+  if (hostname.includes(".pearloom.com")) {
+    currentHost = hostname.replace(".pearloom.com", "");
   } else if (hostname.includes(".localhost:3000")) {
     currentHost = hostname.replace(".localhost:3000", "");
   } else {
