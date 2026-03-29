@@ -42,14 +42,14 @@ export function PearlIcon({ size = 24, color = 'currentColor', className, style 
 
 /** BRAND MARK — beautiful organic pear silhouette with stem and small leaf. */
 export function PearIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
-  // Custom aspect ratio: 32x40
-  const w = size * (32 / 40);
+  // Custom aspect ratio: 26x36
+  const w = size * (26 / 36);
   const h = size;
   return (
     <svg
       width={w}
       height={h}
-      viewBox="0 0 32 40"
+      viewBox="0 0 26 36"
       fill="none"
       stroke={color}
       strokeWidth="1.5"
@@ -59,12 +59,27 @@ export function PearIcon({ size = 24, color = 'currentColor', className, style }
       style={style}
       aria-hidden="true"
     >
-      {/* Pear body — organic silhouette */}
-      <path d="M16 13 C10 13 5 18 5 25 C5 32 9.5 37 16 37 C22.5 37 27 32 27 25 C27 18 22 13 16 13 Z" />
-      {/* Stem */}
-      <path d="M16 13 C16 10 17.5 7.5 17 5" />
-      {/* Small leaf */}
-      <path d="M17 8.5 C19 7 22 7.5 21.5 9.5 C20.5 8.5 18.5 8.5 17 8.5 Z" fill={color} stroke="none" opacity="0.7" />
+      {/*
+        Pear silhouette: narrow top neck widening dramatically into a fat rounded bottom.
+        Starts from stem base at top-centre, curves inward to a narrow waist,
+        then sweeps out wide to the round belly and closes back up at bottom.
+      */}
+      <path d="
+        M13 11
+        C13 11 10.5 12 9 14
+        C7 16.5 6.5 18.5 7 21
+        C5.5 22 4.5 24 4.5 26.5
+        C4.5 31.5 8.2 35 13 35
+        C17.8 35 21.5 31.5 21.5 26.5
+        C21.5 24 20.5 22 19 21
+        C19.5 18.5 19 16.5 17 14
+        C15.5 12 13 11 13 11
+        Z
+      " />
+      {/* Stem — curves slightly to one side */}
+      <path d="M13 11 C13 9 13.5 7 13 5" />
+      {/* Leaf — small filled oval off the stem */}
+      <path d="M13 7.5 C14.5 6 17.5 6.5 17 8.5 C15.5 7.5 14 7.5 13 7.5 Z" fill={color} stroke="none" opacity="0.75" />
     </svg>
   );
 }
@@ -436,6 +451,106 @@ export function LeafSprigIcon({ size = 24, color = 'currentColor', className, st
       <path d="M11 9 Q8 7 7.5 4.5 Q9.5 5.5 11 7.5 Z" />
       {/* Tiny bud at tip */}
       <circle cx="11" cy="5" r="0.8" fill={color} stroke="none" opacity="0.6" />
+    </svg>
+  );
+}
+
+/** Two mountain peaks — taller left peak with a small star at summit. */
+export function MountainIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Back peak (right, shorter) */}
+      <path d="M15 8 L20 19 L10 19 Z" strokeOpacity="0.45" />
+      {/* Front peak (left, taller) */}
+      <path d="M9 4 L16 19 L2 19 Z" />
+      {/* Snow cap on front peak */}
+      <path d="M9 4 L11 9 L7 9 Z" fill={color} stroke="none" opacity="0.35" />
+      {/* Tiny 4-pointed star at summit */}
+      <path d="M9 2.5 L9.35 3.4 L10.25 3.75 L9.35 4.1 L9 5 L8.65 4.1 L7.75 3.75 L8.65 3.4 Z"
+        fill={color} stroke="none" opacity="0.7" />
+    </svg>
+  );
+}
+
+/** Paw print: central pad with four rounded toe beans above. */
+export function PawIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Central paw pad */}
+      <path d="M12 22 C9.5 22 7.5 20 7.5 17.5 C7.5 15 9 13.5 12 13.5 C15 13.5 16.5 15 16.5 17.5 C16.5 20 14.5 22 12 22 Z" />
+      {/* Top-left toe */}
+      <ellipse cx="7.5" cy="11" rx="1.8" ry="2.2" transform="rotate(-15 7.5 11)" />
+      {/* Top-centre-left toe */}
+      <ellipse cx="10.5" cy="9.5" rx="1.7" ry="2.1" transform="rotate(-5 10.5 9.5)" />
+      {/* Top-centre-right toe */}
+      <ellipse cx="13.5" cy="9.5" rx="1.7" ry="2.1" transform="rotate(5 13.5 9.5)" />
+      {/* Top-right toe */}
+      <ellipse cx="16.5" cy="11" rx="1.8" ry="2.2" transform="rotate(15 16.5 11)" />
+    </svg>
+  );
+}
+
+/** Elegant musical note with a small pearl at the note head. */
+export function MusicNoteIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Stem */}
+      <line x1="14" y1="3" x2="14" y2="16" />
+      {/* Flag */}
+      <path d="M14 3 Q20 5 18 11" />
+      {/* Note head — filled oval */}
+      <ellipse cx="11.5" cy="17" rx="3" ry="2" transform="rotate(-15 11.5 17)"
+        fill={color} stroke="none" opacity="0.85" />
+      {/* Pearl highlight on note head */}
+      <path d="M10.2 15.8 Q11 15.1 12.4 15.5" strokeWidth="0.8" opacity="0.5" />
+    </svg>
+  );
+}
+
+/** Steaming coffee cup — side view with elegant curl of steam. */
+export function CoffeeCupIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Cup body */}
+      <path d="M5 9 L6.5 20 L17.5 20 L19 9 Z" />
+      {/* Saucer */}
+      <path d="M3 21 Q12 23 21 21" />
+      {/* Handle */}
+      <path d="M19 11 Q23 11 23 14.5 Q23 18 19 18" />
+      {/* Steam left */}
+      <path d="M9 7 Q8.5 5 9 3" strokeOpacity="0.55" />
+      {/* Steam centre */}
+      <path d="M12 6 Q11.5 4 12 2" strokeOpacity="0.55" />
+      {/* Steam right */}
+      <path d="M15 7 Q14.5 5 15 3" strokeOpacity="0.55" />
+    </svg>
+  );
+}
+
+/** Elegant travel suitcase with luggage tag ribbon. */
+export function SuitcaseIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Suitcase body */}
+      <rect x="3" y="9" width="18" height="13" rx="1.5" />
+      {/* Handle bar */}
+      <path d="M9 9 L9 6.5 Q9 4.5 12 4.5 Q15 4.5 15 6.5 L15 9" />
+      {/* Center divider line */}
+      <line x1="3" y1="15.5" x2="21" y2="15.5" strokeOpacity="0.4" />
+      {/* Latches */}
+      <rect x="10.5" y="8.5" width="3" height="1.5" rx="0.5" fill={color} stroke="none" opacity="0.6" />
+      {/* Luggage tag */}
+      <path d="M19.5 11 Q22 11 22 13 Q22 15 19.5 15" strokeWidth="1" opacity="0.6" />
     </svg>
   );
 }

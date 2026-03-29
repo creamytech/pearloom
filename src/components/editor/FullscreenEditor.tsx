@@ -14,10 +14,10 @@ import {
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import {
-  Plus, Trash2, Sparkles, Loader2,
+  Plus, Trash2, Loader2,
   Globe, Monitor, Tablet, Smartphone,
-  Image, Calendar, Upload, X, Camera,
-  Heart, MapPin, Clock, ChevronDown, Columns2,
+  Image, Upload, X, Camera,
+  Clock, ChevronDown, Columns2,
   Eye, EyeOff,
 } from 'lucide-react';
 import { PreviewPane } from './PreviewPane';
@@ -28,7 +28,11 @@ import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon, DetailsIcon,
   AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
   UndoIcon, RedoIcon, CommandIcon, GripIcon, SavedIcon, UnsavedIcon,
+  BlockStoryIcon, BlockHeroIcon, BlockPhotosIcon, BlockQuoteIcon,
 } from '@/components/icons/EditorIcons';
+import {
+  ElegantHeartIcon, LocationPinIcon, CalendarHeartIcon, LoomThreadIcon,
+} from '@/components/icons/PearloomIcons';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent, FaqItem, HotelBlock, TravelInfo } from '@/types';
 import { ChapterActions } from './ChapterActions';
 import { AIBlocksPanel } from './AIBlocksPanel';
@@ -178,15 +182,15 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
 
 // ── Blocks palette shown at bottom of story tab ─────────────────
 const CANVAS_BLOCK_TYPES = [
-  { id: 'block:editorial',  label: 'Text Chapter',   emoji: '✍️', desc: 'Story text with optional photo' },
-  { id: 'block:split',      label: 'Photo + Story',   emoji: '🖼', desc: 'Side-by-side photo & text' },
-  { id: 'block:fullbleed',  label: 'Full Bleed',      emoji: '🎞', desc: 'Cinematic full-height photo' },
-  { id: 'block:gallery',    label: 'Photo Gallery',   emoji: '🗂', desc: 'Multi-photo grid layout' },
-  { id: 'block:cinematic',  label: 'Cinematic Quote', emoji: '🎬', desc: 'Ambient blurred quote' },
-  { id: 'block:mosaic',     label: 'Polaroid Mosaic', emoji: '📷', desc: 'Scattered polaroid collage' },
+  { id: 'block:editorial',  label: 'Text Chapter',   Icon: BlockStoryIcon,  desc: 'Story text with optional photo' },
+  { id: 'block:split',      label: 'Photo + Story',   Icon: Columns2,        desc: 'Side-by-side photo & text' },
+  { id: 'block:fullbleed',  label: 'Full Bleed',      Icon: BlockHeroIcon,   desc: 'Cinematic full-height photo' },
+  { id: 'block:gallery',    label: 'Photo Gallery',   Icon: BlockPhotosIcon, desc: 'Multi-photo grid layout' },
+  { id: 'block:cinematic',  label: 'Cinematic Quote', Icon: BlockQuoteIcon,  desc: 'Ambient blurred quote' },
+  { id: 'block:mosaic',     label: 'Polaroid Mosaic', Icon: GripIcon,        desc: 'Scattered polaroid collage' },
 ] as const;
 
-function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label: string; emoji: string; desc: string }) {
+function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label: string; Icon: React.ComponentType<{ size?: number; color?: string }>; desc: string }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: blockId,
     data: { type: 'block', id: blockId, label },
@@ -214,13 +218,13 @@ function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label
     >
       {/* Drag handle */}
       <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '1rem', flexShrink: 0, lineHeight: 1 }}>✦</div>
-      {/* Emoji icon with colored bg */}
+      {/* Block type icon */}
       <div style={{
         width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
         background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', fontSize: '1.15rem',
+        justifyContent: 'center',
       }}>
-        {emoji}
+        <Icon size={16} color="rgba(163,177,138,0.9)" />
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2 }}>{label}</div>
@@ -329,7 +333,7 @@ function SectionItem({
             </div>
             <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               {chapter.location?.label && (
-                <><MapPin size={9} style={{ flexShrink: 0, opacity: 0.7 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{chapter.location.label}</span><span>·</span></>
+                <><LocationPinIcon size={9} style={{ flexShrink: 0, opacity: 0.7 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{chapter.location.label}</span><span>·</span></>
               )}
               <Clock size={9} style={{ flexShrink: 0, opacity: 0.7 }} />
               <span>{slugDate(chapter.date)}</span>
@@ -617,8 +621,8 @@ function ImageManager({
             {generatingCaptions
               ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Generating captions…</>
               : captionSuccess
-                ? <><Sparkles size={10} /> Captions added!</>
-                : <><Sparkles size={10} /> Generate Captions</>}
+                ? <><LoomThreadIcon size={10} /> Captions added!</>
+                : <><LoomThreadIcon size={10} /> Generate Captions</>}
           </button>
           {captionError && (
             <div style={{
@@ -850,7 +854,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
       {events.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.2)', borderRadius: '10px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-          <Calendar size={24} style={{ marginBottom: '8px', opacity: 0.4 }} />
+          <CalendarHeartIcon size={24} style={{ marginBottom: '8px', opacity: 0.4 }} />
           <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>No events yet</div>
           <div style={{ fontSize: '0.82rem', marginTop: '4px' }}>Add your ceremony, reception, and more</div>
         </div>
@@ -1077,7 +1081,7 @@ function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManife
           <label style={lbl}>Venue</label>
           {logistics.venue ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '8px 10px' }}>
-              <MapPin size={13} color="var(--eg-accent, #A3B18A)" style={{ flexShrink: 0 }} />
+              <LocationPinIcon size={13} color="var(--eg-accent, #A3B18A)" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
                 {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>{logistics.venueAddress}</div>}
@@ -1845,7 +1849,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
-  // Canvas tab: don't auto-enable split view; user can toggle it manually
+  // Split view uses PreviewPane (React component). Default off — user toggles via toolbar.
 
   // ── Show "Click to jump" hint when split view first opens ──
   const hintShownRef = useRef(false);
@@ -1872,6 +1876,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     const t = setTimeout(() => setPreviewSlow(true), 8000);
     return () => clearTimeout(t);
   }, [iframeReady]);
+
+  // Seed sessionStorage immediately on mount so the iframe has data when it first loads
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pushHistory = useCallback((m: StoryManifest) => {
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
@@ -1973,6 +1985,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
       setPublishedUrl(data.url);
       setSaveState('saved');
+      // Open the published site in a new tab immediately
+      if (data.url) window.open(data.url, '_blank', 'noopener,noreferrer');
       setIsDirty(false);
       onPublish?.();
     } catch (err) {
@@ -2338,7 +2352,7 @@ Return JSON with: title, subtitle, description, mood`,
         {/* Site name — centered, contextual to occasion */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {manifest.occasion !== 'birthday' && (
-            <Heart size={12} color="var(--eg-gold, #D6C6A8)" fill="var(--eg-gold, #D6C6A8)" />
+            <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
           )}
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
             {manifest.occasion === 'birthday'
@@ -2587,7 +2601,7 @@ Return JSON with: title, subtitle, description, mood`,
                       key={b.id}
                       blockId={b.id}
                       label={b.label}
-                      emoji={b.emoji}
+                      Icon={b.Icon}
                       desc={b.desc}
                     />
                   ))}
@@ -2682,8 +2696,8 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* ── CENTER — Live Preview Canvas ── */}
         {/* On mobile: always show the iframe preview full-screen (tabs at bottom for editing) */}
-        {/* In split view OR during canvas drag (desktop only): show PreviewPane with drop zones. Otherwise show iframe. */}
-        {(splitView || !!canvasDragId) && !isMobile ? (
+        {/* In split view (desktop only): show PreviewPane. Otherwise show iframe. */}
+        {splitView && !isMobile ? (
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
             borderLeft: '1px solid rgba(255,255,255,0.06)',
@@ -3173,8 +3187,7 @@ Return JSON with: title, subtitle, description, mood`,
             whiteSpace: 'nowrap',
           }}>
             <span style={{ fontSize: '1.2rem' }}>
-              {CANVAS_BLOCK_TYPES.find(b => b.id === canvasDragId)?.emoji ||
-               (canvasDragId.startsWith('chapter:') ? '⌖' : '✦')}
+              {canvasDragId.startsWith('chapter:') ? '⌖' : '✦'}
             </span>
             {canvasDragLabel}
           </div>
