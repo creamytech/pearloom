@@ -112,7 +112,7 @@ function SkeletonCard() {
                 height: '40px', borderRadius: '0.75rem',
                 background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
                 backgroundSize: '200% 100%',
-                animation: `shimmer 1.8s ease-in-out infinite ${0.1 * idx}s`,
+                animation: `shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite ${0.1 * idx}s`,
               }}
             />
           ))}

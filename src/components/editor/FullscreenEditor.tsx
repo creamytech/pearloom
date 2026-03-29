@@ -130,6 +130,9 @@ function Field({ label, value, onChange, rows, placeholder }: {
 function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls> }) {
   return (
     <div
+      role="button"
+      aria-label="Drag to reorder"
+      tabIndex={0}
       onPointerDown={e => { e.preventDefault(); controls.start(e); }}
       style={{
         cursor: 'grab', padding: '0 10px', display: 'flex', alignItems: 'center',
@@ -2270,7 +2273,7 @@ Return JSON with: title, subtitle, description, mood`,
             background: saveState === 'saved' ? 'rgba(163,177,138,0.12)' : 'rgba(251,146,60,0.1)',
           }}>
             {saveState === 'saved'
-              ? <><SavedIcon size={10} color="var(--eg-accent, #A3B18A)" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)', letterSpacing: '0.04em' }}>All changes saved</span></>
+              ? <><SavedIcon size={10} color="var(--eg-accent, #4A5A3A)" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--eg-accent, #4A5A3A)', letterSpacing: '0.04em' }}>All changes saved</span></>
               : <><UnsavedIcon size={10} color="#fb923c" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved changes</span></>}
           </div>
         </div>

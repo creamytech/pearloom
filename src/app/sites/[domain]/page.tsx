@@ -343,6 +343,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {videoEmbedUrl ? (
                 <iframe
                   src={videoEmbedUrl}
+                  title="Wedding video"
                   style={{ width: '100%', height: '100%', border: 'none' }}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
