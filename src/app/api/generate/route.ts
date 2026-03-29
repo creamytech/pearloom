@@ -309,11 +309,9 @@ export async function POST(req: NextRequest) {
     // If user provided no event details, this clears any hallucinated venues/times.
     manifest.events = events.length > 0 ? events : [];
 
-    // Clear AI-generated travelInfo — the schema now returns empty arrays,
-    // but guard against any residual hallucination slipping through.
-    if (!manifest.travelInfo?.hotels?.length && !manifest.travelInfo?.airports?.length) {
-      manifest.travelInfo = { airports: [], hotels: [] };
-    }
+    // Always reset travelInfo — users fill in real hotels/airports via the editor.
+    // Never let AI-hallucinated hotel names reach the published site.
+    manifest.travelInfo = { airports: [], hotels: [] };
 
     // ── Initialize blocks: occasion-aware defaults.
     // Hero + Story are always shown. Remaining blocks are shown/hidden based on occasion.

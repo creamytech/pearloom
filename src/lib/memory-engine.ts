@@ -974,7 +974,7 @@ function buildPrompt(
   const effectivePhotoCount = photoCount ?? clusters.length;
 
   const occasionEventSchema: Record<string, string> = {
-    wedding: `EVENTS: Generate ceremony and reception as separate objects with full venue/time/address details.`,
+    wedding: `EVENTS: Generate ceremony and reception objects. Leave venue, address, time as empty strings — these come from real user-provided data.`,
 
     anniversary: `EVENTS: Generate ONE celebration event (the anniversary dinner/party).
     DO NOT generate "ceremony" or "reception" fields — this is not a wedding.
@@ -1234,7 +1234,7 @@ CRITICAL FINAL CHECKS before returning:
 5. Does the vibeString quote feel poetic and site-worthy?
 6. Did you follow the OCCASION-SPECIFIC EVENT GUIDANCE? (${occ === 'wedding' ? 'wedding needs ceremony + reception' : occ === 'story' ? 'story: omit events if none provided' : `${occ}: ONE celebration event, NOT ceremony/reception`})
 7. Did you follow the OCCASION-SPECIFIC FAQ GUIDANCE? (${occ === 'wedding' ? '4-5 wedding FAQs' : occ === 'story' ? 'story: omit FAQs' : `${occ}: 2-3 occasion-appropriate FAQs`})
-8. Did you include travelInfo with at least 1 hotel and 1 airport?
+8. Does travelInfo have empty arrays for airports and hotels? (leave empty — users add real details in the editor)
 9. Does the chapter structure follow the ${occCap} arc? (NOT a generic wedding narrative)`;
 }
 
