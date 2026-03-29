@@ -1834,11 +1834,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     }
   }, [splitView]);
 
-  // Auto-enable split view on desktop on first mount
-  useEffect(() => {
-    if (!isMobile) setSplitView(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally run once
+  // Split view is off by default — user can toggle it via the toolbar button
 
   // Auto-dismiss welcome overlay after 2.5s
   useEffect(() => {
@@ -2130,8 +2126,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     const data = e.active.data.current as { type: string; id: string; label: string } | undefined;
     setCanvasDragId(String(e.active.id));
     setCanvasDragLabel(data?.label || '');
-    // Auto-open split view so user can see the canvas drop zones
-    if (!splitView) setSplitView(true);
+    // PreviewPane is shown automatically during drag via canvasDragId condition
   }, [splitView]);
 
   const handleCanvasDragEnd = useCallback((e: DragEndEvent) => {
@@ -2652,8 +2647,8 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* ── CENTER — Live Preview Canvas ── */}
         {/* On mobile: always show the iframe preview full-screen (tabs at bottom for editing) */}
-        {/* In split view (desktop only): show PreviewPane directly. Otherwise show iframe. */}
-        {splitView && !isMobile ? (
+        {/* In split view OR during canvas drag (desktop only): show PreviewPane with drop zones. Otherwise show iframe. */}
+        {(splitView || !!canvasDragId) && !isMobile ? (
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
             borderLeft: '1px solid rgba(255,255,255,0.06)',
