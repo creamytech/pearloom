@@ -25,8 +25,8 @@ interface ChatMessage {
 
 // ── Starter suggestion chips ───────────────────────────────────
 const STARTER_CHIPS = [
-  'Make this section more romantic 💕',
-  'Add a beach chapter 🌊',
+  'Make this section more romantic',
+  'Add a beach chapter',
   'Shorten all the descriptions',
   'Make the tagline more poetic',
 ];
