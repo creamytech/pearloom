@@ -1011,7 +1011,7 @@ function buildPrompt(
   const faqGuidance = occasionFaqGuidance[occ] || occasionFaqGuidance.wedding;
 
   // Occasion-aware names line — birthday sites center the honoree, not a couple
-  const namesLine = occ === 'Birthday'
+  const namesLine = occ === 'birthday'
     ? `- Honoree (the birthday person): ${coupleNames[0]}${coupleNames[1] ? `\n- This site was created as a gift by: ${coupleNames[1]}` : ''}`
     : `- Names: ${coupleNames[0]} & ${coupleNames[1]}`;
 

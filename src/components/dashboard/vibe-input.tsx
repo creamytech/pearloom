@@ -564,8 +564,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       const p = PLACES.find(pl => pl.id === id);
       return p ? p.vibe : id;
     });
-    const placeString = placeVibes.length > 0
-      ? `Favorite place aesthetics: ${placeVibes.join('; ')}.`
+    // Merge chip selections + custom place into one unified place line (avoid double-counting)
+    const allPlaces = [...placeVibes];
+    if (customPlace.trim()) allPlaces.push(customPlace.trim());
+    const placeString = allPlaces.length > 0
+      ? `Place aesthetics and settings: ${allPlaces.join('; ')}.`
       : '';
 
     // Occasion-specific context
@@ -575,6 +578,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         occasionContext += `\nANNIVERSARY: ${detailsData.anniversaryYears} years together${detailsData.anniversaryMilestone ? `, celebrating their ${detailsData.anniversaryMilestone} anniversary` : ''}. Original date: ${detailsData.originalDate || 'cherished'}.`;
       }
       if (detailsData.coupleEvolution) occasionContext += `\nHOW THEY'VE GROWN: ${detailsData.coupleEvolution}`;
+      if (detailsData.celebrationVenue) occasionContext += `\nCELEBRATION VENUE: ${detailsData.celebrationVenue}.`;
+      if (detailsData.celebrationTime) occasionContext += ` Time: ${detailsData.celebrationTime}.`;
+      if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
     }
     if (occasion === 'birthday') {
       if (detailsData.birthdayAge) {
@@ -582,6 +588,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       }
       if (detailsData.birthdayPassions) occasionContext += `\nTHEY LOVE: ${detailsData.birthdayPassions}`;
       if (detailsData.birthdayTribute) occasionContext += `\nWHO THEY ARE: ${detailsData.birthdayTribute}`;
+      // Party logistics — inject so memory engine sees the event details
+      if (detailsData.celebrationVenue) occasionContext += `\nPARTY VENUE: ${detailsData.celebrationVenue}.`;
+      if (detailsData.celebrationTime) occasionContext += ` Party time: ${detailsData.celebrationTime}.`;
+      if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
     }
     if (occasion === 'engagement') {
       if (detailsData.proposalStory) occasionContext += `\nTHE PROPOSAL: ${detailsData.proposalStory}`;
@@ -604,7 +614,6 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       `Core Vibe: ${selectedMoodLabel}.`,
       paletteInfo,
       placeString,
-      customPlace ? (isBirthday ? `Meaningful place to them: ${customPlace}.` : `Specific favorite place: ${customPlace}.`) : '',
       isBirthday
         ? `What makes ${name1.trim()} special: ${meetCute}.`
         : `How they met: ${meetCute}.`,
@@ -2001,8 +2010,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
               {isBirthday
-                ? `Where does ${name1.trim() || 'this person'} feel most alive? Select all that fit.`
-                : 'Select the settings that define your adventures. This helps the AI match each photo to the right narrative.'}
+                ? `What's ${name1.trim() || 'their'} aesthetic world? Pick the settings that feel like them.`
+                : 'What places capture your vibe as a couple? These shape the visual world of your site.'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '2rem' }}>
               {PLACES.map(p => (
