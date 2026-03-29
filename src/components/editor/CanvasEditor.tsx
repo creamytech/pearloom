@@ -1075,7 +1075,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
 
         {/* Section header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-          <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+          <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)' }}>
             {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Page Sections'}
           </span>
           <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)' }}>
@@ -1190,7 +1190,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
-                  <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>Block settings · Section style</div>
+                  <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)' }}>Block settings · Section style</div>
                 </div>
                 <button
                   onClick={() => setActiveBlockId(null)}

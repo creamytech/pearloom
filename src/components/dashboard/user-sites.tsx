@@ -77,7 +77,7 @@ function SkeletonCard() {
           height: '200px',
           background: 'linear-gradient(90deg, #f5f0e8 0%, #fdf8f2 50%, #f5f0e8 100%)',
           backgroundSize: '200% 100%',
-          animation: 'shimmer 1.8s ease-in-out infinite',
+          animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         }}
       />
       <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -86,7 +86,7 @@ function SkeletonCard() {
             height: '12px', borderRadius: '100px', width: '60%',
             background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.8s ease-in-out infinite 0.1s',
+            animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.1s',
           }}
         />
         <div
@@ -94,7 +94,7 @@ function SkeletonCard() {
             height: '10px', borderRadius: '100px', width: '35%',
             background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.8s ease-in-out infinite 0.2s',
+            animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.2s',
           }}
         />
         <div
@@ -794,6 +794,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             @keyframes pulse {
               0%, 100% { opacity: 1; }
               50% { opacity: 0.5; }
+            }
+            @keyframes livePulse {
+              0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+              70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+              100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
             }
           `}</style>
         </>

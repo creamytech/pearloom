@@ -721,9 +721,11 @@ function ChapterPanel({
       <Field label="Mood" value={chapter.mood || ''} onChange={v => upd({ mood: v })} placeholder="e.g. golden hour, cozy winter" />
 
       {/* AI Rewrite button — prominent */}
-      <button
+      <motion.button
         onClick={() => onAIRewrite(chapter.id)}
         disabled={isRewriting}
+        animate={isRewriting ? { opacity: [0.5, 1, 0.5] } : { opacity: 1 }}
+        transition={isRewriting ? { repeat: Infinity, duration: 1.2 } : undefined}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           padding: '10px 16px', borderRadius: '8px',
@@ -737,9 +739,9 @@ function ChapterPanel({
         onMouseOut={e => { if (!isRewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
       >
         {isRewriting
-          ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Rewriting this chapter…</>
+          ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Rewriting…</>
           : <><AIBlocksIcon size={13} /> Rewrite this chapter</>}
-      </button>
+      </motion.button>
 
       {/* Image Manager */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
@@ -2577,6 +2579,7 @@ Return JSON with: title, subtitle, description, mood`,
               width: isMobile ? '100%' : DEVICE_DIMS[device].width,
               height: isMobile ? '100%' : '100%',
               flexShrink: 0,
+              position: 'relative',
               display: 'flex', flexDirection: 'column',
               boxShadow: !isMobile && device !== 'desktop' ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
               borderRadius: !isMobile && device !== 'desktop' ? '12px' : 0,
