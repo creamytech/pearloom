@@ -227,6 +227,24 @@ function PreviewBanner({ token }: { token: string }) {
   );
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function proxyUrl(rawUrl: string, w: number, h: number): string {
+  if (!rawUrl) return rawUrl;
+  if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
+  }
+  return rawUrl;
+}
+
+function getVideoEmbedUrl(url?: string): string | null {
+  if (!url) return null;
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/\s]+)/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&modestbranding=1`;
+  const vimeo = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?title=0&byline=0`;
+  return null;
+}
+
 // ── Site Renderer ────────────────────────────────────────────────────────────
 function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
@@ -336,6 +354,136 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
               <FaqSection faqs={faqsWithCategory} />
             </section>
           </React.Fragment>
+        );
+      case 'countdown': {
+        const eventDate = manifest.logistics?.date || manifest.events?.[0]?.date;
+        if (!eventDate) return null;
+        const occ = manifest.occasion || 'wedding';
+        const countdownLabel = occ === 'birthday' ? 'Until the celebration!'
+          : occ === 'anniversary' ? 'Until our anniversary!'
+          : occ === 'engagement' ? 'Until the big day!'
+          : occ === 'story' ? 'The moment arrives'
+          : 'Until we say I do';
+        const target = new Date(eventDate).getTime();
+        const now = Date.now();
+        const diff = Math.max(0, target - now);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return (
+          <section key="countdown" style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', background: cardBg, textAlign: 'center' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '2rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
+              {countdownLabel}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+              {[{ v: days, l: 'Days' }, { v: hours, l: 'Hours' }, { v: mins, l: 'Min' }].map(({ v, l }) => (
+                <div key={l} style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 400, color: pal.foreground, lineHeight: 1 }}>{v}</div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.muted, marginTop: '0.5rem' }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      }
+      case 'text': {
+        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'text')?.config || {};
+        const textContent = (blockCfg.content || blockCfg.text) as string | undefined;
+        if (!textContent) return null;
+        return (
+          <section key="text" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '800px', margin: '0 auto' }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center', margin: 0 }}>
+              {textContent}
+            </p>
+          </section>
+        );
+      }
+      case 'quote': {
+        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'quote')?.config || {};
+        const customQuote = (blockCfg.quote || blockCfg.text) as string | undefined;
+        const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.';
+        return (
+          <section key="quote" style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: pal.foreground, opacity: 0.75, margin: 0 }}>
+              &ldquo;{quoteText}&rdquo;
+            </p>
+          </section>
+        );
+      }
+      case 'video': {
+        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'video')?.config || {};
+        const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
+        return (
+          <section key="video" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
+              {videoEmbedUrl ? (
+                <iframe src={videoEmbedUrl} title="Video" style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>Video embed — add YouTube or Vimeo URL</span>
+                </div>
+              )}
+            </div>
+          </section>
+        );
+      }
+      case 'map': {
+        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'map')?.config || {};
+        const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
+        return (
+          <section key="map" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
+              {mapAddress ? (
+                <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`} style={{ width: '100%', height: '100%', border: 'none' }} loading="lazy" />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: pal.muted, fontSize: '1rem' }}>Venue map — add address in Details</span>
+                </div>
+              )}
+            </div>
+          </section>
+        );
+      }
+      case 'divider':
+        return <WaveDivider key="divider" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
+      case 'photos': {
+        const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
+        if (!allPhotos.length) return null;
+        return (
+          <section key="photos" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '0.6rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
+                {vibeSkin.sectionLabels?.photos || 'Our Photos'}
+              </div>
+              <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
+              {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
+                <div key={i} style={{ gridColumn: i === 0 ? 'span 2' : undefined, aspectRatio: i === 0 ? '2/1.2' : '1/1', borderRadius: '0.75rem', overflow: 'hidden', background: cardBg }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={proxyUrl(img.url, 800, 800)} alt={img.alt || ''} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      }
+      case 'guestbook':
+        return (
+          <section key="guestbook" style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', textAlign: 'center' }}>
+            <div style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '0.9rem', color: pal.muted, padding: '2rem', border: `1px dashed ${pal.muted}40`, borderRadius: '1rem', maxWidth: '480px', margin: '0 auto' }}>
+              ✦ Guestbook — available on your live site
+            </div>
+          </section>
+        );
+      case 'live':
+        return (
+          <section key="live" style={{ padding: 'clamp(2rem, 5vw, 5rem) 2rem', textAlign: 'center' }}>
+            <div style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '0.9rem', color: pal.muted, padding: '2rem', border: `1px dashed ${pal.muted}40`, borderRadius: '1rem', maxWidth: '480px', margin: '0 auto' }}>
+              ✦ Live updates feed — shown on wedding day
+            </div>
+          </section>
         );
       default:
         return null;
