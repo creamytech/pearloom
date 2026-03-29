@@ -121,6 +121,24 @@ export async function POST(req: NextRequest) {
   const updateType = validTypes.includes(type || '') ? type : 'misc';
 
   const supabase = getSupabase();
+
+  // Verify the session user owns the site
+  if (supabase) {
+    const { data: site, error: siteError } = await supabase
+      .from('sites')
+      .select('creator_email')
+      .eq('subdomain', subdomain)
+      .single();
+
+    if (siteError || !site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    if (site.creator_email !== session.user.email) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+  }
+
   if (!supabase) {
     return NextResponse.json({
       success: true,

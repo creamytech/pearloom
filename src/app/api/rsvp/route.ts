@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,10 +122,31 @@ export async function POST(req: NextRequest) {
 // GET /api/rsvp?siteId=xxx — read RSVPs (used in dashboard)
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const siteId = req.nextUrl.searchParams.get('siteId');
     if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
     const supabase = getSupabase();
+
+    // Verify the session user owns the site
+    const { data: site, error: siteError } = await supabase
+      .from('sites')
+      .select('creator_email')
+      .eq('id', siteId)
+      .single();
+
+    if (siteError || !site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    if (site.creator_email !== session.user.email) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data, error } = await supabase
       .from('guests')
       .select('*')

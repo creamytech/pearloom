@@ -39,6 +39,16 @@ function isRateLimited(ip: string): boolean {
   if (times.length >= maxPosts) return true;
   times.push(now);
   ipPostLog.set(ip, times);
+
+  // Cleanup: if map grows too large, remove entries with all stale timestamps
+  if (ipPostLog.size > 5000) {
+    for (const [key, timestamps] of ipPostLog.entries()) {
+      if (timestamps.every(t => now - t >= windowMs)) {
+        ipPostLog.delete(key);
+      }
+    }
+  }
+
   return false;
 }
 
@@ -136,6 +146,11 @@ export async function POST(req: NextRequest) {
 
   if (!subdomain || !name?.trim() || !message?.trim()) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  // Validate subdomain format
+  if (!/^[a-z0-9-]{3,60}$/.test(subdomain)) {
+    return NextResponse.json({ error: 'Invalid subdomain' }, { status: 400 });
   }
 
   if (name.trim().length > 100) {

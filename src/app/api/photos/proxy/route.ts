@@ -25,8 +25,32 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Missing url parameter', { status: 400 });
   }
 
+  // Validate URL scheme is https
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(baseUrl);
+  } catch {
+    return new NextResponse('Invalid URL', { status: 400 });
+  }
+  if (parsedUrl.protocol !== 'https:') {
+    return new NextResponse('Only https URLs are allowed', { status: 400 });
+  }
+
+  // Validate URL against allowlist: only *.googleusercontent.com and *.pearloom.com
+  const allowedHosts = [/^[a-z0-9-]+\.googleusercontent\.com$/, /^[a-z0-9-]+\.pearloom\.com$/];
+  if (!allowedHosts.some(pattern => pattern.test(parsedUrl.hostname))) {
+    return new NextResponse('URL not allowed', { status: 400 });
+  }
+
+  // Validate w/h are positive integers <= 4000
+  const wNum = parseInt(w, 10);
+  const hNum = parseInt(h, 10);
+  if (!Number.isInteger(wNum) || !Number.isInteger(hNum) || wNum <= 0 || hNum <= 0 || wNum > 4000 || hNum > 4000) {
+    return new NextResponse('Invalid dimensions', { status: 400 });
+  }
+
   // Construct the full Google Photos URL with size params
-  const photoUrl = `${baseUrl}=w${w}-h${h}-c`;
+  const photoUrl = `${baseUrl}=w${wNum}-h${hNum}-c`;
 
   try {
     const res = await fetch(photoUrl, {
