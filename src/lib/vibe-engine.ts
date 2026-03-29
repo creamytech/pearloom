@@ -83,6 +83,14 @@ export interface VibeSkin {
   // — Per-chapter ambient color wash (one hex per chapter, used as subtle section tint) —
   chapterColors?: string[];
 
+  // — AI raster art (Nano Banana image generation — baked at generation time) —
+  // Full painted hero art panel: atmospheric illustration tuned to vibe + occasion (base64 data URL)
+  heroArtDataUrl?: string;
+  // Softer ambient version for page background texture (base64 data URL, very subtle)
+  ambientArtDataUrl?: string;
+  // Horizontal decorative botanical art strip for section dividers (base64 data URL)
+  artStripDataUrl?: string;
+
   aiGenerated: boolean;
 }
 
@@ -1031,6 +1039,143 @@ CRITICAL DESIGN RULES:
     console.warn('[VibeEngine] Gemini skin generation failed, using fallback:', err);
     return deriveFallback(vibeString);
   }
+}
+
+// ── Pass 2.5: Raster Art Generation (Nano Banana Pro) ────────────────────────
+// Generates a beautiful AI-painted hero art panel + ambient background art
+// tuned to the couple's specific vibe, palette, and occasion.
+// Uses gemini-3-pro-image-preview (Nano Banana Pro) — generated once at
+// site creation time, stored as base64 data URLs in vibeSkin.
+
+const NANO_BANANA_PRO = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent';
+const NANO_BANANA_2   = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
+
+export interface SiteArtResult {
+  heroArtDataUrl?: string;    // Full painted hero art panel (Nano Banana Pro)
+  ambientArtDataUrl?: string; // Softer ambient page background (Nano Banana 2)
+  artStripDataUrl?: string;   // Horizontal decorative art strip for section dividers
+}
+
+export async function generateSiteArt(
+  vibeString: string,
+  palette: VibeSkin['palette'],
+  apiKey: string,
+  occasion?: string,
+  coupleNames?: [string, string]
+): Promise<SiteArtResult> {
+
+  const occ = occasion || 'wedding';
+  const names = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
+
+  // Occasion-specific art direction
+  const occasionArtDirection: Record<string, string> = {
+    wedding: `Soft botanical watercolor with delicate florals — roses, peonies, eucalyptus, trailing vines. Ethereal light rays filtering through. No people, no text. Romantic and timeless. Colors should feel warm, luminous, and aspirational.`,
+    anniversary: `Rich oil-painting style scene with intertwined botanical elements — mature roses, deep amber tones, golden hour light. Impressionistic brush strokes. Nostalgic and warm. No people, no text. Evokes the depth and richness of time passing together.`,
+    birthday: `Joyful celebratory art with confetti, ribbons, soft bokeh lights, and festive botanicals. Energetic yet elegant. No people, no text. Should feel like a beautiful party invitation illustration — festive but refined.`,
+    engagement: `Dreamy romantic painting — soft florals, sparkle/light effects, champagne tones. Electric and hopeful. No people, no text. Should feel like the moment right after "yes" — full of joy and anticipation.`,
+    story: `Intimate impressionistic scene — soft light, personal motifs from nature, abstract washes of color. No people, no text. Literary and introspective. Should feel like the cover of a beautiful memoir.`,
+  };
+
+  const artDirection = occasionArtDirection[occ] || occasionArtDirection.wedding;
+
+  // Extract key color descriptions from the palette
+  const colorDesc = [
+    `background: ${palette.background}`,
+    `primary accent: ${palette.accent}`,
+    `secondary: ${palette.accent2}`,
+    `tone: ${palette.highlight}`,
+  ].join(', ');
+
+  // IMPORTANT: Since Nano Banana does not support transparent backgrounds,
+  // all prompts specify the EXACT background color. CSS mask-image + mix-blend-mode
+  // handles edge-blending seamlessly on the rendered site.
+  const bgHex = palette.background;
+  const accentHex = palette.accent;
+
+  const heroPrompt = `Create a stunning, editorial-quality painted illustration for a ${occ} website for ${names}.
+
+BACKGROUND: Paint this on a SOLID ${bgHex} background — this is the exact page background color. The artwork should emerge from and fade back into this background color naturally at the edges, making it feel like part of the page.
+
+ART DIRECTION: ${artDirection}
+
+COLOR PALETTE (stay within these exact tones — no other colors):
+${colorDesc}
+
+VIBE/MOOD: "${vibeString.slice(0, 200)}"
+
+COMPOSITION:
+- Horizontal landscape orientation
+- Rich botanical/atmospheric detail in center
+- Soft, painterly fade toward all four edges (the edges must match ${bgHex})
+- Depth: foreground elements slightly bolder, background washed/ethereal
+- No text, no faces, no people, no logos, no watermarks, no borders
+- Premium editorial quality — think Kinfolk magazine, Vogue editorial, Architectural Digest`;
+
+  const ambientPrompt = `Create a very soft, abstract atmospheric art background for a ${occ} website.
+
+BACKGROUND: Solid ${bgHex} — the art must be painted ON this color, not over it.
+
+Style: Subtle impressionistic wash — like morning light filtering through curtains
+Colors: Extremely soft — use ${bgHex} as the dominant tone with barely-there hints of ${accentHex}
+Content: Loose abstract botanical shapes, botanical brushstrokes, barely suggested flora
+Opacity feel: The art should feel like it's 15% visible — transparent-looking but without actual transparency
+Edges: Must fade completely back into ${bgHex} at all edges — no hard borders
+No text, no faces, no people, no logos, no watermarks`;
+
+  const artStripPrompt = `Create a narrow horizontal decorative art strip for a ${occ} website divider.
+
+BACKGROUND: Solid ${bgHex}
+Style: Watercolor botanical strip — delicate florals, leaves, stems arranged in a horizontal band
+Colors: ${accentHex} and soft variants, on ${bgHex} background
+Composition: Wide and narrow (aspect ratio ~8:1) — decorative horizontal band
+Left and right edges must fade completely into ${bgHex}
+No text, no people, no faces, no logos`;
+
+  async function fetchImage(prompt: string, model: string): Promise<string | undefined> {
+    try {
+      const res = await fetch(`${model}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ['image'],
+          },
+        }),
+      });
+      if (!res.ok) {
+        console.warn(`[Site Art] Image generation returned ${res.status}`);
+        return undefined;
+      }
+      const data = await res.json();
+      const part = data.candidates?.[0]?.content?.parts?.find(
+        (p: Record<string, unknown>) => p.inlineData
+      );
+      if (!part?.inlineData?.data) return undefined;
+      return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+    } catch (err) {
+      console.warn('[Site Art] Image generation failed:', err);
+      return undefined;
+    }
+  }
+
+  // Generate all three art pieces in parallel:
+  // - Hero art: Nano Banana Pro (max quality — the showpiece)
+  // - Ambient + art strip: Nano Banana 2 (faster, good enough for subtle use)
+  const [heroArtDataUrl, ambientArtDataUrl, artStripDataUrl] = await Promise.all([
+    fetchImage(heroPrompt, NANO_BANANA_PRO),
+    fetchImage(ambientPrompt, NANO_BANANA_2),
+    fetchImage(artStripPrompt, NANO_BANANA_2),
+  ]);
+
+  console.log(
+    '[Site Art] Pass 2.5 complete —',
+    heroArtDataUrl ? 'hero art ✓' : 'hero art ✗',
+    ambientArtDataUrl ? 'ambient ✓' : 'ambient ✗',
+    artStripDataUrl ? 'art strip ✓' : 'art strip ✗'
+  );
+
+  return { heroArtDataUrl, ambientArtDataUrl, artStripDataUrl };
 }
 
 // -- Synchronous fallback for SSR/Server Components ----------------------------

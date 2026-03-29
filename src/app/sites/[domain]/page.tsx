@@ -410,15 +410,39 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Vibe-intro quote section (always rendered after hero, not a removable block)
   const VibeQuote = () => (
     <div style={{ position: 'relative', zIndex: 10, overflow: 'hidden' }}>
-      {/* Large hero blob art — right side */}
-      {vibeSkin.heroBlobSvg && (
+      {/* Nano Banana hero art — full bleed behind the quote, edge-faded with CSS mask */}
+      {vibeSkin.heroArtDataUrl && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+            // mask-image fades edges so the solid-background image blends into the page
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%), linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
+            WebkitMaskComposite: 'source-in',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%), linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
+            maskComposite: 'intersect',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={vibeSkin.heroArtDataUrl}
+            alt=""
+            style={{
+              width: '100%', height: '100%', objectFit: 'cover',
+              opacity: 0.22,
+              mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+            }}
+          />
+        </div>
+      )}
+      {/* SVG blob art fallback when no raster art — right side */}
+      {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div
           style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
           dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
         />
       )}
-      {/* Large hero blob art — left side (mirrored) */}
-      {vibeSkin.heroBlobSvg && (
+      {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div
           style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
           dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
@@ -450,6 +474,33 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       </div>
     </div>
   );
+
+  // Nano Banana art strip — horizontal painted botanical divider between sections
+  const ArtStrip = () => {
+    if (!vibeSkin.artStripDataUrl) return null;
+    return (
+      <div
+        aria-hidden="true"
+        style={{
+          width: '100%', height: '120px', position: 'relative', overflow: 'hidden',
+          // Fade left/right edges with CSS mask since image has solid background
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={vibeSkin.artStripDataUrl}
+          alt=""
+          style={{
+            width: '100%', height: '100%', objectFit: 'cover',
+            opacity: 0.55,
+            mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+          }}
+        />
+      </div>
+    );
+  };
 
   // Welcome statement — the couple's personal voice, shown below the vibe quote
   const WelcomeStatement = () => {
@@ -555,6 +606,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <SvgBorder key="border-before-quote" />,
           <VibeQuote key="vibe-quote" />,
           ...(manifest.poetry?.welcomeStatement ? [<WelcomeStatement key="welcome-statement" />] : []),
+          <ArtStrip key="art-strip" />,
           <SvgBorder key="border-after-quote" flip />
         );
         // vibe quote exits with bgColor
@@ -611,12 +663,33 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           />
         )}
 
-        <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
+        <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
           {visibleBlocks ? (
             // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
             <>
-              {/* AI-generated couple motif pattern overlay */}
-              {vibeSkin.heroPatternSvg && (
+              {/* Nano Banana ambient art — very subtle full-page painted texture overlay */}
+              {vibeSkin.ambientArtDataUrl && (
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={vibeSkin.ambientArtDataUrl}
+                    alt=""
+                    style={{
+                      width: '100%', height: '100%', objectFit: 'cover',
+                      opacity: 0.10,
+                      mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+                    }}
+                  />
+                </div>
+              )}
+              {/* AI-generated couple motif SVG pattern overlay (used when no raster ambient) */}
+              {!vibeSkin.ambientArtDataUrl && vibeSkin.heroPatternSvg && (
                 <div
                   style={{
                     position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
@@ -659,6 +732,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
               <VibeQuote />
               <WelcomeStatement />
+              <ArtStrip />
               <section id="our-story"><Timeline chapters={manifest.chapters || []} /></section>
               {manifest.events?.length ? (
                 <>

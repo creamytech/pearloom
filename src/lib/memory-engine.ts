@@ -5,7 +5,7 @@
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
-import { generateVibeSkin, extractCoupleProfile, WAVE_PATHS } from '@/lib/vibe-engine';
+import { generateVibeSkin, extractCoupleProfile, generateSiteArt, WAVE_PATHS } from '@/lib/vibe-engine';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 // ── Model routing ─────────────────────────────────────────────────────────
@@ -320,6 +320,27 @@ export async function generateStoryManifest(
     );
   } catch (err) {
     console.warn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
+  }
+
+  // ── Pass 2.5: Raster art generation (Nano Banana) ────────────────────
+  // Generates real painted/illustrated art: hero panel + ambient background + art strip.
+  // Non-fatal — if image generation isn't available, SVG art still runs.
+  if (manifest.vibeSkin) {
+    try {
+      const siteArt = await generateSiteArt(
+        manifest.vibeString,
+        manifest.vibeSkin.palette,
+        apiKey,
+        occasion,
+        coupleNames
+      );
+      if (siteArt.heroArtDataUrl) manifest.vibeSkin.heroArtDataUrl = siteArt.heroArtDataUrl;
+      if (siteArt.ambientArtDataUrl) manifest.vibeSkin.ambientArtDataUrl = siteArt.ambientArtDataUrl;
+      if (siteArt.artStripDataUrl) manifest.vibeSkin.artStripDataUrl = siteArt.artStripDataUrl;
+      console.log('[Memory Engine] Pass 2.5: Raster art generation complete');
+    } catch (err) {
+      console.warn('[Memory Engine] Raster art generation failed (non-fatal):', err);
+    }
   }
 
   // ── Pass 3: Design critique & iterative refinement ───────────────────
