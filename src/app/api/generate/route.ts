@@ -6,6 +6,9 @@
 // user-entered locations are preserved.
 // ─────────────────────────────────────────────────────────────
 
+// Allow up to 5 minutes — 7-pass engine + image generation needs the headroom
+export const maxDuration = 300;
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';

@@ -1133,16 +1133,25 @@ No text, no people, no faces, no logos`;
 
   async function fetchImage(prompt: string, model: string): Promise<string | undefined> {
     try {
-      const res = await fetch(`${model}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseModalities: ['image'],
-          },
-        }),
-      });
+      // 25s hard timeout per image — if the model hangs, skip gracefully
+      const imgController = new AbortController();
+      const imgTimeout = setTimeout(() => imgController.abort(), 25_000);
+      let res: Response;
+      try {
+        res = await fetch(`${model}?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              responseModalities: ['image'],
+            },
+          }),
+          signal: imgController.signal,
+        });
+      } finally {
+        clearTimeout(imgTimeout);
+      }
       if (!res.ok) {
         console.warn(`[Site Art] Image generation returned ${res.status}`);
         return undefined;
