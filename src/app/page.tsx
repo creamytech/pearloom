@@ -229,10 +229,10 @@ export default function DashboardPage() {
     setGenerationStep(0);
     setError(null);
 
-    // Simulate progress steps
+    // Simulate progress steps — 7 passes, ~14s each (~98s total covers typical generation window)
     const stepInterval = setInterval(() => {
-      setGenerationStep((prev) => Math.min(prev + 1, 5));
-    }, 2000);
+      setGenerationStep((prev) => Math.min(prev + 1, 7));
+    }, 14000);
 
     // 90-second timeout — Gemini can be slow on large photo sets
     const controller = new AbortController();
