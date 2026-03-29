@@ -6,7 +6,7 @@
 
 import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types';
 import { generateVibeSkin, extractCoupleProfile, generateSiteArt, WAVE_PATHS } from '@/lib/vibe-engine';
-import type { VibeSkin } from '@/lib/vibe-engine';
+import type { VibeSkin, CoupleProfile } from '@/lib/vibe-engine';
 
 // ── Model routing ─────────────────────────────────────────────────────────
 // Gemini 3.1 Pro → creative passes (story chapters, SVG art, poetry)
@@ -164,13 +164,14 @@ export async function generateStoryManifest(
     rawText = rawText.slice(firstBrace);
   }
 
-  // 4. If JSON is truncated (Gemini hit token limit), try to close it
-  // Count open braces â€” if unbalanced, append closing braces
-  const openBraces = (rawText.match(/"/g) || []).length;
-  if (openBraces % 2 !== 0) {
-    // Truncated mid-string â€” cut at last complete field
-    const lastGoodComma = rawText.lastIndexOf('\"');
-    if (lastGoodComma > 0) rawText = rawText.slice(0, lastGoodComma + 1);
+  // 4. If JSON is truncated mid-string (odd number of unescaped quotes),
+  // cut to the last safely-closed string boundary.
+  // Count only unescaped " chars to detect truncation
+  const unescapedQuotes = (rawText.match(/(?<!\\)"/g) || []).length;
+  if (unescapedQuotes % 2 !== 0) {
+    // Truncated mid-string — cut at last safely-closed key/value boundary
+    const lastClosedQuote = rawText.lastIndexOf('",');
+    if (lastClosedQuote > 0) rawText = rawText.slice(0, lastClosedQuote + 1);
   }
 
   // 5. Count { vs } â€” append missing closing braces
@@ -269,14 +270,31 @@ export async function generateStoryManifest(
     manifest.chapters = manifest.chapters.slice(0, photoCount);
   }
 
+  // Deduplicate chapters: remove any chapter whose title normalizes to a duplicate
+  const seenTitles = new Set<string>();
+  manifest.chapters = manifest.chapters.filter((ch: Chapter) => {
+    const key = ch.title?.toLowerCase().replace(/[^a-z0-9]/g, '') || '';
+    if (seenTitles.has(key)) return false;
+    seenTitles.add(key);
+    return true;
+  });
+
   manifest.chapters = manifest.chapters
     .sort((a: Chapter, b: Chapter) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((ch: Chapter, i: number) => ({
       ...ch,
       order: i,
-      // Mark chapters with high emotional intensity as the story's climax moments
       isEmotionalPeak: (ch.emotionalIntensity ?? 0) >= 8,
     }));
+
+  // Strip banned words from chapter content (in case AI ignored the instruction)
+  const BANNED_WORDS_RE = /\b(journey|adventure|soulmate|fairy[ -]?tale|happily ever after|storybook|chapter of our lives?|love story begins?|ride or die)\b/gi;
+  manifest.chapters = manifest.chapters.map((ch: Chapter) => ({
+    ...ch,
+    title: ch.title?.replace(BANNED_WORDS_RE, '').trim() || ch.title,
+    description: ch.description?.replace(BANNED_WORDS_RE, '').trim() || ch.description,
+    subtitle: ch.subtitle?.replace(BANNED_WORDS_RE, '').trim() || ch.subtitle,
+  }));
 
   // ── Pass 1.2: Chapter Story Quality Gate ─────────────────────────────
   // Gemini scores each chapter's specificity 1-10 and rewrites any < 7.
@@ -300,7 +318,7 @@ export async function generateStoryManifest(
 
   // ── Pass 1.5: Extract Couple DNA — pets, interests, locations, motifs ────
   // Lightweight Gemini call to extract couple's personal world for bespoke illustration
-  let coupleProfile;
+  let coupleProfile: CoupleProfile | undefined;
   try {
     const chapterSummaries = manifest.chapters.map(c => ({
       title: c.title,
@@ -314,6 +332,7 @@ export async function generateStoryManifest(
     );
   } catch (err) {
     logWarn('[Memory Engine] Couple profile extraction failed (non-fatal):', err);
+    coupleProfile = { pets: [], interests: [], locations: [], motifs: [], heritage: [], illustrationPrompt: '' };
   }
 
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
@@ -327,8 +346,11 @@ export async function generateStoryManifest(
       description: c.description,
     }));
 
-    // Pass first photo from each cluster as representative photo URLs
-    const photoUrls = clusters.slice(0, 5).map(c => c.photos[0]?.baseUrl).filter(Boolean) as string[];
+    // Pass first photo from each cluster as representative photo URLs (with size params)
+    const photoUrls = clusters.slice(0, 5)
+      .map(c => c.photos[0]?.baseUrl)
+      .filter(Boolean)
+      .map(url => url.includes('googleusercontent.com') ? `${url}=w800-h800` : url) as string[];
 
     const vibeSkin = await generateVibeSkin(manifest.vibeString, apiKey, coupleNames, {
       chapters: chapterContext,
@@ -988,10 +1010,15 @@ function buildPrompt(
 
   const faqGuidance = occasionFaqGuidance[occ] || occasionFaqGuidance.wedding;
 
+  // Occasion-aware names line — birthday sites center the honoree, not a couple
+  const namesLine = occ === 'Birthday'
+    ? `- Honoree (the birthday person): ${coupleNames[0]}${coupleNames[1] ? `\n- This site was created as a gift by: ${coupleNames[1]}` : ''}`
+    : `- Names: ${coupleNames[0]} & ${coupleNames[1]}`;
+
   return `You are the "Memory Engine" for Pearloom \u2014 a world-class storytelling AI that crafts ${ctxLabel}. Your output powers a live, editorial-quality website. It must be stunning.
 
 ## The Couple / Honorees
-- Names: ${coupleNames[0]} & ${coupleNames[1]}
+${namesLine}
 - Occasion type: ${occCap}${eventDateCtx}
 
 ---
@@ -1150,13 +1177,13 @@ Return ONLY this JSON with no additional text:
     {
       “id”: “<uuid>”,
       “name”: “<Event name per occasion guidance above>”,
-      “date”: “<ISO 8601 date — if the event date is known use it exactly; otherwise infer from context; do NOT output placeholder text or bracket syntax in generated JSON>”,
-      “time”: “<start time>”,
-      “endTime”: “<end time>”,
-      “venue”: “<infer a beautiful venue name from the vibe>”,
-      “address”: “<make a plausible address or leave as 'Location TBA'>”,
+      “date”: “<ISO 8601 date from user data, or empty string>”,
+      “time”: “”,
+      “endTime”: “”,
+      “venue”: “”,
+      “address”: “”,
       “description”: “<one warm sentence about what to expect>”,
-      “dressCode”: “<infer from vibe â€” 'Black Tie', 'Garden Party Chic', 'Cocktail Attire', etc.>”,
+      “dressCode”: “”,
       “mapUrl”: null
     }
   ],
@@ -1173,19 +1200,11 @@ Return ONLY this JSON with no additional text:
       “order”: 0
     }
   ],
-  "travelInfo": {
-    "airports": ["<1â€“2 plausible nearby airports based on vibe/location â€” e.g. 'JFK - John F. Kennedy International'>"],
-    "hotels": [
-      {
-        "name": "<suggest a premium hotel name matching the vibe>",
-        "address": "<plausible address>",
-        "bookingUrl": null,
-        "groupRate": "Ask for the wedding block rate",
-        "notes": "<one warm sentence about the hotel â€” proximity, amenities, atmosphere>"
-      }
-    ],
-    "parkingInfo": "<brief parking guidance>",
-    "directions": "<brief directions hint â€” e.g. 'Take I-95 N to Exit 12, follow signs for the waterfront district'>"
+  “travelInfo”: {
+    “airports”: [],
+    “hotels”: [],
+    “parkingInfo”: “”,
+    “directions”: “”
   },
   "registry": {
     "enabled": true,
