@@ -14,10 +14,10 @@ import {
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import {
-  Plus, Trash2, Sparkles, Loader2,
+  Plus, Trash2, Loader2,
   Globe, Monitor, Tablet, Smartphone,
-  Image, Calendar, Upload, X, Camera,
-  Heart, MapPin, Clock, ChevronDown, Columns2,
+  Image, Upload, X, Camera,
+  Clock, ChevronDown, Columns2,
   Eye, EyeOff,
 } from 'lucide-react';
 import { PreviewPane } from './PreviewPane';
@@ -29,6 +29,9 @@ import {
   AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
   UndoIcon, RedoIcon, CommandIcon, GripIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
+import {
+  ElegantHeartIcon, LocationPinIcon, CalendarHeartIcon, LoomThreadIcon,
+} from '@/components/icons/PearloomIcons';
 import type { StoryManifest, Chapter, ChapterImage, WeddingEvent, FaqItem, HotelBlock, TravelInfo } from '@/types';
 import { ChapterActions } from './ChapterActions';
 import { AIBlocksPanel } from './AIBlocksPanel';
@@ -329,7 +332,7 @@ function SectionItem({
             </div>
             <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               {chapter.location?.label && (
-                <><MapPin size={9} style={{ flexShrink: 0, opacity: 0.7 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{chapter.location.label}</span><span>·</span></>
+                <><LocationPinIcon size={9} style={{ flexShrink: 0, opacity: 0.7 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{chapter.location.label}</span><span>·</span></>
               )}
               <Clock size={9} style={{ flexShrink: 0, opacity: 0.7 }} />
               <span>{slugDate(chapter.date)}</span>
@@ -602,8 +605,8 @@ function ImageManager({
             {generatingCaptions
               ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Generating captions…</>
               : captionSuccess
-                ? <><Sparkles size={10} /> Captions added!</>
-                : <><Sparkles size={10} /> Generate Captions</>}
+                ? <><LoomThreadIcon size={10} /> Captions added!</>
+                : <><LoomThreadIcon size={10} /> Generate Captions</>}
           </button>
           {captionError && (
             <div style={{
@@ -835,7 +838,7 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 
       {events.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.2)', borderRadius: '10px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-          <Calendar size={24} style={{ marginBottom: '8px', opacity: 0.4 }} />
+          <CalendarHeartIcon size={24} style={{ marginBottom: '8px', opacity: 0.4 }} />
           <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>No events yet</div>
           <div style={{ fontSize: '0.82rem', marginTop: '4px' }}>Add your ceremony, reception, and more</div>
         </div>
@@ -1050,7 +1053,7 @@ function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManife
           <label style={lbl}>Venue</label>
           {logistics.venue ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '8px 10px' }}>
-              <MapPin size={13} color="var(--eg-accent, #A3B18A)" style={{ flexShrink: 0 }} />
+              <LocationPinIcon size={13} color="var(--eg-accent, #A3B18A)" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
                 {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>{logistics.venueAddress}</div>}
@@ -2310,7 +2313,9 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* Site name — centered */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <Heart size={12} color="var(--eg-gold, #D6C6A8)" fill="var(--eg-gold, #D6C6A8)" />
+          {manifest.occasion !== 'birthday' && (
+            <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
+          )}
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
             {coupleNames[0]} & {coupleNames[1]}
           </span>

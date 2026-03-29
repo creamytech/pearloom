@@ -7,7 +7,11 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane, Info, ChevronDown } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Map, Palette, Globe, Info, ChevronDown } from 'lucide-react';
+import {
+  ElegantHeartIcon, MountainIcon, StarburstIcon, CoffeeCupIcon,
+  SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
+} from '@/components/icons/PearloomIcons';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -156,7 +160,7 @@ function slugFromNames(n1: string, n2: string): string {
 
 const VIBE_MOODS = [
   {
-    id: 'romantic', label: 'Classic Romance', icon: Heart, desc: 'Timeless, elegant, deeply emotional',
+    id: 'romantic', label: 'Classic Romance', icon: ElegantHeartIcon, desc: 'Timeless, elegant, deeply emotional',
     cardBg: 'linear-gradient(145deg, #FFF5F7 0%, #FFE0EA 100%)',
     activeBg: 'linear-gradient(145deg, #FFDDE6 0%, #FFC2D1 100%)',
     activeBorder: '#DB7093',
@@ -166,7 +170,7 @@ const VIBE_MOODS = [
     orb: 'rgba(219,112,147,0.18)',
   },
   {
-    id: 'adventurous', label: 'Adventurous', icon: Mountain, desc: 'Wild, exploring the world together',
+    id: 'adventurous', label: 'Adventurous', icon: MountainIcon, desc: 'Wild, exploring the world together',
     cardBg: 'linear-gradient(145deg, #F0F7EC 0%, #DCF0CC 100%)',
     activeBg: 'linear-gradient(145deg, #D4EEC2 0%, #BFDFAA 100%)',
     activeBorder: '#5A8F3E',
@@ -176,7 +180,7 @@ const VIBE_MOODS = [
     orb: 'rgba(90,143,62,0.18)',
   },
   {
-    id: 'playful', label: 'Playful & Fun', icon: PartyPopper, desc: 'Laughter, color, and vibrant energy',
+    id: 'playful', label: 'Playful & Fun', icon: StarburstIcon, desc: 'Laughter, color, and vibrant energy',
     cardBg: 'linear-gradient(145deg, #FFF8EE 0%, #FFE5BC 100%)',
     activeBg: 'linear-gradient(145deg, #FFE0A0 0%, #FFCC70 100%)',
     activeBorder: '#D4931A',
@@ -186,7 +190,7 @@ const VIBE_MOODS = [
     orb: 'rgba(255,180,50,0.18)',
   },
   {
-    id: 'cozy', label: 'Cozy & Intimate', icon: Coffee, desc: 'Quiet mornings, warmth, and comfort',
+    id: 'cozy', label: 'Cozy & Intimate', icon: CoffeeCupIcon, desc: 'Quiet mornings, warmth, and comfort',
     cardBg: 'linear-gradient(145deg, #FBF5EE 0%, #F0DEC8 100%)',
     activeBg: 'linear-gradient(145deg, #EACFAA 0%, #D4B080 100%)',
     activeBorder: '#8B5A2B',
@@ -196,7 +200,7 @@ const VIBE_MOODS = [
     orb: 'rgba(139,90,43,0.15)',
   },
   {
-    id: 'wanderlust', label: 'Wanderlust', icon: Plane, desc: 'Travel-driven, worldly, cultured',
+    id: 'wanderlust', label: 'Wanderlust', icon: SuitcaseIcon, desc: 'Travel-driven, worldly, cultured',
     cardBg: 'linear-gradient(145deg, #EEF3FF 0%, #D8E4FF 100%)',
     activeBg: 'linear-gradient(145deg, #C2D4FF 0%, #A8BEF0 100%)',
     activeBorder: '#3D5ECC',
@@ -206,7 +210,7 @@ const VIBE_MOODS = [
     orb: 'rgba(65,105,225,0.16)',
   },
   {
-    id: 'pets', label: 'Our Little Zoo', icon: Dog, desc: 'The fur babies are the stars',
+    id: 'pets', label: 'Our Little Zoo', icon: PawIcon, desc: 'The fur babies are the stars',
     cardBg: 'linear-gradient(145deg, #FFF7F0 0%, #FFE4CC 100%)',
     activeBg: 'linear-gradient(145deg, #FFD4A8 0%, #FFBC78 100%)',
     activeBorder: '#C06820',
@@ -1248,7 +1252,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               color: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'var(--eg-muted)' : '#fff',
             }}
           >
-            Build my site <Sparkles size={18} />
+            Build my site <LoomThreadIcon size={18} />
           </button>
           {subdomainStatus === 'taken' && (
             <p style={{ color: '#b91c1c', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
@@ -1959,7 +1963,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 margin: '0 auto 1.5rem',
                 boxShadow: '0 8px 24px rgba(163,177,138,0.15)',
               }}>
-                <Sparkles size={28} color="var(--eg-accent)" />
+                <LoomThreadIcon size={28} color="var(--eg-accent)" />
               </div>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.75rem' }}>Final Magic Touches</h2>
               <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', maxWidth: '420px', margin: '0 auto' }}>
@@ -1971,7 +1975,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
-                  <Dog size={16} color="var(--eg-accent)" />
+                  <PawIcon size={16} color="var(--eg-accent)" />
                   {isBirthday
                     ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} pets, passions, or quirks`
                     : 'Pets, inside jokes, or special traditions'}
@@ -1980,7 +1984,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
-                  <Music size={16} color="var(--eg-accent)" />
+                  <MusicNoteIcon size={16} color="var(--eg-accent)" />
                   {isBirthday
                     ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} favourite song or musical taste`
                     : 'Your song or musical vibe'}
@@ -1993,7 +1997,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               {isEvent ? (
                 <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
               ) : (
-                <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'linear-gradient(135deg, #A3B18A, #8FA876)', boxShadow: '0 12px 36px rgba(163,177,138,0.4)' }}>Generate My Site <Sparkles size={18} /></button>
+                <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <LoomThreadIcon size={18} /></button>
               )}
             </div>
           </motion.div>
@@ -2029,7 +2033,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'linear-gradient(135deg, #A3B18A, #8FA876)', boxShadow: '0 12px 36px rgba(163,177,138,0.4)' }}>Generate My Site <Sparkles size={18} /></button>
+              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <LoomThreadIcon size={18} /></button>
             </div>
           </motion.div>
         )}

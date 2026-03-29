@@ -440,6 +440,106 @@ export function LeafSprigIcon({ size = 24, color = 'currentColor', className, st
   );
 }
 
+/** Two mountain peaks — taller left peak with a small star at summit. */
+export function MountainIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Back peak (right, shorter) */}
+      <path d="M15 8 L20 19 L10 19 Z" strokeOpacity="0.45" />
+      {/* Front peak (left, taller) */}
+      <path d="M9 4 L16 19 L2 19 Z" />
+      {/* Snow cap on front peak */}
+      <path d="M9 4 L11 9 L7 9 Z" fill={color} stroke="none" opacity="0.35" />
+      {/* Tiny 4-pointed star at summit */}
+      <path d="M9 2.5 L9.35 3.4 L10.25 3.75 L9.35 4.1 L9 5 L8.65 4.1 L7.75 3.75 L8.65 3.4 Z"
+        fill={color} stroke="none" opacity="0.7" />
+    </svg>
+  );
+}
+
+/** Paw print: central pad with four rounded toe beans above. */
+export function PawIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Central paw pad */}
+      <path d="M12 22 C9.5 22 7.5 20 7.5 17.5 C7.5 15 9 13.5 12 13.5 C15 13.5 16.5 15 16.5 17.5 C16.5 20 14.5 22 12 22 Z" />
+      {/* Top-left toe */}
+      <ellipse cx="7.5" cy="11" rx="1.8" ry="2.2" transform="rotate(-15 7.5 11)" />
+      {/* Top-centre-left toe */}
+      <ellipse cx="10.5" cy="9.5" rx="1.7" ry="2.1" transform="rotate(-5 10.5 9.5)" />
+      {/* Top-centre-right toe */}
+      <ellipse cx="13.5" cy="9.5" rx="1.7" ry="2.1" transform="rotate(5 13.5 9.5)" />
+      {/* Top-right toe */}
+      <ellipse cx="16.5" cy="11" rx="1.8" ry="2.2" transform="rotate(15 16.5 11)" />
+    </svg>
+  );
+}
+
+/** Elegant musical note with a small pearl at the note head. */
+export function MusicNoteIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Stem */}
+      <line x1="14" y1="3" x2="14" y2="16" />
+      {/* Flag */}
+      <path d="M14 3 Q20 5 18 11" />
+      {/* Note head — filled oval */}
+      <ellipse cx="11.5" cy="17" rx="3" ry="2" transform="rotate(-15 11.5 17)"
+        fill={color} stroke="none" opacity="0.85" />
+      {/* Pearl highlight on note head */}
+      <path d="M10.2 15.8 Q11 15.1 12.4 15.5" strokeWidth="0.8" opacity="0.5" />
+    </svg>
+  );
+}
+
+/** Steaming coffee cup — side view with elegant curl of steam. */
+export function CoffeeCupIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Cup body */}
+      <path d="M5 9 L6.5 20 L17.5 20 L19 9 Z" />
+      {/* Saucer */}
+      <path d="M3 21 Q12 23 21 21" />
+      {/* Handle */}
+      <path d="M19 11 Q23 11 23 14.5 Q23 18 19 18" />
+      {/* Steam left */}
+      <path d="M9 7 Q8.5 5 9 3" strokeOpacity="0.55" />
+      {/* Steam centre */}
+      <path d="M12 6 Q11.5 4 12 2" strokeOpacity="0.55" />
+      {/* Steam right */}
+      <path d="M15 7 Q14.5 5 15 3" strokeOpacity="0.55" />
+    </svg>
+  );
+}
+
+/** Elegant travel suitcase with luggage tag ribbon. */
+export function SuitcaseIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+      className={className} style={style} aria-hidden="true">
+      {/* Suitcase body */}
+      <rect x="3" y="9" width="18" height="13" rx="1.5" />
+      {/* Handle bar */}
+      <path d="M9 9 L9 6.5 Q9 4.5 12 4.5 Q15 4.5 15 6.5 L15 9" />
+      {/* Center divider line */}
+      <line x1="3" y1="15.5" x2="21" y2="15.5" strokeOpacity="0.4" />
+      {/* Latches */}
+      <rect x="10.5" y="8.5" width="3" height="1.5" rx="0.5" fill={color} stroke="none" opacity="0.6" />
+      {/* Luggage tag */}
+      <path d="M19.5 11 Q22 11 22 13 Q22 15 19.5 15" strokeWidth="1" opacity="0.6" />
+    </svg>
+  );
+}
+
 /** 8-pointed starburst with alternating long and short rays. */
 export function StarburstIcon({ size = 24, color = 'currentColor', className, style }: IconProps) {
   return (
