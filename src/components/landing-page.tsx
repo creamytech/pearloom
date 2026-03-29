@@ -376,8 +376,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   boxShadow:`0 2px 12px rgba(43,43,43,0.04)`,
                   position:'relative', overflow:'hidden',
                 }}>
-                <div style={{ width:'48px', height:'48px', borderRadius:'50%', background:o.bg, border:`1.5px solid ${o.accent}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', marginBottom:'1.25rem' }}>
-                  {o.emoji}
+                <div style={{ width:'48px', height:'48px', borderRadius:'50%', background:o.bg, border:`1.5px solid ${o.accent}30`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'1.25rem' }}>
+                  <OccasionIcon type={o.label} accent={o.accent} />
                 </div>
                 <div style={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:o.accent, marginBottom:'0.5rem' }}>
                   {o.label}
@@ -429,7 +429,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </section>
 
       {/* ══════════════ AI MAGIC ══════════════ */}
-      <section style={{ background:C.deep, padding:'8rem 1.5rem', borderTop:`1px solid ${C.divider}` }}>
+      <section id="features" style={{ background:C.deep, padding:'8rem 1.5rem', borderTop:`1px solid ${C.divider}` }}>
         <div style={{ maxWidth:'880px', margin:'0 auto', textAlign:'center' }}>
           <Pill><Sparkles size={9} strokeWidth={2.5}/> The AI difference</Pill>
           <motion.h2 initial={{opacity:0,y:18}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:0.3}} transition={{delay:0.1}}
