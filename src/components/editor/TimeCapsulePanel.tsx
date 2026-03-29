@@ -56,6 +56,8 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
   // ── Capsule list state ─────────────────────────────────────────────────────
   const [capsules, setCapsules] = useState<CapsuleSummary[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // ── Submission state ───────────────────────────────────────────────────────
   const [saving, setSaving] = useState(false);
@@ -98,14 +100,19 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
 
   // ── Delete a capsule ───────────────────────────────────────────────────────
   async function handleDelete(id: string) {
-    if (!confirm('Delete this letter? This cannot be undone.')) return;
+    setDeleteError(null);
     try {
-      await fetch(`/api/time-capsule?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(`/api/time-capsule?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error || 'Failed to delete. Please try again.');
+        return;
+      }
       setCapsules((prev) => prev.filter((c) => c.id !== id));
     } catch {
-      alert('Failed to delete. Please try again.');
+      setDeleteError('Network error. Please try again.');
+    } finally {
+      setDeleteConfirmId(null);
     }
   }
 
@@ -219,15 +226,29 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
                   )}
                 </div>
               </div>
-              <button
-                onClick={() => handleDelete(capsule.id)}
-                style={styles.deleteBtn}
-                title="Delete this letter"
-              >
-                Delete
-              </button>
+              {deleteConfirmId === capsule.id ? (
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'rgba(239,68,68,0.7)' }}>Delete forever?</span>
+                  <button onClick={() => handleDelete(capsule.id)} style={{ ...styles.deleteBtn, borderColor: 'rgba(239,68,68,0.4)', color: 'rgba(239,68,68,0.8)' }}>Yes</button>
+                  <button onClick={() => setDeleteConfirmId(null)} style={styles.deleteBtn}>No</button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setDeleteConfirmId(capsule.id)}
+                  style={styles.deleteBtn}
+                  title="Delete this letter"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           ))}
+        </div>
+      )}
+      {deleteError && (
+        <div style={{ fontSize: '12px', color: 'rgba(239,68,68,0.8)', padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {deleteError}
+          <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.6)', fontSize: '14px', padding: 0 }}>×</button>
         </div>
       )}
 

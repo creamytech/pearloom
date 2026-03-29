@@ -214,11 +214,9 @@ export function RsvpDashboard({
   initialStats,
   initialGuests,
 }: RsvpDashboardProps) {
-  const useMock = initialGuests.length === 0;
-  const [guests, setGuests] = useState<Guest[]>(useMock ? MOCK_GUESTS : initialGuests);
-  const [stats, setStats] = useState<RsvpStats>(
-    useMock ? MOCK_STATS : initialStats
-  );
+  const useMock = false; // Never show mock data — show empty state instead
+  const [guests, setGuests] = useState<Guest[]>(initialGuests);
+  const [stats, setStats] = useState<RsvpStats>(initialStats);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [sortKey, setSortKey] = useState<SortKey>('respondedAt');
@@ -396,8 +394,8 @@ export function RsvpDashboard({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
             <h1 style={headingStyle}>RSVP Dashboard</h1>
             <p style={subStyle}>
-              {useMock
-                ? 'Sample data shown — connect your site to see real responses'
+              {guests.length === 0
+                ? 'Share your site to start collecting responses'
                 : `Managing responses for site ${siteId || '—'}`}
             </p>
           </div>
@@ -593,11 +591,6 @@ export function RsvpDashboard({
               fontSize: '0.75rem', color: 'rgba(214,198,168,0.35)',
             }}>
               <span>Showing {filtered.length} of {guests.length} guests</span>
-              {useMock && (
-                <span style={{ color: '#D4A96A', fontStyle: 'italic' }}>
-                  Sample data — connect your site to see real responses
-                </span>
-              )}
             </div>
           </motion.div>
         )}
