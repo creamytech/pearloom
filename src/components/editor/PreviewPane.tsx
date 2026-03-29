@@ -52,40 +52,59 @@ function HeroSection({
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
   const tagline = manifest.poetry?.heroTagline || 'A story of love and forever';
+  const rawCover = manifest.chapters?.[0]?.images?.[0]?.url;
+  const coverPhoto = rawCover ? proxyUrl(rawCover, 1200, 800) : null;
+  const hasPair = !!coupleNames[1];
 
   return (
     <div style={{
-      background: `linear-gradient(160deg, ${bg} 60%, ${accent}22 100%)`,
+      background: coverPhoto ? '#1a1a18' : `linear-gradient(160deg, ${bg} 60%, ${accent}22 100%)`,
       padding: '80px 60px 60px',
       textAlign: 'center',
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Decorative accent circle */}
-      <div style={{
-        position: 'absolute', top: '-60px', right: '-60px',
-        width: '280px', height: '280px', borderRadius: '50%',
-        background: `${accent}10`, pointerEvents: 'none',
-      }} />
+      {/* Cover photo background */}
+      {coverPhoto && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+        }}>
+          <img src={coverPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', opacity: 0.55 }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 100%)' }} />
+        </div>
+      )}
+      {/* Decorative accent circle (no-photo mode) */}
+      {!coverPhoto && (
+        <div style={{
+          position: 'absolute', top: '-60px', right: '-60px',
+          width: '280px', height: '280px', borderRadius: '50%',
+          background: `${accent}10`, pointerEvents: 'none',
+        }} />
+      )}
+      <div style={{ position: 'relative', zIndex: 1 }}>
       <div style={{
         display: 'inline-block',
         fontSize: '11px', fontWeight: 800, letterSpacing: '0.25em',
-        textTransform: 'uppercase', color: accent,
+        textTransform: 'uppercase', color: coverPhoto ? 'rgba(255,255,255,0.75)' : accent,
         marginBottom: '16px', fontFamily: bodyFont,
       }}>
-        {coupleNames[0]} &amp; {coupleNames[1]}
+        {coupleNames[0]}{hasPair ? ` & ${coupleNames[1]}` : ''}
       </div>
       <h1 style={{
         fontFamily: `"${headingFont}", Georgia, serif`,
         fontSize: '52px', fontWeight: 700, lineHeight: 1.1,
-        color: fg, margin: '0 0 16px',
+        color: coverPhoto ? '#ffffff' : fg, margin: '0 0 16px',
         letterSpacing: '-0.02em',
       }}>
-        {coupleNames[0]}<br />
-        <span style={{ fontStyle: 'italic', fontWeight: 400 }}>&amp; {coupleNames[1]}</span>
+        {coupleNames[0]}{hasPair && (
+          <>
+            <br />
+            <span style={{ fontStyle: 'italic', fontWeight: 400 }}>&amp; {coupleNames[1]}</span>
+          </>
+        )}
       </h1>
       <p style={{
-        fontFamily: bodyFont, fontSize: '16px', color: `${fg}88`,
+        fontFamily: bodyFont, fontSize: '16px', color: coverPhoto ? 'rgba(255,255,255,0.72)' : `${fg}88`,
         margin: '0 0 32px', lineHeight: 1.6, maxWidth: '460px', marginLeft: 'auto', marginRight: 'auto',
       }}>
         {tagline}
@@ -94,13 +113,15 @@ function HeroSection({
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '8px',
           padding: '8px 20px', borderRadius: '100px',
-          background: `${accent}15`, border: `1px solid ${accent}35`,
-          fontSize: '13px', fontWeight: 600, color: accent, fontFamily: bodyFont,
+          background: coverPhoto ? 'rgba(255,255,255,0.12)' : `${accent}15`,
+          border: `1px solid ${coverPhoto ? 'rgba(255,255,255,0.2)' : `${accent}35`}`,
+          fontSize: '13px', fontWeight: 600, color: coverPhoto ? '#fff' : accent, fontFamily: bodyFont,
         }}>
           {new Date(manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           {manifest.logistics.venue && <> &middot; {manifest.logistics.venue}</>}
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -122,8 +143,24 @@ function ChapterCard({
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
   const rawThumb = chapter.images?.[0]?.url || null;
   const thumb = rawThumb ? proxyUrl(rawThumb, 800, 600) : null;
-  const isFullbleed = chapter.layout === 'fullbleed' || chapter.layout === 'cinematic';
+  const isFullbleed = chapter.layout === 'fullbleed';
+  const isCinematic = chapter.layout === 'cinematic';
   const isSplit = chapter.layout === 'split';
+
+  if (isCinematic) {
+    return (
+      <div onClick={onClick} style={{ position: 'relative', height: '240px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', borderRadius: '12px', marginBottom: '12px', background: '#1a1a18' }}>
+        {thumb && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
+        )}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
+          <p style={{ fontFamily: `"${headingFont}", serif`, fontSize: '18px', fontStyle: 'italic', color: '#fff', lineHeight: 1.5, margin: 0 }}>&ldquo;{chapter.subtitle || chapter.title}&rdquo;</p>
+          {chapter.title && chapter.subtitle && <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '12px' }}>{chapter.title}</p>}
+        </div>
+      </div>
+    );
+  }
 
   if (isFullbleed && thumb) {
     return (

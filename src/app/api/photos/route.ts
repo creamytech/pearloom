@@ -31,6 +31,14 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // If the OAuth refresh token has expired or been revoked, signal re-auth
+  if ((session as { error?: string }).error === 'RefreshAccessTokenError') {
+    return NextResponse.json(
+      { error: 'Your Google session has expired. Please sign out and sign back in.' },
+      { status: 401 }
+    );
+  }
+
   const url = new URL(req.url);
   const action = url.searchParams.get('action') ?? 'create-session';
 

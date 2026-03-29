@@ -12,6 +12,22 @@ import type { ChapterImage } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+// Rate limit: max 20 AI sort requests per user per hour
+const sortRateMap = new Map<string, { count: number; resetAt: number }>();
+function isSortRateLimited(email: string): boolean {
+  const now = Date.now();
+  const entry = sortRateMap.get(email);
+  if (!entry || now > entry.resetAt) {
+    sortRateMap.set(email, { count: 1, resetAt: now + 60 * 60 * 1000 });
+    if (sortRateMap.size > 5000) {
+      for (const [k, v] of sortRateMap) { if (now > v.resetAt) sortRateMap.delete(k); }
+    }
+    return false;
+  }
+  entry.count++;
+  return entry.count > 20;
+}
+
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
@@ -19,6 +35,7 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(12_000),
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -53,6 +70,11 @@ export async function POST(req: NextRequest) {
         sortedIds: images.map((img) => img.id),
         note: 'Preserved original order. Pass useAI: true for AI-ranked sorting.',
       });
+    }
+
+    // AI mode rate limit check
+    if (isSortRateLimited(session.user.email!)) {
+      return Response.json({ error: 'Too many sort requests — please wait before trying again' }, { status: 429 });
     }
 
     // AI mode: ask Gemini to rank images by visual quality heuristics

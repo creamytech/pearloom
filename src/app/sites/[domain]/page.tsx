@@ -25,6 +25,7 @@ import { GuestbookSection } from '@/components/site/GuestbookSection';
 import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
+import { ShareBar } from '@/components/site/ShareBar';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,9 +55,14 @@ export async function generateMetadata(
   // Build description
   const vibeString = manifest?.vibeString || '';
   const chapterCount = manifest?.chapters?.length || 0;
+  const occasion = manifest?.occasion || 'wedding';
+  const occasionLabel: Record<string, string> = {
+    wedding: 'wedding website', anniversary: 'anniversary celebration',
+    birthday: 'birthday celebration', engagement: 'engagement celebration', story: 'personal story site',
+  };
   const description = vibeString
     ? `${displayNames}'s love story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
-    : `${displayNames}'s wedding website. ${chapterCount} chapters of their love story, event details, and RSVP.`;
+    : `${displayNames}'s ${occasionLabel[occasion] || 'wedding website'}. ${chapterCount} chapters of their story.`;
 
   // OG image: prefer the AI-generated OG route, fall back to first chapter photo
   const accent = manifest?.theme?.colors?.accent || '#A3B18A';
@@ -94,9 +100,9 @@ export async function generateMetadata(
       description,
       images: [ogUrl],
     },
-    other: {
-      // Prevent search engine indexing of private wedding sites
-      robots: 'noindex, nofollow',
+    robots: {
+      index: true,
+      follow: true,
     },
   };
 }
@@ -104,6 +110,15 @@ export async function generateMetadata(
 
 
 // ── Helpers ───────────────────────────────────────────────────
+
+/** Proxy Google Photos URLs through /api/photos/proxy so they load publicly */
+function proxyUrl(rawUrl: string, w: number, h: number): string {
+  if (!rawUrl) return rawUrl;
+  if (rawUrl.includes('googleusercontent.com') || rawUrl.includes('lh3.google')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
+  }
+  return rawUrl;
+}
 
 function getVideoEmbedUrl(url?: string): string | null {
   if (!url) return null;
@@ -132,7 +147,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const safeNames: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
     ? [siteConfig.names[0], siteConfig.names[1]]
     : ['Our', 'Story'];
-  const title = safeNames.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
+  const title = safeNames.filter(n => n.trim()).map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
 
   // JSON-LD structured data — event type is dynamic based on occasion
   const occasion = manifest.occasion || 'wedding';
@@ -143,10 +158,24 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     engagement: `${title} Engagement`,
     story: title,
   };
+  const jsonLdType = occasion === 'birthday' ? 'BirthdayEvent'
+    : occasion === 'story' ? 'Event'
+    : 'SocialEvent';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const canonicalUrl = siteUrl
+    ? `${siteUrl.replace(/^https?:\/\//, 'https://')
+        .replace(/^(https?:\/\/)/, `$1${domain}.`)}`
+    : `https://${domain}.pearloom.com`;
+  const vibeString = manifest.vibeString || '';
+  const jsonLdDesc = vibeString
+    ? `${title}'s story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
+    : `${title}'s ${occasion} site.`;
   const jsonLd = manifest.events?.length ? {
     '@context': 'https://schema.org',
-    '@type': 'SocialEvent',
+    '@type': jsonLdType,
     name: occasionEventName[occasion] || `${title} Celebration`,
+    description: jsonLdDesc,
+    url: canonicalUrl,
     startDate: manifest.events[0].date || manifest.logistics?.date,
     location: manifest.events[0].venue ? {
       '@type': 'Place',
@@ -303,8 +332,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         const eventDate = manifest.logistics?.date || manifest.events?.[0]?.date;
         if (!eventDate) return null;
         const occasion = manifest.occasion || 'wedding';
-        const countdownLabel = occasion === 'birthday' ? 'Until the celebration!' 
-          : occasion === 'anniversary' ? 'Until our anniversary!' 
+        const countdownLabel = occasion === 'birthday' ? 'Until the celebration!'
+          : occasion === 'anniversary' ? 'Until our anniversary!'
+          : occasion === 'engagement' ? 'Until the big day!'
+          : occasion === 'story' ? 'The moment arrives'
           : 'Until we say I do';
         return (
           <CountdownBlock
@@ -320,27 +351,35 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           />
         );
       }
-      case 'text':
+      case 'text': {
+        // Accept both 'content' (legacy) and 'text' (CanvasEditor saves as 'text')
+        const textContent = (blockCfg.content || blockCfg.text) as string | undefined;
+        if (!textContent) return null;
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '800px', margin: '0 auto' }}>
             <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}>
-              Custom text block — edit in the Canvas tab.
+              {textContent}
             </p>
           </section>
         );
-      case 'quote':
+      }
+      case 'quote': {
+        // Accept 'quote' (legacy) and 'text' (CanvasEditor saves as 'text')
+        const customQuote = (blockCfg.quote || blockCfg.text) as string | undefined;
+        const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.';
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
             <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: pal.foreground, opacity: 0.75 }}>
-              &ldquo;{vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.'}&rdquo;
+              &ldquo;{quoteText}&rdquo;
             </p>
           </section>
         );
+      }
       case 'video': {
         const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
         return (
-          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: 'clamp(2rem, 5vw, 5rem)', paddingBottom: 'clamp(2rem, 5vw, 5rem)', paddingLeft: 'clamp(1rem, 4vw, 2rem)', paddingRight: 'clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
               {videoEmbedUrl ? (
                 <iframe
@@ -362,7 +401,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'map': {
         const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
         return (
-          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: 'clamp(2rem, 5vw, 5rem)', paddingBottom: 'clamp(2rem, 5vw, 5rem)', paddingLeft: 'clamp(1rem, 4vw, 2rem)', paddingRight: 'clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
               {mapAddress ? (
                 <iframe
@@ -386,20 +425,23 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '0.6rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
+                {vibeSkin.sectionLabels.photos || 'Our Photos'}
+              </div>
+              <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
+            </div>
             {allPhotos.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
                 {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
                   <div key={i} style={{ gridColumn: i === 0 ? 'span 2' : undefined, aspectRatio: i === 0 ? '2/1.2' : '1/1', borderRadius: '0.75rem', overflow: 'hidden', background: cardBg }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.url} alt={img.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={proxyUrl(img.url, 800, 800)} alt={img.alt || ''} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '0.75rem' }}>Our Photos</div>
-                <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Photos will appear here once added.</p>
-              </div>
+              <p style={{ textAlign: 'center', color: pal.muted, fontSize: '0.9rem' }}>Photos will appear here once added.</p>
             )}
             {/* Wedding day guest photo feed — shown on/after wedding date */}
             {manifest.logistics?.date && (
@@ -884,7 +926,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             fontFamily: `"${vibeSkin.fonts.heading}", serif`,
             fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem',
           }}>
-            {safeNames[0]} & {safeNames[1]}
+            {safeNames[0]}{safeNames[1] ? ` & ${safeNames[1]}` : ''}
           </div>
           {manifest.poetry?.closingLine && (
             <div style={{
@@ -895,7 +937,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {manifest.poetry.closingLine}
             </div>
           )}
-          <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Made with Pearloom</div>
+          <ShareBar
+            url={canonicalUrl}
+            title={safeNames[0] + (safeNames[1] ? ` & ${safeNames[1]}` : '')}
+            accent={pal.accent}
+            bgColor={pal.background}
+          />
+          <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Made with Pearloom</div>
         </footer>
       </div>
     </ThemeProvider>

@@ -738,6 +738,16 @@ function BlockConfigPanel({
           />
         );
 
+      case 'map':
+        return (
+          <MiniInput
+            label="Address or venue name"
+            value={String(block.config?.address || manifest.events?.[0]?.address || manifest.logistics?.venue || '')}
+            onChange={v => updateBlockConfig({ address: v })}
+            placeholder={manifest.events?.[0]?.address || manifest.logistics?.venue || 'The Grand Ballroom, New York'}
+          />
+        );
+
       default:
         return noConfig;
     }

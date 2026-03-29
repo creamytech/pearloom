@@ -22,6 +22,22 @@ const BUCKET = 'wedding-day-photos';
 const TABLE = 'wedding_day_photos';
 const MAX_SIZE_MB = 15;
 
+// Rate limit: max 10 photo uploads per IP per hour
+const uploadRateMap = new Map<string, { count: number; resetAt: number }>();
+function isUploadRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = uploadRateMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    uploadRateMap.set(ip, { count: 1, resetAt: now + 60 * 60 * 1000 });
+    if (uploadRateMap.size > 3000) {
+      for (const [k, v] of uploadRateMap) { if (now > v.resetAt) uploadRateMap.delete(k); }
+    }
+    return false;
+  }
+  entry.count++;
+  return entry.count > 10;
+}
+
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -76,6 +92,11 @@ export async function GET(req: NextRequest) {
 // ── POST ─────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    if (isUploadRateLimited(ip)) {
+      return NextResponse.json({ error: 'Too many uploads — please wait before uploading again' }, { status: 429 });
+    }
+
     const formData = await req.formData();
     const siteId = formData.get('siteId') as string | null;
     const name = (formData.get('name') as string | null) || 'Guest';

@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
       if (!token || !name || !message) {
         return NextResponse.json({ error: 'Missing token, name, or message' }, { status: 400 });
       }
+      if (String(name).length > 150 || String(message).length > 1000) {
+        return NextResponse.json({ error: 'Input too long' }, { status: 400 });
+      }
 
       const supabase = getSupabase();
       if (supabase) {

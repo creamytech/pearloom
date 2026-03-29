@@ -3,15 +3,36 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
+// Only allow photos from trusted domains to prevent SSRF
+const ALLOWED_PHOTO_HOSTS = [
+  'lh3.googleusercontent.com',
+  'googleusercontent.com',
+  'supabase.co',
+  'r2.cloudflarestorage.com',
+  'pub-', // Cloudflare R2 public bucket pattern
+];
+function isTrustedPhotoUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const { hostname, protocol } = new URL(url);
+    if (protocol !== 'https:') return false;
+    return ALLOWED_PHOTO_HOSTS.some(h => hostname === h || hostname.endsWith('.' + h) || hostname.startsWith('pub-'));
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const name1 = searchParams.get('n1') || 'Together';
-  const name2 = searchParams.get('n2') || 'Forever';
-  const date = searchParams.get('date') || '';
-  const tagline = searchParams.get('tag') || 'A love story beautifully told.';
+  const name1 = (searchParams.get('n1') || 'Together').slice(0, 60);
+  const name2 = (searchParams.get('n2') || 'Forever').slice(0, 60);
+  const date = (searchParams.get('date') || '').slice(0, 30);
+  const tagline = (searchParams.get('tag') || 'A love story beautifully told.').slice(0, 120);
   const bg = searchParams.get('bg') || '#2B2B2B';
   const accent = searchParams.get('accent') || '#A3B18A';
-  const photo = searchParams.get('photo') || '';
+  const rawPhoto = searchParams.get('photo') || '';
+  // Only use photo URL if it points to a trusted host
+  const photo = isTrustedPhotoUrl(rawPhoto) ? rawPhoto : '';
 
   return new ImageResponse(
     (

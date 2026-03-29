@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import type { Chapter } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -36,6 +38,7 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(20_000),
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -50,6 +53,11 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });

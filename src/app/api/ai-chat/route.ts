@@ -40,6 +40,7 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(15_000),
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -80,6 +81,9 @@ export async function POST(req: NextRequest) {
     if (!message?.trim()) {
       return Response.json({ error: 'message is required' }, { status: 400 });
     }
+    if (String(message).length > 2000) {
+      return Response.json({ error: 'Message too long (max 2000 characters)' }, { status: 400 });
+    }
 
     // Build a concise context snapshot for Gemini
     const activeChapter = manifest?.chapters?.find(c => c.id === activeChapterId) ?? null;
@@ -98,11 +102,13 @@ Current site context:
 ${chapterSummaries || '  (none)'}
 `.trim();
 
+    // Sanitize user message to prevent prompt injection via quote/backtick escaping
+    const safeMessage = message.trim().replace(/["`]/g, "'");
     const fullPrompt = `${SYSTEM_PROMPT}
 
 ${contextBlock}
 
-User request: "${message}"`;
+User request: ${safeMessage}`;
 
     const raw = await callGemini(fullPrompt, apiKey);
 
@@ -122,10 +128,13 @@ User request: "${message}"`;
       parsed = JSON.parse(match[0]);
     }
 
+    // Validate action is one of the allowed types to prevent injection attacks
+    const ALLOWED_ACTIONS = new Set(['update_chapter', 'update_manifest', 'message']);
+    const action = ALLOWED_ACTIONS.has(parsed.action) ? parsed.action : 'message';
     return Response.json({
-      action: parsed.action ?? 'message',
+      action,
       data: parsed.data ?? null,
-      reply: parsed.reply ?? 'Done!',
+      reply: typeof parsed.reply === 'string' ? parsed.reply.slice(0, 1000) : 'Done!',
     });
   } catch (err) {
     console.error('[ai-chat] Error:', err);

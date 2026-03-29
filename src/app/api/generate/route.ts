@@ -61,7 +61,8 @@ async function uploadPhotoUrl(rawUrl: string): Promise<string> {
     }));
 
     return `${r2.publicBase}/${key}`;
-  } catch {
+  } catch (err) {
+    console.warn('[R2 Upload] Failed to upload photo to R2 — site will use ephemeral Google Photos URL:', err instanceof Error ? err.message : err);
     return rawUrl; // on any failure, fall back gracefully
   }
 }
@@ -144,6 +145,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
+  if ((session as { error?: string }).error === 'RefreshAccessTokenError') {
+    return NextResponse.json(
+      { error: 'Your Google session has expired. Please sign out and sign back in.' },
+      { status: 401 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -197,9 +205,18 @@ export async function POST(req: NextRequest) {
     if (!photos?.length) {
       return NextResponse.json({ error: 'No photos selected' }, { status: 400 });
     }
+    if (photos.length > 500) {
+      return NextResponse.json({ error: 'Too many photos (max 500)' }, { status: 400 });
+    }
+    if (prebuiltClusters && prebuiltClusters.length > 50) {
+      return NextResponse.json({ error: 'Too many clusters (max 50)' }, { status: 400 });
+    }
 
     if (!vibeString) {
       return NextResponse.json({ error: 'Vibe string is required' }, { status: 400 });
+    }
+    if (vibeString.length > 5000) {
+      return NextResponse.json({ error: 'Vibe description too long (max 5000 characters)' }, { status: 400 });
     }
 
     let enrichedClusters: PhotoCluster[];
@@ -331,6 +348,10 @@ export async function POST(req: NextRequest) {
     // Map actual photo URLs + REAL locations into generated chapters.
     // Upload each photo to R2 so URLs don't expire (Google Photos baseUrl ~60min TTL).
     // CRITICAL: cluster location (from GPS or user input) ALWAYS overrides AI hallucination.
+    // Trim chapters to cluster count — AI may generate more chapters than clusters provided
+    if (manifest.chapters.length > enrichedClusters.length) {
+      manifest.chapters = manifest.chapters.slice(0, enrichedClusters.length);
+    }
     manifest.chapters = await Promise.all(manifest.chapters.map(async (chapter, i) => {
       const cluster = enrichedClusters[i];
       if (cluster) {

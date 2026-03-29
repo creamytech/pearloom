@@ -287,6 +287,16 @@ export async function generateStoryManifest(
       isEmotionalPeak: (ch.emotionalIntensity ?? 0) >= 8,
     }));
 
+  // Prevent consecutive identical layouts
+  const LAYOUT_CYCLE = ['editorial', 'split', 'fullbleed', 'cinematic', 'gallery'] as const;
+  for (let i = 1; i < manifest.chapters.length; i++) {
+    if (manifest.chapters[i].layout === manifest.chapters[i - 1].layout) {
+      const current = manifest.chapters[i].layout || 'editorial';
+      const alternatives = LAYOUT_CYCLE.filter(l => l !== current);
+      manifest.chapters[i] = { ...manifest.chapters[i], layout: alternatives[i % alternatives.length] };
+    }
+  }
+
   // Strip banned words from chapter content (in case AI ignored the instruction)
   const BANNED_WORDS_RE = /\b(journey|adventure|soulmate|fairy[ -]?tale|happily ever after|storybook|chapter of our lives?|love story begins?|ride or die)\b/gi;
   manifest.chapters = manifest.chapters.map((ch: Chapter) => ({
@@ -295,6 +305,20 @@ export async function generateStoryManifest(
     description: ch.description?.replace(BANNED_WORDS_RE, '').trim() || ch.description,
     subtitle: ch.subtitle?.replace(BANNED_WORDS_RE, '').trim() || ch.subtitle,
   }));
+
+  // Strip wedding-specific event types for non-wedding occasions
+  if (occasion === 'anniversary' || occasion === 'birthday' || occasion === 'story') {
+    if (manifest.events?.length) {
+      manifest.events = manifest.events.filter(
+        (e: { type?: string }) => e.type !== 'ceremony' && e.type !== 'reception' && e.type !== 'rehearsal'
+      );
+      if (manifest.events.length > 1) manifest.events = [manifest.events[0]];
+    }
+  }
+  // Omit FAQs for story occasion
+  if (occasion === 'story') {
+    manifest.faqs = [];
+  }
 
   // ── Passes 1.2, 1.5, 4: Run in parallel ─────────────────────────────
   // All three depend only on the chapters from Pass 1 and the vibeString.
@@ -313,11 +337,13 @@ export async function generateStoryManifest(
     // Pass 1.2: Chapter quality gate (Flash — scoring/judgment)
     critiqueAndRefineChapters(chaptersSnapshot, vibeString, coupleNames, apiKey, occasion, clusterNotes),
     // Pass 1.5: Couple DNA extraction (Lite — lightweight)
+    // Include clusterNotes so user-entered traits (e.g. "loves horses") flow into the illustration prompt
     extractCoupleProfile(
       vibeString,
       chaptersSnapshot.map(c => ({ title: c.title, description: c.description, mood: c.mood })),
       apiKey,
-      occasion
+      occasion,
+      clusterNotes
     ),
     // Pass 4: Poetry (Flash — only needs chapters + vibe, no design context needed)
     generatePoetryPass(manifest.vibeString, coupleNames, chaptersSnapshot, apiKey, occasion),
@@ -347,6 +373,14 @@ export async function generateStoryManifest(
     log('[Memory Engine] Pass 4: Poetry pass complete');
   } else {
     logWarn('[Memory Engine] Poetry pass failed (non-fatal):', pass4Result.reason);
+  }
+
+  if (!manifest.poetry) {
+    manifest.poetry = {
+      heroTagline: '',
+      closingLine: '',
+      rsvpIntro: '',
+    };
   }
 
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
