@@ -2631,7 +2631,7 @@ Return JSON with: title, subtitle, description, mood`,
           >
             {activeTab === 'story' && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
                     Story Chapters ({chapters.length})
                   </span>
@@ -2646,6 +2646,44 @@ Return JSON with: title, subtitle, description, mood`,
                   >
                     <Plus size={11} /> Add
                   </button>
+                </div>
+
+                {/* ── Global timeline format switcher ── */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '6px' }}>
+                    Timeline Format
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                    {[
+                      { id: 'cascade',   label: 'Cascade',   emoji: '⇅' },
+                      { id: 'filmstrip', label: 'Filmstrip', emoji: '▤' },
+                      { id: 'magazine',  label: 'Magazine',  emoji: '⊞' },
+                      { id: 'scrapbook', label: 'Scrapbook', emoji: '✦' },
+                      { id: 'chapters',  label: 'Chapters',  emoji: '≡' },
+                      { id: 'starmap',   label: 'Starmap',   emoji: '✴' },
+                    ].map(fmt => {
+                      const isActive = (manifest.layoutFormat || 'cascade') === fmt.id;
+                      return (
+                        <button
+                          key={fmt.id}
+                          onClick={() => handleDesignChange({ ...manifest, layoutFormat: fmt.id })}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+                            padding: '6px 4px', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                            background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.04)',
+                            color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.35)',
+                            outline: isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid transparent',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseOver={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.65)'; }}}
+                          onMouseOut={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}}
+                        >
+                          <span style={{ fontSize: '1rem', lineHeight: 1 }}>{fmt.emoji}</span>
+                          <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.04em' }}>{fmt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <Reorder.Group axis="y" values={chapters} onReorder={handleReorder} as="div" style={{ margin: 0, padding: 0 }}>
