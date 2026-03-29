@@ -315,7 +315,7 @@ export async function generateStoryManifest(
   // line, and RSVP intro — all personalized to this couple's specific story.
   try {
     manifest.poetry = await generatePoetryPass(
-      manifest.vibeString, coupleNames, manifest.chapters, apiKey
+      manifest.vibeString, coupleNames, manifest.chapters, apiKey, occasion
     );
     console.log('[Memory Engine] Pass 4: Poetry pass complete');
   } catch (err) {
@@ -334,26 +334,52 @@ async function generatePoetryPass(
   vibeString: string,
   coupleNames: [string, string] | undefined,
   chapters: import('@/types').Chapter[],
-  apiKey: string
+  apiKey: string,
+  occasion?: string
 ): Promise<{ heroTagline: string; closingLine: string; rsvpIntro: string }> {
   const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
+  const occ = occasion || 'wedding';
 
   // Pull a few chapter titles to give Gemini narrative context
   const chapterTitles = chapters.slice(0, 4).map(c => c.title).join(', ');
 
-  const poetryPrompt = `You are a poet writing for ${namesCtx}'s wedding website on Pearloom.
+  const occasionSectionLabels: Record<string, string> = {
+    wedding:     'Our Story, The Ceremony, The Celebration, Our Registry, Getting There, Good to Know',
+    anniversary: 'Our Journey, Through the Years, Still Us, The Celebration, Wishes',
+    birthday:    `Who They Are, Their Story, Celebrating ${coupleNames?.[0] ?? 'Them'}, Wishes & Messages`,
+    engagement:  "Our Love Story, The Proposal, The Party, What's Next",
+    story:       'Our Story, Our Moments, Our World',
+  };
+
+  const rsvpIntroContext: Record<string, string> = {
+    wedding:     'Write as a couple inviting guests to their wedding celebration.',
+    anniversary: 'Write as a couple inviting friends to their anniversary celebration. Warm and inclusive.',
+    birthday:    'Write as the host inviting guests to a birthday celebration. Center the birthday person.',
+    engagement:  'Write as an engaged couple sharing their joy and inviting guests to celebrate.',
+    story:       'Write as a warm personal invitation to share in this moment.',
+  };
+
+  const sectionLabels = occasionSectionLabels[occ] || occasionSectionLabels.wedding;
+  const rsvpContext = rsvpIntroContext[occ] || rsvpIntroContext.wedding;
+  const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
+
+  const poetryPrompt = `You are a poet writing for ${namesCtx}'s ${occCap} website on Pearloom.
 Their vibe: "${vibeString}"
 Their story chapters include: ${chapterTitles || 'the beginning of their love'}
 
-Write 3 short pieces of text — each must be specific to THIS couple, not generic:
+This is a ${occCap} site — NOT a generic wedding site. Write all three pieces with this occasion in mind.
 
-1. heroTagline: A 5-8 word poetic subtitle for their hero section. Should feel like a beautiful line from a literary novel or indie film. NOT "A love story written in stars" or other cliches. Reference their actual vibe.
+Use section labels appropriate for a ${occCap}: ${sectionLabels}
+
+Write 3 short pieces of text — each must be specific to THIS occasion and THIS person/couple, not generic:
+
+1. heroTagline: A 5-8 word poetic subtitle for their hero section. Should feel like a beautiful line from a literary novel or indie film. NOT "A love story written in stars" or other cliches. Reference their actual vibe and occasion.
    Examples: "A love story written in light", "Where the mountains remembered everything", "Two people who chose the long way home"
 
 2. closingLine: A 10-15 word closing line for their site footer. Warm, intimate, final. References their story or vibe.
    Examples: "Two threads, one loom, forever woven in light", "Here is where we began. Here is where we stay."
 
-3. rsvpIntro: A warm, personal 1-2 sentence intro for their RSVP section. Should feel written by the couple, inviting their guests with genuine warmth and a specific nod to their celebration.
+3. rsvpIntro: A warm, personal 1-2 sentence intro for their RSVP section. ${rsvpContext} Should feel genuinely personal, with a specific nod to their celebration.
 
 Return ONLY valid JSON:
 {
@@ -630,12 +656,103 @@ function buildPrompt(
     ? `\n- The couple's event is on ${eventDate}. If this chapter predates the event, write with anticipation building toward it. If the chapter is recent, write with the joy of imminence.`
     : '';
 
+  const occasionChapterGuidance: Record<string, string> = {
+    wedding: `CHAPTER STRUCTURE: Build toward the wedding day. Suggested arc:
+    - "How we met" or "The beginning" — origin story
+    - "Growing together" — key moments, adventures, milestones
+    - "The proposal" — if proposal happened and photos exist
+    - "Our wedding day" or forward-looking — ceremony/celebration
+    Each chapter should build emotional anticipation toward the event.`,
+
+    anniversary: `CHAPTER STRUCTURE: This is a RETROSPECTIVE celebration of years together. Build a timeline narrative:
+    - Early chapters: "The beginning", "Year One", early memories
+    - Middle chapters: milestones, adventures, challenges overcome, growth
+    - Final chapter: "Today" or "Still choosing you" — present-day celebration
+    If anniversaryYears is provided, reference the specific milestone meaningfully.
+    Tone: warm, nostalgic, celebratory of endurance and deepening love.
+    DO NOT treat this as a forward-looking wedding site. This is a love retrospective.`,
+
+    birthday: `CHAPTER STRUCTURE: This is a TRIBUTE to a specific person. Build chapters that celebrate WHO THEY ARE:
+    - First chapter: "Who you are" — their personality, spirit, what makes them unique
+    - Middle chapters: key life chapters, their passions, adventures, relationships
+    - Final chapter: "Here's to you" or "Happy [age]th" — joyful celebration
+    If birthdayAge is provided, reference the milestone meaningfully.
+    Tone: joyful, celebratory, personal, tribute-style. Center the birthday person, not a couple narrative.
+    DO NOT write as if this is a couple's love story.`,
+
+    engagement: `CHAPTER STRUCTURE: This is a LOVE STORY building toward the proposal and beyond:
+    - First chapters: how they met, falling in love, growing together
+    - Key chapter: "The proposal" — tell the proposal story with emotion and detail
+    - Final chapter: "What's next" or "Forever starts now" — the future together
+    If proposalStory is in the vibe data, use it as the emotional centerpiece.
+    Tone: romantic, electric, forward-looking, full of anticipation.`,
+
+    story: `CHAPTER STRUCTURE: This is a PURE LOVE STORY or personal narrative with no event anchor:
+    - Chapters based entirely on the photos and emotional moments
+    - No requirement to build toward any event date
+    - Can be abstract, poetic, impressionistic
+    - Let the photos and vibe guide structure
+    Tone: intimate, literary, personal.`,
+  };
+
+  const chapterGuidance = occasionChapterGuidance[occ] || occasionChapterGuidance.wedding;
+
+  const occasionEventSchema: Record<string, string> = {
+    wedding: `EVENTS: Generate ceremony and reception as separate objects with full venue/time/address details.`,
+
+    anniversary: `EVENTS: Generate ONE celebration event (the anniversary dinner/party).
+    DO NOT generate "ceremony" or "reception" fields — this is not a wedding.
+    Event name should reflect the milestone: e.g. "Anniversary Dinner", "25th Anniversary Celebration".
+    If no event details provided, omit events entirely or create a single gentle celebration.`,
+
+    birthday: `EVENTS: Generate ONE birthday celebration event.
+    DO NOT generate "ceremony" or "reception" — this is a birthday party.
+    Event name: "[Name]'s [Age]th Birthday" or similar.
+    If this is a surprise party (indicated in vibe), note "Surprise!" in description.`,
+
+    engagement: `EVENTS: Generate ONE engagement party event (if venue provided).
+    DO NOT generate "ceremony" or "reception" — that's the wedding, not the engagement.
+    Event name: "Engagement Celebration" or "[Name] & [Name] Are Engaged!"`,
+
+    story: `EVENTS: Only generate events if explicitly provided in logistics. Otherwise omit entirely.`,
+  };
+
+  const eventSchemaGuidance = occasionEventSchema[occ] || occasionEventSchema.wedding;
+
+  const occasionFaqGuidance: Record<string, string> = {
+    wedding: `FAQs: Generate 4-5 wedding-specific FAQs: dress code, RSVP deadline, children policy, parking/accommodation, dietary requirements.`,
+
+    anniversary: `FAQs: Generate 2-3 celebration FAQs appropriate for an anniversary party: is it a formal event, gift registry (if any), what to expect on the night. Keep brief and warm.`,
+
+    birthday: `FAQs: Generate 2-3 birthday party FAQs: dress code/theme, gift info, dietary needs.
+    If it's a surprise, include: "How do I keep it a secret?" as a FAQ.`,
+
+    engagement: `FAQs: Generate 2-3 engagement party FAQs: is gifts expected, dress code, timing/schedule.`,
+
+    story: `FAQs: Omit FAQs unless explicitly needed. This is a personal story site, not an event.`,
+  };
+
+  const faqGuidance = occasionFaqGuidance[occ] || occasionFaqGuidance.wedding;
+
   return `You are the "Memory Engine" for Pearloom \u2014 a world-class storytelling AI that crafts ${ctxLabel}. Your output powers a live, editorial-quality website. It must be stunning.
 
 ## The Couple / Honorees
 - Names: ${coupleNames[0]} & ${coupleNames[1]}
 - Occasion type: ${occCap}${eventDateCtx}
 
+---
+## OCCASION-SPECIFIC CHAPTER GUIDANCE (non-negotiable)
+${chapterGuidance}
+
+---
+## OCCASION-SPECIFIC EVENT GUIDANCE (non-negotiable)
+${eventSchemaGuidance}
+
+---
+## OCCASION-SPECIFIC FAQ GUIDANCE (non-negotiable)
+${faqGuidance}
+
+---
 ## Their Vibe & Personality
 ${vibeString}
 
@@ -770,56 +887,36 @@ Return ONLY this JSON with no additional text:
       "order": <number starting at 0>
     }
   ],
-  "events": [
+  “events”: [
+    /* Follow the OCCASION-SPECIFIC EVENT GUIDANCE above strictly.
+       For weddings: generate both “Ceremony” and “Reception” objects.
+       For anniversaries/birthdays/engagements: generate ONE event with an appropriate name.
+       For story: omit this array entirely if no event details were provided.
+       Each event object shape: */
     {
-      "id": "<uuid>",
-      "name": "Ceremony",
-      "date": "<ISO 8601 date â€” infer from vibeString or use a placeholder like 2025-06-15>",
-      "time": "4:00 PM",
-      "endTime": "5:00 PM",
-      "venue": "<infer a beautiful venue name from the vibe â€” e.g. 'The Garden Pavilion'>",
-      "address": "<make a plausible address or leave as 'Location TBA'>",
-      "description": "<one warm sentence about what to expect>",
-      "dressCode": "<infer from vibe â€” 'Black Tie', 'Garden Party Chic', 'Cocktail Attire', etc.>",
-      "mapUrl": null
-    },
-    {
-      "id": "<uuid>",
-      "name": "Reception",
-      "date": "<same date as ceremony>",
-      "time": "6:00 PM",
-      "endTime": "11:00 PM",
-      "venue": "<reception venue â€” can be same or different>",
-      "address": "<address or 'Location TBA'>",
-      "description": "<one warm sentence about dancing, dinner, toasts>",
-      "dressCode": "<same as ceremony>",
-      "mapUrl": null
+      “id”: “<uuid>”,
+      “name”: “<Event name per occasion guidance above>”,
+      “date”: “<ISO 8601 date â€” infer from vibeString or use a placeholder like 2025-06-15>”,
+      “time”: “<start time>”,
+      “endTime”: “<end time>”,
+      “venue”: “<infer a beautiful venue name from the vibe>”,
+      “address”: “<make a plausible address or leave as 'Location TBA'>”,
+      “description”: “<one warm sentence about what to expect>”,
+      “dressCode”: “<infer from vibe â€” 'Black Tie', 'Garden Party Chic', 'Cocktail Attire', etc.>”,
+      “mapUrl”: null
     }
   ],
-  "faqs": [
+  “faqs”: [
+    /* Follow the OCCASION-SPECIFIC FAQ GUIDANCE above strictly.
+       For weddings: 4-5 FAQs (parking, children, dress code, RSVP deadline, dietary).
+       For anniversaries/birthdays/engagements: 2-3 FAQs appropriate to the occasion.
+       For story: omit this array entirely.
+       Each FAQ object shape: */
     {
-      "id": "<uuid>",
-      "question": "Is there parking available?",
-      "answer": "<write a warm, helpful answer based on the venue vibe>",
-      "order": 0
-    },
-    {
-      "id": "<uuid>",
-      "question": "Are children welcome?",
-      "answer": "<infer from vibe â€” intimate adult-only or family friendly>",
-      "order": 1
-    },
-    {
-      "id": "<uuid>",
-      "question": "What should I wear?",
-      "answer": "<match the dress code from events â€” expand with mood-appropriate style tips>",
-      "order": 2
-    },
-    {
-      "id": "<uuid>",
-      "question": "When is the RSVP deadline?",
-      "answer": "<suggest 4â€“6 weeks before the event date>",
-      "order": 3
+      “id”: “<uuid>”,
+      “question”: “<Question appropriate to the occasion per FAQ guidance above>”,
+      “answer”: “<warm, helpful, occasion-appropriate answer>”,
+      “order”: 0
     }
   ],
   "travelInfo": {
@@ -862,9 +959,10 @@ CRITICAL FINAL CHECKS before returning:
 3. Is the layout sequence varied? (no consecutive duplicates)
 4. Is the theme background a warm off-white or moody tone? (not #ffffff)
 5. Does the vibeString quote feel poetic and site-worthy?
-6. Did you generate both ceremony AND reception events?
-7. Did you generate at least 4 FAQs?
-8. Did you include travelInfo with at least 1 hotel and 1 airport?`;
+6. Did you follow the OCCASION-SPECIFIC EVENT GUIDANCE? (${occ === 'wedding' ? 'wedding needs ceremony + reception' : occ === 'story' ? 'story: omit events if none provided' : `${occ}: ONE celebration event, NOT ceremony/reception`})
+7. Did you follow the OCCASION-SPECIFIC FAQ GUIDANCE? (${occ === 'wedding' ? '4-5 wedding FAQs' : occ === 'story' ? 'story: omit FAQs' : `${occ}: 2-3 occasion-appropriate FAQs`})
+8. Did you include travelInfo with at least 1 hotel and 1 airport?
+9. Does the chapter structure follow the ${occCap} arc? (NOT a generic wedding narrative)`;
 }
 
 /**
