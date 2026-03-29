@@ -5,7 +5,7 @@
 // Premium guest list and RSVP tracking dashboard.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Trash2, Check, X, Download,
@@ -51,6 +51,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { fetchGuests(); }, [siteId]);
 
@@ -158,6 +159,21 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
     setCopiedShare(true);
     setTimeout(() => setCopiedShare(false), 2000);
   };
+
+  const bulkUpdateStatus = useCallback(async (status: 'attending' | 'declined' | 'pending') => {
+    const ids = Array.from(selectedIds);
+    // Optimistic update
+    setGuests(prev => prev.map(g => ids.includes(g.id) ? { ...g, status } : g));
+    setSelectedIds(new Set());
+    // Persist
+    await Promise.all(ids.map(id =>
+      fetch(`/api/guests?id=${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+    ));
+  }, [selectedIds]);
 
   const inputBase: React.CSSProperties = {
     padding: '0.7rem 1rem',

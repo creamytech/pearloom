@@ -23,6 +23,8 @@ import { WeddingDayBanner } from '@/components/site/WeddingDayBanner';
 import { WeddingDayPhotoFeed } from '@/components/site/WeddingDayPhotoFeed';
 import { GuestbookSection } from '@/components/site/GuestbookSection';
 import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
+import { SpotifySection } from '@/components/site/SpotifySection';
+import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 
 export const dynamic = 'force-dynamic';
 
@@ -611,6 +613,16 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       // After hero, inject the vibe quote + welcome statement
       if (block.type === 'hero') {
         result.push(
+          ...(manifest.anniversaryMode ? [
+            <div key="anniversary-banner" style={{
+              textAlign: 'center', fontSize: '0.85rem',
+              color: 'var(--eg-accent, #A3B18A)',
+              letterSpacing: '0.12em', textTransform: 'uppercase',
+              marginTop: '0.5rem', opacity: 0.8,
+            }}>
+              ✦ Anniversary Edition ✦
+            </div>
+          ] : []),
           <WaveDivider key="divider-hero-quote" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />,
           <SvgBorder key="border-before-quote" />,
           <VibeQuote key="vibe-quote" />,
@@ -624,6 +636,45 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         prevExitColor = blockExitColor(block.type);
       }
     });
+
+    // Spotify section
+    if (manifest.spotifyUrl) {
+      result.push(
+        <WaveDivider key="divider-before-spotify" skin={vibeSkin} fromColor={prevExitColor} toColor={bgColor} height={80} />,
+        <SpotifySection key="spotify" spotifyUrl={manifest.spotifyUrl} playlistName={manifest.spotifyPlaylistName} vibeSkin={vibeSkin} />
+      );
+      prevExitColor = bgColor;
+    }
+
+    // Quiz section
+    if (manifest.chapters?.some((c: any) => c.quizQuestion)) {
+      result.push(
+        <WaveDivider key="divider-before-quiz" skin={vibeSkin} fromColor={prevExitColor} toColor={bgColor} height={80} />,
+        <CoupleQuiz key="quiz" siteId={domain} coupleNames={safeNames} chapters={manifest.chapters} vibeSkin={vibeSkin} />
+      );
+      prevExitColor = bgColor;
+    }
+
+    // Hashtags section
+    if (manifest.hashtags && manifest.hashtags.length > 0) {
+      result.push(
+        <section key="hashtags" style={{ textAlign: 'center', padding: '2rem 1.5rem', opacity: 0.75 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
+            {manifest.hashtags.map((tag: string) => (
+              <span key={tag} style={{
+                fontSize: '0.9rem', fontWeight: 600,
+                color: 'var(--eg-accent, #A3B18A)',
+                background: 'rgba(163,177,138,0.08)',
+                padding: '0.3rem 0.75rem', borderRadius: '999px',
+                border: '1px solid rgba(163,177,138,0.2)',
+              }}>
+                #{tag.replace(/^#/, '')}
+              </span>
+            ))}
+          </div>
+        </section>
+      );
+    }
 
     // Final divider before the always-present gallery footer
     result.push(
@@ -738,6 +789,16 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             // ── LEGACY: hardcoded order (no blocks yet) ──
             <>
               <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} />
+              {manifest.anniversaryMode && (
+                <div style={{
+                  textAlign: 'center', fontSize: '0.85rem',
+                  color: 'var(--eg-accent, #A3B18A)',
+                  letterSpacing: '0.12em', textTransform: 'uppercase',
+                  marginTop: '0.5rem', opacity: 0.8,
+                }}>
+                  ✦ Anniversary Edition ✦
+                </div>
+              )}
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
               <VibeQuote />
               <WelcomeStatement />
@@ -777,6 +838,29 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   <GuestbookSection subdomain={domain} vibeSkin={vibeSkin} manifest={manifest} />
                   <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
                 </>
+              )}
+              {manifest.spotifyUrl && (
+                <SpotifySection spotifyUrl={manifest.spotifyUrl} playlistName={manifest.spotifyPlaylistName} vibeSkin={vibeSkin} />
+              )}
+              {manifest.chapters?.some((c: any) => c.quizQuestion) && (
+                <CoupleQuiz siteId={domain} coupleNames={safeNames} chapters={manifest.chapters} vibeSkin={vibeSkin} />
+              )}
+              {manifest.hashtags && manifest.hashtags.length > 0 && (
+                <section style={{ textAlign: 'center', padding: '2rem 1.5rem', opacity: 0.75 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
+                    {manifest.hashtags.map((tag: string) => (
+                      <span key={tag} style={{
+                        fontSize: '0.9rem', fontWeight: 600,
+                        color: 'var(--eg-accent, #A3B18A)',
+                        background: 'rgba(163,177,138,0.08)',
+                        padding: '0.3rem 0.75rem', borderRadius: '999px',
+                        border: '1px solid rgba(163,177,138,0.2)',
+                      }}>
+                        #{tag.replace(/^#/, '')}
+                      </span>
+                    ))}
+                  </div>
+                </section>
               )}
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
               <SiteGallerySection siteId={domain} coupleNames={safeNames} />

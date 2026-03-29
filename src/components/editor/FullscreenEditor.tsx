@@ -901,6 +901,21 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
                       <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St, New York, NY" />
                       <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
 
+                      {/* Ceremony Details sub-section — shown for ceremony-type events */}
+                      {evt.type === 'ceremony' && (
+                        <div style={{ marginTop: '0.25rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                          <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '0.6rem', opacity: 0.7 }}>
+                            Ceremony Details
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <Field label="Officiant" value={evt.ceremony?.officiant || ''} onChange={v => updateEvent(evt.id, { ceremony: { ...evt.ceremony, officiant: v } })} placeholder="Pastor Smith" />
+                            <Field label="Processional Song" value={evt.ceremony?.processionalSong || ''} onChange={v => updateEvent(evt.id, { ceremony: { ...evt.ceremony, processionalSong: v } })} placeholder="Canon in D" />
+                            <Field label="Recessional Song" value={evt.ceremony?.recessionalSong || ''} onChange={v => updateEvent(evt.id, { ceremony: { ...evt.ceremony, recessionalSong: v } })} placeholder="Signed, Sealed, Delivered" />
+                            <Field label="Unity Ritual" value={evt.ceremony?.unityRitual || ''} onChange={v => updateEvent(evt.id, { ceremony: { ...evt.ceremony, unityRitual: v } })} placeholder="Unity candle" />
+                          </div>
+                        </div>
+                      )}
+
                       {/* Remove button */}
                       <button
                         onClick={() => removeEvent(evt.id)}

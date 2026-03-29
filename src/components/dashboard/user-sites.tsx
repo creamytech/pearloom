@@ -571,6 +571,17 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         </div>
                       </div>
 
+                      {/* Analytics */}
+                      {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.85rem' }}>
+                          <span>👁</span>
+                          <span>{site.manifest.analytics.views.toLocaleString()} view{site.manifest.analytics.views !== 1 ? 's' : ''}</span>
+                          {site.manifest.analytics.lastViewed && (
+                            <span style={{ opacity: 0.6 }}>· last {new Date(site.manifest.analytics.lastViewed).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          )}
+                        </div>
+                      )}
+
                       {/* Completeness bar — click to expand full panel */}
                       {site.manifest && (
                         <div style={{ marginBottom: '0.85rem' }}>
