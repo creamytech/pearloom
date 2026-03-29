@@ -132,11 +132,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     : ['Our', 'Story'];
   const title = safeNames.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
 
-  // JSON-LD structured data for the wedding event
+  // JSON-LD structured data — event type is dynamic based on occasion
+  const occasion = manifest.occasion || 'wedding';
+  const occasionEventName: Record<string, string> = {
+    wedding: `${title} Wedding`,
+    anniversary: `${title} Anniversary Celebration`,
+    birthday: `${title} Birthday`,
+    engagement: `${title} Engagement`,
+    story: title,
+  };
   const jsonLd = manifest.events?.length ? {
     '@context': 'https://schema.org',
-    '@type': 'Event',
-    name: `${title} Wedding`,
+    '@type': 'SocialEvent',
+    name: occasionEventName[occasion] || `${title} Celebration`,
     startDate: manifest.events[0].date || manifest.logistics?.date,
     location: manifest.events[0].venue ? {
       '@type': 'Place',

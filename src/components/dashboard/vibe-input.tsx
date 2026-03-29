@@ -237,6 +237,14 @@ const btnPrimaryStyle: React.CSSProperties = {
 };
 
 export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 480);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const [step, setStep] = useState(1);
   // 'main' = steps 1-8 of the original wizard, 'details' = optional details sub-step
   const [wizardPhase, setWizardPhase] = useState<'main' | 'details'>('main');
@@ -1214,7 +1222,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               This shapes the entire tone — colors, fonts, and narrative voice.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
               {VIBE_MOODS.map(m => (
                 <button key={m.id} onClick={() => setMood(m.id)} style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
@@ -1322,7 +1330,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               Pick a palette that feels like your relationship. The AI will use this as a starting point.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
               {COLOR_PALETTES.map(p => (
                 <button key={p.id} onClick={() => setPalette(p.id)} style={{
                   padding: '1.25rem', borderRadius: '1rem', textAlign: 'left',

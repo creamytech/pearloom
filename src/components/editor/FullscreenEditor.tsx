@@ -1819,12 +1819,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
   // ── Autosave to localStorage (debounced 1.5s) ──
   const AUTOSAVE_KEY = 'pearloom_draft_manifest';
+  const DRAFT_DISMISSED_KEY = `pearloom-draft-dismissed-${subdomain}`;
   const [draftBanner, setDraftBanner] = useState<'visible' | 'hidden' | null>(null);
   const [recoveredDraft, setRecoveredDraft] = useState<StoryManifest | null>(null);
 
   // On mount: check for a saved draft newer than the prop manifest
   useEffect(() => {
     try {
+      // If the user previously dismissed the banner for this subdomain, skip it
+      const previouslyDismissed = localStorage.getItem(DRAFT_DISMISSED_KEY);
+      if (previouslyDismissed) return;
+
       const raw = localStorage.getItem(AUTOSAVE_KEY);
       if (!raw) return;
       const saved: { manifest: StoryManifest; savedAt: number } = JSON.parse(raw);
@@ -2069,7 +2074,10 @@ Return JSON with: title, subtitle, description, mood`,
             restore draft
           </button>
           <button
-            onClick={() => setDraftBanner('hidden')}
+            onClick={() => {
+              try { localStorage.setItem(DRAFT_DISMISSED_KEY, '1'); } catch {}
+              setDraftBanner('hidden');
+            }}
             style={{
               background: 'transparent', border: 'none', cursor: 'pointer',
               color: '#2B2B2B', fontSize: '0.78rem', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
