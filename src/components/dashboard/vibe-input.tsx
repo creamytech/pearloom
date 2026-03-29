@@ -5,7 +5,7 @@
 // Rich "Story DNA" Wizard — captures the couple's full aesthetic
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane, Info, ChevronDown } from 'lucide-react';
 
@@ -154,12 +154,66 @@ function slugFromNames(n1: string, n2: string): string {
 }
 
 const VIBE_MOODS = [
-  { id: 'romantic', label: 'Classic Romance', icon: Heart, desc: 'Timeless, elegant, deeply emotional' },
-  { id: 'adventurous', label: 'Adventurous', icon: Mountain, desc: 'Wild, exploring the world together' },
-  { id: 'playful', label: 'Playful & Fun', icon: PartyPopper, desc: 'Laughter, color, and vibrant energy' },
-  { id: 'cozy', label: 'Cozy & Intimate', icon: Coffee, desc: 'Quiet mornings, warmth, and comfort' },
-  { id: 'wanderlust', label: 'Wanderlust', icon: Plane, desc: 'Travel-driven, worldly, cultured' },
-  { id: 'pets', label: 'Our Little Zoo', icon: Dog, desc: 'The fur babies are the stars' },
+  {
+    id: 'romantic', label: 'Classic Romance', icon: Heart, desc: 'Timeless, elegant, deeply emotional',
+    cardBg: 'linear-gradient(145deg, #FFF5F7 0%, #FFE0EA 100%)',
+    activeBg: 'linear-gradient(145deg, #FFDDE6 0%, #FFC2D1 100%)',
+    activeBorder: '#DB7093',
+    iconColor: '#C75B7A',
+    iconBg: 'rgba(219,112,147,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(219,112,147,0.18)',
+  },
+  {
+    id: 'adventurous', label: 'Adventurous', icon: Mountain, desc: 'Wild, exploring the world together',
+    cardBg: 'linear-gradient(145deg, #F0F7EC 0%, #DCF0CC 100%)',
+    activeBg: 'linear-gradient(145deg, #D4EEC2 0%, #BFDFAA 100%)',
+    activeBorder: '#5A8F3E',
+    iconColor: '#3D6E2A',
+    iconBg: 'rgba(90,143,62,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(90,143,62,0.18)',
+  },
+  {
+    id: 'playful', label: 'Playful & Fun', icon: PartyPopper, desc: 'Laughter, color, and vibrant energy',
+    cardBg: 'linear-gradient(145deg, #FFF8EE 0%, #FFE5BC 100%)',
+    activeBg: 'linear-gradient(145deg, #FFE0A0 0%, #FFCC70 100%)',
+    activeBorder: '#D4931A',
+    iconColor: '#B87C10',
+    iconBg: 'rgba(212,147,26,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(255,180,50,0.18)',
+  },
+  {
+    id: 'cozy', label: 'Cozy & Intimate', icon: Coffee, desc: 'Quiet mornings, warmth, and comfort',
+    cardBg: 'linear-gradient(145deg, #FBF5EE 0%, #F0DEC8 100%)',
+    activeBg: 'linear-gradient(145deg, #EACFAA 0%, #D4B080 100%)',
+    activeBorder: '#8B5A2B',
+    iconColor: '#6B3E18',
+    iconBg: 'rgba(139,90,43,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(139,90,43,0.15)',
+  },
+  {
+    id: 'wanderlust', label: 'Wanderlust', icon: Plane, desc: 'Travel-driven, worldly, cultured',
+    cardBg: 'linear-gradient(145deg, #EEF3FF 0%, #D8E4FF 100%)',
+    activeBg: 'linear-gradient(145deg, #C2D4FF 0%, #A8BEF0 100%)',
+    activeBorder: '#3D5ECC',
+    iconColor: '#2B4AB8',
+    iconBg: 'rgba(65,105,225,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(65,105,225,0.16)',
+  },
+  {
+    id: 'pets', label: 'Our Little Zoo', icon: Dog, desc: 'The fur babies are the stars',
+    cardBg: 'linear-gradient(145deg, #FFF7F0 0%, #FFE4CC 100%)',
+    activeBg: 'linear-gradient(145deg, #FFD4A8 0%, #FFBC78 100%)',
+    activeBorder: '#C06820',
+    iconColor: '#A05010',
+    iconBg: 'rgba(210,105,30,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(210,105,30,0.18)',
+  },
 ];
 
 const OCCASIONS = [
@@ -292,6 +346,24 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const canProceedStep7 = meetCute.trim() !== ''; // Step 7 = Story
 
   const hasInspirationUrls = inspirationUrls.some(u => u.trim().match(/^https?:\/\/.+/));
+
+  // Ambient orb color for background — shifts with mood/palette selection
+  const ambientOrb = useMemo(() => {
+    if (step === 3 && mood) {
+      return VIBE_MOODS.find(m => m.id === mood)?.orb ?? 'rgba(163,177,138,0.12)';
+    }
+    if (step === 5 && palette && palette !== 'custom') {
+      const sel = COLOR_PALETTES.find(p => p.id === palette);
+      if (sel) {
+        const hex = sel.colors[0].replace('#', '');
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return `rgba(${r},${g},${b},0.14)`;
+      }
+    }
+    return 'rgba(163,177,138,0.1)';
+  }, [step, mood, palette]);
 
   const canProceedCurrentStep = () => {
     if (step === 1) return !!canProceedStep1;
@@ -1045,21 +1117,26 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   }
 
   return (
-    <div style={{
-      maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem',
-    }}>
-      {/* Linear progress bar — spans full wizard flow */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
-            Step {step} of {totalSteps + 1}
-          </span>
-        </div>
-        <div style={{ width: '100%', height: '3px', background: 'var(--eg-divider, rgba(0,0,0,0.08))', overflow: 'hidden' }}>
+    <div style={{ maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem', position: 'relative' }}>
+      {/* ── Ambient orb — shifts with current selection ── */}
+      <motion.div
+        animate={{ background: `radial-gradient(ellipse 700px 500px at 50% -80px, ${ambientOrb}, transparent 70%)` }}
+        transition={{ duration: 1.2, ease: 'easeInOut' }}
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, height: '500px',
+          pointerEvents: 'none', zIndex: 0,
+        }}
+      />
+      {/* Progress header */}
+      <div style={{ marginBottom: '2.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap', flexShrink: 0 }}>
+          {step} / {totalSteps + 1}
+        </span>
+        <div style={{ flex: 1, height: '2px', background: 'rgba(0,0,0,0.07)', borderRadius: 100, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${Math.round((step / (totalSteps + 1)) * 100)}%` }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            style={{ height: '100%', background: 'var(--eg-accent)' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{ height: '100%', background: 'linear-gradient(90deg, var(--eg-accent), color-mix(in srgb, var(--eg-accent) 70%, #fff))', borderRadius: 100 }}
           />
         </div>
       </div>
@@ -1092,6 +1169,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         })}
       </div>
 
+      <div style={{ position: 'relative', zIndex: 1 }}>
       <AnimatePresence mode="wait" custom={1}>
         {/* ── STEP 1: Names ── */}
         {step === 1 && (
@@ -1223,25 +1301,52 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               This shapes the entire tone — colors, fonts, and narrative voice.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
-              {VIBE_MOODS.map(m => (
-                <button key={m.id} onClick={() => setMood(m.id)} style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
-                  padding: '1.5rem 1rem', borderRadius: '1rem', textAlign: 'center',
-                  border: `2px solid ${mood === m.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                  background: mood === m.id ? 'var(--eg-accent-light)' : '#fff',
-                  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: mood === m.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
-                  transform: mood === m.id ? 'translateY(-2px)' : 'none',
-                }}>
-                  <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', background: mood === m.id ? '#fff' : 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--eg-accent)' }}>
-                    <m.icon size={20} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{m.label}</h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>{m.desc}</p>
-                  </div>
-                </button>
-              ))}
+              {VIBE_MOODS.map(m => {
+                const active = mood === m.id;
+                return (
+                  <motion.button
+                    key={m.id}
+                    onClick={() => setMood(m.id)}
+                    whileHover={{ y: -3, boxShadow: '0 12px 32px rgba(0,0,0,0.10)' }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem',
+                      padding: '1.5rem', borderRadius: '1.25rem', textAlign: 'left',
+                      border: `2px solid ${active ? m.activeBorder : 'rgba(0,0,0,0.0)'}`,
+                      background: active ? m.activeBg : m.cardBg,
+                      cursor: 'pointer',
+                      transition: 'background 0.35s ease, border-color 0.25s ease',
+                      boxShadow: active ? `0 8px 28px ${m.orb}` : '0 2px 12px rgba(0,0,0,0.04)',
+                      position: 'relative', overflow: 'hidden',
+                    }}
+                  >
+                    {/* Glow spot */}
+                    {active && (
+                      <div style={{
+                        position: 'absolute', top: '-40px', right: '-40px',
+                        width: '120px', height: '120px', borderRadius: '50%',
+                        background: `radial-gradient(circle, ${m.orb.replace('0.', '0.5,').replace(')', ',transparent)')}`,
+                        filter: 'blur(20px)', pointerEvents: 'none',
+                      }} />
+                    )}
+                    <div style={{
+                      width: '3rem', height: '3rem', borderRadius: '0.875rem',
+                      background: active ? m.activeIconBg : m.iconBg,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: m.iconColor, flexShrink: 0,
+                      boxShadow: active ? `0 4px 12px ${m.iconBg}` : 'none',
+                      transition: 'all 0.25s ease',
+                    }}>
+                      <m.icon size={20} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.3rem' }}>{m.label}</h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', lineHeight: 1.5, margin: 0 }}>{m.desc}</p>
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
@@ -1330,24 +1435,58 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               Pick a palette that feels like your relationship. The AI will use this as a starting point.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
-              {COLOR_PALETTES.map(p => (
-                <button key={p.id} onClick={() => setPalette(p.id)} style={{
-                  padding: '1.25rem', borderRadius: '1rem', textAlign: 'left',
-                  border: `2px solid ${palette === p.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                  background: palette === p.id ? 'var(--eg-accent-light)' : '#fff',
-                  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transform: palette === p.id ? 'translateY(-2px)' : 'none',
-                  boxShadow: palette === p.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
-                }}>
-                  <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.75rem' }}>
-                    {p.colors.map((c, i) => (
-                      <div key={i} style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
-                    ))}
-                  </div>
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--eg-fg)' }}>{p.name}</span>
-                </button>
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.875rem' }}>
+              {COLOR_PALETTES.map(p => {
+                const active = palette === p.id;
+                const isCustom = p.id === 'custom';
+                return (
+                  <motion.button
+                    key={p.id}
+                    onClick={() => setPalette(p.id)}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.18 }}
+                    style={{
+                      padding: 0, borderRadius: '1rem', textAlign: 'left',
+                      border: `2px solid ${active ? 'var(--eg-fg)' : 'rgba(0,0,0,0.06)'}`,
+                      background: '#fff',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      boxShadow: active ? '0 8px 28px rgba(0,0,0,0.14)' : '0 2px 10px rgba(0,0,0,0.03)',
+                      transition: 'border-color 0.2s, box-shadow 0.25s',
+                    }}
+                  >
+                    {/* Gradient strip */}
+                    <div style={{
+                      height: '52px',
+                      background: isCustom
+                        ? 'linear-gradient(90deg, #A3B18A, #D6C6A8, #6D597A, #1a1713, #8FA876)'
+                        : `linear-gradient(90deg, ${p.colors.join(', ')})`,
+                      position: 'relative',
+                    }}>
+                      {active && (
+                        <div style={{
+                          position: 'absolute', top: '50%', right: '0.75rem',
+                          transform: 'translateY(-50%)',
+                          width: '22px', height: '22px', borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.9)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.75rem',
+                        }}>✓</div>
+                      )}
+                    </div>
+                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{p.name}</span>
+                      {/* Mini swatches */}
+                      <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                        {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
+                          <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
@@ -1491,6 +1630,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -5,7 +5,7 @@
 // Cinematic full-screen generation experience — The Atelier
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Pass descriptors (maps to engine passes 1–7 + init) ───────
@@ -59,6 +59,49 @@ const PASSES = [
     pct: 95,
   },
 ];
+
+// ── Story glimpse lines — revealed typewriter-style per pass ──
+const GLIMPSE_LINES = [
+  '"It started with a glance — the kind neither of them could explain afterward."',
+  '"They ordered the same thing. The universe was not being subtle."',
+  '"She said yes. The world shifted quietly on its axis."',
+  '"Some loves announce themselves loudly. Theirs arrived like a slow, golden afternoon."',
+  '"Every photo holds a chapter. Every chapter holds the truth."',
+  '"The small moments, it turns out, were never small at all."',
+  '"Years later, they could still describe the exact quality of the light."',
+  '"Home became less a place and more a person."',
+];
+
+// Typewriter component — streams text character by character
+function TypewriterText({ text, speed = 24 }: { text: string; speed?: number }) {
+  const [displayed, setDisplayed] = useState('');
+  const textRef = useRef(text);
+  textRef.current = text;
+
+  useEffect(() => {
+    setDisplayed('');
+    let i = 0;
+    const t = setInterval(() => {
+      i++;
+      setDisplayed(textRef.current.slice(0, i));
+      if (i >= textRef.current.length) clearInterval(t);
+    }, speed);
+    return () => clearInterval(t);
+  }, [text, speed]);
+
+  return (
+    <>
+      {displayed}
+      {displayed.length < text.length && (
+        <motion.span
+          animate={{ opacity: [1, 0, 1] }}
+          transition={{ duration: 0.8, repeat: Infinity }}
+          style={{ display: 'inline-block', width: '1px', height: '1em', background: 'rgba(250,247,242,0.4)', marginLeft: '1px', verticalAlign: 'text-bottom' }}
+        />
+      )}
+    </>
+  );
+}
 
 // ── Editorial words that drift across the screen ──────────────
 const WORDS = [
@@ -241,12 +284,41 @@ export function GenerationProgress({ step = 0 }: { step?: number }) {
               color: 'rgba(250,247,242,0.48)',
               lineHeight: 1.75,
               maxWidth: '400px',
-              margin: '0 auto 3.5rem',
+              margin: '0 auto 1.75rem',
               fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
             }}
           >
             {pass.copy}
           </motion.p>
+        </AnimatePresence>
+
+        {/* ── Story glimpse — typewriter ── */}
+        <AnimatePresence mode="wait">
+          {idx >= 1 && (
+            <motion.p
+              key={`glimpse-${idx}`}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, delay: 0.5 }}
+              style={{
+                fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+                fontSize: 'clamp(0.85rem, 2vw, 1.0rem)',
+                fontStyle: 'italic',
+                color: 'rgba(250,247,242,0.32)',
+                lineHeight: 1.8,
+                maxWidth: '360px',
+                margin: '0 auto 2.75rem',
+                letterSpacing: '0.015em',
+                minHeight: '1.8em',
+              }}
+            >
+              <TypewriterText text={GLIMPSE_LINES[idx % GLIMPSE_LINES.length]} speed={26} />
+            </motion.p>
+          )}
+          {idx < 1 && (
+            <div key="spacer" style={{ marginBottom: '2.75rem' }} />
+          )}
         </AnimatePresence>
 
         {/* ── Progress bar ── */}
