@@ -73,35 +73,28 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
 
   return (
     <div style={{ position: 'relative' }} ref={ref}>
-      {/* Avatar trigger */}
+      {/* Avatar trigger — avatar only; name/email live inside the dropdown */}
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Account menu"
         style={{
-          display: 'flex', alignItems: 'center', gap: '0.75rem',
           background: 'none', border: 'none', cursor: 'pointer',
-          padding: '0.25rem', borderRadius: '2rem', transition: 'all 0.2s ease',
+          padding: '2px', borderRadius: '50%', transition: 'opacity 0.2s ease',
+          display: 'flex', alignItems: 'center',
         }}
-        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
-        onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseOver={(e) => { e.currentTarget.style.opacity = '0.8'; }}
+        onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; }}
       >
-        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }} className="hidden sm:flex">
-          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--eg-fg)', lineHeight: 1.2 }}>
-            {user.name || 'Your Account'}
-          </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', lineHeight: 1.2 }}>
-            {user.email}
-          </span>
-        </div>
         {user.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={user.image}
             alt="Profile"
-            style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.05)', objectFit: 'cover' }}
+            style={{ width: '2.25rem', height: '2.25rem', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.07)', objectFit: 'cover', display: 'block' }}
           />
         ) : (
-          <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'var(--eg-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <User size={18} />
+          <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '50%', background: 'var(--eg-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <User size={16} />
           </div>
         )}
       </button>

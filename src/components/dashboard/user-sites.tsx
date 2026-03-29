@@ -615,7 +615,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             flex: 1,
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
-                            background: 'var(--eg-fg)',
+                            background: '#2B2B2B',
                             color: '#fff', border: 'none', cursor: 'pointer',
                             fontWeight: 600, fontSize: '0.78rem', letterSpacing: '0.04em',
                             fontFamily: 'var(--eg-font-body)',
