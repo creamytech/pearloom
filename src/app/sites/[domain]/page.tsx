@@ -225,7 +225,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'story':
         return (
           <section key={key} id="our-story">
-            <Timeline chapters={manifest.chapters || []} vibeSkin={vibeSkin} />
+            <Timeline chapters={manifest.chapters || []} vibeSkin={vibeSkin} layoutFormat={manifest.layoutFormat} />
           </section>
         );
       case 'event':
@@ -741,7 +741,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               <VibeQuote />
               <WelcomeStatement />
               <ArtStrip />
-              <section id="our-story"><Timeline chapters={manifest.chapters || []} /></section>
+              <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
               {manifest.events?.length ? (
                 <>
                   <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />

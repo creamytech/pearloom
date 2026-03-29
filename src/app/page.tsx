@@ -149,7 +149,7 @@ export default function DashboardPage() {
     ceremonyAddress?: string; ceremonyTime?: string; receptionVenue?: string;
     receptionAddress?: string; receptionTime?: string; dresscode?: string;
     officiant?: string; celebrationVenue?: string; celebrationTime?: string;
-    guestNotes?: string; inspirationUrls?: string[];
+    guestNotes?: string; inspirationUrls?: string[]; layoutFormat?: string;
   } | null>(null);
 
   // Publish Flow State
@@ -226,6 +226,7 @@ export default function DashboardPage() {
     celebrationTime?: string;
     guestNotes?: string;
     inspirationUrls?: string[];
+    layoutFormat?: string;
   }) => {
     setCoupleNames(data.names);
     setVibeString(data.vibeString);
@@ -296,8 +297,9 @@ export default function DashboardPage() {
       // Jump to final step immediately on success
       setGenerationStep(7);
 
-      // Stamp the occasion onto the manifest so the editor can use it
+      // Stamp the occasion and layout format onto the manifest so the editor can use it
       result.manifest.occasion = data.occasion || 'wedding';
+      if (data.layoutFormat) result.manifest.layoutFormat = data.layoutFormat;
       setManifest(result.manifest);
 
       // Use slug from wizard if provided, otherwise auto-generate from names
