@@ -607,12 +607,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       )}
 
                       {/* Action row */}
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                         {/* Edit — primary */}
                         <button
                           onClick={(e) => { e.stopPropagation(); onEditSite(site); }}
                           style={{
-                            flex: 1,
+                            flex: '1 1 auto', minWidth: '70px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
                             background: '#2B2B2B',
@@ -633,7 +633,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           onClick={(e) => handleCopyUrl(site, e)}
                           title="Copy site URL"
                           style={{
-                            flex: 1,
+                            flex: '1 1 auto', minWidth: '70px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
                             background: isCopied ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.08)',
@@ -653,7 +653,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           onClick={(e) => { e.stopPropagation(); onManageGuests(site); }}
                           title="Manage Guests"
                           style={{
-                            width: '38px', height: '38px', borderRadius: '0.75rem',
+                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
                             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--eg-muted)', cursor: 'pointer', transition: 'all 0.2s',
@@ -680,7 +680,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="View Live Site"
                           onClick={(e) => e.stopPropagation()}
                           style={{
-                            width: '38px', height: '38px', borderRadius: '0.75rem',
+                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
                             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--eg-muted)', textDecoration: 'none',
@@ -706,11 +706,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           disabled={isDeleting}
                           title="Delete site"
                           style={{
-                            width: '38px', height: '38px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(109,89,122,0.12)',
+                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
+                            border: '1px solid rgba(185,28,28,0.2)',
                             background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'rgba(109,89,122,0.45)', cursor: 'pointer',
+                            color: 'rgba(185,28,28,0.55)', cursor: 'pointer',
                             transition: 'all 0.2s',
                           }}
                           onMouseOver={(e) => {
