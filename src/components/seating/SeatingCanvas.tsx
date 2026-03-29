@@ -65,6 +65,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
   const [tables, setTables] = useState<SeatingTable[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | undefined>();
   const [zoom, setZoom] = useState(0.75);
   const [pan, setPan] = useState({ x: 40, y: 30 });
@@ -87,7 +88,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
         setTables(data.tables ?? []);
         setGuests(data.guests ?? []);
       } catch (err) {
-        console.error('Failed to load seating data:', err);
+        setLoadError(err instanceof Error ? err.message : 'Failed to load seating data.');
       } finally {
         setLoading(false);
       }
@@ -505,12 +506,25 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
 
             {/* Loading state */}
             {loading && (
-              <div style={{
-                position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--eg-font-body)', fontSize: '0.9rem' }}>
                   Loading seating chart…
                 </p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {!loading && loadError && (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                <p style={{ color: 'rgba(239,68,68,0.8)', fontFamily: 'var(--eg-font-body)', fontSize: '0.9rem', maxWidth: '280px', textAlign: 'center' }}>
+                  {loadError}
+                </p>
+                <button
+                  onClick={() => { setLoadError(null); setLoading(true); }}
+                  style={{ padding: '0.5rem 1.25rem', borderRadius: '0.6rem', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'rgba(239,68,68,0.8)', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'var(--eg-font-body)' }}
+                >
+                  Retry
+                </button>
               </div>
             )}
 

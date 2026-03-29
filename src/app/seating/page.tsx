@@ -18,6 +18,7 @@ function SeatingPageInner() {
   const siteId = searchParams.get('siteId') ?? 'demo';
   const spaceId = searchParams.get('spaceId') ?? undefined;
   const [siteName, setSiteName] = useState<string>('');
+  const [showAIToast, setShowAIToast] = useState(false);
 
   // Load site name if available
   useEffect(() => {
@@ -33,9 +34,9 @@ function SeatingPageInner() {
     }
   }, [siteId]);
 
-  const handleAIArrange = async () => {
-    // Stub: could call /api/ai-blocks or a wedding-graph endpoint
-    alert('AI Arrange coming soon! It will automatically seat guests based on your constraints and relationships.');
+  const handleAIArrange = () => {
+    setShowAIToast(true);
+    setTimeout(() => setShowAIToast(false), 4000);
   };
 
   return (
@@ -141,6 +142,27 @@ function SeatingPageInner() {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <SeatingCanvas siteId={siteId} spaceId={spaceId} />
       </div>
+
+      {/* ── AI Arrange coming-soon toast ─────────────────────── */}
+      {showAIToast && (
+        <div style={{
+          position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+          background: '#1a1713', color: '#fff',
+          padding: '0.9rem 1.5rem', borderRadius: '0.875rem',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+          fontSize: '0.875rem', fontFamily: 'var(--eg-font-body)',
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+          zIndex: 100, maxWidth: 'calc(100vw - 3rem)',
+          animation: 'fadeInUp 0.3s ease',
+        }}>
+          <Sparkles size={16} color="var(--eg-accent, #A3B18A)" />
+          <div>
+            <span style={{ fontWeight: 700, color: '#A3B18A' }}>AI Arrange</span>
+            {' '}is coming soon — it will seat guests automatically based on your relationships and constraints.
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes fadeInUp { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }`}</style>
     </div>
   );
 }

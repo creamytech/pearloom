@@ -41,6 +41,9 @@ interface GuestManagerProps {
 export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | Guest['status']>('all');
   const [addOpen, setAddOpen] = useState(false);
@@ -53,12 +56,14 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
 
   const fetchGuests = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const res = await fetch(`/api/guests?siteId=${siteId}`);
+      if (!res.ok) throw new Error(`Server error (${res.status})`);
       const data = await res.json();
       setGuests(data.guests || []);
     } catch (e) {
-      console.error('Failed to fetch guests', e);
+      setFetchError(e instanceof Error ? e.message : 'Failed to load guest list. Try refreshing.');
     } finally {
       setLoading(false);
     }
@@ -67,6 +72,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
   const addGuest = async () => {
     if (!newGuest.name.trim()) return;
     setSaving(true);
+    setAddError(null);
     try {
       const res = await fetch('/api/guests', {
         method: 'POST',
@@ -74,18 +80,35 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         body: JSON.stringify({ siteId, ...newGuest }),
       });
       const data = await res.json();
-      if (data.guest) {
+      if (!res.ok) {
+        setAddError(data.error || 'Failed to add guest. Please try again.');
+      } else if (data.guest) {
         setGuests((prev) => [...prev, data.guest]);
         setNewGuest({ name: '', email: '', plusOne: false });
         setAddOpen(false);
       }
-    } catch (e) { console.error(e); }
-    setSaving(false);
+    } catch {
+      setAddError('Network error. Please check your connection and try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const deleteGuest = async (id: string) => {
+    setDeleteError(null);
+    const snapshot = guests;
     setGuests((prev) => prev.filter((g) => g.id !== id));
-    await fetch(`/api/guests/${id}?siteId=${siteId}`, { method: 'DELETE' }).catch(console.error);
+    try {
+      const res = await fetch(`/api/guests/${id}?siteId=${siteId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        setGuests(snapshot); // rollback
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error || 'Failed to delete guest. Please try again.');
+      }
+    } catch {
+      setGuests(snapshot); // rollback
+      setDeleteError('Network error. The guest was not deleted.');
+    }
   };
 
   const filtered = guests.filter((g) => {
@@ -305,6 +328,11 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 />
                 +1 Allowed
               </label>
+              {addError && (
+                <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.5rem', fontSize: '0.8rem', color: '#b91c1c' }}>
+                  {addError}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
                   onClick={addGuest}
@@ -359,6 +387,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
             <Loader2 size={24} color="var(--eg-muted)" style={{ margin: '0 auto', animation: 'spin 1s linear infinite' }} />
+          </div>
+        ) : fetchError ? (
+          <div style={{ padding: '3rem', textAlign: 'center' }}>
+            <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginBottom: '1rem' }}>{fetchError}</p>
+            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)' }}>
+              <RefreshCw size={13} /> Retry
+            </button>
           </div>
         ) : filtered.length === 0 && guests.length === 0 ? (
           /* Empty state */
@@ -505,6 +540,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           })
         )}
       </div>
+
+      {deleteError && (
+        <div style={{ padding: '0.7rem 1rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.65rem', fontSize: '0.8rem', color: '#b91c1c', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <span>{deleteError}</span>
+          <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', padding: 0, fontSize: '1rem', lineHeight: 1 }}>×</button>
+        </div>
+      )}
 
       {filtered.length > 0 && (
         <p style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', textAlign: 'center' }}>
