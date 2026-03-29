@@ -288,7 +288,7 @@ export function SiteSharePanel({
                 {siteDescription || 'Join us to celebrate our special day.'}
               </div>
               <div style={{ fontSize: '0.65rem', color: 'rgba(0,0,0,0.3)' }}>
-                pearloom.app
+                pearloom.com
               </div>
             </div>
           </div>

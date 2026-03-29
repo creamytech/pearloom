@@ -261,7 +261,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
           <div style={styles.successUrl}>
             <span style={styles.dimText}>Save this link — share it with each other:</span>
             <div style={styles.unlockLink}>
-              pearloom.app/time-capsule/{successInfo.token}
+              pearloom.com/time-capsule/{successInfo.token}
             </div>
           </div>
         </div>

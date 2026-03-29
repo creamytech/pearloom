@@ -68,10 +68,10 @@ export async function generateMetadata(
 
   const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
 
-  const siteUrl = `https://${domain}.pearloom.app`;
+  const siteUrl = `https://${domain}.pearloom.com`;
 
   return {
-    metadataBase: new URL('https://pearloom.app'),
+    metadataBase: new URL('https://pearloom.com'),
     title: fullTitle,
     description,
     alternates: {
@@ -187,7 +187,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
 
   // Determine cover photo
-  const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || 'https://images.unsplash.com/photo-1519741497674-611481863552';
+  const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || '';
 
 
   // Build real nav pages from manifest content

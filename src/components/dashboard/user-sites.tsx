@@ -31,11 +31,11 @@ function MagneticButton({
   children: React.ReactNode;
   strength?: number;
 }) {
-  const ref = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    const el = ref.current;
+    const el = containerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -46,17 +46,22 @@ function MagneticButton({
   const handleMouseLeave = () => setPos({ x: 0, y: 0 });
 
   return (
-    <motion.button
-      ref={ref}
-      onClick={onClick}
+    // Static container keeps layout stable — only the inner button moves
+    <div
+      ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      animate={{ x: pos.x, y: pos.y }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      style={style}
+      style={{ display: 'inline-flex' }}
     >
-      {children}
-    </motion.button>
+      <motion.button
+        onClick={onClick}
+        animate={{ x: pos.x, y: pos.y }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        style={style}
+      >
+        {children}
+      </motion.button>
+    </div>
   );
 }
 
@@ -192,12 +197,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
   };
 
   const getSiteUrl = (domain: string) => {
-    if (typeof window === 'undefined') return `https://${domain}.pearloom.app`;
+    if (typeof window === 'undefined') return `https://${domain}.pearloom.com`;
     const { hostname, origin } = window.location;
     if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
     // On Vercel preview deployments use path-based routing
     if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
-    return `https://${domain}.pearloom.app`;
+    return `https://${domain}.pearloom.com`;
   };
 
   const handleCopyUrl = async (site: UserSite, e: React.MouseEvent) => {
@@ -253,17 +258,23 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexWrap: 'wrap', gap: '1rem',
           paddingBottom: '2rem',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          borderBottom: '2px solid var(--eg-gold)',
         }}>
-          <p style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: '1.1rem',
-            fontWeight: 400,
-            color: 'var(--eg-muted)',
-            fontStyle: 'italic',
-          }}>
-            Your Sites
-          </p>
+          {/* Section label with ornamental dots */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--eg-gold)', display: 'inline-block', flexShrink: 0 }} />
+            <p style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: '1rem',
+              fontWeight: 400,
+              color: 'var(--eg-muted)',
+              fontStyle: 'italic',
+              letterSpacing: '0.01em',
+            }}>
+              Your Sites
+            </p>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--eg-gold)', display: 'inline-block', flexShrink: 0 }} />
+          </div>
           <MagneticButton
             onClick={onStartNew}
             style={{
@@ -403,12 +414,18 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
       ) : (
         /* ── Site grid ── */
         <>
+          {/* Faint pear watermark behind the grid */}
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', right: '-3rem', top: '-2rem', pointerEvents: 'none', zIndex: 0 }}>
+              <PearBackground size={380} color="var(--eg-accent)" opacity={0.03} />
+            </div>
           <div
             className="site-card-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
               gap: '1.5rem',
+              position: 'relative', zIndex: 1,
             }}
           >
             <AnimatePresence>
@@ -426,6 +443,14 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 ).join(' & ');
                 const weddingDate = site.manifest?.logistics?.date || site.manifest?.events?.[0]?.date;
                 const isLive = !site.manifest?.comingSoon?.enabled;
+                const occasionMeta: Record<string, { label: string; color: string; bg: string }> = {
+                  wedding:     { label: 'Wedding',     color: '#6D597A', bg: 'rgba(109,89,122,0.10)' },
+                  anniversary: { label: 'Anniversary', color: '#8A6D3B', bg: 'rgba(214,198,168,0.25)' },
+                  engagement:  { label: 'Engagement',  color: '#6D597A', bg: 'rgba(109,89,122,0.10)' },
+                  birthday:    { label: 'Birthday',    color: '#5C7A6E', bg: 'rgba(163,177,138,0.18)' },
+                  story:       { label: 'Story',       color: 'var(--eg-muted)', bg: 'rgba(0,0,0,0.05)' },
+                };
+                const occ = occasionMeta[site.manifest?.occasion || ''];
 
                 return (
                   <motion.article
@@ -438,15 +463,15 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     onHoverStart={() => setHoveredId(site.id)}
                     onHoverEnd={() => setHoveredId(null)}
                     style={{
-                      background: '#fff',
+                      background: 'var(--eg-bg)',
                       borderRadius: '1.25rem',
                       overflow: 'hidden',
                       border: isHovered
-                        ? '1px solid rgba(163,177,138,0.3)'
-                        : '1px solid rgba(0,0,0,0.05)',
+                        ? '1px solid var(--eg-gold)'
+                        : '1px solid var(--eg-divider)',
                       boxShadow: isHovered
-                        ? '0 20px 60px rgba(0,0,0,0.10), 0 4px 16px rgba(163,177,138,0.08)'
-                        : '0 4px 24px rgba(0,0,0,0.05)',
+                        ? '0 20px 60px rgba(43,43,43,0.10), 0 4px 16px rgba(214,198,168,0.2)'
+                        : 'var(--eg-shadow-sm)',
                       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
                       transition: 'box-shadow 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1)',
                     }}
@@ -554,20 +579,31 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
                     {/* Card body */}
                     <div style={{ padding: '1.25rem 1.5rem 1.5rem' }}>
-                      {/* URL pill + date */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        <code style={{
-                          fontSize: '0.72rem', background: 'rgba(0,0,0,0.04)',
-                          padding: '0.25rem 0.65rem', borderRadius: '0.4rem',
-                          color: 'var(--eg-muted)', letterSpacing: '0.01em',
-                          fontFamily: 'ui-monospace, monospace',
-                          border: '1px solid rgba(0,0,0,0.06)',
-                        }}>
-                          {getSiteUrl(site.domain).replace(/^https?:\/\//, '')}
-                        </code>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--eg-muted)', fontSize: '0.72rem' }}>
+                      {/* Occasion badge + date row */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {occ && (
+                            <span style={{
+                              fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.09em',
+                              textTransform: 'uppercase', padding: '0.2rem 0.6rem',
+                              borderRadius: '100px', color: occ.color, background: occ.bg,
+                            }}>
+                              {occ.label}
+                            </span>
+                          )}
+                          <code style={{
+                            fontSize: '0.7rem', background: 'rgba(0,0,0,0.04)',
+                            padding: '0.2rem 0.55rem', borderRadius: '0.4rem',
+                            color: 'var(--eg-muted)', letterSpacing: '0.01em',
+                            fontFamily: 'ui-monospace, monospace',
+                            border: '1px solid var(--eg-divider)',
+                          }}>
+                            {site.domain}.pearloom.com
+                          </code>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--eg-muted)', fontSize: '0.7rem' }}>
                           <Calendar size={11} />
-                          <span>Created {formattedDate}</span>
+                          <span>{formattedDate}</span>
                         </div>
                       </div>
 
@@ -635,14 +671,15 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             flex: '1 1 auto', minWidth: '70px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
-                            background: '#2B2B2B',
+                            background: 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
                             color: '#fff', border: 'none', cursor: 'pointer',
                             fontWeight: 600, fontSize: '0.78rem', letterSpacing: '0.04em',
                             fontFamily: 'var(--eg-font-body)',
-                            transition: 'opacity 0.2s',
+                            boxShadow: '0 4px 14px rgba(163,177,138,0.35)',
+                            transition: 'opacity 0.2s, box-shadow 0.2s',
                           }}
-                          onMouseOver={(e) => { e.currentTarget.style.opacity = '0.85'; }}
-                          onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; }}
+                          onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(163,177,138,0.5)'; e.currentTarget.style.opacity = '0.92'; }}
+                          onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 4px 14px rgba(163,177,138,0.35)'; e.currentTarget.style.opacity = '1'; }}
                         >
                           <Pencil size={12} />
                           Edit Site
@@ -798,6 +835,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               </div>
             </motion.button>
           </div>
+          </div>{/* end watermark wrapper */}
 
           {/* Responsive grid styles */}
           <style>{`
@@ -880,7 +918,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 Delete this site?
               </h3>
               <p style={{ color: 'var(--eg-muted)', lineHeight: 1.65, marginBottom: deleteError ? '1rem' : '2.25rem', fontSize: '0.925rem' }}>
-                <strong style={{ color: 'var(--eg-fg)' }}>{confirmDelete.domain}.pearloom.app</strong> will be
+                <strong style={{ color: 'var(--eg-fg)' }}>{confirmDelete.domain}.pearloom.com</strong> will be
                 permanently removed. Guests will no longer be able to access it.
               </p>
               {deleteError && (

@@ -338,7 +338,12 @@ function SectionItem({
 
           {/* Delete */}
           <button
-            onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
+            onClick={e => {
+              e.stopPropagation();
+              if (window.confirm(`Delete "${chapter.title}"? This cannot be undone.`)) {
+                onDelete(chapter.id);
+              }
+            }}
             style={{
               padding: '5px', borderRadius: '5px', border: 'none',
               background: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
@@ -394,9 +399,19 @@ function ImageManager({
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const MAX_MB = 20;
+    const validFiles = Array.from(files).filter(f => {
+      if (!f.type.startsWith('image/')) return false;
+      if (f.size > MAX_MB * 1024 * 1024) {
+        alert(`"${f.name}" is too large (max ${MAX_MB}MB). Please compress and try again.`);
+        return false;
+      }
+      return true;
+    });
+    if (validFiles.length === 0) return;
     setUploading(true);
     const results: ChapterImage[] = [];
-    for (const file of Array.from(files)) {
+    for (const file of validFiles) {
       try {
         const formData = new FormData();
         formData.append('file', file);
@@ -1023,17 +1038,24 @@ function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManife
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-      <Section id="couple" label="Couple">
-        {sectionHead('Couple')}
-        <Field label="Dress Code" value={logistics.dresscode || ''} onChange={v => upd({ dresscode: v })} placeholder="Black Tie Optional" />
-        <Field label="Couple Notes" value={logistics.notes || ''} onChange={v => upd({ notes: v })} placeholder="Additional notes for guests..." />
+      <Section id="couple" label={occasion === 'birthday' ? 'Honoree' : occasion === 'anniversary' ? 'Couple' : 'Couple'}>
+        {sectionHead(occasion === 'birthday' ? 'Honoree' : 'Couple')}
+        {occasion !== 'birthday' && (
+          <Field label="Dress Code" value={logistics.dresscode || ''} onChange={v => upd({ dresscode: v })} placeholder="Black Tie Optional" />
+        )}
+        <Field
+          label={occasion === 'birthday' ? 'Host Notes' : 'Couple Notes'}
+          value={logistics.notes || ''}
+          onChange={v => upd({ notes: v })}
+          placeholder="Additional notes for guests..."
+        />
       </Section>
 
-      <Section id="theday" label="The Day">
-        {sectionHead('The Day')}
+      <Section id="theday" label={occasion === 'birthday' ? 'The Party' : occasion === 'anniversary' ? 'The Celebration' : 'The Day'}>
+        {sectionHead(occasion === 'birthday' ? 'The Party' : occasion === 'anniversary' ? 'The Celebration' : 'The Day')}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
           <div>
-            <label style={lbl}>Wedding Date</label>
+            <label style={lbl}>{occasion === 'birthday' ? 'Party Date' : occasion === 'anniversary' ? 'Anniversary Date' : 'Wedding Date'}</label>
             <input
               type="date"
               value={logistics.date || ''}
@@ -1043,7 +1065,12 @@ function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManife
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
             />
           </div>
-          <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
+          <Field
+            label={occasion === 'birthday' ? 'Party Time' : 'Ceremony Time'}
+            value={logistics.time || ''}
+            onChange={v => upd({ time: v })}
+            placeholder="5:00 PM"
+          />
         </div>
         {/* Venue search — populates name + address from Google Places */}
         <div style={{ marginBottom: '6px' }}>
@@ -1342,7 +1369,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
       b.type === 'event' ? ['schedule', 'rsvp'] : [b.type]
     ) || []
   );
-  const baseUrl = subdomain ? `https://${subdomain}.pearloom.app` : '';
+  const baseUrl = subdomain ? `https://${subdomain}.pearloom.com` : '';
   const customPages = manifest.customPages || [];
 
   const addCustomPage = () => {
@@ -1818,10 +1845,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
-  // ── Auto-enable split view when canvas tab is active ──
-  useEffect(() => {
-    if (activeTab === 'canvas') setSplitView(true);
-  }, [activeTab]);
+  // Canvas tab: don't auto-enable split view; user can toggle it manually
 
   // ── Show "Click to jump" hint when split view first opens ──
   const hintShownRef = useRef(false);
@@ -1995,8 +2019,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     }, 600);
   }, [previewKey, coupleNames]);
 
-  // Initial load
+  // Initial load — set sessionStorage synchronously so iframe has data the moment it loads
   useEffect(() => {
+    try {
+      sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+    } catch {}
     pushToPreview(manifest);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -2308,11 +2335,19 @@ Return JSON with: title, subtitle, description, mood`,
           <ExitIcon size={14} /> Exit
         </button>
 
-        {/* Site name — centered */}
+        {/* Site name — centered, contextual to occasion */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <Heart size={12} color="var(--eg-gold, #D6C6A8)" fill="var(--eg-gold, #D6C6A8)" />
+          {manifest.occasion !== 'birthday' && (
+            <Heart size={12} color="var(--eg-gold, #D6C6A8)" fill="var(--eg-gold, #D6C6A8)" />
+          )}
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
-            {coupleNames[0]} & {coupleNames[1]}
+            {manifest.occasion === 'birthday'
+              ? `${coupleNames[0]}'s Birthday`
+              : manifest.occasion === 'anniversary'
+              ? `${coupleNames[0]} & ${coupleNames[1]}`
+              : manifest.occasion === 'engagement'
+              ? `${coupleNames[0]} & ${coupleNames[1]}`
+              : `${coupleNames[0]} & ${coupleNames[1]}`}
           </span>
           <button
             onClick={() => setCmdPaletteOpen(true)}
@@ -3095,7 +3130,7 @@ Return JSON with: title, subtitle, description, mood`,
                       autoFocus
                     />
                     <div style={{ padding: '0.85rem 1rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', borderLeft: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap' }}>
-                      .pearloom.app
+                      .pearloom.com
                     </div>
                   </div>
 
