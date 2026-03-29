@@ -4,6 +4,11 @@
 // Static prerendering would cause useSession() to return undefined and crash the build.
 export const dynamic = 'force-dynamic';
 
+// ── Dev-only logging helpers ─────────────────────────────────────────────────
+const isDev = process.env.NODE_ENV === 'development';
+const log = isDev ? console.log.bind(console) : () => {};
+const logError = isDev ? console.error.bind(console) : () => {};
+
 // -------------------------------------------------------------
 // everglow / app/dashboard/page.tsx
 // Full wizard flow: Sign In → Dashboard → Select Photos → Set Vibe → Generate → Edit → Preview
@@ -229,9 +234,14 @@ export default function DashboardPage() {
     setGenerationStep(0);
     setError(null);
 
-    // Simulate progress steps — 7 passes, ~14s each (~98s total covers typical generation window)
+    // Simulate progress steps — ticks every 14s but caps at step 6 (85% mark).
+    // On actual completion we jump to the final step; on error we stop the interval.
     const stepInterval = setInterval(() => {
-      setGenerationStep((prev) => Math.min(prev + 1, 7));
+      setGenerationStep((prev) => {
+        // Never auto-advance past index 6 — the final step is set on completion
+        if (prev >= 6) return prev;
+        return prev + 1;
+      });
     }, 14000);
 
     // 270s client timeout — stays under maxDuration=300 on the server
@@ -239,7 +249,7 @@ export default function DashboardPage() {
     const timeoutId = setTimeout(() => controller.abort(), 270_000);
 
     try {
-      console.log('[Generate] Starting generation for:', data.names, '| photos:', selectedPhotos.length);
+      log('[Generate] Starting generation for:', data.names, '| photos:', selectedPhotos.length);
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -271,17 +281,20 @@ export default function DashboardPage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        console.error('[Generate] API error:', res.status, errData);
+        logError('[Generate] API error:', res.status, errData);
         throw new Error(errData.error || `Server error (${res.status})`);
       }
 
       const result = await res.json();
-      console.log('[Generate] Raw API result keys:', Object.keys(result));
+      log('[Generate] Raw API result keys:', Object.keys(result));
       if (!result.manifest) {
-        console.error('[Generate] No manifest in response:', result);
+        logError('[Generate] No manifest in response:', result);
         throw new Error('AI returned an empty manifest. Please try again.');
       }
-      console.log('[Generate] Manifest received ✓ chapters:', result.manifest.chapters?.length);
+      log('[Generate] Manifest received ✓ chapters:', result.manifest.chapters?.length);
+
+      // Jump to final step immediately on success
+      setGenerationStep(7);
 
       // Stamp the occasion onto the manifest so the editor can use it
       result.manifest.occasion = data.occasion || 'wedding';
@@ -289,7 +302,7 @@ export default function DashboardPage() {
 
       // Use slug from wizard if provided, otherwise auto-generate from names
       const autoSlug = data.subdomain || generateSlug(data.names);
-      console.log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
+      log('[Generate] Subdomain:', autoSlug, data.subdomain ? '(user-chosen)' : '(auto-generated)');
       setSubdomain(autoSlug);
 
       // Clear wizard draft on successful generation
@@ -303,7 +316,7 @@ export default function DashboardPage() {
       const msg = err instanceof Error
         ? (err.name === 'AbortError' ? 'Generation timed out. Please try again — if it keeps happening, try with fewer photos.' : err.message)
         : 'Generation failed. Please try again.';
-      console.error('[Generate] Caught error:', msg);
+      logError('[Generate] Caught error:', msg);
       setError(msg);
       setCurrentStep('vibe');
     }
@@ -315,7 +328,7 @@ export default function DashboardPage() {
 
   const handlePublish = async () => {
     const targetSubdomain = subdomain.trim();
-    console.log('[Publish] Attempting:', { targetSubdomain, hasManifest: !!manifest, names: coupleNames });
+    log('[Publish] Attempting:', { targetSubdomain, hasManifest: !!manifest, names: coupleNames });
     if (!targetSubdomain) return setPublishError('Please enter a subdomain.');
     if (!manifest) return setPublishError('No manifest to publish. Please generate a site first.');
     setPublishError(null);
@@ -329,13 +342,13 @@ export default function DashboardPage() {
       });
 
       const data = await res.json();
-      console.log('[Publish] API response:', data);
+      log('[Publish] API response:', data);
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
 
-      console.log('[Publish] ✓ Published! URL:', data.url);
+      log('[Publish] ✓ Published! URL:', data.url);
       setPublishedUrl(data.url);
     } catch (err: unknown) {
-      console.error('[Publish] Error:', err);
+      logError('[Publish] Error:', err);
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsPublishing(false);

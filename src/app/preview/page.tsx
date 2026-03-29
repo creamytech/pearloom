@@ -226,25 +226,25 @@ function PreviewContent() {
           </section>
         );
       case 'countdown':
+        if (!manifest.logistics?.date) return null;
         return (
           <section key={key} id="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
             <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, opacity: 0.8 }}>
-              {manifest.logistics?.date ? (
-                <CountdownDisplay targetDate={manifest.logistics.date} accentColor={pal.accent} />
-              ) : (
-                <span style={{ color: pal.muted }}>Set a date in Details to see countdown</span>
-              )}
+              <CountdownDisplay targetDate={manifest.logistics.date} accentColor={pal.accent} />
             </div>
           </section>
         );
-      case 'text':
+      case 'text': {
+        const textContent = blockCfg.content as string | undefined;
+        if (!textContent) return null;
         return (
           <section key={key} style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
             <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}>
-              Custom text block — edit content in the Canvas tab.
+              {textContent}
             </p>
           </section>
         );
+      }
       case 'quote':
         return (
           <section key={key} style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
@@ -260,42 +260,32 @@ function PreviewContent() {
         );
       case 'video': {
         const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
+        if (!videoEmbedUrl) return null;
         return (
           <section key={key} style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', boxShadow: `0 24px 80px ${pal.foreground}18` }}>
-              {videoEmbedUrl ? (
-                <iframe
-                  src={videoEmbedUrl}
-                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a YouTube or Vimeo URL in the Sections editor</span>
-                </div>
-              )}
+              <iframe
+                src={videoEmbedUrl}
+                style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </section>
         );
       }
       case 'map': {
         const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
+        if (!mapAddress) return null;
         return (
           <section key={key} style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', boxShadow: `0 24px 80px ${pal.foreground}18` }}>
-              {mapAddress ? (
-                <iframe
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`}
-                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                  loading="lazy"
-                  title="Venue map"
-                />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a venue address in Details to show the map</span>
-                </div>
-              )}
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`}
+                style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                loading="lazy"
+                title="Venue map"
+              />
             </div>
           </section>
         );
@@ -312,8 +302,8 @@ function PreviewContent() {
               </div>
               <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
             </div>
-            {allPhotos.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxWidth: '960px', margin: '0 auto' }}>
+            {allPhotos.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxWidth: '960px', margin: '0 auto' }}>
                 {allPhotos.map((photo, i) => (
                   <div key={i} style={{
                     aspectRatio: i === 0 ? '2/1' : '1',
@@ -326,8 +316,6 @@ function PreviewContent() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <p style={{ color: pal.muted, textAlign: 'center', fontSize: '0.9rem' }}>Your chapter photos will appear here</p>
             )}
           </section>
         );
@@ -341,7 +329,7 @@ function PreviewContent() {
             }}>
               Guestbook
             </div>
-            <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Guest wishes will appear here on the live site.</p>
+            <p style={{ color: pal.muted, fontSize: '0.9rem', fontStyle: 'italic' }}>Messages from your guests will be shown here.</p>
           </section>
         );
       default:
@@ -366,7 +354,7 @@ function PreviewContent() {
           WebkitMaskComposite: 'source-in', maskComposite: 'intersect',
         }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={vibeSkin.heroArtDataUrl} alt="" style={{
+          <img src={vibeSkin.heroArtDataUrl} alt="" role="presentation" style={{
             width: '100%', height: '100%', objectFit: 'cover',
             opacity: 0.22, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
           }} />
@@ -412,7 +400,7 @@ function PreviewContent() {
         maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
       }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={vibeSkin.artStripDataUrl} alt="" style={{
+        <img src={vibeSkin.artStripDataUrl} alt="" role="presentation" style={{
           width: '100%', height: '100%', objectFit: 'cover',
           opacity: 0.55, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
         }} />
@@ -451,7 +439,7 @@ function PreviewContent() {
             {vibeSkin.ambientArtDataUrl ? (
               <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={vibeSkin.ambientArtDataUrl} alt="" style={{
+                <img src={vibeSkin.ambientArtDataUrl} alt="" role="presentation" style={{
                   width: '100%', height: '100%', objectFit: 'cover',
                   opacity: 0.10, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
                 }} />
