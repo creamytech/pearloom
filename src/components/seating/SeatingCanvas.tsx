@@ -312,7 +312,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     } catch (err) {
       console.error('Failed to delete table:', err);
     }
-  }, []);
+  }, [pushHistory]);
 
   // ── Auto-arrange ────────────────────────────────────────────
   const handleAutoArrange = useCallback(async () => {

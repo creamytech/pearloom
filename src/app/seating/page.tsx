@@ -106,6 +106,36 @@ function SeatingPageInner() {
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
+        {/* Undo / Redo buttons */}
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }))}
+          title="Undo (⌘Z)"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.4rem 0.75rem', borderRadius: '0.75rem',
+            border: '1.5px solid var(--eg-divider)', background: 'transparent',
+            color: 'var(--eg-muted)', fontSize: '0.78rem',
+            fontFamily: 'var(--eg-font-body)', cursor: 'pointer',
+          }}
+        >
+          ⌘Z
+        </button>
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, shiftKey: true, bubbles: true }))}
+          title="Redo (⌘⇧Z)"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.4rem 0.75rem', borderRadius: '0.75rem',
+            border: '1.5px solid var(--eg-divider)', background: 'transparent',
+            color: 'var(--eg-muted)', fontSize: '0.78rem',
+            fontFamily: 'var(--eg-font-body)', cursor: 'pointer',
+          }}
+        >
+          ⌘⇧Z
+        </button>
+
+        <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)' }} />
+
         {/* AI Arrange button — coming soon */}
         <button
           // onClick={handleAIArrange} — not yet available
