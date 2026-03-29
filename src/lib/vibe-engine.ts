@@ -509,8 +509,12 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
 // Called once per site generation, cached in manifest.vibeSkin.
 // Returns a full VibeSkin including custom AI SVG art.
 
+// Pass 2 (VibeSkin + custom SVG art) uses Gemini 3.1 Pro — SVG precision + visual creativity
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
+// Couple DNA extraction uses Flash-Lite — lightweight extraction task
+const GEMINI_LITE_URL =
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 // Structured profile of the couple's personal world, extracted from their story
 export interface CoupleProfile {
@@ -582,8 +586,9 @@ Rules:
 - illustrationPrompt: make it visually specific, richly detailed, and drawable as SVG lineart`;
 
   try {
+    // Couple DNA extraction uses Flash-Lite — lightweight JSON extraction, no creativity needed
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+      `${GEMINI_LITE_URL}?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

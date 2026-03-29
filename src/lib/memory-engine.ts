@@ -8,7 +8,16 @@ import type { PhotoCluster, StoryManifest, Chapter, ThemeSchema } from '@/types'
 import { generateVibeSkin, extractCoupleProfile, WAVE_PATHS } from '@/lib/vibe-engine';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
-const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+// ── Model routing ─────────────────────────────────────────────────────────
+// Gemini 3.1 Pro → creative passes (story chapters, SVG art, poetry)
+// Gemini 3 Flash  → analytical passes (critique, scoring, judgment)
+// Gemini 3.1 Flash-Lite → lightweight extraction (couple DNA, metadata)
+const GEMINI_PRO   = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
+const GEMINI_FLASH = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+const GEMINI_LITE  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
+
+// Default — used for backward compat on any pass not explicitly routed
+const GEMINI_API_BASE = GEMINI_FLASH;
 
 /**
  * Wraps a Gemini fetch with automatic retry on 503 (UNAVAILABLE) and 429 (rate limit).
@@ -108,15 +117,16 @@ export async function generateStoryManifest(
     console.log(`[Memory Engine] Successfully appended images to Gemini prompt!`);
   }
 
-  console.log('[Memory Engine] Sending request to Gemini...');
-  const res = await geminiRetryFetch(`${GEMINI_API_BASE}?key=${apiKey}`, {
+  // Pass 1 uses Gemini 3.1 Pro — core storytelling is the most important creative pass
+  console.log('[Memory Engine] Pass 1: Sending to Gemini 3.1 Pro (core storytelling)...');
+  const res = await geminiRetryFetch(`${GEMINI_PRO}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts }],
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 0.75,
+        temperature: 0.85,
         maxOutputTokens: 16384,
         topP: 0.95,
       },
@@ -399,8 +409,9 @@ REWRITE RULES (apply only when score < 7):
 - Each rewritten description must feel like it could ONLY be THIS couple's site`;
 
   try {
+    // Pass 1.2 uses Flash — scoring/judgment task, speed matters more than creativity
     const res = await geminiRetryFetch(
-      `${GEMINI_API_BASE}?key=${apiKey}`,
+      `${GEMINI_FLASH}?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -556,8 +567,9 @@ Return ONLY valid JSON (no markdown, no backticks):
   "milestones": [{"year": <number>, "label": "<3-6 word specific highlight>", "emoji": "<single emoji>"}]` : ''}
 }`;
 
+  // Pass 4 uses Gemini 3.1 Pro — welcome statement + poetry requires maximum creative quality
   const res = await geminiRetryFetch(
-    `${GEMINI_API_BASE}?key=${apiKey}`,
+    `${GEMINI_PRO}?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -662,8 +674,9 @@ If ANY score below 7, return ONLY the fields that need improvement:
 
 Return ONLY valid JSON. No markdown. No backticks.`;
 
+  // Pass 3 uses Flash — analytical judgment, not creative output
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+    `${GEMINI_FLASH}?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -671,7 +684,7 @@ Return ONLY valid JSON. No markdown. No backticks.`;
         contents: [{ parts: [{ text: critiquePrompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
-          temperature: 0.75,
+          temperature: 0.5,
           maxOutputTokens: 2048,
         },
       }),
