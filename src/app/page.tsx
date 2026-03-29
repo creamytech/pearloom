@@ -234,9 +234,9 @@ export default function DashboardPage() {
       setGenerationStep((prev) => Math.min(prev + 1, 7));
     }, 14000);
 
-    // 90-second timeout — Gemini can be slow on large photo sets
+    // 270s client timeout — stays under maxDuration=300 on the server
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180_000); // 3-pass pipeline: critique + vibeSkin can take ~60s extra
+    const timeoutId = setTimeout(() => controller.abort(), 270_000);
 
     try {
       console.log('[Generate] Starting generation for:', data.names, '| photos:', selectedPhotos.length);
@@ -301,7 +301,7 @@ export default function DashboardPage() {
       clearInterval(stepInterval);
       clearTimeout(timeoutId);
       const msg = err instanceof Error
-        ? (err.name === 'AbortError' ? 'Generation timed out (3 min). Your photo set may be very large — please try again.' : err.message)
+        ? (err.name === 'AbortError' ? 'Generation timed out. Please try again — if it keeps happening, try with fewer photos.' : err.message)
         : 'Generation failed. Please try again.';
       console.error('[Generate] Caught error:', msg);
       setError(msg);
