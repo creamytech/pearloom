@@ -32,7 +32,6 @@ const up: Variants = {
 // ── Occasion data ─────────────────────────────────────────────
 const OCCASIONS = [
   {
-    emoji: '💒',
     label: 'Weddings',
     tagline: 'From first look to forever',
     desc: 'A full wedding site with your love story, events, RSVP, registry, and travel — all in one breathtaking place.',
@@ -40,7 +39,6 @@ const OCCASIONS = [
     bg: 'rgba(109,89,122,0.07)',
   },
   {
-    emoji: '💍',
     label: 'Engagements',
     tagline: 'She said yes. Now tell the world.',
     desc: 'Share the proposal story, the ring, and save-the-date details with everyone you love.',
@@ -48,7 +46,6 @@ const OCCASIONS = [
     bg: 'rgba(163,177,138,0.08)',
   },
   {
-    emoji: '🥂',
     label: 'Anniversaries',
     tagline: 'Years together, still writing chapters',
     desc: 'Celebrate milestones with a timeline of your journey, favorite memories, and a message to each other.',
@@ -56,7 +53,6 @@ const OCCASIONS = [
     bg: 'rgba(214,198,168,0.12)',
   },
   {
-    emoji: '🎂',
     label: 'Birthdays',
     tagline: 'Every year a new story',
     desc: 'A personalised birthday site with your story, photos, guest wishes, and all the event details.',
@@ -64,7 +60,6 @@ const OCCASIONS = [
     bg: 'rgba(109,89,122,0.07)',
   },
   {
-    emoji: '✨',
     label: 'Any Celebration',
     tagline: 'If it matters, it deserves a site',
     desc: 'Reunions, retirements, quinceañeras, graduations — any moment worth remembering gets a home.',
@@ -113,6 +108,48 @@ function RotatingOccasion() {
   );
 }
 
+// ── Occasion SVG icons ────────────────────────────────────────
+function OccasionIcon({ type, accent }: { type: string; accent: string }) {
+  const s = { width: 24, height: 24, fill: 'none', stroke: accent, strokeWidth: 1.6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  if (type === 'Weddings') return (
+    <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
+      {/* Two interlocking rings */}
+      <circle cx="8.5" cy="12" r="4.5"/>
+      <circle cx="15.5" cy="12" r="4.5"/>
+    </svg>
+  );
+  if (type === 'Engagements') return (
+    <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
+      {/* Diamond */}
+      <path d="M12 21L3 9l2.5-4h9L17 9l-5 12z"/>
+      <path d="M3 9h18M8 9l4 12M16 9l-4 12"/>
+    </svg>
+  );
+  if (type === 'Anniversaries') return (
+    <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
+      {/* Heart with a small star */}
+      <path d="M12 21C12 21 3 14 3 8a4 4 0 0 1 7.5-2A4 4 0 0 1 21 8c0 6-9 13-9 13z"/>
+    </svg>
+  );
+  if (type === 'Birthdays') return (
+    <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
+      {/* Birthday candle on cake */}
+      <rect x="3" y="13" width="18" height="8" rx="2"/>
+      <path d="M8 13v-2M12 13v-2M16 13v-2"/>
+      <path d="M8 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3}/>
+      <path d="M12 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3}/>
+      <path d="M16 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3}/>
+    </svg>
+  );
+  // Any Celebration — sparkle
+  return (
+    <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.64 5.64l1.42 1.42M16.95 16.95l1.41 1.41M5.64 18.36l1.42-1.42M16.95 7.05l1.41-1.41"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+
 // ── Ornament ──────────────────────────────────────────────────
 function Ornament() {
   return (
@@ -157,6 +194,54 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
 
   return (
     <div style={{ background: C.cream, minHeight: '100dvh', fontFamily: 'var(--eg-font-body)', color: C.ink, overflowX: 'hidden' }}>
+
+      {/* ══════════════ NAV ══════════════ */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 clamp(1.5rem,5vw,4rem)',
+        height: '64px',
+        background: 'rgba(245,241,232,0.92)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${C.divider}`,
+      }}>
+        {/* Logo */}
+        <span style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.15rem', fontWeight: 700, fontStyle: 'italic', color: C.ink, letterSpacing: '-0.01em' }}>
+          Pearloom
+        </span>
+
+        {/* Center links — hidden on mobile */}
+        <div style={{ display: 'flex', gap: '2.5rem', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          {['Occasions', 'How it works', 'Features'].map(label => (
+            <a
+              key={label}
+              href={`#${label.toLowerCase().replace(/ /g, '-')}`}
+              style={{ fontSize: '0.82rem', fontWeight: 500, color: C.muted, textDecoration: 'none', letterSpacing: '0.02em', transition: 'color 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = C.ink)}
+              onMouseLeave={e => (e.currentTarget.style.color = C.muted)}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <motion.button
+          onClick={handleSignIn}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            padding: '0.5rem 1.25rem',
+            background: C.ink, color: C.cream,
+            border: 'none', borderRadius: '0.6rem',
+            fontSize: '0.82rem', fontWeight: 600,
+            fontFamily: 'var(--eg-font-body)',
+            cursor: 'pointer',
+          }}
+        >
+          Get Started
+        </motion.button>
+      </nav>
 
       {/* ══════════════ HERO ══════════════ */}
       <section style={{
@@ -266,7 +351,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </section>
 
       {/* ══════════════ OCCASIONS ══════════════ */}
-      <section ref={occasionRef} style={{ background: C.deep, padding:'7rem 1.5rem', borderTop:`1px solid ${C.divider}`, borderBottom:`1px solid ${C.divider}` }}>
+      <section id="occasions" ref={occasionRef} style={{ background: C.deep, padding:'7rem 1.5rem', borderTop:`1px solid ${C.divider}`, borderBottom:`1px solid ${C.divider}` }}>
         <div style={{ maxWidth:'1080px', margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:'4rem' }}>
             <motion.div initial={{opacity:0,y:14}} animate={occasionInView?{opacity:1,y:0}:{}} transition={{duration:0.5}}
@@ -311,7 +396,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </section>
 
       {/* ══════════════ HOW IT WORKS ══════════════ */}
-      <section ref={stepsRef} style={{ background:C.cream, padding:'8rem 1.5rem' }}>
+      <section id="how-it-works" ref={stepsRef} style={{ background:C.cream, padding:'8rem 1.5rem' }}>
         <div style={{ maxWidth:'940px', margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:'4.5rem' }}>
             <motion.div initial={{opacity:0,y:14}} animate={stepsInView?{opacity:1,y:0}:{}} style={{ marginBottom:'1.1rem' }}>
