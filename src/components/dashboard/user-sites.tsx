@@ -197,12 +197,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
   };
 
   const getSiteUrl = (domain: string) => {
-    if (typeof window === 'undefined') return `https://${domain}.pearloom.app`;
+    if (typeof window === 'undefined') return `https://${domain}.pearloom.com`;
     const { hostname, origin } = window.location;
     if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
     // On Vercel preview deployments use path-based routing
     if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
-    return `https://${domain}.pearloom.app`;
+    return `https://${domain}.pearloom.com`;
   };
 
   const handleCopyUrl = async (site: UserSite, e: React.MouseEvent) => {
@@ -885,7 +885,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 Delete this site?
               </h3>
               <p style={{ color: 'var(--eg-muted)', lineHeight: 1.65, marginBottom: deleteError ? '1rem' : '2.25rem', fontSize: '0.925rem' }}>
-                <strong style={{ color: 'var(--eg-fg)' }}>{confirmDelete.domain}.pearloom.app</strong> will be
+                <strong style={{ color: 'var(--eg-fg)' }}>{confirmDelete.domain}.pearloom.com</strong> will be
                 permanently removed. Guests will no longer be able to access it.
               </p>
               {deleteError && (

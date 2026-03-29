@@ -1181,7 +1181,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* URL slug picker */}
         <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginTop: '2rem' }}>
-          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.app" /></p>
+          <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.com" /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
@@ -1196,12 +1196,12 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               onBlur={e => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
             />
             <div style={{ padding: '0.85rem 1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.08)', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>
-              .pearloom.app
+              .pearloom.com
             </div>
           </div>
           {subdomain && (
             <p style={{ fontSize: '0.8rem', color: 'var(--eg-accent)', marginTop: '0.5rem', fontWeight: 500 }}>
-              {subdomain}.pearloom.app
+              {subdomain}.pearloom.com
             </p>
           )}
           {/* Availability status */}
@@ -1401,8 +1401,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '1rem' }}>
                 Your site URL: <span style={{ fontWeight: 600 }}>
                   {isBirthday
-                    ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday.pearloom.app`
-                    : `${slugFromNames(name1, name2)}.pearloom.app`}
+                    ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday.pearloom.com`
+                    : `${slugFromNames(name1, name2)}.pearloom.com`}
                 </span>
               </p>
             )}

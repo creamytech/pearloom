@@ -68,10 +68,10 @@ export async function generateMetadata(
 
   const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
 
-  const siteUrl = `https://${domain}.pearloom.app`;
+  const siteUrl = `https://${domain}.pearloom.com`;
 
   return {
-    metadataBase: new URL('https://pearloom.app'),
+    metadataBase: new URL('https://pearloom.com'),
     title: fullTitle,
     description,
     alternates: {

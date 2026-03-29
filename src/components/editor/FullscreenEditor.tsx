@@ -1369,7 +1369,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
       b.type === 'event' ? ['schedule', 'rsvp'] : [b.type]
     ) || []
   );
-  const baseUrl = subdomain ? `https://${subdomain}.pearloom.app` : '';
+  const baseUrl = subdomain ? `https://${subdomain}.pearloom.com` : '';
   const customPages = manifest.customPages || [];
 
   const addCustomPage = () => {
@@ -3130,7 +3130,7 @@ Return JSON with: title, subtitle, description, mood`,
                       autoFocus
                     />
                     <div style={{ padding: '0.85rem 1rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', borderLeft: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap' }}>
-                      .pearloom.app
+                      .pearloom.com
                     </div>
                   </div>
 

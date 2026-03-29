@@ -807,7 +807,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
       });
   }, [domain]);
 
-  const siteUrl = `${domain}.pearloom.app`;
+  const siteUrl = `${domain}.pearloom.com`;
   const list = guests ?? [];
 
   const attending = list.filter((r) => r.status === 'attending');

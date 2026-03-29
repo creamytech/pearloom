@@ -810,7 +810,7 @@ export default function DashboardPage() {
                         <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#4ade80' }} />
                       </div>
                       <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', color: 'var(--eg-muted)' }}>
-                        {subdomain || `${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`}.pearloom.app
+                        {subdomain || `${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`}.pearloom.com
                       </div>
                     </div>
                     <iframe
@@ -934,7 +934,7 @@ export default function DashboardPage() {
                       onBlur={(e) => { (e.target.parentElement as HTMLElement).style.borderColor = 'rgba(0,0,0,0.1)'; }}
                     />
                     <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.03)', color: 'var(--eg-muted)', fontWeight: 500, borderLeft: '1px solid rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>
-                      .pearloom.app
+                      .pearloom.com
                     </div>
                   </div>
 

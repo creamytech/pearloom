@@ -63,10 +63,10 @@ export async function generateMetadata(
 
   const pageTitle = `${coupleTitle} · ${pageMeta.title}`;
   const fullTitle = `${pageTitle} | Pearloom`;
-  const siteUrl = `https://${domain}.pearloom.app/${page}`;
+  const siteUrl = `https://${domain}.pearloom.com/${page}`;
 
   return {
-    metadataBase: new URL('https://pearloom.app'),
+    metadataBase: new URL('https://pearloom.com'),
     title: fullTitle,
     description: pageMeta.description,
     alternates: {
