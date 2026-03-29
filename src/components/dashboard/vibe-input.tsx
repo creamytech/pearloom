@@ -1201,7 +1201,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </div>
           {subdomain && (
             <p style={{ fontSize: '0.8rem', color: 'var(--eg-accent)', marginTop: '0.5rem', fontWeight: 500 }}>
-              pearloom.app/{subdomain}
+              {subdomain}.pearloom.app
             </p>
           )}
           {/* Availability status */}

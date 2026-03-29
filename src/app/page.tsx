@@ -810,7 +810,7 @@ export default function DashboardPage() {
                         <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#4ade80' }} />
                       </div>
                       <div style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', color: 'var(--eg-muted)' }}>
-                        pearloom.app/{subdomain || `${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`}
+                        {subdomain || `${coupleNames[0].toLowerCase()}-and-${coupleNames[1].toLowerCase()}`}.pearloom.app
                       </div>
                     </div>
                     <iframe

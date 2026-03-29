@@ -174,7 +174,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
   const previewHref = manifest.previewToken
     ? `/preview/${manifest.previewToken}`
     : manifest.subdomain
-      ? `https://${manifest.subdomain}.pearloom.com`
+      ? `https://${manifest.subdomain}.pearloom.app`
       : undefined;
 
   return (
