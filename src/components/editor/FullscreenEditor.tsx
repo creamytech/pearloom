@@ -3151,8 +3151,7 @@ Return JSON with: title, subtitle, description, mood`,
             whiteSpace: 'nowrap',
           }}>
             <span style={{ fontSize: '1.2rem' }}>
-              {CANVAS_BLOCK_TYPES.find(b => b.id === canvasDragId)?.emoji ||
-               (canvasDragId.startsWith('chapter:') ? '⌖' : '✦')}
+              {canvasDragId.startsWith('chapter:') ? '⌖' : '✦'}
             </span>
             {canvasDragLabel}
           </div>
