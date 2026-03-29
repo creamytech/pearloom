@@ -1705,6 +1705,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [device, setDevice] = useState<DeviceMode>('desktop');
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [rewritingId, setRewritingId] = useState<string | null>(null);
+  const [iframeReady, setIframeReady] = useState(false);
+  const [previewSlow, setPreviewSlow] = useState(false);
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
   const [splitView, setSplitView] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -1757,6 +1759,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     const t = setTimeout(() => setShowWelcome(false), 2500);
     return () => clearTimeout(t);
   }, []);
+
+  // 8-second preview timeout — show "Taking longer than usual" message
+  useEffect(() => {
+    if (iframeReady) return;
+    const t = setTimeout(() => setPreviewSlow(true), 8000);
+    return () => clearTimeout(t);
+  }, [iframeReady]);
 
   const pushHistory = useCallback((m: StoryManifest) => {
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
@@ -2575,11 +2584,20 @@ Return JSON with: title, subtitle, description, mood`,
               border: !isMobile && device !== 'desktop' ? '1px solid rgba(255,255,255,0.08)' : 'none',
               transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
             }}>
+              {!iframeReady && (
+                <div style={{
+                  position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: '#1a1916', color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', pointerEvents: 'none',
+                }}>
+                  {previewSlow ? 'Taking longer than usual… still loading' : 'Loading preview…'}
+                </div>
+              )}
               <iframe
                 ref={iframeRef}
                 src={`/preview?key=${previewKey}`}
                 style={{ flex: 1, border: 'none', width: '100%', minHeight: isMobile ? '100%' : '600px' }}
                 title="Live Preview"
+                onLoad={() => { setIframeReady(true); setPreviewSlow(false); }}
               />
             </div>
           </div>

@@ -512,16 +512,16 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           <>
                             <div style={{
                               width: '6px', height: '6px', borderRadius: '50%',
-                              background: 'var(--eg-accent, #A3B18A)',
-                              boxShadow: '0 0 6px rgba(163,177,138,0.4)',
-                              animation: 'pulse 2s ease-in-out infinite',
+                              background: '#22c55e',
+                              boxShadow: '0 0 0 0 rgba(34,197,94,0.4)',
+                              animation: 'livePulse 2s ease-out infinite',
                             }} />
-                            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.9)', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
+                            <span style={{ fontSize: '0.62rem', color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
                           </>
                         ) : (
                           <>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--eg-gold, #D6C6A8)' }} />
-                            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.75)', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
+                            <span style={{ fontSize: '0.62rem', color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
                           </>
                         )}
                       </div>
@@ -714,14 +714,14 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             transition: 'all 0.2s',
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.background = 'rgba(109,89,122,0.08)';
-                            e.currentTarget.style.color = 'var(--eg-plum, #6D597A)';
-                            e.currentTarget.style.borderColor = 'rgba(109,89,122,0.25)';
+                            e.currentTarget.style.background = 'rgba(185,28,28,0.06)';
+                            e.currentTarget.style.color = 'rgb(185,28,28)';
+                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.35)';
                           }}
                           onMouseOut={(e) => {
                             e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = 'rgba(109,89,122,0.45)';
-                            e.currentTarget.style.borderColor = 'rgba(109,89,122,0.12)';
+                            e.currentTarget.style.color = 'rgba(185,28,28,0.55)';
+                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.2)';
                           }}
                         >
                           {isDeleting
@@ -781,10 +781,10 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
           {/* Responsive grid styles */}
           <style>{`
-            @media (max-width: 1024px) {
+            @media (max-width: 1199px) {
               .site-card-grid { grid-template-columns: repeat(2, 1fr) !important; }
             }
-            @media (max-width: 640px) {
+            @media (max-width: 479px) {
               .site-card-grid { grid-template-columns: 1fr !important; }
             }
             @keyframes spin {
