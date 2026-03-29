@@ -197,7 +197,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
           {/* ── Right: User nav + hamburger menu ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {user && (
-              <UserNav user={user} />
+              <UserNav user={user} onDashboard={onGoToDashboard} />
             )}
             {/* Hamburger — always visible on both mobile and desktop */}
             <button
@@ -397,7 +397,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                     transition={{ delay: 0.3 }}
                     style={{ marginBottom: '1rem' }}
                   >
-                    <UserNav user={user} />
+                    <UserNav user={user} onDashboard={onGoToDashboard} />
                   </motion.div>
                 )}
                 <p style={{
