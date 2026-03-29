@@ -361,6 +361,46 @@ export function GenerationProgress({ step = 0 }: { step?: number }) {
             )}
           </motion.p>
         </AnimatePresence>
+
+        {/* ── Long-running warnings ── */}
+        <AnimatePresence>
+          {elapsed >= 120 && elapsed < 200 && (
+            <motion.p
+              key="slow-warning"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              style={{
+                marginTop: '1.25rem',
+                fontSize: '0.75rem',
+                color: 'rgba(250,247,242,0.3)',
+                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+                fontStyle: 'italic',
+              }}
+            >
+              This is taking a little longer than usual — still working…
+            </motion.p>
+          )}
+          {elapsed >= 200 && (
+            <motion.p
+              key="very-slow-warning"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              style={{
+                marginTop: '1.25rem',
+                fontSize: '0.75rem',
+                color: 'rgba(250,200,100,0.45)',
+                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+                fontStyle: 'italic',
+              }}
+            >
+              Still going — complex stories take time. Please don&apos;t close this tab.
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

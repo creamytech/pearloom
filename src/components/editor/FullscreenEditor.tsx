@@ -382,6 +382,7 @@ function ImageManager({
   const [uploading, setUploading] = useState(false);
   const [generatingCaptions, setGeneratingCaptions] = useState(false);
   const [captionSuccess, setCaptionSuccess] = useState(false);
+  const [captionError, setCaptionError] = useState<string | null>(null);
 
   const removeImage = (idx: number) => {
     onUpdate(images.filter((_, i) => i !== idx));
@@ -432,8 +433,10 @@ function ImageManager({
         setCaptionSuccess(true);
         setTimeout(() => setCaptionSuccess(false), 3000);
       }
-    } catch {
-      // silently fail
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Caption generation failed';
+      setCaptionError(msg);
+      setTimeout(() => setCaptionError(null), 5000);
     } finally {
       setGeneratingCaptions(false);
     }
@@ -575,6 +578,15 @@ function ImageManager({
                 ? <><Sparkles size={10} /> Captions added!</>
                 : <><Sparkles size={10} /> Generate Captions</>}
           </button>
+          {captionError && (
+            <div style={{
+              marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
+              background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
+              color: '#fca5a5', fontSize: '0.78rem', lineHeight: 1.4,
+            }}>
+              {captionError}
+            </div>
+          )}
         </div>
       )}
     </div>
