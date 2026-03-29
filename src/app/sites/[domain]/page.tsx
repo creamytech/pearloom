@@ -25,6 +25,7 @@ import { GuestbookSection } from '@/components/site/GuestbookSection';
 import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
+import { ShareBar } from '@/components/site/ShareBar';
 
 export const dynamic = 'force-dynamic';
 
@@ -936,7 +937,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {manifest.poetry.closingLine}
             </div>
           )}
-          <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Made with Pearloom</div>
+          <ShareBar
+            url={canonicalUrl}
+            title={safeNames[0] + (safeNames[1] ? ` & ${safeNames[1]}` : '')}
+            accent={pal.accent}
+            bgColor={pal.background}
+          />
+          <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Made with Pearloom</div>
         </footer>
       </div>
     </ThemeProvider>
