@@ -160,7 +160,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
             transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
             style={{
-              position: 'absolute', width: '700px', height: '700px', borderRadius: '50%',
+              position: 'absolute', width: 'clamp(300px, 70vw, 700px)', height: 'clamp(300px, 70vw, 700px)', borderRadius: '50%',
               background: 'radial-gradient(circle, color-mix(in srgb, var(--eg-accent) 18%, transparent) 0%, transparent 70%)',
               top: '-15%', left: '-10%', filter: 'blur(60px)', zIndex: 0,
             }}
@@ -169,7 +169,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             animate={{ x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.15, 1] }}
             transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
             style={{
-              position: 'absolute', width: '600px', height: '600px', borderRadius: '50%',
+              position: 'absolute', width: 'clamp(260px, 60vw, 600px)', height: 'clamp(260px, 60vw, 600px)', borderRadius: '50%',
               background: 'radial-gradient(circle, color-mix(in srgb, var(--eg-accent) 10%, transparent) 0%, transparent 70%)',
               bottom: '-10%', right: '-10%', filter: 'blur(80px)', zIndex: 0,
             }}

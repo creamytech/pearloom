@@ -146,7 +146,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const safeNames: [string, string] = Array.isArray(siteConfig.names) && siteConfig.names.length >= 2
     ? [siteConfig.names[0], siteConfig.names[1]]
     : ['Our', 'Story'];
-  const title = safeNames.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
+  const title = safeNames.filter(n => n.trim()).map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
 
   // JSON-LD structured data — event type is dynamic based on occasion
   const occasion = manifest.occasion || 'wedding';
