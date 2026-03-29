@@ -407,6 +407,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 const vibeSkin = site.manifest?.vibeSkin;
                 const accentColor = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
                 const accentDark = vibeSkin?.palette?.highlight || site.manifest?.theme?.colors?.muted || '#8FA876';
+                const coverPhotoUrl = site.manifest?.chapters?.[0]?.images?.[0]?.url;
                 const formattedDate = getFormattedDate(site.created_at);
                 const isDeleting = deletingDomain === site.domain;
                 const isHovered = hoveredId === site.id;
@@ -441,7 +442,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       transition: 'box-shadow 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1)',
                     }}
                   >
-                    {/* Visual header — gradient from vibeSkin palette */}
+                    {/* Visual header — cover photo or gradient from vibeSkin palette */}
                     <div
                       onClick={() => onEditSite(site)}
                       style={{
@@ -452,10 +453,29 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 100%)`,
                       }}
                     >
-                      {/* Subtle texture overlay */}
+                      {/* Actual cover photo if available */}
+                      {coverPhotoUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={coverPhotoUrl}
+                          alt=""
+                          role="presentation"
+                          style={{
+                            position: 'absolute', inset: 0,
+                            width: '100%', height: '100%',
+                            objectFit: 'cover',
+                            transition: 'transform 0.6s ease',
+                          }}
+                          onMouseOver={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+                          onMouseOut={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+                        />
+                      )}
+                      {/* Gradient overlay — lighter when photo present so names stay readable */}
                       <div style={{
                         position: 'absolute', inset: 0,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
+                        background: coverPhotoUrl
+                          ? 'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.55) 100%)'
+                          : 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
                       }} />
 
                       {/* Domain badge */}
@@ -501,17 +521,19 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       <div style={{ position: 'absolute', bottom: '1.25rem', left: '1.5rem', right: '1.5rem' }}>
                         <div style={{
                           fontFamily: 'var(--eg-font-heading)',
-                          fontSize: '1.55rem', fontWeight: 400, color: '#fff',
+                          fontSize: coverPhotoUrl ? '1.7rem' : '1.55rem',
+                          fontWeight: 400, color: '#fff',
                           letterSpacing: '-0.015em', lineHeight: 1.05,
-                          textShadow: '0 2px 16px rgba(0,0,0,0.3)',
+                          textShadow: coverPhotoUrl ? '0 2px 24px rgba(0,0,0,0.6)' : '0 2px 16px rgba(0,0,0,0.3)',
                         }}>
                           {displayNames}
                         </div>
                         {weddingDate && (
                           <div style={{
-                            fontSize: '0.7rem', color: 'rgba(255,255,255,0.72)',
-                            marginTop: '0.3rem', letterSpacing: '0.1em',
+                            fontSize: '0.68rem', color: 'rgba(255,255,255,0.75)',
+                            marginTop: '0.35rem', letterSpacing: '0.12em',
                             textTransform: 'uppercase', fontWeight: 600,
+                            textShadow: '0 1px 8px rgba(0,0,0,0.5)',
                           }}>
                             {new Date(weddingDate).toLocaleDateString('en-US', {
                               month: 'long', day: 'numeric', year: 'numeric',

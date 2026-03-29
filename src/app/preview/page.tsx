@@ -168,6 +168,7 @@ function PreviewContent() {
             coverPhoto={proxiedCover}
             weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
             vibeSkin={vibeSkin}
+            heroTagline={manifest.poetry?.heroTagline}
           />
         );
       case 'story':
@@ -225,25 +226,25 @@ function PreviewContent() {
           </section>
         );
       case 'countdown':
+        if (!manifest.logistics?.date) return null;
         return (
           <section key={key} id="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
             <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, opacity: 0.8 }}>
-              {manifest.logistics?.date ? (
-                <CountdownDisplay targetDate={manifest.logistics.date} accentColor={pal.accent} />
-              ) : (
-                <span style={{ color: pal.muted }}>Set a date in Details to see countdown</span>
-              )}
+              <CountdownDisplay targetDate={manifest.logistics.date} accentColor={pal.accent} />
             </div>
           </section>
         );
-      case 'text':
+      case 'text': {
+        const textContent = blockCfg.content as string | undefined;
+        if (!textContent) return null;
         return (
           <section key={key} style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
             <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}>
-              Custom text block — edit content in the Canvas tab.
+              {textContent}
             </p>
           </section>
         );
+      }
       case 'quote':
         return (
           <section key={key} style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
@@ -259,42 +260,32 @@ function PreviewContent() {
         );
       case 'video': {
         const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
+        if (!videoEmbedUrl) return null;
         return (
           <section key={key} style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', boxShadow: `0 24px 80px ${pal.foreground}18` }}>
-              {videoEmbedUrl ? (
-                <iframe
-                  src={videoEmbedUrl}
-                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a YouTube or Vimeo URL in the Sections editor</span>
-                </div>
-              )}
+              <iframe
+                src={videoEmbedUrl}
+                style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </section>
         );
       }
       case 'map': {
         const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
+        if (!mapAddress) return null;
         return (
           <section key={key} style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', boxShadow: `0 24px 80px ${pal.foreground}18` }}>
-              {mapAddress ? (
-                <iframe
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`}
-                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                  loading="lazy"
-                  title="Venue map"
-                />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: pal.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <span style={{ color: pal.muted, fontSize: '0.9rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>Add a venue address in Details to show the map</span>
-                </div>
-              )}
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`}
+                style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                loading="lazy"
+                title="Venue map"
+              />
             </div>
           </section>
         );
@@ -311,8 +302,8 @@ function PreviewContent() {
               </div>
               <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
             </div>
-            {allPhotos.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxWidth: '960px', margin: '0 auto' }}>
+            {allPhotos.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxWidth: '960px', margin: '0 auto' }}>
                 {allPhotos.map((photo, i) => (
                   <div key={i} style={{
                     aspectRatio: i === 0 ? '2/1' : '1',
@@ -325,8 +316,6 @@ function PreviewContent() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <p style={{ color: pal.muted, textAlign: 'center', fontSize: '0.9rem' }}>Your chapter photos will appear here</p>
             )}
           </section>
         );
@@ -340,7 +329,7 @@ function PreviewContent() {
             }}>
               Guestbook
             </div>
-            <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Guest wishes will appear here on the live site.</p>
+            <p style={{ color: pal.muted, fontSize: '0.9rem', fontStyle: 'italic' }}>Messages from your guests will be shown here.</p>
           </section>
         );
       default:
@@ -353,27 +342,37 @@ function PreviewContent() {
     ? [...manifest.blocks].sort((a, b) => a.order - b.order).filter(b => b.visible !== false)
     : null;
 
-  // Vibe quote section
+  // Vibe quote section — mirrors live site art rendering
   const VibeQuote = () => (
-    <div style={{ position: 'relative', padding: '6rem 0 5rem', textAlign: 'center', overflow: 'hidden' }}>
-      {/* Large hero blob art — left and right side decoration */}
-      {vibeSkin.heroBlobSvg && (
-        <div
-          style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
-        />
+    <div style={{ position: 'relative', padding: '6rem 0 5rem', textAlign: 'center', overflow: 'hidden', zIndex: 10 }}>
+      {/* Nano Banana hero art — full bleed behind quote, edge-faded */}
+      {vibeSkin.heroArtDataUrl && (
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          WebkitMaskComposite: 'source-in', maskComposite: 'intersect',
+        }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={vibeSkin.heroArtDataUrl} alt="" role="presentation" style={{
+            width: '100%', height: '100%', objectFit: 'cover',
+            opacity: 0.22, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+          }} />
+        </div>
       )}
-      {vibeSkin.heroBlobSvg && (
-        <div
-          style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
-        />
+      {/* SVG blob art fallback when no raster art */}
+      {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
+        <div style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
+          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }} />
+      )}
+      {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
+        <div style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
+          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }} />
       )}
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: '0 2rem' }}>
         {vibeSkin.medallionSvg && (
           <div style={{ width: '80px', height: '80px', margin: '0 auto 2rem', opacity: 0.55 }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }}
-          />
+            dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }} />
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: pal.accent, opacity: 0.3 }} />
@@ -391,6 +390,41 @@ function PreviewContent() {
     </div>
   );
 
+  // Art strip — horizontal painted botanical divider
+  const ArtStrip = () => {
+    if (!vibeSkin.artStripDataUrl) return null;
+    return (
+      <div aria-hidden="true" style={{
+        width: '100%', height: '120px', position: 'relative', overflow: 'hidden',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+        maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+      }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={vibeSkin.artStripDataUrl} alt="" role="presentation" style={{
+          width: '100%', height: '100%', objectFit: 'cover',
+          opacity: 0.55, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+        }} />
+      </div>
+    );
+  };
+
+  // Welcome statement — couple's personal voice
+  const WelcomeStatement = () => {
+    const statement = manifest.poetry?.welcomeStatement;
+    if (!statement) return null;
+    return (
+      <div style={{ padding: '0 2rem 5rem', maxWidth: '680px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <p style={{
+          fontFamily: `"${vibeSkin.fonts.body}", sans-serif`,
+          fontSize: 'clamp(1rem, 2.2vw, 1.15rem)', lineHeight: 1.85,
+          color: pal.foreground, opacity: 0.7,
+        }}>
+          {statement}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <ThemeProvider theme={manifest.theme || dynamicTheme}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -398,29 +432,42 @@ function PreviewContent() {
 
       <SiteNav names={names} pages={sitePages} />
 
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (
           <>
-            {vibeSkin.heroPatternSvg && (
+            {/* Ambient art overlay — very subtle painted page texture */}
+            {vibeSkin.ambientArtDataUrl ? (
+              <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={vibeSkin.ambientArtDataUrl} alt="" role="presentation" style={{
+                  width: '100%', height: '100%', objectFit: 'cover',
+                  opacity: 0.10, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+                }} />
+              </div>
+            ) : vibeSkin.heroPatternSvg ? (
               <div style={{
                 position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
                 backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
                 backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.13,
               }} />
-            )}
+            ) : null}
             {visibleBlocks.map(block => renderBlock(block.type, block.id))}
             {visibleBlocks[0]?.type === 'hero' && (
               <>
                 <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
                 <VibeQuote />
+                <WelcomeStatement />
+                <ArtStrip />
               </>
             )}
           </>
         ) : (
           <>
-            <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} />
+            <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} />
             <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
             <VibeQuote />
+            <WelcomeStatement />
+            <ArtStrip />
             <section id="our-story"><Timeline chapters={manifest.chapters || []} /></section>
             {manifest.events?.length ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} /><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted /></> : null}
             {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}

@@ -20,6 +20,8 @@ export interface StoryManifest {
   occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
   logistics?: {
     venue?: string;
+    venueAddress?: string;
+    venuePlaceId?: string;
     date?: string;
     time?: string;
     rsvpDeadline?: string;

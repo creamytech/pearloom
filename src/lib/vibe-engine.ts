@@ -5,6 +5,11 @@
 // The keyword system is a fast fallback only.
 // ——————————————————————————————————————————————————————————————————————————————————————————————————
 
+// ── Dev-only logging helpers ─────────────────────────────────────────────────
+const isDev = process.env.NODE_ENV === 'development';
+const log = isDev ? console.log.bind(console) : () => {};
+const logWarn = isDev ? console.warn.bind(console) : () => {};
+
 export interface VibeSkin {
   // — Structural choices (maps to pre-built SVG variants) —
   curve: 'organic' | 'arch' | 'geometric' | 'wave' | 'petal' | 'cascade' | 'ribbon' | 'mountain';
@@ -1036,7 +1041,7 @@ CRITICAL DESIGN RULES:
       aiGenerated: true,
     };
   } catch (err) {
-    console.warn('[VibeEngine] Gemini skin generation failed, using fallback:', err);
+    logWarn('[VibeEngine] Gemini skin generation failed, using fallback:', err);
     return deriveFallback(vibeString);
   }
 }
@@ -1153,7 +1158,7 @@ No text, no people, no faces, no logos`;
         clearTimeout(imgTimeout);
       }
       if (!res.ok) {
-        console.warn(`[Site Art] Image generation returned ${res.status}`);
+        logWarn(`[Site Art] Image generation returned ${res.status}`);
         return undefined;
       }
       const data = await res.json();
@@ -1163,7 +1168,7 @@ No text, no people, no faces, no logos`;
       if (!part?.inlineData?.data) return undefined;
       return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
     } catch (err) {
-      console.warn('[Site Art] Image generation failed:', err);
+      logWarn('[Site Art] Image generation failed:', err);
       return undefined;
     }
   }
@@ -1177,7 +1182,7 @@ No text, no people, no faces, no logos`;
     fetchImage(artStripPrompt, NANO_BANANA_2),
   ]);
 
-  console.log(
+  log(
     '[Site Art] Pass 2.5 complete —',
     heroArtDataUrl ? 'hero art ✓' : 'hero art ✗',
     ambientArtDataUrl ? 'ambient ✓' : 'ambient ✗',

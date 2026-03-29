@@ -23,6 +23,7 @@ import {
 import { PreviewPane } from './PreviewPane';
 import { PhotoReposition } from './PhotoReposition';
 import { EditorSidebar } from './EditorSidebar';
+import { PearloomMark } from '@/components/brand/PearloomMark';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon, DetailsIcon,
   AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
@@ -43,6 +44,9 @@ import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { AIEditorChat } from './AIEditorChat';
+import { VenueSearch } from '@/components/venue/VenueSearch';
+import type { VenuePartial } from '@/components/venue/VenueSearch';
+import { SeatingCanvas } from '@/components/seating/SeatingCanvas';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -248,39 +252,62 @@ function SectionItem({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -12 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      style={{ marginBottom: '4px', cursor: 'pointer' }}
+      style={{ marginBottom: '6px', cursor: 'pointer' }}
     >
       <div
         style={{
-          borderRadius: '8px',
-          background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.04)',
-          border: isActive ? '1px solid rgba(163,177,138,0.35)' : '1px solid transparent',
+          borderRadius: '10px',
+          background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.04)',
+          border: '1px solid transparent',
+          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '3px solid transparent',
           transition: 'all 0.15s',
           position: 'relative',
           overflow: 'hidden',
         }}
-        onMouseOver={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
-        onMouseOut={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseOver={e => {
+          if (!isActive) {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)';
+            (e.currentTarget as HTMLElement).style.borderLeftColor = 'rgba(163,177,138,0.3)';
+          }
+        }}
+        onMouseOut={e => {
+          if (!isActive) {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
+            (e.currentTarget as HTMLElement).style.borderLeftColor = 'transparent';
+          }
+        }}
       >
         {/* Main card row */}
         <div
           onClick={() => onSelect(chapter.id)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 10px 10px 8px' }}
         >
+          {/* Drag handles */}
           <DragHandle controls={controls} />
-
-          {/* Canvas drag handle — separate from sidebar-reorder handle */}
           <CanvasDragHandle chapterId={chapter.id} chapterTitle={chapter.title || 'Chapter'} />
 
-          {/* Thumbnail */}
+          {/* Chapter number pill */}
           <div style={{
-            width: '36px', height: '36px', borderRadius: '6px', flexShrink: 0,
+            flexShrink: 0,
+            width: '22px', height: '22px', borderRadius: '50%',
+            background: isActive ? 'rgba(163,177,138,0.3)' : 'rgba(255,255,255,0.08)',
+            border: isActive ? '1px solid rgba(163,177,138,0.5)' : '1px solid rgba(255,255,255,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.65rem', fontWeight: 800, color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.45)',
+            letterSpacing: '-0.01em',
+          }}>
+            {index + 1}
+          </div>
+
+          {/* Thumbnail — 44px */}
+          <div style={{
+            width: '44px', height: '44px', borderRadius: '7px', flexShrink: 0,
             background: thumb ? 'transparent' : 'rgba(255,255,255,0.08)',
             overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)',
           }}>
             {thumb
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Image size={14} color="rgba(255,255,255,0.25)" />
                 </div>}
@@ -289,14 +316,20 @@ function SectionItem({
           {/* Labels */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: '0.85rem', fontWeight: 700, color: isActive ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.9)',
+              fontSize: '0.88rem', fontWeight: 700,
+              fontFamily: 'var(--eg-font-heading, Playfair Display, Georgia, serif)',
+              color: isActive ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.92)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               lineHeight: 1.3,
             }}>
               {chapter.title || 'Untitled'}
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
-              Ch. {index + 1} · {slugDate(chapter.date)}
+            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              {chapter.location?.label && (
+                <><MapPin size={9} style={{ flexShrink: 0, opacity: 0.7 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{chapter.location.label}</span><span>·</span></>
+              )}
+              <Clock size={9} style={{ flexShrink: 0, opacity: 0.7 }} />
+              <span>{slugDate(chapter.date)}</span>
             </div>
           </div>
 
@@ -304,12 +337,12 @@ function SectionItem({
           <button
             onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
             style={{
-              padding: '4px', borderRadius: '4px', border: 'none',
+              padding: '5px', borderRadius: '5px', border: 'none',
               background: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
-              display: 'flex', flexShrink: 0, transition: 'color 0.15s',
+              display: 'flex', flexShrink: 0, transition: 'color 0.15s, background 0.15s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; (e.currentTarget as HTMLElement).style.background = 'rgba(248,113,113,0.1)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; (e.currentTarget as HTMLElement).style.background = 'none'; }}
           >
             <Trash2 size={12} />
           </button>
@@ -317,7 +350,7 @@ function SectionItem({
 
         {/* Chapter actions row — completion dots + rewrite + sort */}
         <div style={{
-          padding: '0 10px 8px 10px',
+          padding: '0 10px 8px 14px',
           borderTop: '1px solid rgba(255,255,255,0.05)',
         }}>
           <ChapterActions
@@ -862,9 +895,11 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 }
 
 // ── Details Panel — Travel, FAQ, Registry, Logistics ──────────
-function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const logistics = manifest.logistics || {};
-  const [openSection, setOpenSection] = useState<'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe'>('couple');
+  const occasion = manifest.occasion || 'wedding';
+  const isEvent = occasion === 'wedding' || occasion === 'engagement';
+  const [openSection, setOpenSection] = useState<'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating'>('couple');
 
   const upd = (data: Partial<typeof logistics>) =>
     onChange({ ...manifest, logistics: { ...logistics, ...data } });
@@ -902,7 +937,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
   const delHotel = (i: number) =>
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
 
-  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe';
+  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating';
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <button
@@ -954,7 +989,35 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
           </div>
           <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
         </div>
-        <Field label="Venue Name" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
+        {/* Venue search — populates name + address from Google Places */}
+        <div style={{ marginBottom: '6px' }}>
+          <label style={lbl}>Venue</label>
+          {logistics.venue ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '8px 10px' }}>
+              <MapPin size={13} color="var(--eg-accent, #A3B18A)" style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
+                {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>{logistics.venueAddress}</div>}
+              </div>
+              <button
+                onClick={() => upd({ venue: '', venueAddress: '', venuePlaceId: '' })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '2px', flexShrink: 0, display: 'flex' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.3)'; }}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ) : (
+            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '8px' }}>
+              <VenueSearch
+                placeholder="Search for a venue..."
+                onSelect={(venue: VenuePartial) => upd({ venue: venue.name || '', venueAddress: venue.address || '', venuePlaceId: venue.placeId || '' })}
+                onAddManually={() => upd({ venue: 'My Venue' })}
+              />
+            </div>
+          )}
+        </div>
       </Section>
 
       <Section id="registry" label="Registry">
@@ -1105,6 +1168,18 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
           </div>
         </div>
       </Section>
+
+      {/* Seating chart — weddings + engagements only */}
+      {isEvent && (
+        <Section id="seating" label="Seating Chart">
+          <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '10px', lineHeight: 1.5 }}>
+            Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
+          </div>
+          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
+          </div>
+        </Section>
+      )}
     </div>
   );
 }
@@ -1511,6 +1586,68 @@ function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
   );
 }
 
+// ── WelcomeOverlay ─────────────────────────────────────────────
+function WelcomeOverlay({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.7, ease: 'easeInOut' }}
+      onClick={onDismiss}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: '#1C1916',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        gap: '1.5rem', cursor: 'pointer',
+      }}
+    >
+      {/* Animated pear mark */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <PearloomMark size={80} color="#A3B18A" color2="#D6C6A8" animated />
+      </motion.div>
+
+      {/* "Your site is ready." */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          fontFamily: 'var(--eg-font-heading, Playfair Display, Georgia, serif)',
+          fontSize: 'clamp(2rem, 5vw, 3rem)',
+          fontStyle: 'italic',
+          fontWeight: 400,
+          color: '#F5F1E8',
+          letterSpacing: '-0.02em',
+          textAlign: 'center',
+        }}
+      >
+        Your site is ready.
+      </motion.div>
+
+      {/* "Let's bring it to life." */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
+          fontSize: '1rem',
+          color: 'rgba(245,241,232,0.55)',
+          letterSpacing: '0.04em',
+          textAlign: 'center',
+        }}
+      >
+        Let&apos;s bring it to life.
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ── Main FullscreenEditor ──────────────────────────────────────
 export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubdomain, onChange, onPublish, onExit }: FullscreenEditorProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -1525,7 +1662,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   );
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id || null);
-  const [activeTab, setActiveTab] = useState<EditorTab>('canvas');
+  const [activeTab, setActiveTab] = useState<EditorTab>('story');
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sectionOverridesMap, setSectionOverridesMap] = useState<Record<string, SectionStyleOverrides>>({});
@@ -1540,6 +1677,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
   const [splitView, setSplitView] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   // ── Drag-and-drop state ──
   const [canvasDragId, setCanvasDragId] = useState<string | null>(null);
   const [canvasDragLabel, setCanvasDragLabel] = useState('');
@@ -1573,6 +1711,18 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       return () => clearTimeout(t);
     }
   }, [splitView]);
+
+  // Auto-enable split view on desktop on first mount
+  useEffect(() => {
+    if (!isMobile) setSplitView(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally run once
+
+  // Auto-dismiss welcome overlay after 2.5s
+  useEffect(() => {
+    const t = setTimeout(() => setShowWelcome(false), 2500);
+    return () => clearTimeout(t);
+  }, []);
 
   const pushHistory = useCallback((m: StoryManifest) => {
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
@@ -1683,9 +1833,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         sessionStorage.setItem(previewKey, JSON.stringify({ manifest: m, names: coupleNames }));
         // Send live update via postMessage (no iframe reload = preserves scroll)
         if (iframeRef.current?.contentWindow) {
+          // Strip large art blobs from postMessage payload (art doesn't change during editing)
+          const manifestForMsg = m.vibeSkin ? {
+            ...m,
+            vibeSkin: {
+              ...m.vibeSkin,
+              heroArtDataUrl: undefined,
+              ambientArtDataUrl: undefined,
+              artStripDataUrl: undefined,
+            }
+          } : m;
           iframeRef.current.contentWindow.postMessage({
             type: 'pearloom-preview-update',
-            manifest: m,
+            manifest: manifestForMsg,
             names: coupleNames,
           }, '*');
         }
@@ -1704,12 +1864,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
   // ── Autosave to localStorage (debounced 1.5s) ──
   const AUTOSAVE_KEY = 'pearloom_draft_manifest';
+  const DRAFT_DISMISSED_KEY = `pearloom-draft-dismissed-${subdomain}`;
   const [draftBanner, setDraftBanner] = useState<'visible' | 'hidden' | null>(null);
   const [recoveredDraft, setRecoveredDraft] = useState<StoryManifest | null>(null);
 
   // On mount: check for a saved draft newer than the prop manifest
   useEffect(() => {
     try {
+      // If the user previously dismissed the banner for this subdomain, skip it
+      const previouslyDismissed = localStorage.getItem(DRAFT_DISMISSED_KEY);
+      if (previouslyDismissed) return;
+
       const raw = localStorage.getItem(AUTOSAVE_KEY);
       if (!raw) return;
       const saved: { manifest: StoryManifest; savedAt: number } = JSON.parse(raw);
@@ -1954,7 +2119,10 @@ Return JSON with: title, subtitle, description, mood`,
             restore draft
           </button>
           <button
-            onClick={() => setDraftBanner('hidden')}
+            onClick={() => {
+              try { localStorage.setItem(DRAFT_DISMISSED_KEY, '1'); } catch {}
+              setDraftBanner('hidden');
+            }}
             style={{
               background: 'transparent', border: 'none', cursor: 'pointer',
               color: '#2B2B2B', fontSize: '0.78rem', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
@@ -2114,7 +2282,7 @@ Return JSON with: title, subtitle, description, mood`,
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* ── LEFT SIDEBAR — Premium icon rail + resizable panel (desktop only) ── */}
-        {!isMobile && !splitView && (
+        {!isMobile && (
           <EditorSidebar
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -2122,6 +2290,47 @@ Return JSON with: title, subtitle, description, mood`,
             onWidthChange={setSidebarWidth}
             collapsed={sidebarCollapsed}
             onCollapsedChange={setSidebarCollapsed}
+            footer={
+              <div style={{ padding: '10px 12px', display: 'flex', gap: '8px' }}>
+                {/* Preview Site — outline */}
+                <button
+                  onClick={() => {
+                    sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+                    window.open(`/preview?key=${previewKey}`, '_blank');
+                  }}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    padding: '9px 10px', borderRadius: '8px',
+                    border: '1px solid rgba(163,177,138,0.4)',
+                    background: 'transparent', color: 'rgba(255,255,255,0.75)',
+                    cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+                    transition: 'all 0.15s', whiteSpace: 'nowrap',
+                    minHeight: '38px',
+                  }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; (e.currentTarget as HTMLElement).style.color = '#fff'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)'; }}
+                >
+                  <Eye size={12} /> Preview
+                </button>
+                {/* Publish — filled olive gradient */}
+                <button
+                  onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    padding: '9px 10px', borderRadius: '8px', border: 'none',
+                    background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
+                    color: '#F5F1E8', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+                    boxShadow: '0 2px 8px rgba(163,177,138,0.35)',
+                    transition: 'all 0.15s', whiteSpace: 'nowrap',
+                    minHeight: '38px',
+                  }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(163,177,138,0.5)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(163,177,138,0.35)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
+                >
+                  <Globe size={12} /> Publish
+                </button>
+              </div>
+            }
           >
             {activeTab === 'story' && (
               <>
@@ -2214,7 +2423,7 @@ Return JSON with: title, subtitle, description, mood`,
             )}
 
             {activeTab === 'details' && (
-              <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
+              <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
             )}
 
             {activeTab === 'pages' && (
@@ -2547,7 +2756,7 @@ Return JSON with: title, subtitle, description, mood`,
                 <EventsPanel manifest={manifest} onChange={handleDesignChange} />
               )}
               {activeTab === 'details' && (
-                <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
+                <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
               )}
               {activeTab === 'pages' && (
                 <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
@@ -2760,6 +2969,13 @@ Return JSON with: title, subtitle, description, mood`,
         onUpdateChapter={updateChapter}
         onUpdateManifest={handleChatManifestUpdate}
       />
+
+      {/* ── Welcome overlay ── */}
+      <AnimatePresence>
+        {showWelcome && (
+          <WelcomeOverlay onDismiss={() => setShowWelcome(false)} />
+        )}
+      </AnimatePresence>
     </div>
     </DndContext>
   );

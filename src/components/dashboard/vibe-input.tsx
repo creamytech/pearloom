@@ -5,7 +5,7 @@
 // Rich "Story DNA" Wizard — captures the couple's full aesthetic
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane, Info, ChevronDown } from 'lucide-react';
 
@@ -154,12 +154,66 @@ function slugFromNames(n1: string, n2: string): string {
 }
 
 const VIBE_MOODS = [
-  { id: 'romantic', label: 'Classic Romance', icon: Heart, desc: 'Timeless, elegant, deeply emotional' },
-  { id: 'adventurous', label: 'Adventurous', icon: Mountain, desc: 'Wild, exploring the world together' },
-  { id: 'playful', label: 'Playful & Fun', icon: PartyPopper, desc: 'Laughter, color, and vibrant energy' },
-  { id: 'cozy', label: 'Cozy & Intimate', icon: Coffee, desc: 'Quiet mornings, warmth, and comfort' },
-  { id: 'wanderlust', label: 'Wanderlust', icon: Plane, desc: 'Travel-driven, worldly, cultured' },
-  { id: 'pets', label: 'Our Little Zoo', icon: Dog, desc: 'The fur babies are the stars' },
+  {
+    id: 'romantic', label: 'Classic Romance', icon: Heart, desc: 'Timeless, elegant, deeply emotional',
+    cardBg: 'linear-gradient(145deg, #FFF5F7 0%, #FFE0EA 100%)',
+    activeBg: 'linear-gradient(145deg, #FFDDE6 0%, #FFC2D1 100%)',
+    activeBorder: '#DB7093',
+    iconColor: '#C75B7A',
+    iconBg: 'rgba(219,112,147,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(219,112,147,0.18)',
+  },
+  {
+    id: 'adventurous', label: 'Adventurous', icon: Mountain, desc: 'Wild, exploring the world together',
+    cardBg: 'linear-gradient(145deg, #F0F7EC 0%, #DCF0CC 100%)',
+    activeBg: 'linear-gradient(145deg, #D4EEC2 0%, #BFDFAA 100%)',
+    activeBorder: '#5A8F3E',
+    iconColor: '#3D6E2A',
+    iconBg: 'rgba(90,143,62,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(90,143,62,0.18)',
+  },
+  {
+    id: 'playful', label: 'Playful & Fun', icon: PartyPopper, desc: 'Laughter, color, and vibrant energy',
+    cardBg: 'linear-gradient(145deg, #FFF8EE 0%, #FFE5BC 100%)',
+    activeBg: 'linear-gradient(145deg, #FFE0A0 0%, #FFCC70 100%)',
+    activeBorder: '#D4931A',
+    iconColor: '#B87C10',
+    iconBg: 'rgba(212,147,26,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(255,180,50,0.18)',
+  },
+  {
+    id: 'cozy', label: 'Cozy & Intimate', icon: Coffee, desc: 'Quiet mornings, warmth, and comfort',
+    cardBg: 'linear-gradient(145deg, #FBF5EE 0%, #F0DEC8 100%)',
+    activeBg: 'linear-gradient(145deg, #EACFAA 0%, #D4B080 100%)',
+    activeBorder: '#8B5A2B',
+    iconColor: '#6B3E18',
+    iconBg: 'rgba(139,90,43,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(139,90,43,0.15)',
+  },
+  {
+    id: 'wanderlust', label: 'Wanderlust', icon: Plane, desc: 'Travel-driven, worldly, cultured',
+    cardBg: 'linear-gradient(145deg, #EEF3FF 0%, #D8E4FF 100%)',
+    activeBg: 'linear-gradient(145deg, #C2D4FF 0%, #A8BEF0 100%)',
+    activeBorder: '#3D5ECC',
+    iconColor: '#2B4AB8',
+    iconBg: 'rgba(65,105,225,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(65,105,225,0.16)',
+  },
+  {
+    id: 'pets', label: 'Our Little Zoo', icon: Dog, desc: 'The fur babies are the stars',
+    cardBg: 'linear-gradient(145deg, #FFF7F0 0%, #FFE4CC 100%)',
+    activeBg: 'linear-gradient(145deg, #FFD4A8 0%, #FFBC78 100%)',
+    activeBorder: '#C06820',
+    iconColor: '#A05010',
+    iconBg: 'rgba(210,105,30,0.14)',
+    activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(210,105,30,0.18)',
+  },
 ];
 
 const OCCASIONS = [
@@ -237,6 +291,14 @@ const btnPrimaryStyle: React.CSSProperties = {
 };
 
 export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 480);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const [step, setStep] = useState(1);
   // 'main' = steps 1-8 of the original wizard, 'details' = optional details sub-step
   const [wizardPhase, setWizardPhase] = useState<'main' | 'details'>('main');
@@ -248,7 +310,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [occasion, setOccasion] = useState<string>('');
   const [showValidation, setShowValidation] = useState(false);
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
-  const totalSteps = isEvent ? 8 : 7;
+  // Step 4 = Inspiration (new), Step 5 = Color Palette, Steps 6-9 shifted +1
+  // If inspiration URLs provided, Step 5 (color) is auto-skipped → AI decides colors
+  const totalSteps = isEvent ? 9 : 8;
 
   // Step 1: Names
   const [name1, setName1] = useState(initialNames?.[0] ?? '');
@@ -276,17 +340,39 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const canProceedStep1 = name1.trim() && name2.trim();
   const canProceedStep2 = occasion !== '';
   const canProceedStep3 = mood !== '';
-  const canProceedStep4 = palette !== '';
-  const canProceedStep5 = favPlaces.length > 0;
-  const canProceedStep6 = meetCute.trim() !== '';
+  // Step 4 = Inspiration (always optional — can skip)
+  const canProceedStep5 = palette !== '';     // Step 5 = Color Palette
+  const canProceedStep6 = favPlaces.length > 0; // Step 6 = Places
+  const canProceedStep7 = meetCute.trim() !== ''; // Step 7 = Story
+
+  const hasInspirationUrls = inspirationUrls.some(u => u.trim().match(/^https?:\/\/.+/));
+
+  // Ambient orb color for background — shifts with mood/palette selection
+  const ambientOrb = useMemo(() => {
+    if (step === 3 && mood) {
+      return VIBE_MOODS.find(m => m.id === mood)?.orb ?? 'rgba(163,177,138,0.12)';
+    }
+    if (step === 5 && palette && palette !== 'custom') {
+      const sel = COLOR_PALETTES.find(p => p.id === palette);
+      if (sel) {
+        const hex = sel.colors[0].replace('#', '');
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return `rgba(${r},${g},${b},0.14)`;
+      }
+    }
+    return 'rgba(163,177,138,0.1)';
+  }, [step, mood, palette]);
 
   const canProceedCurrentStep = () => {
     if (step === 1) return !!canProceedStep1;
     if (step === 2) return !!canProceedStep2;
     if (step === 3) return !!canProceedStep3;
-    if (step === 4) return !!canProceedStep4;
+    if (step === 4) return true; // inspiration is optional
     if (step === 5) return !!canProceedStep5;
     if (step === 6) return !!canProceedStep6;
+    if (step === 7) return !!canProceedStep7;
     return true;
   };
 
@@ -296,10 +382,21 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       return;
     }
     setShowValidation(false);
+    // If inspiration URLs are provided, skip color palette (step 5) — AI extracts from inspo
+    if (step === 4 && hasInspirationUrls) {
+      setPalette('custom');
+      setStep(6);
+      return;
+    }
     if (step < totalSteps) setStep(step + 1);
   };
   const handleBack = () => {
     setShowValidation(false);
+    // If at places (step 6) and we skipped color via inspiration, go back to inspiration (step 4)
+    if (step === 6 && hasInspirationUrls) {
+      setStep(4);
+      return;
+    }
     if (step > 1) setStep(step - 1);
   };
 
@@ -928,112 +1025,20 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           )}
         </div>
 
-        {/* ── VISUAL INSPIRATION ── */}
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          borderRadius: '1rem',
-          padding: '1.5rem',
-          border: '1px solid rgba(214,198,168,0.12)',
-          marginTop: '2rem',
-        }}>
-          <p style={sectionHeading}>
-            <span style={{ marginRight: '0.4rem' }}>✨</span>Visual Inspiration<Tooltip text="Our AI analyzes these to match your visual style — use direct image links" />
-            <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)', marginLeft: '0.5rem' }}>(optional)</span>
-          </p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
-            Paste links to images that capture your wedding aesthetic — Pinterest pins, Instagram posts, or any image URL.
-          </p>
-
-          {inspirationUrls.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '0.75rem' }}>
-              {inspirationUrls.map((url, idx) => {
-                const isDirectImage = /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(url);
-                const isKnownCdn = /(?:^|\.)(?:i\.imgur\.com|cdn\.discordapp\.com|images\.unsplash\.com|imagedelivery\.net|cloudinary\.com|res\.cloudinary\.com|live\.staticflickr\.com)(?:\/|$)/i.test(url);
-                const isValid = /^https?:\/\/.+/.test(url.trim());
-                const warnNotDirectImage = isValid && !isDirectImage && !isKnownCdn;
-                return (
-                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {isDirectImage && isValid && (
-                      <div style={{
-                        width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem',
-                        overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(214,198,168,0.2)',
-                      }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={url}
-                          alt="inspiration preview"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      </div>
-                    )}
-                    <input
-                      type="url"
-                      value={url}
-                      placeholder="https://..."
-                      onChange={e => {
-                        const next = [...inspirationUrls];
-                        next[idx] = e.target.value;
-                        setInspirationUrls(next);
-                      }}
-                      style={{
-                        ...detailInputStyle,
-                        flex: 1,
-                        borderColor: url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)',
-                      }}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                    <button
-                      onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))}
-                      aria-label="Remove"
-                      style={{
-                        width: '2rem', height: '2rem', borderRadius: '50%',
-                        border: '1px solid rgba(0,0,0,0.1)', background: '#fff',
-                        color: 'var(--eg-muted)', cursor: 'pointer', flexShrink: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '1rem', lineHeight: 1, transition: 'all 0.15s',
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fef2f2'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#fca5a5'; (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fff'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.1)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--eg-muted)'; }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                  {warnNotDirectImage && (
-                    <p style={{ fontSize: '0.8rem', color: 'var(--eg-gold, #B8A04A)', marginTop: '0.1rem' }}>
-                      &#9888; Use a direct image link (not a Pinterest or Instagram page URL)
-                    </p>
-                  )}
-                  </div>
-                );
-              })}
+        {/* ── VISUAL INSPIRATION SUMMARY (collected in Step 4) ── */}
+        {hasInspirationUrls && (
+          <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '1rem', padding: '1rem 1.25rem', border: '1px solid rgba(163,177,138,0.2)', marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>✨</span>
+            <div>
+              <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--eg-accent)', margin: 0 }}>
+                {inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length} inspiration image{inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/)).length !== 1 ? 's' : ''} added
+              </p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', margin: 0, marginTop: '0.1rem' }}>
+                Colours will be extracted automatically — no palette selection needed.
+              </p>
             </div>
-          )}
-
-          {inspirationUrls.length < 4 && (
-            <button
-              onClick={() => setInspirationUrls(prev => [...prev, ''])}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.5rem 1rem', borderRadius: '100px',
-                border: '1.5px solid rgba(163,177,138,0.35)',
-                background: 'transparent', color: 'var(--eg-accent)',
-                fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(163,177,138,0.08)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-            >
-              <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>+</span> Add inspiration image
-            </button>
-          )}
-
-          <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.75rem', lineHeight: 1.5 }}>
-            Up to 4 images. Our AI will analyze them to match your visual style.
-          </p>
-        </div>
+          </div>
+        )}
 
         {/* URL slug picker */}
         <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginTop: '2rem' }}>
@@ -1112,21 +1117,26 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   }
 
   return (
-    <div style={{
-      maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem',
-    }}>
-      {/* Linear progress bar — spans full wizard flow */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
-            Step {step} of {totalSteps + 1}
-          </span>
-        </div>
-        <div style={{ width: '100%', height: '3px', background: 'var(--eg-divider, rgba(0,0,0,0.08))', overflow: 'hidden' }}>
+    <div style={{ maxWidth: '640px', margin: '0 auto', paddingBottom: '2rem', position: 'relative' }}>
+      {/* ── Ambient orb — shifts with current selection ── */}
+      <motion.div
+        animate={{ background: `radial-gradient(ellipse 700px 500px at 50% -80px, ${ambientOrb}, transparent 70%)` }}
+        transition={{ duration: 1.2, ease: 'easeInOut' }}
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, height: '500px',
+          pointerEvents: 'none', zIndex: 0,
+        }}
+      />
+      {/* Progress header */}
+      <div style={{ marginBottom: '2.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap', flexShrink: 0 }}>
+          {step} / {totalSteps + 1}
+        </span>
+        <div style={{ flex: 1, height: '2px', background: 'rgba(0,0,0,0.07)', borderRadius: 100, overflow: 'hidden' }}>
           <motion.div
             animate={{ width: `${Math.round((step / (totalSteps + 1)) * 100)}%` }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            style={{ height: '100%', background: 'var(--eg-accent)' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{ height: '100%', background: 'linear-gradient(90deg, var(--eg-accent), color-mix(in srgb, var(--eg-accent) 70%, #fff))', borderRadius: 100 }}
           />
         </div>
       </div>
@@ -1159,6 +1169,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         })}
       </div>
 
+      <div style={{ position: 'relative', zIndex: 1 }}>
       <AnimatePresence mode="wait" custom={1}>
         {/* ── STEP 1: Names ── */}
         {step === 1 && (
@@ -1289,26 +1300,53 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               This shapes the entire tone — colors, fonts, and narrative voice.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-              {VIBE_MOODS.map(m => (
-                <button key={m.id} onClick={() => setMood(m.id)} style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
-                  padding: '1.5rem 1rem', borderRadius: '1rem', textAlign: 'center',
-                  border: `2px solid ${mood === m.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                  background: mood === m.id ? 'var(--eg-accent-light)' : '#fff',
-                  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: mood === m.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
-                  transform: mood === m.id ? 'translateY(-2px)' : 'none',
-                }}>
-                  <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', background: mood === m.id ? '#fff' : 'var(--eg-accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--eg-accent)' }}>
-                    <m.icon size={20} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{m.label}</h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>{m.desc}</p>
-                  </div>
-                </button>
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
+              {VIBE_MOODS.map(m => {
+                const active = mood === m.id;
+                return (
+                  <motion.button
+                    key={m.id}
+                    onClick={() => setMood(m.id)}
+                    whileHover={{ y: -3, boxShadow: '0 12px 32px rgba(0,0,0,0.10)' }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem',
+                      padding: '1.5rem', borderRadius: '1.25rem', textAlign: 'left',
+                      border: `2px solid ${active ? m.activeBorder : 'rgba(0,0,0,0.0)'}`,
+                      background: active ? m.activeBg : m.cardBg,
+                      cursor: 'pointer',
+                      transition: 'background 0.35s ease, border-color 0.25s ease',
+                      boxShadow: active ? `0 8px 28px ${m.orb}` : '0 2px 12px rgba(0,0,0,0.04)',
+                      position: 'relative', overflow: 'hidden',
+                    }}
+                  >
+                    {/* Glow spot */}
+                    {active && (
+                      <div style={{
+                        position: 'absolute', top: '-40px', right: '-40px',
+                        width: '120px', height: '120px', borderRadius: '50%',
+                        background: `radial-gradient(circle, ${m.orb.replace('0.', '0.5,').replace(')', ',transparent)')}`,
+                        filter: 'blur(20px)', pointerEvents: 'none',
+                      }} />
+                    )}
+                    <div style={{
+                      width: '3rem', height: '3rem', borderRadius: '0.875rem',
+                      background: active ? m.activeIconBg : m.iconBg,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: m.iconColor, flexShrink: 0,
+                      boxShadow: active ? `0 4px 12px ${m.iconBg}` : 'none',
+                      transition: 'all 0.25s ease',
+                    }}>
+                      <m.icon size={20} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.3rem' }}>{m.label}</h3>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', lineHeight: 1.5, margin: 0 }}>{m.desc}</p>
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
@@ -1317,9 +1355,79 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 4: COLOR PALETTE ── */}
+        {/* ── STEP 4: VISUAL INSPIRATION (new) ── */}
         {step === 4 && (
           <motion.div key="s4" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '1.75rem' }}>✨</span>
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Visual Inspiration</h2>
+            </div>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '0.75rem' }}>
+              Paste links to images that capture your aesthetic — Pinterest pins, Instagram posts, any direct image URL.
+            </p>
+            <p style={{ color: 'var(--eg-accent)', fontSize: '0.88rem', fontWeight: 600, marginBottom: '2rem' }}>
+              {hasInspirationUrls
+                ? '✓ The AI will extract your colour palette directly from these images — colour selection step is skipped.'
+                : 'Optional — skip this step to choose a colour palette manually on the next screen.'}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '0.75rem' }}>
+              {(inspirationUrls.length === 0 ? [''] : inspirationUrls).map((url, idx) => {
+                const isDirectImage = /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(url);
+                const isKnownCdn = /(?:^|\.)(?:i\.imgur\.com|cdn\.discordapp\.com|images\.unsplash\.com|imagedelivery\.net|cloudinary\.com|res\.cloudinary\.com|live\.staticflickr\.com)(?:\/|$)/i.test(url);
+                const isValid = /^https?:\/\/.+/.test(url.trim());
+                const warnNotDirectImage = isValid && !isDirectImage && !isKnownCdn;
+                return (
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {isDirectImage && isValid && (
+                        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(214,198,168,0.2)' }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={url} alt="inspiration preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        </div>
+                      )}
+                      <input
+                        type="url"
+                        value={url}
+                        placeholder="https://i.pinimg.com/..."
+                        onChange={e => {
+                          const next = [...(inspirationUrls.length === 0 ? [''] : inspirationUrls)];
+                          next[idx] = e.target.value;
+                          setInspirationUrls(next.filter((u, i) => i === 0 || u.trim()));
+                        }}
+                        style={{ ...inputStyle, flex: 1, borderColor: url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)' }}
+                        onFocus={getFocusStyle}
+                        onBlur={getBlurStyle}
+                      />
+                      {idx > 0 && (
+                        <button type="button" onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: '0.25rem', flexShrink: 0 }}>✕</button>
+                      )}
+                    </div>
+                    {warnNotDirectImage && (
+                      <p style={{ fontSize: '0.78rem', color: '#f59e0b', margin: 0, paddingLeft: '0.25rem' }}>
+                        ⚠ Paste a direct image URL (ending in .jpg / .png) for best results
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {inspirationUrls.length < 4 && (
+              <button type="button" onClick={() => setInspirationUrls(prev => [...(prev.length === 0 ? [''] : prev), ''])} style={{ background: 'none', border: '1px dashed rgba(163,177,138,0.45)', borderRadius: '0.5rem', padding: '0.5rem 1rem', color: 'var(--eg-accent)', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600 }}>
+                + Add another image
+              </button>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
+              <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>
+                {hasInspirationUrls ? 'Use my inspiration →' : 'Skip'} <ArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 5: COLOR PALETTE (was step 4, skipped when inspiration URLs provided) ── */}
+        {step === 5 && (
+          <motion.div key="s5" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Palette size={28} color="var(--eg-accent)" />
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Color Inspiration</h2>
@@ -1327,35 +1435,69 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               Pick a palette that feels like your relationship. The AI will use this as a starting point.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-              {COLOR_PALETTES.map(p => (
-                <button key={p.id} onClick={() => setPalette(p.id)} style={{
-                  padding: '1.25rem', borderRadius: '1rem', textAlign: 'left',
-                  border: `2px solid ${palette === p.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                  background: palette === p.id ? 'var(--eg-accent-light)' : '#fff',
-                  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transform: palette === p.id ? 'translateY(-2px)' : 'none',
-                  boxShadow: palette === p.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
-                }}>
-                  <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.75rem' }}>
-                    {p.colors.map((c, i) => (
-                      <div key={i} style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
-                    ))}
-                  </div>
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--eg-fg)' }}>{p.name}</span>
-                </button>
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.875rem' }}>
+              {COLOR_PALETTES.map(p => {
+                const active = palette === p.id;
+                const isCustom = p.id === 'custom';
+                return (
+                  <motion.button
+                    key={p.id}
+                    onClick={() => setPalette(p.id)}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.18 }}
+                    style={{
+                      padding: 0, borderRadius: '1rem', textAlign: 'left',
+                      border: `2px solid ${active ? 'var(--eg-fg)' : 'rgba(0,0,0,0.06)'}`,
+                      background: '#fff',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      boxShadow: active ? '0 8px 28px rgba(0,0,0,0.14)' : '0 2px 10px rgba(0,0,0,0.03)',
+                      transition: 'border-color 0.2s, box-shadow 0.25s',
+                    }}
+                  >
+                    {/* Gradient strip */}
+                    <div style={{
+                      height: '52px',
+                      background: isCustom
+                        ? 'linear-gradient(90deg, #A3B18A, #D6C6A8, #6D597A, #1a1713, #8FA876)'
+                        : `linear-gradient(90deg, ${p.colors.join(', ')})`,
+                      position: 'relative',
+                    }}>
+                      {active && (
+                        <div style={{
+                          position: 'absolute', top: '50%', right: '0.75rem',
+                          transform: 'translateY(-50%)',
+                          width: '22px', height: '22px', borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.9)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.75rem',
+                        }}>✓</div>
+                      )}
+                    </div>
+                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{p.name}</span>
+                      {/* Mini swatches */}
+                      <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                        {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
+                          <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep4} style={{ ...btnPrimaryStyle, opacity: canProceedStep4 ? 1 : 0.5, pointerEvents: canProceedStep4 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep5} style={{ ...btnPrimaryStyle, opacity: canProceedStep5 ? 1 : 0.5, pointerEvents: canProceedStep5 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 5: FAVORITE PLACES ── */}
-        {step === 5 && (
-          <motion.div key="s5" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 6: FAVORITE PLACES (was step 5) ── */}
+        {step === 6 && (
+          <motion.div key="s6" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Globe size={28} color="var(--eg-accent)" />
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Your Favorite Places</h2>
@@ -1376,14 +1518,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep5} style={{ ...btnPrimaryStyle, opacity: canProceedStep5 ? 1 : 0.5, pointerEvents: canProceedStep5 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep6} style={{ ...btnPrimaryStyle, opacity: canProceedStep6 ? 1 : 0.5, pointerEvents: canProceedStep6 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 6: YOUR STORY ── */}
-        {step === 6 && (
-          <motion.div key="s6" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 7: YOUR STORY (was step 6) ── */}
+        {step === 7 && (
+          <motion.div key="s7" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Tell Us Your Story</h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
               The more you share, the more personal and beautiful your site will be.
@@ -1403,16 +1545,15 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep6} style={{ ...btnPrimaryStyle, opacity: canProceedStep6 ? 1 : 0.5, pointerEvents: canProceedStep6 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep7} style={{ ...btnPrimaryStyle, opacity: canProceedStep7 ? 1 : 0.5, pointerEvents: canProceedStep7 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 7: SPECIAL DETAILS ── */}
-        {step === 7 && (
-          <motion.div key="s7" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 8: SPECIAL DETAILS (was step 7) ── */}
+        {step === 8 && (
+          <motion.div key="s8" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              {/* Pear-shaped icon instead of circle */}
               <div style={{
                 width: '5rem', height: '6.4rem',
                 borderRadius: '42% 42% 52% 52% / 30% 30% 52% 52%',
@@ -1445,46 +1586,30 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{
-                ...btnPrimaryStyle,
-                background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
-                boxShadow: '0 12px 36px rgba(163,177,138,0.4)',
-              }}>Generate My Site <Sparkles size={18} /></button>
+              {isEvent ? (
+                <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
+              ) : (
+                <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'linear-gradient(135deg, #A3B18A, #8FA876)', boxShadow: '0 12px 36px rgba(163,177,138,0.4)' }}>Generate My Site <Sparkles size={18} /></button>
+              )}
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 8: EVENT DETAILS (Conditional) ── */}
-        {step === 8 && isEvent && (
-          <motion.div key="s8" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 9: EVENT DETAILS (Conditional, was step 8) ── */}
+        {step === 9 && isEvent && (
+          <motion.div key="s9" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Event Details</h2>
               <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem' }}>
-                Since this is a {OCCASIONS.find(o => o.id === occasion)?.label}, let's add the logistics so guests can RSVP and contribute.
+                Since this is a {OCCASIONS.find(o => o.id === occasion)?.label}, let&apos;s add the logistics so guests can RSVP and find you.
               </p>
+              {eventDate && (
+                <p style={{ fontSize: '0.88rem', color: 'var(--eg-accent)', fontWeight: 600, marginTop: '0.75rem' }}>
+                  ✓ Date set: {/^\d{4}-\d{2}-\d{2}$/.test(eventDate) ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : eventDate}
+                </p>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>When is the event?</label>
-                <input
-                  type="text"
-                  placeholder="e.g. October 12th, 2026"
-                  value={eventDate
-                    ? (/^\d{4}-\d{2}-\d{2}$/.test(eventDate)
-                        ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-                        : eventDate)
-                    : ''}
-                  onChange={e => setEventDate(e.target.value)}
-                  style={inputStyle}
-                  onFocus={getFocusStyle}
-                  onBlur={getBlurStyle}
-                />
-                {eventDate && /^\d{4}-\d{2}-\d{2}$/.test(eventDate) && (
-                  <p style={{ fontSize: '0.8rem', color: 'var(--eg-accent)', marginTop: '0.4rem', fontWeight: 500 }}>
-                    Using date from earlier — change if needed
-                  </p>
-                )}
-              </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Where is the venue?</label>
                 <input type="text" placeholder="e.g. The Glasshouse, NYC" value={eventVenue} onChange={e => setEventVenue(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
@@ -1494,21 +1619,18 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <input type="text" placeholder="e.g. September 1st" value={rsvpDeadline} onChange={e => setRsvpDeadline(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Registry or Cash Fund URL (Optional)</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Registry or Cash Fund URL <span style={{ fontWeight: 400 }}>(optional)</span></label>
                 <input type="url" placeholder="e.g. venmo.com/shauna-scott" value={cashFundUrl} onChange={e => setCashFundUrl(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{
-                ...btnPrimaryStyle,
-                background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
-                boxShadow: '0 12px 36px rgba(163,177,138,0.4)',
-              }}>Generate My Site <Sparkles size={18} /></button>
+              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, background: 'linear-gradient(135deg, #A3B18A, #8FA876)', boxShadow: '0 12px 36px rgba(163,177,138,0.4)' }}>Generate My Site <Sparkles size={18} /></button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

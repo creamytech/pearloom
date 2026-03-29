@@ -19,6 +19,11 @@ const GEMINI_LITE  = 'https://generativelanguage.googleapis.com/v1beta/models/ge
 // Default — used for backward compat on any pass not explicitly routed
 const GEMINI_API_BASE = GEMINI_FLASH;
 
+// ── Dev-only logging helpers ─────────────────────────────────────────────────
+const log = process.env.NODE_ENV === 'development' ? console.log : () => {};
+const logWarn = process.env.NODE_ENV === 'development' ? console.warn : () => {};
+const logError = process.env.NODE_ENV === 'development' ? console.error : () => {};
+
 /**
  * Wraps a Gemini fetch with automatic retry on 503 (UNAVAILABLE) and 429 (rate limit).
  * Uses exponential back-off: 2s â†’ 4s â†’ 8s (max 3 attempts).
@@ -35,7 +40,7 @@ async function geminiRetryFetch(
       const retryAfter = res.headers.get('Retry-After');
       const backoff = retryAfter ? parseInt(retryAfter, 10) * 1000 : Math.pow(2, attempt) * 1000;
       if (attempt < maxAttempts) {
-        console.warn(`[Memory Engine] Gemini ${res.status} â€” retrying in ${backoff / 1000}s (attempt ${attempt}/${maxAttempts})...`);
+        logWarn(`[Memory Engine] Gemini ${res.status} â€” retrying in ${backoff / 1000}s (attempt ${attempt}/${maxAttempts})...`);
         await new Promise(resolve => setTimeout(resolve, backoff));
         continue;
       }
@@ -61,14 +66,16 @@ export async function generateStoryManifest(
   eventDate?: string,
   inspirationUrls?: string[]
 ): Promise<StoryManifest> {
-  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate);
+  // Cap chapters to number of photos (one chapter per photo cluster)
+  const photoCount = clusters.length;
+  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount);
 
   // Build the multimodal parts array
   const parts: Record<string, unknown>[] = [{ text: prompt }];
 
   // If we have an access token, fetch 1 representative image per cluster to show Gemini
   if (googleAccessToken) {
-    console.log(`[Memory Engine] Fetching up to ${clusters.length} images for Multimodal AI analysis...`);
+    log(`[Memory Engine] Fetching up to ${clusters.length} images for Multimodal AI analysis...`);
     const imagePromises = clusters.map(async (cluster) => {
       const bestPhoto = cluster.photos[0];
       if (!bestPhoto?.baseUrl) return null;
@@ -81,7 +88,7 @@ export async function generateStoryManifest(
         const res = await fetch(fetchUrl, { headers });
         
         if (!res.ok) {
-          console.warn(`[Memory Engine] Failed to fetch image: ${res.status} ${res.statusText}`);
+          logWarn(`[Memory Engine] Failed to fetch image: ${res.status} ${res.statusText}`);
           return null;
         }
         
@@ -101,7 +108,7 @@ export async function generateStoryManifest(
           }
         };
       } catch (err) {
-        console.warn('Failed to fetch image for Gemini:', err);
+        logWarn('Failed to fetch image for Gemini:', err);
         return null;
       }
     });
@@ -114,11 +121,11 @@ export async function generateStoryManifest(
         parts.push(imgData);
       }
     });
-    console.log(`[Memory Engine] Successfully appended images to Gemini prompt!`);
+    log(`[Memory Engine] Successfully appended images to Gemini prompt!`);
   }
 
   // Pass 1 uses Gemini 3.1 Pro — core storytelling is the most important creative pass
-  console.log('[Memory Engine] Pass 1: Sending to Gemini 3.1 Pro (core storytelling)...');
+  log('[Memory Engine] Pass 1: Sending to Gemini 3.1 Pro (core storytelling)...');
   const res = await geminiRetryFetch(`${GEMINI_PRO}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -183,8 +190,8 @@ export async function generateStoryManifest(
   try {
     parsed = JSON.parse(rawText);
   } catch (e) {
-    console.error('[memory-engine] Failed to parse Gemini JSON:', e);
-    console.error('[memory-engine] Raw text (first 800 chars):', rawText.slice(0, 800));
+    logError('[memory-engine] Failed to parse Gemini JSON:', e);
+    logError('[memory-engine] Raw text (first 800 chars):', rawText.slice(0, 800));
 
     // Last resort: try extracting just the chapters array if it's there
     try {
@@ -192,7 +199,7 @@ export async function generateStoryManifest(
       if (chapStart !== -1) {
         const partial = '{' + rawText.slice(chapStart);
         parsed = JSON.parse(partial + '}');
-        console.warn('[memory-engine] Recovered partial manifest (chapters only)');
+        logWarn('[memory-engine] Recovered partial manifest (chapters only)');
       } else {
         throw new Error('no chapters');
       }
@@ -255,6 +262,13 @@ export async function generateStoryManifest(
   // and inject the real photo URLs.
   manifest.chapters = hydrateChapterImages(manifest.chapters, clusters);
 
+  // Cap chapters to photoCount: strip any AI-hallucinated extras.
+  // Prevents chapters that reference non-existent photos.
+  if (photoCount > 0 && manifest.chapters.length > photoCount) {
+    logWarn(`[Memory Engine] AI generated ${manifest.chapters.length} chapters but only ${photoCount} photo cluster(s) — trimming to ${photoCount}`);
+    manifest.chapters = manifest.chapters.slice(0, photoCount);
+  }
+
   manifest.chapters = manifest.chapters
     .sort((a: Chapter, b: Chapter) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((ch: Chapter, i: number) => ({
@@ -268,12 +282,20 @@ export async function generateStoryManifest(
   // Gemini scores each chapter's specificity 1-10 and rewrites any < 7.
   // Ensures zero generic “our journey began” chapters reach the user.
   try {
+    // Extract cluster notes to pass into the quality gate so user context is preserved
+    const clusterNotes = clusters
+      .map((cluster, i) => ({
+        chapterIndex: i,
+        note: cluster.note ?? '',
+        location: cluster.location?.label ?? null,
+      }))
+      .filter(cn => cn.note.length > 0);
     manifest.chapters = await critiqueAndRefineChapters(
-      manifest.chapters, vibeString, coupleNames, apiKey, occasion
+      manifest.chapters, vibeString, coupleNames, apiKey, occasion, clusterNotes
     );
-    console.log('[Memory Engine] Pass 1.2: Chapter quality gate complete');
+    log('[Memory Engine] Pass 1.2: Chapter quality gate complete');
   } catch (err) {
-    console.warn('[Memory Engine] Chapter quality gate failed (non-fatal):', err);
+    logWarn('[Memory Engine] Chapter quality gate failed (non-fatal):', err);
   }
 
   // ── Pass 1.5: Extract Couple DNA — pets, interests, locations, motifs ────
@@ -286,12 +308,12 @@ export async function generateStoryManifest(
       mood: c.mood,
     }));
     coupleProfile = await extractCoupleProfile(vibeString, chapterSummaries, apiKey, occasion);
-    console.log('[Memory Engine] Pass 1.5: Couple DNA extracted —',
+    log('[Memory Engine] Pass 1.5: Couple DNA extracted —',
       `pets: [${coupleProfile.pets.join(', ')}]`,
       `interests: [${coupleProfile.interests.join(', ')}]`
     );
   } catch (err) {
-    console.warn('[Memory Engine] Couple profile extraction failed (non-fatal):', err);
+    logWarn('[Memory Engine] Couple profile extraction failed (non-fatal):', err);
   }
 
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
@@ -315,11 +337,11 @@ export async function generateStoryManifest(
       coupleProfile,  // Couple DNA drives bespoke illustration generation
     }, occasion);
     manifest.vibeSkin = vibeSkin;
-    console.log('[Memory Engine] Pass 2: VibeSkin generated',
+    log('[Memory Engine] Pass 2: VibeSkin generated',
       vibeSkin.chapterIcons?.length ? `with ${vibeSkin.chapterIcons.length} chapter icons` : '(no chapter icons)'
     );
   } catch (err) {
-    console.warn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
+    logWarn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
   }
 
   // ── Pass 2.5: Raster art generation (Nano Banana) ────────────────────
@@ -337,9 +359,9 @@ export async function generateStoryManifest(
       if (siteArt.heroArtDataUrl) manifest.vibeSkin.heroArtDataUrl = siteArt.heroArtDataUrl;
       if (siteArt.ambientArtDataUrl) manifest.vibeSkin.ambientArtDataUrl = siteArt.ambientArtDataUrl;
       if (siteArt.artStripDataUrl) manifest.vibeSkin.artStripDataUrl = siteArt.artStripDataUrl;
-      console.log('[Memory Engine] Pass 2.5: Raster art generation complete');
+      log('[Memory Engine] Pass 2.5: Raster art generation complete');
     } catch (err) {
-      console.warn('[Memory Engine] Raster art generation failed (non-fatal):', err);
+      logWarn('[Memory Engine] Raster art generation failed (non-fatal):', err);
     }
   }
 
@@ -352,9 +374,9 @@ export async function generateStoryManifest(
       manifest.vibeSkin = await critiqueAndRefineDesign(
         manifest.vibeSkin, manifest.vibeString, coupleNames, apiKey
       );
-      console.log('[Memory Engine] Pass 3: Design critique complete');
+      log('[Memory Engine] Pass 3: Design critique complete');
     } catch (err) {
-      console.warn('[Memory Engine] Design critique pass failed (non-fatal):', err);
+      logWarn('[Memory Engine] Design critique pass failed (non-fatal):', err);
     }
   }
 
@@ -365,9 +387,9 @@ export async function generateStoryManifest(
     manifest.poetry = await generatePoetryPass(
       manifest.vibeString, coupleNames, manifest.chapters, apiKey, occasion
     );
-    console.log('[Memory Engine] Pass 4: Poetry pass complete');
+    log('[Memory Engine] Pass 4: Poetry pass complete');
   } catch (err) {
-    console.warn('[Memory Engine] Poetry pass failed (non-fatal):', err);
+    logWarn('[Memory Engine] Poetry pass failed (non-fatal):', err);
   }
 
   return manifest;
@@ -382,7 +404,8 @@ async function critiqueAndRefineChapters(
   vibeString: string,
   coupleNames: [string, string] | undefined,
   apiKey: string,
-  occasion?: string
+  occasion?: string,
+  clusterNotes?: Array<{ chapterIndex: number; note: string; location: string | null }>
 ): Promise<import('@/types').Chapter[]> {
   if (!chapters.length) return chapters;
   const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
@@ -392,10 +415,23 @@ async function critiqueAndRefineChapters(
     `Chapter ${i}:\n  Title: "${c.title}"\n  Subtitle: "${c.subtitle}"\n  Description: "${c.description}"\n  Mood: ${c.mood}`
   ).join('\n\n');
 
+  // Build cluster notes section for the prompt
+  const notesSection = (clusterNotes && clusterNotes.length > 0)
+    ? `\nCRITICAL: The following chapters have USER-WRITTEN NOTES that MUST be preserved and reflected in any rewrite:\n${
+        clusterNotes
+          .filter(cn => cn.chapterIndex < chapters.length)
+          .map(cn => {
+            const locationPart = cn.location ? ` (location: ${cn.location})` : '';
+            return `Chapter ${cn.chapterIndex}: User note: '${cn.note}'${locationPart} — this MUST appear in any rewrite`;
+          })
+          .join('\n')
+      }\n\nWhen a chapter with a user note scores < 7, the issue is generic PROSE, not the content reference. The rewrite must still honor the note's location, activity, and emotional context.\n`
+    : '';
+
   const prompt = `You are a world-class story editor reviewing chapters for ${namesCtx}'s ${occ} website on Pearloom.
 
 Their vibe: "${vibeString.slice(0, 300)}"
-
+${notesSection}
 CHAPTERS TO REVIEW:
 ${chapterList}
 
@@ -462,27 +498,35 @@ REWRITE RULES (apply only when score < 7):
       }>;
     };
 
+    // Build a set of chapter indices that have user notes (they get a higher score floor)
+    const chaptersWithNotes = new Set(
+      (clusterNotes ?? []).map(cn => cn.chapterIndex)
+    );
+
     let rewriteCount = 0;
     const improved = [...chapters];
     for (const review of (result.chapters || [])) {
       const idx = review.index;
       if (typeof idx !== 'number' || idx < 0 || idx >= improved.length) continue;
-      if (review.score < 7 && review.rewrite) {
+      // Chapters with user notes only get rewritten if score < 6 (floor bumped to 6)
+      // so they are only rewritten when truly broken, not just slightly generic.
+      const rewriteThreshold = chaptersWithNotes.has(idx) ? 6 : 7;
+      if (review.score < rewriteThreshold && review.rewrite) {
         const ch = { ...improved[idx] };
         if (review.rewrite.title) ch.title = review.rewrite.title;
         if (review.rewrite.subtitle) ch.subtitle = review.rewrite.subtitle;
         if (review.rewrite.description) ch.description = review.rewrite.description;
         improved[idx] = ch;
         rewriteCount++;
-        console.log(`[Chapter Critique] Chapter ${idx} scored ${review.score}/10 — rewritten: ${review.issue}`);
+        log(`[Chapter Critique] Chapter ${idx} scored ${review.score}/10 — rewritten: ${review.issue}`);
       } else {
-        console.log(`[Chapter Critique] Chapter ${idx} scored ${review.score}/10 — approved`);
+        log(`[Chapter Critique] Chapter ${idx} scored ${review.score}/10 — approved`);
       }
     }
-    console.log(`[Chapter Critique] ${rewriteCount}/${chapters.length} chapter(s) rewritten`);
+    log(`[Chapter Critique] ${rewriteCount}/${chapters.length} chapter(s) rewritten`);
     return improved;
   } catch (err) {
-    console.warn('[Chapter Critique] Failed (non-fatal):', err);
+    logWarn('[Chapter Critique] Failed (non-fatal):', err);
     return chapters;
   }
 }
@@ -726,12 +770,12 @@ Return ONLY valid JSON. No markdown. No backticks.`;
   };
 
   if (result.approved) {
-    console.log('[Design Critique] Design approved — thematically specific, no changes needed');
+    log('[Design Critique] Design approved — thematically specific, no changes needed');
     return skin;
   }
 
   const imp = result.improvements ?? {};
-  console.log(`[Design Critique] Refining design: \${result.reason || 'generic elements detected'}`);
+  log(`[Design Critique] Refining design: \${result.reason || 'generic elements detected'}`);
 
   const VALID_CURVES: VibeSkin['curve'][] = ['organic', 'arch', 'geometric', 'wave', 'petal'];
   const VALID_TONES: VibeSkin['tone'][] = ['dreamy', 'playful', 'luxurious', 'wild', 'intimate', 'cosmic', 'rustic'];
@@ -821,7 +865,8 @@ function buildPrompt(
   vibeString: string,
   coupleNames: [string, string],
   occasion?: string,
-  eventDate?: string
+  eventDate?: string,
+  photoCount?: number
 ): string {
   // Build richly detailed cluster summaries including per-photo metadata
   const clusterSummary = clusters.map((c, i) => {
@@ -904,6 +949,7 @@ function buildPrompt(
   };
 
   const chapterGuidance = occasionChapterGuidance[occ] || occasionChapterGuidance.wedding;
+  const effectivePhotoCount = photoCount ?? clusters.length;
 
   const occasionEventSchema: Record<string, string> = {
     wedding: `EVENTS: Generate ceremony and reception as separate objects with full venue/time/address details.`,
@@ -1048,10 +1094,10 @@ Available layouts: "editorial", "fullbleed", "split", "cinematic", "gallery", "m
 - Distribute layouts as evenly as possible across all chapters
 
 ---
-## CHAPTER COUNT
-- Generate EXACTLY one chapter per cluster
+## CHAPTER COUNT (CRITICAL — enforce strictly)
+- You have exactly ${effectivePhotoCount} photo cluster(s). Generate AT MOST ${effectivePhotoCount} chapters — one chapter per photo cluster. Do NOT invent chapters for photos that do not exist.
 - Maximum: 7 chapters. If there are more than 7 clusters, intelligently merge the least visually distinct ones into nearby chapters.
-- Minimum: 3 chapters. If there are fewer than 3 clusters, expand the most emotionally significant ones with richer narrative.
+- Minimum: If there is only 1 cluster, generate exactly 1 chapter. Do NOT pad to 3.
 - Each chapter must have emotional momentum — the full arc from first spark to certainty.
 
 ---
@@ -1104,7 +1150,7 @@ Return ONLY this JSON with no additional text:
     {
       “id”: “<uuid>”,
       “name”: “<Event name per occasion guidance above>”,
-      “date”: “<ISO 8601 date â€” infer from vibeString or use a placeholder like 2025-06-15>”,
+      “date”: “<ISO 8601 date — if the event date is known use it exactly; otherwise infer from context; do NOT output placeholder text or bracket syntax in generated JSON>”,
       “time”: “<start time>”,
       “endTime”: “<end time>”,
       “venue”: “<infer a beautiful venue name from the vibe>”,
@@ -1224,7 +1270,7 @@ Rules: Use premium Google Fonts only. Colors should be warm, intimate, and high-
   try {
     return JSON.parse(themeRaw);
   } catch {
-    console.warn('[generateThemeFromVibe] Parse failed, returning default theme');
+    logWarn('[generateThemeFromVibe] Parse failed, returning default theme');
     return {
       name: 'Warm Ivory',
       fonts: { heading: 'Playfair Display', body: 'Inter' },
