@@ -2711,51 +2711,61 @@ Return JSON with: title, subtitle, description, mood`,
               </>
             )}
 
-            {activeTab === 'design' && (
-              <DesignPanel manifest={manifest} onChange={handleDesignChange} />
-            )}
-
-            {activeTab === 'events' && (
-              <EventsPanel manifest={manifest} onChange={handleDesignChange} />
-            )}
-
-            {activeTab === 'details' && (
-              <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
-            )}
-
-            {activeTab === 'pages' && (
-              <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
-            )}
-
-            {activeTab === 'blocks' && (
-              <AIBlocksPanel
-                manifest={manifest}
-                coupleNames={coupleNames}
-                onChange={(m) => { onChange(m); pushToPreview(m); }}
-              />
-            )}
+            <AnimatePresence mode="wait">
+              {activeTab === 'design' && (
+                <motion.div key="design" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <DesignPanel manifest={manifest} onChange={handleDesignChange} />
+                </motion.div>
+              )}
+              {activeTab === 'events' && (
+                <motion.div key="events" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <EventsPanel manifest={manifest} onChange={handleDesignChange} />
+                </motion.div>
+              )}
+              {activeTab === 'details' && (
+                <motion.div key="details" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
+                </motion.div>
+              )}
+              {activeTab === 'pages' && (
+                <motion.div key="pages" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
+                </motion.div>
+              )}
+              {activeTab === 'blocks' && (
+                <motion.div key="blocks" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <AIBlocksPanel
+                    manifest={manifest}
+                    coupleNames={coupleNames}
+                    onChange={(m) => { onChange(m); pushToPreview(m); }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {activeTab === 'voice' && (
-              <div style={{ padding: '4px 0' }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
-                    AI Voice Training
-                  </span>
-                  <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>
-                    Teach the chatbot to speak like you.
-                  </p>
+              <motion.div key="voice" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                <div style={{ padding: '4px 0' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
+                      AI Voice Training
+                    </span>
+                    <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>
+                      Teach the chatbot to speak like you.
+                    </p>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
+                    <VoiceTrainerPanel
+                      voiceSamples={manifest.voiceSamples || []}
+                      onChange={(samples) => {
+                        const updated = { ...manifest, voiceSamples: samples };
+                        onChange(updated);
+                        pushToPreview(updated);
+                      }}
+                    />
+                  </div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
-                  <VoiceTrainerPanel
-                    voiceSamples={manifest.voiceSamples || []}
-                    onChange={(samples) => {
-                      const updated = { ...manifest, voiceSamples: samples };
-                      onChange(updated);
-                      pushToPreview(updated);
-                    }}
-                  />
-                </div>
-              </div>
+              </motion.div>
             )}
 
             {activeTab === 'canvas' && (
@@ -3221,13 +3231,24 @@ Return JSON with: title, subtitle, description, mood`,
                   </div>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', margin: 0 }}>It&apos;s Live.</h2>
                   <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</p>
-                  <code style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all' }}>
-                    {publishedUrl}
-                  </code>
+                  <div style={{ width: '100%', position: 'relative' }}>
+                    <code style={{ display: 'block', background: 'rgba(255,255,255,0.08)', padding: '0.6rem 2.8rem 0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all', textAlign: 'left' }}>
+                      {publishedUrl}
+                    </code>
+                    <button
+                      onClick={() => navigator.clipboard?.writeText(publishedUrl!).catch(() => {})}
+                      title="Copy link"
+                      style={{ position: 'absolute', right: '0.6rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(163,177,138,0.55)', padding: '4px', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
+                      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.55)'; }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                  </div>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                     <a
                       href={publishedUrl!} target="_blank" rel="noreferrer"
-                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem' }}
+                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem', textAlign: 'center' }}
                     >
                       Open Site →
                     </a>
@@ -3245,8 +3266,9 @@ Return JSON with: title, subtitle, description, mood`,
                   <p style={{ color: 'rgba(255,255,255,0.45)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
 
                   {publishError && (
-                    <div style={{ background: 'rgba(109,89,122,0.1)', border: '1px solid rgba(109,89,122,0.2)', color: 'var(--eg-plum, #6D597A)', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
-                      {publishError}
+                    <div style={{ background: 'rgba(185,28,28,0.12)', border: '1px solid rgba(248,113,113,0.3)', color: '#fca5a5', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <span style={{ flexShrink: 0 }}>⚠</span>
+                      <span>{publishError}</span>
                     </div>
                   )}
 

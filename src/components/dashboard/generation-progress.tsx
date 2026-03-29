@@ -218,7 +218,7 @@ function PhotoTile({
       {isActive && (
         <motion.div
           initial={{ top: '-8%' }}
-          animate={{ top: ['−8%', '108%'] }}
+          animate={{ top: ['-8%', '108%'] }}
           transition={{ duration: 1.6, ease: 'linear', repeat: Infinity, repeatDelay: 1.2 }}
           style={{
             position: 'absolute',
@@ -603,7 +603,7 @@ export function GenerationProgress({
               This is taking a little longer than usual — still working…
             </motion.p>
           )}
-          {elapsed >= 200 && (
+          {elapsed >= 200 && elapsed < 360 && (
             <motion.p
               key="very-slow-warning"
               initial={{ opacity: 0, y: 6 }}
@@ -620,6 +620,38 @@ export function GenerationProgress({
             >
               Still going — complex stories take time. Please don&apos;t close this tab.
             </motion.p>
+          )}
+          {elapsed >= 360 && (
+            <motion.div
+              key="timeout-warning"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
+            >
+              <p style={{
+                fontSize: '0.78rem', color: 'rgba(248,113,113,0.7)',
+                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+                fontStyle: 'italic', margin: 0,
+              }}>
+                This is taking unusually long — something may have gone wrong.
+              </p>
+              {onCancel && (
+                <button
+                  onClick={onCancel}
+                  style={{
+                    background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)',
+                    borderRadius: '8px', padding: '0.45rem 1.1rem',
+                    color: 'rgba(248,113,113,0.75)', fontSize: '0.78rem', cursor: 'pointer',
+                    fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', letterSpacing: '0.05em',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Stop and try again
+                </button>
+              )}
+            </motion.div>
           )}
         </AnimatePresence>
 
