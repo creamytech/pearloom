@@ -514,7 +514,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   aria-label="Show guest details"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 180px 110px 70px 120px 36px',
+                    gridTemplateColumns: '32px 1fr 180px 110px 70px 120px 36px',
                     padding: '0.875rem 1.25rem',
                     alignItems: 'center',
                     cursor: 'pointer',
@@ -525,6 +525,21 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.04)'; }}
                   onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? '#fff' : 'rgba(0,0,0,0.008)'; }}
                 >
+                  <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type="checkbox"
+                      style={{ accentColor: 'var(--eg-accent)', cursor: 'pointer' }}
+                      checked={selectedIds.has(guest.id)}
+                      onChange={(e) => {
+                        setSelectedIds(prev => {
+                          const next = new Set(prev);
+                          if (e.target.checked) next.add(guest.id);
+                          else next.delete(guest.id);
+                          return next;
+                        });
+                      }}
+                    />
+                  </div>
                   <div>
                     <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{guest.name}</div>
                     {guest.songRequest && (

@@ -2312,6 +2312,29 @@ Return JSON with: title, subtitle, description, mood`,
           ))}
         </div>
 
+        {/* Language picker — desktop only, shown only when translations exist */}
+        {!isMobile && manifest.translations && Object.keys(manifest.translations).length > 0 && (
+          <select
+            value={manifest.activeLocale || 'en'}
+            onChange={(e) => {
+              const next = { ...manifest, activeLocale: e.target.value };
+              pushHistory(next);
+              onChange(next);
+              pushToPreview(next);
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
+              color: '#fff', borderRadius: '0.5rem', padding: '0.3rem 0.5rem',
+              fontSize: '0.75rem', cursor: 'pointer',
+            }}
+          >
+            <option value="en">🌐 EN</option>
+            {Object.keys(manifest.translations).map(locale => (
+              <option key={locale} value={locale}>{locale.toUpperCase()}</option>
+            ))}
+          </select>
+        )}
+
         {/* Preview + Publish — desktop only */}
         <div style={{ display: isMobile ? 'none' : 'flex', gap: '6px', flexShrink: 0 }}>
           {/* Split view toggle */}

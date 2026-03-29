@@ -72,11 +72,28 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // ── Undo/Redo history ─────────────────────────────────────────
+  const [history, setHistory] = useState<SeatingTable[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  // Keep a ref to historyIndex so keyboard handler always sees current value
+  const historyIndexRef = useRef(historyIndex);
+  useEffect(() => { historyIndexRef.current = historyIndex; }, [historyIndex]);
 
   void spaceId;
+
+  // ── Push snapshot to history ──────────────────────────────────
+  const pushHistory = useCallback((snapshot: SeatingTable[]) => {
+    setHistory(prev => {
+      const trimmed = prev.slice(0, historyIndexRef.current + 1);
+      trimmed.push(snapshot);
+      return trimmed.slice(-30); // keep last 30 snapshots
+    });
+    setHistoryIndex(prev => Math.min(prev + 1, 29));
+  }, []);
 
   // ── Load data ───────────────────────────────────────────────
   useEffect(() => {
@@ -217,13 +234,20 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     // Clamp to canvas bounds
     const clampedX = Math.max(ROOM_MARGIN, Math.min(CANVAS_W - ROOM_MARGIN, x));
     const clampedY = Math.max(ROOM_MARGIN, Math.min(CANVAS_H - ROOM_MARGIN, y));
-    setTables(prev => prev.map(t => t.id === id ? { ...t, x: clampedX, y: clampedY } : t));
+    setTables(prev => {
+      pushHistory(prev);
+      return prev.map(t => t.id === id ? { ...t, x: clampedX, y: clampedY } : t);
+    });
     void saveTablePosition(id, clampedX, clampedY);
-  }, [saveTablePosition]);
+  }, [saveTablePosition, pushHistory]);
 
   // ── Seat drop (guest assignment) ───────────────────────────
   const handleSeatDrop = useCallback(async (seatId: string, guestId: string) => {
     // Optimistic update
+    setTables(prev => {
+      pushHistory(prev);
+      return prev;
+    });
     setTables(prev => prev.map(t => ({
       ...t,
       seats: (t.seats ?? []).map(s =>
@@ -283,6 +307,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
 
   // ── Delete table ────────────────────────────────────────────
   const handleTableDelete = useCallback(async (tableId: string) => {
+    setTables(prev => { pushHistory(prev); return prev; });
     setTables(prev => prev.filter(t => t.id !== tableId));
     setSelectedTableId(undefined);
     try {
@@ -326,6 +351,63 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     setZoom(newZoom);
     setPan({ x: 20, y: 20 });
   }, []);
+
+  // ── Undo / Redo keyboard shortcuts ────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isUndo = (e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey;
+      const isRedo = (e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey));
+      if (!isUndo && !isRedo) return;
+      e.preventDefault();
+      setHistory(prevHistory => {
+        setHistoryIndex(prevIdx => {
+          if (isUndo && prevIdx > 0) {
+            const snapshot = prevHistory[prevIdx - 1];
+            setTables(snapshot);
+            return prevIdx - 1;
+          }
+          if (isRedo && prevIdx < prevHistory.length - 1) {
+            const snapshot = prevHistory[prevIdx + 1];
+            setTables(snapshot);
+            return prevIdx + 1;
+          }
+          return prevIdx;
+        });
+        return prevHistory;
+      });
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    setHistory(prevHistory => {
+      setHistoryIndex(prevIdx => {
+        if (prevIdx > 0) {
+          setTables(prevHistory[prevIdx - 1]);
+          return prevIdx - 1;
+        }
+        return prevIdx;
+      });
+      return prevHistory;
+    });
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    setHistory(prevHistory => {
+      setHistoryIndex(prevIdx => {
+        if (prevIdx < prevHistory.length - 1) {
+          setTables(prevHistory[prevIdx + 1]);
+          return prevIdx + 1;
+        }
+        return prevIdx;
+      });
+      return prevHistory;
+    });
+  }, []);
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
 
   // ── Derived stats ────────────────────────────────────────────
   const totalSeats = tables.reduce((n, t) => n + t.capacity, 0);
@@ -403,6 +485,26 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
           {/* Auto-arrange */}
           <button onClick={handleAutoArrange} style={toolbarBtnStyle} title="Space tables evenly">
             <LayoutGrid size={14} /> Auto-arrange
+          </button>
+
+          <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
+
+          {/* Undo / Redo */}
+          <button
+            onClick={handleUndo}
+            disabled={!canUndo}
+            title="Undo (⌘Z)"
+            style={{ ...toolbarBtnStyle, opacity: canUndo ? 1 : 0.35, cursor: canUndo ? 'pointer' : 'default' }}
+          >
+            ⌘Z
+          </button>
+          <button
+            onClick={handleRedo}
+            disabled={!canRedo}
+            title="Redo (⌘⇧Z)"
+            style={{ ...toolbarBtnStyle, opacity: canRedo ? 1 : 0.35, cursor: canRedo ? 'pointer' : 'default' }}
+          >
+            ⌘⇧Z
           </button>
 
           <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
