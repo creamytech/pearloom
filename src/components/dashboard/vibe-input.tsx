@@ -489,8 +489,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   }, [step, mood, palette]);
 
   const canProceedCurrentStep = () => {
-    if (step === 1) return !!canProceedStep1;
-    if (step === 2) return !!canProceedStep2;
+    if (step === 1) return !!canProceedStep2;
+    if (step === 2) return !!canProceedStep1;
     if (step === 3) return !!canProceedStep3;
     if (step === 4) return true; // timeline format — always has a default
     if (step === 5) return true; // inspiration is optional
@@ -1320,11 +1320,15 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
       <AnimatePresence mode="wait" custom={1}>
-        {/* ── STEP 1: Names ── */}
-        {step === 1 && (
+        {/* ── STEP 2: Names ── */}
+        {step === 2 && (
           <motion.div key="s1" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              {isBirthday ? 'Who is this gift for?' : 'Who is this story about?'}
+              {occasion === 'birthday'
+                ? 'Who is this for?'
+                : (occasion === 'wedding' || occasion === 'engagement' || occasion === 'anniversary')
+                  ? 'What are your names?'
+                  : 'Tell us your names'}
             </h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               {isBirthday
@@ -1334,7 +1338,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>
-                  {isBirthday ? "Birthday person's name" : 'First Person'}
+                  {occasion === 'birthday'
+                    ? 'Who are we celebrating?'
+                    : (occasion === 'wedding' || occasion === 'engagement' || occasion === 'anniversary')
+                      ? 'Partner 1'
+                      : 'Your name'}
                 </label>
                 <input
                   type="text"
@@ -1361,11 +1369,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 /* Birthday: gift-giver name — optional */
                 <div>
                   <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>
-                    Your name <span style={{ fontWeight: 400, color: 'var(--eg-muted)', opacity: 0.7 }}>(who&apos;s creating this — optional)</span>
+                    Created as a gift by <span style={{ fontWeight: 400, color: 'var(--eg-muted)', opacity: 0.7 }}>(optional)</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Mia"
+                    placeholder="Your name (optional)"
                     value={name2}
                     onChange={e => setName2(e.target.value)}
                     style={{ ...inputStyle, fontSize: '1.25rem' }}
@@ -1378,7 +1386,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     <span className="shimmer-text" style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', color: 'var(--eg-accent)' }}>&</span>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Second Person</label>
+                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>
+                      {(occasion === 'wedding' || occasion === 'engagement' || occasion === 'anniversary') ? 'Partner 2' : "Partner's name"}
+                    </label>
                     <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name2.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
                     {showValidation && !name2.trim() && (
                       <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
@@ -1396,7 +1406,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 </span>
               </p>
             )}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+              <button onClick={handleBack} style={{ ...btnPrimaryStyle, background: 'transparent', color: 'var(--eg-muted)', boxShadow: 'none' }}><ArrowLeft size={18} /> Back</button>
               <button onClick={handleNext} style={{ ...btnPrimaryStyle, opacity: canProceedStep1 ? 1 : 0.5 }}>
                 Continue <ArrowRight size={18} />
               </button>
@@ -1404,8 +1415,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 2: OCCASION ── */}
-        {step === 2 && (
+        {/* ── STEP 1: OCCASION ── */}
+        {step === 1 && (
           <motion.div key="s2" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
               What are you celebrating?
@@ -1471,8 +1482,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ ...btnPrimaryStyle, background: 'transparent', color: 'var(--eg-muted)', boxShadow: 'none' }}><ArrowLeft size={18} /> Back</button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>
               <button onClick={handleNext} disabled={!canProceedStep2} style={{ ...btnPrimaryStyle, opacity: canProceedStep2 ? 1 : 0.5, pointerEvents: canProceedStep2 ? 'auto' : 'none' }}>
                 Continue <ArrowRight size={18} />
               </button>
