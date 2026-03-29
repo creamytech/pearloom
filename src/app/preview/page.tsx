@@ -168,6 +168,7 @@ function PreviewContent() {
             coverPhoto={proxiedCover}
             weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
             vibeSkin={vibeSkin}
+            heroTagline={manifest.poetry?.heroTagline}
           />
         );
       case 'story':
@@ -353,27 +354,37 @@ function PreviewContent() {
     ? [...manifest.blocks].sort((a, b) => a.order - b.order).filter(b => b.visible !== false)
     : null;
 
-  // Vibe quote section
+  // Vibe quote section — mirrors live site art rendering
   const VibeQuote = () => (
-    <div style={{ position: 'relative', padding: '6rem 0 5rem', textAlign: 'center', overflow: 'hidden' }}>
-      {/* Large hero blob art — left and right side decoration */}
-      {vibeSkin.heroBlobSvg && (
-        <div
-          style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
-        />
+    <div style={{ position: 'relative', padding: '6rem 0 5rem', textAlign: 'center', overflow: 'hidden', zIndex: 10 }}>
+      {/* Nano Banana hero art — full bleed behind quote, edge-faded */}
+      {vibeSkin.heroArtDataUrl && (
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+          WebkitMaskComposite: 'source-in', maskComposite: 'intersect',
+        }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={vibeSkin.heroArtDataUrl} alt="" style={{
+            width: '100%', height: '100%', objectFit: 'cover',
+            opacity: 0.22, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+          }} />
+        </div>
       )}
-      {vibeSkin.heroBlobSvg && (
-        <div
-          style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
-        />
+      {/* SVG blob art fallback when no raster art */}
+      {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
+        <div style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
+          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }} />
+      )}
+      {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
+        <div style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
+          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }} />
       )}
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: '0 2rem' }}>
         {vibeSkin.medallionSvg && (
           <div style={{ width: '80px', height: '80px', margin: '0 auto 2rem', opacity: 0.55 }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }}
-          />
+            dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }} />
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: pal.accent, opacity: 0.3 }} />
@@ -391,6 +402,41 @@ function PreviewContent() {
     </div>
   );
 
+  // Art strip — horizontal painted botanical divider
+  const ArtStrip = () => {
+    if (!vibeSkin.artStripDataUrl) return null;
+    return (
+      <div aria-hidden="true" style={{
+        width: '100%', height: '120px', position: 'relative', overflow: 'hidden',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+        maskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+      }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={vibeSkin.artStripDataUrl} alt="" style={{
+          width: '100%', height: '100%', objectFit: 'cover',
+          opacity: 0.55, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+        }} />
+      </div>
+    );
+  };
+
+  // Welcome statement — couple's personal voice
+  const WelcomeStatement = () => {
+    const statement = manifest.poetry?.welcomeStatement;
+    if (!statement) return null;
+    return (
+      <div style={{ padding: '0 2rem 5rem', maxWidth: '680px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <p style={{
+          fontFamily: `"${vibeSkin.fonts.body}", sans-serif`,
+          fontSize: 'clamp(1rem, 2.2vw, 1.15rem)', lineHeight: 1.85,
+          color: pal.foreground, opacity: 0.7,
+        }}>
+          {statement}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <ThemeProvider theme={manifest.theme || dynamicTheme}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -398,29 +444,42 @@ function PreviewContent() {
 
       <SiteNav names={names} pages={sitePages} />
 
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative' }}>
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (
           <>
-            {vibeSkin.heroPatternSvg && (
+            {/* Ambient art overlay — very subtle painted page texture */}
+            {vibeSkin.ambientArtDataUrl ? (
+              <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={vibeSkin.ambientArtDataUrl} alt="" style={{
+                  width: '100%', height: '100%', objectFit: 'cover',
+                  opacity: 0.10, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+                }} />
+              </div>
+            ) : vibeSkin.heroPatternSvg ? (
               <div style={{
                 position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
                 backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
                 backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.13,
               }} />
-            )}
+            ) : null}
             {visibleBlocks.map(block => renderBlock(block.type, block.id))}
             {visibleBlocks[0]?.type === 'hero' && (
               <>
                 <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
                 <VibeQuote />
+                <WelcomeStatement />
+                <ArtStrip />
               </>
             )}
           </>
         ) : (
           <>
-            <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} />
+            <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} />
             <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
             <VibeQuote />
+            <WelcomeStatement />
+            <ArtStrip />
             <section id="our-story"><Timeline chapters={manifest.chapters || []} /></section>
             {manifest.events?.length ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} /><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted /></> : null}
             {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
