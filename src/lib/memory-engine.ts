@@ -258,7 +258,7 @@ export async function generateStoryManifest(
       description: c.description,
       mood: c.mood,
     }));
-    coupleProfile = await extractCoupleProfile(vibeString, chapterSummaries, apiKey);
+    coupleProfile = await extractCoupleProfile(vibeString, chapterSummaries, apiKey, occasion);
     console.log('[Memory Engine] Pass 1.5: Couple DNA extracted —',
       `pets: [${coupleProfile.pets.join(', ')}]`,
       `interests: [${coupleProfile.interests.join(', ')}]`
@@ -286,7 +286,7 @@ export async function generateStoryManifest(
       photoUrls,
       inspirationUrls,
       coupleProfile,  // Couple DNA drives bespoke illustration generation
-    });
+    }, occasion);
     manifest.vibeSkin = vibeSkin;
     console.log('[Memory Engine] Pass 2: VibeSkin generated',
       vibeSkin.chapterIcons?.length ? `with ${vibeSkin.chapterIcons.length} chapter icons` : '(no chapter icons)'

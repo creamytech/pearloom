@@ -178,6 +178,34 @@ const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
     palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
   marigold:   { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','✿','◆','●'],    particleColor: '#F8C000', tone: 'playful',
     palette: { background: '#FFF8F0', foreground: '#1A0A00', accent: '#F5A623', accent2: '#E84393', card: '#FFF5EC', muted: '#9A6040', highlight: '#F8C000', subtle: '#FFF2E8', ink: '#1A3A8F' } as VibeSkin['palette'] },
+
+  // Anniversary keywords
+  'anniversary':      { curve: 'organic', particle: 'fireflies', decorIcons: ['∞','◎','✦','◦','•'], particleColor: '#D2691E', tone: 'intimate',
+    palette: { background: '#F4EEE8', foreground: '#2C1810', accent: '#D2691E', accent2: '#DEB887', card: '#FAF4EE', muted: '#9E7858', highlight: '#8B4513', subtle: '#F8F2EC', ink: '#1C0C04' } as VibeSkin['palette'] },
+  'silver anniversary': { curve: 'arch', particle: 'stars', decorIcons: ['◈','◇','✦','◦','○'], particleColor: '#C0C0C0', tone: 'luxurious',
+    palette: { background: '#F2F2F4', foreground: '#1C1C1C', accent: '#A8A9AD', accent2: '#708090', card: '#F8F8FA', muted: '#888890', highlight: '#2F4F4F', subtle: '#F5F5F7', ink: '#0A0A0A' } as VibeSkin['palette'] },
+  'golden anniversary': { curve: 'arch', particle: 'stars', decorIcons: ['✦','◇','◈','○','•'], particleColor: '#FFD700', tone: 'luxurious',
+    palette: { background: '#FBF5E6', foreground: '#2C1810', accent: '#DAA520', accent2: '#FFD700', card: '#FEF9EC', muted: '#9A8050', highlight: '#B8860B', subtle: '#FDF8F0', ink: '#1A0C00' } as VibeSkin['palette'] },
+  'vow renewal':      { curve: 'petal', particle: 'petals', decorIcons: ['∞','♡','✿','◦','✦'], particleColor: '#C4956A', tone: 'intimate',
+    palette: { background: '#F5EDE4', foreground: '#2C1810', accent: '#C4956A', accent2: '#E8D5C4', card: '#FAF4EE', muted: '#9E8068', highlight: '#8B6355', subtle: '#F8F2EC', ink: '#180C04' } as VibeSkin['palette'] },
+
+  // Birthday keywords
+  'milestone birthday': { curve: 'cascade', particle: 'confetti', decorIcons: ['✦','★','◆','✿','◉'], particleColor: '#FFD700', tone: 'playful',
+    palette: { background: '#FFF8F0', foreground: '#1A0A00', accent: '#FFD700', accent2: '#FF6B6B', card: '#FFF5EC', muted: '#9A7040', highlight: '#F5841F', subtle: '#FFF2E8', ink: '#1A0A00' } as VibeSkin['palette'] },
+  '30th birthday':    { curve: 'geometric', particle: 'confetti', decorIcons: ['◈','★','◆','✦','30'], particleColor: '#E74C3C', tone: 'luxurious',
+    palette: { background: '#ECF0F1', foreground: '#2C3E50', accent: '#E74C3C', accent2: '#3498DB', card: '#F5F8FA', muted: '#7F8C8D', highlight: '#C0392B', subtle: '#EEF2F5', ink: '#1A2530' } as VibeSkin['palette'] },
+  '50th birthday':    { curve: 'arch', particle: 'stars', decorIcons: ['✦','◈','★','◇','50'], particleColor: '#FFD700', tone: 'warm' as VibeSkin['tone'],
+    palette: { background: '#FBF5E6', foreground: '#2C1810', accent: '#FFD700', accent2: '#C0392B', card: '#FEF9EC', muted: '#9A8050', highlight: '#27AE60', subtle: '#FDF8F0', ink: '#1A0C00' } as VibeSkin['palette'] },
+  'surprise party':   { curve: 'cascade', particle: 'confetti', decorIcons: ['★','✦','◆','✿','◉'], particleColor: '#6BCF7F', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#FF6B6B', accent2: '#FFD93D', card: '#FFFAFC', muted: '#9A6080', highlight: '#4D96FF', subtle: '#FFF0F5', ink: '#1A0A30' } as VibeSkin['palette'] },
+
+  // Engagement keywords
+  'engagement':       { curve: 'petal', particle: 'stars', decorIcons: ['◎','✦','♡','◦','•'], particleColor: '#B76E79', tone: 'romantic' as VibeSkin['tone'],
+    palette: { background: '#F8F0EC', foreground: '#2C1820', accent: '#B76E79', accent2: '#E8D5C4', card: '#FEF6F2', muted: '#9E7870', highlight: '#8B4A55', subtle: '#FBF4F0', ink: '#1C0C10' } as VibeSkin['palette'] },
+  'just engaged':     { curve: 'petal', particle: 'stars', decorIcons: ['◎','♡','✦','✿','◦'], particleColor: '#FF69B4', tone: 'dreamy',
+    palette: { background: '#FFF0F5', foreground: '#2C1020', accent: '#DB7093', accent2: '#FFB6C1', card: '#FFF8FA', muted: '#9E7080', highlight: '#FF69B4', subtle: '#FFF5F8', ink: '#1A0810' } as VibeSkin['palette'] },
+  'engaged':          { curve: 'petal', particle: 'stars', decorIcons: ['◎','✦','♡','◦','•'], particleColor: '#B76E79', tone: 'romantic' as VibeSkin['tone'],
+    palette: { background: '#F8F0EC', foreground: '#2C1820', accent: '#B76E79', accent2: '#E8D5C4', card: '#FEF6F2', muted: '#9E7870', highlight: '#8B4A55', subtle: '#FBF4F0', ink: '#1C0C10' } as VibeSkin['palette'] },
 };
 
 // — Seed-based deterministic number in [0,1) from a string ——————————————————————————————————————————
@@ -511,9 +539,19 @@ export interface VibeSkinContext {
 export async function extractCoupleProfile(
   vibeString: string,
   chapters: Array<{ title: string; description: string; mood: string }>,
-  apiKey: string
+  apiKey: string,
+  occasion?: string
 ): Promise<CoupleProfile> {
   const storyText = chapters.map(c => `"${c.title}": ${c.description}`).join('\n');
+
+  const occasionDNAHints: Record<string, string> = {
+    wedding: `Also extract: ceremony location, proposal location if mentioned, honeymoon destination if mentioned.`,
+    anniversary: `Also extract: the number of years together, how long they've been married, any mentioned milestones, places they've lived or traveled together over the years.`,
+    birthday: `Also extract: the birthday person's name, their age, their passions/hobbies, any mentioned life achievements or milestones.`,
+    engagement: `Also extract: proposal location, how the proposal happened, ring description if mentioned, how long they dated before engagement.`,
+    story: `Extract all personal places, interests, pets, and defining moments from their life together.`,
+  };
+  const dnaHint = occasionDNAHints[occasion || 'wedding'] || occasionDNAHints.wedding;
 
   const prompt = `Given this couple's vibe and story, extract their unique personal elements as JSON.
 
@@ -522,6 +560,8 @@ ${vibeString}
 
 STORY CHAPTERS:
 ${storyText}
+
+OCCASION-SPECIFIC EXTRACTION NOTES: ${dnaHint}
 
 Return ONLY this JSON (no extra text, no markdown):
 {
@@ -564,9 +604,65 @@ export async function generateVibeSkin(
   vibeString: string,
   apiKey?: string,
   coupleNames?: [string, string],
-  context?: VibeSkinContext
+  context?: VibeSkinContext,
+  occasion?: string
 ): Promise<VibeSkin> {
   if (!apiKey) return deriveFallback(vibeString);
+
+  // Extract occasion-specific numeric details from the vibe string
+  const anniversaryMatch = vibeString.match(/ANNIVERSARY:\s*(\d+)\s*years/i);
+  const anniversaryYears = anniversaryMatch ? parseInt(anniversaryMatch[1], 10) : 0;
+  const birthdayMatch = vibeString.match(/BIRTHDAY:.*?(\d+)(?:th|st|nd|rd)?\s*birthday/i);
+  const birthdayAge = birthdayMatch ? birthdayMatch[1] : '';
+
+  const occasionVisualGuidance: Record<string, string> = {
+    wedding: `OCCASION: Wedding.
+    SYMBOLIC MOTIFS to consider: rings, florals, vows, unity candles, champagne,
+    doves, infinity symbols, intertwined initials, wedding arches, veils.
+    PARTICLE suggestions: petals, confetti, bubbles, fireflies.
+    COLOR DIRECTION: romantic, aspirational — pinks/creams/golds/whites for classic;
+    deep jewel tones for dramatic; sage/terracotta for bohemian.
+    TONE: Should feel timeless, romantic, celebratory but not garish.`,
+
+    anniversary: `OCCASION: Anniversary celebration (${anniversaryYears ? `${anniversaryYears} years together` : 'milestone year'}).
+    SYMBOLIC MOTIFS to consider: intertwined circles/rings, spirals (representing years),
+    infinity symbols, the number of years (e.g. "${anniversaryYears || '?'}"), pressed flowers,
+    a tree with deep roots, wine glasses, candle flames.
+    ${anniversaryYears >= 25 ? 'MILESTONE: This is a major anniversary. Use richer, more luxurious visual language — gold, deep jewel tones, something that feels earned and magnificent.' : ''}
+    PARTICLE suggestions: fireflies, sakura, stars (feel contemplative, warm).
+    COLOR DIRECTION: warmer and richer than a first-wedding — deeper, more mature palette.
+    More amber, cognac, deep rose, forest green. Less pastel.
+    TONE: Nostalgic warmth, depth, the beauty of time passing.`,
+
+    birthday: `OCCASION: Birthday celebration${birthdayAge ? ` — turning ${birthdayAge}` : ''}.
+    SYMBOLIC MOTIFS to consider: stars, candles, balloons (tasteful), confetti,
+    champagne, flowers, ribbon, the number ${birthdayAge || ''},
+    gifts/bows (elegant version), sparklers, fireworks.
+    ${birthdayAge && [30,40,50,60,70,80].includes(parseInt(birthdayAge)) ? `MILESTONE: This is a ${birthdayAge}th birthday! Make it feel BIG and celebratory. Bold, vibrant, joyful.` : ''}
+    PARTICLE suggestions: confetti, stars, sparkles, bubbles.
+    COLOR DIRECTION: Joyful and celebratory. Can be more vibrant than a wedding.
+    Think champagne gold, coral, jewel tones, or the person's favourite colors from the vibe.
+    TONE: Joyful, warm, celebratory, uplifting. This should make someone smile immediately.`,
+
+    engagement: `OCCASION: Engagement announcement / celebration.
+    SYMBOLIC MOTIFS to consider: rings (especially solitaire/oval/round shapes),
+    diamonds, sparkle/light refractions, champagne, roses,
+    "YES", hearts (tasteful), keys, locks, doors opening.
+    PARTICLE suggestions: stars, sparkles, petals — feel electric and magical.
+    COLOR DIRECTION: Fresh and bright with romantic undertones.
+    Blush, rose gold, champagne, white, or electric jewel tones (sapphire, emerald).
+    TONE: Electric excitement, romantic electricity, the thrill of "what's next".
+    Should feel like the best news ever just happened.`,
+
+    story: `OCCASION: Personal love story / memory site (no specific event).
+    SYMBOLIC MOTIFS: Drawn entirely from the couple's story and photos.
+    No event-specific symbols. Focus on personal motifs from their DNA (pets, places, interests).
+    PARTICLE suggestions: leaves, petals, fireflies, stars — soft and personal.
+    COLOR DIRECTION: Entirely emotion and photo-driven. Let the vibe string guide.
+    TONE: Intimate, literary, personal. This is a private world.`,
+  };
+
+  const visualGuidance = occasionVisualGuidance[occasion || 'wedding'] || occasionVisualGuidance.wedding;
 
   const namesContext = coupleNames
     ? `The couple is ${coupleNames[0]} & ${coupleNames[1]}.`
@@ -625,6 +721,10 @@ This is NON-NEGOTIABLE. The inspiration images override everything else.
   const prompt = `${inspirationDirective}You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
 The couple's vibe is: "${vibeString}"
+
+## OCCASION VISUAL DIRECTION — READ BEFORE DESIGNING
+${visualGuidance}
+
 ${storyContext}
 ${coupleProfileContext}
 Your job: design a COMPLETELY UNIQUE visual identity for this specific couple. Every SVG illustration should reflect THEIR actual world — their pets, interests, places, and story. No two sites should ever look the same.

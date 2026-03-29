@@ -31,11 +31,13 @@ export async function POST(req: NextRequest) {
       coupleNames,
       chapters,
       inspirationUrls,
+      occasion,
     }: {
       vibeString: string;
       coupleNames: [string, string];
       chapters?: Array<{ title: string; subtitle: string; mood: string; location?: { label: string } | null; description: string }>;
       inspirationUrls?: string[];
+      occasion?: string;
     } = body;
 
     if (!vibeString || !coupleNames?.length) {
@@ -49,7 +51,8 @@ export async function POST(req: NextRequest) {
         coupleProfile = await extractCoupleProfile(
           vibeString,
           chapters.map(c => ({ title: c.title, description: c.description, mood: c.mood })),
-          apiKey
+          apiKey,
+          occasion
         );
       } catch {
         // Non-fatal — VibeSkin will still generate without it
@@ -62,7 +65,7 @@ export async function POST(req: NextRequest) {
       coupleProfile,
     };
 
-    const vibeSkin = await generateVibeSkin(vibeString, apiKey, coupleNames, context);
+    const vibeSkin = await generateVibeSkin(vibeString, apiKey, coupleNames, context, occasion);
 
     return NextResponse.json({ vibeSkin });
   } catch (err) {
