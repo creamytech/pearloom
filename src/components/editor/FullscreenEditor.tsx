@@ -1218,6 +1218,67 @@ function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManife
             Used by the AI when rewriting chapters and generating art.
           </div>
         </div>
+
+        {/* ── Site Features ── */}
+        <div style={{ marginTop: '0.5rem' }}>
+          {sectionHead('Features')}
+
+          {/* Guestbook toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Wishes Wall</div>
+              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests leave messages on your site</div>
+            </div>
+            <button
+              onClick={() => onChange({
+                ...manifest,
+                features: { ...manifest.features, guestbook: !(manifest.features?.guestbook ?? true) }
+              })}
+              style={{
+                width: '40px', height: '22px', borderRadius: '11px',
+                background: (manifest.features?.guestbook ?? true) ? 'var(--eg-accent, #A3B18A)' : 'rgba(0,0,0,0.15)',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: '3px',
+                left: (manifest.features?.guestbook ?? true) ? '21px' : '3px',
+                width: '16px', height: '16px', borderRadius: '50%',
+                background: '#fff', transition: 'left 0.2s',
+                display: 'block',
+              }} />
+            </button>
+          </div>
+
+          {/* Live Updates toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Live Updates Feed</div>
+              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Enable live updates feed for day-of announcements</div>
+            </div>
+            <button
+              onClick={() => onChange({
+                ...manifest,
+                features: { ...manifest.features, liveUpdates: !(manifest.features?.liveUpdates ?? true) }
+              })}
+              style={{
+                width: '40px', height: '22px', borderRadius: '11px',
+                background: (manifest.features?.liveUpdates ?? true) ? 'var(--eg-accent, #A3B18A)' : 'rgba(0,0,0,0.15)',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: '3px',
+                left: (manifest.features?.liveUpdates ?? true) ? '21px' : '3px',
+                width: '16px', height: '16px', borderRadius: '50%',
+                background: '#fff', transition: 'left 0.2s',
+                display: 'block',
+              }} />
+            </button>
+          </div>
+        </div>
       </Section>
 
       {/* Seating chart — weddings + engagements only */}
