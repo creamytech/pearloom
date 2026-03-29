@@ -397,19 +397,24 @@ function ImageManager({
     setUploading(true);
     const results: ChapterImage[] = [];
     for (const file of Array.from(files)) {
-      const reader = new FileReader();
-      await new Promise<void>(resolve => {
-        reader.onload = e => {
-          const url = e.target?.result as string;
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.publicUrl) {
           results.push({
             id: `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-            url, alt: file.name.replace(/\.\w+$/, ''),
+            url: data.publicUrl,
+            alt: file.name.replace(/\.\w+$/, ''),
             width: 0, height: 0,
           });
-          resolve();
-        };
-        reader.readAsDataURL(file);
-      });
+        } else {
+          console.error('[ImageManager] Upload failed:', data.error);
+        }
+      } catch (err) {
+        console.error('[ImageManager] Upload error:', err);
+      }
     }
     onUpdate([...images, ...results]);
     setUploading(false);
