@@ -265,63 +265,94 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
     category: (f as FaqItem & { category?: string }).category ?? 'General',
   }));
 
-  return (
-    <ThemeProvider theme={dynamicTheme}>
-      <div style={{ minHeight: '100vh', background: bgColor, color: pal.foreground }}>
-        <SiteNav
-          pages={sitePages}
-          names={safeNames}
-        />
-        <Hero
-          names={safeNames}
-          subtitle={manifest.vibeString || 'A love story beautifully told.'}
-          coverPhoto={coverPhoto}
-          weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
-          vibeSkin={vibeSkin}
-        />
-        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
-        {(manifest.chapters?.length ?? 0) > 0 && (
-          <section id="our-story">
+  // Render a block by type — respects manifest.blocks ordering
+  const renderSection = (type: string) => {
+    switch (type) {
+      case 'hero':
+        return (
+          <React.Fragment key="hero">
+            <Hero
+              names={safeNames}
+              subtitle={manifest.vibeString || 'A love story beautifully told.'}
+              coverPhoto={coverPhoto}
+              weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
+              vibeSkin={vibeSkin}
+            />
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
+          </React.Fragment>
+        );
+      case 'story':
+        if (!(manifest.chapters?.length)) return null;
+        return (
+          <section key="story" id="our-story">
             <Timeline chapters={manifest.chapters ?? []} layoutFormat={manifest.layoutFormat} />
           </section>
-        )}
-        {(manifest.events?.length ?? 0) > 0 && (
-          <>
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
+        );
+      case 'event':
+        if (!manifest.events?.length) return null;
+        return (
+          <React.Fragment key="event">
+            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={60} />
             <section id="schedule" style={{ background: cardBg }}>
-              <WeddingEvents events={manifest.events ?? []} title={vibeSkin.sectionLabels?.events || 'The Celebration'} />
+              <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
             </section>
-          </>
-        )}
-        {(manifest.registry?.entries?.length ?? 0) > 0 || manifest.registry?.cashFundUrl ? (
-          <>
+          </React.Fragment>
+        );
+      case 'registry':
+        if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
+        return (
+          <React.Fragment key="registry">
             <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={accentLight} height={60} />
             <section id="registry" style={{ background: accentLight }}>
               <RegistryShowcase
                 registries={manifest.registry?.entries || []}
                 cashFundUrl={manifest.registry?.cashFundUrl}
                 cashFundMessage={manifest.registry?.cashFundMessage}
-                title={vibeSkin.sectionLabels?.registry || 'Our Registry'}
+                title={vibeSkin.sectionLabels.registry}
               />
             </section>
-          </>
-        ) : null}
-        {manifest.travelInfo ? (
-          <>
+          </React.Fragment>
+        );
+      case 'travel':
+        if (!manifest.travelInfo) return null;
+        return (
+          <React.Fragment key="travel">
             <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={cardBg} height={60} />
             <section id="travel" style={{ background: cardBg }}>
               <TravelSection info={manifest.travelInfo} />
             </section>
-          </>
-        ) : null}
-        {faqsWithCategory.length > 0 && (
-          <>
+          </React.Fragment>
+        );
+      case 'faq':
+        if (!faqsWithCategory.length) return null;
+        return (
+          <React.Fragment key="faq">
             <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={60} />
             <section id="faq">
               <FaqSection faqs={faqsWithCategory} />
             </section>
-          </>
-        )}
+          </React.Fragment>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Use blocks ordering when available; fall back to legacy hardcoded order
+  const visibleBlocks = manifest.blocks && manifest.blocks.length > 0
+    ? [...manifest.blocks].sort((a, b) => a.order - b.order).filter(b => b.visible !== false)
+    : null;
+
+  const legacyOrder = ['hero', 'story', 'event', 'registry', 'travel', 'faq'];
+
+  return (
+    <ThemeProvider theme={dynamicTheme}>
+      <div style={{ minHeight: '100vh', background: bgColor, color: pal.foreground }}>
+        <SiteNav pages={sitePages} names={safeNames} />
+        {visibleBlocks
+          ? visibleBlocks.map(b => renderSection(b.type))
+          : legacyOrder.map(t => renderSection(t))
+        }
       </div>
     </ThemeProvider>
   );

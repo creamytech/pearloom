@@ -997,15 +997,26 @@ CRITICAL DESIGN RULES:
         : ['✦', '•', '◦', '✧', '·'],
       accentSymbol: typeof parsed.accentSymbol === 'string' ? parsed.accentSymbol : '✦',
       particleColor: hexOrDefault(parsed.particleColor, accent2Color),
-      sectionLabels: {
-        story: parsed.sectionLabels?.story || 'How We Fell',
-        events: parsed.sectionLabels?.events || 'The Celebration',
-        registry: parsed.sectionLabels?.registry || 'Gift Guide',
-        travel: parsed.sectionLabels?.travel || 'Getting There',
-        faqs: parsed.sectionLabels?.faqs || 'What to Know',
-        rsvp: parsed.sectionLabels?.rsvp || 'Will You Be There?',
-        photos: parsed.sectionLabels?.photos || 'Our Photos',
-      },
+      sectionLabels: (() => {
+        // Occasion-aware fallback labels — used when Gemini doesn't provide custom labels
+        const occ = occasion || 'wedding';
+        const occasionDefaults: Record<string, Partial<Record<string, string>>> = {
+          birthday: { story: 'About Me', events: 'The Party', registry: 'Wish List', photos: 'Birthday Photos' },
+          anniversary: { story: 'Our Journey', events: 'The Anniversary', registry: 'Wish List', photos: 'Through the Years', rsvp: 'Join Us' },
+          engagement: { story: 'Our Beginning', events: 'The Engagement', photos: 'Our Photos' },
+          story: { story: 'Our Story', events: 'Our Moments', photos: 'Our Photos' },
+        };
+        const d = occasionDefaults[occ] || {};
+        return {
+          story: parsed.sectionLabels?.story || d.story || 'How We Fell',
+          events: parsed.sectionLabels?.events || d.events || 'The Celebration',
+          registry: parsed.sectionLabels?.registry || d.registry || 'Gift Guide',
+          travel: parsed.sectionLabels?.travel || 'Getting There',
+          faqs: parsed.sectionLabels?.faqs || 'What to Know',
+          rsvp: parsed.sectionLabels?.rsvp || d.rsvp || 'Will You Be There?',
+          photos: parsed.sectionLabels?.photos || d.photos || 'Our Photos',
+        };
+      })(),
       dividerQuote: typeof parsed.dividerQuote === 'string' ? parsed.dividerQuote : vibeString,
       cornerStyle: CORNER_STYLES[curve],
       tone: VALID_TONES.includes(parsed.tone) ? parsed.tone : 'dreamy',
