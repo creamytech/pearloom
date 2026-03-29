@@ -419,6 +419,7 @@ function ImageManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [generatingCaptions, setGeneratingCaptions] = useState(false);
   const [captionSuccess, setCaptionSuccess] = useState(false);
   const [captionError, setCaptionError] = useState<string | null>(null);
@@ -440,6 +441,7 @@ function ImageManager({
     });
     if (validFiles.length === 0) return;
     setUploading(true);
+    setUploadError(null);
     const results: ChapterImage[] = [];
     for (const file of validFiles) {
       try {
@@ -447,7 +449,7 @@ function ImageManager({
         formData.append('file', file);
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
-        if (data.publicUrl) {
+        if (res.ok && data.publicUrl) {
           results.push({
             id: `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             url: data.publicUrl,
@@ -455,13 +457,17 @@ function ImageManager({
             width: 0, height: 0,
           });
         } else {
-          console.error('[ImageManager] Upload failed:', data.error);
+          const msg = data.error || `Upload failed (${res.status})`;
+          console.error('[ImageManager] Upload failed:', msg);
+          setUploadError(msg);
         }
       } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Upload failed — check your connection';
         console.error('[ImageManager] Upload error:', err);
+        setUploadError(msg);
       }
     }
-    onUpdate([...images, ...results]);
+    if (results.length > 0) onUpdate([...images, ...results]);
     setUploading(false);
   };
 
@@ -625,6 +631,17 @@ function ImageManager({
         </div>
       )}
       </div>
+
+      {/* Upload error */}
+      {uploadError && (
+        <div style={{
+          marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
+          background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
+          color: '#fca5a5', fontSize: '0.78rem', lineHeight: 1.4,
+        }}>
+          Upload failed: {uploadError}
+        </div>
+      )}
 
       {/* Generate Captions button */}
       {images.length > 0 && (
