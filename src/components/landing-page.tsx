@@ -83,6 +83,8 @@ const TESTIMONIALS = [
   { quote: 'The AI described our relationship better than we ever could. Our guests said it felt like a design studio built it just for us.', name: 'Emma & James', event: 'Wedding · June 2025' },
   { quote: 'I made an anniversary site in 20 minutes and my husband cried reading the story it wrote about us. Completely magical.', name: 'Priya', event: 'Anniversary · 10 years' },
   { quote: 'Everyone at my mum\'s 70th asked who designed the site. I said "an AI and me in half an hour." Jaws dropped.', name: 'Liam T.', event: 'Birthday · July 2025' },
+  { quote: 'We used it to announce our engagement and the proposal story the AI crafted had our families in tears. Absolutely stunning.', name: 'Sofia & Marco', event: 'Engagement · March 2026' },
+  { quote: 'Made a site for my dad\'s retirement party. His colleagues kept asking for the "design agency" behind it. It was just me and Pearloom.', name: 'Kezia O.', event: 'Celebration · February 2026' },
 ];
 
 // ── Rotating occasion type in hero ───────────────────────────
@@ -228,6 +230,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               Create Your Free Site <ArrowRight size={15} strokeWidth={2.2}/>
             </motion.button>
             <motion.button
+              onClick={() => window.open('/demo', '_blank')}
               whileHover={{ scale:1.02, background: C.deep }}
               whileTap={{ scale:0.97 }}
               style={{
