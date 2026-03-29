@@ -79,9 +79,11 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  // Keep a ref to historyIndex so keyboard handler always sees current value
+  // Keep refs so callbacks always see latest values without stale-closure issues
   const historyIndexRef = useRef(historyIndex);
+  const tablesRef = useRef(tables);
   useEffect(() => { historyIndexRef.current = historyIndex; }, [historyIndex]);
+  useEffect(() => { tablesRef.current = tables; }, [tables]);
 
   void spaceId;
 
@@ -234,10 +236,8 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     // Clamp to canvas bounds
     const clampedX = Math.max(ROOM_MARGIN, Math.min(CANVAS_W - ROOM_MARGIN, x));
     const clampedY = Math.max(ROOM_MARGIN, Math.min(CANVAS_H - ROOM_MARGIN, y));
-    setTables(prev => {
-      pushHistory(prev);
-      return prev.map(t => t.id === id ? { ...t, x: clampedX, y: clampedY } : t);
-    });
+    pushHistory(tablesRef.current);
+    setTables(prev => prev.map(t => t.id === id ? { ...t, x: clampedX, y: clampedY } : t));
     void saveTablePosition(id, clampedX, clampedY);
   }, [saveTablePosition, pushHistory]);
 
