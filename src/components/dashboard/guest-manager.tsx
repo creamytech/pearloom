@@ -5,7 +5,7 @@
 // Premium guest list and RSVP tracking dashboard.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Trash2, Check, X, Download,
@@ -41,6 +41,9 @@ interface GuestManagerProps {
 export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | Guest['status']>('all');
   const [addOpen, setAddOpen] = useState(false);
@@ -48,17 +51,20 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { fetchGuests(); }, [siteId]);
 
   const fetchGuests = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const res = await fetch(`/api/guests?siteId=${siteId}`);
+      if (!res.ok) throw new Error(`Server error (${res.status})`);
       const data = await res.json();
       setGuests(data.guests || []);
     } catch (e) {
-      console.error('Failed to fetch guests', e);
+      setFetchError(e instanceof Error ? e.message : 'Failed to load guest list. Try refreshing.');
     } finally {
       setLoading(false);
     }
@@ -67,6 +73,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
   const addGuest = async () => {
     if (!newGuest.name.trim()) return;
     setSaving(true);
+    setAddError(null);
     try {
       const res = await fetch('/api/guests', {
         method: 'POST',
@@ -74,18 +81,39 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         body: JSON.stringify({ siteId, ...newGuest }),
       });
       const data = await res.json();
-      if (data.guest) {
+      if (!res.ok) {
+        setAddError(data.error || 'Failed to add guest. Please try again.');
+        setTimeout(() => setAddError(null), 6000);
+      } else if (data.guest) {
         setGuests((prev) => [...prev, data.guest]);
         setNewGuest({ name: '', email: '', plusOne: false });
         setAddOpen(false);
       }
-    } catch (e) { console.error(e); }
-    setSaving(false);
+    } catch {
+      setAddError('Network error. Please check your connection and try again.');
+      setTimeout(() => setAddError(null), 6000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const deleteGuest = async (id: string) => {
+    setDeleteError(null);
+    const snapshot = guests;
     setGuests((prev) => prev.filter((g) => g.id !== id));
-    await fetch(`/api/guests/${id}?siteId=${siteId}`, { method: 'DELETE' }).catch(console.error);
+    try {
+      const res = await fetch(`/api/guests/${id}?siteId=${siteId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        setGuests(snapshot); // rollback
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error || 'Failed to delete guest. Please try again.');
+        setTimeout(() => setDeleteError(null), 6000);
+      }
+    } catch {
+      setGuests(snapshot); // rollback
+      setDeleteError('Network error. The guest was not deleted.');
+      setTimeout(() => setDeleteError(null), 6000);
+    }
   };
 
   const filtered = guests.filter((g) => {
@@ -131,6 +159,21 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
     setCopiedShare(true);
     setTimeout(() => setCopiedShare(false), 2000);
   };
+
+  const bulkUpdateStatus = useCallback(async (status: 'attending' | 'declined' | 'pending') => {
+    const ids = Array.from(selectedIds);
+    // Optimistic update
+    setGuests(prev => prev.map(g => ids.includes(g.id) ? { ...g, status } : g));
+    setSelectedIds(new Set());
+    // Persist
+    await Promise.all(ids.map(id =>
+      fetch(`/api/guests?id=${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+    ));
+  }, [selectedIds]);
 
   const inputBase: React.CSSProperties = {
     padding: '0.7rem 1rem',
@@ -213,6 +256,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
 
         <button
           onClick={fetchGuests}
+          aria-label="Refresh guest list"
           style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--eg-muted)', transition: 'background 0.15s' }}
           onMouseOver={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; }}
@@ -305,6 +349,11 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 />
                 +1 Allowed
               </label>
+              {addError && (
+                <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.5rem', fontSize: '0.8rem', color: '#b91c1c' }}>
+                  {addError}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
                   onClick={addGuest}
@@ -333,6 +382,42 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         )}
       </AnimatePresence>
 
+      {/* ── Bulk action toolbar ── */}
+      {selectedIds.size > 0 && (
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 10,
+          background: 'rgba(163,177,138,0.12)',
+          border: '1px solid rgba(163,177,138,0.25)',
+          borderRadius: '0.75rem', padding: '0.75rem 1rem',
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+          marginBottom: '0.75rem',
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+            {selectedIds.size} selected
+          </span>
+          {(['attending', 'declined', 'pending'] as const).map(status => (
+            <button
+              key={status}
+              onClick={() => bulkUpdateStatus(status)}
+              style={{
+                padding: '0.35rem 0.75rem', borderRadius: '0.5rem',
+                background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)',
+                cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
+                textTransform: 'capitalize',
+              }}
+            >
+              Mark {status}
+            </button>
+          ))}
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            style={{ marginLeft: 'auto', fontSize: '0.8rem', opacity: 0.5, background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* ── Guest Table / Cards ── */}
       <div style={{ background: '#fff', borderRadius: '0.875rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         {/* Table header (desktop) */}
@@ -340,7 +425,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           className="guest-table-header"
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 180px 110px 70px 120px 36px',
+            gridTemplateColumns: '32px 1fr 180px 110px 70px 120px 36px',
             padding: '0.75rem 1.25rem',
             background: 'rgba(0,0,0,0.015)',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
@@ -348,6 +433,20 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             textTransform: 'uppercase', color: 'var(--eg-muted)',
           }}
         >
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              style={{ accentColor: 'var(--eg-accent)', cursor: 'pointer' }}
+              checked={filtered.length > 0 && filtered.every(g => selectedIds.has(g.id))}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedIds(new Set(filtered.map(g => g.id)));
+                } else {
+                  setSelectedIds(new Set());
+                }
+              }}
+            />
+          </span>
           <span>Guest</span>
           <span>Email</span>
           <span>Status</span>
@@ -359,6 +458,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
             <Loader2 size={24} color="var(--eg-muted)" style={{ margin: '0 auto', animation: 'spin 1s linear infinite' }} />
+          </div>
+        ) : fetchError ? (
+          <div style={{ padding: '3rem', textAlign: 'center' }}>
+            <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginBottom: '1rem' }}>{fetchError}</p>
+            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)' }}>
+              <RefreshCw size={13} /> Retry
+            </button>
           </div>
         ) : filtered.length === 0 && guests.length === 0 ? (
           /* Empty state */
@@ -403,9 +509,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 <div
                   className="guest-table-row"
                   onClick={() => setExpandedId(isExpanded ? null : guest.id)}
+                  role="button"
+                  aria-expanded={isExpanded}
+                  aria-label="Show guest details"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 180px 110px 70px 120px 36px',
+                    gridTemplateColumns: '32px 1fr 180px 110px 70px 120px 36px',
                     padding: '0.875rem 1.25rem',
                     alignItems: 'center',
                     cursor: 'pointer',
@@ -416,6 +525,21 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.04)'; }}
                   onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? '#fff' : 'rgba(0,0,0,0.008)'; }}
                 >
+                  <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type="checkbox"
+                      style={{ accentColor: 'var(--eg-accent)', cursor: 'pointer' }}
+                      checked={selectedIds.has(guest.id)}
+                      onChange={(e) => {
+                        setSelectedIds(prev => {
+                          const next = new Set(prev);
+                          if (e.target.checked) next.add(guest.id);
+                          else next.delete(guest.id);
+                          return next;
+                        });
+                      }}
+                    />
+                  </div>
                   <div>
                     <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{guest.name}</div>
                     {guest.songRequest && (
@@ -425,7 +549,22 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                     )}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {guest.email || '—'}
+                    {guest.email ? (
+                      <a
+                        href={`mailto:${guest.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          color: 'inherit',
+                          textDecoration: 'none',
+                          borderBottom: '1px dotted rgba(0,0,0,0.25)',
+                          transition: 'border-color 0.15s',
+                        }}
+                        onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'var(--eg-accent, #A3B18A)'; }}
+                        onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'rgba(0,0,0,0.25)'; }}
+                      >
+                        {guest.email}
+                      </a>
+                    ) : '—'}
                   </div>
                   <div>
                     <span style={{
@@ -445,6 +584,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteGuest(guest.id); }}
+                    aria-label={`Delete ${guest.name}`}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.4)', display: 'flex', padding: '0.25rem', transition: 'color 0.15s' }}
                     onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; }}
                     onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(239,68,68,0.4)'; }}
@@ -489,10 +629,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                           </div>
                         )}
                         {guest.message && (
-                          <div style={{ flex: 1 }}>
-                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--eg-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Message</span>
-                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', fontStyle: 'italic', color: 'var(--eg-muted)' }}>
-                              &ldquo;{guest.message}&rdquo;
+                          <div style={{ marginTop: '0.5rem' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.5 }}>
+                              Message
+                            </span>
+                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', fontStyle: 'italic', color: 'var(--eg-fg)', lineHeight: 1.5 }}>
+                              "{guest.message}"
                             </p>
                           </div>
                         )}
@@ -505,6 +647,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           })
         )}
       </div>
+
+      {deleteError && (
+        <div style={{ padding: '0.7rem 1rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.65rem', fontSize: '0.8rem', color: '#b91c1c', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <span>{deleteError}</span>
+          <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', padding: 0, fontSize: '1rem', lineHeight: 1 }}>×</button>
+        </div>
+      )}
 
       {filtered.length > 0 && (
         <p style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', textAlign: 'center' }}>

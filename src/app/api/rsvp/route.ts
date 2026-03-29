@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,16 +73,35 @@ export async function POST(req: NextRequest) {
     // Always log new RSVP responses
     console.log('[RSVP] New response from:', guestName, '| Status:', status, '| Site:', siteId);
 
-    // Non-blocking notification — fire and forget
-    try {
-      const notifEmail = process.env.NOTIFICATION_EMAIL;
-      if (notifEmail) {
-        // Could integrate with Resend, SendGrid, etc. in future
-        // For now, just log that we would notify
-        console.log(`[RSVP] Would notify ${notifEmail}: ${guestName} ${status} for ${siteId}`);
-      }
-    } catch (e) {
-      // Never let notification failure affect the RSVP response
+    // Non-blocking notification via Resend — fire and forget
+    const notifEmail = process.env.NOTIFICATION_EMAIL;
+    const resendKey = process.env.RESEND_API_KEY;
+    if (notifEmail && resendKey) {
+      const resend = new Resend(resendKey);
+      const fromEmail = process.env.EMAIL_FROM || 'noreply@pearloom.com';
+      const emoji = status === 'attending' ? '🎉' : status === 'declined' ? '😢' : '⏳';
+      const statusLabel = status === 'attending' ? 'is coming!' : status === 'declined' ? 'can\'t make it' : 'is pending';
+      resend.emails.send({
+        from: fromEmail,
+        to: notifEmail,
+        subject: `${emoji} ${guestName} ${statusLabel} — ${siteId}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem">
+            <h2 style="margin:0 0 0.5rem">${emoji} New RSVP</h2>
+            <p style="margin:0 0 1rem;color:#666">Someone responded to <strong>${siteId}</strong></p>
+            <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
+              <tr><td style="padding:0.4rem 0;color:#999;width:140px">Guest</td><td><strong>${guestName}</strong></td></tr>
+              <tr><td style="padding:0.4rem 0;color:#999">Status</td><td style="text-transform:capitalize"><strong>${status}</strong></td></tr>
+              ${email ? `<tr><td style="padding:0.4rem 0;color:#999">Email</td><td>${email}</td></tr>` : ''}
+              ${plusOne ? `<tr><td style="padding:0.4rem 0;color:#999">+1</td><td>${plusOneName || 'Yes'}</td></tr>` : ''}
+              ${mealPreference ? `<tr><td style="padding:0.4rem 0;color:#999">Meal</td><td>${mealPreference}</td></tr>` : ''}
+              ${songRequest ? `<tr><td style="padding:0.4rem 0;color:#999">Song request</td><td style="font-style:italic">${songRequest}</td></tr>` : ''}
+              ${message ? `<tr><td style="padding:0.4rem 0;color:#999">Message</td><td style="font-style:italic">"${message}"</td></tr>` : ''}
+            </table>
+            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${process.env.NEXT_PUBLIC_SITE_URL}" style="color:#A3B18A">pearloom.com</a></p>
+          </div>
+        `,
+      }).catch((e: unknown) => console.error('[RSVP] Resend error:', e));
     }
 
     return NextResponse.json({

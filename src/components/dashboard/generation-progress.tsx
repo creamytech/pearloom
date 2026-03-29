@@ -111,7 +111,7 @@ const WORDS = [
 ];
 
 // ── Main component ─────────────────────────────────────────────
-export function GenerationProgress({ step = 0 }: { step?: number }) {
+export function GenerationProgress({ step = 0, onCancel }: { step?: number; onCancel?: () => void }) {
   const idx = Math.min(step, PASSES.length - 1);
   const pass = PASSES[idx];
   const [elapsed, setElapsed] = useState(0);
@@ -360,6 +360,83 @@ export function GenerationProgress({ step = 0 }: { step?: number }) {
               </span>
             )}
           </motion.p>
+        </AnimatePresence>
+
+        {/* ── Long-running warnings ── */}
+        <AnimatePresence>
+          {elapsed >= 120 && elapsed < 200 && (
+            <motion.p
+              key="slow-warning"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              style={{
+                marginTop: '1.25rem',
+                fontSize: '0.75rem',
+                color: 'rgba(250,247,242,0.3)',
+                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+                fontStyle: 'italic',
+              }}
+            >
+              This is taking a little longer than usual — still working…
+            </motion.p>
+          )}
+          {elapsed >= 200 && (
+            <motion.p
+              key="very-slow-warning"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6 }}
+              style={{
+                marginTop: '1.25rem',
+                fontSize: '0.75rem',
+                color: 'rgba(250,200,100,0.45)',
+                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+                fontStyle: 'italic',
+              }}
+            >
+              Still going — complex stories take time. Please don&apos;t close this tab.
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {/* ── Cancel button (shown after 30s if onCancel provided) ── */}
+        <AnimatePresence>
+          {onCancel && elapsed >= 30 && (
+            <motion.button
+              key="cancel-btn"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              onClick={onCancel}
+              style={{
+                marginTop: '2rem',
+                background: 'transparent',
+                border: '1px solid rgba(250,247,242,0.2)',
+                borderRadius: '8px',
+                padding: '0.5rem 1.25rem',
+                color: 'rgba(250,247,242,0.4)',
+                fontSize: '0.78rem',
+                cursor: 'pointer',
+                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+                letterSpacing: '0.06em',
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(250,247,242,0.4)';
+                (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.65)';
+              }}
+              onMouseOut={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(250,247,242,0.2)';
+                (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.4)';
+              }}
+            >
+              Cancel generation
+            </motion.button>
+          )}
         </AnimatePresence>
       </div>
     </div>

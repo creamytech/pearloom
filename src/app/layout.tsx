@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from '@/components/auth-provider';
+import { ToastProvider } from '@/components/ui/toast';
 
 export default function RootLayout({
   children,
@@ -33,7 +34,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-full flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

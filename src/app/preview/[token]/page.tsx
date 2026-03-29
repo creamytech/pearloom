@@ -282,7 +282,7 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
         <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} />
         {(manifest.chapters?.length ?? 0) > 0 && (
           <section id="our-story">
-            <Timeline chapters={manifest.chapters ?? []} />
+            <Timeline chapters={manifest.chapters ?? []} layoutFormat={manifest.layoutFormat} />
           </section>
         )}
         {(manifest.events?.length ?? 0) > 0 && (

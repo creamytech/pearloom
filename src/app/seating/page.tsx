@@ -18,6 +18,7 @@ function SeatingPageInner() {
   const siteId = searchParams.get('siteId') ?? 'demo';
   const spaceId = searchParams.get('spaceId') ?? undefined;
   const [siteName, setSiteName] = useState<string>('');
+  const [showAIToast, setShowAIToast] = useState(false);
 
   // Load site name if available
   useEffect(() => {
@@ -33,9 +34,9 @@ function SeatingPageInner() {
     }
   }, [siteId]);
 
-  const handleAIArrange = async () => {
-    // Stub: could call /api/ai-blocks or a wedding-graph endpoint
-    alert('AI Arrange coming soon! It will automatically seat guests based on your constraints and relationships.');
+  const handleAIArrange = () => {
+    setShowAIToast(true);
+    setTimeout(() => setShowAIToast(false), 4000);
   };
 
   return (
@@ -105,35 +106,57 @@ function SeatingPageInner() {
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* AI Arrange button */}
+        {/* Undo / Redo buttons */}
         <button
-          onClick={handleAIArrange}
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }))}
+          title="Undo (⌘Z)"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.4rem 0.75rem', borderRadius: '0.75rem',
+            border: '1.5px solid var(--eg-divider)', background: 'transparent',
+            color: 'var(--eg-muted)', fontSize: '0.78rem',
+            fontFamily: 'var(--eg-font-body)', cursor: 'pointer',
+          }}
+        >
+          ⌘Z
+        </button>
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, shiftKey: true, bubbles: true }))}
+          title="Redo (⌘⇧Z)"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.4rem 0.75rem', borderRadius: '0.75rem',
+            border: '1.5px solid var(--eg-divider)', background: 'transparent',
+            color: 'var(--eg-muted)', fontSize: '0.78rem',
+            fontFamily: 'var(--eg-font-body)', cursor: 'pointer',
+          }}
+        >
+          ⌘⇧Z
+        </button>
+
+        <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)' }} />
+
+        {/* AI Arrange button — coming soon */}
+        <button
+          // onClick={handleAIArrange} — not yet available
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
             padding: '0.45rem 0.9rem',
             borderRadius: '0.75rem',
-            border: '1.5px solid var(--eg-accent)',
+            border: '1.5px dashed var(--eg-accent)',
             background: 'transparent',
             color: 'var(--eg-accent)',
             fontSize: '0.8rem',
             fontFamily: 'var(--eg-font-body)',
-            cursor: 'pointer',
+            cursor: 'not-allowed',
             fontWeight: 500,
-            transition: 'all 0.15s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'var(--eg-accent)';
-            e.currentTarget.style.color = '#fff';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--eg-accent)';
+            opacity: 0.6,
           }}
         >
           <Sparkles size={14} />
-          AI Arrange
+          AI Arrange (Coming Soon)
         </button>
       </header>
 
@@ -141,6 +164,27 @@ function SeatingPageInner() {
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <SeatingCanvas siteId={siteId} spaceId={spaceId} />
       </div>
+
+      {/* ── AI Arrange coming-soon toast ─────────────────────── */}
+      {showAIToast && (
+        <div style={{
+          position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+          background: '#1a1713', color: '#fff',
+          padding: '0.9rem 1.5rem', borderRadius: '0.875rem',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+          fontSize: '0.875rem', fontFamily: 'var(--eg-font-body)',
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+          zIndex: 100, maxWidth: 'calc(100vw - 3rem)',
+          animation: 'fadeInUp 0.3s ease',
+        }}>
+          <Sparkles size={16} color="var(--eg-accent, #A3B18A)" />
+          <div>
+            <span style={{ fontWeight: 700, color: '#A3B18A' }}>AI Arrange</span>
+            {' '}is coming soon — it will seat guests automatically based on your relationships and constraints.
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes fadeInUp { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }`}</style>
     </div>
   );
 }

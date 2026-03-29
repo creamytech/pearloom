@@ -77,7 +77,7 @@ function SkeletonCard() {
           height: '200px',
           background: 'linear-gradient(90deg, #f5f0e8 0%, #fdf8f2 50%, #f5f0e8 100%)',
           backgroundSize: '200% 100%',
-          animation: 'shimmer 1.8s ease-in-out infinite',
+          animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         }}
       />
       <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -86,7 +86,7 @@ function SkeletonCard() {
             height: '12px', borderRadius: '100px', width: '60%',
             background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.8s ease-in-out infinite 0.1s',
+            animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.1s',
           }}
         />
         <div
@@ -94,7 +94,7 @@ function SkeletonCard() {
             height: '10px', borderRadius: '100px', width: '35%',
             background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
             backgroundSize: '200% 100%',
-            animation: 'shimmer 1.8s ease-in-out infinite 0.2s',
+            animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.2s',
           }}
         />
         <div
@@ -112,7 +112,7 @@ function SkeletonCard() {
                 height: '40px', borderRadius: '0.75rem',
                 background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
                 backgroundSize: '200% 100%',
-                animation: `shimmer 1.8s ease-in-out infinite ${0.1 * idx}s`,
+                animation: `shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite ${0.1 * idx}s`,
               }}
             />
           ))}
@@ -149,6 +149,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
   const [fetchError, setFetchError] = useState(false);
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<UserSite | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedCompleteness, setExpandedCompleteness] = useState<string | null>(null);
@@ -169,16 +170,24 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
   const handleDelete = async (site: UserSite) => {
     setDeletingDomain(site.domain);
+    setDeleteError(null);
     try {
       const res = await fetch(`/api/sites/${site.domain}`, { method: 'DELETE' });
       if (res.ok) {
         setSites((prev) => prev.filter((s) => s.domain !== site.domain));
+        setConfirmDelete(null);
+      } else {
+        let msg = 'Delete failed. Please try again.';
+        try {
+          const body = await res.json();
+          if (body?.error) msg = body.error;
+        } catch { /* ignore parse error */ }
+        setDeleteError(msg);
       }
     } catch {
-      // silently fail — modal will close
+      setDeleteError('Network error — please check your connection and try again.');
     } finally {
       setDeletingDomain(null);
-      setConfirmDelete(null);
     }
   };
 
@@ -503,16 +512,16 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           <>
                             <div style={{
                               width: '6px', height: '6px', borderRadius: '50%',
-                              background: 'var(--eg-accent, #A3B18A)',
-                              boxShadow: '0 0 6px rgba(163,177,138,0.4)',
-                              animation: 'pulse 2s ease-in-out infinite',
+                              background: '#22c55e',
+                              boxShadow: '0 0 0 0 rgba(34,197,94,0.4)',
+                              animation: 'livePulse 2s ease-out infinite',
                             }} />
-                            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.9)', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
+                            <span style={{ fontSize: '0.62rem', color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
                           </>
                         ) : (
                           <>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--eg-gold, #D6C6A8)' }} />
-                            <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.75)', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
+                            <span style={{ fontSize: '0.62rem', color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
                           </>
                         )}
                       </div>
@@ -562,6 +571,26 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         </div>
                       </div>
 
+                      {/* Analytics */}
+                      {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
+                        <div style={{
+                          fontSize: '0.7rem', color: 'rgba(0,0,0,0.4)',
+                          display: 'flex', alignItems: 'center', gap: '0.3rem',
+                          marginTop: '0.25rem',
+                        }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                          <span>{site.manifest.analytics.views.toLocaleString()} view{site.manifest.analytics.views !== 1 ? 's' : ''}</span>
+                          {site.manifest.analytics.lastViewed && (
+                            <span style={{ opacity: 0.6 }}>
+                              · {new Date(site.manifest.analytics.lastViewed).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       {/* Completeness bar — click to expand full panel */}
                       {site.manifest && (
                         <div style={{ marginBottom: '0.85rem' }}>
@@ -598,15 +627,15 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       )}
 
                       {/* Action row */}
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                         {/* Edit — primary */}
                         <button
                           onClick={(e) => { e.stopPropagation(); onEditSite(site); }}
                           style={{
-                            flex: 1,
+                            flex: '1 1 auto', minWidth: '70px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
-                            background: 'var(--eg-fg)',
+                            background: '#2B2B2B',
                             color: '#fff', border: 'none', cursor: 'pointer',
                             fontWeight: 600, fontSize: '0.78rem', letterSpacing: '0.04em',
                             fontFamily: 'var(--eg-font-body)',
@@ -624,7 +653,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           onClick={(e) => handleCopyUrl(site, e)}
                           title="Copy site URL"
                           style={{
-                            flex: 1,
+                            flex: '1 1 auto', minWidth: '70px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
                             background: isCopied ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.08)',
@@ -644,7 +673,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           onClick={(e) => { e.stopPropagation(); onManageGuests(site); }}
                           title="Manage Guests"
                           style={{
-                            width: '38px', height: '38px', borderRadius: '0.75rem',
+                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
                             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--eg-muted)', cursor: 'pointer', transition: 'all 0.2s',
@@ -671,7 +700,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="View Live Site"
                           onClick={(e) => e.stopPropagation()}
                           style={{
-                            width: '38px', height: '38px', borderRadius: '0.75rem',
+                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
                             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--eg-muted)', textDecoration: 'none',
@@ -697,22 +726,22 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           disabled={isDeleting}
                           title="Delete site"
                           style={{
-                            width: '38px', height: '38px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(109,89,122,0.12)',
+                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
+                            border: '1px solid rgba(185,28,28,0.2)',
                             background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'rgba(109,89,122,0.45)', cursor: 'pointer',
+                            color: 'rgba(185,28,28,0.55)', cursor: 'pointer',
                             transition: 'all 0.2s',
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.background = 'rgba(109,89,122,0.08)';
-                            e.currentTarget.style.color = 'var(--eg-plum, #6D597A)';
-                            e.currentTarget.style.borderColor = 'rgba(109,89,122,0.25)';
+                            e.currentTarget.style.background = 'rgba(185,28,28,0.06)';
+                            e.currentTarget.style.color = 'rgb(185,28,28)';
+                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.35)';
                           }}
                           onMouseOut={(e) => {
                             e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = 'rgba(109,89,122,0.45)';
-                            e.currentTarget.style.borderColor = 'rgba(109,89,122,0.12)';
+                            e.currentTarget.style.color = 'rgba(185,28,28,0.55)';
+                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.2)';
                           }}
                         >
                           {isDeleting
@@ -772,10 +801,10 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
           {/* Responsive grid styles */}
           <style>{`
-            @media (max-width: 1024px) {
+            @media (max-width: 1199px) {
               .site-card-grid { grid-template-columns: repeat(2, 1fr) !important; }
             }
-            @media (max-width: 640px) {
+            @media (max-width: 479px) {
               .site-card-grid { grid-template-columns: 1fr !important; }
             }
             @keyframes spin {
@@ -785,6 +814,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             @keyframes pulse {
               0%, 100% { opacity: 1; }
               50% { opacity: 0.5; }
+            }
+            @keyframes livePulse {
+              0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+              70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+              100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
             }
           `}</style>
         </>
@@ -803,7 +837,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               WebkitBackdropFilter: 'blur(12px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
             }}
-            onClick={() => setConfirmDelete(null)}
+            onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -819,7 +853,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               }}
             >
               <button
-                onClick={() => setConfirmDelete(null)}
+                onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
                 style={{
                   position: 'absolute', top: '1.25rem', right: '1.25rem',
                   background: '#f5f5f5', border: 'none', borderRadius: '50%',
@@ -845,13 +879,22 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               }}>
                 Delete this site?
               </h3>
-              <p style={{ color: 'var(--eg-muted)', lineHeight: 1.65, marginBottom: '2.25rem', fontSize: '0.925rem' }}>
+              <p style={{ color: 'var(--eg-muted)', lineHeight: 1.65, marginBottom: deleteError ? '1rem' : '2.25rem', fontSize: '0.925rem' }}>
                 <strong style={{ color: 'var(--eg-fg)' }}>{confirmDelete.domain}.pearloom.app</strong> will be
                 permanently removed. Guests will no longer be able to access it.
               </p>
+              {deleteError && (
+                <p style={{
+                  fontSize: '0.85rem', color: '#c0392b', background: 'rgba(192,57,43,0.07)',
+                  border: '1px solid rgba(192,57,43,0.18)', borderRadius: '0.6rem',
+                  padding: '0.65rem 0.875rem', marginBottom: '1.5rem', lineHeight: 1.5,
+                }}>
+                  {deleteError}
+                </p>
+              )}
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <button
-                  onClick={() => setConfirmDelete(null)}
+                  onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
                   style={{
                     flex: 1, padding: '0.9rem', borderRadius: '0.875rem',
                     border: '1px solid rgba(0,0,0,0.1)', background: 'none',
@@ -866,16 +909,25 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 </button>
                 <button
                   onClick={() => handleDelete(confirmDelete)}
+                  disabled={deletingDomain === confirmDelete.domain}
                   style={{
                     flex: 1, padding: '0.9rem', borderRadius: '0.875rem',
-                    background: 'linear-gradient(135deg, #6D597A, #5a4a66)',
-                    color: '#fff', border: 'none', cursor: 'pointer',
+                    background: deletingDomain === confirmDelete.domain
+                      ? 'rgba(109,89,122,0.4)'
+                      : 'linear-gradient(135deg, #6D597A, #5a4a66)',
+                    color: '#fff', border: 'none',
+                    cursor: deletingDomain === confirmDelete.domain ? 'wait' : 'pointer',
                     fontWeight: 600, fontSize: '0.9rem',
-                    boxShadow: '0 8px 24px rgba(109,89,122,0.28)',
+                    boxShadow: deletingDomain === confirmDelete.domain ? 'none' : '0 8px 24px rgba(109,89,122,0.28)',
                     fontFamily: 'var(--eg-font-body)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                    transition: 'all 0.2s',
                   }}
                 >
-                  Delete Forever
+                  {deletingDomain === confirmDelete.domain
+                    ? <><Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> Deleting…</>
+                    : 'Delete Forever'
+                  }
                 </button>
               </div>
             </motion.div>

@@ -1,20 +1,24 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / api/upload/route.ts
-// Server-side file upload to Supabase Storage.
-// Uses the service role key to bypass RLS — anon key cannot
-// write to storage without custom policies.
+// Server-side file upload to Cloudflare R2 (S3-compatible).
+// Falls back to Supabase Storage if R2 env vars are absent.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
-const BUCKET = 'photos';
 const MAX_SIZE_MB = 20;
 
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  return createClient(url, key);
+function getR2Client() {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accountId || !accessKeyId || !secretAccessKey) return null;
+  return new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -41,9 +45,38 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const supabase = getSupabase();
+    const r2 = getR2Client();
+    const bucket = process.env.R2_BUCKET_NAME || 'pearloom-photos';
+    const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '');
+
+    if (r2 && publicBase) {
+      // Primary: Cloudflare R2
+      await r2.send(new PutObjectCommand({
+        Bucket: bucket,
+        Key: filename,
+        Body: buffer,
+        ContentType: file.type,
+        CacheControl: 'public, max-age=31536000, immutable',
+      }));
+
+      return NextResponse.json({
+        filename,
+        publicUrl: `${publicBase}/${filename}`,
+        originalName: file.name,
+        mimeType: file.type,
+        storage: 'r2',
+      });
+    }
+
+    // Fallback: Supabase Storage
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
+
     const { error } = await supabase.storage
-      .from(BUCKET)
+      .from('photos')
       .upload(filename, buffer, {
         contentType: file.type,
         cacheControl: '31536000',
@@ -55,13 +88,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(filename);
+    const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(filename);
 
     return NextResponse.json({
       filename,
       publicUrl,
       originalName: file.name,
       mimeType: file.type,
+      storage: 'supabase',
     });
   } catch (err) {
     console.error('[upload] Unexpected error:', err);

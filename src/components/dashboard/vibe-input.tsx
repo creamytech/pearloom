@@ -138,6 +138,7 @@ interface VibeInputProps {
     celebrationTime?: string;
     guestNotes?: string;
     inspirationUrls?: string[];
+    layoutFormat?: string;
   }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
@@ -217,11 +218,11 @@ const VIBE_MOODS = [
 ];
 
 const OCCASIONS = [
-  { id: 'wedding', label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site' },
-  { id: 'anniversary', label: 'Anniversary', desc: 'A celebration of years together' },
-  { id: 'engagement', label: 'Engagement', desc: 'Popping the question!' },
-  { id: 'birthday', label: 'Birthday / Gift', desc: 'A sweet gift for your partner' },
-  { id: 'story', label: 'Just Because', desc: 'Documenting our love story' },
+  { id: 'wedding', label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site', emoji: '💍' },
+  { id: 'anniversary', label: 'Anniversary', desc: 'A celebration of years together', emoji: '🥂' },
+  { id: 'engagement', label: 'Engagement', desc: 'Sharing the big news', emoji: '✨' },
+  { id: 'birthday', label: 'Birthday Gift', desc: 'A beautiful site as a gift — for anyone you love', emoji: '🎂' },
+  { id: 'story', label: 'Just Because', desc: 'Documenting our love story', emoji: '💌' },
 ];
 
 const COLOR_PALETTES = [
@@ -248,6 +249,51 @@ const PLACES = [
   { id: 'europe', label: 'European', vibe: 'cobblestone, cafés, old-world charm' },
   { id: 'desert', label: 'Desert', vibe: 'vast, terracotta, sunset tones' },
   { id: 'home', label: 'Home Sweet Home', vibe: 'domestic bliss, couch cuddles, kitchen dances' },
+];
+
+const TIMELINE_FORMATS = [
+  {
+    id: 'cascade',
+    name: 'Cascade',
+    tagline: 'Classic editorial scroll',
+    desc: 'Elegant vertical chapters with alternating image/text layouts. Timeless and beautiful.',
+    preview: 'cascade',
+  },
+  {
+    id: 'filmstrip',
+    name: 'Film Strip',
+    tagline: 'Cinematic horizontal reel',
+    desc: 'A scrolling 35mm film reel. Each memory becomes a frame in your personal movie.',
+    preview: 'filmstrip',
+  },
+  {
+    id: 'scrapbook',
+    name: 'Scrapbook',
+    tagline: 'Polaroids & handwritten notes',
+    desc: 'Photos pinned at random angles on a textured board. Tactile, warm, nostalgic.',
+    preview: 'scrapbook',
+  },
+  {
+    id: 'magazine',
+    name: 'Magazine',
+    tagline: 'Editorial spreads',
+    desc: 'Full-bleed cover shots with bold typography. Like a fashion magazine, but yours.',
+    preview: 'magazine',
+  },
+  {
+    id: 'chapters',
+    name: 'Chapters',
+    tagline: 'A book coming to life',
+    desc: 'Accordion-style chapters with dramatic reveals. Unfolds like the pages of your story.',
+    preview: 'chapters',
+  },
+  {
+    id: 'starmap',
+    name: 'Star Map',
+    tagline: 'Your story in the cosmos',
+    desc: 'Chapters float as named stars on a night sky, connected by constellation lines.',
+    preview: 'starmap',
+  },
 ];
 
 const DRESSCODE_OPTIONS = [
@@ -290,6 +336,78 @@ const btnPrimaryStyle: React.CSSProperties = {
   letterSpacing: '0.01em',
 };
 
+function FormatMiniPreview({ id }: { id: string }) {
+  const base: React.CSSProperties = {
+    width: '100%', height: '52px', borderRadius: '6px',
+    background: 'rgba(0,0,0,0.06)', overflow: 'hidden',
+    marginBottom: '8px', position: 'relative',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    gap: '4px',
+  };
+
+  if (id === 'cascade') return (
+    <div style={base}>
+      {[0,1,2].map(i => (
+        <div key={i} style={{ display: 'flex', flexDirection: i%2===0?'row':'row-reverse', gap:'3px', position:'absolute', top: `${i*14+4}px`, left:'4px', right:'4px' }}>
+          <div style={{ width:'18px', height:'10px', background:'rgba(163,177,138,0.5)', borderRadius:'2px', flexShrink:0 }} />
+          <div style={{ flex:1, height:'10px', background:'rgba(0,0,0,0.08)', borderRadius:'2px' }} />
+        </div>
+      ))}
+    </div>
+  );
+
+  if (id === 'filmstrip') return (
+    <div style={{ ...base, background:'#1a1713', gap:'2px', padding:'4px' }}>
+      {[0,1,2,3].map(i => (
+        <div key={i} style={{ width:'14px', flex:'none', height:'44px', background:'rgba(255,255,255,0.1)', borderRadius:'2px', border:'1px solid rgba(255,255,255,0.15)' }} />
+      ))}
+    </div>
+  );
+
+  if (id === 'scrapbook') return (
+    <div style={{ ...base }}>
+      {[{r:-6,x:8,y:4},{r:4,x:28,y:6},{r:-3,x:16,y:12}].map((p,i) => (
+        <div key={i} style={{ position:'absolute', width:'20px', height:'24px', background:'#fff', boxShadow:'0 1px 4px rgba(0,0,0,0.15)', transform:`rotate(${p.r}deg)`, left:`${p.x}%`, top:`${p.y}px`, borderRadius:'1px' }}>
+          <div style={{ width:'100%', height:'14px', background:'rgba(163,177,138,0.3)', marginBottom:'2px' }} />
+        </div>
+      ))}
+    </div>
+  );
+
+  if (id === 'magazine') return (
+    <div style={{ ...base }}>
+      <div style={{ width:'45%', height:'100%', background:'rgba(163,177,138,0.35)', flexShrink:0 }} />
+      <div style={{ flex:1, padding:'4px 6px', display:'flex', flexDirection:'column', gap:'3px' }}>
+        <div style={{ height:'6px', background:'rgba(0,0,0,0.15)', borderRadius:'2px', width:'80%' }} />
+        <div style={{ height:'4px', background:'rgba(0,0,0,0.08)', borderRadius:'2px' }} />
+        <div style={{ height:'4px', background:'rgba(0,0,0,0.08)', borderRadius:'2px', width:'60%' }} />
+      </div>
+    </div>
+  );
+
+  if (id === 'chapters') return (
+    <div style={{ ...base, flexDirection:'column', gap:'3px', padding:'4px 6px', alignItems:'stretch', justifyContent:'center' }}>
+      {[100,60,80].map((w,i) => (
+        <div key={i} style={{ height:'8px', background: i===0?'rgba(163,177,138,0.6)':'rgba(0,0,0,0.08)', borderRadius:'3px', width:`${w}%`, transition:'width 0.3s' }} />
+      ))}
+    </div>
+  );
+
+  if (id === 'starmap') return (
+    <div style={{ ...base, background:'#0a0e1a' }}>
+      {[[20,40],[50,20],[75,35],[35,60],[60,55]].map(([x,y],i) => (
+        <div key={i} style={{ position:'absolute', width:'3px', height:'3px', borderRadius:'50%', background:'rgba(200,220,255,0.8)', left:`${x}%`, top:`${y}%` }} />
+      ))}
+      <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 52">
+        <line x1="20" y1="40" x2="50" y2="20" stroke="rgba(200,220,255,0.2)" strokeWidth="0.5" />
+        <line x1="50" y1="20" x2="75" y2="35" stroke="rgba(200,220,255,0.2)" strokeWidth="0.5" />
+      </svg>
+    </div>
+  );
+
+  return <div style={base} />;
+}
+
 export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -310,9 +428,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [occasion, setOccasion] = useState<string>('');
   const [showValidation, setShowValidation] = useState(false);
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
-  // Step 4 = Inspiration (new), Step 5 = Color Palette, Steps 6-9 shifted +1
-  // If inspiration URLs provided, Step 5 (color) is auto-skipped → AI decides colors
-  const totalSteps = isEvent ? 9 : 8;
+  const isBirthday = occasion === 'birthday';
+  // Step 4 = Timeline Format (new), Step 5 = Inspiration, Step 6 = Color Palette, Steps 7-10 shifted +1
+  // If inspiration URLs provided, Step 6 (color) is auto-skipped → AI decides colors
+  const totalSteps = isEvent ? 10 : 9;
 
   // Step 1: Names
   const [name1, setName1] = useState(initialNames?.[0] ?? '');
@@ -320,6 +439,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   // Step 2: Occasion (already declared above)
   // Step 3: Mood
   const [mood, setMood] = useState<string>('');
+  // Step 4: Timeline Format
+  const [layoutFormat, setLayoutFormat] = useState<string>('cascade');
   // Step 3: Color Palette
   const [palette, setPalette] = useState<string>('');
   // Step 4: Favorite places
@@ -337,13 +458,15 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [rsvpDeadline, setRsvpDeadline] = useState('');
   const [cashFundUrl, setCashFundUrl] = useState('');
 
-  const canProceedStep1 = name1.trim() && name2.trim();
+  // For birthday only name1 (the birthday person) is required; name2 is optional gift-giver
+  const canProceedStep1 = isBirthday ? !!name1.trim() : !!(name1.trim() && name2.trim());
   const canProceedStep2 = occasion !== '';
   const canProceedStep3 = mood !== '';
-  // Step 4 = Inspiration (always optional — can skip)
-  const canProceedStep5 = palette !== '';     // Step 5 = Color Palette
-  const canProceedStep6 = favPlaces.length > 0; // Step 6 = Places
-  const canProceedStep7 = meetCute.trim() !== ''; // Step 7 = Story
+  // Step 4 = Timeline Format (always has default — can change or skip)
+  // Step 5 = Inspiration (always optional — can skip)
+  const canProceedStep6 = palette !== '';     // Step 6 = Color Palette
+  const canProceedStep7 = favPlaces.length > 0; // Step 7 = Places
+  const canProceedStep8 = meetCute.trim() !== ''; // Step 8 = Story
 
   const hasInspirationUrls = inspirationUrls.some(u => u.trim().match(/^https?:\/\/.+/));
 
@@ -352,7 +475,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     if (step === 3 && mood) {
       return VIBE_MOODS.find(m => m.id === mood)?.orb ?? 'rgba(163,177,138,0.12)';
     }
-    if (step === 5 && palette && palette !== 'custom') {
+    if (step === 6 && palette && palette !== 'custom') {
       const sel = COLOR_PALETTES.find(p => p.id === palette);
       if (sel) {
         const hex = sel.colors[0].replace('#', '');
@@ -369,10 +492,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     if (step === 1) return !!canProceedStep1;
     if (step === 2) return !!canProceedStep2;
     if (step === 3) return !!canProceedStep3;
-    if (step === 4) return true; // inspiration is optional
-    if (step === 5) return !!canProceedStep5;
+    if (step === 4) return true; // timeline format — always has a default
+    if (step === 5) return true; // inspiration is optional
     if (step === 6) return !!canProceedStep6;
     if (step === 7) return !!canProceedStep7;
+    if (step === 8) return !!canProceedStep8;
     return true;
   };
 
@@ -382,19 +506,19 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       return;
     }
     setShowValidation(false);
-    // If inspiration URLs are provided, skip color palette (step 5) — AI extracts from inspo
-    if (step === 4 && hasInspirationUrls) {
+    // If inspiration URLs are provided, skip color palette (step 6) — AI extracts from inspo
+    if (step === 5 && hasInspirationUrls) {
       setPalette('custom');
-      setStep(6);
+      setStep(7);
       return;
     }
     if (step < totalSteps) setStep(step + 1);
   };
   const handleBack = () => {
     setShowValidation(false);
-    // If at places (step 6) and we skipped color via inspiration, go back to inspiration (step 4)
-    if (step === 6 && hasInspirationUrls) {
-      setStep(4);
+    // If at places (step 7) and we skipped color via inspiration, go back to inspiration (step 5)
+    if (step === 7 && hasInspirationUrls) {
+      setStep(5);
       return;
     }
     if (step > 1) setStep(step - 1);
@@ -442,17 +566,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       if (detailsData.weddingTimeline) occasionContext += `\nWEDDING TIMELINE: ${detailsData.weddingTimeline}`;
     }
 
+    const birthdayCreator = name2.trim() ? `Created as a gift by ${name2.trim()}.` : '';
+
     return [
       `Occasion / Project Type: This site is for a ${selectedOccasionLabel}.`,
+      isBirthday
+        ? `This is a BIRTHDAY TRIBUTE SITE celebrating ${name1.trim()}. Write entirely about them in a warm, celebratory tone. ${birthdayCreator}`
+        : '',
       `Core Vibe: ${selectedMoodLabel}.`,
       paletteInfo,
       placeString,
-      customPlace ? `Specific favorite place: ${customPlace}.` : '',
-      `How they met: ${meetCute}.`,
-      relationship ? `What makes their relationship special: ${relationship}.` : '',
-      petsDetails ? `Important details (pets/inside jokes): ${petsDetails}.` : '',
-      musicSong ? `"Their song" or musical vibe: ${musicSong}.` : '',
-      isEvent && eventDate ? `CRITICAL LOGISTICS: The event takes place on ${eventDate} at ${eventVenue || 'a beautiful venue'}. The RSVP deadline is ${rsvpDeadline || 'soon'}. Include a beautiful formal request for RSVP.` : (!isEvent && eventDate ? `Event date: ${eventDate}.` : ''),
+      customPlace ? (isBirthday ? `Meaningful place to them: ${customPlace}.` : `Specific favorite place: ${customPlace}.`) : '',
+      isBirthday
+        ? `What makes ${name1.trim()} special: ${meetCute}.`
+        : `How they met: ${meetCute}.`,
+      relationship
+        ? isBirthday
+          ? `More about ${name1.trim()}: ${relationship}.`
+          : `What makes their relationship special: ${relationship}.`
+        : '',
+      petsDetails ? `Important details (${isBirthday ? `${name1.trim()}'s interests/personality` : 'pets/inside jokes'}): ${petsDetails}.` : '',
+      musicSong ? (isBirthday ? `${name1.trim()}'s musical taste: ${musicSong}.` : `"Their song" or musical vibe: ${musicSong}.`) : '',
+      isEvent && eventDate ? `CRITICAL LOGISTICS: The event takes place on ${eventDate} at ${eventVenue || 'a beautiful venue'}. The RSVP deadline is ${rsvpDeadline || 'soon'}. Include a beautiful formal request for RSVP.` : (!isEvent && eventDate ? `Date: ${eventDate}.` : ''),
       cashFundUrl ? `REGISTRY: They have a cash fund or registry setup at ${cashFundUrl}. Note this somewhere near the bottom of the story.` : '',
       occasionContext.trim(),
       'The generated site must feel deeply personal and emotionally resonant to the occasion.',
@@ -471,7 +606,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const details = skipDetails ? {} : detailsData;
     const n1 = name1.trim();
     const n2 = name2.trim();
-    const finalSlug = subdomain.trim() || slugFromNames(n1, n2);
+    const autoSlug = isBirthday
+      ? `${n1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday`
+      : slugFromNames(n1, n2);
+    const finalSlug = subdomain.trim() || autoSlug;
     const validUrls = inspirationUrls.filter(u => u.trim().match(/^https?:\/\/.+/));
     onSubmit({
       names: [n1, n2],
@@ -480,6 +618,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       subdomain: finalSlug,
       eventDate: eventDate || undefined,
       inspirationUrls: validUrls.length > 0 ? validUrls : undefined,
+      layoutFormat: layoutFormat || 'cascade',
       ...details,
     });
   };
@@ -1094,23 +1233,33 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         <div style={{ marginTop: '2.5rem' }}>
           <button
             onClick={() => handleFinalSubmit(false)}
-            disabled={subdomainStatus === 'taken'}
+            disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}
             style={{
               ...btnPrimaryStyle,
               width: '100%',
               justifyContent: 'center',
-              background: subdomainStatus === 'taken'
+              background: (subdomainStatus === 'taken' || subdomainStatus === 'checking')
                 ? 'rgba(0,0,0,0.12)'
                 : 'linear-gradient(135deg, #A3B18A, #8FA876)',
-              boxShadow: subdomainStatus === 'taken' ? 'none' : '0 12px 36px rgba(163,177,138,0.4)',
+              boxShadow: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'none' : '0 12px 36px rgba(163,177,138,0.4)',
               fontSize: '1rem',
               padding: '1.1rem 2rem',
-              cursor: subdomainStatus === 'taken' ? 'not-allowed' : 'pointer',
-              color: subdomainStatus === 'taken' ? 'var(--eg-muted)' : '#fff',
+              cursor: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'not-allowed' : 'pointer',
+              color: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'var(--eg-muted)' : '#fff',
             }}
           >
             Build my site <Sparkles size={18} />
           </button>
+          {subdomainStatus === 'taken' && (
+            <p style={{ color: '#b91c1c', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
+              This URL is taken — please choose a different name above.
+            </p>
+          )}
+          {subdomainStatus === 'checking' && (
+            <p style={{ color: 'rgba(0,0,0,0.45)', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
+              Checking availability…
+            </p>
+          )}
         </div>
       </div>
     );
@@ -1175,48 +1324,78 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         {step === 1 && (
           <motion.div key="s1" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              Who is this story about?
+              {isBirthday ? 'Who is this gift for?' : 'Who is this story about?'}
             </h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
-              Let&apos;s start with the most important part.
+              {isBirthday
+                ? 'Start with the birthday star — this site is their gift.'
+                : "Let's start with the most important part."}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>First Person</label>
-                <input type="text" placeholder="e.g. Ben" value={name1} onChange={e => { setName1(e.target.value); setSubdomain(slugFromNames(e.target.value, name2)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name1.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>
+                  {isBirthday ? "Birthday person's name" : 'First Person'}
+                </label>
+                <input
+                  type="text"
+                  placeholder={isBirthday ? 'e.g. Emma' : 'e.g. Ben'}
+                  value={name1}
+                  onChange={e => {
+                    setName1(e.target.value);
+                    if (isBirthday) {
+                      const slug = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday';
+                      setSubdomain(`${slug}-birthday`);
+                    } else {
+                      setSubdomain(slugFromNames(e.target.value, name2));
+                    }
+                  }}
+                  style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name1.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }}
+                  onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus
+                />
                 {showValidation && !name1.trim() && (
                   <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="shimmer-text" style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', color: 'var(--eg-accent)' }}>&</span>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Second Person</label>
-                <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name2.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
-                {showValidation && !name2.trim() && (
-                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
-                )}
-              </div>
-            </div>
-            {/* Slug preview + non-ASCII warning */}
-            {(name1.trim() || name2.trim()) && (() => {
-              const slug = slugFromNames(name1, name2);
-              const simpleSlug = `${name1.toLowerCase().replace(/\s+/g, '-')}-and-${name2.toLowerCase().replace(/\s+/g, '-')}`;
-              const hasNonAscii = slug !== simpleSlug;
-              return (
-                <div style={{ marginTop: '1rem' }}>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: hasNonAscii ? '0.35rem' : 0 }}>
-                    Your site URL: <span style={{ fontWeight: 600 }}>{slug}.pearloom.app</span>
-                  </p>
-                  {hasNonAscii && (
-                    <p style={{ fontSize: '0.82rem', color: 'var(--eg-gold, #B8A04A)' }}>
-                      &#9888; Special characters removed from your URL: {slug}.pearloom.app
-                    </p>
-                  )}
+
+              {isBirthday ? (
+                /* Birthday: gift-giver name — optional */
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>
+                    Your name <span style={{ fontWeight: 400, color: 'var(--eg-muted)', opacity: 0.7 }}>(who&apos;s creating this — optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Mia"
+                    value={name2}
+                    onChange={e => setName2(e.target.value)}
+                    style={{ ...inputStyle, fontSize: '1.25rem' }}
+                    onFocus={getFocusStyle} onBlur={getBlurStyle}
+                  />
                 </div>
-              );
-            })()}
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="shimmer-text" style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', color: 'var(--eg-accent)' }}>&</span>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Second Person</label>
+                    <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name2.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                    {showValidation && !name2.trim() && (
+                      <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+            {name1.trim() && (
+              <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '1rem' }}>
+                Your site URL: <span style={{ fontWeight: 600 }}>
+                  {isBirthday
+                    ? `${name1.toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday.pearloom.app`
+                    : `${slugFromNames(name1, name2)}.pearloom.app`}
+                </span>
+              </p>
+            )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>
               <button onClick={handleNext} style={{ ...btnPrimaryStyle, opacity: canProceedStep1 ? 1 : 0.5 }}>
                 Continue <ArrowRight size={18} />
@@ -1234,26 +1413,36 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
               The occasion completely changes how we structure your site.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {OCCASIONS.map(occ => (
-                <button key={occ.id} onClick={() => setOccasion(occ.id)} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '1.5rem', borderRadius: '1rem', textAlign: 'left',
-                  border: `2px solid ${occasion === occ.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                  background: occasion === occ.id ? 'var(--eg-accent-light)' : '#fff',
-                  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: occasion === occ.id ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 10px rgba(0,0,0,0.02)',
-                  transform: occasion === occ.id ? 'translateY(-2px)' : 'none',
-                }}>
-                  <div>
-                    <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</h3>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>{occ.desc}</p>
-                  </div>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${occasion === occ.id ? 'var(--eg-accent)' : 'rgba(0,0,0,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {occasion === occ.id && <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--eg-accent)' }} />}
-                  </div>
-                </button>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {OCCASIONS.map(occ => {
+                const active = occasion === occ.id;
+                return (
+                  <motion.button
+                    key={occ.id}
+                    onClick={() => setOccasion(occ.id)}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '1.1rem',
+                      padding: '1.1rem 1.5rem', borderRadius: '1rem', textAlign: 'left',
+                      border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
+                      background: active ? 'var(--eg-accent-light)' : '#fff',
+                      cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
+                      boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    <span style={{ fontSize: '1.5rem', flexShrink: 0, lineHeight: 1 }}>{occ.emoji}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{occ.desc}</div>
+                    </div>
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {active && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--eg-accent)' }} />}
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
 
             {/* Date picker — shown for all occasions except "story" */}
@@ -1262,7 +1451,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
                   {occasion === 'wedding' ? 'Wedding Date' :
                    occasion === 'anniversary' ? 'Anniversary Date' :
-                   occasion === 'birthday' ? 'Birthday' :
+                   occasion === 'birthday' ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} Birthday` :
                    occasion === 'engagement' ? 'Engagement Date' :
                    'When is the big day?'}
                   {' '}<span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
@@ -1295,10 +1484,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         {step === 3 && (
           <motion.div key="s2" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              What&apos;s your relationship vibe?
+              {isBirthday
+                ? `What's ${name1.trim() ? `${name1.trim()}'s` : 'their'} vibe?`
+                : "What's your relationship vibe?"}
             </h2>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
-              This shapes the entire tone — colors, fonts, and narrative voice.
+              {isBirthday
+                ? 'Pick the personality that fits them best — it shapes everything.'
+                : 'This shapes the entire tone — colors, fonts, and narrative voice.'}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
               {VIBE_MOODS.map(m => {
@@ -1355,9 +1548,149 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 4: VISUAL INSPIRATION (new) ── */}
+        {/* ── STEP 4: TIMELINE FORMAT (new) ── */}
         {step === 4 && (
-          <motion.div key="s4" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key="s4-format" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+              How should your story look?
+            </h2>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
+              Choose the format for your timeline — the visual structure of your memories.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {TIMELINE_FORMATS.map(fmt => {
+                const active = layoutFormat === fmt.id;
+                return (
+                  <motion.button
+                    key={fmt.id}
+                    onClick={() => setLayoutFormat(fmt.id)}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '1.25rem',
+                      padding: '1rem 1.25rem', borderRadius: '1.25rem', textAlign: 'left',
+                      border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
+                      background: active ? 'var(--eg-accent-light)' : '#fff',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s, border-color 0.2s',
+                      boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    {/* Mini visual preview */}
+                    <div style={{
+                      width: '72px', height: '50px', borderRadius: '0.5rem',
+                      background: active ? 'rgba(163,177,138,0.15)' : 'rgba(0,0,0,0.04)',
+                      border: `1px solid ${active ? 'rgba(163,177,138,0.3)' : 'rgba(0,0,0,0.07)'}`,
+                      flexShrink: 0, overflow: 'hidden', position: 'relative',
+                      display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                      padding: '5px',
+                    }}>
+                      {fmt.preview === 'cascade' && (
+                        <>
+                          <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : '#ccc', flexShrink: 0 }} />
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}>
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '70%' }} />
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}>
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '60%' }} />
+                            </div>
+                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : '#ccc', flexShrink: 0 }} />
+                          </div>
+                        </>
+                      )}
+                      {fmt.preview === 'filmstrip' && (
+                        <>
+                          <div style={{ display: 'flex', gap: '2px', marginBottom: '2px' }}>
+                            {[...Array(6)].map((_, i) => <div key={i} style={{ width: '7px', height: '3px', borderRadius: '1px', background: active ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.15)' }} />)}
+                          </div>
+                          <div style={{ display: 'flex', gap: '2px', marginBottom: '2px' }}>
+                            {[...Array(3)].map((_, i) => <div key={i} style={{ width: '18px', height: '22px', borderRadius: '1px', background: active ? `rgba(163,177,138,${0.5 + i * 0.15})` : `rgba(0,0,0,${0.1 + i * 0.05})` }} />)}
+                          </div>
+                          <div style={{ display: 'flex', gap: '2px' }}>
+                            {[...Array(6)].map((_, i) => <div key={i} style={{ width: '7px', height: '3px', borderRadius: '1px', background: active ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.15)' }} />)}
+                          </div>
+                        </>
+                      )}
+                      {fmt.preview === 'scrapbook' && (
+                        <>
+                          <div style={{ position: 'absolute', left: '6px', top: '5px', width: '28px', height: '32px', background: active ? '#C4D4A8' : '#ddd', borderRadius: '1px', transform: 'rotate(-5deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.15)' }}>
+                            <div style={{ width: '100%', height: '22px', background: active ? '#A3B18A' : '#ccc', borderRadius: '1px 1px 0 0' }} />
+                          </div>
+                          <div style={{ position: 'absolute', right: '6px', top: '8px', width: '26px', height: '30px', background: active ? '#D6C6A8' : '#e8e8e8', borderRadius: '1px', transform: 'rotate(4deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.12)' }}>
+                            <div style={{ width: '100%', height: '20px', background: active ? '#C4B490' : '#d0d0d0', borderRadius: '1px 1px 0 0' }} />
+                          </div>
+                        </>
+                      )}
+                      {fmt.preview === 'magazine' && (
+                        <>
+                          <div style={{ display: 'flex', gap: '4px', height: '40px' }}>
+                            <div style={{ width: '36px', height: '100%', background: active ? '#A3B18A' : '#ccc', borderRadius: '2px' }} />
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', justifyContent: 'center' }}>
+                              <div style={{ height: '4px', borderRadius: 1, background: active ? '#1a1713' : '#bbb' }} />
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc' }} />
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc', width: '80%' }} />
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc', width: '60%' }} />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {fmt.preview === 'chapters' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '2px' }}>
+                          {[{ w: '100%', open: true }, { w: '80%', open: false }, { w: '70%', open: false }].map((c, i) => (
+                            <div key={i} style={{ width: c.w, height: c.open ? '14px' : '8px', borderRadius: '2px', background: c.open ? (active ? '#A3B18A' : '#bbb') : (active ? 'rgba(163,177,138,0.35)' : 'rgba(0,0,0,0.07)'), transition: 'all 0.2s' }} />
+                          ))}
+                        </div>
+                      )}
+                      {fmt.preview === 'starmap' && (
+                        <div style={{ position: 'absolute', inset: 0, background: active ? '#0D1B2A' : '#1a1a2e', borderRadius: '0.4rem' }}>
+                          {[[10, 8], [35, 14], [55, 28], [20, 35], [48, 40]].map(([x, y], i) => (
+                            <div key={i} style={{ position: 'absolute', left: `${x}px`, top: `${y}px`, width: i % 2 === 0 ? '3px' : '2px', height: i % 2 === 0 ? '3px' : '2px', borderRadius: '50%', background: active ? '#C8A0E8' : '#888' }} />
+                          ))}
+                          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+                            <line x1="12" y1="9" x2="37" y2="15" stroke={active ? 'rgba(200,160,232,0.4)' : 'rgba(255,255,255,0.15)'} strokeWidth="0.5" />
+                            <line x1="37" y1="15" x2="57" y2="29" stroke={active ? 'rgba(200,160,232,0.4)' : 'rgba(255,255,255,0.15)'} strokeWidth="0.5" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Text */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <FormatMiniPreview id={fmt.id} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{fmt.name}</span>
+                        {active && (
+                          <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--eg-accent)', background: 'rgba(163,177,138,0.18)', padding: '0.15rem 0.45rem', borderRadius: '100px' }}>Selected</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--eg-accent)', fontWeight: 600, marginTop: '0.1rem', letterSpacing: '0.02em' }}>{fmt.tagline}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.2rem', lineHeight: 1.4 }}>{fmt.desc}</div>
+                    </div>
+
+                    {/* Radio */}
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.18)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {active && <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: 'var(--eg-accent)' }} />}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
+              <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 5: VISUAL INSPIRATION (was step 4) ── */}
+        {step === 5 && (
+          <motion.div key="s5-inspo" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.75rem' }}>✨</span>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Visual Inspiration</h2>
@@ -1425,9 +1758,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 5: COLOR PALETTE (was step 4, skipped when inspiration URLs provided) ── */}
-        {step === 5 && (
-          <motion.div key="s5" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 6: COLOR PALETTE (was step 5, skipped when inspiration URLs provided) ── */}
+        {step === 6 && (
+          <motion.div key="s6-palette" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Palette size={28} color="var(--eg-accent)" />
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Color Inspiration</h2>
@@ -1475,12 +1808,30 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                         }}>✓</div>
                       )}
                     </div>
-                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{p.name}</span>
-                      {/* Mini swatches */}
-                      <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
-                        {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
-                          <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                    <div style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{p.name}</span>
+                        {/* Mini swatches */}
+                        <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                          {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
+                            <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                          ))}
+                        </div>
+                      </div>
+                      {/* Color swatches row */}
+                      <div style={{ display: 'flex', gap: '3px', marginTop: '6px' }}>
+                        {p.colors?.map((color: string, i: number) => (
+                          <div
+                            key={i}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '4px',
+                              background: color,
+                              border: '1px solid rgba(0,0,0,0.08)',
+                              flexShrink: 0,
+                            }}
+                          />
                         ))}
                       </div>
                     </div>
@@ -1490,20 +1841,24 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep5} style={{ ...btnPrimaryStyle, opacity: canProceedStep5 ? 1 : 0.5, pointerEvents: canProceedStep5 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <button onClick={handleNext} disabled={!canProceedStep6} style={{ ...btnPrimaryStyle, opacity: canProceedStep6 ? 1 : 0.5, pointerEvents: canProceedStep6 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
             </div>
           </motion.div>
         )}
 
-        {/* ── STEP 6: FAVORITE PLACES (was step 5) ── */}
-        {step === 6 && (
-          <motion.div key="s6" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 7: FAVORITE PLACES (was step 6) ── */}
+        {step === 7 && (
+          <motion.div key="s7-places" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Globe size={28} color="var(--eg-accent)" />
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Your Favorite Places</h2>
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>
+                {isBirthday ? 'Their World' : 'Your Favorite Places'}
+              </h2>
             </div>
             <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
-              Select the settings that define your adventures. This helps the AI match each photo to the right narrative.
+              {isBirthday
+                ? `Where does ${name1.trim() || 'this person'} feel most alive? Select all that fit.`
+                : 'Select the settings that define your adventures. This helps the AI match each photo to the right narrative.'}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '2rem' }}>
               {PLACES.map(p => (
@@ -1512,36 +1867,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>
-                Or name a specific place that&apos;s meaningful to you both:
+                {isBirthday
+                  ? `Or name a place that means something to ${name1.trim() || 'them'}:`
+                  : "Or name a specific place that's meaningful to you both:"}
               </label>
-              <input type="text" placeholder="e.g. Santorini, our back porch, that NYC rooftop..." value={customPlace} onChange={e => setCustomPlace(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep6} style={{ ...btnPrimaryStyle, opacity: canProceedStep6 ? 1 : 0.5, pointerEvents: canProceedStep6 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ── STEP 7: YOUR STORY (was step 6) ── */}
-        {step === 7 && (
-          <motion.div key="s7" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Tell Us Your Story</h2>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
-              The more you share, the more personal and beautiful your site will be.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>How did you meet? *</label>
-                <textarea value={meetCute} onChange={e => setMeetCute(e.target.value)} placeholder="We matched on Hinge and had our first date at a little Italian place..." style={{ ...inputStyle, minHeight: '140px', resize: 'none', lineHeight: 1.6, ...(showValidation && !meetCute.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
-                {showValidation && !meetCute.trim() && (
-                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
-                )}
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>What makes your relationship special? <span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span></label>
-                <textarea value={relationship} onChange={e => setRelationship(e.target.value)} placeholder="We balance each other perfectly — she's spontaneous and I'm the planner..." style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
-              </div>
+              <input type="text" placeholder={isBirthday ? 'e.g. their favourite café, the family cabin...' : 'e.g. Santorini, our back porch, that NYC rooftop...'} value={customPlace} onChange={e => setCustomPlace(e.target.value)} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
@@ -1550,9 +1880,65 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 8: SPECIAL DETAILS (was step 7) ── */}
+        {/* ── STEP 8: YOUR STORY (was step 7) ── */}
         {step === 8 && (
-          <motion.div key="s8" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div key="s8-story" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+              {isBirthday
+                ? `Tell us about ${name1.trim() || 'them'}`
+                : 'Tell Us Your Story'}
+            </h2>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
+              The more you share, the more personal and beautiful your site will be.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
+                  {isBirthday
+                    ? `What makes ${name1.trim() || 'this person'} so special? *`
+                    : 'How did you meet? *'}
+                </label>
+                <textarea
+                  value={meetCute}
+                  onChange={e => setMeetCute(e.target.value)}
+                  placeholder={isBirthday
+                    ? `e.g. Emma has the biggest laugh in any room. She's been my best friend since we were 12 and she never stops surprising me...`
+                    : "We matched on Hinge and had our first date at a little Italian place..."}
+                  style={{ ...inputStyle, minHeight: '140px', resize: 'none', lineHeight: 1.6, ...(showValidation && !meetCute.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }}
+                  onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus
+                />
+                {showValidation && !meetCute.trim() && (
+                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
+                )}
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
+                  {isBirthday
+                    ? `What do you want everyone to know about ${name1.trim() || 'them'}?`
+                    : 'What makes your relationship special?'}{' '}
+                  <span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
+                </label>
+                <textarea
+                  value={relationship}
+                  onChange={e => setRelationship(e.target.value)}
+                  placeholder={isBirthday
+                    ? `e.g. She's the kind of person who remembers every small detail, always shows up first, and makes everyone around her feel seen...`
+                    : "We balance each other perfectly — she's spontaneous and I'm the planner..."}
+                  style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }}
+                  onFocus={getFocusStyle} onBlur={getBlurStyle}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
+              <button onClick={handleNext} disabled={!canProceedStep8} style={{ ...btnPrimaryStyle, opacity: canProceedStep8 ? 1 : 0.5, pointerEvents: canProceedStep8 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 9: SPECIAL DETAILS (was step 8) ── */}
+        {step === 9 && (
+          <motion.div key="s9-special" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <div style={{
                 width: '5rem', height: '6.4rem',
@@ -1566,22 +1952,30 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <Sparkles size={28} color="var(--eg-accent)" />
               </div>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.75rem' }}>Final Magic Touches</h2>
-              <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', maxWidth: '400px', margin: '0 auto' }}>
-                These optional details add warmth and personality.
+              <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', maxWidth: '420px', margin: '0 auto' }}>
+                {isBirthday
+                  ? `The details that make ${name1.trim() || 'this person'} uniquely them.`
+                  : 'These optional details add warmth and personality.'}
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
-                  <Dog size={16} color="var(--eg-accent)" /> Pets, inside jokes, or special traditions
+                  <Dog size={16} color="var(--eg-accent)" />
+                  {isBirthday
+                    ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} pets, passions, or quirks`
+                    : 'Pets, inside jokes, or special traditions'}
                 </label>
-                <textarea value={petsDetails} onChange={e => setPetsDetails(e.target.value)} placeholder="We have two cats named Peaches and Poppy..." style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
+                <textarea value={petsDetails} onChange={e => setPetsDetails(e.target.value)} placeholder={isBirthday ? `e.g. Has a golden retriever called Biscuit, obsessed with Formula 1, makes the best pasta...` : "We have two cats named Peaches and Poppy..."} style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }} onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus />
               </div>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
-                  <Music size={16} color="var(--eg-accent)" /> Your song or musical vibe
+                  <Music size={16} color="var(--eg-accent)" />
+                  {isBirthday
+                    ? `${name1.trim() ? `${name1.trim()}'s` : 'Their'} favourite song or musical taste`
+                    : 'Your song or musical vibe'}
                 </label>
-                <input type="text" value={musicSong} onChange={e => setMusicSong(e.target.value)} placeholder={`"At Last" by Etta James, or indie folk, or lo-fi jazz...`} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
+                <input type="text" value={musicSong} onChange={e => setMusicSong(e.target.value)} placeholder={isBirthday ? `e.g. "Dancing in the Moonlight" — always on in the car...` : `"At Last" by Etta James, or indie folk, or lo-fi jazz...`} style={inputStyle} onFocus={getFocusStyle} onBlur={getBlurStyle} />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
@@ -1595,9 +1989,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 9: EVENT DETAILS (Conditional, was step 8) ── */}
-        {step === 9 && isEvent && (
-          <motion.div key="s9" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 10: EVENT DETAILS (Conditional, was step 9) ── */}
+        {step === 10 && isEvent && (
+          <motion.div key="s10-event" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Event Details</h2>
               <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem' }}>

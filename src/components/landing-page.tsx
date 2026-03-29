@@ -387,8 +387,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:'1.5rem' }}>
             {TESTIMONIALS.map((t,i) => (
               <motion.div key={t.name} custom={i} variants={up} initial="hidden" animate={testInView?'show':'hidden'}
-                style={{ padding:'2rem', background:'rgba(255,255,255,0.7)', backdropFilter:'blur(8px)', border:`1px solid ${C.divider}`, borderRadius:'1.1rem' }}>
-                <div style={{ fontFamily:'var(--eg-font-heading)', fontSize:'3.5rem', lineHeight:0.7, color:C.plum, opacity:0.25, marginBottom:'1rem', fontStyle:'italic' }}>&ldquo;</div>
+                style={{ padding: i === 0 ? '2rem' : '1.5rem', background:'rgba(255,255,255,0.7)', backdropFilter:'blur(8px)', border: i === 0 ? '1px solid rgba(163,177,138,0.3)' : `1px solid ${C.divider}`, borderRadius:'1.1rem', transform: i === 0 ? 'scale(1.02)' : undefined }}>
+                <div style={{ fontFamily:'var(--eg-font-heading)', fontSize:'3.5rem', lineHeight:0.7, color:C.plum, opacity:0.35, marginBottom:'1rem', fontStyle:'italic' }}>&ldquo;</div>
                 <blockquote style={{ fontFamily:'var(--eg-font-heading)', fontSize:'clamp(1rem,1.6vw,1.12rem)', fontStyle:'italic', fontWeight:500, color:C.dark, lineHeight:1.55, margin:'0 0 1.25rem' }}>
                   {t.quote}
                 </blockquote>

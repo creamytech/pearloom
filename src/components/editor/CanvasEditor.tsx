@@ -421,7 +421,7 @@ function BlockRow({
         <div style={{ fontSize: '0.82rem', fontWeight: 700, color: block.visible ? '#fff' : 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>
           {def?.label || block.type}
         </div>
-        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.28)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {def?.description}
         </div>
       </div>
@@ -671,7 +671,7 @@ function BlockConfigPanel({
   };
 
   const noConfig = (
-    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.6 }}>
+    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.6 }}>
       This block uses your site-wide content. Edit it from the Story, Events, or Details tabs.
     </p>
   );
@@ -831,7 +831,7 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
                         <span style={{ fontSize: '0.5rem', color: b.color, background: `${b.color}15`, padding: '1px 5px', borderRadius: '4px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>added</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', marginTop: '2px', lineHeight: 1.35 }}>{b.description}</div>
+                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)', marginTop: '2px', lineHeight: 1.35 }}>{b.description}</div>
                   </div>
                 </button>
               ))}
@@ -1075,7 +1075,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
 
         {/* Section header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-          <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
+          <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)' }}>
             {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Page Sections'}
           </span>
           <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)' }}>
@@ -1190,7 +1190,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
-                  <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>Block settings · Section style</div>
+                  <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)' }}>Block settings · Section style</div>
                 </div>
                 <button
                   onClick={() => setActiveBlockId(null)}

@@ -7,21 +7,22 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { Menu, X, LayoutDashboard, Plus, ChevronRight } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { SitePage } from '@/types';
 import { UserNav } from '@/components/dashboard/user-nav';
+import { signOut } from 'next-auth/react';
 import {
   PearIcon,
-  LoomThreadIcon,
   CalendarHeartIcon,
   GiftIcon,
   LocationPinIcon,
   EnvelopeIcon,
   PearlIcon,
   StarburstIcon,
+  ElegantHeartIcon,
 } from '@/components/icons/PearloomIcons';
 
 interface SiteNavProps {
@@ -42,22 +43,30 @@ interface SiteNavProps {
 /** Map page slugs to the appropriate icon component */
 function PageIcon({ slug, size = 18 }: { slug: string; size?: number }) {
   const color = 'var(--eg-accent)';
-  if (slug === '' || slug === 'our-story' || slug === 'story') return <LoomThreadIcon size={size} color={color} />;
-  if (slug === 'events' || slug === 'ceremony') return <CalendarHeartIcon size={size} color={color} />;
+  if (slug === '' || slug === 'our-story' || slug === 'story') return <ElegantHeartIcon size={size} color={color} />;
+  if (slug === 'events' || slug === 'ceremony' || slug === 'schedule') return <CalendarHeartIcon size={size} color={color} />;
   if (slug === 'registry') return <GiftIcon size={size} color={color} />;
   if (slug === 'travel') return <LocationPinIcon size={size} color={color} />;
   if (slug === 'rsvp') return <EnvelopeIcon size={size} color={color} />;
   if (slug === 'faq') return <PearlIcon size={size} color={color} />;
   if (slug === 'photos') return <StarburstIcon size={size} color={color} />;
-  // Default fallback
-  return <LoomThreadIcon size={size} color={color} />;
+  // Default fallback — PearlIcon is clearly recognisable at small sizes
+  return <PearlIcon size={size} color={color} />;
 }
 
 export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
   const [scrollY, setScrollY] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const pathname = usePathname();
   const prevScrollY = useRef(0);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // Scroll progress bar
   const { scrollYProgress } = useScroll();
@@ -194,28 +203,72 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
             )}
           </Link>
 
+          {/* ── Desktop inline nav links (≥1024px, guest-facing sites only) ── */}
+          {isDesktop && !isStudio && (
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flex: 1, justifyContent: 'center' }}>
+              {enabledPages.map((page) => {
+                const active = isActive(page.slug);
+                return (
+                  <Link
+                    key={page.id}
+                    href={getHref(page.slug)}
+                    style={{
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '2rem',
+                      fontSize: '0.88rem',
+                      fontWeight: active ? 600 : 450,
+                      fontFamily: 'var(--eg-font-body)',
+                      color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                      textDecoration: 'none',
+                      background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
+                      border: active ? '1px solid rgba(163,177,138,0.25)' : '1px solid transparent',
+                      transition: 'all 0.18s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseOver={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--eg-fg)';
+                      }
+                    }}
+                    onMouseOut={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = 'transparent';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--eg-muted)';
+                      }
+                    }}
+                  >
+                    {page.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
+
           {/* ── Right: User nav + hamburger menu ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {user && (
               <UserNav user={user} onDashboard={onGoToDashboard} />
             )}
-            {/* Hamburger — always visible on both mobile and desktop */}
-            <button
-              onClick={() => setDrawerOpen(!drawerOpen)}
-              aria-label="Open navigation menu"
-              aria-expanded={drawerOpen}
-              style={{
-                padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
-                border: 'none', background: 'transparent',
-                color: 'var(--eg-fg)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.2s ease',
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              {drawerOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
+            {/* Hamburger — hidden on desktop for guest sites, always shown for studio */}
+            {(!isDesktop || isStudio) && (
+              <button
+                onClick={() => setDrawerOpen(!drawerOpen)}
+                aria-label="Open navigation menu"
+                aria-expanded={drawerOpen}
+                style={{
+                  padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
+                  border: 'none', background: 'transparent',
+                  color: 'var(--eg-fg)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'background 0.2s ease',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                {drawerOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            )}
           </div>
         </div>
       </motion.nav>
@@ -370,7 +423,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                           position: 'relative',
                           transition: 'background 0.15s ease, color 0.15s ease',
                           background: active ? 'rgba(163,177,138,0.08)' : 'transparent',
-                          borderLeft: active ? '3px solid #A3B18A' : '3px solid transparent',
+                          borderLeft: active ? '3px solid var(--eg-accent, #A3B18A)' : '3px solid transparent',
                         }}
                         onMouseOver={(e) => {
                           if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)';
@@ -381,31 +434,55 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                       >
                         <PageIcon slug={page.slug} size={18} />
                         <span style={{ flex: 1 }}>{page.label}</span>
-                        <ChevronRight size={14} style={{ opacity: 0.35, flexShrink: 0 }} />
                       </Link>
                     </motion.div>
                   );
                 })}
               </nav>
 
-              {/* Bottom area — user nav + powered by */}
+              {/* Bottom area — account row + powered by */}
               <div style={{ flexShrink: 0, borderTop: '1px solid rgba(0,0,0,0.06)', padding: '1rem 1.5rem' }}>
                 {user && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    style={{ marginBottom: '1rem' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}
                   >
-                    <UserNav user={user} onDashboard={onGoToDashboard} />
+                    {user.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={user.image} alt="" role="presentation" style={{ width: '2rem', height: '2rem', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: 'var(--eg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <LogOut size={12} color="#fff" />
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--eg-fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || 'Your Account'}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                    </div>
+                    <button
+                      onClick={() => { setDrawerOpen(false); signOut(); }}
+                      title="Sign out"
+                      style={{
+                        background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '0.5rem',
+                        padding: '0.4rem', cursor: 'pointer', color: 'var(--eg-muted)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+                    >
+                      <LogOut size={14} />
+                    </button>
                   </motion.div>
                 )}
                 <p style={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.72rem',
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
                   color: 'var(--eg-muted)',
-                  opacity: 0.5,
+                  opacity: 0.7,
                   margin: 0,
                 }}>
                   Powered by Pearloom

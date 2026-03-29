@@ -18,6 +18,8 @@ export interface StoryManifest {
   comingSoon: ComingSoonConfig;
   // What type of life event is this site for?
   occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
+  // Timeline macro layout format chosen by user
+  layoutFormat?: 'cascade' | 'filmstrip' | 'scrapbook' | 'magazine' | 'chapters' | 'starmap';
   logistics?: {
     venue?: string;
     venueAddress?: string;

@@ -172,7 +172,7 @@ function PreviewContent() {
           />
         );
       case 'story':
-        return <section key={key} id="our-story"><Timeline chapters={manifest.chapters || []} /></section>;
+        return <section key={key} id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>;
       case 'event':
         if (!manifest.events?.length) return null;
         return (
@@ -468,7 +468,7 @@ function PreviewContent() {
             <VibeQuote />
             <WelcomeStatement />
             <ArtStrip />
-            <section id="our-story"><Timeline chapters={manifest.chapters || []} /></section>
+            <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
             {manifest.events?.length ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} /><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted /></> : null}
             {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
             {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} /><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section></> : null}

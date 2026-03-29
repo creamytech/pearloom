@@ -333,6 +333,24 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             {event.description}
           </p>
         )}
+
+        {/* Ceremony details — only shown when at least one field is populated */}
+        {event.ceremony && (event.ceremony.officiant || event.ceremony.processionalSong || event.ceremony.recessionalSong || event.ceremony.vowsType || event.ceremony.unityRitual || event.ceremony.flowerGirl || event.ceremony.ringBearer) && (
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(163,177,138,0.15)' }}>
+            <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.5, marginBottom: '0.5rem' }}>
+              Ceremony Details
+            </p>
+            <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem 1rem', fontSize: '0.82rem' }}>
+              {event.ceremony.officiant && <><dt style={{ opacity: 0.6 }}>Officiant</dt><dd>{event.ceremony.officiant}</dd></>}
+              {event.ceremony.processionalSong && <><dt style={{ opacity: 0.6 }}>Processional</dt><dd style={{ fontStyle: 'italic' }}>{event.ceremony.processionalSong}</dd></>}
+              {event.ceremony.recessionalSong && <><dt style={{ opacity: 0.6 }}>Recessional</dt><dd style={{ fontStyle: 'italic' }}>{event.ceremony.recessionalSong}</dd></>}
+              {event.ceremony.vowsType && <><dt style={{ opacity: 0.6 }}>Vows</dt><dd style={{ textTransform: 'capitalize' }}>{event.ceremony.vowsType}</dd></>}
+              {event.ceremony.unityRitual && <><dt style={{ opacity: 0.6 }}>Unity Ritual</dt><dd>{event.ceremony.unityRitual}</dd></>}
+              {event.ceremony.flowerGirl && <><dt style={{ opacity: 0.6 }}>Flower Girl</dt><dd>{event.ceremony.flowerGirl}</dd></>}
+              {event.ceremony.ringBearer && <><dt style={{ opacity: 0.6 }}>Ring Bearer</dt><dd>{event.ceremony.ringBearer}</dd></>}
+            </dl>
+          </div>
+        )}
       </div>
 
       {/* Directions footer */}

@@ -65,17 +65,37 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
   const [tables, setTables] = useState<SeatingTable[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | undefined>();
   const [zoom, setZoom] = useState(0.75);
   const [pan, setPan] = useState({ x: 40, y: 30 });
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // ── Undo/Redo history ─────────────────────────────────────────
+  const [history, setHistory] = useState<SeatingTable[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  // Keep refs so callbacks always see latest values without stale-closure issues
+  const historyIndexRef = useRef(historyIndex);
+  const tablesRef = useRef(tables);
+  useEffect(() => { historyIndexRef.current = historyIndex; }, [historyIndex]);
+  useEffect(() => { tablesRef.current = tables; }, [tables]);
 
   void spaceId;
+
+  // ── Push snapshot to history ──────────────────────────────────
+  const pushHistory = useCallback((snapshot: SeatingTable[]) => {
+    setHistory(prev => {
+      const trimmed = prev.slice(0, historyIndexRef.current + 1);
+      trimmed.push(snapshot);
+      return trimmed.slice(-30); // keep last 30 snapshots
+    });
+    setHistoryIndex(prev => Math.min(prev + 1, 29));
+  }, []);
 
   // ── Load data ───────────────────────────────────────────────
   useEffect(() => {
@@ -87,7 +107,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
         setTables(data.tables ?? []);
         setGuests(data.guests ?? []);
       } catch (err) {
-        console.error('Failed to load seating data:', err);
+        setLoadError(err instanceof Error ? err.message : 'Failed to load seating data.');
       } finally {
         setLoading(false);
       }
@@ -216,13 +236,15 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     // Clamp to canvas bounds
     const clampedX = Math.max(ROOM_MARGIN, Math.min(CANVAS_W - ROOM_MARGIN, x));
     const clampedY = Math.max(ROOM_MARGIN, Math.min(CANVAS_H - ROOM_MARGIN, y));
+    pushHistory(tablesRef.current);
     setTables(prev => prev.map(t => t.id === id ? { ...t, x: clampedX, y: clampedY } : t));
     void saveTablePosition(id, clampedX, clampedY);
-  }, [saveTablePosition]);
+  }, [saveTablePosition, pushHistory]);
 
   // ── Seat drop (guest assignment) ───────────────────────────
   const handleSeatDrop = useCallback(async (seatId: string, guestId: string) => {
     // Optimistic update
+    pushHistory(tablesRef.current);
     setTables(prev => prev.map(t => ({
       ...t,
       seats: (t.seats ?? []).map(s =>
@@ -241,7 +263,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     } catch (err) {
       console.error('Failed to assign guest:', err);
     }
-  }, [guests]);
+  }, [guests, pushHistory]);
 
   // ── Unassign all from table ─────────────────────────────────
   const handleUnassignAll = useCallback(async (tableId: string) => {
@@ -282,6 +304,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
 
   // ── Delete table ────────────────────────────────────────────
   const handleTableDelete = useCallback(async (tableId: string) => {
+    pushHistory(tablesRef.current);
     setTables(prev => prev.filter(t => t.id !== tableId));
     setSelectedTableId(undefined);
     try {
@@ -289,7 +312,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     } catch (err) {
       console.error('Failed to delete table:', err);
     }
-  }, []);
+  }, [pushHistory]);
 
   // ── Auto-arrange ────────────────────────────────────────────
   const handleAutoArrange = useCallback(async () => {
@@ -325,6 +348,63 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     setZoom(newZoom);
     setPan({ x: 20, y: 20 });
   }, []);
+
+  // ── Undo / Redo keyboard shortcuts ────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isUndo = (e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey;
+      const isRedo = (e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey));
+      if (!isUndo && !isRedo) return;
+      e.preventDefault();
+      setHistory(prevHistory => {
+        setHistoryIndex(prevIdx => {
+          if (isUndo && prevIdx > 0) {
+            const snapshot = prevHistory[prevIdx - 1];
+            setTables(snapshot);
+            return prevIdx - 1;
+          }
+          if (isRedo && prevIdx < prevHistory.length - 1) {
+            const snapshot = prevHistory[prevIdx + 1];
+            setTables(snapshot);
+            return prevIdx + 1;
+          }
+          return prevIdx;
+        });
+        return prevHistory;
+      });
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    setHistory(prevHistory => {
+      setHistoryIndex(prevIdx => {
+        if (prevIdx > 0) {
+          setTables(prevHistory[prevIdx - 1]);
+          return prevIdx - 1;
+        }
+        return prevIdx;
+      });
+      return prevHistory;
+    });
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    setHistory(prevHistory => {
+      setHistoryIndex(prevIdx => {
+        if (prevIdx < prevHistory.length - 1) {
+          setTables(prevHistory[prevIdx + 1]);
+          return prevIdx + 1;
+        }
+        return prevIdx;
+      });
+      return prevHistory;
+    });
+  }, []);
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
 
   // ── Derived stats ────────────────────────────────────────────
   const totalSeats = tables.reduce((n, t) => n + t.capacity, 0);
@@ -406,6 +486,26 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
 
           <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
 
+          {/* Undo / Redo */}
+          <button
+            onClick={handleUndo}
+            disabled={!canUndo}
+            title="Undo (⌘Z)"
+            style={{ ...toolbarBtnStyle, opacity: canUndo ? 1 : 0.35, cursor: canUndo ? 'pointer' : 'default' }}
+          >
+            ⌘Z
+          </button>
+          <button
+            onClick={handleRedo}
+            disabled={!canRedo}
+            title="Redo (⌘⇧Z)"
+            style={{ ...toolbarBtnStyle, opacity: canRedo ? 1 : 0.35, cursor: canRedo ? 'pointer' : 'default' }}
+          >
+            ⌘⇧Z
+          </button>
+
+          <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
+
           {/* Zoom controls */}
           <button onClick={() => setZoom(z => Math.min(MAX_ZOOM, z + 0.1))} style={iconBtnStyle} title="Zoom in">
             <ZoomIn size={15} />
@@ -423,9 +523,22 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
           <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
 
           {/* Stats */}
-          <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}>
-            {tables.length} {tables.length === 1 ? 'table' : 'tables'} · {totalSeats} seats · {assignedSeats} assigned
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}>
+              {tables.length} {tables.length === 1 ? 'table' : 'tables'} · {totalSeats} seats · {assignedSeats} assigned
+            </span>
+            {totalSeats > 0 && (
+              <div style={{ marginTop: '4px', height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${Math.round((assignedSeats / totalSeats) * 100)}%`,
+                  background: 'rgba(163,177,138,0.8)',
+                  borderRadius: '100px',
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+            )}
+          </div>
 
           {saving && (
             <span style={{ fontSize: '0.72rem', color: 'var(--eg-accent)', fontFamily: 'var(--eg-font-body)', marginLeft: 'auto' }}>
@@ -505,12 +618,25 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
 
             {/* Loading state */}
             {loading && (
-              <div style={{
-                position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--eg-font-body)', fontSize: '0.9rem' }}>
                   Loading seating chart…
                 </p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {!loading && loadError && (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                <p style={{ color: 'rgba(239,68,68,0.8)', fontFamily: 'var(--eg-font-body)', fontSize: '0.9rem', maxWidth: '280px', textAlign: 'center' }}>
+                  {loadError}
+                </p>
+                <button
+                  onClick={() => { setLoadError(null); setLoading(true); }}
+                  style={{ padding: '0.5rem 1.25rem', borderRadius: '0.6rem', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'rgba(239,68,68,0.8)', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'var(--eg-font-body)' }}
+                >
+                  Retry
+                </button>
               </div>
             )}
 
@@ -518,14 +644,43 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             {!loading && tables.length === 0 && (
               <div style={{
                 position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: '1rem', pointerEvents: 'none',
+                alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
               }}>
-                <p style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem' }}>
+                <p style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', margin: 0 }}>
                   Your canvas is empty
                 </p>
-                <p style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--eg-font-body)', fontSize: '0.82rem' }}>
-                  Click "Add Table" in the toolbar to get started
+                <p style={{ color: 'rgba(255,255,255,0.18)', fontFamily: 'var(--eg-font-body)', fontSize: '0.82rem', margin: 0 }}>
+                  Add your first table to start building your seating layout.
                 </p>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowAddMenu(true); }}
+                  style={{
+                    marginTop: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.55rem 1.25rem',
+                    borderRadius: '0.75rem',
+                    border: '1.5px solid rgba(163,177,138,0.45)',
+                    background: 'rgba(163,177,138,0.1)',
+                    color: 'rgba(163,177,138,0.85)',
+                    fontSize: '0.82rem',
+                    fontFamily: 'var(--eg-font-body)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(163,177,138,0.18)';
+                    e.currentTarget.style.borderColor = 'rgba(163,177,138,0.7)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(163,177,138,0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(163,177,138,0.45)';
+                  }}
+                >
+                  <Plus size={13} />
+                  Add your first table
+                </button>
               </div>
             )}
 
