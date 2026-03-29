@@ -11,6 +11,14 @@ import { useDroppable } from '@dnd-kit/core';
 import type { StoryManifest, Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
+function proxyUrl(rawUrl: string, w: number, h: number): string {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('googleusercontent.com')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
+  }
+  return rawUrl;
+}
+
 export interface PreviewPaneProps {
   manifest: StoryManifest;
   coupleNames: [string, string];
@@ -112,7 +120,8 @@ function ChapterCard({
   const muted = vibeSkin?.palette?.muted || manifest.theme?.colors?.muted || '#888';
   const headingFont = vibeSkin?.fonts?.heading || manifest.theme?.fonts?.heading || 'Playfair Display';
   const bodyFont = vibeSkin?.fonts?.body || manifest.theme?.fonts?.body || 'Inter';
-  const thumb = chapter.images?.[0]?.url || null;
+  const rawThumb = chapter.images?.[0]?.url || null;
+  const thumb = rawThumb ? proxyUrl(rawThumb, 800, 600) : null;
   const isFullbleed = chapter.layout === 'fullbleed' || chapter.layout === 'cinematic';
   const isSplit = chapter.layout === 'split';
 

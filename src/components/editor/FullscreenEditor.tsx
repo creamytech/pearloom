@@ -28,6 +28,7 @@ import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon, DetailsIcon,
   AIBlocksIcon, VoiceIcon, ExitIcon, PreviewIcon, PublishIcon,
   UndoIcon, RedoIcon, CommandIcon, GripIcon, SavedIcon, UnsavedIcon,
+  BlockStoryIcon, BlockHeroIcon, BlockPhotosIcon, BlockQuoteIcon,
 } from '@/components/icons/EditorIcons';
 import {
   ElegantHeartIcon, LocationPinIcon, CalendarHeartIcon, LoomThreadIcon,
@@ -181,15 +182,15 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
 
 // ── Blocks palette shown at bottom of story tab ─────────────────
 const CANVAS_BLOCK_TYPES = [
-  { id: 'block:editorial',  label: 'Text Chapter',   emoji: '✍️', desc: 'Story text with optional photo' },
-  { id: 'block:split',      label: 'Photo + Story',   emoji: '🖼', desc: 'Side-by-side photo & text' },
-  { id: 'block:fullbleed',  label: 'Full Bleed',      emoji: '🎞', desc: 'Cinematic full-height photo' },
-  { id: 'block:gallery',    label: 'Photo Gallery',   emoji: '🗂', desc: 'Multi-photo grid layout' },
-  { id: 'block:cinematic',  label: 'Cinematic Quote', emoji: '🎬', desc: 'Ambient blurred quote' },
-  { id: 'block:mosaic',     label: 'Polaroid Mosaic', emoji: '📷', desc: 'Scattered polaroid collage' },
+  { id: 'block:editorial',  label: 'Text Chapter',   Icon: BlockStoryIcon,  desc: 'Story text with optional photo' },
+  { id: 'block:split',      label: 'Photo + Story',   Icon: Columns2,        desc: 'Side-by-side photo & text' },
+  { id: 'block:fullbleed',  label: 'Full Bleed',      Icon: BlockHeroIcon,   desc: 'Cinematic full-height photo' },
+  { id: 'block:gallery',    label: 'Photo Gallery',   Icon: BlockPhotosIcon, desc: 'Multi-photo grid layout' },
+  { id: 'block:cinematic',  label: 'Cinematic Quote', Icon: BlockQuoteIcon,  desc: 'Ambient blurred quote' },
+  { id: 'block:mosaic',     label: 'Polaroid Mosaic', Icon: GripIcon,        desc: 'Scattered polaroid collage' },
 ] as const;
 
-function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label: string; emoji: string; desc: string }) {
+function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label: string; Icon: React.ComponentType<{ size?: number; color?: string }>; desc: string }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: blockId,
     data: { type: 'block', id: blockId, label },
@@ -217,13 +218,13 @@ function BlockTypeCard({ blockId, label, emoji, desc }: { blockId: string; label
     >
       {/* Drag handle */}
       <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '1rem', flexShrink: 0, lineHeight: 1 }}>✦</div>
-      {/* Emoji icon with colored bg */}
+      {/* Block type icon */}
       <div style={{
         width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
         background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', fontSize: '1.15rem',
+        justifyContent: 'center',
       }}>
-        {emoji}
+        <Icon size={16} color="rgba(163,177,138,0.9)" />
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2 }}>{label}</div>
@@ -1345,7 +1346,7 @@ function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest
       b.type === 'event' ? ['schedule', 'rsvp'] : [b.type]
     ) || []
   );
-  const baseUrl = subdomain ? `https://${subdomain}.pearloom.app` : '';
+  const baseUrl = subdomain ? `https://${subdomain}.pearloom.com` : '';
   const customPages = manifest.customPages || [];
 
   const addCustomPage = () => {
@@ -1821,10 +1822,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
-  // ── Auto-enable split view when canvas tab is active ──
-  useEffect(() => {
-    if (activeTab === 'canvas') setSplitView(true);
-  }, [activeTab]);
+  // Split view uses PreviewPane (React component). Default off — user toggles via toolbar.
 
   // ── Show "Click to jump" hint when split view first opens ──
   const hintShownRef = useRef(false);
@@ -1851,6 +1849,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     const t = setTimeout(() => setPreviewSlow(true), 8000);
     return () => clearTimeout(t);
   }, [iframeReady]);
+
+  // Seed sessionStorage immediately on mount so the iframe has data when it first loads
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(previewKey, JSON.stringify({ manifest, names: coupleNames }));
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pushHistory = useCallback((m: StoryManifest) => {
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
@@ -1952,6 +1958,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
       setPublishedUrl(data.url);
       setSaveState('saved');
+      // Open the published site in a new tab immediately
+      if (data.url) window.open(data.url, '_blank', 'noopener,noreferrer');
       setIsDirty(false);
       onPublish?.();
     } catch (err) {
@@ -2557,7 +2565,7 @@ Return JSON with: title, subtitle, description, mood`,
                       key={b.id}
                       blockId={b.id}
                       label={b.label}
-                      emoji={b.emoji}
+                      Icon={b.Icon}
                       desc={b.desc}
                     />
                   ))}
@@ -2652,8 +2660,8 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* ── CENTER — Live Preview Canvas ── */}
         {/* On mobile: always show the iframe preview full-screen (tabs at bottom for editing) */}
-        {/* In split view OR during canvas drag (desktop only): show PreviewPane with drop zones. Otherwise show iframe. */}
-        {(splitView || !!canvasDragId) && !isMobile ? (
+        {/* In split view (desktop only): show PreviewPane. Otherwise show iframe. */}
+        {splitView && !isMobile ? (
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
             borderLeft: '1px solid rgba(255,255,255,0.06)',
@@ -3100,7 +3108,7 @@ Return JSON with: title, subtitle, description, mood`,
                       autoFocus
                     />
                     <div style={{ padding: '0.85rem 1rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', borderLeft: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap' }}>
-                      .pearloom.app
+                      .pearloom.com
                     </div>
                   </div>
 
