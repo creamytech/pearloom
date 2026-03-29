@@ -44,6 +44,9 @@ import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { AIEditorChat } from './AIEditorChat';
+import { VenueSearch } from '@/components/venue/VenueSearch';
+import type { VenuePartial } from '@/components/venue/VenueSearch';
+import { SeatingCanvas } from '@/components/seating/SeatingCanvas';
 
 // ── Types ──────────────────────────────────────────────────────
 type DeviceMode = 'desktop' | 'tablet' | 'mobile';
@@ -892,9 +895,11 @@ function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange
 }
 
 // ── Details Panel — Travel, FAQ, Registry, Logistics ──────────
-function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const logistics = manifest.logistics || {};
-  const [openSection, setOpenSection] = useState<'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe'>('couple');
+  const occasion = manifest.occasion || 'wedding';
+  const isEvent = occasion === 'wedding' || occasion === 'engagement';
+  const [openSection, setOpenSection] = useState<'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating'>('couple');
 
   const upd = (data: Partial<typeof logistics>) =>
     onChange({ ...manifest, logistics: { ...logistics, ...data } });
@@ -932,7 +937,7 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
   const delHotel = (i: number) =>
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
 
-  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe';
+  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating';
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <button
@@ -984,7 +989,35 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
           </div>
           <Field label="Ceremony Time" value={logistics.time || ''} onChange={v => upd({ time: v })} placeholder="5:00 PM" />
         </div>
-        <Field label="Venue Name" value={logistics.venue || ''} onChange={v => upd({ venue: v })} placeholder="The Grand Ballroom" />
+        {/* Venue search — populates name + address from Google Places */}
+        <div style={{ marginBottom: '6px' }}>
+          <label style={lbl}>Venue</label>
+          {logistics.venue ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '8px 10px' }}>
+              <MapPin size={13} color="var(--eg-accent, #A3B18A)" style={{ flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
+                {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>{logistics.venueAddress}</div>}
+              </div>
+              <button
+                onClick={() => upd({ venue: '', venueAddress: '', venuePlaceId: '' })}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '2px', flexShrink: 0, display: 'flex' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.3)'; }}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ) : (
+            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '8px' }}>
+              <VenueSearch
+                placeholder="Search for a venue..."
+                onSelect={(venue: VenuePartial) => upd({ venue: venue.name || '', venueAddress: venue.address || '', venuePlaceId: venue.placeId || '' })}
+                onAddManually={() => upd({ venue: 'My Venue' })}
+              />
+            </div>
+          )}
+        </div>
       </Section>
 
       <Section id="registry" label="Registry">
@@ -1135,6 +1168,18 @@ function DetailsPanel({ manifest, onChange }: { manifest: StoryManifest; onChang
           </div>
         </div>
       </Section>
+
+      {/* Seating chart — weddings + engagements only */}
+      {isEvent && (
+        <Section id="seating" label="Seating Chart">
+          <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '10px', lineHeight: 1.5 }}>
+            Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
+          </div>
+          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
+          </div>
+        </Section>
+      )}
     </div>
   );
 }
@@ -2378,7 +2423,7 @@ Return JSON with: title, subtitle, description, mood`,
             )}
 
             {activeTab === 'details' && (
-              <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
+              <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
             )}
 
             {activeTab === 'pages' && (
@@ -2711,7 +2756,7 @@ Return JSON with: title, subtitle, description, mood`,
                 <EventsPanel manifest={manifest} onChange={handleDesignChange} />
               )}
               {activeTab === 'details' && (
-                <DetailsPanel manifest={manifest} onChange={handleDesignChange} />
+                <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
               )}
               {activeTab === 'pages' && (
                 <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
