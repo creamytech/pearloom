@@ -1972,6 +1972,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onChange]);
 
+  // ── Stable refs for keyboard handler (avoids stale closures) ──
+  const activeIdRef = useRef(activeId);
+  const chaptersRef = useRef(chapters);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pushToPreviewRef = useRef<(m: StoryManifest) => void>(() => {});
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
+  useEffect(() => { chaptersRef.current = chapters; }, [chapters]);
+
   // ── Command Palette + Undo/Redo keyboard shortcuts ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1998,10 +2006,34 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         e.preventDefault();
         setSidebarCollapsed(prev => !prev);
       }
+      // Cmd+D: duplicate active chapter
+      if (mod && e.key === 'd') {
+        e.preventDefault();
+        const id = activeIdRef.current;
+        const chs = chaptersRef.current;
+        if (!id) return;
+        const original = chs.find(c => c.id === id);
+        if (!original) return;
+        const copyId = `ch-${Date.now()}`;
+        const copy: Chapter = {
+          ...original,
+          id: copyId,
+          title: `${original.title} (copy)`,
+          order: (original.order ?? 0) + 0.5,
+        };
+        const next = [...chs, copy].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setChapters(next);
+        setActiveId(copyId);
+        // syncManifest inline to avoid dependency
+        const newManifest = { ...manifest, chapters: next.map((ch, i) => ({ ...ch, order: i })) };
+        pushHistory(newManifest);
+        onChange(newManifest);
+        pushToPreviewRef.current(newManifest);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [undo, redo]);
+  }, [undo, redo, manifest, pushHistory, onChange]);
 
   // ── Warn before tab close when there are unsaved changes ──
   useEffect(() => {
@@ -2089,6 +2121,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       } catch {}
     }, 600);
   }, [previewKey, coupleNames]);
+
+  // Keep ref in sync so keyboard handler can call it without stale closure
+  useEffect(() => { pushToPreviewRef.current = pushToPreview; }, [pushToPreview]);
 
   // Initial load — set sessionStorage synchronously so iframe has data the moment it loads
   useEffect(() => {
@@ -2453,6 +2488,52 @@ Return JSON with: title, subtitle, description, mood`,
             <CommandIcon size={10} />
             <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
           </button>
+
+          {/* Contextual chapter actions — appear when a chapter is selected */}
+          <AnimatePresence>
+            {activeId && !isMobile && (
+              <motion.div
+                key="ctx-actions"
+                initial={{ opacity: 0, scale: 0.88, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.88, y: -4 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}
+              >
+                <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.12)', marginRight: '4px' }} />
+                {/* Duplicate */}
+                <button
+                  title="Duplicate chapter (⌘D)"
+                  onClick={() => {
+                    const original = chapters.find(c => c.id === activeId);
+                    if (!original) return;
+                    const copyId = `ch-${Date.now()}`;
+                    const copy: Chapter = { ...original, id: copyId, title: `${original.title} (copy)`, order: (original.order ?? 0) + 0.5 };
+                    const next = [...chapters, copy].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    setChapters(next);
+                    setActiveId(copyId);
+                    const newManifest = { ...manifest, chapters: next.map((ch, i) => ({ ...ch, order: i })) };
+                    pushHistory(newManifest); onChange(newManifest); pushToPreview(newManifest);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', transition: 'all 0.15s' }}
+                  onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.1)'; el.style.color = '#fff'; }}
+                  onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.05)'; el.style.color = 'rgba(255,255,255,0.55)'; }}
+                >
+                  ⌘D Duplicate
+                </button>
+                {/* Delete */}
+                <button
+                  title="Delete chapter"
+                  onClick={() => deleteChapter(activeId)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(248,113,113,0.2)', background: 'rgba(248,113,113,0.06)', color: 'rgba(248,113,113,0.6)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', transition: 'all 0.15s' }}
+                  onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(248,113,113,0.12)'; el.style.color = '#f87171'; }}
+                  onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(248,113,113,0.06)'; el.style.color = 'rgba(248,113,113,0.6)'; }}
+                >
+                  Delete
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Save status + Undo/Redo — desktop only */}
@@ -2666,7 +2747,7 @@ Return JSON with: title, subtitle, description, mood`,
                       return (
                         <button
                           key={fmt.id}
-                          onClick={() => handleDesignChange({ ...manifest, layoutFormat: fmt.id })}
+                          onClick={() => handleDesignChange({ ...manifest, layoutFormat: fmt.id as StoryManifest['layoutFormat'] })}
                           style={{
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
                             padding: '6px 4px', borderRadius: '7px', border: 'none', cursor: 'pointer',

@@ -198,18 +198,23 @@ function LocationPill({ label, light = false }: { label: string; light?: boolean
   );
 }
 
-// Chapter divider with pearl icon
+// Chapter divider with pearl icon — springs in on scroll
 function ChapterDivider() {
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '0.5rem 0',
-      opacity: 0.35,
-    }}>
+    <motion.div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0.5rem 0',
+      }}
+      initial={{ opacity: 0, scale: 0.4 }}
+      whileInView={{ opacity: 0.35, scale: 1 }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ type: 'spring', stiffness: 280, damping: 18 }}
+    >
       <PearlDividerIcon size={12} color="var(--eg-accent)" />
-    </div>
+    </motion.div>
   );
 }
 
@@ -224,29 +229,46 @@ function EmotionalPeakMarker() {
         alignItems: 'center',
         gap: '0.6rem',
         padding: '2rem 0 0.5rem',
-        opacity: 0.55,
       }}
     >
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.9rem',
-      }}>
-        <div style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', opacity: 0.5 }} />
-        <span style={{ fontSize: '1.1rem', color: 'var(--eg-gold)', letterSpacing: '0.2em' }}>✦ ✦ ✦</span>
-        <div style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', opacity: 0.5 }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          whileInView={{ scaleX: 1, opacity: 0.5 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', transformOrigin: 'right' }}
+        />
+        <motion.span
+          initial={{ opacity: 0, scale: 0.4 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ type: 'spring', stiffness: 220, damping: 14, delay: 0.35 }}
+          style={{ fontSize: '1.1rem', color: 'var(--eg-gold)', letterSpacing: '0.2em' }}
+        >✦ ✦ ✦</motion.span>
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          whileInView={{ scaleX: 1, opacity: 0.5 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', transformOrigin: 'left' }}
+        />
       </div>
-      <span style={{
+      <motion.span
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 0.75, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.55, duration: 0.5, ease: 'easeOut' }}
+        style={{
         fontSize: '0.58rem',
         letterSpacing: '0.3em',
         textTransform: 'uppercase',
         fontVariant: 'small-caps',
         color: 'var(--eg-gold)',
         fontWeight: 700,
-        opacity: 0.75,
       }}>
         A defining moment
-      </span>
+      </motion.span>
     </div>
   );
 }
@@ -464,7 +486,13 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                 <span style={{ fontSize: '0.68rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700 }}>
                   {formatDateFull(chapter.date)}
                 </span>
-                <div style={{ width: '100%', height: '1px', background: 'var(--eg-accent)', opacity: 0.2, marginTop: '0.5rem' }} />
+                <motion.div
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  whileInView={{ scaleX: 1, opacity: 0.2 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                  style={{ width: '100%', height: '1px', background: 'var(--eg-accent)', marginTop: '0.5rem', transformOrigin: 'left' }}
+                />
               </div>
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)',
@@ -478,9 +506,15 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                 {chapter.title}
               </h3>
               {chapter.subtitle && (
-                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                <motion.p
+                  initial={{ opacity: 0, y: 10, skewY: -2 }}
+                  whileInView={{ opacity: 1, y: 0, skewY: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                >
                   {chapter.subtitle}
-                </p>
+                </motion.p>
               )}
               <div style={{ marginBottom: '1.5rem', textAlign: isEven ? 'left' : 'right' }}>
                 <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={false} />
@@ -506,6 +540,16 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['-18%', '18%']);
+  // Desaturate image as it exits viewport — reinforces narrative time progression
+  const imgFilter = useTransform(
+    scrollYProgress,
+    [0, 0.55, 1],
+    [
+      'brightness(0.68) contrast(1.08) saturate(1.1)',
+      'brightness(0.68) contrast(1.08) saturate(1.1)',
+      'brightness(0.68) contrast(1.08) saturate(0.35)',
+    ],
+  );
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = heroImage(chapter);
   const [videoPlaying, setVideoPlaying] = useState(false);
@@ -546,7 +590,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
         <>
           {mainImage && (
             <motion.div style={{ position: 'absolute', inset: -80, y }}>
-              <img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), filter: 'brightness(0.68) contrast(1.08) saturate(1.1)' }} />
+              <motion.img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), filter: imgFilter }} />
             </motion.div>
           )}
 
@@ -742,9 +786,15 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                 <EnhancedDescription text={chapter.description} />
               </div>
               {chapter.subtitle && (
-                <p style={{ fontStyle: 'italic', color: 'var(--eg-accent)', fontSize: '1rem', marginTop: '1.5rem' }}>
+                <motion.p
+                  initial={{ opacity: 0, y: 10, skewY: -2 }}
+                  whileInView={{ opacity: 1, y: 0, skewY: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+                  style={{ fontStyle: 'italic', color: 'var(--eg-accent)', fontSize: '1rem', marginTop: '1.5rem' }}
+                >
                   {chapter.subtitle}
-                </p>
+                </motion.p>
               )}
               {chapter.location && (
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2.5rem' }}>
@@ -844,9 +894,15 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
                 {chapter.title}
               </h3>
               {chapter.subtitle && (
-                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.05rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                <motion.p
+                  initial={{ opacity: 0, y: 10, skewY: -2 }}
+                  whileInView={{ opacity: 1, y: 0, skewY: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.05rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                >
                   {chapter.subtitle}
-                </p>
+                </motion.p>
               )}
               <EnhancedDescription text={chapter.description} />
               {chapter.location && (
@@ -902,9 +958,15 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
               {chapter.title}
             </h3>
             {chapter.subtitle && (
-              <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+              <motion.p
+                initial={{ opacity: 0, y: 10, skewY: -2 }}
+                whileInView={{ opacity: 1, y: 0, skewY: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+                style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+              >
                 {chapter.subtitle}
-              </p>
+              </motion.p>
             )}
             <EnhancedDescription text={chapter.description} />
             {chapter.location && (
@@ -1054,9 +1116,15 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                 {chapter.title}
               </h3>
               {chapter.subtitle && (
-                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                <motion.p
+                  initial={{ opacity: 0, y: 10, skewY: -2 }}
+                  whileInView={{ opacity: 1, y: 0, skewY: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                >
                   {chapter.subtitle}
-                </p>
+                </motion.p>
               )}
               <EnhancedDescription text={chapter.description} />
               {chapter.location && (
@@ -1185,9 +1253,15 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                 {chapter.title}
               </h3>
               {chapter.subtitle && (
-                <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                <motion.p
+                  initial={{ opacity: 0, y: 10, skewY: -2 }}
+                  whileInView={{ opacity: 1, y: 0, skewY: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                >
                   {chapter.subtitle}
-                </p>
+                </motion.p>
               )}
               <EnhancedDescription text={chapter.description} />
               {chapter.location && (
