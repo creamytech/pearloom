@@ -26,6 +26,23 @@ interface MemoryRecord {
   created_at: string;
 }
 
+// In-memory rate limit for fallback mode (no Supabase)
+const fallbackRateMap = new Map<string, { count: number; resetAt: number }>();
+function isFallbackRateLimited(ip: string, siteId: string): boolean {
+  const key = `${ip}:${siteId}`;
+  const now = Date.now();
+  const entry = fallbackRateMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    fallbackRateMap.set(key, { count: 1, resetAt: now + 24 * 60 * 60 * 1000 });
+    if (fallbackRateMap.size > 5000) {
+      for (const [k, v] of fallbackRateMap) { if (now > v.resetAt) fallbackRateMap.delete(k); }
+    }
+    return false;
+  }
+  entry.count++;
+  return entry.count > MAX_SUBMISSIONS_PER_DAY;
+}
+
 const memoryStore: MemoryRecord[] = [
   {
     id: 'mock-1',
@@ -173,7 +190,14 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabase();
 
     if (!supabase) {
-      // Fallback: store in memory
+      // Fallback: store in memory with IP-based rate limiting
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+      if (isFallbackRateLimited(ip, siteId)) {
+        return NextResponse.json(
+          { error: 'You have reached the daily submission limit. Please try again tomorrow.' },
+          { status: 429 }
+        );
+      }
       const id = `mem-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
       memoryStore.push({
         id,

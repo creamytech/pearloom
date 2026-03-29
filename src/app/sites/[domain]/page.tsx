@@ -99,9 +99,9 @@ export async function generateMetadata(
       description,
       images: [ogUrl],
     },
-    other: {
-      // Prevent search engine indexing of private wedding sites
-      robots: 'noindex, nofollow',
+    robots: {
+      index: true,
+      follow: true,
     },
   };
 }
@@ -157,10 +157,24 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     engagement: `${title} Engagement`,
     story: title,
   };
+  const jsonLdType = occasion === 'birthday' ? 'BirthdayEvent'
+    : occasion === 'story' ? 'Event'
+    : 'SocialEvent';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const canonicalUrl = siteUrl
+    ? `${siteUrl.replace(/^https?:\/\//, 'https://')
+        .replace(/^(https?:\/\/)/, `$1${domain}.`)}`
+    : `https://${domain}.pearloom.com`;
+  const vibeString = manifest.vibeString || '';
+  const jsonLdDesc = vibeString
+    ? `${title}'s story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
+    : `${title}'s ${occasion} site.`;
   const jsonLd = manifest.events?.length ? {
     '@context': 'https://schema.org',
-    '@type': 'SocialEvent',
+    '@type': jsonLdType,
     name: occasionEventName[occasion] || `${title} Celebration`,
+    description: jsonLdDesc,
+    url: canonicalUrl,
     startDate: manifest.events[0].date || manifest.logistics?.date,
     location: manifest.events[0].venue ? {
       '@type': 'Place',
@@ -412,7 +426,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '0.6rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
-                {(vibeSkin.sectionLabels as Record<string, string>)?.photos || 'Our Photos'}
+                {vibeSkin.sectionLabels.photos || 'Our Photos'}
               </div>
               <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
             </div>
@@ -421,7 +435,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
                   <div key={i} style={{ gridColumn: i === 0 ? 'span 2' : undefined, aspectRatio: i === 0 ? '2/1.2' : '1/1', borderRadius: '0.75rem', overflow: 'hidden', background: cardBg }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={proxyUrl(img.url, 800, 800)} alt={img.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={proxyUrl(img.url, 800, 800)} alt={img.alt || ''} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 ))}
               </div>

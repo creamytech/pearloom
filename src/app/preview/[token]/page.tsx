@@ -250,9 +250,13 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
   };
 
   const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || 'https://images.unsplash.com/photo-1519741497674-611481863552';
+  const occasion = manifest.occasion || 'wedding';
+  const SOLO_OCCASIONS = new Set(['birthday', 'story']);
+  const idParts = (manifest.coupleId || '').split('-');
   const safeNames: [string, string] = [
-    manifest.coupleId?.split('-')[0] || 'Together',
-    manifest.coupleId?.split('-')[1] || 'Forever',
+    idParts[0] || 'Together',
+    // For single-person occasions, second "name" is the occasion keyword — suppress it
+    SOLO_OCCASIONS.has(occasion) || SOLO_OCCASIONS.has(idParts[1] || '') ? '' : (idParts[1] || 'Forever'),
   ];
 
   const sitePages = [
