@@ -83,6 +83,14 @@ export interface VibeSkin {
   // — Per-chapter ambient color wash (one hex per chapter, used as subtle section tint) —
   chapterColors?: string[];
 
+  // — AI raster art (Nano Banana image generation — baked at generation time) —
+  // Full painted hero art panel: atmospheric illustration tuned to vibe + occasion (base64 data URL)
+  heroArtDataUrl?: string;
+  // Softer ambient version for page background texture (base64 data URL, very subtle)
+  ambientArtDataUrl?: string;
+  // Horizontal decorative botanical art strip for section dividers (base64 data URL)
+  artStripDataUrl?: string;
+
   aiGenerated: boolean;
 }
 
@@ -178,6 +186,34 @@ const KEYWORD_MAP: Record<string, Partial<VibeSkin>> = {
     palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393', accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080', highlight: '#F5841F', subtle: '#FFF0F5', ink: '#2A2690' } as VibeSkin['palette'] },
   marigold:   { curve: 'cascade',   particle: 'confetti',   decorIcons: ['✦','★','✿','◆','●'],    particleColor: '#F8C000', tone: 'playful',
     palette: { background: '#FFF8F0', foreground: '#1A0A00', accent: '#F5A623', accent2: '#E84393', card: '#FFF5EC', muted: '#9A6040', highlight: '#F8C000', subtle: '#FFF2E8', ink: '#1A3A8F' } as VibeSkin['palette'] },
+
+  // Anniversary keywords
+  'anniversary':      { curve: 'organic', particle: 'fireflies', decorIcons: ['∞','◎','✦','◦','•'], particleColor: '#D2691E', tone: 'intimate',
+    palette: { background: '#F4EEE8', foreground: '#2C1810', accent: '#D2691E', accent2: '#DEB887', card: '#FAF4EE', muted: '#9E7858', highlight: '#8B4513', subtle: '#F8F2EC', ink: '#1C0C04' } as VibeSkin['palette'] },
+  'silver anniversary': { curve: 'arch', particle: 'stars', decorIcons: ['◈','◇','✦','◦','○'], particleColor: '#C0C0C0', tone: 'luxurious',
+    palette: { background: '#F2F2F4', foreground: '#1C1C1C', accent: '#A8A9AD', accent2: '#708090', card: '#F8F8FA', muted: '#888890', highlight: '#2F4F4F', subtle: '#F5F5F7', ink: '#0A0A0A' } as VibeSkin['palette'] },
+  'golden anniversary': { curve: 'arch', particle: 'stars', decorIcons: ['✦','◇','◈','○','•'], particleColor: '#FFD700', tone: 'luxurious',
+    palette: { background: '#FBF5E6', foreground: '#2C1810', accent: '#DAA520', accent2: '#FFD700', card: '#FEF9EC', muted: '#9A8050', highlight: '#B8860B', subtle: '#FDF8F0', ink: '#1A0C00' } as VibeSkin['palette'] },
+  'vow renewal':      { curve: 'petal', particle: 'petals', decorIcons: ['∞','♡','✿','◦','✦'], particleColor: '#C4956A', tone: 'intimate',
+    palette: { background: '#F5EDE4', foreground: '#2C1810', accent: '#C4956A', accent2: '#E8D5C4', card: '#FAF4EE', muted: '#9E8068', highlight: '#8B6355', subtle: '#F8F2EC', ink: '#180C04' } as VibeSkin['palette'] },
+
+  // Birthday keywords
+  'milestone birthday': { curve: 'cascade', particle: 'confetti', decorIcons: ['✦','★','◆','✿','◉'], particleColor: '#FFD700', tone: 'playful',
+    palette: { background: '#FFF8F0', foreground: '#1A0A00', accent: '#FFD700', accent2: '#FF6B6B', card: '#FFF5EC', muted: '#9A7040', highlight: '#F5841F', subtle: '#FFF2E8', ink: '#1A0A00' } as VibeSkin['palette'] },
+  '30th birthday':    { curve: 'geometric', particle: 'confetti', decorIcons: ['◈','★','◆','✦','30'], particleColor: '#E74C3C', tone: 'luxurious',
+    palette: { background: '#ECF0F1', foreground: '#2C3E50', accent: '#E74C3C', accent2: '#3498DB', card: '#F5F8FA', muted: '#7F8C8D', highlight: '#C0392B', subtle: '#EEF2F5', ink: '#1A2530' } as VibeSkin['palette'] },
+  '50th birthday':    { curve: 'arch', particle: 'stars', decorIcons: ['✦','◈','★','◇','50'], particleColor: '#FFD700', tone: 'warm' as VibeSkin['tone'],
+    palette: { background: '#FBF5E6', foreground: '#2C1810', accent: '#FFD700', accent2: '#C0392B', card: '#FEF9EC', muted: '#9A8050', highlight: '#27AE60', subtle: '#FDF8F0', ink: '#1A0C00' } as VibeSkin['palette'] },
+  'surprise party':   { curve: 'cascade', particle: 'confetti', decorIcons: ['★','✦','◆','✿','◉'], particleColor: '#6BCF7F', tone: 'playful',
+    palette: { background: '#FFF5F8', foreground: '#1A0A30', accent: '#FF6B6B', accent2: '#FFD93D', card: '#FFFAFC', muted: '#9A6080', highlight: '#4D96FF', subtle: '#FFF0F5', ink: '#1A0A30' } as VibeSkin['palette'] },
+
+  // Engagement keywords
+  'engagement':       { curve: 'petal', particle: 'stars', decorIcons: ['◎','✦','♡','◦','•'], particleColor: '#B76E79', tone: 'romantic' as VibeSkin['tone'],
+    palette: { background: '#F8F0EC', foreground: '#2C1820', accent: '#B76E79', accent2: '#E8D5C4', card: '#FEF6F2', muted: '#9E7870', highlight: '#8B4A55', subtle: '#FBF4F0', ink: '#1C0C10' } as VibeSkin['palette'] },
+  'just engaged':     { curve: 'petal', particle: 'stars', decorIcons: ['◎','♡','✦','✿','◦'], particleColor: '#FF69B4', tone: 'dreamy',
+    palette: { background: '#FFF0F5', foreground: '#2C1020', accent: '#DB7093', accent2: '#FFB6C1', card: '#FFF8FA', muted: '#9E7080', highlight: '#FF69B4', subtle: '#FFF5F8', ink: '#1A0810' } as VibeSkin['palette'] },
+  'engaged':          { curve: 'petal', particle: 'stars', decorIcons: ['◎','✦','♡','◦','•'], particleColor: '#B76E79', tone: 'romantic' as VibeSkin['tone'],
+    palette: { background: '#F8F0EC', foreground: '#2C1820', accent: '#B76E79', accent2: '#E8D5C4', card: '#FEF6F2', muted: '#9E7870', highlight: '#8B4A55', subtle: '#FBF4F0', ink: '#1C0C10' } as VibeSkin['palette'] },
 };
 
 // — Seed-based deterministic number in [0,1) from a string ——————————————————————————————————————————
@@ -481,8 +517,12 @@ function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
 // Called once per site generation, cached in manifest.vibeSkin.
 // Returns a full VibeSkin including custom AI SVG art.
 
+// Pass 2 (VibeSkin + custom SVG art) uses Gemini 3.1 Pro — SVG precision + visual creativity
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
+// Couple DNA extraction uses Flash-Lite — lightweight extraction task
+const GEMINI_LITE_URL =
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 // Structured profile of the couple's personal world, extracted from their story
 export interface CoupleProfile {
@@ -511,9 +551,19 @@ export interface VibeSkinContext {
 export async function extractCoupleProfile(
   vibeString: string,
   chapters: Array<{ title: string; description: string; mood: string }>,
-  apiKey: string
+  apiKey: string,
+  occasion?: string
 ): Promise<CoupleProfile> {
   const storyText = chapters.map(c => `"${c.title}": ${c.description}`).join('\n');
+
+  const occasionDNAHints: Record<string, string> = {
+    wedding: `Also extract: ceremony location, proposal location if mentioned, honeymoon destination if mentioned.`,
+    anniversary: `Also extract: the number of years together, how long they've been married, any mentioned milestones, places they've lived or traveled together over the years.`,
+    birthday: `Also extract: the birthday person's name, their age, their passions/hobbies, any mentioned life achievements or milestones.`,
+    engagement: `Also extract: proposal location, how the proposal happened, ring description if mentioned, how long they dated before engagement.`,
+    story: `Extract all personal places, interests, pets, and defining moments from their life together.`,
+  };
+  const dnaHint = occasionDNAHints[occasion || 'wedding'] || occasionDNAHints.wedding;
 
   const prompt = `Given this couple's vibe and story, extract their unique personal elements as JSON.
 
@@ -522,6 +572,8 @@ ${vibeString}
 
 STORY CHAPTERS:
 ${storyText}
+
+OCCASION-SPECIFIC EXTRACTION NOTES: ${dnaHint}
 
 Return ONLY this JSON (no extra text, no markdown):
 {
@@ -542,8 +594,9 @@ Rules:
 - illustrationPrompt: make it visually specific, richly detailed, and drawable as SVG lineart`;
 
   try {
+    // Couple DNA extraction uses Flash-Lite — lightweight JSON extraction, no creativity needed
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+      `${GEMINI_LITE_URL}?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -564,9 +617,65 @@ export async function generateVibeSkin(
   vibeString: string,
   apiKey?: string,
   coupleNames?: [string, string],
-  context?: VibeSkinContext
+  context?: VibeSkinContext,
+  occasion?: string
 ): Promise<VibeSkin> {
   if (!apiKey) return deriveFallback(vibeString);
+
+  // Extract occasion-specific numeric details from the vibe string
+  const anniversaryMatch = vibeString.match(/ANNIVERSARY:\s*(\d+)\s*years/i);
+  const anniversaryYears = anniversaryMatch ? parseInt(anniversaryMatch[1], 10) : 0;
+  const birthdayMatch = vibeString.match(/BIRTHDAY:.*?(\d+)(?:th|st|nd|rd)?\s*birthday/i);
+  const birthdayAge = birthdayMatch ? birthdayMatch[1] : '';
+
+  const occasionVisualGuidance: Record<string, string> = {
+    wedding: `OCCASION: Wedding.
+    SYMBOLIC MOTIFS to consider: rings, florals, vows, unity candles, champagne,
+    doves, infinity symbols, intertwined initials, wedding arches, veils.
+    PARTICLE suggestions: petals, confetti, bubbles, fireflies.
+    COLOR DIRECTION: romantic, aspirational — pinks/creams/golds/whites for classic;
+    deep jewel tones for dramatic; sage/terracotta for bohemian.
+    TONE: Should feel timeless, romantic, celebratory but not garish.`,
+
+    anniversary: `OCCASION: Anniversary celebration (${anniversaryYears ? `${anniversaryYears} years together` : 'milestone year'}).
+    SYMBOLIC MOTIFS to consider: intertwined circles/rings, spirals (representing years),
+    infinity symbols, the number of years (e.g. "${anniversaryYears || '?'}"), pressed flowers,
+    a tree with deep roots, wine glasses, candle flames.
+    ${anniversaryYears >= 25 ? 'MILESTONE: This is a major anniversary. Use richer, more luxurious visual language — gold, deep jewel tones, something that feels earned and magnificent.' : ''}
+    PARTICLE suggestions: fireflies, sakura, stars (feel contemplative, warm).
+    COLOR DIRECTION: warmer and richer than a first-wedding — deeper, more mature palette.
+    More amber, cognac, deep rose, forest green. Less pastel.
+    TONE: Nostalgic warmth, depth, the beauty of time passing.`,
+
+    birthday: `OCCASION: Birthday celebration${birthdayAge ? ` — turning ${birthdayAge}` : ''}.
+    SYMBOLIC MOTIFS to consider: stars, candles, balloons (tasteful), confetti,
+    champagne, flowers, ribbon, the number ${birthdayAge || ''},
+    gifts/bows (elegant version), sparklers, fireworks.
+    ${birthdayAge && [30,40,50,60,70,80].includes(parseInt(birthdayAge)) ? `MILESTONE: This is a ${birthdayAge}th birthday! Make it feel BIG and celebratory. Bold, vibrant, joyful.` : ''}
+    PARTICLE suggestions: confetti, stars, sparkles, bubbles.
+    COLOR DIRECTION: Joyful and celebratory. Can be more vibrant than a wedding.
+    Think champagne gold, coral, jewel tones, or the person's favourite colors from the vibe.
+    TONE: Joyful, warm, celebratory, uplifting. This should make someone smile immediately.`,
+
+    engagement: `OCCASION: Engagement announcement / celebration.
+    SYMBOLIC MOTIFS to consider: rings (especially solitaire/oval/round shapes),
+    diamonds, sparkle/light refractions, champagne, roses,
+    "YES", hearts (tasteful), keys, locks, doors opening.
+    PARTICLE suggestions: stars, sparkles, petals — feel electric and magical.
+    COLOR DIRECTION: Fresh and bright with romantic undertones.
+    Blush, rose gold, champagne, white, or electric jewel tones (sapphire, emerald).
+    TONE: Electric excitement, romantic electricity, the thrill of "what's next".
+    Should feel like the best news ever just happened.`,
+
+    story: `OCCASION: Personal love story / memory site (no specific event).
+    SYMBOLIC MOTIFS: Drawn entirely from the couple's story and photos.
+    No event-specific symbols. Focus on personal motifs from their DNA (pets, places, interests).
+    PARTICLE suggestions: leaves, petals, fireflies, stars — soft and personal.
+    COLOR DIRECTION: Entirely emotion and photo-driven. Let the vibe string guide.
+    TONE: Intimate, literary, personal. This is a private world.`,
+  };
+
+  const visualGuidance = occasionVisualGuidance[occasion || 'wedding'] || occasionVisualGuidance.wedding;
 
   const namesContext = coupleNames
     ? `The couple is ${coupleNames[0]} & ${coupleNames[1]}.`
@@ -625,6 +734,10 @@ This is NON-NEGOTIABLE. The inspiration images override everything else.
   const prompt = `${inspirationDirective}You are a world-class wedding visual designer AND SVG artist for Pearloom, a premium wedding website platform.
 ${namesContext}
 The couple's vibe is: "${vibeString}"
+
+## OCCASION VISUAL DIRECTION — READ BEFORE DESIGNING
+${visualGuidance}
+
 ${storyContext}
 ${coupleProfileContext}
 Your job: design a COMPLETELY UNIQUE visual identity for this specific couple. Every SVG illustration should reflect THEIR actual world — their pets, interests, places, and story. No two sites should ever look the same.
@@ -926,6 +1039,143 @@ CRITICAL DESIGN RULES:
     console.warn('[VibeEngine] Gemini skin generation failed, using fallback:', err);
     return deriveFallback(vibeString);
   }
+}
+
+// ── Pass 2.5: Raster Art Generation (Nano Banana Pro) ────────────────────────
+// Generates a beautiful AI-painted hero art panel + ambient background art
+// tuned to the couple's specific vibe, palette, and occasion.
+// Uses gemini-3-pro-image-preview (Nano Banana Pro) — generated once at
+// site creation time, stored as base64 data URLs in vibeSkin.
+
+const NANO_BANANA_PRO = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent';
+const NANO_BANANA_2   = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
+
+export interface SiteArtResult {
+  heroArtDataUrl?: string;    // Full painted hero art panel (Nano Banana Pro)
+  ambientArtDataUrl?: string; // Softer ambient page background (Nano Banana 2)
+  artStripDataUrl?: string;   // Horizontal decorative art strip for section dividers
+}
+
+export async function generateSiteArt(
+  vibeString: string,
+  palette: VibeSkin['palette'],
+  apiKey: string,
+  occasion?: string,
+  coupleNames?: [string, string]
+): Promise<SiteArtResult> {
+
+  const occ = occasion || 'wedding';
+  const names = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
+
+  // Occasion-specific art direction
+  const occasionArtDirection: Record<string, string> = {
+    wedding: `Soft botanical watercolor with delicate florals — roses, peonies, eucalyptus, trailing vines. Ethereal light rays filtering through. No people, no text. Romantic and timeless. Colors should feel warm, luminous, and aspirational.`,
+    anniversary: `Rich oil-painting style scene with intertwined botanical elements — mature roses, deep amber tones, golden hour light. Impressionistic brush strokes. Nostalgic and warm. No people, no text. Evokes the depth and richness of time passing together.`,
+    birthday: `Joyful celebratory art with confetti, ribbons, soft bokeh lights, and festive botanicals. Energetic yet elegant. No people, no text. Should feel like a beautiful party invitation illustration — festive but refined.`,
+    engagement: `Dreamy romantic painting — soft florals, sparkle/light effects, champagne tones. Electric and hopeful. No people, no text. Should feel like the moment right after "yes" — full of joy and anticipation.`,
+    story: `Intimate impressionistic scene — soft light, personal motifs from nature, abstract washes of color. No people, no text. Literary and introspective. Should feel like the cover of a beautiful memoir.`,
+  };
+
+  const artDirection = occasionArtDirection[occ] || occasionArtDirection.wedding;
+
+  // Extract key color descriptions from the palette
+  const colorDesc = [
+    `background: ${palette.background}`,
+    `primary accent: ${palette.accent}`,
+    `secondary: ${palette.accent2}`,
+    `tone: ${palette.highlight}`,
+  ].join(', ');
+
+  // IMPORTANT: Since Nano Banana does not support transparent backgrounds,
+  // all prompts specify the EXACT background color. CSS mask-image + mix-blend-mode
+  // handles edge-blending seamlessly on the rendered site.
+  const bgHex = palette.background;
+  const accentHex = palette.accent;
+
+  const heroPrompt = `Create a stunning, editorial-quality painted illustration for a ${occ} website for ${names}.
+
+BACKGROUND: Paint this on a SOLID ${bgHex} background — this is the exact page background color. The artwork should emerge from and fade back into this background color naturally at the edges, making it feel like part of the page.
+
+ART DIRECTION: ${artDirection}
+
+COLOR PALETTE (stay within these exact tones — no other colors):
+${colorDesc}
+
+VIBE/MOOD: "${vibeString.slice(0, 200)}"
+
+COMPOSITION:
+- Horizontal landscape orientation
+- Rich botanical/atmospheric detail in center
+- Soft, painterly fade toward all four edges (the edges must match ${bgHex})
+- Depth: foreground elements slightly bolder, background washed/ethereal
+- No text, no faces, no people, no logos, no watermarks, no borders
+- Premium editorial quality — think Kinfolk magazine, Vogue editorial, Architectural Digest`;
+
+  const ambientPrompt = `Create a very soft, abstract atmospheric art background for a ${occ} website.
+
+BACKGROUND: Solid ${bgHex} — the art must be painted ON this color, not over it.
+
+Style: Subtle impressionistic wash — like morning light filtering through curtains
+Colors: Extremely soft — use ${bgHex} as the dominant tone with barely-there hints of ${accentHex}
+Content: Loose abstract botanical shapes, botanical brushstrokes, barely suggested flora
+Opacity feel: The art should feel like it's 15% visible — transparent-looking but without actual transparency
+Edges: Must fade completely back into ${bgHex} at all edges — no hard borders
+No text, no faces, no people, no logos, no watermarks`;
+
+  const artStripPrompt = `Create a narrow horizontal decorative art strip for a ${occ} website divider.
+
+BACKGROUND: Solid ${bgHex}
+Style: Watercolor botanical strip — delicate florals, leaves, stems arranged in a horizontal band
+Colors: ${accentHex} and soft variants, on ${bgHex} background
+Composition: Wide and narrow (aspect ratio ~8:1) — decorative horizontal band
+Left and right edges must fade completely into ${bgHex}
+No text, no people, no faces, no logos`;
+
+  async function fetchImage(prompt: string, model: string): Promise<string | undefined> {
+    try {
+      const res = await fetch(`${model}?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ['image'],
+          },
+        }),
+      });
+      if (!res.ok) {
+        console.warn(`[Site Art] Image generation returned ${res.status}`);
+        return undefined;
+      }
+      const data = await res.json();
+      const part = data.candidates?.[0]?.content?.parts?.find(
+        (p: Record<string, unknown>) => p.inlineData
+      );
+      if (!part?.inlineData?.data) return undefined;
+      return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+    } catch (err) {
+      console.warn('[Site Art] Image generation failed:', err);
+      return undefined;
+    }
+  }
+
+  // Generate all three art pieces in parallel:
+  // - Hero art: Nano Banana Pro (max quality — the showpiece)
+  // - Ambient + art strip: Nano Banana 2 (faster, good enough for subtle use)
+  const [heroArtDataUrl, ambientArtDataUrl, artStripDataUrl] = await Promise.all([
+    fetchImage(heroPrompt, NANO_BANANA_PRO),
+    fetchImage(ambientPrompt, NANO_BANANA_2),
+    fetchImage(artStripPrompt, NANO_BANANA_2),
+  ]);
+
+  console.log(
+    '[Site Art] Pass 2.5 complete —',
+    heroArtDataUrl ? 'hero art ✓' : 'hero art ✗',
+    ambientArtDataUrl ? 'ambient ✓' : 'ambient ✗',
+    artStripDataUrl ? 'art strip ✓' : 'art strip ✗'
+  );
+
+  return { heroArtDataUrl, ambientArtDataUrl, artStripDataUrl };
 }
 
 // -- Synchronous fallback for SSR/Server Components ----------------------------

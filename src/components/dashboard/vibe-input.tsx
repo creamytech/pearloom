@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane, Info } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Heart, Music, Map, Dog, Palette, Globe, Mountain, Coffee, PartyPopper, Plane, Info, ChevronDown } from 'lucide-react';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -39,6 +39,57 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
+// ── Collapsible accordion for Phase 2 details ──────────────────
+function AccordionSection({ title, icon, children, defaultOpen = true }: {
+  title: string;
+  icon?: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '1rem 1.5rem', background: 'none', border: 'none', cursor: 'pointer', gap: '0.75rem',
+          textAlign: 'left' as const,
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--eg-accent)' }}>
+          {icon && <span style={{ fontSize: '1rem' }}>{icon}</span>}
+          {title}
+        </span>
+        <motion.span
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          style={{ display: 'flex', flexShrink: 0, color: 'var(--eg-muted, #9A9488)' }}
+        >
+          <ChevronDown size={16} />
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ padding: '0 1.5rem 1.5rem' }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 interface DetailsData {
   ceremonyVenue?: string;
   ceremonyAddress?: string;
@@ -51,6 +102,21 @@ interface DetailsData {
   celebrationVenue?: string;
   celebrationTime?: string;
   guestNotes?: string;
+  // Anniversary
+  anniversaryYears?: string;
+  anniversaryMilestone?: string;
+  originalDate?: string;
+  coupleEvolution?: string;
+  // Birthday
+  birthdayAge?: string;
+  isSurprise?: boolean;
+  birthdayPassions?: string;
+  birthdayTribute?: string;
+  // Engagement
+  proposalStory?: string;
+  proposalDate?: string;
+  weddingTimeline?: string;
+  ringDetails?: string;
 }
 
 interface VibeInputProps {
@@ -75,6 +141,10 @@ interface VibeInputProps {
   }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
+}
+
+function isMilestoneBirthday(age: string | number): boolean {
+  return [18, 21, 30, 40, 50, 60, 70, 80].includes(Number(age));
 }
 
 function slugFromNames(n1: string, n2: string): string {
@@ -253,6 +323,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       ? `Favorite place aesthetics: ${placeVibes.join('; ')}.`
       : '';
 
+    // Occasion-specific context
+    let occasionContext = '';
+    if (occasion === 'anniversary') {
+      if (detailsData.anniversaryYears) {
+        occasionContext += `\nANNIVERSARY: ${detailsData.anniversaryYears} years together${detailsData.anniversaryMilestone ? `, celebrating their ${detailsData.anniversaryMilestone} anniversary` : ''}. Original date: ${detailsData.originalDate || 'cherished'}.`;
+      }
+      if (detailsData.coupleEvolution) occasionContext += `\nHOW THEY'VE GROWN: ${detailsData.coupleEvolution}`;
+    }
+    if (occasion === 'birthday') {
+      if (detailsData.birthdayAge) {
+        occasionContext += `\nBIRTHDAY: ${detailsData.birthdayAge}th birthday${isMilestoneBirthday(detailsData.birthdayAge) ? ' — MILESTONE YEAR' : ''}${detailsData.isSurprise ? ' — SECRET SURPRISE PARTY' : ''}.`;
+      }
+      if (detailsData.birthdayPassions) occasionContext += `\nTHEY LOVE: ${detailsData.birthdayPassions}`;
+      if (detailsData.birthdayTribute) occasionContext += `\nWHO THEY ARE: ${detailsData.birthdayTribute}`;
+    }
+    if (occasion === 'engagement') {
+      if (detailsData.proposalStory) occasionContext += `\nTHE PROPOSAL: ${detailsData.proposalStory}`;
+      if (detailsData.proposalDate) occasionContext += `\nPROPOSED ON: ${detailsData.proposalDate}`;
+      if (detailsData.ringDetails) occasionContext += `\nTHE RING: ${detailsData.ringDetails}`;
+      if (detailsData.weddingTimeline) occasionContext += `\nWEDDING TIMELINE: ${detailsData.weddingTimeline}`;
+    }
+
     return [
       `Occasion / Project Type: This site is for a ${selectedOccasionLabel}.`,
       `Core Vibe: ${selectedMoodLabel}.`,
@@ -265,6 +357,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       musicSong ? `"Their song" or musical vibe: ${musicSong}.` : '',
       isEvent && eventDate ? `CRITICAL LOGISTICS: The event takes place on ${eventDate} at ${eventVenue || 'a beautiful venue'}. The RSVP deadline is ${rsvpDeadline || 'soon'}. Include a beautiful formal request for RSVP.` : (!isEvent && eventDate ? `Event date: ${eventDate}.` : ''),
       cashFundUrl ? `REGISTRY: They have a cash fund or registry setup at ${cashFundUrl}. Note this somewhere near the bottom of the story.` : '',
+      occasionContext.trim(),
       'The generated site must feel deeply personal and emotionally resonant to the occasion.',
       'Make the colors, typography, and narrative flow from these exact feelings and aesthetics.',
     ].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
@@ -419,12 +512,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           {/* ── WEDDING ── */}
           {occasion === 'wedding' && (
             <>
-              {/* Ceremony block */}
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Ceremony<Tooltip text="Used to create your events page and guest directions" /></p>
+              <AccordionSection title="Ceremony" icon="💒" defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <label style={fieldLabel}>Venue name</label>
+                    <label style={fieldLabel}>Venue name<Tooltip text="Used to create your events page and guest directions" /></label>
                     <input
                       type="text"
                       placeholder="St. Mary's Church"
@@ -460,14 +551,12 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     />
                   </div>
                 </div>
-              </div>
+              </AccordionSection>
 
-              {/* Reception block */}
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Reception<Tooltip text="Used to create your events page and guest directions" /></p>
+              <AccordionSection title="Reception & Style" icon="🥂" defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <label style={fieldLabel}>Venue name</label>
+                    <label style={fieldLabel}>Venue name<Tooltip text="Used to create your events page and guest directions" /></label>
                     <input
                       type="text"
                       placeholder="The Vineyard Estate"
@@ -502,145 +591,339 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                       onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
+                  <div>
+                    <label style={fieldLabel}>Dress Code<Tooltip text="Displayed on your events page for guests" /> <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)' }}>(tap to select, tap again to clear)</span></label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginTop: '0.25rem' }}>
+                      {DRESSCODE_OPTIONS.map(code => (
+                        <button key={code} onClick={() => toggleDresscode(code)} style={pillStyle(detailsData.dresscode === code)}>
+                          {code}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Officiant name <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="Father Michael"
+                      value={detailsData.officiant ?? ''}
+                      onChange={e => setDetail('officiant', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
                 </div>
-              </div>
-
-              {/* Dress code */}
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <p style={sectionHeading}>Dress Code<Tooltip text="Displayed on your events page for guests" /> <span style={{ fontWeight: 400, fontSize: '0.75rem', textTransform: 'none', letterSpacing: 0, color: 'var(--eg-muted)' }}>(tap to select, tap again to clear)</span></p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
-                  {DRESSCODE_OPTIONS.map(code => (
-                    <button key={code} onClick={() => toggleDresscode(code)} style={pillStyle(detailsData.dresscode === code)}>
-                      {code}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Officiant */}
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Officiant name <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <input
-                  type="text"
-                  placeholder="Father Michael"
-                  value={detailsData.officiant ?? ''}
-                  onChange={e => setDetail('officiant', e.target.value)}
-                  style={detailInputStyle}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </div>
+              </AccordionSection>
             </>
           )}
 
           {/* ── ANNIVERSARY ── */}
           {occasion === 'anniversary' && (
             <>
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <input
-                  type="text"
-                  placeholder="The Grand Hotel Rooftop"
-                  value={detailsData.celebrationVenue ?? ''}
-                  onChange={e => setDetail('celebrationVenue', e.target.value)}
-                  style={detailInputStyle}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </div>
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Any notes for guests <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <textarea
-                  placeholder="Parking is available on the street. Attire is cocktail casual."
-                  value={detailsData.guestNotes ?? ''}
-                  onChange={e => setDetail('guestNotes', e.target.value.slice(0, 200))}
-                  maxLength={200}
-                  style={{ ...detailInputStyle, minHeight: '90px', resize: 'none', lineHeight: 1.5 }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-                <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.guestNotes ?? '').length}/200</p>
-              </div>
+              <AccordionSection title="Your milestone" icon="🥂" defaultOpen={true}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={fieldLabel}>How many years together? <Tooltip text="Helps us set the right tone for your milestone" /></label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      placeholder="e.g. 10"
+                      value={detailsData.anniversaryYears ?? ''}
+                      onChange={e => setDetail('anniversaryYears', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    {detailsData.anniversaryYears && [5, 10, 15, 20, 25, 30, 40, 50].includes(Number(detailsData.anniversaryYears)) && (
+                      <p style={{ fontSize: '0.82rem', color: 'var(--eg-accent)', marginTop: '0.4rem', fontWeight: 600 }}>
+                        ✨ Milestone anniversary!
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Milestone year? <Tooltip text="Helps us create a fitting visual identity" /></label>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                      {['1st', '5th', '10th', '15th', '20th', '25th', '30th', '40th', '50th', 'Just celebrating'].map(m => (
+                        <button
+                          key={m}
+                          onClick={() => setDetailsData(prev => ({ ...prev, anniversaryMilestone: prev.anniversaryMilestone === m ? undefined : m }))}
+                          style={pillStyle(detailsData.anniversaryMilestone === m)}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Original wedding / anniversary date <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="date"
+                      value={detailsData.originalDate ?? ''}
+                      onChange={e => setDetail('originalDate', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>What&apos;s something that has changed about you as a couple? <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <textarea
+                      placeholder="e.g. We moved countries, had kids, survived hard times together..."
+                      value={detailsData.coupleEvolution ?? ''}
+                      onChange={e => setDetail('coupleEvolution', e.target.value.slice(0, 300))}
+                      maxLength={300}
+                      style={{ ...detailInputStyle, minHeight: '90px', resize: 'none', lineHeight: 1.5 }}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.coupleEvolution ?? '').length}/300</p>
+                  </div>
+                </div>
+              </AccordionSection>
+
+              <AccordionSection title="Celebration details" icon="📍" defaultOpen={false}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="The Grand Hotel Rooftop"
+                      value={detailsData.celebrationVenue ?? ''}
+                      onChange={e => setDetail('celebrationVenue', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Any notes for guests <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <textarea
+                      placeholder="Parking is available on the street. Attire is cocktail casual."
+                      value={detailsData.guestNotes ?? ''}
+                      onChange={e => setDetail('guestNotes', e.target.value.slice(0, 200))}
+                      maxLength={200}
+                      style={{ ...detailInputStyle, minHeight: '90px', resize: 'none', lineHeight: 1.5 }}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.guestNotes ?? '').length}/200</p>
+                  </div>
+                </div>
+              </AccordionSection>
             </>
           )}
 
           {/* ── BIRTHDAY ── */}
           {occasion === 'birthday' && (
             <>
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Venue / location <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <input
-                  type="text"
-                  placeholder="The Rooftop Garden"
-                  value={detailsData.celebrationVenue ?? ''}
-                  onChange={e => setDetail('celebrationVenue', e.target.value)}
-                  style={detailInputStyle}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </div>
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Start time <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <input
-                  type="text"
-                  placeholder="7:00 PM"
-                  value={detailsData.celebrationTime ?? ''}
-                  onChange={e => setDetail('celebrationTime', e.target.value)}
-                  style={detailInputStyle}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </div>
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Notes for guests <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <textarea
-                  placeholder="Dress to impress. Valet parking available."
-                  value={detailsData.guestNotes ?? ''}
-                  onChange={e => setDetail('guestNotes', e.target.value.slice(0, 200))}
-                  maxLength={200}
-                  style={{ ...detailInputStyle, minHeight: '90px', resize: 'none', lineHeight: 1.5 }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-                <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.guestNotes ?? '').length}/200</p>
-              </div>
+              <AccordionSection title="About them" icon="🎂" defaultOpen={true}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={fieldLabel}>How old are they turning? <Tooltip text="Age shapes the tone and narrative of the whole site" /></label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={120}
+                      placeholder="e.g. 30"
+                      value={detailsData.birthdayAge ?? ''}
+                      onChange={e => setDetail('birthdayAge', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    {detailsData.birthdayAge && isMilestoneBirthday(detailsData.birthdayAge) && (
+                      <p style={{ fontSize: '0.82rem', color: 'var(--eg-accent)', marginTop: '0.4rem', fontWeight: 600 }}>
+                        ✨ Milestone birthday!
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Is this a surprise?</label>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                      <button
+                        onClick={() => setDetailsData(prev => ({ ...prev, isSurprise: true }))}
+                        style={pillStyle(detailsData.isSurprise === true)}
+                      >
+                        🤫 Yes, keep it secret
+                      </button>
+                      <button
+                        onClick={() => setDetailsData(prev => ({ ...prev, isSurprise: false }))}
+                        style={pillStyle(detailsData.isSurprise === false)}
+                      >
+                        🎉 They know!
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>What are 3 things they absolutely love? <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="e.g. hiking, jazz music, her dog Bruno..."
+                      value={detailsData.birthdayPassions ?? ''}
+                      onChange={e => setDetail('birthdayPassions', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>What do you want guests to know about them? <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <textarea
+                      placeholder="A tribute sentence or two about who this person is..."
+                      value={detailsData.birthdayTribute ?? ''}
+                      onChange={e => setDetail('birthdayTribute', e.target.value.slice(0, 300))}
+                      maxLength={300}
+                      style={{ ...detailInputStyle, minHeight: '90px', resize: 'none', lineHeight: 1.5 }}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.birthdayTribute ?? '').length}/300</p>
+                  </div>
+                </div>
+              </AccordionSection>
+
+              <AccordionSection title="Event details" icon="📍" defaultOpen={false}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={fieldLabel}>Venue / location <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="The Rooftop Garden"
+                      value={detailsData.celebrationVenue ?? ''}
+                      onChange={e => setDetail('celebrationVenue', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Start time <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="7:00 PM"
+                      value={detailsData.celebrationTime ?? ''}
+                      onChange={e => setDetail('celebrationTime', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Notes for guests <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <textarea
+                      placeholder="Dress to impress. Valet parking available."
+                      value={detailsData.guestNotes ?? ''}
+                      onChange={e => setDetail('guestNotes', e.target.value.slice(0, 200))}
+                      maxLength={200}
+                      style={{ ...detailInputStyle, minHeight: '90px', resize: 'none', lineHeight: 1.5 }}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.guestNotes ?? '').length}/200</p>
+                  </div>
+                </div>
+              </AccordionSection>
             </>
           )}
 
           {/* ── ENGAGEMENT ── */}
           {occasion === 'engagement' && (
             <>
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <input
-                  type="text"
-                  placeholder="Lola's Wine Bar"
-                  value={detailsData.celebrationVenue ?? ''}
-                  onChange={e => setDetail('celebrationVenue', e.target.value)}
-                  style={detailInputStyle}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </div>
-              <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                <label style={fieldLabel}>Start time <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <input
-                  type="text"
-                  placeholder="7:30 PM"
-                  value={detailsData.celebrationTime ?? ''}
-                  onChange={e => setDetail('celebrationTime', e.target.value)}
-                  style={detailInputStyle}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </div>
+              <AccordionSection title="The proposal" icon="💍" defaultOpen={true}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={fieldLabel}>Tell us about the proposal 💍 <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <textarea
+                      placeholder="Where were you? How did it happen? What was said?..."
+                      value={detailsData.proposalStory ?? ''}
+                      onChange={e => setDetail('proposalStory', e.target.value.slice(0, 500))}
+                      maxLength={500}
+                      style={{ ...detailInputStyle, minHeight: '110px', resize: 'none', lineHeight: 1.5 }}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                    <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.proposalStory ?? '').length}/500</p>
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>When did it happen? <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="date"
+                      value={detailsData.proposalDate ?? ''}
+                      onChange={e => setDetail('proposalDate', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Ring details <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="e.g. vintage oval sapphire, her grandmother's ring..."
+                      value={detailsData.ringDetails ?? ''}
+                      onChange={e => setDetail('ringDetails', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                </div>
+              </AccordionSection>
+
+              <AccordionSection title="Looking ahead" icon="✨" defaultOpen={false}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={fieldLabel}>Wedding timeline <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <select
+                      value={detailsData.weddingTimeline ?? ''}
+                      onChange={e => setDetail('weddingTimeline', e.target.value)}
+                      style={{ ...detailInputStyle, appearance: 'auto' }}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    >
+                      <option value="">Not decided yet</option>
+                      <option value="3months">Within 3 months</option>
+                      <option value="6months">3–6 months away</option>
+                      <option value="1year">About a year away</option>
+                      <option value="2years">1–2 years away</option>
+                      <option value="longengagement">Long engagement</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="Lola's Wine Bar"
+                      value={detailsData.celebrationVenue ?? ''}
+                      onChange={e => setDetail('celebrationVenue', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <label style={fieldLabel}>Start time <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <input
+                      type="text"
+                      placeholder="7:30 PM"
+                      value={detailsData.celebrationTime ?? ''}
+                      onChange={e => setDetail('celebrationTime', e.target.value)}
+                      style={detailInputStyle}
+                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+                </div>
+              </AccordionSection>
             </>
           )}
 
-          {/* ── STORY ── */}
+          {/* ── STORY / JUST BECAUSE ── */}
           {occasion === 'story' && (
             <div style={{ background: '#fff', borderRadius: '1rem', padding: '2rem', border: '1px solid rgba(0,0,0,0.06)', textAlign: 'center', color: 'var(--eg-muted)', lineHeight: 1.6 }}>
-              No details needed. We&apos;ll build from your photos and vibe.
+              No extra details needed. We&apos;ll build entirely from your photos and vibe — just hit &ldquo;Build my site&rdquo; below.
             </div>
           )}
         </div>

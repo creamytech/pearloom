@@ -13,6 +13,77 @@ import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent } from '@/types';
 
+function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean) {
+  const base = [
+    { id: 'hero', type: 'hero', visible: true, order: 0 },
+    { id: 'story', type: 'story', visible: true, order: 1 },
+  ];
+
+  if (occasion === 'wedding') {
+    return [...base,
+      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
+      { id: 'countdown', type: 'countdown', visible: hasDate && hasEvents, order: 3 },
+      { id: 'rsvp', type: 'rsvp', visible: true, order: 4 },
+      { id: 'travel', type: 'travel', visible: hasEvents, order: 5 },
+      { id: 'registry', type: 'registry', visible: false, order: 6 },
+      { id: 'faq', type: 'faq', visible: hasEvents, order: 7 },
+      { id: 'photos', type: 'photos', visible: false, order: 8 },
+      { id: 'guestbook', type: 'guestbook', visible: false, order: 9 },
+    ];
+  }
+
+  if (occasion === 'anniversary') {
+    return [...base,
+      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
+      { id: 'photos', type: 'photos', visible: true, order: 3 },
+      { id: 'guestbook', type: 'guestbook', visible: true, order: 4 },
+      { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
+      { id: 'countdown', type: 'countdown', visible: hasDate, order: 6 },
+      { id: 'registry', type: 'registry', visible: false, order: 7 },
+      { id: 'travel', type: 'travel', visible: false, order: 8 },
+      { id: 'faq', type: 'faq', visible: false, order: 9 },
+    ];
+  }
+
+  if (occasion === 'birthday') {
+    return [...base,
+      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
+      { id: 'guestbook', type: 'guestbook', visible: true, order: 3 },
+      { id: 'photos', type: 'photos', visible: true, order: 4 },
+      { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
+      { id: 'countdown', type: 'countdown', visible: hasDate, order: 6 },
+      { id: 'registry', type: 'registry', visible: false, order: 7 },
+      { id: 'travel', type: 'travel', visible: false, order: 8 },
+      { id: 'faq', type: 'faq', visible: false, order: 9 },
+    ];
+  }
+
+  if (occasion === 'engagement') {
+    return [...base,
+      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
+      { id: 'countdown', type: 'countdown', visible: hasDate, order: 3 },
+      { id: 'photos', type: 'photos', visible: true, order: 4 },
+      { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
+      { id: 'guestbook', type: 'guestbook', visible: false, order: 6 },
+      { id: 'registry', type: 'registry', visible: false, order: 7 },
+      { id: 'travel', type: 'travel', visible: false, order: 8 },
+      { id: 'faq', type: 'faq', visible: false, order: 9 },
+    ];
+  }
+
+  // story / just-because
+  return [...base,
+    { id: 'photos', type: 'photos', visible: true, order: 2 },
+    { id: 'guestbook', type: 'guestbook', visible: true, order: 3 },
+    { id: 'event', type: 'event', visible: hasEvents, order: 4 },
+    { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
+    { id: 'countdown', type: 'countdown', visible: false, order: 6 },
+    { id: 'registry', type: 'registry', visible: false, order: 7 },
+    { id: 'travel', type: 'travel', visible: false, order: 8 },
+    { id: 'faq', type: 'faq', visible: false, order: 9 },
+  ];
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
@@ -185,30 +256,10 @@ export async function POST(req: NextRequest) {
       manifest.events = events;
     }
 
-    // ── Initialize blocks: only show what the user has actually provided.
-    // Hero + Story are always shown. Events/countdown are shown if venue data was entered.
-    // RSVP, registry, travel, FAQ, guestbook are NOT shown until explicitly enabled in editor.
+    // ── Initialize blocks: occasion-aware defaults.
+    // Hero + Story are always shown. Remaining blocks are shown/hidden based on occasion.
     {
-      let order = 0;
-      const blocks: Array<{ id: string; type: string; order: number; visible: boolean }> = [
-        { id: 'hero',  type: 'hero',  order: order++, visible: true },
-        { id: 'story', type: 'story', order: order++, visible: true },
-      ];
-      // Only add events block if the user actually provided venue/time details
-      if (events.length > 0) {
-        blocks.push({ id: 'event', type: 'event', order: order++, visible: true });
-        // Countdown only if there's a date
-        if (eventDate) {
-          blocks.push({ id: 'countdown', type: 'countdown', order: order++, visible: true });
-        }
-      }
-      // RSVP, registry, travel, FAQ, guestbook — hidden by default, user unlocks in editor
-      blocks.push({ id: 'rsvp',      type: 'rsvp',      order: order++, visible: false });
-      blocks.push({ id: 'registry',  type: 'registry',  order: order++, visible: false });
-      blocks.push({ id: 'travel',    type: 'travel',    order: order++, visible: false });
-      blocks.push({ id: 'faq',       type: 'faq',       order: order++, visible: false });
-      blocks.push({ id: 'photos',    type: 'photos',    order: order++, visible: false });
-      blocks.push({ id: 'guestbook', type: 'guestbook', order: order++, visible: false });
+      const blocks = getDefaultBlocks(occasion ?? 'story', events.length > 0, !!eventDate);
       manifest.blocks = blocks as typeof manifest.blocks;
     }
 
