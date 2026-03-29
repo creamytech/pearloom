@@ -244,10 +244,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
   // ── Seat drop (guest assignment) ───────────────────────────
   const handleSeatDrop = useCallback(async (seatId: string, guestId: string) => {
     // Optimistic update
-    setTables(prev => {
-      pushHistory(prev);
-      return prev;
-    });
+    pushHistory(tablesRef.current);
     setTables(prev => prev.map(t => ({
       ...t,
       seats: (t.seats ?? []).map(s =>
@@ -266,7 +263,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
     } catch (err) {
       console.error('Failed to assign guest:', err);
     }
-  }, [guests]);
+  }, [guests, pushHistory]);
 
   // ── Unassign all from table ─────────────────────────────────
   const handleUnassignAll = useCallback(async (tableId: string) => {
@@ -307,7 +304,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
 
   // ── Delete table ────────────────────────────────────────────
   const handleTableDelete = useCallback(async (tableId: string) => {
-    setTables(prev => { pushHistory(prev); return prev; });
+    pushHistory(tablesRef.current);
     setTables(prev => prev.filter(t => t.id !== tableId));
     setSelectedTableId(undefined);
     try {

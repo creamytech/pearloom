@@ -629,10 +629,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                           </div>
                         )}
                         {guest.message && (
-                          <div style={{ flex: 1 }}>
-                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--eg-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Message</span>
-                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', fontStyle: 'italic', color: 'var(--eg-muted)' }}>
-                              &ldquo;{guest.message}&rdquo;
+                          <div style={{ marginTop: '0.5rem' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.5 }}>
+                              Message
+                            </span>
+                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', fontStyle: 'italic', color: 'var(--eg-fg)', lineHeight: 1.5 }}>
+                              "{guest.message}"
                             </p>
                           </div>
                         )}

@@ -573,11 +573,20 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
                       {/* Analytics */}
                       {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
-                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.85rem' }}>
-                          <span>👁</span>
+                        <div style={{
+                          fontSize: '0.7rem', color: 'rgba(0,0,0,0.4)',
+                          display: 'flex', alignItems: 'center', gap: '0.3rem',
+                          marginTop: '0.25rem',
+                        }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
                           <span>{site.manifest.analytics.views.toLocaleString()} view{site.manifest.analytics.views !== 1 ? 's' : ''}</span>
                           {site.manifest.analytics.lastViewed && (
-                            <span style={{ opacity: 0.6 }}>· last {new Date(site.manifest.analytics.lastViewed).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            <span style={{ opacity: 0.6 }}>
+                              · {new Date(site.manifest.analytics.lastViewed).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
                           )}
                         </div>
                       )}
