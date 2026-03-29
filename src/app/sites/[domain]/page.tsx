@@ -337,7 +337,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         );
       }
       case 'text': {
-        const textContent = blockCfg.content as string | undefined;
+        // Accept both 'content' (legacy) and 'text' (CanvasEditor saves as 'text')
+        const textContent = (blockCfg.content || blockCfg.text) as string | undefined;
         if (!textContent) return null;
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '800px', margin: '0 auto' }}>
@@ -348,7 +349,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         );
       }
       case 'quote': {
-        const customQuote = blockCfg.quote as string | undefined;
+        // Accept 'quote' (legacy) and 'text' (CanvasEditor saves as 'text')
+        const customQuote = (blockCfg.quote || blockCfg.text) as string | undefined;
         const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.';
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
@@ -362,7 +364,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'video': {
         const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
         return (
-          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: 'clamp(2rem, 5vw, 5rem)', paddingBottom: 'clamp(2rem, 5vw, 5rem)', paddingLeft: 'clamp(1rem, 4vw, 2rem)', paddingRight: 'clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
               {videoEmbedUrl ? (
                 <iframe
@@ -384,7 +386,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'map': {
         const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
         return (
-          <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+          <section key={key} style={{ paddingTop: 'clamp(2rem, 5vw, 5rem)', paddingBottom: 'clamp(2rem, 5vw, 5rem)', paddingLeft: 'clamp(1rem, 4vw, 2rem)', paddingRight: 'clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', background: cardBg, border: `1px solid ${pal.muted}30` }}>
               {mapAddress ? (
                 <iframe
@@ -408,6 +410,12 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '0.6rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
+                {(vibeSkin.sectionLabels as Record<string, string>)?.photos || 'Our Photos'}
+              </div>
+              <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
+            </div>
             {allPhotos.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
                 {allPhotos.map((img: { url: string; alt?: string }, i: number) => (
@@ -418,10 +426,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '0.75rem' }}>Our Photos</div>
-                <p style={{ color: pal.muted, fontSize: '0.9rem' }}>Photos will appear here once added.</p>
-              </div>
+              <p style={{ textAlign: 'center', color: pal.muted, fontSize: '0.9rem' }}>Photos will appear here once added.</p>
             )}
             {/* Wedding day guest photo feed — shown on/after wedding date */}
             {manifest.logistics?.date && (

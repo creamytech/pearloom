@@ -557,9 +557,14 @@ export async function extractCoupleProfile(
   vibeString: string,
   chapters: Array<{ title: string; description: string; mood: string }>,
   apiKey: string,
-  occasion?: string
+  occasion?: string,
+  clusterNotes?: Array<{ note: string; location: string | null }>
 ): Promise<CoupleProfile> {
   const storyText = chapters.map(c => `"${c.title}": ${c.description}`).join('\n');
+  const notesText = clusterNotes && clusterNotes.length > 0
+    ? '\n\nUSER PHOTO NOTES (personal details the user added — highest priority for extraction):\n' +
+      clusterNotes.map((cn, i) => `- ${cn.location ? `[${cn.location}] ` : ''}${cn.note}`).join('\n')
+    : '';
 
   const occasionDNAHints: Record<string, string> = {
     wedding: `Also extract: ceremony location, proposal location if mentioned, honeymoon destination if mentioned.`,
@@ -576,7 +581,7 @@ VIBE:
 ${vibeString}
 
 STORY CHAPTERS:
-${storyText}
+${storyText}${notesText}
 
 OCCASION-SPECIFIC EXTRACTION NOTES: ${dnaHint}
 

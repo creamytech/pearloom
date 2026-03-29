@@ -337,11 +337,13 @@ export async function generateStoryManifest(
     // Pass 1.2: Chapter quality gate (Flash — scoring/judgment)
     critiqueAndRefineChapters(chaptersSnapshot, vibeString, coupleNames, apiKey, occasion, clusterNotes),
     // Pass 1.5: Couple DNA extraction (Lite — lightweight)
+    // Include clusterNotes so user-entered traits (e.g. "loves horses") flow into the illustration prompt
     extractCoupleProfile(
       vibeString,
       chaptersSnapshot.map(c => ({ title: c.title, description: c.description, mood: c.mood })),
       apiKey,
-      occasion
+      occasion,
+      clusterNotes
     ),
     // Pass 4: Poetry (Flash — only needs chapters + vibe, no design context needed)
     generatePoetryPass(manifest.vibeString, coupleNames, chaptersSnapshot, apiKey, occasion),
