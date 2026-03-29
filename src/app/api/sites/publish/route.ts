@@ -97,6 +97,16 @@ export async function POST(req: NextRequest) {
     if (cleanSubdomain.length < 3) {
       return NextResponse.json({ error: 'Subdomain must be at least 3 characters' }, { status: 400 });
     }
+    if (cleanSubdomain.length > 63) {
+      return NextResponse.json({ error: 'Subdomain too long (max 63 characters)' }, { status: 400 });
+    }
+    if (/^-|-$/.test(cleanSubdomain)) {
+      return NextResponse.json({ error: 'Subdomain cannot start or end with a hyphen' }, { status: 400 });
+    }
+    const RESERVED = new Set(['api', 'admin', 'www', 'mail', 'ftp', 'support', 'billing', 'app', 'dashboard', 'editor', 'preview', 'sites', 'status', 'health']);
+    if (RESERVED.has(cleanSubdomain)) {
+      return NextResponse.json({ error: 'That subdomain is reserved. Please choose another.' }, { status: 400 });
+    }
 
     // Mirror Google Photos â†’ Supabase Storage before persisting
     let persistManifest: StoryManifest = manifest;
