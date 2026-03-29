@@ -138,6 +138,10 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
     await new Promise(r => setTimeout(r, 400));
     if (password === config.password) {
       setPwStatus('idle');
+      // Persist unlock to sessionStorage so PasswordGate doesn't re-show on reload
+      if (siteId) {
+        try { sessionStorage.setItem(`pg-unlocked-${siteId}`, '1'); } catch {}
+      }
       onUnlock?.();
     } else {
       setPwStatus('error');

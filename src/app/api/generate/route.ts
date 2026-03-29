@@ -145,6 +145,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
+  if ((session as { error?: string }).error === 'RefreshAccessTokenError') {
+    return NextResponse.json(
+      { error: 'Your Google session has expired. Please sign out and sign back in.' },
+      { status: 401 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(

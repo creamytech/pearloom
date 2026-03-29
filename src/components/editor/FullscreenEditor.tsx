@@ -1848,6 +1848,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [device, setDevice] = useState<DeviceMode>('desktop');
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [rewritingId, setRewritingId] = useState<string | null>(null);
+  const [rewriteError, setRewriteError] = useState<string | null>(null);
   const [iframeReady, setIframeReady] = useState(false);
   const [previewSlow, setPreviewSlow] = useState(false);
   const [previewKey] = useState(() => `${PREVIEW_KEY}-${Date.now()}`);
@@ -2303,9 +2304,19 @@ Return JSON with: title, subtitle, description, mood`,
             description: block.description || ch.description,
             mood: block.mood || ch.mood,
           });
+        } else {
+          setRewriteError('Rewrite returned no content — try again');
+          setTimeout(() => setRewriteError(null), 4000);
         }
+      } else {
+        setRewriteError('Rewrite failed — please try again');
+        setTimeout(() => setRewriteError(null), 4000);
       }
-    } catch (e) { console.error('AI rewrite failed:', e); }
+    } catch (e) {
+      console.error('AI rewrite failed:', e);
+      setRewriteError('Rewrite failed — please try again');
+      setTimeout(() => setRewriteError(null), 4000);
+    }
     finally { setRewritingId(null); }
   }, [chapters, manifest, updateChapter]);
 
@@ -3113,6 +3124,36 @@ Return JSON with: title, subtitle, description, mood`,
             <span style={{ fontSize: '14px' }}>👆</span>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' }}>
               Click any section in the preview to jump to it
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── AI rewrite error toast ── */}
+      <AnimatePresence>
+        {rewriteError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'fixed', bottom: '80px', left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1500, pointerEvents: 'none',
+              background: 'rgba(40,10,10,0.92)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(248,113,113,0.35)',
+              borderRadius: '100px',
+              padding: '8px 18px',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            } as React.CSSProperties}
+          >
+            <span style={{ fontSize: '14px' }}>⚠</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(248,113,113,0.9)', whiteSpace: 'nowrap' }}>
+              {rewriteError}
             </span>
           </motion.div>
         )}
