@@ -57,8 +57,16 @@ function PageIcon({ slug, size = 18 }: { slug: string; size?: number }) {
 export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
   const [scrollY, setScrollY] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const pathname = usePathname();
   const prevScrollY = useRef(0);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // Scroll progress bar
   const { scrollYProgress } = useScroll();
@@ -195,28 +203,72 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
             )}
           </Link>
 
+          {/* ── Desktop inline nav links (≥1024px, guest-facing sites only) ── */}
+          {isDesktop && !isStudio && (
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flex: 1, justifyContent: 'center' }}>
+              {enabledPages.map((page) => {
+                const active = isActive(page.slug);
+                return (
+                  <Link
+                    key={page.id}
+                    href={getHref(page.slug)}
+                    style={{
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '2rem',
+                      fontSize: '0.88rem',
+                      fontWeight: active ? 600 : 450,
+                      fontFamily: 'var(--eg-font-body)',
+                      color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                      textDecoration: 'none',
+                      background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
+                      border: active ? '1px solid rgba(163,177,138,0.25)' : '1px solid transparent',
+                      transition: 'all 0.18s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseOver={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--eg-fg)';
+                      }
+                    }}
+                    onMouseOut={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = 'transparent';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--eg-muted)';
+                      }
+                    }}
+                  >
+                    {page.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
+
           {/* ── Right: User nav + hamburger menu ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {user && (
               <UserNav user={user} onDashboard={onGoToDashboard} />
             )}
-            {/* Hamburger — always visible on both mobile and desktop */}
-            <button
-              onClick={() => setDrawerOpen(!drawerOpen)}
-              aria-label="Open navigation menu"
-              aria-expanded={drawerOpen}
-              style={{
-                padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
-                border: 'none', background: 'transparent',
-                color: 'var(--eg-fg)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.2s ease',
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              {drawerOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
+            {/* Hamburger — hidden on desktop for guest sites, always shown for studio */}
+            {(!isDesktop || isStudio) && (
+              <button
+                onClick={() => setDrawerOpen(!drawerOpen)}
+                aria-label="Open navigation menu"
+                aria-expanded={drawerOpen}
+                style={{
+                  padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
+                  border: 'none', background: 'transparent',
+                  color: 'var(--eg-fg)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'background 0.2s ease',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                {drawerOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            )}
           </div>
         </div>
       </motion.nav>
@@ -371,7 +423,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                           position: 'relative',
                           transition: 'background 0.15s ease, color 0.15s ease',
                           background: active ? 'rgba(163,177,138,0.08)' : 'transparent',
-                          borderLeft: active ? '3px solid #A3B18A' : '3px solid transparent',
+                          borderLeft: active ? '3px solid var(--eg-accent, #A3B18A)' : '3px solid transparent',
                         }}
                         onMouseOver={(e) => {
                           if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)';
@@ -426,11 +478,11 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                   </motion.div>
                 )}
                 <p style={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.72rem',
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
                   color: 'var(--eg-muted)',
-                  opacity: 0.5,
+                  opacity: 0.7,
                   margin: 0,
                 }}>
                   Powered by Pearloom

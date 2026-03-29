@@ -53,9 +53,9 @@ type DeviceMode = 'desktop' | 'tablet' | 'mobile';
 type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas';
 
 const DEVICE_DIMS: Record<DeviceMode, { width: string; label: string; icon: React.ElementType }> = {
-  desktop: { width: '100%',    label: 'Desktop', icon: Monitor },
-  tablet:  { width: '768px',   label: 'Tablet',  icon: Tablet  },
-  mobile:  { width: '390px',   label: 'Mobile',  icon: Smartphone },
+  desktop: { width: '100%',    label: 'Desktop (1280px)', icon: Monitor },
+  tablet:  { width: '768px',   label: 'Tablet (768px)',   icon: Tablet  },
+  mobile:  { width: '390px',   label: 'Mobile (390px)',   icon: Smartphone },
 };
 
 const LAYOUT_OPTS = ['editorial', 'fullbleed', 'split', 'cinematic', 'gallery', 'mosaic'] as const;
@@ -259,8 +259,8 @@ function SectionItem({
           borderRadius: '10px',
           background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.04)',
           border: '1px solid transparent',
-          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '3px solid transparent',
-          transition: 'all 0.15s',
+          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '3px solid rgba(163,177,138,0.12)',
+          transition: 'background 0.2s, border-left-color 0.2s',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -273,7 +273,7 @@ function SectionItem({
         onMouseOut={e => {
           if (!isActive) {
             (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-            (e.currentTarget as HTMLElement).style.borderLeftColor = 'transparent';
+            (e.currentTarget as HTMLElement).style.borderLeftColor = 'rgba(163,177,138,0.12)';
           }
         }}
       >
@@ -338,11 +338,11 @@ function SectionItem({
             onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
             style={{
               padding: '5px', borderRadius: '5px', border: 'none',
-              background: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
+              background: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
               display: 'flex', flexShrink: 0, transition: 'color 0.15s, background 0.15s',
             }}
             onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; (e.currentTarget as HTMLElement).style.background = 'rgba(248,113,113,0.1)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; (e.currentTarget as HTMLElement).style.background = 'none'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; (e.currentTarget as HTMLElement).style.background = 'none'; }}
           >
             <Trash2 size={12} />
           </button>
@@ -380,6 +380,7 @@ function ImageManager({
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [generatingCaptions, setGeneratingCaptions] = useState(false);
   const [captionSuccess, setCaptionSuccess] = useState(false);
   const [captionError, setCaptionError] = useState<string | null>(null);
@@ -474,6 +475,23 @@ function ImageManager({
       />
 
       {/* Photo grid */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragging(false);
+          const files = e.dataTransfer.files;
+          if (files.length > 0) handleFileUpload(files);
+        }}
+        style={{
+          borderRadius: '10px',
+          border: isDragging ? '2px dashed rgba(163,177,138,0.7)' : '2px dashed transparent',
+          background: isDragging ? 'rgba(163,177,138,0.08)' : 'transparent',
+          transition: 'border-color 0.2s, background 0.2s',
+          padding: isDragging ? '4px' : '0',
+        }}
+      >
       {images.length === 0 ? (
         <button
           onClick={() => fileInputRef.current?.click()}
@@ -553,6 +571,7 @@ function ImageManager({
           </button>
         </div>
       )}
+      </div>
 
       {/* Generate Captions button */}
       {images.length > 0 && (
@@ -1699,9 +1718,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   );
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tabScrollPositions = useRef<Record<string, number>>({});
+  const contentPanelRef = useRef<HTMLDivElement>(null);
   // ── Unsaved changes indicator ──
   const [saveState, setSaveState] = useState<'saved' | 'unsaved'>('saved');
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
   // ── Undo/Redo history ──
   const historyRef = useRef<StoryManifest[]>([manifest]);
   const historyIndexRef = useRef(0);
@@ -1798,6 +1820,18 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     return () => window.removeEventListener('keydown', handler);
   }, [undo, redo]);
 
+  // ── Warn before tab close when there are unsaved changes ──
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   // Publish modal state
   const [showPublish, setShowPublish] = useState(false);
   const [subdomain, setSubdomain] = useState(initialSubdomain || '');
@@ -1824,6 +1858,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
       setPublishedUrl(data.url);
       setSaveState('saved');
+      setIsDirty(false);
       onPublish?.();
     } catch (err) {
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
@@ -1838,6 +1873,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const pushToPreview = useCallback((m: StoryManifest) => {
     // Mark unsaved
     setSaveState('unsaved');
+    setIsDirty(true);
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -1961,9 +1997,21 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     syncManifest(next);
   }, [chapters, syncManifest]);
 
+  const handleTabChange = useCallback((newTab: EditorTab) => {
+    if (contentPanelRef.current) {
+      tabScrollPositions.current[activeTab] = contentPanelRef.current.scrollTop;
+    }
+    setActiveTab(newTab);
+    setTimeout(() => {
+      if (contentPanelRef.current) {
+        contentPanelRef.current.scrollTop = tabScrollPositions.current[newTab] || 0;
+      }
+    }, 0);
+  }, [activeTab]);
+
   const handleCommandAction = useCallback((action: CommandAction) => {
     switch (action.type) {
-      case 'tab':    setActiveTab(action.tab); break;
+      case 'tab':    handleTabChange(action.tab); break;
       case 'device': setDevice(action.mode); break;
       case 'chapter': setActiveId(action.id); setActiveTab('story'); break;
       case 'add-chapter': addChapter(); break;
@@ -1976,7 +2024,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       case 'redo': redo(); break;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addChapter, setActiveTab, setDevice, setActiveId, manifest, coupleNames, previewKey, undo, redo]);
+  }, [addChapter, handleTabChange, setActiveTab, setDevice, setActiveId, manifest, coupleNames, previewKey, undo, redo]);
 
   const handleReorder = useCallback((newOrder: Chapter[]) => {
     setChapters(newOrder);
@@ -2297,11 +2345,12 @@ Return JSON with: title, subtitle, description, mood`,
         {!isMobile && (
           <EditorSidebar
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
             width={sidebarWidth}
             onWidthChange={setSidebarWidth}
             collapsed={sidebarCollapsed}
             onCollapsedChange={setSidebarCollapsed}
+            contentRef={contentPanelRef}
             footer={
               <div style={{ padding: '10px 12px', display: 'flex', gap: '8px' }}>
                 {/* Preview Site — outline */}

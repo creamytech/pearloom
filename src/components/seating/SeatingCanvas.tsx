@@ -424,9 +424,22 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
           <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
 
           {/* Stats */}
-          <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}>
-            {tables.length} {tables.length === 1 ? 'table' : 'tables'} · {totalSeats} seats · {assignedSeats} assigned
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}>
+              {tables.length} {tables.length === 1 ? 'table' : 'tables'} · {totalSeats} seats · {assignedSeats} assigned
+            </span>
+            {totalSeats > 0 && (
+              <div style={{ marginTop: '4px', height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${Math.round((assignedSeats / totalSeats) * 100)}%`,
+                  background: 'rgba(163,177,138,0.8)',
+                  borderRadius: '100px',
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+            )}
+          </div>
 
           {saving && (
             <span style={{ fontSize: '0.72rem', color: 'var(--eg-accent)', fontFamily: 'var(--eg-font-body)', marginLeft: 'auto' }}>
@@ -532,14 +545,43 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             {!loading && tables.length === 0 && (
               <div style={{
                 position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: '1rem', pointerEvents: 'none',
+                alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
               }}>
-                <p style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem' }}>
+                <p style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', margin: 0 }}>
                   Your canvas is empty
                 </p>
-                <p style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--eg-font-body)', fontSize: '0.82rem' }}>
-                  Click "Add Table" in the toolbar to get started
+                <p style={{ color: 'rgba(255,255,255,0.18)', fontFamily: 'var(--eg-font-body)', fontSize: '0.82rem', margin: 0 }}>
+                  Add your first table to start building your seating layout.
                 </p>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowAddMenu(true); }}
+                  style={{
+                    marginTop: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.55rem 1.25rem',
+                    borderRadius: '0.75rem',
+                    border: '1.5px solid rgba(163,177,138,0.45)',
+                    background: 'rgba(163,177,138,0.1)',
+                    color: 'rgba(163,177,138,0.85)',
+                    fontSize: '0.82rem',
+                    fontFamily: 'var(--eg-font-body)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(163,177,138,0.18)';
+                    e.currentTarget.style.borderColor = 'rgba(163,177,138,0.7)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(163,177,138,0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(163,177,138,0.45)';
+                  }}
+                >
+                  <Plus size={13} />
+                  Add your first table
+                </button>
               </div>
             )}
 

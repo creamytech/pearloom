@@ -82,6 +82,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       const data = await res.json();
       if (!res.ok) {
         setAddError(data.error || 'Failed to add guest. Please try again.');
+        setTimeout(() => setAddError(null), 6000);
       } else if (data.guest) {
         setGuests((prev) => [...prev, data.guest]);
         setNewGuest({ name: '', email: '', plusOne: false });
@@ -89,6 +90,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       }
     } catch {
       setAddError('Network error. Please check your connection and try again.');
+      setTimeout(() => setAddError(null), 6000);
     } finally {
       setSaving(false);
     }
@@ -104,10 +106,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         setGuests(snapshot); // rollback
         const data = await res.json().catch(() => ({}));
         setDeleteError(data.error || 'Failed to delete guest. Please try again.');
+        setTimeout(() => setDeleteError(null), 6000);
       }
     } catch {
       setGuests(snapshot); // rollback
       setDeleteError('Network error. The guest was not deleted.');
+      setTimeout(() => setDeleteError(null), 6000);
     }
   };
 
@@ -236,6 +240,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
 
         <button
           onClick={fetchGuests}
+          aria-label="Refresh guest list"
           style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--eg-muted)', transition: 'background 0.15s' }}
           onMouseOver={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; }}
@@ -438,6 +443,9 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 <div
                   className="guest-table-row"
                   onClick={() => setExpandedId(isExpanded ? null : guest.id)}
+                  role="button"
+                  aria-expanded={isExpanded}
+                  aria-label="Show guest details"
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 180px 110px 70px 120px 36px',
@@ -460,7 +468,22 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                     )}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {guest.email || '—'}
+                    {guest.email ? (
+                      <a
+                        href={`mailto:${guest.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          color: 'inherit',
+                          textDecoration: 'none',
+                          borderBottom: '1px dotted rgba(0,0,0,0.25)',
+                          transition: 'border-color 0.15s',
+                        }}
+                        onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'var(--eg-accent, #A3B18A)'; }}
+                        onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'rgba(0,0,0,0.25)'; }}
+                      >
+                        {guest.email}
+                      </a>
+                    ) : '—'}
                   </div>
                   <div>
                     <span style={{
@@ -480,6 +503,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteGuest(guest.id); }}
+                    aria-label={`Delete ${guest.name}`}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.4)', display: 'flex', padding: '0.25rem', transition: 'color 0.15s' }}
                     onMouseOver={(e) => { e.currentTarget.style.color = '#ef4444'; }}
                     onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(239,68,68,0.4)'; }}

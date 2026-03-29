@@ -336,6 +336,78 @@ const btnPrimaryStyle: React.CSSProperties = {
   letterSpacing: '0.01em',
 };
 
+function FormatMiniPreview({ id }: { id: string }) {
+  const base: React.CSSProperties = {
+    width: '100%', height: '52px', borderRadius: '6px',
+    background: 'rgba(0,0,0,0.06)', overflow: 'hidden',
+    marginBottom: '8px', position: 'relative',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    gap: '4px',
+  };
+
+  if (id === 'cascade') return (
+    <div style={base}>
+      {[0,1,2].map(i => (
+        <div key={i} style={{ display: 'flex', flexDirection: i%2===0?'row':'row-reverse', gap:'3px', position:'absolute', top: `${i*14+4}px`, left:'4px', right:'4px' }}>
+          <div style={{ width:'18px', height:'10px', background:'rgba(163,177,138,0.5)', borderRadius:'2px', flexShrink:0 }} />
+          <div style={{ flex:1, height:'10px', background:'rgba(0,0,0,0.08)', borderRadius:'2px' }} />
+        </div>
+      ))}
+    </div>
+  );
+
+  if (id === 'filmstrip') return (
+    <div style={{ ...base, background:'#1a1713', gap:'2px', padding:'4px' }}>
+      {[0,1,2,3].map(i => (
+        <div key={i} style={{ width:'14px', flex:'none', height:'44px', background:'rgba(255,255,255,0.1)', borderRadius:'2px', border:'1px solid rgba(255,255,255,0.15)' }} />
+      ))}
+    </div>
+  );
+
+  if (id === 'scrapbook') return (
+    <div style={{ ...base }}>
+      {[{r:-6,x:8,y:4},{r:4,x:28,y:6},{r:-3,x:16,y:12}].map((p,i) => (
+        <div key={i} style={{ position:'absolute', width:'20px', height:'24px', background:'#fff', boxShadow:'0 1px 4px rgba(0,0,0,0.15)', transform:`rotate(${p.r}deg)`, left:`${p.x}%`, top:`${p.y}px`, borderRadius:'1px' }}>
+          <div style={{ width:'100%', height:'14px', background:'rgba(163,177,138,0.3)', marginBottom:'2px' }} />
+        </div>
+      ))}
+    </div>
+  );
+
+  if (id === 'magazine') return (
+    <div style={{ ...base }}>
+      <div style={{ width:'45%', height:'100%', background:'rgba(163,177,138,0.35)', flexShrink:0 }} />
+      <div style={{ flex:1, padding:'4px 6px', display:'flex', flexDirection:'column', gap:'3px' }}>
+        <div style={{ height:'6px', background:'rgba(0,0,0,0.15)', borderRadius:'2px', width:'80%' }} />
+        <div style={{ height:'4px', background:'rgba(0,0,0,0.08)', borderRadius:'2px' }} />
+        <div style={{ height:'4px', background:'rgba(0,0,0,0.08)', borderRadius:'2px', width:'60%' }} />
+      </div>
+    </div>
+  );
+
+  if (id === 'chapters') return (
+    <div style={{ ...base, flexDirection:'column', gap:'3px', padding:'4px 6px', alignItems:'stretch', justifyContent:'center' }}>
+      {[100,60,80].map((w,i) => (
+        <div key={i} style={{ height:'8px', background: i===0?'rgba(163,177,138,0.6)':'rgba(0,0,0,0.08)', borderRadius:'3px', width:`${w}%`, transition:'width 0.3s' }} />
+      ))}
+    </div>
+  );
+
+  if (id === 'starmap') return (
+    <div style={{ ...base, background:'#0a0e1a' }}>
+      {[[20,40],[50,20],[75,35],[35,60],[60,55]].map(([x,y],i) => (
+        <div key={i} style={{ position:'absolute', width:'3px', height:'3px', borderRadius:'50%', background:'rgba(200,220,255,0.8)', left:`${x}%`, top:`${y}%` }} />
+      ))}
+      <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} viewBox="0 0 100 52">
+        <line x1="20" y1="40" x2="50" y2="20" stroke="rgba(200,220,255,0.2)" strokeWidth="0.5" />
+        <line x1="50" y1="20" x2="75" y2="35" stroke="rgba(200,220,255,0.2)" strokeWidth="0.5" />
+      </svg>
+    </div>
+  );
+
+  return <div style={base} />;
+}
+
 export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -1161,23 +1233,33 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         <div style={{ marginTop: '2.5rem' }}>
           <button
             onClick={() => handleFinalSubmit(false)}
-            disabled={subdomainStatus === 'taken'}
+            disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}
             style={{
               ...btnPrimaryStyle,
               width: '100%',
               justifyContent: 'center',
-              background: subdomainStatus === 'taken'
+              background: (subdomainStatus === 'taken' || subdomainStatus === 'checking')
                 ? 'rgba(0,0,0,0.12)'
                 : 'linear-gradient(135deg, #A3B18A, #8FA876)',
-              boxShadow: subdomainStatus === 'taken' ? 'none' : '0 12px 36px rgba(163,177,138,0.4)',
+              boxShadow: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'none' : '0 12px 36px rgba(163,177,138,0.4)',
               fontSize: '1rem',
               padding: '1.1rem 2rem',
-              cursor: subdomainStatus === 'taken' ? 'not-allowed' : 'pointer',
-              color: subdomainStatus === 'taken' ? 'var(--eg-muted)' : '#fff',
+              cursor: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'not-allowed' : 'pointer',
+              color: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'var(--eg-muted)' : '#fff',
             }}
           >
             Build my site <Sparkles size={18} />
           </button>
+          {subdomainStatus === 'taken' && (
+            <p style={{ color: '#b91c1c', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
+              This URL is taken — please choose a different name above.
+            </p>
+          )}
+          {subdomainStatus === 'checking' && (
+            <p style={{ color: 'rgba(0,0,0,0.45)', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
+              Checking availability…
+            </p>
+          )}
         </div>
       </div>
     );
@@ -1580,6 +1662,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
                     {/* Text */}
                     <div style={{ flex: 1, minWidth: 0 }}>
+                      <FormatMiniPreview id={fmt.id} />
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <span style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{fmt.name}</span>
                         {active && (
@@ -1725,12 +1808,30 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                         }}>✓</div>
                       )}
                     </div>
-                    <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{p.name}</span>
-                      {/* Mini swatches */}
-                      <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
-                        {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
-                          <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                    <div style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{p.name}</span>
+                        {/* Mini swatches */}
+                        <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                          {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
+                            <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                          ))}
+                        </div>
+                      </div>
+                      {/* Color swatches row */}
+                      <div style={{ display: 'flex', gap: '3px', marginTop: '6px' }}>
+                        {p.colors?.map((color: string, i: number) => (
+                          <div
+                            key={i}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '4px',
+                              background: color,
+                              border: '1px solid rgba(0,0,0,0.08)',
+                              flexShrink: 0,
+                            }}
+                          />
                         ))}
                       </div>
                     </div>

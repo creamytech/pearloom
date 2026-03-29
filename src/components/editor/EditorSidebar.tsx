@@ -19,6 +19,7 @@ interface EditorSidebarProps {
   onCollapsedChange: (c: boolean) => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  contentRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 // ── Tab configuration ──────────────────────────────────────────
@@ -121,6 +122,7 @@ export function EditorSidebar({
   onCollapsedChange,
   children,
   footer,
+  contentRef,
 }: EditorSidebarProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [isResizeHover, setIsResizeHover] = useState(false);
@@ -390,6 +392,7 @@ export function EditorSidebar({
 
             {/* Scrollable content */}
             <div
+              ref={contentRef}
               style={{
                 flex: 1,
                 overflowY: 'auto',

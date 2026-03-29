@@ -14,7 +14,7 @@ const logError = isDev ? console.error.bind(console) : () => {};
 // Full wizard flow: Sign In → Dashboard → Select Photos → Set Vibe → Generate → Edit → Preview
 // -------------------------------------------------------------
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Sparkles, Eye, Pencil, LogIn, ArrowLeft, ArrowRight, Loader2, Check, Globe, LayoutDashboard, Users } from 'lucide-react';
@@ -152,6 +152,9 @@ export default function DashboardPage() {
     guestNotes?: string; inspirationUrls?: string[]; layoutFormat?: string;
   } | null>(null);
 
+  // Generation cancel ref — allows the cancel button inside GenerationProgress to abort the fetch
+  const generationControllerRef = useRef<AbortController | null>(null);
+
   // Publish Flow State
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [subdomain, setSubdomain] = useState('');
@@ -247,6 +250,7 @@ export default function DashboardPage() {
 
     // 270s client timeout — stays under maxDuration=300 on the server
     const controller = new AbortController();
+    generationControllerRef.current = controller;
     const timeoutId = setTimeout(() => controller.abort(), 270_000);
 
     try {
@@ -367,7 +371,7 @@ export default function DashboardPage() {
         coupleNames={coupleNames}
         subdomain={subdomain}
         onChange={setManifest}
-        onPublish={() => setCurrentStep('dashboard')}
+        onPublish={() => { /* Editor shows its own "It's Live" success UI; user navigates via onExit */ }}
         onExit={() => setCurrentStep('dashboard')}
       />
     );
@@ -729,7 +733,15 @@ export default function DashboardPage() {
 
               {/* -- GENERATING -- */}
               {currentStep === 'generating' && (
-                <GenerationProgress step={generationStep} />
+                <GenerationProgress
+                  step={generationStep}
+                  onCancel={() => {
+                    generationControllerRef.current?.abort();
+                    generationControllerRef.current = null;
+                    setCurrentStep('vibe');
+                    setError(null);
+                  }}
+                />
               )}
 
               {/* -- EDIT \u2014 handled by FullscreenEditor (early return above) -- */}

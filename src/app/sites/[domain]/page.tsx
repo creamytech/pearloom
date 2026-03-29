@@ -437,7 +437,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             alt=""
             style={{
               width: '100%', height: '100%', objectFit: 'cover',
-              opacity: 0.22,
+              opacity: 0.35,
               mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
             }}
           />
@@ -690,7 +690,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                     alt=""
                     style={{
                       width: '100%', height: '100%', objectFit: 'cover',
-                      opacity: 0.10,
+                      opacity: 0.20,
                       mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
                     }}
                   />

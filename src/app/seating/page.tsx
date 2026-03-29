@@ -106,35 +106,27 @@ function SeatingPageInner() {
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* AI Arrange button */}
+        {/* AI Arrange button — coming soon */}
         <button
-          onClick={handleAIArrange}
+          // onClick={handleAIArrange} — not yet available
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
             padding: '0.45rem 0.9rem',
             borderRadius: '0.75rem',
-            border: '1.5px solid var(--eg-accent)',
+            border: '1.5px dashed var(--eg-accent)',
             background: 'transparent',
             color: 'var(--eg-accent)',
             fontSize: '0.8rem',
             fontFamily: 'var(--eg-font-body)',
-            cursor: 'pointer',
+            cursor: 'not-allowed',
             fontWeight: 500,
-            transition: 'all 0.15s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'var(--eg-accent)';
-            e.currentTarget.style.color = '#fff';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--eg-accent)';
+            opacity: 0.6,
           }}
         >
           <Sparkles size={14} />
-          AI Arrange
+          AI Arrange (Coming Soon)
         </button>
       </header>
 

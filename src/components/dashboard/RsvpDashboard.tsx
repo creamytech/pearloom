@@ -222,6 +222,7 @@ export function RsvpDashboard({
   const [sortKey, setSortKey] = useState<SortKey>('respondedAt');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshed, setRefreshed] = useState(false);
   const [copiedEmails, setCopiedEmails] = useState(false);
   const [exportedCsv, setExportedCsv] = useState(false);
 
@@ -240,6 +241,8 @@ export function RsvpDashboard({
         const data = await guestsRes.json();
         setGuests(data.guests || []);
       }
+      setRefreshed(true);
+      setTimeout(() => setRefreshed(false), 2000);
     } catch {
       // silently fail
     } finally {
@@ -376,11 +379,22 @@ export function RsvpDashboard({
     border: '1px solid #A3B18A',
   };
 
+  // Search-filtered guests (before status filter) — used for pill badge counts
+  const searchFilteredGuests = useMemo(() => {
+    if (!search.trim()) return guests;
+    const q = search.toLowerCase();
+    return guests.filter(g =>
+      g.name.toLowerCase().includes(q) ||
+      (g.email || '').toLowerCase().includes(q) ||
+      (g.mealPreference || '').toLowerCase().includes(q)
+    );
+  }, [guests, search]);
+
   const filterPills: Array<{ key: FilterStatus; label: string; count: number }> = [
-    { key: 'all', label: 'All', count: guests.length },
-    { key: 'attending', label: 'Attending', count: stats.attending },
-    { key: 'declined', label: 'Declined', count: stats.declined },
-    { key: 'pending', label: 'Pending', count: stats.pending },
+    { key: 'all', label: 'All', count: searchFilteredGuests.length },
+    { key: 'attending', label: 'Attending', count: searchFilteredGuests.filter(g => g.status === 'attending').length },
+    { key: 'declined', label: 'Declined', count: searchFilteredGuests.filter(g => g.status === 'declined').length },
+    { key: 'pending', label: 'Pending', count: searchFilteredGuests.filter(g => g.status === 'pending').length },
   ];
 
   const isEmpty = guests.length === 0;
@@ -407,9 +421,9 @@ export function RsvpDashboard({
               aria-label="Refresh data"
             >
               <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-              Refresh
+              {refreshed ? 'Updated!' : 'Refresh'}
             </button>
-            <button style={btnStyle} onClick={copyEmails}>
+            <button style={btnStyle} onClick={copyEmails} aria-label="Copy attending guest emails">
               <Mail size={14} />
               {copiedEmails ? 'Copied!' : 'Copy Emails'}
             </button>
@@ -515,6 +529,11 @@ export function RsvpDashboard({
                         key={col.label}
                         style={{ ...thStyle, ...(col.key ? {} : { cursor: 'default' }) }}
                         onClick={() => col.key && handleSort(col.key)}
+                        aria-sort={
+                          col.key && col.key === sortKey
+                            ? sortDir === 'asc' ? 'ascending' : 'descending'
+                            : undefined
+                        }
                       >
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                           {col.label}
