@@ -11,6 +11,7 @@ import { ArrowRight, ArrowLeft, Map, Palette, Globe, Info, ChevronDown } from 'l
 import {
   ElegantHeartIcon, MountainIcon, StarburstIcon, CoffeeCupIcon,
   SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
+  WeddingRingsIcon, ChampagneIcon, GiftIcon, EnvelopeIcon,
 } from '@/components/icons/PearloomIcons';
 
 // Small tooltip component for Phase 2 field hints
@@ -222,11 +223,11 @@ const VIBE_MOODS = [
 ];
 
 const OCCASIONS = [
-  { id: 'wedding', label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site', emoji: '💍' },
-  { id: 'anniversary', label: 'Anniversary', desc: 'A celebration of years together', emoji: '🥂' },
-  { id: 'engagement', label: 'Engagement', desc: 'Sharing the big news', emoji: '✨' },
-  { id: 'birthday', label: 'Birthday Gift', desc: 'A beautiful site as a gift — for anyone you love', emoji: '🎂' },
-  { id: 'story', label: 'Just Because', desc: 'Documenting our love story', emoji: '💌' },
+  { id: 'wedding',     label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site',               icon: WeddingRingsIcon },
+  { id: 'anniversary', label: 'Anniversary',             desc: 'A celebration of years together',             icon: ChampagneIcon    },
+  { id: 'engagement',  label: 'Engagement',              desc: 'Sharing the big news',                        icon: ElegantHeartIcon },
+  { id: 'birthday',    label: 'Birthday Gift',           desc: 'A beautiful site as a gift — for anyone you love', icon: GiftIcon    },
+  { id: 'story',       label: 'Just Because',            desc: 'Documenting our love story',                  icon: EnvelopeIcon     },
 ];
 
 const COLOR_PALETTES = [
@@ -1447,7 +1448,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                       boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
                     }}
                   >
-                    <span style={{ fontSize: '1.5rem', flexShrink: 0, lineHeight: 1 }}>{occ.emoji}</span>
+                    <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '10px', background: active ? 'rgba(255,255,255,0.7)' : 'rgba(163,177,138,0.1)' }}>
+                      <occ.icon size={20} color={active ? 'var(--eg-accent)' : 'var(--eg-muted)'} />
+                    </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{occ.desc}</div>
