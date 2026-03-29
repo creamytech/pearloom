@@ -18,6 +18,7 @@ interface EditorSidebarProps {
   collapsed: boolean;
   onCollapsedChange: (c: boolean) => void;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 // ── Tab configuration ──────────────────────────────────────────
@@ -119,6 +120,7 @@ export function EditorSidebar({
   collapsed,
   onCollapsedChange,
   children,
+  footer,
 }: EditorSidebarProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [isResizeHover, setIsResizeHover] = useState(false);
@@ -397,6 +399,19 @@ export function EditorSidebar({
             >
               {children}
             </div>
+
+            {/* Sticky footer (optional) */}
+            {footer && (
+              <div
+                style={{
+                  flexShrink: 0,
+                  borderTop: '1px solid rgba(214,198,168,0.08)',
+                  background: '#1C1916',
+                }}
+              >
+                {footer}
+              </div>
+            )}
           </>
         )}
       </div>
