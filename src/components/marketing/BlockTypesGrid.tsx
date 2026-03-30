@@ -3,7 +3,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
-  Sparkles,
   Crown,
   BookOpen,
   Image,
@@ -20,16 +19,7 @@ import {
   Music,
   Puzzle,
 } from 'lucide-react';
-
-const C = {
-  deep: '#EEE8DC',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
+import { C } from './colors';
 
 const BLOCKS = [
   { icon: Crown, name: 'Hero', desc: 'Full-bleed cinematic opener', accent: C.plum },
@@ -62,26 +52,21 @@ export function BlockTypesGrid() {
         borderTop: `1px solid ${C.divider}`,
       }}
     >
-      <div className="max-w-[920px] mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            className="mb-4"
+      <div className="max-w-[960px] mx-auto">
+        {/* Header with decorative watermark number */}
+        <div className="text-center mb-12 relative">
+          {/* Watermark "15" */}
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"
+            style={{ fontSize: 'clamp(6rem, 14vw, 10rem)', color: C.ink, opacity: 0.03, lineHeight: 1 }}
           >
-            <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-              style={{ background: 'rgba(214,198,168,0.2)', border: '1px solid rgba(214,198,168,0.4)', color: '#8B7355' }}
-            >
-              <Sparkles size={9} strokeWidth={2.5} /> Building Blocks
-            </span>
-          </motion.div>
+            15
+          </div>
           <motion.h2
             initial={{ opacity: 0, y: 18 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight mb-3"
+            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight mb-3 relative"
             style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: C.ink }}
           >
             15 blocks. Infinite possibilities.
@@ -90,7 +75,7 @@ export function BlockTypesGrid() {
             initial={{ opacity: 0, y: 14 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
-            className="text-[0.95rem] max-w-[460px] mx-auto"
+            className="text-[0.95rem] max-w-[460px] mx-auto relative"
             style={{ color: C.muted, lineHeight: 1.75 }}
           >
             Mix and match blocks to build exactly the site you need — from intimate stories to
@@ -98,8 +83,8 @@ export function BlockTypesGrid() {
           </motion.p>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {/* Grid — 4 columns for more breathing room */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {BLOCKS.map((b, i) => {
             const Icon = b.icon;
             return (
@@ -108,12 +93,11 @@ export function BlockTypesGrid() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.04 + 0.2, duration: 0.4 }}
-                whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.06)' }}
-                className="rounded-xl border p-3.5 text-center transition-all duration-200 cursor-default"
+                whileHover={{ boxShadow: `0 8px 24px rgba(0,0,0,0.06), 0 0 0 1.5px ${b.accent}40` }}
+                className="rounded-xl p-4 text-center transition-all duration-200 cursor-default"
                 style={{
-                  background: 'rgba(255,255,255,0.6)',
-                  backdropFilter: 'blur(8px)',
-                  borderColor: 'rgba(255,255,255,0.85)',
+                  background: 'white',
+                  border: `1.5px solid ${C.divider}`,
                 }}
               >
                 <div

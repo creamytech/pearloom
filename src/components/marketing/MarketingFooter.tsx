@@ -1,12 +1,6 @@
 'use client';
 
-const C = {
-  dark: '#3D3530',
-  cream: '#F5F1E8',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  muted: '#9A9488',
-} as const;
+import { C } from './colors';
 
 const COLUMNS = [
   {
@@ -42,7 +36,7 @@ export function MarketingFooter() {
   return (
     <footer
       style={{
-        background: C.dark,
+        background: 'linear-gradient(180deg, #3D3530 0%, #322B26 100%)',
         padding: '4rem 1.5rem 2.5rem',
         borderTop: '1px solid rgba(214,198,168,0.1)',
       }}
