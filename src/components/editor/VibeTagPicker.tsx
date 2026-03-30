@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface VibeTagPickerProps {
   selectedTags: string[];
@@ -38,7 +39,7 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
     if (selectedTags.includes(tag)) {
       onChange(selectedTags.filter(t => t !== tag));
     } else {
-      if (selectedTags.length >= MAX_TAGS) return; // at max
+      if (selectedTags.length >= MAX_TAGS) return;
       onChange([...selectedTags, tag]);
     }
   }
@@ -58,21 +59,28 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
         >
           Help others discover your vibe (shown in our wedding gallery)
         </span>
-        <span
+        <motion.span
+          animate={{ color: atMax ? '#A3B18A' : 'rgba(245,240,232,0.35)' }}
+          transition={{ duration: 0.25 }}
           style={{
             fontSize: '0.75rem',
-            color: atMax ? '#A3B18A' : 'rgba(245,240,232,0.35)',
             marginTop: '0.2rem',
             display: 'block',
           }}
         >
           {selectedTags.length}/{MAX_TAGS} selected
           {atMax ? ' · Maximum reached' : ''}
-        </span>
+        </motion.span>
       </div>
 
-      {VIBE_TAGS.map(({ category, tags }) => (
-        <div key={category} style={{ marginBottom: '1rem' }}>
+      {VIBE_TAGS.map(({ category, tags }, catIdx) => (
+        <motion.div
+          key={category}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: catIdx * 0.07, ease: [0.16, 1, 0.3, 1] }}
+          style={{ marginBottom: '1rem' }}
+        >
           <div
             style={{
               fontSize: '0.7rem',
@@ -92,16 +100,25 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
               gap: '0.4rem',
             }}
           >
-            {tags.map(tag => {
+            {tags.map((tag, tagIdx) => {
               const isSelected = selectedTags.includes(tag);
               const isDisabled = !isSelected && atMax;
 
               return (
-                <button
+                <motion.button
                   key={tag}
                   onClick={() => toggle(tag)}
                   disabled={isDisabled}
                   title={isDisabled ? `Remove a tag to select "${tag}"` : undefined}
+                  initial={{ opacity: 0, scale: 0.88 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{
+                    duration: 0.28,
+                    delay: catIdx * 0.07 + tagIdx * 0.025,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  whileHover={isDisabled ? {} : { scale: 1.06, y: -1 }}
+                  whileTap={isDisabled ? {} : { scale: 0.93 }}
                   style={{
                     padding: '0.3rem 0.7rem',
                     borderRadius: '2rem',
@@ -119,36 +136,34 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
                       ? 'rgba(245,240,232,0.2)'
                       : 'rgba(245,240,232,0.7)',
                     cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.15s ease',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.25rem',
                     whiteSpace: 'nowrap',
-                  }}
-                  onMouseEnter={e => {
-                    if (!isDisabled && !isSelected) {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(163,177,138,0.4)';
-                      (e.currentTarget as HTMLButtonElement).style.color = 'rgba(245,240,232,0.95)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isDisabled && !isSelected) {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.15)';
-                      (e.currentTarget as HTMLButtonElement).style.color = 'rgba(245,240,232,0.7)';
-                    }
+                    transition: 'background 0.15s ease, border-color 0.15s ease, color 0.15s ease',
                   }}
                 >
-                  {isSelected && (
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                      <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#A3B18A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+                  <AnimatePresence>
+                    {isSelected && (
+                      <motion.span
+                        initial={{ scale: 0, opacity: 0, width: 0 }}
+                        animate={{ scale: 1, opacity: 1, width: 14 }}
+                        exit={{ scale: 0, opacity: 0, width: 0 }}
+                        transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+                        style={{ display: 'inline-flex', flexShrink: 0, overflow: 'hidden' }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#A3B18A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                   {tag}
-                </button>
+                </motion.button>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );

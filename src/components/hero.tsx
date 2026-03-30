@@ -358,16 +358,31 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 2.1 }}
+            transition={{ duration: 0.6, delay: 2.1 }}
             style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', marginTop: '2rem' }}
           >
-            <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5 }} />
-            <div style={{
-              width: '5px', height: '5px', borderRadius: '0',
-              background: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-accent)',
-              transform: 'rotate(45deg)', opacity: 0.65,
-            }} />
-            <div style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5 }} />
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.6, delay: 2.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5, transformOrigin: 'right' }}
+            />
+            <motion.div
+              initial={{ scale: 0, rotate: 90 }}
+              animate={{ scale: 1, rotate: 45 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 2.45 }}
+              style={{
+                width: '5px', height: '5px', borderRadius: '0',
+                background: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-accent)',
+                opacity: 0.65,
+              }}
+            />
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.6, delay: 2.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5, transformOrigin: 'left' }}
+            />
           </motion.div>
         )}
 

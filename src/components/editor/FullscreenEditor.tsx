@@ -419,6 +419,7 @@ function ImageManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [generatingCaptions, setGeneratingCaptions] = useState(false);
   const [captionSuccess, setCaptionSuccess] = useState(false);
   const [captionError, setCaptionError] = useState<string | null>(null);
@@ -440,6 +441,7 @@ function ImageManager({
     });
     if (validFiles.length === 0) return;
     setUploading(true);
+    setUploadError(null);
     const results: ChapterImage[] = [];
     for (const file of validFiles) {
       try {
@@ -447,7 +449,7 @@ function ImageManager({
         formData.append('file', file);
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
-        if (data.publicUrl) {
+        if (res.ok && data.publicUrl) {
           results.push({
             id: `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             url: data.publicUrl,
@@ -455,13 +457,17 @@ function ImageManager({
             width: 0, height: 0,
           });
         } else {
-          console.error('[ImageManager] Upload failed:', data.error);
+          const msg = data.error || `Upload failed (${res.status})`;
+          console.error('[ImageManager] Upload failed:', msg);
+          setUploadError(msg);
         }
       } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Upload failed — check your connection';
         console.error('[ImageManager] Upload error:', err);
+        setUploadError(msg);
       }
     }
-    onUpdate([...images, ...results]);
+    if (results.length > 0) onUpdate([...images, ...results]);
     setUploading(false);
   };
 
@@ -625,6 +631,17 @@ function ImageManager({
         </div>
       )}
       </div>
+
+      {/* Upload error */}
+      {uploadError && (
+        <div style={{
+          marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
+          background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
+          color: '#fca5a5', fontSize: '0.78rem', lineHeight: 1.4,
+        }}>
+          Upload failed: {uploadError}
+        </div>
+      )}
 
       {/* Generate Captions button */}
       {images.length > 0 && (
@@ -1955,6 +1972,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onChange]);
 
+  // ── Stable refs for keyboard handler (avoids stale closures) ──
+  const activeIdRef = useRef(activeId);
+  const chaptersRef = useRef(chapters);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pushToPreviewRef = useRef<(m: StoryManifest) => void>(() => {});
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
+  useEffect(() => { chaptersRef.current = chapters; }, [chapters]);
+
   // ── Command Palette + Undo/Redo keyboard shortcuts ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1981,10 +2006,34 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         e.preventDefault();
         setSidebarCollapsed(prev => !prev);
       }
+      // Cmd+D: duplicate active chapter
+      if (mod && e.key === 'd') {
+        e.preventDefault();
+        const id = activeIdRef.current;
+        const chs = chaptersRef.current;
+        if (!id) return;
+        const original = chs.find(c => c.id === id);
+        if (!original) return;
+        const copyId = `ch-${Date.now()}`;
+        const copy: Chapter = {
+          ...original,
+          id: copyId,
+          title: `${original.title} (copy)`,
+          order: (original.order ?? 0) + 0.5,
+        };
+        const next = [...chs, copy].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setChapters(next);
+        setActiveId(copyId);
+        // syncManifest inline to avoid dependency
+        const newManifest = { ...manifest, chapters: next.map((ch, i) => ({ ...ch, order: i })) };
+        pushHistory(newManifest);
+        onChange(newManifest);
+        pushToPreviewRef.current(newManifest);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [undo, redo]);
+  }, [undo, redo, manifest, pushHistory, onChange]);
 
   // ── Warn before tab close when there are unsaved changes ──
   useEffect(() => {
@@ -2072,6 +2121,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       } catch {}
     }, 600);
   }, [previewKey, coupleNames]);
+
+  // Keep ref in sync so keyboard handler can call it without stale closure
+  useEffect(() => { pushToPreviewRef.current = pushToPreview; }, [pushToPreview]);
 
   // Initial load — set sessionStorage synchronously so iframe has data the moment it loads
   useEffect(() => {
@@ -2436,6 +2488,52 @@ Return JSON with: title, subtitle, description, mood`,
             <CommandIcon size={10} />
             <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
           </button>
+
+          {/* Contextual chapter actions — appear when a chapter is selected */}
+          <AnimatePresence>
+            {activeId && !isMobile && (
+              <motion.div
+                key="ctx-actions"
+                initial={{ opacity: 0, scale: 0.88, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.88, y: -4 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}
+              >
+                <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.12)', marginRight: '4px' }} />
+                {/* Duplicate */}
+                <button
+                  title="Duplicate chapter (⌘D)"
+                  onClick={() => {
+                    const original = chapters.find(c => c.id === activeId);
+                    if (!original) return;
+                    const copyId = `ch-${Date.now()}`;
+                    const copy: Chapter = { ...original, id: copyId, title: `${original.title} (copy)`, order: (original.order ?? 0) + 0.5 };
+                    const next = [...chapters, copy].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    setChapters(next);
+                    setActiveId(copyId);
+                    const newManifest = { ...manifest, chapters: next.map((ch, i) => ({ ...ch, order: i })) };
+                    pushHistory(newManifest); onChange(newManifest); pushToPreview(newManifest);
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', transition: 'all 0.15s' }}
+                  onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.1)'; el.style.color = '#fff'; }}
+                  onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.05)'; el.style.color = 'rgba(255,255,255,0.55)'; }}
+                >
+                  ⌘D Duplicate
+                </button>
+                {/* Delete */}
+                <button
+                  title="Delete chapter"
+                  onClick={() => deleteChapter(activeId)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(248,113,113,0.2)', background: 'rgba(248,113,113,0.06)', color: 'rgba(248,113,113,0.6)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', transition: 'all 0.15s' }}
+                  onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(248,113,113,0.12)'; el.style.color = '#f87171'; }}
+                  onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(248,113,113,0.06)'; el.style.color = 'rgba(248,113,113,0.6)'; }}
+                >
+                  Delete
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Save status + Undo/Redo — desktop only */}
@@ -2614,7 +2712,7 @@ Return JSON with: title, subtitle, description, mood`,
           >
             {activeTab === 'story' && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
                     Story Chapters ({chapters.length})
                   </span>
@@ -2629,6 +2727,44 @@ Return JSON with: title, subtitle, description, mood`,
                   >
                     <Plus size={11} /> Add
                   </button>
+                </div>
+
+                {/* ── Global timeline format switcher ── */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '6px' }}>
+                    Timeline Format
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                    {[
+                      { id: 'cascade',   label: 'Cascade',   emoji: '⇅' },
+                      { id: 'filmstrip', label: 'Filmstrip', emoji: '▤' },
+                      { id: 'magazine',  label: 'Magazine',  emoji: '⊞' },
+                      { id: 'scrapbook', label: 'Scrapbook', emoji: '✦' },
+                      { id: 'chapters',  label: 'Chapters',  emoji: '≡' },
+                      { id: 'starmap',   label: 'Starmap',   emoji: '✴' },
+                    ].map(fmt => {
+                      const isActive = (manifest.layoutFormat || 'cascade') === fmt.id;
+                      return (
+                        <button
+                          key={fmt.id}
+                          onClick={() => handleDesignChange({ ...manifest, layoutFormat: fmt.id as StoryManifest['layoutFormat'] })}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+                            padding: '6px 4px', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                            background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.04)',
+                            color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.35)',
+                            outline: isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid transparent',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseOver={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.65)'; }}}
+                          onMouseOut={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}}
+                        >
+                          <span style={{ fontSize: '1rem', lineHeight: 1 }}>{fmt.emoji}</span>
+                          <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.04em' }}>{fmt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <Reorder.Group axis="y" values={chapters} onReorder={handleReorder} as="div" style={{ margin: 0, padding: 0 }}>
@@ -2694,51 +2830,61 @@ Return JSON with: title, subtitle, description, mood`,
               </>
             )}
 
-            {activeTab === 'design' && (
-              <DesignPanel manifest={manifest} onChange={handleDesignChange} />
-            )}
-
-            {activeTab === 'events' && (
-              <EventsPanel manifest={manifest} onChange={handleDesignChange} />
-            )}
-
-            {activeTab === 'details' && (
-              <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
-            )}
-
-            {activeTab === 'pages' && (
-              <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
-            )}
-
-            {activeTab === 'blocks' && (
-              <AIBlocksPanel
-                manifest={manifest}
-                coupleNames={coupleNames}
-                onChange={(m) => { onChange(m); pushToPreview(m); }}
-              />
-            )}
+            <AnimatePresence mode="wait">
+              {activeTab === 'design' && (
+                <motion.div key="design" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <DesignPanel manifest={manifest} onChange={handleDesignChange} />
+                </motion.div>
+              )}
+              {activeTab === 'events' && (
+                <motion.div key="events" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <EventsPanel manifest={manifest} onChange={handleDesignChange} />
+                </motion.div>
+              )}
+              {activeTab === 'details' && (
+                <motion.div key="details" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={subdomain} />
+                </motion.div>
+              )}
+              {activeTab === 'pages' && (
+                <motion.div key="pages" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <PagesPanel manifest={manifest} subdomain={subdomain} onChange={handleDesignChange} />
+                </motion.div>
+              )}
+              {activeTab === 'blocks' && (
+                <motion.div key="blocks" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <AIBlocksPanel
+                    manifest={manifest}
+                    coupleNames={coupleNames}
+                    onChange={(m) => { onChange(m); pushToPreview(m); }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {activeTab === 'voice' && (
-              <div style={{ padding: '4px 0' }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
-                    AI Voice Training
-                  </span>
-                  <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>
-                    Teach the chatbot to speak like you.
-                  </p>
+              <motion.div key="voice" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                <div style={{ padding: '4px 0' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
+                      AI Voice Training
+                    </span>
+                    <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>
+                      Teach the chatbot to speak like you.
+                    </p>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
+                    <VoiceTrainerPanel
+                      voiceSamples={manifest.voiceSamples || []}
+                      onChange={(samples) => {
+                        const updated = { ...manifest, voiceSamples: samples };
+                        onChange(updated);
+                        pushToPreview(updated);
+                      }}
+                    />
+                  </div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
-                  <VoiceTrainerPanel
-                    voiceSamples={manifest.voiceSamples || []}
-                    onChange={(samples) => {
-                      const updated = { ...manifest, voiceSamples: samples };
-                      onChange(updated);
-                      pushToPreview(updated);
-                    }}
-                  />
-                </div>
-              </div>
+              </motion.div>
             )}
 
             {activeTab === 'canvas' && (
@@ -3204,13 +3350,24 @@ Return JSON with: title, subtitle, description, mood`,
                   </div>
                   <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', margin: 0 }}>It&apos;s Live.</h2>
                   <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</p>
-                  <code style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all' }}>
-                    {publishedUrl}
-                  </code>
+                  <div style={{ width: '100%', position: 'relative' }}>
+                    <code style={{ display: 'block', background: 'rgba(255,255,255,0.08)', padding: '0.6rem 2.8rem 0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all', textAlign: 'left' }}>
+                      {publishedUrl}
+                    </code>
+                    <button
+                      onClick={() => navigator.clipboard?.writeText(publishedUrl!).catch(() => {})}
+                      title="Copy link"
+                      style={{ position: 'absolute', right: '0.6rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(163,177,138,0.55)', padding: '4px', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
+                      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.55)'; }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                  </div>
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                     <a
                       href={publishedUrl!} target="_blank" rel="noreferrer"
-                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem' }}
+                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem', textAlign: 'center' }}
                     >
                       Open Site →
                     </a>
@@ -3228,8 +3385,9 @@ Return JSON with: title, subtitle, description, mood`,
                   <p style={{ color: 'rgba(255,255,255,0.45)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
 
                   {publishError && (
-                    <div style={{ background: 'rgba(109,89,122,0.1)', border: '1px solid rgba(109,89,122,0.2)', color: 'var(--eg-plum, #6D597A)', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
-                      {publishError}
+                    <div style={{ background: 'rgba(185,28,28,0.12)', border: '1px solid rgba(248,113,113,0.3)', color: '#fca5a5', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <span style={{ flexShrink: 0 }}>⚠</span>
+                      <span>{publishError}</span>
                     </div>
                   )}
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { StoryManifest } from '@/types';
 
 interface TimeCapsulePanelProps {
@@ -205,8 +206,16 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
             </p>
           )}
 
-          {capsules.map((capsule) => (
-            <div key={capsule.id} style={styles.capsuleCard}>
+          <AnimatePresence>
+          {capsules.map((capsule, i) => (
+            <motion.div
+              key={capsule.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.22, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+              style={styles.capsuleCard}
+            >
               <div style={styles.capsuleInfo}>
                 <div style={styles.capsuleNames}>
                   <span>💌</span>
@@ -241,8 +250,9 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
                   Delete
                 </button>
               )}
-            </div>
+            </motion.div>
           ))}
+          </AnimatePresence>
         </div>
       )}
       {deleteError && (
@@ -253,19 +263,27 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
       )}
 
       {/* ── Success message ────────────────────────────────────────────────── */}
-      {successInfo && (
-        <div style={styles.successBox}>
-          <div style={styles.successTitle}>
-            ✉️ Letter sealed! It will be delivered on {formatDate(successInfo.date)}.
-          </div>
-          <div style={styles.successUrl}>
-            <span style={styles.dimText}>Save this link — share it with each other:</span>
-            <div style={styles.unlockLink}>
-              pearloom.com/time-capsule/{successInfo.token}
+      <AnimatePresence>
+        {successInfo && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+            style={styles.successBox}
+          >
+            <div style={styles.successTitle}>
+              ✉️ Letter sealed! It will be delivered on {formatDate(successInfo.date)}.
             </div>
-          </div>
-        </div>
-      )}
+            <div style={styles.successUrl}>
+              <span style={styles.dimText}>Save this link — share it with each other:</span>
+              <div style={styles.unlockLink}>
+                pearloom.com/time-capsule/{successInfo.token}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Write a new letter ─────────────────────────────────────────────── */}
       <div style={styles.section}>
@@ -340,9 +358,11 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
         {error && <div style={styles.errorBox}>{error}</div>}
 
         {/* Submit */}
-        <button
+        <motion.button
           onClick={handleSeal}
           disabled={saving}
+          whileHover={saving ? {} : { scale: 1.02, y: -1 }}
+          whileTap={saving ? {} : { scale: 0.97 }}
           style={{
             ...styles.sealBtn,
             opacity: saving ? 0.6 : 1,
@@ -350,7 +370,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
           }}
         >
           {saving ? 'Sealing...' : `✉️ Seal & Save Letter (${unlockLabel})`}
-        </button>
+        </motion.button>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@
 
 import { ArrowUp } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import type { SitePage } from '@/types';
 import { PearIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
 
@@ -62,7 +63,11 @@ export function SiteFooter({
         </div>
 
         {/* Three-column grid */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr 1fr',
@@ -191,7 +196,7 @@ export function SiteFooter({
               </p>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Bottom bar */}
         <div style={{
@@ -205,8 +210,10 @@ export function SiteFooter({
           </p>
 
           {/* Back to top */}
-          <button
+          <motion.button
             onClick={scrollToTop}
+            whileHover={{ scale: 1.04, y: -1 }}
+            whileTap={{ scale: 0.96 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.5rem 1rem', borderRadius: '100px',
@@ -215,7 +222,7 @@ export function SiteFooter({
               color: 'rgba(245,241,232,0.5)',
               cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
               fontFamily: 'var(--eg-font-body)',
-              transition: 'all 0.2s',
+              transition: 'background 0.2s, color 0.2s, border-color 0.2s',
               letterSpacing: '0.06em',
             }}
             onMouseOver={(e) => {
@@ -231,7 +238,7 @@ export function SiteFooter({
           >
             <ArrowUp size={13} />
             Back to top
-          </button>
+          </motion.button>
         </div>
       </div>
 

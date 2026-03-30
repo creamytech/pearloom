@@ -336,13 +336,13 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   Revealing in
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'clamp(0.4rem, 2vw, 1rem)', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <CountdownUnit value={countdown.days} label="days" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: '2.5rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <div style={{ color: 'var(--eg-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
                 <CountdownUnit value={countdown.hours} label="hours" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: '2.5rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <div style={{ color: 'var(--eg-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
                 <CountdownUnit value={countdown.minutes} label="min" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: '2.5rem', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <div style={{ color: 'var(--eg-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
                 <CountdownUnit value={countdown.seconds} label="sec" isTick />
               </div>
             </div>

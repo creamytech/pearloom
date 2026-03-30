@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 interface LiveUpdate {
@@ -126,7 +127,10 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
       >
         {/* Live indicator */}
         {isLive && (
-          <div
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 26 }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -143,18 +147,19 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
               color: 'var(--eg-accent, #A3B18A)',
             }}
           >
-            <span
+            <motion.span
+              animate={{ opacity: [1, 0.3, 1], scale: [1, 1.35, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
               style={{
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
                 background: 'var(--eg-accent, #A3B18A)',
                 display: 'inline-block',
-                animation: 'livePulse 1.5s ease-in-out infinite',
               }}
             />
             Live Today
-          </div>
+          </motion.div>
         )}
 
         <h2
@@ -175,14 +180,6 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
             : 'Updates from the wedding day.'}
         </p>
       </div>
-
-      {/* CSS keyframes for pulsing dot */}
-      <style>{`
-        @keyframes livePulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.3); }
-        }
-      `}</style>
 
       {loading ? (
         <div style={{ textAlign: 'center', color: 'var(--eg-muted, #9A9488)', padding: '2rem' }}>
@@ -225,10 +222,14 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
             }}
           />
 
+          <AnimatePresence initial={false}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {updates.map((update, idx) => (
-              <div
+              <motion.div
                 key={update.id}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.07, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   display: 'flex',
                   gap: '1.5rem',
@@ -237,6 +238,24 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                 }}
               >
                 {/* Timeline dot */}
+                {idx === updates.length - 1 && isLive ? (
+                  <motion.div
+                    animate={{ opacity: [1, 0.4, 1], scale: [1, 1.3, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                      background: TYPE_COLORS[update.type] || accent,
+                      border: '3px solid var(--eg-bg, #F5F1E8)',
+                      flexShrink: 0,
+                      marginTop: '0.5rem',
+                      boxShadow: `0 0 0 2px ${TYPE_COLORS[update.type] || accent}40`,
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                  />
+                ) : (
                 <div
                   style={{
                     width: '14px',
@@ -249,11 +268,9 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                     boxShadow: `0 0 0 2px ${TYPE_COLORS[update.type] || accent}40`,
                     position: 'relative',
                     zIndex: 1,
-                    ...(idx === updates.length - 1 && isLive ? {
-                      animation: 'livePulse 1.5s ease-in-out infinite',
-                    } : {}),
                   }}
                 />
+                )}
 
                 {/* Update card */}
                 <div
@@ -329,9 +346,10 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
+          </AnimatePresence>
 
           {/* Live refresh indicator */}
           {isLive && (
@@ -347,14 +365,15 @@ export function LiveUpdatesFeed({ subdomain, weddingDate, vibeSkin }: LiveUpdate
                 gap: '0.4rem',
               }}
             >
-              <span
+              <motion.span
+                animate={{ opacity: [1, 0.3, 1], scale: [1, 1.35, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
                   background: 'var(--eg-accent, #A3B18A)',
                   display: 'inline-block',
-                  animation: 'livePulse 1.5s ease-in-out infinite',
                 }}
               />
               Refreshing every 30 seconds

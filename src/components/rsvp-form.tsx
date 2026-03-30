@@ -191,6 +191,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Step count: step 0 always, step 1 if attending, step 2 (message) always
   const totalSteps = status === 'attending' ? 3 : 2;
@@ -199,6 +200,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setSubmitError(null);
     try {
       const res = await fetch('/api/rsvp', {
         method: 'POST',
@@ -223,9 +225,12 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 4500);
         }
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setSubmitError(body?.error || 'Something went wrong. Please try again.');
       }
     } catch {
-      console.error('RSVP submission failed');
+      setSubmitError('Unable to reach the server. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -749,6 +754,26 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                 {loading ? 'Submitting...' : 'Send my RSVP'}
               </button>
             </div>
+            <AnimatePresence>
+              {submitError && (
+                <motion.p
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    marginTop: '0.75rem',
+                    fontSize: '0.82rem',
+                    color: '#b91c1c',
+                    textAlign: 'center',
+                    background: 'rgba(185,28,28,0.06)',
+                    borderRadius: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                  }}
+                >
+                  {submitError}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

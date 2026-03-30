@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ShareBarProps {
   url: string;
@@ -46,16 +47,40 @@ export function ShareBar({ url, title, accent, bgColor }: ShareBarProps) {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '1.25rem' }}>
-      <a href={twitterUrl} target="_blank" rel="noopener noreferrer" style={btnBase} aria-label="Share on X / Twitter">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '1.25rem' }}
+    >
+      <motion.a href={twitterUrl} target="_blank" rel="noopener noreferrer" style={btnBase} aria-label="Share on X / Twitter"
+        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
         Share on X
-      </a>
-      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={btnBase} aria-label="Share on WhatsApp">
+      </motion.a>
+      <motion.a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={btnBase} aria-label="Share on WhatsApp"
+        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
         Share on WhatsApp
-      </a>
-      <button onClick={handleCopy} style={{ ...btnBase, background: copied ? `${accent}25` : btnBase.background as string }} aria-label="Copy link">
-        {copied ? 'Copied!' : 'Copy Link'}
-      </button>
-    </div>
+      </motion.a>
+      <motion.button
+        onClick={handleCopy}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.96 }}
+        style={{ ...btnBase, background: copied ? `${accent}25` : btnBase.background as string }}
+        aria-label="Copy link"
+      >
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={copied ? 'copied' : 'copy'}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.15 }}
+          >
+            {copied ? 'Copied! ✓' : 'Copy Link'}
+          </motion.span>
+        </AnimatePresence>
+      </motion.button>
+    </motion.div>
   );
 }

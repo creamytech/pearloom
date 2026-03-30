@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FONT_CATALOG,
   FONT_CATEGORIES,
@@ -149,21 +150,29 @@ export default function FontPicker({
         }}
       >
         {/* All pill */}
-        <button
-          onClick={() => setActiveCategory('all')}
-          style={pillStyle(activeCategory === 'all')}
-        >
-          All
-        </button>
-        {FONT_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            style={pillStyle(activeCategory === cat)}
-          >
-            {CATEGORY_LABELS[cat]}
-          </button>
-        ))}
+        {(['all', ...FONT_CATEGORIES] as const).map((cat) => {
+          const isActive = activeCategory === cat;
+          const label = cat === 'all' ? 'All' : CATEGORY_LABELS[cat as FontPair['category']];
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              style={{ ...pillStyle(isActive), position: 'relative' }}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="font-category-active"
+                  style={{
+                    position: 'absolute', inset: 0, borderRadius: '100px',
+                    background: '#A3B18A', zIndex: -1,
+                  }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Font grid */}
@@ -179,12 +188,11 @@ export default function FontPicker({
           alignContent: 'start',
         }}
       >
-        {filtered.map((pair) => {
+        {filtered.map((pair, idx) => {
           const selected = isSelected(pair);
-          const hover = hovered === pair.id;
 
           return (
-            <button
+            <motion.button
               key={pair.id}
               data-pair-id={pair.id}
               ref={(el) => {
@@ -195,6 +203,11 @@ export default function FontPicker({
               onMouseEnter={() => setHovered(pair.id)}
               onMouseLeave={() => setHovered(null)}
               title={pair.pairRationale}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: Math.min(idx * 0.035, 0.5), ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               style={{
                 all: 'unset',
                 display: 'flex',
@@ -205,43 +218,45 @@ export default function FontPicker({
                 cursor: 'pointer',
                 background: selected
                   ? 'rgba(163, 177, 138, 0.12)'
-                  : hover
-                  ? 'rgba(255,255,255,0.05)'
                   : 'rgba(255,255,255,0.03)',
                 border: selected
                   ? '1.5px solid #A3B18A'
-                  : hover
-                  ? '1.5px solid rgba(255,255,255,0.15)'
                   : '1.5px solid rgba(255,255,255,0.07)',
-                transition: 'all 0.15s ease',
+                transition: 'background 0.15s ease, border-color 0.15s ease',
                 position: 'relative',
                 textAlign: 'left',
                 boxSizing: 'border-box',
               }}
             >
               {/* Selected checkmark */}
-              {selected && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
-                    background: '#A3B18A',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '10px',
-                    color: '#1E1B16',
-                    fontWeight: 700,
-                    lineHeight: 1,
-                  }}
-                >
-                  ✓
-                </span>
-              )}
+              <AnimatePresence>
+                {selected && (
+                  <motion.span
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      background: '#A3B18A',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '10px',
+                      color: '#1E1B16',
+                      fontWeight: 700,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ✓
+                  </motion.span>
+                )}
+              </AnimatePresence>
 
               {/* Sample phrase in heading font */}
               <span
@@ -315,7 +330,7 @@ export default function FontPicker({
                   {pair.mood}
                 </span>
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -386,11 +401,12 @@ function pillStyle(active: boolean): React.CSSProperties {
     letterSpacing: '0.03em',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
-    background: active ? '#A3B18A' : 'rgba(255,255,255,0.07)',
+    background: active ? 'transparent' : 'rgba(255,255,255,0.07)',
     color: active ? '#1E1B16' : 'rgba(255,255,255,0.6)',
-    border: active ? '1px solid #A3B18A' : '1px solid rgba(255,255,255,0.1)',
-    transition: 'all 0.15s ease',
+    border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.1)',
+    transition: 'color 0.15s ease',
     flexShrink: 0,
+    zIndex: 0,
   };
 }
 

@@ -6,6 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const MAX_SIZE_MB = 20;
 
@@ -22,6 +24,11 @@ function getR2Client() {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'You must be signed in to upload photos' }, { status: 401 });
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
@@ -69,10 +76,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Fallback: Supabase Storage
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[upload] No storage backend configured — set R2 or Supabase env vars');
+      return NextResponse.json({ error: 'Storage not configured — contact support' }, { status: 503 });
+    }
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
     );
 
     const { error } = await supabase.storage

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { StoryManifest, Chapter } from '@/types';
 
 interface AnniversaryUpgradeProps {
@@ -31,7 +32,10 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
     : `${months} Month${months !== 1 ? 's' : ''} Together`;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.92 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 24, delay: 1.5 }}
       style={{
         position: 'fixed',
         bottom: '1.5rem',
@@ -61,8 +65,14 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
       >
         {label}
       </span>
-      <span style={{ fontSize: '0.8rem' }}>✨</span>
-    </div>
+      <motion.span
+        animate={{ rotate: [0, 15, -10, 5, 0] }}
+        transition={{ duration: 1.2, delay: 2.5, repeat: Infinity, repeatDelay: 6 }}
+        style={{ fontSize: '0.8rem', display: 'inline-block' }}
+      >
+        ✨
+      </motion.span>
+    </motion.div>
   );
 }
 

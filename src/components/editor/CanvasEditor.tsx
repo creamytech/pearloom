@@ -366,24 +366,30 @@ function BlockRow({
   onDelete: (id: string) => void;
   dragHandleProps: DragHandleProps;
 }) {
+  const [hovered, setHovered] = useState(false);
   const Icon = def?.icon || LayoutTemplate;
   const color = def?.color || 'var(--eg-accent, #A3B18A)';
+  const showActions = isActive || hovered;
 
   return (
     <motion.div
       layout
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: block.visible ? 1 : 0.38 }}
+      whileHover={{ y: isActive ? 0 : -1 }}
+      transition={{ duration: 0.15 }}
       onClick={() => onSelect(block.id)}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         padding: '12px 10px 12px 8px',
         minHeight: '64px',
         borderRadius: '10px',
-        background: isActive ? `${color}18` : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${isActive ? `${color}50` : 'rgba(255,255,255,0.07)'}`,
-        borderLeft: isActive ? `3px solid ${color}` : `1px solid rgba(255,255,255,0.07)`,
-        cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
+        background: isActive ? `${color}18` : hovered ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${isActive ? `${color}50` : hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}`,
+        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}`,
+        cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s', position: 'relative',
         userSelect: 'none',
         boxShadow: isActive ? `0 0 0 3px ${color}10` : 'none',
       }}
@@ -426,28 +432,44 @@ function BlockRow({
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Actions — reveal on hover or active */}
       <div style={{ display: 'flex', gap: '2px', alignItems: 'center', flexShrink: 0 }}>
-        <button
-          onClick={e => { e.stopPropagation(); onToggle(block.id); }}
-          title={block.visible ? 'Hide section' : 'Show section'}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'rgba(255,255,255,0.3)' : '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
+        <AnimatePresence>
+          {showActions && (
+            <motion.div
+              initial={{ opacity: 0, x: 6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 6 }}
+              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              style={{ display: 'flex', gap: '2px', alignItems: 'center' }}
+            >
+              <button
+                onClick={e => { e.stopPropagation(); onToggle(block.id); }}
+                title={block.visible ? 'Hide section' : 'Show section'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'rgba(255,255,255,0.3)' : '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
+              >
+                {block.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); onDelete(block.id); }}
+                title="Remove block"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+              >
+                <Trash2 size={14} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {/* Expand chevron — always visible */}
+        <motion.div
+          animate={{ rotate: isActive ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          style={{ color: isActive ? color : 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', minWidth: '36px', minHeight: '36px' }}
         >
-          {block.visible ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
-        <button
-          onClick={e => { e.stopPropagation(); onDelete(block.id); }}
-          title="Remove block"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-          onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
-        >
-          <Trash2 size={14} />
-        </button>
-        {/* Expand chevron */}
-        <div style={{ color: isActive ? color : 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', transition: 'all 0.2s', minWidth: '36px', minHeight: '36px' }}>
-          <ChevronDown size={14} style={{ transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
-        </div>
+          <ChevronDown size={14} />
+        </motion.div>
       </div>
 
       {/* Active indicator bar */}
