@@ -133,21 +133,21 @@ function Field({ label, value, onChange, rows, placeholder }: {
 // ── DragHandle ─────────────────────────────────────────────────
 function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls> }) {
   return (
-    <div
+    <motion.div
       role="button"
       aria-label="Drag to reorder"
       tabIndex={0}
       onPointerDown={e => { e.preventDefault(); controls.start(e); }}
+      whileHover={{ color: 'rgba(163,177,138,0.85)', scale: 1.15 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 22 }}
       style={{
         cursor: 'grab', padding: '0 10px', display: 'flex', alignItems: 'center',
         color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
         minHeight: '44px',
       }}
-      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.8)'; }}
-      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
     >
       <GripIcon size={14} />
-    </div>
+    </motion.div>
   );
 }
 
@@ -158,11 +158,13 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
     data: { type: 'chapter', id: chapterId, label: chapterTitle },
   });
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
       title="Drag to reorder in canvas"
+      whileHover={!isDragging ? { color: 'rgba(163,177,138,0.85)', backgroundColor: 'rgba(163,177,138,0.1)', scale: 1.1 } : {}}
+      transition={{ type: 'spring', stiffness: 420, damping: 22 }}
       style={{
         cursor: isDragging ? 'grabbing' : 'grab',
         padding: '2px 6px 2px 2px',
@@ -170,13 +172,10 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
         color: isDragging ? 'rgba(163,177,138,0.9)' : 'rgba(255,255,255,0.18)',
         touchAction: 'none', userSelect: 'none', flexShrink: 0,
         borderRadius: '4px',
-        transition: 'color 0.15s, background 0.15s',
       }}
-      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.8)'; (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; }}
-      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.18)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
     >
       ⌖
-    </div>
+    </motion.div>
   );
 }
 
@@ -222,11 +221,14 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
     data: { type: 'block', id: blockId, label },
   });
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
       title="Drag to insert →"
+      whileHover={!isDragging ? { x: 3, backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(163,177,138,0.4)' } : {}}
+      whileTap={!isDragging ? { scale: 0.97 } : {}}
+      transition={{ type: 'spring', stiffness: 380, damping: 28 }}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         padding: '10px 12px', borderRadius: '8px', minHeight: '60px',
@@ -234,13 +236,9 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
         background: isDragging ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.06)',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none', touchAction: 'none',
-        transition: 'all 0.15s',
         marginBottom: '6px',
         opacity: isDragging ? 0.5 : 1,
-        transform: isDragging ? 'none' : undefined,
       }}
-      onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.1)'; el.style.borderColor = 'rgba(163,177,138,0.35)'; el.style.transform = 'translateX(2px)'; }}
-      onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.06)'; el.style.borderColor = 'rgba(255,255,255,0.1)'; el.style.transform = 'translateX(0)'; }}
     >
       {/* Drag handle */}
       <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '1rem', flexShrink: 0, lineHeight: 1 }}>✦</div>
@@ -256,7 +254,7 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2 }}>{label}</div>
         <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.42)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -287,27 +285,16 @@ function SectionItem({
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       style={{ marginBottom: '6px', cursor: 'pointer' }}
     >
-      <div
+      <motion.div
+        whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.07)' } : {}}
+        transition={{ duration: 0.15 }}
         style={{
           borderRadius: '10px',
           background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.04)',
           border: '1px solid transparent',
-          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '3px solid rgba(163,177,138,0.12)',
-          transition: 'background 0.2s, border-left-color 0.2s',
+          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '3px solid rgba(163,177,138,0.15)',
           position: 'relative',
           overflow: 'hidden',
-        }}
-        onMouseOver={e => {
-          if (!isActive) {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)';
-            (e.currentTarget as HTMLElement).style.borderLeftColor = 'rgba(163,177,138,0.3)';
-          }
-        }}
-        onMouseOut={e => {
-          if (!isActive) {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-            (e.currentTarget as HTMLElement).style.borderLeftColor = 'rgba(163,177,138,0.12)';
-          }
         }}
       >
         {/* Main card row */}
@@ -367,23 +354,24 @@ function SectionItem({
           </div>
 
           {/* Delete */}
-          <button
+          <motion.button
             onClick={e => {
               e.stopPropagation();
               if (window.confirm(`Delete "${chapter.title}"? This cannot be undone.`)) {
                 onDelete(chapter.id);
               }
             }}
+            whileHover={{ scale: 1.15, color: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)' }}
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               padding: '5px', borderRadius: '5px', border: 'none',
               background: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
-              display: 'flex', flexShrink: 0, transition: 'color 0.15s, background 0.15s',
+              display: 'flex', flexShrink: 0,
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; (e.currentTarget as HTMLElement).style.background = 'rgba(248,113,113,0.1)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; (e.currentTarget as HTMLElement).style.background = 'none'; }}
           >
             <Trash2 size={12} />
-          </button>
+          </motion.button>
         </div>
 
         {/* Chapter actions row — completion dots + rewrite + sort */}
@@ -397,7 +385,7 @@ function SectionItem({
             onUpdate={(data) => onUpdate(chapter.id, data)}
           />
         </div>
-      </div>
+      </motion.div>
     </Reorder.Item>
   );
 }
@@ -2075,9 +2063,6 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       setSaveState('saved');
       setIsDirty(false);
       onPublish?.();
-      // Navigate to published site after 2s — window.location.href is never
-      // blocked by popup blockers (unlike window.open after async)
-      if (data.url) setTimeout(() => { window.location.href = data.url; }, 2000);
     } catch (err) {
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -2437,26 +2422,30 @@ Return JSON with: title, subtitle, description, mood`,
       <div style={{
         height: '52px', flexShrink: 0,
         display: 'flex', alignItems: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-        background: 'var(--eg-dark-2, #3D3530)', padding: '0 1rem', gap: '0.75rem',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(36,30,26,0.98)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        padding: '0 1rem', gap: '0.75rem',
         zIndex: 10,
-      }}>
+        boxShadow: '0 1px 0 rgba(255,255,255,0.04), 0 2px 12px rgba(0,0,0,0.2)',
+      } as React.CSSProperties}>
         {/* Exit */}
-        <button
+        <motion.button
           onClick={onExit}
           title="Exit editor"
+          whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.11)' }}
+          whileTap={{ scale: 0.94 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           style={{
             display: 'flex', alignItems: 'center', gap: '5px',
             padding: '6px 10px', borderRadius: '6px', border: 'none',
             background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.65)',
             cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, flexShrink: 0,
-            transition: 'background 0.15s',
           }}
-          onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
-          onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; }}
         >
           <ExitIcon size={14} /> Exit
-        </button>
+        </motion.button>
 
         {/* Site name — centered, contextual to occasion */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
@@ -2472,22 +2461,23 @@ Return JSON with: title, subtitle, description, mood`,
               ? `${coupleNames[0]} & ${coupleNames[1]}`
               : `${coupleNames[0]} & ${coupleNames[1]}`}
           </span>
-          <button
+          <motion.button
             onClick={() => setCmdPaletteOpen(true)}
             title="Command Palette (Cmd+K)"
+            whileHover={{ scale: 1.05, borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.75)' }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px',
               padding: '3px 9px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
               background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)',
               cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-              letterSpacing: '0.04em', transition: 'all 0.15s',
+              letterSpacing: '0.04em',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}
           >
             <CommandIcon size={10} />
             <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
-          </button>
+          </motion.button>
 
           {/* Contextual chapter actions — appear when a chapter is selected */}
           <AnimatePresence>
@@ -2502,7 +2492,7 @@ Return JSON with: title, subtitle, description, mood`,
               >
                 <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.12)', marginRight: '4px' }} />
                 {/* Duplicate */}
-                <button
+                <motion.button
                   title="Duplicate chapter (⌘D)"
                   onClick={() => {
                     const original = chapters.find(c => c.id === activeId);
@@ -2515,22 +2505,24 @@ Return JSON with: title, subtitle, description, mood`,
                     const newManifest = { ...manifest, chapters: next.map((ch, i) => ({ ...ch, order: i })) };
                     pushHistory(newManifest); onChange(newManifest); pushToPreview(newManifest);
                   }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', transition: 'all 0.15s' }}
-                  onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.1)'; el.style.color = '#fff'; }}
-                  onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(255,255,255,0.05)'; el.style.color = 'rgba(255,255,255,0.55)'; }}
+                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
+                  whileTap={{ scale: 0.93 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em' }}
                 >
                   ⌘D Duplicate
-                </button>
+                </motion.button>
                 {/* Delete */}
-                <button
+                <motion.button
                   title="Delete chapter"
                   onClick={() => deleteChapter(activeId)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(248,113,113,0.2)', background: 'rgba(248,113,113,0.06)', color: 'rgba(248,113,113,0.6)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em', transition: 'all 0.15s' }}
-                  onMouseOver={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(248,113,113,0.12)'; el.style.color = '#f87171'; }}
-                  onMouseOut={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'rgba(248,113,113,0.06)'; el.style.color = 'rgba(248,113,113,0.6)'; }}
+                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(248,113,113,0.14)', color: '#f87171' }}
+                  whileTap={{ scale: 0.93 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(248,113,113,0.2)', background: 'rgba(248,113,113,0.06)', color: 'rgba(248,113,113,0.6)', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em' }}
                 >
                   Delete
-                </button>
+                </motion.button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -2538,42 +2530,71 @@ Return JSON with: title, subtitle, description, mood`,
 
         {/* Save status + Undo/Redo — desktop only */}
         <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-          <button
+          <motion.button
             onClick={undo} disabled={!canUndo} title="Undo (Cmd+Z)"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
-          ><UndoIcon size={13} /></button>
-          <button
+            whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+            whileTap={canUndo ? { scale: 0.88 } : {}}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)', cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
+          ><UndoIcon size={13} /></motion.button>
+          <motion.button
             onClick={redo} disabled={!canRedo} title="Redo (Cmd+Shift+Z)"
-            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.2)', cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
-          ><RedoIcon size={13} /></button>
-          {/* Save status — dot + text */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '4px 9px', borderRadius: '100px', transition: 'all 0.3s',
-            background: saveState === 'saved' ? 'rgba(163,177,138,0.12)' : 'rgba(251,146,60,0.1)',
-          }}>
-            {saveState === 'saved'
-              ? <><SavedIcon size={10} color="var(--eg-accent, #4A5A3A)" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--eg-accent, #4A5A3A)', letterSpacing: '0.04em' }}>All changes saved</span></>
-              : <><UnsavedIcon size={10} color="#fb923c" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved changes</span></>}
-          </div>
+            whileHover={canRedo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+            whileTap={canRedo ? { scale: 0.88 } : {}}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.06)', color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)', cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center' }}
+          ><RedoIcon size={13} /></motion.button>
+          {/* Save status — animated pill */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={saveState}
+              initial={{ opacity: 0, scale: 0.85, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.85, y: 4 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '4px 9px', borderRadius: '100px',
+                background: saveState === 'saved' ? 'rgba(163,177,138,0.14)' : 'rgba(251,146,60,0.12)',
+              }}
+            >
+              {saveState === 'saved'
+                ? <><SavedIcon size={10} color="#A3B18A" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#A3B18A', letterSpacing: '0.04em' }}>Saved</span></>
+                : <><UnsavedIcon size={10} color="#fb923c" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved</span></>}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        {/* Device switcher — desktop only */}
-        <div style={{ display: isMobile ? 'none' : 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px', flexShrink: 0 }}>
+        {/* Device switcher — desktop only, animated sliding pill */}
+        <div style={{ display: isMobile ? 'none' : 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px', flexShrink: 0, position: 'relative' }}>
           {(Object.entries(DEVICE_DIMS) as [DeviceMode, typeof DEVICE_DIMS[DeviceMode]][]).map(([mode, { icon: Icon, label }]) => (
-            <button
+            <motion.button
               key={mode}
               onClick={() => setDevice(mode)}
               title={label}
+              whileHover={{ color: device === mode ? '#fff' : 'rgba(255,255,255,0.75)' }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
               style={{
                 padding: '5px 9px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-                background: device === mode ? 'rgba(255,255,255,0.12)' : 'transparent',
+                background: 'transparent',
                 color: device === mode ? '#fff' : 'rgba(255,255,255,0.4)',
-                display: 'flex', transition: 'all 0.15s',
+                display: 'flex', position: 'relative', zIndex: 1,
               }}
             >
+              {device === mode && (
+                <motion.div
+                  layoutId="device-pill"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  style={{
+                    position: 'absolute', inset: 0, borderRadius: '6px',
+                    background: 'rgba(255,255,255,0.14)',
+                    zIndex: -1,
+                  }}
+                />
+              )}
               <Icon size={14} />
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -2603,55 +2624,57 @@ Return JSON with: title, subtitle, description, mood`,
         {/* Preview + Publish — desktop only */}
         <div style={{ display: isMobile ? 'none' : 'flex', gap: '6px', flexShrink: 0 }}>
           {/* Split view toggle */}
-          <button
+          <motion.button
             onClick={() => setSplitView(v => !v)}
             title="Toggle split-pane preview"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '6px 10px', borderRadius: '6px',
               border: `1px solid ${splitView ? 'rgba(163,177,138,0.5)' : 'rgba(255,255,255,0.12)'}`,
               background: splitView ? 'rgba(163,177,138,0.15)' : 'transparent',
               color: splitView ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.6)',
-              cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
+              cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
             }}
-            onMouseOver={e => { if (!splitView) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
-            onMouseOut={e => { if (!splitView) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           >
             <Columns2 size={13} /> Split
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => {
               storePreview(previewKey, manifest, coupleNames);
               window.open(`/preview?key=${previewKey}`, '_blank');
             }}
             title="Preview site (Cmd+P)"
+            whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.07)' }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '6px 13px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)',
               background: 'transparent', color: 'rgba(255,255,255,0.8)',
-              cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
+              cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
           >
             <PreviewIcon size={13} /> Preview
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
             title="Publish your site"
+            whileHover={{ scale: 1.06, boxShadow: '0 6px 24px rgba(163,177,138,0.55)' }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 20 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '6px 16px', borderRadius: '6px', border: 'none',
-              background: 'var(--eg-accent, #A3B18A)',
+              padding: '6px 16px', borderRadius: '7px', border: 'none',
+              background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
               color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
-              boxShadow: '0 2px 10px rgba(163,177,138,0.3)',
-              transition: 'all 0.2s',
+              boxShadow: '0 2px 12px rgba(163,177,138,0.35)',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(163,177,138,0.45)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(163,177,138,0.3)'; }}
           >
             <PublishIcon size={13} /> Publish
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -2671,42 +2694,42 @@ Return JSON with: title, subtitle, description, mood`,
             footer={
               <div style={{ padding: '10px 12px', display: 'flex', gap: '8px' }}>
                 {/* Preview Site — outline */}
-                <button
+                <motion.button
                   onClick={() => {
                     storePreview(previewKey, manifest, coupleNames);
                     window.open(`/preview?key=${previewKey}`, '_blank');
                   }}
+                  whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.1)', color: '#fff' }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                   style={{
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                     padding: '9px 10px', borderRadius: '8px',
                     border: '1px solid rgba(163,177,138,0.4)',
                     background: 'transparent', color: 'rgba(255,255,255,0.75)',
                     cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-                    transition: 'all 0.15s', whiteSpace: 'nowrap',
-                    minHeight: '38px',
+                    whiteSpace: 'nowrap', minHeight: '38px',
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; (e.currentTarget as HTMLElement).style.color = '#fff'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)'; }}
                 >
                   <Eye size={12} /> Preview
-                </button>
+                </motion.button>
                 {/* Publish — filled olive gradient */}
-                <button
+                <motion.button
                   onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
+                  whileHover={{ scale: 1.06, boxShadow: '0 6px 20px rgba(163,177,138,0.55)', y: -1 }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 20 }}
                   style={{
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                     padding: '9px 10px', borderRadius: '8px', border: 'none',
                     background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
                     color: '#F5F1E8', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                     boxShadow: '0 2px 8px rgba(163,177,138,0.35)',
-                    transition: 'all 0.15s', whiteSpace: 'nowrap',
-                    minHeight: '38px',
+                    whiteSpace: 'nowrap', minHeight: '38px',
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(163,177,138,0.5)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(163,177,138,0.35)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
                 >
                   <Globe size={12} /> Publish
-                </button>
+                </motion.button>
               </div>
             }
           >
@@ -2716,8 +2739,11 @@ Return JSON with: title, subtitle, description, mood`,
                   <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
                     Story Chapters ({chapters.length})
                   </span>
-                  <button
+                  <motion.button
                     onClick={addChapter}
+                    whileHover={{ scale: 1.08, backgroundColor: 'rgba(163,177,138,0.26)' }}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '4px',
                       padding: '5px 10px', borderRadius: '5px', border: 'none',
@@ -2726,7 +2752,7 @@ Return JSON with: title, subtitle, description, mood`,
                     }}
                   >
                     <Plus size={11} /> Add
-                  </button>
+                  </motion.button>
                 </div>
 
                 {/* ── Global timeline format switcher ── */}
@@ -2745,23 +2771,23 @@ Return JSON with: title, subtitle, description, mood`,
                     ].map(fmt => {
                       const isActive = (manifest.layoutFormat || 'cascade') === fmt.id;
                       return (
-                        <button
+                        <motion.button
                           key={fmt.id}
                           onClick={() => handleDesignChange({ ...manifest, layoutFormat: fmt.id as StoryManifest['layoutFormat'] })}
+                          whileHover={!isActive ? { scale: 1.06, backgroundColor: 'rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.7)' } : { scale: 1.04 }}
+                          whileTap={{ scale: 0.91 }}
+                          transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                           style={{
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
                             padding: '6px 4px', borderRadius: '7px', border: 'none', cursor: 'pointer',
                             background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.04)',
                             color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.35)',
                             outline: isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid transparent',
-                            transition: 'all 0.15s',
                           }}
-                          onMouseOver={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.65)'; }}}
-                          onMouseOut={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.35)'; }}}
                         >
                           <span style={{ fontSize: '1rem', lineHeight: 1 }}>{fmt.emoji}</span>
                           <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.04em' }}>{fmt.label}</span>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -2994,7 +3020,7 @@ Return JSON with: title, subtitle, description, mood`,
               details: 'Details', blocks: 'AI', voice: 'Voice',
             };
             return (
-              <button
+              <motion.button
                 key={tab}
                 onClick={() => {
                   if (activeTab === tab && mobileSheetOpen) {
@@ -3004,6 +3030,8 @@ Return JSON with: title, subtitle, description, mood`,
                     setMobileSheetOpen(true);
                   }
                 }}
+                whileTap={{ scale: 0.82 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 20 }}
                 style={{
                   flex: '0 0 auto', minWidth: '52px',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -3012,7 +3040,6 @@ Return JSON with: title, subtitle, description, mood`,
                   background: isActive ? 'rgba(109,89,122,0.3)' : 'transparent',
                   color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
                   borderTop: isActive ? '2px solid var(--eg-plum, #6D597A)' : '2px solid transparent',
-                  transition: 'all 0.15s',
                   minHeight: '48px',
                 }}
               >
@@ -3020,25 +3047,27 @@ Return JSON with: title, subtitle, description, mood`,
                 <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
                   {labels[tab] || tab}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
           {/* Spacer to push preview/publish to right */}
           <div style={{ flex: 1 }} />
           {/* Publish */}
-          <button
+          <motion.button
             onClick={() => { setPublishError(null); setPublishedUrl(null); setShowPublish(true); }}
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 20 }}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '8px 16px', border: 'none',
-              background: 'var(--eg-accent, #A3B18A)',
+              background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
               color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
               borderTop: '2px solid transparent',
               minHeight: '48px',
             }}
           >
             <PublishIcon size={14} />
-          </button>
+          </motion.button>
         </div>
       )}
 
@@ -3114,8 +3143,11 @@ Return JSON with: title, subtitle, description, mood`,
                     <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
                       Story Chapters
                     </span>
-                    <button
+                    <motion.button
                       onClick={addChapter}
+                      whileHover={{ scale: 1.06, backgroundColor: 'rgba(163,177,138,0.26)' }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '4px',
                         padding: '8px 14px', borderRadius: '5px', border: 'none',
@@ -3125,7 +3157,7 @@ Return JSON with: title, subtitle, description, mood`,
                       }}
                     >
                       <Plus size={13} /> Add
-                    </button>
+                    </motion.button>
                   </div>
                   {/* Horizontal swipeable chapter cards on mobile */}
                   <div style={{
@@ -3320,109 +3352,179 @@ Return JSON with: title, subtitle, description, mood`,
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
             style={{
               position: 'fixed', inset: 0, zIndex: 2000,
-              background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
+              background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: 'calc(2rem + env(safe-area-inset-top, 0px)) 2rem calc(2rem + env(safe-area-inset-bottom, 0px))',
             } as React.CSSProperties}
             onClick={() => setShowPublish(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              initial={{ opacity: 0, scale: 0.88, y: 28 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 20 }}
-              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
               onClick={e => e.stopPropagation()}
               style={{
-                background: 'var(--eg-dark-2, #3D3530)', borderRadius: '1.5rem',
+                background: 'linear-gradient(160deg, #3d3530 0%, #312b26 100%)',
+                borderRadius: '16px 16px 36px 36px',
                 padding: '2.5rem', maxWidth: '460px', width: '100%',
-                boxShadow: '0 40px 100px rgba(0,0,0,0.6)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07) inset',
                 textAlign: 'center',
+                position: 'relative', overflow: 'hidden',
               }}
             >
+              {/* Subtle pear-glow at bottom */}
+              <div style={{
+                position: 'absolute', bottom: -40, left: '50%', transform: 'translateX(-50%)',
+                width: '200px', height: '200px', borderRadius: '50%',
+                background: publishedUrl ? 'radial-gradient(circle, rgba(163,177,138,0.18) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(163,177,138,0.08) 0%, transparent 70%)',
+                pointerEvents: 'none', transition: 'background 0.6s',
+              }} />
+              <AnimatePresence mode="wait">
               {publishedUrl ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Globe size={24} color="var(--eg-accent, #A3B18A)" />
-                  </div>
-                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', margin: 0 }}>It&apos;s Live.</h2>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</p>
-                  <div style={{ width: '100%', position: 'relative' }}>
-                    <code style={{ display: 'block', background: 'rgba(255,255,255,0.08)', padding: '0.6rem 2.8rem 0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all', textAlign: 'left' }}>
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'relative' }}
+                >
+                  {/* Animated globe icon */}
+                  <motion.div
+                    initial={{ scale: 0, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 360, damping: 22, delay: 0.05 }}
+                    style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(163,177,138,0.2)' }}
+                  >
+                    <Globe size={26} color="var(--eg-accent, #A3B18A)" />
+                  </motion.div>
+                  <motion.h2
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, type: 'spring', stiffness: 340, damping: 26 }}
+                    style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', color: '#fff', margin: 0, letterSpacing: '-0.02em' }}
+                  >
+                    It&apos;s Live.
+                  </motion.h2>
+                  <motion.p
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.25 }}
+                    style={{ color: 'rgba(255,255,255,0.48)', margin: 0, fontSize: '0.9rem' }}
+                  >
+                    Your story is now live at:
+                  </motion.p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 320, damping: 26 }}
+                    style={{ width: '100%', position: 'relative' }}
+                  >
+                    <code style={{ display: 'block', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.2)', padding: '0.65rem 2.8rem 0.65rem 1.2rem', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all', textAlign: 'left' }}>
                       {publishedUrl}
                     </code>
-                    <button
+                    <motion.button
                       onClick={() => navigator.clipboard?.writeText(publishedUrl!).catch(() => {})}
                       title="Copy link"
-                      style={{ position: 'absolute', right: '0.6rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(163,177,138,0.55)', padding: '4px', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
-                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-                      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(163,177,138,0.55)'; }}
+                      whileHover={{ scale: 1.15, color: '#A3B18A' }}
+                      whileTap={{ scale: 0.88 }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+                      style={{ position: 'absolute', right: '0.6rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(163,177,138,0.55)', padding: '4px', display: 'flex', alignItems: 'center' }}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
-                    <a
+                    </motion.button>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.26, type: 'spring', stiffness: 300, damping: 26 }}
+                    style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}
+                  >
+                    <motion.a
                       href={publishedUrl!} target="_blank" rel="noreferrer"
-                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem', textAlign: 'center' }}
+                      whileHover={{ scale: 1.04, boxShadow: '0 6px 22px rgba(163,177,138,0.45)' }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+                      style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px rgba(163,177,138,0.35)' }}
                     >
                       Open Site →
-                    </a>
-                    <button
+                    </motion.a>
+                    <motion.button
                       onClick={() => { setShowPublish(false); onExit(); }}
-                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}
+                      whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+                      style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
                     >
                       Dashboard
-                    </button>
-                  </div>
-                </div>
+                    </motion.button>
+                  </motion.div>
+                </motion.div>
               ) : (
-                <>
-                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', marginBottom: '0.5rem' }}>Choose Your URL</h2>
-                  <p style={{ color: 'rgba(255,255,255,0.45)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
+                <motion.div
+                  key="url-picker"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                >
+                  <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Choose Your URL</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.42)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
 
                   {publishError && (
-                    <div style={{ background: 'rgba(185,28,28,0.12)', border: '1px solid rgba(248,113,113,0.3)', color: '#fca5a5', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{ background: 'rgba(185,28,28,0.14)', border: '1px solid rgba(248,113,113,0.3)', color: '#fca5a5', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}
+                    >
                       <span style={{ flexShrink: 0 }}>⚠</span>
                       <span>{publishError}</span>
-                    </div>
+                    </motion.div>
                   )}
 
-                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.06)', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.07)', borderRadius: '0.85rem', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.2) inset' }}>
                     <input
                       value={subdomain}
                       onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       placeholder="shauna-and-ben"
-                      style={{ flex: 1, padding: '0.85rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontFamily: 'inherit' }}
+                      style={{ flex: 1, padding: '0.9rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontFamily: 'inherit' }}
                       disabled={isPublishing}
                       autoFocus
                     />
-                    <div style={{ padding: '0.85rem 1rem', color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem', borderLeft: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap' }}>
+                    <div style={{ padding: '0.9rem 1rem', color: 'rgba(255,255,255,0.28)', fontSize: '0.82rem', borderLeft: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap', background: 'rgba(255,255,255,0.03)' }}>
                       .pearloom.com
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button
+                    <motion.button
                       onClick={() => setShowPublish(false)}
                       disabled={isPublishing}
-                      style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}
+                      whileHover={{ scale: 1.03, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                      style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}
                     >
                       Cancel
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       onClick={handlePublishSubmit}
                       disabled={isPublishing || !subdomain}
-                      style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.85rem', borderRadius: '0.75rem', background: 'var(--eg-accent, #A3B18A)', color: 'var(--eg-bg, #F5F1E8)', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.88rem', opacity: isPublishing || !subdomain ? 0.7 : 1 }}
+                      whileHover={!isPublishing && subdomain ? { scale: 1.04, boxShadow: '0 6px 24px rgba(163,177,138,0.5)' } : {}}
+                      whileTap={!isPublishing && subdomain ? { scale: 0.95 } : {}}
+                      transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+                      style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.88rem', opacity: isPublishing || !subdomain ? 0.65 : 1, boxShadow: '0 3px 12px rgba(163,177,138,0.3)' }}
                     >
                       {isPublishing ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</> : <><Globe size={14} /> Publish Site</>}
-                    </button>
+                    </motion.button>
                   </div>
-                </>
+                </motion.div>
               )}
+              </AnimatePresence>
             </motion.div>
           </motion.div>
         )}

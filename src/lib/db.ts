@@ -19,7 +19,12 @@ import type {
 // Lazy-initialised client: only runs at request time, never at build time
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  // Prefer service role key (server-side, bypasses RLS) so publishSite and getSiteConfig
+  // always have full read/write access regardless of how RLS policies are configured.
+  // The service role key is NEVER exposed to the browser — this file is only imported
+  // in API routes and Server Components.
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
   if (!url || !key) throw new Error('Supabase env vars not configured');
   return createClient(url, key);
 }

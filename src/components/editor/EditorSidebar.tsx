@@ -67,16 +67,17 @@ export function SidebarSection({
 
   return (
     <div style={{ marginBottom: '4px' }}>
-      <button
+      <motion.button
         onClick={() => setOpen(!open)}
+        whileHover={{ backgroundColor: 'rgba(214,198,168,0.09)' }}
+        whileTap={{ scale: 0.97 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
           padding: '7px 8px', borderRadius: '6px', border: 'none',
           background: 'rgba(214,198,168,0.04)', cursor: 'pointer',
           color: 'rgba(214,198,168,0.6)',
         }}
-        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.08)'; }}
-        onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.04)'; }}
       >
         <ChevronRight
           size={11}
@@ -103,7 +104,7 @@ export function SidebarSection({
             {badge}
           </span>
         )}
-      </button>
+      </motion.button>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
@@ -235,7 +236,7 @@ export function EditorSidebar({
                   }}
                 />
               )}
-              <button
+              <motion.button
                 title={item.label}
                 onClick={() => {
                   if (isActive) {
@@ -245,6 +246,9 @@ export function EditorSidebar({
                     if (collapsed) onCollapsedChange(false);
                   }
                 }}
+                whileHover={!(isActive && !collapsed) ? { backgroundColor: 'rgba(214,198,168,0.09)', scale: 1.06 } : { scale: 1.04 }}
+                whileTap={{ scale: 0.88 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{
                   width: '44px',
                   height: '44px',
@@ -264,18 +268,7 @@ export function EditorSidebar({
                     ? '3px solid #A3B18A'
                     : '3px solid transparent',
                   color: isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)',
-                  transition: 'background 0.15s, color 0.15s',
                   boxSizing: 'border-box',
-                }}
-                onMouseOver={e => {
-                  if (!(isActive && !collapsed)) {
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.08)';
-                  }
-                }}
-                onMouseOut={e => {
-                  if (!(isActive && !collapsed)) {
-                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  }
                 }}
               >
                 {/* Sliding active pill indicator */}
@@ -308,7 +301,7 @@ export function EditorSidebar({
                     color={isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)'}
                   />
                 </motion.div>
-              </button>
+              </motion.button>
             </React.Fragment>
           );
         })}
@@ -317,9 +310,12 @@ export function EditorSidebar({
         <div style={{ flex: 1 }} />
 
         {/* Collapse arrow at bottom */}
-        <button
+        <motion.button
           title={collapsed ? 'Expand panel' : 'Collapse panel'}
           onClick={() => onCollapsedChange(!collapsed)}
+          whileHover={{ backgroundColor: 'rgba(214,198,168,0.08)', color: 'rgba(214,198,168,0.65)', scale: 1.08 }}
+          whileTap={{ scale: 0.88 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 22 }}
           style={{
             width: '44px',
             height: '36px',
@@ -332,19 +328,10 @@ export function EditorSidebar({
             margin: '2px',
             background: 'transparent',
             color: 'rgba(214,198,168,0.25)',
-            transition: 'background 0.15s, color 0.15s',
-          }}
-          onMouseOver={e => {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.07)';
-            (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.6)';
-          }}
-          onMouseOut={e => {
-            (e.currentTarget as HTMLElement).style.background = 'transparent';
-            (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.25)';
           }}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
+        </motion.button>
       </div>
 
       {/* ── Content Panel ─────────────────────────────────────── */}
@@ -392,9 +379,12 @@ export function EditorSidebar({
               </span>
 
               {/* Expand to max button */}
-              <button
+              <motion.button
                 title={isAtMax ? 'Restore width' : 'Expand to full width'}
                 onClick={handleExpandToggle}
+                whileHover={!isAtMax ? { backgroundColor: 'rgba(214,198,168,0.09)', color: 'rgba(214,198,168,0.65)', scale: 1.12 } : { scale: 1.08 }}
+                whileTap={{ scale: 0.86 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{
                   width: '24px',
                   height: '24px',
@@ -409,23 +399,10 @@ export function EditorSidebar({
                   fontSize: '14px',
                   lineHeight: 1,
                   flexShrink: 0,
-                  transition: 'background 0.15s, color 0.15s',
-                }}
-                onMouseOver={e => {
-                  if (!isAtMax) {
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(214,198,168,0.08)';
-                    (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.6)';
-                  }
-                }}
-                onMouseOut={e => {
-                  if (!isAtMax) {
-                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                    (e.currentTarget as HTMLElement).style.color = 'rgba(214,198,168,0.25)';
-                  }
                 }}
               >
                 {isAtMax ? '⤡' : '⤢'}
-              </button>
+              </motion.button>
             </div>
 
             {/* Scrollable content */}
