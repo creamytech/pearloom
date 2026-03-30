@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { WAVE_PATHS } from '@/lib/vibe-engine';
 import type { StoryManifest } from '@/types';
@@ -487,11 +488,14 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
           const isHovered = hoveredName === theme.name;
 
           return (
-            <button
+            <motion.button
               key={theme.name}
               onClick={() => setSelected(theme.name)}
-              onMouseEnter={() => setHoveredName(theme.name)}
-              onMouseLeave={() => setHoveredName(null)}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: PRESET_THEMES.indexOf(theme) * 0.04, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.97 }}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                 padding: 0, borderRadius: '8px', border: 'none', cursor: 'pointer',
@@ -500,9 +504,8 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                   ? '2px solid #6b7c3f'
                   : isHovered ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.07)',
                 overflow: 'hidden',
-                transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-                boxShadow: isHovered ? '0 4px 16px rgba(0,0,0,0.3)' : 'none',
-                transition: 'all 0.15s ease',
+                boxShadow: isSelected ? '0 0 0 3px rgba(107,124,63,0.3)' : isHovered ? '0 6px 20px rgba(0,0,0,0.35)' : 'none',
+                transition: 'outline 0.15s, box-shadow 0.15s',
                 position: 'relative',
               }}
             >
@@ -549,29 +552,29 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                   Active
                 </div>
               )}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
       {/* Apply button */}
-      <button
+      <motion.button
         onClick={handleApply}
         disabled={!pendingName}
+        whileHover={pendingName ? { scale: 1.02, boxShadow: '0 6px 20px rgba(107,124,63,0.4)' } : {}}
+        whileTap={pendingName ? { scale: 0.98 } : {}}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           padding: '9px 16px', borderRadius: '8px', border: 'none', cursor: pendingName ? 'pointer' : 'not-allowed',
           background: pendingName ? 'linear-gradient(135deg, #6b7c3f, #8a9e56)' : 'rgba(255,255,255,0.06)',
           color: pendingName ? '#fff' : 'rgba(255,255,255,0.3)',
           fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em',
-          transition: 'all 0.15s',
+          transition: 'background 0.15s',
           opacity: pendingName ? 1 : 0.6,
         }}
-        onMouseOver={e => { if (pendingName) (e.currentTarget as HTMLElement).style.opacity = '0.85'; }}
-        onMouseOut={e => { if (pendingName) (e.currentTarget as HTMLElement).style.opacity = '1'; }}
       >
         Apply Theme
-      </button>
+      </motion.button>
 
       {/* Customize link */}
       <div style={{ textAlign: 'center' }}>

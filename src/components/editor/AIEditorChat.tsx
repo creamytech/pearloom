@@ -290,37 +290,42 @@ export function AIEditorChat({
                 </div>
               )}
 
-              {messages.map(msg => (
-                <div
-                  key={msg.id}
-                  style={{
-                    display: 'flex',
-                    justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  }}
-                >
-                  <div style={{
-                    maxWidth: '80%',
-                    padding: '0.55rem 0.8rem',
-                    borderRadius: msg.role === 'user'
-                      ? '1rem 1rem 0.2rem 1rem'
-                      : '1rem 1rem 1rem 0.2rem',
-                    background: msg.role === 'user' ? OLIVE : CREAM,
-                    color: msg.role === 'user' ? CREAM : '#2B2B2B',
-                    fontSize: '0.82rem',
-                    lineHeight: 1.55,
-                    borderLeft: msg.role === 'ai' ? `3px solid ${PLUM}` : 'none',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-                    border: msg.role === 'ai'
-                      ? `1px solid rgba(109,89,122,0.2)`
-                      : 'none',
-                    borderLeftWidth: msg.role === 'ai' ? 3 : undefined,
-                    borderLeftColor: msg.role === 'ai' ? PLUM : undefined,
-                    fontFamily: 'inherit',
-                  }}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
+              <AnimatePresence initial={false}>
+                {messages.map(msg => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+                    style={{
+                      display: 'flex',
+                      justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                    }}
+                  >
+                    <div style={{
+                      maxWidth: '80%',
+                      padding: '0.55rem 0.8rem',
+                      borderRadius: msg.role === 'user'
+                        ? '1rem 1rem 0.2rem 1rem'
+                        : '1rem 1rem 1rem 0.2rem',
+                      background: msg.role === 'user' ? OLIVE : CREAM,
+                      color: msg.role === 'user' ? CREAM : '#2B2B2B',
+                      fontSize: '0.82rem',
+                      lineHeight: 1.55,
+                      borderLeft: msg.role === 'ai' ? `3px solid ${PLUM}` : 'none',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                      border: msg.role === 'ai'
+                        ? `1px solid rgba(109,89,122,0.2)`
+                        : 'none',
+                      borderLeftWidth: msg.role === 'ai' ? 3 : undefined,
+                      borderLeftColor: msg.role === 'ai' ? PLUM : undefined,
+                      fontFamily: 'inherit',
+                    }}>
+                      {msg.text}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
 
               {thinking && (
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
