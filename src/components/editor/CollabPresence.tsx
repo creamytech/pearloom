@@ -149,8 +149,7 @@ export function CollabPresence({ siteId, currentUser, cursor }: CollabPresencePr
     if (!supabase) return; // Graceful: no Supabase configured
     supabaseRef.current = supabase;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let channel: any;
+    let channel: ReturnType<typeof createCollabChannel>;
 
     try {
       channel = createCollabChannel(siteId, supabase);
@@ -167,8 +166,7 @@ export function CollabPresence({ siteId, currentUser, cursor }: CollabPresencePr
       // Track presence changes
       channel.on('presence', { event: 'sync' }, () => {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const state: Record<string, any[]> = channel.presenceState();
+          const state = channel.presenceState() as Record<string, CollabUser[]>;
           const allUsers = Object.values(state).flat() as CollabUser[];
           const active = filterActiveUsers(
             allUsers.filter(u => u.userId !== currentUser.id),
@@ -180,9 +178,8 @@ export function CollabPresence({ siteId, currentUser, cursor }: CollabPresencePr
         }
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channel.on('presence', { event: 'join' }, ({ newPresences }: { newPresences: any[] }) => {
-        const joined = (newPresences as CollabUser[]).filter(u => u.userId !== currentUser.id);
+      channel.on('presence', { event: 'join' }, ({ newPresences }: { newPresences: CollabUser[] }) => {
+        const joined = newPresences.filter(u => u.userId !== currentUser.id);
         if (joined.length === 0) return;
         setOthers(prev => {
           const ids = new Set(prev.map(u => u.userId));
@@ -191,9 +188,8 @@ export function CollabPresence({ siteId, currentUser, cursor }: CollabPresencePr
         });
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      channel.on('presence', { event: 'leave' }, ({ leftPresences }: { leftPresences: any[] }) => {
-        const leftIds = new Set((leftPresences as CollabUser[]).map(u => u.userId));
+      channel.on('presence', { event: 'leave' }, ({ leftPresences }: { leftPresences: CollabUser[] }) => {
+        const leftIds = new Set(leftPresences.map(u => u.userId));
         setOthers(prev => prev.filter(u => !leftIds.has(u.userId)));
       });
 

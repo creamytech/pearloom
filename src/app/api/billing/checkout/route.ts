@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     mode: 'subscription',
     payment_method_types: ['card'],
     customer_email: session.user.email,
-    line_items: [{ price: (plan as any).stripePriceId, quantity: 1 }],
+    line_items: [{ price: 'stripePriceId' in plan ? plan.stripePriceId : '', quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?upgraded=1`,
     cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
     metadata: { planId },

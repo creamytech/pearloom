@@ -690,7 +690,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     }
 
     // Quiz section
-    if (manifest.chapters?.some((c: any) => c.quizQuestion)) {
+    if (manifest.chapters?.some((c) => c.quizQuestion)) {
       result.push(
         <WaveDivider key="divider-before-quiz" skin={vibeSkin} fromColor={prevExitColor} toColor={bgColor} height={80} />,
         <CoupleQuiz key="quiz" siteId={domain} coupleNames={safeNames} chapters={manifest.chapters} vibeSkin={vibeSkin} />
@@ -885,7 +885,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {manifest.spotifyUrl && (
                 <SpotifySection spotifyUrl={manifest.spotifyUrl} playlistName={manifest.spotifyPlaylistName} vibeSkin={vibeSkin} />
               )}
-              {manifest.chapters?.some((c: any) => c.quizQuestion) && (
+              {manifest.chapters?.some((c) => c.quizQuestion) && (
                 <CoupleQuiz siteId={domain} coupleNames={safeNames} chapters={manifest.chapters} vibeSkin={vibeSkin} />
               )}
               {manifest.hashtags && manifest.hashtags.length > 0 && (

@@ -148,8 +148,24 @@ export async function searchPhotosByDateRange(): Promise<GooglePhotoMetadata[]> 
 
 // ── Normalizer for Picker API response shape ────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizePickedItem(item: any): GooglePhotoMetadata {
+interface PickerItem {
+  id: string;
+  createTime?: string;
+  mediaFile?: {
+    filename?: string;
+    mimeType?: string;
+    baseUrl?: string;
+    mediaFileMetadata?: {
+      width?: number;
+      height?: number;
+      cameraMake?: string;
+      cameraModel?: string;
+      location?: { latitude?: number; longitude?: number };
+    };
+  };
+}
+
+function normalizePickedItem(item: PickerItem): GooglePhotoMetadata {
   const mediaFile = item.mediaFile ?? {};
   const metadata = mediaFile.mediaFileMetadata ?? {};
 
