@@ -23,6 +23,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { LandingPage } from '@/components/landing-page';
 import { GenerationProgress } from '@/components/dashboard/generation-progress';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { UserSites } from '@/components/dashboard/user-sites';
 import type { GooglePhotoMetadata, StoryManifest, PhotoCluster } from '@/types';
 import { ClusterReview } from '@/components/dashboard/cluster-review';
@@ -395,14 +396,16 @@ export default function DashboardClient() {
     // appears while editing an already-loaded/published site.
     try { localStorage.removeItem(WIZARD_STORAGE_KEY); } catch {}
     return (
-      <FullscreenEditor
-        manifest={manifest}
-        coupleNames={coupleNames}
-        subdomain={subdomain}
-        onChange={setManifest}
-        onPublish={() => { /* Editor shows its own "It's Live" success UI; user navigates via onExit */ }}
-        onExit={() => setCurrentStep('dashboard')}
-      />
+      <ErrorBoundary>
+        <FullscreenEditor
+          manifest={manifest}
+          coupleNames={coupleNames}
+          subdomain={subdomain}
+          onChange={setManifest}
+          onPublish={() => { /* Editor shows its own "It's Live" success UI; user navigates via onExit */ }}
+          onExit={() => setCurrentStep('dashboard')}
+        />
+      </ErrorBoundary>
     );
   }
 
@@ -693,23 +696,16 @@ export default function DashboardClient() {
               {/* CLUSTER REVIEW */}
 
               {currentStep === 'cluster-review' && (
-
-                <ClusterReview
-
-                  photos={selectedPhotos}
-
-                  onConfirm={(clusters) => {
-
-                    setReviewedClusters(clusters);
-
-                    setCurrentStep('vibe');
-
-                  }}
-
-                  onBack={() => setCurrentStep('photos')}
-
-                />
-
+                <ErrorBoundary>
+                  <ClusterReview
+                    photos={selectedPhotos}
+                    onConfirm={(clusters) => {
+                      setReviewedClusters(clusters);
+                      setCurrentStep('vibe');
+                    }}
+                    onBack={() => setCurrentStep('photos')}
+                  />
+                </ErrorBoundary>
               )}
 
               {/* -- LOCAL UPLOAD -- */}

@@ -16,6 +16,7 @@ import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import pLimit from 'p-limit';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
@@ -363,13 +364,14 @@ export async function POST(req: NextRequest) {
     if (manifest.chapters.length > enrichedClusters.length) {
       manifest.chapters = manifest.chapters.slice(0, enrichedClusters.length);
     }
+    const uploadLimit = pLimit(8); // max 8 concurrent R2 uploads
     manifest.chapters = await Promise.all(manifest.chapters.map(async (chapter, i) => {
       const cluster = enrichedClusters[i];
       if (cluster) {
-        // Upload all chapter photos to R2 in parallel (up to 3 per chapter)
+        // Upload all chapter photos to R2 with concurrency control
         const photosToUpload = cluster.photos.slice(0, 3);
         const uploadedUrls = await Promise.all(
-          photosToUpload.map(p => uploadPhotoUrl(p.baseUrl))
+          photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
         );
 
         chapter.images = photosToUpload.map((p, pi) => ({

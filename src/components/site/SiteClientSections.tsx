@@ -8,6 +8,7 @@
 
 import dynamic from 'next/dynamic';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const PhotoGallery    = dynamic(() => import('@/components/photo-gallery').then(m => ({ default: m.PhotoGallery })),     { ssr: false });
 const Guestbook       = dynamic(() => import('@/components/guestbook').then(m => ({ default: m.Guestbook })),             { ssr: false });
@@ -43,7 +44,9 @@ export function SiteGallerySection({ siteId, coupleNames }: SiteGalleryProps) {
       <RsvpLiveCounter siteId={siteId} coupleNames={coupleNames} />
       <section style={{ padding: '6rem 2rem', background: 'var(--eg-bg)' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <PhotoGallery siteId={siteId} />
+          <ErrorBoundary>
+            <PhotoGallery siteId={siteId} />
+          </ErrorBoundary>
         </div>
       </section>
       <Guestbook siteId={siteId} coupleNames={coupleNames} vibeSkin={minimalVibeSkin} />
