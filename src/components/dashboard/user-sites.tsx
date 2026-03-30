@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
-import { PearBackground } from '@/components/icons/PearShapes';
+
 import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 
 // ── Greeting helper ────────────────────────────────────────────
@@ -225,24 +225,15 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
+    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
 
       {/* ── Welcome header ── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        style={{ marginBottom: '3rem' }}
+        style={{ marginBottom: '3rem', textAlign: 'center' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
-          <PearIcon size={28} color="var(--eg-accent)" />
-          <span style={{
-            fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em',
-            textTransform: 'uppercase', color: 'var(--eg-accent)',
-          }}>
-            Pearloom
-          </span>
-        </div>
         <h1 style={{
           fontFamily: 'var(--eg-font-heading)',
           fontSize: 'clamp(2rem, 5vw, 3rem)',
@@ -250,31 +241,26 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           color: 'var(--eg-fg)',
           letterSpacing: '-0.025em',
           lineHeight: 1.1,
-          marginBottom: '0.5rem',
+          marginBottom: '1.5rem',
         }}>
           {getGreeting()}{userName ? `, ${userName}` : ''}
         </h1>
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexWrap: 'wrap', gap: '1rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: '1.5rem',
           paddingBottom: '2rem',
-          borderBottom: '2px solid var(--eg-gold)',
+          borderBottom: '1px solid var(--eg-divider)',
         }}>
-          {/* Section label with ornamental dots */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--eg-gold)', display: 'inline-block', flexShrink: 0 }} />
-            <p style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontSize: '1rem',
-              fontWeight: 400,
-              color: 'var(--eg-muted)',
-              fontStyle: 'italic',
-              letterSpacing: '0.01em',
-            }}>
-              Your Sites
-            </p>
-            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--eg-gold)', display: 'inline-block', flexShrink: 0 }} />
-          </div>
+          <p style={{
+            fontFamily: 'var(--eg-font-heading)',
+            fontSize: '1.1rem',
+            fontWeight: 400,
+            color: 'var(--eg-muted)',
+            fontStyle: 'italic',
+            letterSpacing: '0.01em',
+          }}>
+            Your Sites
+          </p>
           <MagneticButton
             onClick={onStartNew}
             style={{
@@ -349,83 +335,72 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           transition={{ duration: 0.7 }}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', padding: '8rem 2rem',
-            background: 'linear-gradient(160deg, #F5F1E8 0%, #EEE8DC 100%)',
+            justifyContent: 'center', padding: '6rem 2rem',
+            background: '#ffffff',
             borderRadius: '1.5rem',
-            border: '1px solid rgba(163,177,138,0.15)',
+            border: '1px solid var(--eg-divider)',
             textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden',
+            maxWidth: '640px',
+            margin: '0 auto',
+            boxShadow: '0 8px 40px rgba(43,43,43,0.06)',
           }}
         >
-          {/* Watermark */}
-          <div style={{ position: 'absolute', right: '-4rem', bottom: '-4rem', pointerEvents: 'none' }}>
-            <PearBackground size={320} color="var(--eg-accent)" opacity={0.04} />
-          </div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ marginBottom: '2rem' }}
-            >
-              <PearIcon size={64} color="var(--eg-accent)" />
-            </motion.div>
-            <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
-              fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-              fontWeight: 400, color: 'var(--eg-fg)',
-              marginBottom: '1rem', letterSpacing: '-0.02em', lineHeight: 1.1,
-            }}>
-              Start your story
-            </h3>
-            <p style={{
-              color: 'var(--eg-muted)', maxWidth: '400px', marginBottom: '2.5rem',
-              lineHeight: 1.8, fontSize: '1rem',
-            }}>
-              Build a stunning wedding website in minutes. Your AI designer is waiting.
-            </p>
-            <button
-              onClick={onStartNew}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.65rem',
-                padding: '1rem 2.25rem', borderRadius: '100px',
-                background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
-                color: '#fff', fontWeight: 600, fontSize: '1rem',
-                border: 'none', cursor: 'pointer',
-                boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
-                fontFamily: 'var(--eg-font-body)',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 16px 50px rgba(163,177,138,0.5)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(163,177,138,0.4)';
-              }}
-            >
-              <Plus size={18} />
-              Create Your Site
-            </button>
-          </div>
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ marginBottom: '2rem' }}
+          >
+            <PearIcon size={64} color="var(--eg-accent)" />
+          </motion.div>
+          <h3 style={{
+            fontFamily: 'var(--eg-font-heading)',
+            fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+            fontWeight: 400, color: 'var(--eg-fg)',
+            marginBottom: '1rem', letterSpacing: '-0.02em', lineHeight: 1.1,
+          }}>
+            Start your story
+          </h3>
+          <p style={{
+            color: 'var(--eg-muted)', maxWidth: '400px', marginBottom: '2.5rem',
+            lineHeight: 1.8, fontSize: '1rem',
+          }}>
+            Build a stunning celebration website in minutes. Your AI designer is waiting.
+          </p>
+          <button
+            onClick={onStartNew}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.65rem',
+              padding: '1rem 2.5rem', borderRadius: '100px',
+              background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
+              color: '#fff', fontWeight: 600, fontSize: '1.05rem',
+              border: 'none', cursor: 'pointer',
+              boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
+              fontFamily: 'var(--eg-font-body)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 16px 50px rgba(163,177,138,0.5)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = '0 12px 40px rgba(163,177,138,0.4)';
+            }}
+          >
+            <Plus size={18} />
+            Create Your Site
+          </button>
         </motion.div>
 
       ) : (
         /* ── Site grid ── */
         <>
-          {/* Faint pear watermark behind the grid */}
-          <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', right: '-3rem', top: '-2rem', pointerEvents: 'none', zIndex: 0 }}>
-              <PearBackground size={380} color="var(--eg-accent)" opacity={0.03} />
-            </div>
           <div
             className="site-card-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
               gap: '1.5rem',
-              position: 'relative', zIndex: 1,
             }}
           >
             <AnimatePresence>
@@ -835,13 +810,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               </div>
             </motion.button>
           </div>
-          </div>{/* end watermark wrapper */}
 
           {/* Responsive grid styles */}
           <style>{`
-            @media (max-width: 1199px) {
-              .site-card-grid { grid-template-columns: repeat(2, 1fr) !important; }
-            }
             @media (max-width: 479px) {
               .site-card-grid { grid-template-columns: 1fr !important; }
             }

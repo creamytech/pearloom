@@ -32,14 +32,14 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
   const showProgress = PROGRESS_STEPS.includes(step);
 
   return (
-    <main className="min-h-dvh pt-32 pb-20" style={{ background: '#F5F1E8' }}>
+    <main className="min-h-dvh pt-24 pb-20" style={{ background: '#F5F1E8' }}>
       {/* Gradient overlay */}
       <div
         className="absolute top-0 left-0 right-0 h-[500px] pointer-events-none z-0"
         style={{ background: 'linear-gradient(180deg, rgba(163,177,138,0.08) 0%, rgba(245,241,232,0) 100%)' }}
       />
 
-      <div className="max-w-[1000px] mx-auto px-8 relative z-[1]">
+      <div className="max-w-[1200px] mx-auto px-8 relative z-[1]">
         {/* Step progress bar */}
         {showProgress && (
           <div className="max-w-[800px] mx-auto mb-16">

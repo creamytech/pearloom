@@ -156,10 +156,10 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
         )}
 
         <div style={{
-          maxWidth: '1400px', margin: '0 auto',
+          maxWidth: '1200px', margin: '0 auto',
           padding: '0 2rem',
           position: 'relative',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center',
           height: '3.25rem',
           overflow: 'visible',
         }}>
@@ -172,7 +172,6 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               gap: '0.5rem',
               transition: 'opacity 0.2s ease',
               textDecoration: 'none',
-              flex: 1,
             }}
             onMouseOver={(e) => { e.currentTarget.style.opacity = '0.75'; }}
             onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; }}
@@ -205,7 +204,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
 
           {/* ── Desktop inline nav links (≥1024px, guest-facing sites only) ── */}
           {isDesktop && !isStudio && (
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flex: 1, justifyContent: 'center' }}>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'center' }}>
               {enabledPages.map((page) => {
                 const active = isActive(page.slug);
                 return (
