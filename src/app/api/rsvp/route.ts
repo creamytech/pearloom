@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,16 @@ function getSupabase() {
 
 // POST /api/rsvp — submit a guest RSVP from the public site
 export async function POST(req: NextRequest) {
+  // Rate limit by IP — prevent RSVP spam
+  const ip = getClientIp(req);
+  const rateCheck = checkRateLimit(`rsvp:${ip}`, RATE_LIMITS.rsvp);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Too many submissions. Please wait a moment and try again.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
     const {
@@ -156,10 +167,13 @@ export async function GET(req: NextRequest) {
       .eq('site_id', siteId)
       .order('responded_at', { ascending: false });
 
-    if (error) return NextResponse.json({ guests: [] });
+    if (error) {
+      console.error('[RSVP] GET query error:', error);
+      return NextResponse.json({ error: 'Failed to load guests', guests: [] }, { status: 500 });
+    }
     return NextResponse.json({ guests: data || [] });
   } catch (err) {
-    console.error('RSVP GET error:', err);
-    return NextResponse.json({ guests: [] });
+    console.error('[RSVP] GET error:', err);
+    return NextResponse.json({ error: 'Internal server error', guests: [] }, { status: 500 });
   }
 }

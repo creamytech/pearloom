@@ -128,7 +128,7 @@ export function TableObject({
   const [isDropTarget, setIsDropTarget] = useState(false);
 
   const assignedCount = seats.filter(s => s.guest).length;
-  const hasConflict = false; // TODO: constraint checking
+  const hasConflict = assignedCount > table.capacity;
 
   // ── Pointer drag for moving table ──────────────────────────
   const onPointerDown = useCallback((e: React.PointerEvent) => {

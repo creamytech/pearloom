@@ -1,6 +1,7 @@
 // POST /api/billing/webhook — handle Stripe webhook events
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
+import { updateUserPlan, downgradeUserPlan } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -25,14 +26,38 @@ export async function POST(req: NextRequest) {
 
   switch (event.type) {
     case 'checkout.session.completed': {
-      const session = event.data.object as any;
-      // TODO: update user's plan in DB using session.customer_email + session.metadata.planId
-      console.log('[Stripe] checkout completed:', session.customer_email, session.metadata?.planId);
+      const session = event.data.object;
+      const email = session.customer_email;
+      const planId = session.metadata?.planId || 'pro';
+      const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.toString();
+      const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.toString();
+
+      if (email) {
+        try {
+          await updateUserPlan(email, {
+            plan: planId,
+            stripeCustomerId: customerId || null,
+            stripeSubscriptionId: subscriptionId || null,
+          });
+          console.log('[Stripe] Plan upgraded:', email, planId);
+        } catch (err) {
+          console.error('[Stripe] Failed to update plan:', err);
+        }
+      }
       break;
     }
     case 'customer.subscription.deleted': {
-      // TODO: downgrade user to free plan
-      console.log('[Stripe] subscription deleted');
+      const subscription = event.data.object;
+      const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.toString();
+
+      if (customerId) {
+        try {
+          await downgradeUserPlan(customerId);
+          console.log('[Stripe] Subscription deleted, downgraded customer:', customerId);
+        } catch (err) {
+          console.error('[Stripe] Failed to downgrade plan:', err);
+        }
+      }
       break;
     }
   }

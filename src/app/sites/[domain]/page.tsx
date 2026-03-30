@@ -26,6 +26,7 @@ import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
+import { sanitizeSvg } from '@/lib/sanitize-svg';
 
 export const dynamic = 'force-dynamic';
 
@@ -266,7 +267,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             {vibeSkin.accentBlobSvg && (
               <div
                 style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
-                dangerouslySetInnerHTML={{ __html: vibeSkin.accentBlobSvg }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
@@ -492,13 +493,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div
           style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
+          dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
         />
       )}
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div
           style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }}
+          dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
         />
       )}
       <div style={{ padding: '7rem 2rem 5rem', textAlign: 'center', maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -506,7 +507,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         {vibeSkin.medallionSvg && (
           <div
             style={{ width: '80px', height: '80px', margin: '0 auto 2rem', opacity: 0.55 }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }}
+            dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.medallionSvg) }}
           />
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
@@ -585,7 +586,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           transform: flip ? 'scaleX(-1)' : undefined,
           opacity: 0.5,
         }}
-        dangerouslySetInnerHTML={{ __html: vibeSkin.sectionBorderSvg }}
+        dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.sectionBorderSvg) }}
       />
     ) : null;
 
@@ -689,7 +690,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     }
 
     // Quiz section
-    if (manifest.chapters?.some((c: any) => c.quizQuestion)) {
+    if (manifest.chapters?.some((c) => c.quizQuestion)) {
       result.push(
         <WaveDivider key="divider-before-quiz" skin={vibeSkin} fromColor={prevExitColor} toColor={bgColor} height={80} />,
         <CoupleQuiz key="quiz" siteId={domain} coupleNames={safeNames} chapters={manifest.chapters} vibeSkin={vibeSkin} />
@@ -884,7 +885,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {manifest.spotifyUrl && (
                 <SpotifySection spotifyUrl={manifest.spotifyUrl} playlistName={manifest.spotifyPlaylistName} vibeSkin={vibeSkin} />
               )}
-              {manifest.chapters?.some((c: any) => c.quizQuestion) && (
+              {manifest.chapters?.some((c) => c.quizQuestion) && (
                 <CoupleQuiz siteId={domain} coupleNames={safeNames} chapters={manifest.chapters} vibeSkin={vibeSkin} />
               )}
               {manifest.hashtags && manifest.hashtags.length > 0 && (

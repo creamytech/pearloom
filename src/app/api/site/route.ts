@@ -1,9 +1,28 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / api/site/route.ts — Site config endpoint
+// Pearloom / api/site/route.ts — Site config endpoint
+// Returns basic site metadata (names, occasion) by siteId.
 // ─────────────────────────────────────────────────────────────
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getSiteConfig } from '@/lib/db';
 
-export async function GET() {
-  return NextResponse.json({ error: 'Migrating to Supabase multi-tenant DB...' }, { status: 501 });
+export async function GET(req: NextRequest) {
+  const siteId = req.nextUrl.searchParams.get('siteId');
+  if (!siteId) {
+    return NextResponse.json({ error: 'Missing siteId parameter' }, { status: 400 });
+  }
+
+  const config = await getSiteConfig(siteId);
+  if (!config) {
+    return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+  }
+
+  // Return minimal site metadata — the seating page only needs names
+  const manifest = config.manifest as { names?: string[]; occasion?: string } | null;
+  return NextResponse.json({
+    site: {
+      names: manifest?.names || [],
+      occasion: manifest?.occasion || 'wedding',
+    },
+  });
 }

@@ -9,7 +9,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { EnvelopeIcon } from '@/components/icons/PearloomIcons';
-import { PearSectionDivider } from '@/components/icons/PearShapes';
+import { SectionDivider } from '@/components/site/SectionDivider';
 import { RsvpForm } from '@/components/rsvp-form';
 import type { WeddingEvent } from '@/types';
 
@@ -55,8 +55,8 @@ export function PublicRsvpSection({
         overflow: 'hidden',
       }}
     >
-      {/* Pear wave divider at top */}
-      <PearSectionDivider color="var(--eg-bg)" opacity={1} />
+      {/* Wave divider at top */}
+      <SectionDivider color="var(--eg-bg)" />
 
       {/* Pear watermark */}
       <div

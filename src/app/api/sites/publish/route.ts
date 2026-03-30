@@ -5,8 +5,9 @@ import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
 import { generateVibeSkin } from '@/lib/vibe-engine';
+import pLimit from 'p-limit';
 
-// â”€â”€ Mirror Google Photos URLs â†’ Supabase Storage â”€â”€
+// -- Mirror Google Photos URLs -> Supabase Storage --
 // Google Photos baseUrls expire within ~1 hour. On publish we upload
 // each image to the 'photos' bucket so they're permanently accessible.
 async function mirrorImagesToStorage(
@@ -19,11 +20,12 @@ async function mirrorImagesToStorage(
   if (!supabaseUrl || !serviceKey) return manifest; // skip if not configured
 
   const supabase = createClient(supabaseUrl, serviceKey);
+  const limit = pLimit(5); // max 5 concurrent uploads to avoid overwhelming Supabase
 
   const updatedChapters = await Promise.all(
     manifest.chapters.map(async (chapter, ci) => {
       const updatedImages = await Promise.all(
-        (chapter.images || []).map(async (img, ii) => {
+        (chapter.images || []).map((img, ii) => limit(async () => {
           // Only mirror Google Photos URLs (not already-mirrored or base64 uploads)
           if (!img.url || !img.url.includes('googleusercontent.com')) return img;
 
@@ -53,13 +55,13 @@ async function mirrorImagesToStorage(
             }
 
             const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(path);
-            console.log(`[Mirror] âœ“ ${path} â†’ ${publicUrl}`);
+            console.log(`[Mirror] OK ${path} -> ${publicUrl}`);
             return { ...img, url: publicUrl };
           } catch (err) {
             console.warn(`[Mirror] Exception for ch${ci}-img${ii}:`, err);
             return img; // keep original, don't block publish
           }
-        })
+        }))
       );
       return { ...chapter, images: updatedImages };
     })
@@ -108,7 +110,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'That subdomain is reserved. Please choose another.' }, { status: 400 });
     }
 
-    // Mirror Google Photos â†’ Supabase Storage before persisting
+    // Mirror Google Photos -> Supabase Storage before persisting
     let persistManifest: StoryManifest = manifest;
     if (session.accessToken) {
       console.log('[Publish API] Mirroring photos to Supabase Storage...');

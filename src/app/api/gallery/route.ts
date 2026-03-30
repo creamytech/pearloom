@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     console.error('[gallery] GET error:', error);
-    return NextResponse.json({ photos: [] });
+    return NextResponse.json({ error: 'Failed to load gallery', photos: [] }, { status: 500 });
   }
 
   const photos = (data || []).map((r) => ({

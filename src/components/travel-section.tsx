@@ -9,7 +9,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Plane, Hotel, Car, ExternalLink, Phone } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
-import { PearSectionDivider } from '@/components/icons/PearShapes';
+import { SectionDivider } from '@/components/site/SectionDivider';
 import type { TravelInfo, HotelBlock } from '@/types';
 
 // HotelBlock from types doesn't have all fields we want — extend locally
@@ -277,8 +277,8 @@ export function TravelSection({
         overflow: 'hidden',
       }}
     >
-      {/* Pear wave divider at top */}
-      <PearSectionDivider color="var(--eg-bg)" opacity={1} />
+      {/* Wave divider at top */}
+      <SectionDivider color="var(--eg-bg)" />
 
       <div style={{ padding: '4rem 2rem 8rem' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>

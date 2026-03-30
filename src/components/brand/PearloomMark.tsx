@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/brand/PearloomMark.tsx
 // The Pearloom logo mark — two elegant threads intertwining,
-// embodying "pair + loom" — an intertwined connection.
+// embodying "pear + loom" — an intertwined connection.
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
@@ -19,7 +19,7 @@ interface PearloomMarkProps {
 
 /**
  * Two intertwining curves that form an elegant infinity-like knot.
- * Represents "pair + loom" — two lives woven together.
+ * Represents "pear + loom" — two lives woven together.
  */
 export function PearloomMark({
   size = 40,
