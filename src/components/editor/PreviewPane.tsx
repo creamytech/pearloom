@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Smartphone } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import type { StoryManifest, Chapter } from '@/types';
@@ -135,6 +136,7 @@ function ChapterCard({
   manifest: StoryManifest;
   onClick?: () => void;
 }) {
+  const [hovered, setHovered] = useState(false);
   const bg = vibeSkin?.palette?.card || manifest.theme?.colors?.cardBg || '#fff';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
   const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
@@ -147,9 +149,42 @@ function ChapterCard({
   const isCinematic = chapter.layout === 'cinematic';
   const isSplit = chapter.layout === 'split';
 
+  // Hover overlay — shown only when onClick is provided
+  const HoverOverlay = onClick ? (
+    <AnimatePresence>
+      {hovered && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 10,
+            background: 'rgba(109,89,122,0.08)',
+            border: '2px solid rgba(109,89,122,0.5)',
+            borderRadius: '4px',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end',
+            padding: '8px',
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{
+            background: 'rgba(109,89,122,0.9)',
+            color: '#fff', fontSize: '10px', fontWeight: 700,
+            padding: '3px 8px', borderRadius: '4px',
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+          }}>
+            Edit
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  ) : null;
+
   if (isCinematic) {
     return (
-      <div onClick={onClick} style={{ position: 'relative', height: '240px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', borderRadius: '12px', marginBottom: '12px', background: '#1a1a18' }}>
+      <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ position: 'relative', height: '240px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', borderRadius: '12px', marginBottom: '12px', background: '#1a1a18' }}>
+        {HoverOverlay}
         {thumb && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
@@ -166,11 +201,14 @@ function ChapterCard({
     return (
       <div
         onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         style={{
           position: 'relative', height: '380px', overflow: 'hidden',
           cursor: onClick ? 'pointer' : 'default',
         }}
       >
+        {HoverOverlay}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={thumb} alt={chapter.title}
@@ -199,11 +237,15 @@ function ChapterCard({
     return (
       <div
         onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         style={{
           display: 'flex', background: bg, minHeight: '280px', overflow: 'hidden',
           cursor: onClick ? 'pointer' : 'default',
+          position: 'relative',
         }}
       >
+        {HoverOverlay}
         {thumb && (
           <div style={{ width: '45%', flexShrink: 0, overflow: 'hidden' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -229,10 +271,14 @@ function ChapterCard({
   return (
     <div
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         background: bg, padding: '48px 60px', cursor: onClick ? 'pointer' : 'default',
+        position: 'relative',
       }}
     >
+      {HoverOverlay}
       {thumb && (
         <div style={{ width: '100%', height: '240px', borderRadius: '12px', overflow: 'hidden', marginBottom: '28px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
