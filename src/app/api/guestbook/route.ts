@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +40,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit by IP — prevent guestbook spam
+  const ip = getClientIp(req);
+  const rateCheck = checkRateLimit(`guestbook:${ip}`, RATE_LIMITS.guestbook);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Too many messages. Please wait a moment and try again.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const { siteId, guestName, message } = await req.json();
     if (!siteId || !guestName || !message) {

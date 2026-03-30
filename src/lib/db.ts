@@ -29,6 +29,52 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+// ─── Billing / User Plans ───
+
+export async function getUserPlan(email: string): Promise<{ plan: string; stripeCustomerId: string | null; stripeSubscriptionId: string | null } | null> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('user_plans')
+    .select('plan, stripe_customer_id, stripe_subscription_id')
+    .eq('user_email', email)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return {
+    plan: data.plan as string,
+    stripeCustomerId: data.stripe_customer_id as string | null,
+    stripeSubscriptionId: data.stripe_subscription_id as string | null,
+  };
+}
+
+export async function updateUserPlan(
+  email: string,
+  updates: { plan: string; stripeCustomerId: string | null; stripeSubscriptionId: string | null }
+): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('user_plans')
+    .upsert({
+      user_email: email,
+      plan: updates.plan,
+      stripe_customer_id: updates.stripeCustomerId,
+      stripe_subscription_id: updates.stripeSubscriptionId,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_email' });
+
+  if (error) throw new Error(`updateUserPlan failed: ${error.message}`);
+}
+
+export async function downgradeUserPlan(stripeCustomerId: string): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('user_plans')
+    .update({ plan: 'free', stripe_subscription_id: null, updated_at: new Date().toISOString() })
+    .eq('stripe_customer_id', stripeCustomerId);
+
+  if (error) throw new Error(`downgradeUserPlan failed: ${error.message}`);
+}
+
 // ─── Public API ───
 
 export async function getSiteConfig(subdomain: string): Promise<SiteConfig | null> {

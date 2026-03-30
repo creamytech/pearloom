@@ -21,6 +21,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
+import { sanitizeSvg } from '@/lib/sanitize-svg';
 import type { StoryManifest, SitePage } from '@/types';
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -180,7 +181,7 @@ function PreviewContent() {
             {vibeSkin.accentBlobSvg && (
               <div
                 style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
-                dangerouslySetInnerHTML={{ __html: vibeSkin.accentBlobSvg }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
             <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
@@ -363,16 +364,16 @@ function PreviewContent() {
       {/* SVG blob art fallback when no raster art */}
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }} />
+          dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }} />
       )}
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
-          dangerouslySetInnerHTML={{ __html: vibeSkin.heroBlobSvg }} />
+          dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }} />
       )}
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: '0 2rem' }}>
         {vibeSkin.medallionSvg && (
           <div style={{ width: '80px', height: '80px', margin: '0 auto 2rem', opacity: 0.55 }}
-            dangerouslySetInnerHTML={{ __html: vibeSkin.medallionSvg }} />
+            dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.medallionSvg) }} />
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: pal.accent, opacity: 0.3 }} />

@@ -16,6 +16,7 @@ import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
 function getR2Client() {
@@ -149,6 +150,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: 'Your Google session has expired. Please sign out and sign back in.' },
       { status: 401 }
+    );
+  }
+
+  // Rate limit by user email — AI generation is expensive
+  const userEmail = (session as { user?: { email?: string } }).user?.email || 'unknown';
+  const rateCheck = checkRateLimit(`generate:${userEmail}`, RATE_LIMITS.aiGenerate);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please wait before generating again.', resetAt: rateCheck.resetAt },
+      { status: 429 }
     );
   }
 

@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -152,6 +153,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Rate limit by user email
+  const rateCheck = checkRateLimit(`ai-blocks:${session.user.email}`, RATE_LIMITS.aiBlocks);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please wait before generating more blocks.' },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
@@ -162,6 +172,11 @@ export async function POST(req: NextRequest) {
 
     if (!blockType || !BLOCK_SCHEMAS[blockType]) {
       return NextResponse.json({ error: `Unknown block type: ${blockType}` }, { status: 400 });
+    }
+
+    // Validate prompt length to prevent abuse
+    if (prompt && typeof prompt === 'string' && prompt.length > 2000) {
+      return NextResponse.json({ error: 'Prompt too long (max 2000 characters)' }, { status: 400 });
     }
 
     const schema = BLOCK_SCHEMAS[blockType];
