@@ -152,27 +152,33 @@ function ChapterGhost({ number }: { number: number }) {
   );
 }
 
-// Mood pill — plum theme
+// Mood pill — plum theme, springs in on scroll
 function MoodBadge({ mood, light = false }: { mood?: string; light?: boolean }) {
   if (!mood) return null;
   return (
-    <span style={{
-      display: 'inline-block',
-      fontSize: '0.6rem',
-      fontWeight: 700,
-      letterSpacing: '0.18em',
-      textTransform: 'uppercase',
-      fontVariant: 'small-caps',
-      padding: '0.28rem 0.8rem',
-      borderRadius: '100px',
-      background: light ? 'rgba(255,255,255,0.12)' : 'var(--eg-plum-light)',
-      color: light ? 'rgba(255,255,255,0.75)' : 'var(--eg-plum)',
-      border: light ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(109,89,122,0.15)',
-      backdropFilter: light ? 'blur(8px)' : 'none',
-      marginBottom: '1.1rem',
-    }}>
+    <motion.span
+      initial={{ opacity: 0, scale: 0.72 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+      style={{
+        display: 'inline-block',
+        fontSize: '0.6rem',
+        fontWeight: 700,
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        fontVariant: 'small-caps',
+        padding: '0.28rem 0.8rem',
+        borderRadius: '100px',
+        background: light ? 'rgba(255,255,255,0.12)' : 'var(--eg-plum-light)',
+        color: light ? 'rgba(255,255,255,0.75)' : 'var(--eg-plum)',
+        border: light ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(109,89,122,0.15)',
+        backdropFilter: light ? 'blur(8px)' : 'none',
+        marginBottom: '1.1rem',
+      }}
+    >
       {mood}
-    </span>
+    </motion.span>
   );
 }
 
@@ -987,8 +993,13 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             width: '100%',
           }} className="max-md:flex max-md:flex-col max-md:gap-2">
             {images[0] && (
-              <div style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
+              <motion.div
+                style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
                 className="max-md:w-full max-md:rounded-[8px]"
+                initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
                 onMouseOver={() => setHoveredIdx(0)}
                 onMouseOut={() => setHoveredIdx(null)}
               >
@@ -1000,11 +1011,16 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
                     {images[0].caption}
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
             {images[1] && (
-              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+              <motion.div
+                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 className="max-md:w-full max-md:rounded-[8px]"
+                initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
                 onMouseOver={() => setHoveredIdx(1)}
                 onMouseOut={() => setHoveredIdx(null)}
               >
@@ -1016,11 +1032,16 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
                     {images[1].caption}
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
             {images[2] && (
-              <div style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+              <motion.div
+                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 className="max-md:w-full max-md:rounded-[8px]"
+                initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.32 }}
                 onMouseOver={() => setHoveredIdx(2)}
                 onMouseOut={() => setHoveredIdx(null)}
               >
@@ -1032,11 +1053,16 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
                     {images[2].caption}
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
             {images[3] && (
-              <div style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+              <motion.div
+                style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 className="max-md:hidden"
+                initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.46 }}
                 onMouseOver={() => setHoveredIdx(3)}
                 onMouseOut={() => setHoveredIdx(null)}
               >
@@ -1047,7 +1073,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
                     {images[3].caption}
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
           </div>
         )}

@@ -7,8 +7,8 @@
 // AI-written content for gaps with one click.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import {
   CheckCircle2, Circle, Sparkles, ChevronDown,
   Image, CalendarDays, MapPin, Users, Mic2,
@@ -44,39 +44,116 @@ function ProgressRing({ score, size = 72 }: { score: number; size?: number }) {
   const r = (size - 8) / 2;
   const circ = 2 * Math.PI * r;
   const dash = (score / 100) * circ;
+  const is100 = score === 100;
 
-  const color = score >= 80 ? 'var(--eg-accent, #A3B18A)' : score >= 50 ? 'var(--eg-gold, #D6C6A8)' : 'var(--eg-plum, #6D597A)';
+  const color = is100 ? 'var(--eg-gold, #D6C6A8)' : score >= 80 ? 'var(--eg-accent, #A3B18A)' : score >= 50 ? 'var(--eg-gold, #D6C6A8)' : 'var(--eg-plum, #6D597A)';
+  const glowControls = useAnimation();
+
+  useEffect(() => {
+    if (is100) {
+      glowControls.start({
+        opacity: [0, 0.55, 0],
+        scale: [1, 1.18, 1],
+        transition: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
+      });
+    }
+  }, [is100, glowControls]);
 
   return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-      {/* Track */}
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={6} />
-      {/* Progress */}
-      <motion.circle
-        cx={size / 2} cy={size / 2} r={r}
-        fill="none" stroke={color} strokeWidth={6}
-        strokeLinecap="round"
-        strokeDasharray={circ}
-        initial={{ strokeDashoffset: circ }}
-        animate={{ strokeDashoffset: circ - dash }}
-        transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-      />
-      {/* Score text (counter-rotated) */}
-      <text
-        x={size / 2} y={size / 2}
-        textAnchor="middle" dominantBaseline="central"
-        style={{
-          transform: 'rotate(90deg)',
-          transformOrigin: `${size / 2}px ${size / 2}px`,
-          fontSize: size * 0.22,
-          fontWeight: 800,
-          fill: color,
-          fontFamily: 'var(--eg-font-body, system-ui)',
-        }}
-      >
-        {score}%
-      </text>
-    </svg>
+    <div style={{ position: 'relative', flexShrink: 0, width: size, height: size }}>
+      {/* Pulsing glow halo (100% only) */}
+      {is100 && (
+        <motion.div
+          animate={glowControls}
+          style={{
+            position: 'absolute',
+            inset: -6,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(214,198,168,0.55) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', display: 'block' }}>
+        {/* Track */}
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={6} />
+        {/* Progress */}
+        <motion.circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke={color} strokeWidth={6}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: circ - dash }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+        />
+        {/* Score text (counter-rotated) */}
+        <text
+          x={size / 2} y={size / 2}
+          textAnchor="middle" dominantBaseline="central"
+          style={{
+            transform: 'rotate(90deg)',
+            transformOrigin: `${size / 2}px ${size / 2}px`,
+            fontSize: size * 0.22,
+            fontWeight: 800,
+            fill: color,
+            fontFamily: 'var(--eg-font-body, system-ui)',
+          }}
+        >
+          {score}%
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+// ── 100% Celebration sparkles ───────────────────────────────────
+
+const SPARKLE_POSITIONS = [
+  { x: -18, y: -14, delay: 0.1, size: 10 },
+  { x: 16, y: -20, delay: 0.25, size: 8 },
+  { x: 28, y: 4, delay: 0.4, size: 7 },
+  { x: 18, y: 22, delay: 0.55, size: 9 },
+  { x: -24, y: 16, delay: 0.7, size: 8 },
+];
+
+function CelebrationSparkles() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      {SPARKLE_POSITIONS.map((p, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+          animate={{
+            opacity: [0, 1, 0],
+            scale: [0, 1, 0],
+            x: p.x,
+            y: p.y,
+          }}
+          transition={{
+            duration: 1.8,
+            delay: p.delay,
+            repeat: Infinity,
+            repeatDelay: 2.2,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: p.size,
+            height: p.size,
+            marginLeft: -p.size / 2,
+            marginTop: -p.size / 2,
+            color: 'var(--eg-gold, #D6C6A8)',
+            fontSize: p.size,
+            lineHeight: 1,
+          }}
+        >
+          ✦
+        </motion.div>
+      ))}
+    </div>
   );
 }
 
@@ -433,11 +510,16 @@ export function SiteCompletenessPanel({
         style={{
           width: '100%', padding: '1.1rem 1.25rem',
           display: 'flex', alignItems: 'center', gap: '14px',
-          background: 'none', border: 'none', cursor: 'pointer',
+          background: score === 100 ? 'linear-gradient(135deg, rgba(214,198,168,0.07) 0%, rgba(163,177,138,0.06) 100%)' : 'none',
+          border: 'none', cursor: 'pointer',
           textAlign: 'left',
+          transition: 'background 0.6s ease',
         }}
       >
-        <ProgressRing score={score} size={60} />
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <ProgressRing score={score} size={60} />
+          {score === 100 && <CelebrationSparkles />}
+        </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '3px' }}>
@@ -454,9 +536,31 @@ export function SiteCompletenessPanel({
               </span>
             </div>
           ) : (
-            <div style={{ fontSize: '0.68rem', color: '#A3B18A', fontWeight: 600, marginTop: '3px' }}>
-              ✨ Your site is looking incredible!
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              style={{ marginTop: '3px' }}
+            >
+              <motion.span
+                animate={{
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
+                style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  background: 'linear-gradient(90deg, #A3B18A, #D6C6A8, #C9A96E, #A3B18A)',
+                  backgroundSize: '300% 100%',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  display: 'inline-block',
+                }}
+              >
+                ✨ Your site is looking incredible!
+              </motion.span>
+            </motion.div>
           )}
         </div>
 
