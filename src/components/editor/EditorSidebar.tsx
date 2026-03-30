@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
@@ -103,11 +104,21 @@ export function SidebarSection({
           </span>
         )}
       </button>
-      {open && (
-        <div style={{ padding: '4px 0 8px' }}>
-          {children}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ padding: '4px 0 8px' }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -245,6 +256,7 @@ export function EditorSidebar({
                   cursor: 'pointer',
                   borderRadius: '6px',
                   margin: '1px 2px',
+                  position: 'relative',
                   background: isActive && !collapsed
                     ? 'rgba(163,177,138,0.18)'
                     : 'transparent',
@@ -266,10 +278,36 @@ export function EditorSidebar({
                   }
                 }}
               >
-                <Icon
-                  size={16}
-                  color={isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)'}
-                />
+                {/* Sliding active pill indicator */}
+                <AnimatePresence>
+                  {isActive && !collapsed && (
+                    <motion.div
+                      layoutId="sidebar-active-pill"
+                      initial={{ opacity: 0, scaleY: 0.5 }}
+                      animate={{ opacity: 1, scaleY: 1 }}
+                      exit={{ opacity: 0, scaleY: 0.5 }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '8px',
+                        bottom: '8px',
+                        width: '3px',
+                        borderRadius: '0 2px 2px 0',
+                        background: '#A3B18A',
+                      }}
+                    />
+                  )}
+                </AnimatePresence>
+                <motion.div
+                  animate={{ scale: isActive && !collapsed ? 1 : 0.9 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                >
+                  <Icon
+                    size={16}
+                    color={isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)'}
+                  />
+                </motion.div>
               </button>
             </React.Fragment>
           );
