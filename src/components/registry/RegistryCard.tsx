@@ -5,6 +5,7 @@
 // Beautiful card for a single registry source.
 // ─────────────────────────────────────────────────────────────
 
+import { motion } from 'framer-motion';
 import type { RegistrySource } from '@/types';
 
 export interface RegistryCardProps {
@@ -246,7 +247,12 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
   const domain = getDomain(source.registryUrl);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -4, boxShadow: '0 12px 36px rgba(0,0,0,0.13)' }}
       style={{
         background: '#FEFCF8',
         borderRadius: '1rem',
@@ -257,15 +263,6 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
         flexDirection: 'column',
         gap: '0.75rem',
         position: 'relative',
-        transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 6px 24px rgba(0,0,0,0.12)';
-        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.07)';
-        (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
       }}
     >
       {/* Edit / Delete buttons */}
@@ -414,10 +411,12 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
       )}
 
       {/* CTA */}
-      <a
+      <motion.a
         href={source.registryUrl}
         target="_blank"
         rel="noopener noreferrer"
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -432,10 +431,7 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
           fontWeight: 600,
           fontFamily: 'Inter, sans-serif',
           textDecoration: 'none',
-          transition: 'opacity 0.15s',
         }}
-        onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = '0.88')}
-        onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = '1')}
       >
         View Registry
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -447,7 +443,7 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
             strokeLinejoin="round"
           />
         </svg>
-      </a>
-    </div>
+      </motion.a>
+    </motion.div>
   );
 }

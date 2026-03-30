@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Image, Settings, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { LayoutDashboard, Users, Image, ExternalLink } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Stories', icon: LayoutDashboard },
@@ -16,21 +17,46 @@ export function DashboardSidebar() {
   return (
     <aside className="w-56 shrink-0 border-r border-black/5 bg-white/50 min-h-[calc(100vh-4rem)]">
       <nav className="p-4 space-y-1">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.map((item, i) => {
           const isActive = pathname === item.href;
           return (
-            <Link
+            <motion.div
               key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
-                ${isActive
-                  ? 'bg-[var(--eg-accent-light)] text-[var(--eg-accent)] font-medium'
-                  : 'text-[var(--eg-muted)] hover:text-[var(--eg-fg)] hover:bg-black/[0.03]'
-                }`}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.22, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              style={{ position: 'relative' }}
             >
-              <item.icon size={16} />
-              {item.label}
-            </Link>
+              {isActive && (
+                <motion.span
+                  layoutId="dash-sidebar-active"
+                  style={{
+                    position: 'absolute', inset: 0,
+                    borderRadius: '8px',
+                    background: 'var(--eg-accent-light)',
+                    zIndex: 0,
+                  }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+              <Link
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors relative z-10
+                  ${isActive
+                    ? 'text-[var(--eg-accent)] font-medium'
+                    : 'text-[var(--eg-muted)] hover:text-[var(--eg-fg)]'
+                  }`}
+              >
+                <motion.span
+                  animate={{ scale: isActive ? 1 : 0.92 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                  style={{ display: 'flex' }}
+                >
+                  <item.icon size={16} />
+                </motion.span>
+                {item.label}
+              </Link>
+            </motion.div>
           );
         })}
 
