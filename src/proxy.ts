@@ -1,55 +1,89 @@
+// ─────────────────────────────────────────────────────────────
+// Pearloom / src/proxy.ts  (Next.js 16 Proxy — formerly middleware)
+// Subdomain routing: {slug}.pearloom.com  →  /sites/{slug}
+//
+// Root domain is resolved from NEXT_PUBLIC_ROOT_DOMAIN or
+// NEXT_PUBLIC_SITE_URL so this works on any deployment.
+// ─────────────────────────────────────────────────────────────
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export const config = {
-  matcher: [
-    /*
-     * Match all paths except for:
-     * 1. /api routes
-     * 2. /_next (Next.js internals)
-     * 3. /_static (inside /public)
-     * 4. all root files inside /public (e.g. /favicon.ico)
-     */
-    "/((?!api/|_next/|_static/|favicon.ico|[\\w-]+\\.\\w+).*)",
-  ],
-};
+// Derive the root domain from env vars at request time.
+// e.g. NEXT_PUBLIC_SITE_URL="https://pearloom.com" → "pearloom.com"
+function getRootDomain(): string {
+  const explicit = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+  if (explicit) return explicit.replace(/^www\./, '').toLowerCase();
 
-export default function middleware(req: NextRequest) {
-  const url = req.nextUrl;
-  
-  // Get hostname of request (e.g. demo.pearloom.com, demo.localhost:3000)
-  let hostname = req.headers.get("host")!;
-
-  // Strip localhost specific configs
-  if (hostname.includes("localhost")) {
-    hostname = hostname.replace(".localhost:3000", ".pearloom.com");
-    hostname = hostname.replace("localhost:3000", "pearloom.com");
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    try {
+      return new URL(siteUrl).hostname.replace(/^www\./, '').toLowerCase();
+    } catch {
+      // fall through
+    }
   }
+  return 'pearloom.com'; // safe default
+}
+
+export function proxy(req: NextRequest) {
+  const rawHost = req.headers.get('host') || '';
+  let hostname = rawHost.toLowerCase();
 
   const searchParams = req.nextUrl.searchParams.toString();
-  const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
+  const path = `${req.nextUrl.pathname}${searchParams.length > 0 ? `?${searchParams}` : ''}`;
 
-  // If the host exactly matches our main domains, render the marketing page / dashboard normally
+  // ── Localhost dev: rewrite subdomain.localhost:PORT → treat as subdomain.rootDomain ──
+  const localhostMatch = hostname.match(/^(.+)\.localhost(:\d+)?$/);
+  if (localhostMatch) {
+    const subdomain = localhostMatch[1];
+    // Don't rewrite _next internals or API routes
+    if (path.startsWith('/_next') || path.startsWith('/api') || path.startsWith('/sites')) {
+      return NextResponse.next();
+    }
+    return NextResponse.rewrite(new URL(`/sites/${subdomain}${path}`, req.url));
+  }
+
+  // ── Vercel preview deployments: path-based routing already works, skip subdomain logic ──
+  if (hostname.includes('.vercel.app')) {
+    return NextResponse.next();
+  }
+
+  const rootDomain = getRootDomain();
+  // Strip port for comparison
+  const cleanHost = hostname.replace(/:\d+$/, '');
+
+  // Pass through the apex domain and www — these serve the main app
+  if (cleanHost === rootDomain || cleanHost === `www.${rootDomain}`) {
+    return NextResponse.next();
+  }
+
+  // Only act on *.rootDomain subdomains
+  if (!cleanHost.endsWith(`.${rootDomain}`)) {
+    return NextResponse.next();
+  }
+
+  const subdomain = cleanHost.slice(0, cleanHost.length - rootDomain.length - 1);
+
+  // Skip internal/static paths even on subdomain hosts
   if (
-    hostname === "pearloom.com" ||
-    hostname === "www.pearloom.com" ||
-    hostname === "pearloom.vercel.app" ||
-    hostname.endsWith(".vercel.app") // Treat all random Vercel preview deployments as the base App
+    path.startsWith('/_next') ||
+    path.startsWith('/api/') ||
+    path.startsWith('/sites/') ||
+    path === '/favicon.ico' ||
+    path === '/robots.txt' ||
+    path === '/sitemap.xml'
   ) {
     return NextResponse.next();
   }
 
-  // Define subdomain prefix (e.g. "ben-shauna")
-  let currentHost;
-  if (hostname.includes(".pearloom.com")) {
-    currentHost = hostname.replace(".pearloom.com", "");
-  } else if (hostname.includes(".localhost:3000")) {
-    currentHost = hostname.replace(".localhost:3000", "");
-  } else {
-    // Fallback if parsing fails bizarrely
-    currentHost = hostname;
-  }
-
-  // Render the custom multi-tenant site under /sites/[domain] natively
-  return NextResponse.rewrite(new URL(`/sites/${currentHost}${path}`, req.url));
+  // Rewrite to /sites/{subdomain}{path}
+  const rewritePath = path === '/' ? `/sites/${subdomain}` : `/sites/${subdomain}${path}`;
+  return NextResponse.rewrite(new URL(rewritePath, req.url));
 }
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)',
+  ],
+};

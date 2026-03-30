@@ -2075,9 +2075,6 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       setSaveState('saved');
       setIsDirty(false);
       onPublish?.();
-      // Navigate to published site after 2s — window.location.href is never
-      // blocked by popup blockers (unlike window.open after async)
-      if (data.url) setTimeout(() => { window.location.href = data.url; }, 2000);
     } catch (err) {
       setPublishError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
