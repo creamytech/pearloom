@@ -8,6 +8,7 @@
 //   • 30 days after  → "Just married!" celebration
 // ─────────────────────────────────────────────────────────────
 
+import { motion } from 'framer-motion';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 interface WeddingDayBannerProps {
@@ -69,7 +70,10 @@ export function WeddingDayBanner({ weddingDate, coupleNames, vibeSkin }: Wedding
   const { heading } = vibeSkin.fonts;
 
   return (
-    <section
+    <motion.section
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       style={{
         width: '100%',
         background: `linear-gradient(90deg, ${accent}dd 0%, ${accent}aa 50%, ${accent}dd 100%)`,
@@ -82,40 +86,37 @@ export function WeddingDayBanner({ weddingDate, coupleNames, vibeSkin }: Wedding
       }}
       aria-label="Wedding day status banner"
     >
-      {/* CSS-only confetti (only on the actual wedding day) */}
-      {isToday && (
-        <>
-          <style>{`
-            @keyframes confettiFall {
-              0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-              80%  { opacity: 0.9; }
-              100% { transform: translateY(80px) rotate(360deg); opacity: 0; }
-            }
-          `}</style>
-          {confettiPieces.map((p) => (
-            <div
-              key={p.id}
-              aria-hidden="true"
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: p.left,
-                width: p.size,
-                height: p.size,
-                background: p.color,
-                borderRadius: p.rotation === 45 ? 0 : '50%',
-                transform: `rotate(${p.rotation}deg)`,
-                pointerEvents: 'none',
-                zIndex: 9999,
-                animation: `confettiFall ${p.animationDuration} ${p.animationDelay} ease-in infinite`,
-              }}
-            />
-          ))}
-        </>
-      )}
+      {/* Framer Motion confetti (only on the actual wedding day) */}
+      {isToday && confettiPieces.map((p) => (
+        <motion.div
+          key={p.id}
+          aria-hidden="true"
+          animate={{ y: ['-20px', '80px'], rotate: [p.rotation, p.rotation + 360], opacity: [1, 0.9, 0] }}
+          transition={{
+            duration: parseFloat(p.animationDuration),
+            delay: parseFloat(p.animationDelay),
+            repeat: Infinity,
+            ease: 'easeIn',
+          }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: p.left,
+            width: p.size,
+            height: p.size,
+            background: p.color,
+            borderRadius: p.rotation === 45 ? 0 : '50%',
+            pointerEvents: 'none',
+            zIndex: 9999,
+          }}
+        />
+      ))}
 
       {/* Banner text */}
-      <p
+      <motion.p
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         style={{
           fontFamily: `"${heading}", serif`,
           fontSize: 'clamp(0.95rem, 2.5vw, 1.15rem)',
@@ -130,7 +131,7 @@ export function WeddingDayBanner({ weddingDate, coupleNames, vibeSkin }: Wedding
         }}
       >
         {coupleNames[0]} &amp; {coupleNames[1]} — {message}
-      </p>
-    </section>
+      </motion.p>
+    </motion.section>
   );
 }
