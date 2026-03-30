@@ -13,6 +13,7 @@ import {
   SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
   WeddingRingsIcon, ChampagneIcon, GiftIcon, EnvelopeIcon,
 } from '@/components/icons/PearloomIcons';
+import { PearBackground } from '@/components/icons/PearShapes';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -53,14 +54,25 @@ function AccordionSection({ title, icon, children, defaultOpen = true }: {
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+    <div style={{
+      background: '#fff',
+      borderRadius: '14px 14px 32px 32px',
+      border: '1px solid rgba(0,0,0,0.06)',
+      boxShadow: '0 2px 16px rgba(0,0,0,0.05), 0 8px 24px rgba(163,177,138,0.08)',
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
+      {/* Pear watermark — ghost silhouette at bottom-right */}
+      <div style={{ position: 'absolute', bottom: -24, right: -16, pointerEvents: 'none', zIndex: 0 }} aria-hidden="true">
+        <PearBackground color="var(--eg-accent, #A3B18A)" opacity={0.055} size={110} />
+      </div>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '1rem 1.5rem', background: 'none', border: 'none', cursor: 'pointer', gap: '0.75rem',
-          textAlign: 'left' as const,
+          textAlign: 'left' as const, position: 'relative', zIndex: 1,
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--eg-accent)' }}>
@@ -69,7 +81,7 @@ function AccordionSection({ title, icon, children, defaultOpen = true }: {
         </span>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ type: 'spring', stiffness: 340, damping: 28 }}
           style={{ display: 'flex', flexShrink: 0, color: 'var(--eg-muted, #9A9488)' }}
         >
           <ChevronDown size={16} />
@@ -82,8 +94,8 @@ function AccordionSection({ title, icon, children, defaultOpen = true }: {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            style={{ overflow: 'hidden' }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: 'hidden', position: 'relative', zIndex: 1 }}
           >
             <div style={{ padding: '0 1.5rem 1.5rem' }}>
               {children}
@@ -1201,7 +1213,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
           {/* ── STORY / JUST BECAUSE ── */}
           {occasion === 'story' && (
-            <div style={{ background: '#fff', borderRadius: '1rem', padding: '2rem', border: '1px solid rgba(0,0,0,0.06)', textAlign: 'center', color: 'var(--eg-muted)', lineHeight: 1.6 }}>
+            <div style={{ background: '#fff', borderRadius: '14px 14px 32px 32px', padding: '2rem', border: '1px solid rgba(0,0,0,0.06)', textAlign: 'center', color: 'var(--eg-muted)', lineHeight: 1.6, position: 'relative', overflow: 'hidden', boxShadow: '0 2px 16px rgba(0,0,0,0.05), 0 8px 24px rgba(163,177,138,0.08)' }}>
               No extra details needed. We&apos;ll build entirely from your photos and vibe — just hit &ldquo;Build my site&rdquo; below.
             </div>
           )}
@@ -1209,7 +1221,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* ── AESTHETIC VIBES SUMMARY ── */}
         {hasInspoInput && (
-          <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '1rem', padding: '1rem 1.25rem', border: '1px solid rgba(163,177,138,0.2)', marginTop: '2rem' }}>
+          <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '14px 14px 32px 32px', padding: '1rem 1.25rem', border: '1px solid rgba(163,177,138,0.2)', marginTop: '2rem', boxShadow: '0 4px 20px rgba(163,177,138,0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: inspoKeywords.length > 0 ? '0.6rem' : 0 }}>
               <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>✨</span>
               <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--eg-accent)', margin: 0 }}>
@@ -1232,7 +1244,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         )}
 
         {/* URL slug picker */}
-        <div style={{ background: '#fff', borderRadius: '1rem', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginTop: '2rem' }}>
+        <div style={{ background: '#fff', borderRadius: '14px 14px 32px 32px', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 16px rgba(0,0,0,0.05), 0 8px 24px rgba(163,177,138,0.08)', marginTop: '2rem', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', bottom: -24, right: -16, pointerEvents: 'none', zIndex: 0 }} aria-hidden="true">
+            <PearBackground color="var(--eg-accent, #A3B18A)" opacity={0.055} size={110} />
+          </div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={sectionHeading}><Globe size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }} />Your Site URL<Tooltip text="This becomes your site URL: yourname.pearloom.com" /></p>
           <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
@@ -1278,6 +1294,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               Enter at least 2 characters
             </p>
           )}
+          </div>
         </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
@@ -1495,7 +1512,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     transition={{ duration: 0.15 }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '1.1rem',
-                      padding: '1.1rem 1.5rem', borderRadius: '1rem', textAlign: 'left',
+                      padding: '1.1rem 1.5rem', borderRadius: '12px 12px 24px 24px', textAlign: 'left',
                       border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
                       background: active ? 'var(--eg-accent-light)' : '#fff',
                       cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
@@ -1576,7 +1593,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem',
-                      padding: '1.5rem', borderRadius: '1.25rem', textAlign: 'left',
+                      padding: '1.5rem', borderRadius: '14px 14px 28px 28px', textAlign: 'left',
                       border: `2px solid ${active ? m.activeBorder : 'rgba(0,0,0,0.0)'}`,
                       background: active ? m.activeBg : m.cardBg,
                       cursor: 'pointer',
@@ -1640,7 +1657,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     transition={{ duration: 0.15 }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '1.25rem',
-                      padding: '1rem 1.25rem', borderRadius: '1.25rem', textAlign: 'left',
+                      padding: '1rem 1.25rem', borderRadius: '12px 12px 24px 24px', textAlign: 'left',
                       border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
                       background: active ? 'var(--eg-accent-light)' : '#fff',
                       cursor: 'pointer',
@@ -1947,7 +1964,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.18 }}
                     style={{
-                      padding: 0, borderRadius: '1rem', textAlign: 'left',
+                      padding: 0, borderRadius: '12px 12px 24px 24px', textAlign: 'left',
                       border: `2px solid ${active ? 'var(--eg-fg)' : 'rgba(0,0,0,0.06)'}`,
                       background: '#fff',
                       cursor: 'pointer',
