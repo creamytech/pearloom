@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 interface WeddingCoordinatorProps {
@@ -91,9 +92,11 @@ export default function WeddingCoordinator({
   return (
     <>
       {/* Floating button */}
-      <button
+      <motion.button
         onClick={() => setOpen(o => !o)}
         aria-label="Open wedding coordinator chat"
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.95 }}
         style={{
           position: 'fixed',
           bottom: '24px',
@@ -112,24 +115,20 @@ export default function WeddingCoordinator({
           alignItems: 'center',
           gap: '8px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
-          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-        }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.04)';
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 24px rgba(0,0,0,0.24)';
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.18)';
         }}
       >
         <span>💬</span>
         <span>Ask our coordinator</span>
-      </button>
+      </motion.button>
 
       {/* Chat window */}
-      {open && (
-        <div
+      <AnimatePresence>
+        {open && (
+        <motion.div
+          initial={{ opacity: 0, y: 16, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 16, scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 340, damping: 28 }}
           style={{
             position: 'fixed',
             bottom: '88px',
@@ -147,19 +146,8 @@ export default function WeddingCoordinator({
             overflow: 'hidden',
             fontFamily: 'inherit',
             color: foreground,
-            animation: 'coordinatorSlideUp 0.22s ease',
           }}
         >
-          <style>{`
-            @keyframes coordinatorSlideUp {
-              from { opacity: 0; transform: translateY(16px) scale(0.97); }
-              to   { opacity: 1; transform: translateY(0)   scale(1); }
-            }
-            @keyframes coordinatorDot {
-              0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-              40%            { transform: scale(1);   opacity: 1; }
-            }
-          `}</style>
 
           {/* Header */}
           <div
@@ -261,9 +249,13 @@ export default function WeddingCoordinator({
             )}
 
             {/* Chat messages */}
+            <AnimatePresence initial={false}>
             {messages.map((msg, i) => (
-              <div
+              <motion.div
                 key={i}
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 340, damping: 28 }}
                 style={{
                   alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                   backgroundColor: msg.role === 'user' ? '#6b7c5e' : '#fff',
@@ -281,12 +273,17 @@ export default function WeddingCoordinator({
                 }}
               >
                 {msg.content}
-              </div>
+              </motion.div>
             ))}
+            </AnimatePresence>
 
             {/* Typing indicator */}
+            <AnimatePresence>
             {loading && (
-              <div
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 style={{
                   alignSelf: 'flex-start',
                   backgroundColor: '#fff',
@@ -299,20 +296,22 @@ export default function WeddingCoordinator({
                 }}
               >
                 {[0, 1, 2].map(i => (
-                  <span
+                  <motion.span
                     key={i}
+                    animate={{ scale: [0.6, 1, 0.6], opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }}
                     style={{
                       width: '7px',
                       height: '7px',
                       backgroundColor: accentColor,
                       borderRadius: '50%',
                       display: 'inline-block',
-                      animation: `coordinatorDot 1.2s ease-in-out ${i * 0.2}s infinite`,
                     }}
                   />
                 ))}
-              </div>
+              </motion.div>
             )}
+            </AnimatePresence>
 
             <div ref={messagesEndRef} />
           </div>
@@ -352,9 +351,11 @@ export default function WeddingCoordinator({
                 overflowY: 'auto',
               }}
             />
-            <button
+            <motion.button
               onClick={() => sendMessage(input)}
               disabled={loading || !input.trim()}
+              whileHover={loading || !input.trim() ? {} : { scale: 1.05 }}
+              whileTap={loading || !input.trim() ? {} : { scale: 0.95 }}
               style={{
                 backgroundColor: accentColor,
                 color: '#fff',
@@ -371,10 +372,11 @@ export default function WeddingCoordinator({
               }}
             >
               Send →
-            </button>
+            </motion.button>
           </div>
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
