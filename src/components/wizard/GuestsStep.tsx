@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 import { GuestManager } from '@/components/dashboard/guest-manager';
+import { Button } from '@/components/ui';
 
 interface GuestsStepProps {
   siteId: string;
@@ -11,13 +12,9 @@ interface GuestsStepProps {
 export function GuestsStep({ siteId, onBack }: GuestsStepProps) {
   return (
     <div>
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-[0.9rem] text-[var(--eg-muted)] mb-8 bg-transparent border-none cursor-pointer"
-      >
-        <ArrowLeft size={14} />
+      <Button variant="ghost" size="sm" onClick={onBack} icon={<ArrowLeft size={14} />} className="mb-8">
         Back to My Sites
-      </button>
+      </Button>
       <GuestManager siteId={siteId} />
     </div>
   );

@@ -374,14 +374,29 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [recoveredDraft, onChange, pushToPreview, pushHistory]);
 
   // ── Keyboard shortcuts ───────────────────────────────────────
+  const TAB_KEYS: Record<string, EditorTab> = { '1': 'story', '2': 'events', '3': 'design', '4': 'details', '5': 'pages', '6': 'blocks', '7': 'voice', '8': 'canvas' };
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.key === 'k') { e.preventDefault(); dispatch({ type: 'TOGGLE_CMD_PALETTE' }); }
-      if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-      if (mod && e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); }
-      if (mod && e.key === 'y') { e.preventDefault(); redo(); }
-      if (mod && e.key === '\\') { e.preventDefault(); dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' }); }
+      if (mod && e.key === 'k') { e.preventDefault(); dispatch({ type: 'TOGGLE_CMD_PALETTE' }); return; }
+      if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+      if (mod && e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); return; }
+      if (mod && e.key === 'y') { e.preventDefault(); redo(); return; }
+      if (mod && e.key === '\\') { e.preventDefault(); dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' }); return; }
+      // Cmd+P — preview in new tab
+      if (mod && e.key === 'p') { e.preventDefault(); storePreviewForOpen(); return; }
+      // Cmd+S — mark as saved
+      if (mod && e.key === 's') { e.preventDefault(); dispatch({ type: 'SET_SAVE_STATE', state: 'saved' }); return; }
+      // Cmd+1-8 — switch tabs
+      if (mod && TAB_KEYS[e.key]) { e.preventDefault(); handleTabChange(TAB_KEYS[e.key]); return; }
+      // Escape — close modals/sheets
+      if (e.key === 'Escape') {
+        if (state.cmdPaletteOpen) { dispatch({ type: 'SET_CMD_PALETTE', open: false }); return; }
+        if (state.showPublish) { dispatch({ type: 'SET_SHOW_PUBLISH', show: false }); return; }
+        if (state.mobileSheetOpen) { dispatch({ type: 'SET_MOBILE_SHEET', open: false }); return; }
+      }
+      // Cmd+D — duplicate active chapter
       if (mod && e.key === 'd') {
         e.preventDefault();
         const id = activeIdRef.current;
@@ -402,7 +417,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [undo, redo, manifest, pushHistory, onChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [undo, redo, manifest, pushHistory, onChange, storePreviewForOpen, handleTabChange, state.cmdPaletteOpen, state.showPublish, state.mobileSheetOpen]);
 
   // ── Drag and drop ────────────────────────────────────────────
   const canvasDragSensors = useSensors(

@@ -13,6 +13,8 @@ import {
 } from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type DeviceMode, DEVICE_DIMS } from '@/lib/editor-state';
+import { EditorBreadcrumb } from './EditorBreadcrumb';
+import { ZoomControls } from './ZoomControls';
 import type { Chapter } from '@/types';
 
 const DEVICE_ICONS: Record<DeviceMode, React.ElementType> = {
@@ -62,33 +64,36 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <ExitIcon size={14} /> Exit
       </motion.button>
 
-      {/* Site name — centered, contextual to occasion */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-        {manifest.occasion !== 'birthday' && (
-          <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
-        )}
-        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
-          {manifest.occasion === 'birthday'
-            ? `${coupleNames[0]}'s Birthday`
-            : `${coupleNames[0]} & ${coupleNames[1]}`}
-        </span>
-        <motion.button
-          onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}
-          title="Command Palette (Cmd+K)"
-          whileHover={{ scale: 1.05, borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.75)' }}
-          whileTap={{ scale: 0.93 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-          style={{
-            display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px',
-            padding: '3px 9px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)',
-            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-            letterSpacing: '0.04em',
-          }}
-        >
-          <CommandIcon size={10} />
-          <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
-        </motion.button>
+      {/* Site name + breadcrumb — centered */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {manifest.occasion !== 'birthday' && (
+            <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
+          )}
+          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
+            {manifest.occasion === 'birthday'
+              ? `${coupleNames[0]}'s Birthday`
+              : `${coupleNames[0]} & ${coupleNames[1]}`}
+          </span>
+          <motion.button
+            onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}
+            title="Command Palette (Cmd+K)"
+            whileHover={{ scale: 1.05, borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.75)' }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+            style={{
+              display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px',
+              padding: '3px 9px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)',
+              cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+              letterSpacing: '0.04em',
+            }}
+          >
+            <CommandIcon size={10} />
+            <kbd style={{ fontFamily: 'inherit', fontWeight: 700 }}>⌘K</kbd>
+          </motion.button>
+        </div>
+        <EditorBreadcrumb />
 
         {/* Contextual chapter actions */}
         <AnimatePresence>
@@ -210,6 +215,14 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           );
         })}
       </div>
+
+      {/* Zoom controls — desktop only */}
+      {!isMobile && (
+        <ZoomControls
+          zoom={state.previewZoom}
+          onZoomChange={(z) => dispatch({ type: 'SET_PREVIEW_ZOOM', zoom: z })}
+        />
+      )}
 
       {/* Language picker — desktop only, shown only when translations exist */}
       {!isMobile && manifest.translations && Object.keys(manifest.translations).length > 0 && (

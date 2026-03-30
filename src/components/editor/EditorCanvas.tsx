@@ -10,7 +10,7 @@ import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, previewKey, iframeRef } = useEditor();
-  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters } = state;
+  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom } = state;
 
   if (splitView && !isMobile) {
     return (
@@ -46,7 +46,7 @@ export function EditorCanvas() {
     }}>
       <div style={{
         width: isMobile ? '100%' : DEVICE_DIMS[device].width,
-        height: '100%',
+        height: previewZoom !== 1 && !isMobile ? `${100 / previewZoom}%` : '100%',
         flexShrink: 0,
         position: 'relative',
         display: 'flex', flexDirection: 'column',
@@ -55,6 +55,8 @@ export function EditorCanvas() {
         overflow: 'hidden',
         border: !isMobile && device !== 'desktop' ? '1px solid rgba(255,255,255,0.08)' : 'none',
         transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        transform: previewZoom !== 1 && !isMobile ? `scale(${previewZoom})` : undefined,
+        transformOrigin: 'top center',
       }}>
         {!iframeReady && (
           <div style={{

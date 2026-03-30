@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 import { LocalUploader } from '@/components/dashboard/local-uploader';
+import { Button } from '@/components/ui';
 import type { GooglePhotoMetadata } from '@/types';
 
 interface UploadStepProps {
@@ -12,13 +13,9 @@ interface UploadStepProps {
 export function UploadStep({ onUploadComplete, onBack }: UploadStepProps) {
   return (
     <div className="pb-8">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-[0.9rem] text-[var(--eg-muted)] mb-8 bg-transparent border-none cursor-pointer"
-      >
-        <ArrowLeft size={14} />
+      <Button variant="ghost" size="sm" onClick={onBack} icon={<ArrowLeft size={14} />} className="mb-8">
         Back to Google Photos
-      </button>
+      </Button>
       <LocalUploader onUploadComplete={onUploadComplete} />
     </div>
   );

@@ -64,6 +64,9 @@ export interface EditorState {
   // Section overrides
   sectionOverridesMap: Record<string, SectionStyleOverrides>;
 
+  // Preview zoom
+  previewZoom: number;
+
   // Mobile
   isMobile: boolean;
 }
@@ -100,6 +103,7 @@ export type EditorAction =
   | { type: 'SET_DRAFT_BANNER'; state: DraftBannerState }
   | { type: 'SET_SECTION_OVERRIDES'; id: string; overrides: SectionStyleOverrides }
   | { type: 'SET_MOBILE'; isMobile: boolean }
+  | { type: 'SET_PREVIEW_ZOOM'; zoom: number }
   | { type: 'MARK_PUBLISHED'; url: string }
   | { type: 'OPEN_PUBLISH' };
 
@@ -167,6 +171,8 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, sectionOverridesMap: { ...state.sectionOverridesMap, [action.id]: action.overrides } };
     case 'SET_MOBILE':
       return { ...state, isMobile: action.isMobile };
+    case 'SET_PREVIEW_ZOOM':
+      return { ...state, previewZoom: action.zoom };
     case 'MARK_PUBLISHED':
       return { ...state, publishedUrl: action.url, saveState: 'saved', isDirty: false };
     case 'OPEN_PUBLISH':
@@ -271,6 +277,7 @@ export function createInitialEditorState(
     canvasDragLabel: '',
     draftBanner: null,
     sectionOverridesMap: {},
+    previewZoom: 1,
     isMobile: false,
   };
 }

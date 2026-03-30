@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 import { VibeInput } from '@/components/dashboard/vibe-input';
+import { Button } from '@/components/ui';
 import type { VibeFormData } from '@/lib/wizard-state';
 
 interface VibeStepProps {
@@ -14,17 +15,19 @@ interface VibeStepProps {
 export function VibeStep({ coupleNames, vibeString, onSubmit, onBack }: VibeStepProps) {
   return (
     <div className="pb-8">
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
+        icon={<ArrowLeft size={14} />}
+        className="mb-8"
         onClick={() => {
           const hasData = coupleNames[0] || coupleNames[1] || vibeString;
           if (hasData && !confirm('You\'ll lose your progress. Go back anyway?')) return;
           onBack();
         }}
-        className="flex items-center gap-1.5 text-[0.9rem] text-[var(--eg-muted)] mb-8 bg-transparent border-none cursor-pointer"
       >
-        <ArrowLeft size={14} />
         Back to photos
-      </button>
+      </Button>
       <VibeInput
         onSubmit={onSubmit}
         initialNames={coupleNames[0] ? coupleNames : undefined}
