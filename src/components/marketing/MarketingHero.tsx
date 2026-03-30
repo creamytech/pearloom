@@ -4,20 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
-
-const C = {
-  cream: '#F5F1E8',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  dark: '#3D3530',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-  deep: '#EEE8DC',
-} as const;
-
-const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+import { C, EASE } from './colors';
 
 const OCCASIONS = [
   'Weddings',
@@ -127,7 +114,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         />
       </svg>
 
-      <div className="relative z-10 w-full max-w-[860px] text-center">
+      <div className="relative z-10 w-full max-w-[960px] text-center">
         {/* Eyebrow pill with rotating occasion */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -148,13 +135,13 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
           className="font-[family-name:var(--eg-font-heading)] font-bold leading-[1.05] tracking-[-0.035em] mb-5"
           style={{
-            fontSize: 'clamp(2.6rem, 6.5vw, 5.2rem)',
+            fontSize: 'clamp(2.8rem, 7vw, 5.8rem)',
             color: C.ink,
           }}
         >
           Every moment worth celebrating
           <br />
-          <span style={{ color: C.plum }}>deserves its own world.</span>
+          <span style={{ background: 'linear-gradient(135deg, #6D597A, #9B7FB8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>deserves its own world.</span>
         </motion.h1>
 
         {/* Sub-headline */}
@@ -190,7 +177,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
             className="inline-flex items-center gap-2 font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer"
             style={{
               padding: '0.95rem 2.1rem',
-              background: C.olive,
+              background: 'linear-gradient(135deg, #A3B18A, #8BA77A)',
               color: C.cream,
               borderRadius: '0.8rem',
               fontSize: '0.95rem',
@@ -228,44 +215,16 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           Free to start · No credit card · Live in minutes
         </motion.p>
 
-        {/* Thread ornament */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1, duration: 0.6 }}
-          className="flex justify-center mt-8 mb-8"
-        >
-          <ThreadOrnament />
-        </motion.div>
-
         {/* Product preview mockup */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
+          style={{ position: 'relative', zIndex: 1 }}
         >
           <SiteMockup />
         </motion.div>
-
-        {/* Occasion bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.4, duration: 0.5 }}
-          className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-8 text-[0.72rem] font-semibold tracking-[0.1em] uppercase"
-          style={{ color: C.muted }}
-        >
-          {['Weddings', 'Birthdays', 'Anniversaries', 'Engagements', 'Reunions', 'Any Celebration'].map(
-            (o, i) => (
-              <span key={o} className="flex items-center gap-2">
-                {i > 0 && (
-                  <span className="w-1 h-1 rounded-full" style={{ background: C.gold, opacity: 0.5 }} />
-                )}
-                {o}
-              </span>
-            ),
-          )}
-        </motion.div>
+        <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '400px', background: 'radial-gradient(ellipse, rgba(214,198,168,0.15) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0 }} />
       </div>
 
       {/* Scroll cue */}

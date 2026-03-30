@@ -2,17 +2,8 @@
 
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { Sparkles, ChevronDown } from 'lucide-react';
-
-const C = {
-  cream: '#F5F1E8',
-  olive: '#A3B18A',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  dark: '#3D3530',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
+import { ChevronDown } from 'lucide-react';
+import { C } from './colors';
 
 const FAQS = [
   {
@@ -75,8 +66,8 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
             className="overflow-hidden"
           >
             <p
-              className="pb-5 text-[0.88rem] leading-relaxed"
-              style={{ color: C.muted, lineHeight: 1.75 }}
+              className="pb-5 text-[0.88rem] leading-relaxed pl-3"
+              style={{ color: C.muted, lineHeight: 1.75, borderLeft: `3px solid ${C.olive}` }}
             >
               {faq.a}
             </p>
@@ -98,8 +89,8 @@ export function FAQSection() {
       id="faq"
       style={{ background: C.cream, padding: '7rem 1.5rem' }}
     >
-      <div className="max-w-[660px] mx-auto">
-        {/* Header */}
+      <div className="max-w-[700px] mx-auto">
+        {/* Header — simple label */}
         <div className="text-center mb-10">
           <motion.div
             initial={{ opacity: 0, y: 14 }}
@@ -107,10 +98,10 @@ export function FAQSection() {
             className="mb-4"
           >
             <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-              style={{ background: 'rgba(163,177,138,0.12)', border: '1px solid rgba(163,177,138,0.3)', color: C.olive }}
+              className="text-[0.68rem] font-bold tracking-[0.14em] uppercase"
+              style={{ color: C.olive }}
             >
-              <Sparkles size={9} strokeWidth={2.5} /> FAQ
+              FAQ
             </span>
           </motion.div>
           <motion.h2
@@ -124,14 +115,14 @@ export function FAQSection() {
           </motion.h2>
         </div>
 
-        {/* Accordion */}
+        {/* Accordion — clean white card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="rounded-2xl border p-1 sm:p-4"
+          className="rounded-2xl border p-1 sm:p-6"
           style={{
-            background: 'rgba(255,255,255,0.5)',
+            background: 'white',
             borderColor: C.divider,
           }}
         >

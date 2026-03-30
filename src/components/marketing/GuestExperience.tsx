@@ -3,7 +3,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
-  Sparkles,
   Mail,
   LayoutGrid,
   Plane,
@@ -11,16 +10,7 @@ import {
   Bot,
   MessageSquare,
 } from 'lucide-react';
-
-const C = {
-  cream: '#F5F1E8',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
+import { C } from './colors';
 
 const FEATURES = [
   {
@@ -71,8 +61,8 @@ export function GuestExperience() {
       id="features"
       style={{ background: C.cream, padding: '7rem 1.5rem' }}
     >
-      <div className="max-w-[920px] mx-auto">
-        {/* Header */}
+      <div className="max-w-[960px] mx-auto">
+        {/* Header — simple uppercase label instead of Pill */}
         <div className="text-center mb-12">
           <motion.div
             initial={{ opacity: 0, y: 14 }}
@@ -80,10 +70,10 @@ export function GuestExperience() {
             className="mb-4"
           >
             <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-              style={{ background: 'rgba(163,177,138,0.12)', border: '1px solid rgba(163,177,138,0.3)', color: C.olive }}
+              className="text-[0.68rem] font-bold tracking-[0.14em] uppercase"
+              style={{ color: C.olive }}
             >
-              <Sparkles size={9} strokeWidth={2.5} /> Guest Experience
+              Guest Experience
             </span>
           </motion.div>
           <motion.h2
@@ -99,7 +89,7 @@ export function GuestExperience() {
           </motion.h2>
         </div>
 
-        {/* Feature grid */}
+        {/* Feature grid — solid cards with accent top border */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURES.map((f, i) => {
             const Icon = f.icon;
@@ -109,12 +99,12 @@ export function GuestExperience() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.08 + 0.2, duration: 0.5 }}
-                whileHover={{ y: -3, boxShadow: '0 10px 32px rgba(0,0,0,0.06)' }}
-                className="rounded-xl border p-5 transition-all duration-200"
+                whileHover={{ boxShadow: `0 10px 32px rgba(0,0,0,0.06), 0 -3px 0 0 ${f.accent} inset` }}
+                className="rounded-xl p-5 transition-all duration-200"
                 style={{
-                  background: 'rgba(255,255,255,0.6)',
-                  backdropFilter: 'blur(8px)',
-                  borderColor: C.divider,
+                  background: 'white',
+                  border: `1px solid ${C.divider}`,
+                  borderTop: `3px solid ${f.accent}`,
                 }}
               >
                 <div

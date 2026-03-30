@@ -14,18 +14,7 @@ import {
   Columns2,
   ZoomIn,
 } from 'lucide-react';
-
-const C = {
-  cream: '#F5F1E8',
-  deep: '#EEE8DC',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  dark: '#3D3530',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
+import { C } from './colors';
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
@@ -38,24 +27,45 @@ function Pill({ children }: { children: React.ReactNode }) {
   );
 }
 
-const FEATURES = [
-  { icon: Layers, label: '15 Block Types' },
-  { icon: LayoutGrid, label: '6 Layouts' },
-  { icon: Monitor, label: 'Device Preview' },
-  { icon: GripVertical, label: 'Drag & Drop' },
-  { icon: Undo2, label: 'Undo / Redo' },
-  { icon: Command, label: 'Command Palette' },
-  { icon: PenLine, label: 'AI Rewrite' },
-  { icon: Columns2, label: 'Split View' },
-  { icon: ZoomIn, label: 'Zoom Controls' },
+const FEATURE_GROUPS = [
+  {
+    label: 'Layout',
+    tint: C.olive,
+    items: [
+      { icon: Layers, label: '15 Block Types' },
+      { icon: LayoutGrid, label: '6 Layouts' },
+      { icon: Columns2, label: 'Split View' },
+    ],
+  },
+  {
+    label: 'Editing',
+    tint: C.plum,
+    items: [
+      { icon: GripVertical, label: 'Drag & Drop' },
+      { icon: Undo2, label: 'Undo / Redo' },
+      { icon: Command, label: 'Command Palette' },
+      { icon: PenLine, label: 'AI Rewrite' },
+    ],
+  },
+  {
+    label: 'Preview',
+    tint: C.gold,
+    items: [
+      { icon: Monitor, label: 'Device Preview' },
+      { icon: ZoomIn, label: 'Zoom Controls' },
+    ],
+  },
 ];
 
 /* Stylized editor mockup built with divs */
 function EditorMockup() {
   return (
     <div
-      className="rounded-xl border overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.06)]"
-      style={{ borderColor: C.divider }}
+      className="rounded-xl border overflow-hidden"
+      style={{
+        borderColor: C.divider,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06)',
+      }}
     >
       {/* Toolbar */}
       <div
@@ -82,7 +92,7 @@ function EditorMockup() {
       </div>
 
       {/* Body */}
-      <div className="flex" style={{ height: 240, background: C.cream }}>
+      <div className="flex" style={{ height: 360, background: C.cream }}>
         {/* Sidebar */}
         <div
           className="w-[180px] border-r p-3 flex-shrink-0 hidden sm:block"
@@ -123,7 +133,7 @@ function EditorMockup() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 gap-4">
           <div
             className="w-full max-w-[300px] rounded-lg border p-5 text-center"
             style={{ background: 'white', borderColor: `${C.olive}30` }}
@@ -147,6 +157,16 @@ function EditorMockup() {
               style={{ background: `linear-gradient(135deg, ${C.gold}30, ${C.plum}15)` }}
             />
           </div>
+          {/* Second content block — faux photo grid */}
+          <div className="w-full max-w-[300px] flex gap-2">
+            {[C.gold, C.olive, C.plum, C.gold].map((color, j) => (
+              <div
+                key={j}
+                className="flex-1 h-10 rounded-md"
+                style={{ background: `${color}20` }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -163,7 +183,7 @@ export function EditorShowcase() {
       id="editor"
       style={{ background: C.cream, padding: '7rem 1.5rem' }}
     >
-      <div className="max-w-[920px] mx-auto">
+      <div className="max-w-[960px] mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <motion.div
@@ -206,31 +226,35 @@ export function EditorShowcase() {
           <EditorMockup />
         </motion.div>
 
-        {/* Feature pills */}
+        {/* Feature pills — grouped by category with tinted backgrounds */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="flex flex-wrap justify-center gap-2.5"
+          className="flex flex-wrap justify-center gap-6"
         >
-          {FEATURES.map(f => {
-            const Icon = f.icon;
-            return (
-              <motion.div
-                key={f.label}
-                whileHover={{ y: -2, boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[0.78rem] font-medium transition-all duration-200"
-                style={{
-                  background: 'rgba(255,255,255,0.7)',
-                  borderColor: C.divider,
-                  color: C.dark,
-                }}
-              >
-                <Icon size={14} style={{ color: C.olive }} />
-                {f.label}
-              </motion.div>
-            );
-          })}
+          {FEATURE_GROUPS.map(group => (
+            <div key={group.label} className="flex flex-wrap items-center gap-2">
+              {group.items.map(f => {
+                const Icon = f.icon;
+                return (
+                  <motion.div
+                    key={f.label}
+                    whileHover={{ y: -2, boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[0.78rem] font-medium transition-all duration-200"
+                    style={{
+                      background: `${group.tint}08`,
+                      borderColor: `${group.tint}20`,
+                      color: C.dark,
+                    }}
+                  >
+                    <Icon size={14} style={{ color: group.tint }} />
+                    {f.label}
+                  </motion.div>
+                );
+              })}
+            </div>
+          ))}
         </motion.div>
       </div>
     </section>

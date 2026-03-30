@@ -2,17 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-
-const C = {
-  cream: '#F5F1E8',
-  deep: '#EEE8DC',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
+import { C } from './colors';
 
 /* Three example Rind™ themes that cycle in the hero mockup */
 const RINDS = [
@@ -52,7 +42,8 @@ export function SiteMockup() {
   const rind = RINDS[idx];
 
   return (
-    <div className="w-full max-w-[620px] mx-auto">
+    <div className="w-full max-w-[800px] mx-auto">
+      <div style={{ boxShadow: '0 25px 80px rgba(43,43,43,0.12), 0 8px 24px rgba(43,43,43,0.08)', borderRadius: '0.75rem', overflow: 'hidden' }}>
       {/* Browser chrome */}
       <div
         className="rounded-t-xl border border-b-0 px-4 py-2.5 flex items-center gap-2"
@@ -74,7 +65,7 @@ export function SiteMockup() {
       {/* Site preview area */}
       <div
         className="rounded-b-xl border overflow-hidden relative"
-        style={{ borderColor: C.divider, height: 280 }}
+        style={{ borderColor: C.divider, height: 380 }}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -115,6 +106,13 @@ export function SiteMockup() {
               </div>
             </div>
 
+            {/* Faux photo strip */}
+            <div className="flex gap-2 px-6 mb-3">
+              {[rind.accent, `${rind.accent}88`, `${rind.accent}55`, `${rind.accent}33`].map((bg, j) => (
+                <div key={j} className="flex-1 h-12 rounded-lg" style={{ background: bg, opacity: 0.4 }} />
+              ))}
+            </div>
+
             {/* Mini blocks bar */}
             <div
               className="flex justify-center gap-3 py-3 border-t"
@@ -136,6 +134,7 @@ export function SiteMockup() {
             </div>
           </motion.div>
         </AnimatePresence>
+      </div>
       </div>
 
       {/* Rind indicator dots */}

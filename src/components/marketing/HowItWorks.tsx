@@ -2,28 +2,8 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Sparkles, Upload, Cpu, Share2 } from 'lucide-react';
-
-const C = {
-  cream: '#F5F1E8',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-      style={{ background: 'rgba(163,177,138,0.12)', border: '1px solid rgba(163,177,138,0.3)', color: C.olive }}
-    >
-      {children}
-    </span>
-  );
-}
+import { Upload, Cpu, Share2 } from 'lucide-react';
+import { C } from './colors';
 
 const STEPS = [
   {
@@ -36,6 +16,7 @@ const STEPS = [
       heading: 'Tell us about your celebration',
       items: ['Upload 10+ photos', 'Describe your vibe', 'Add event details'],
     },
+    cardStyle: { border: `2px dashed ${C.olive}40`, background: 'white' } as React.CSSProperties,
   },
   {
     n: '02',
@@ -47,6 +28,7 @@ const STEPS = [
       heading: 'The Loom is working\u2026',
       items: ['Reading your photos', 'Weaving your Rind\u2122', 'Crafting your narrative'],
     },
+    cardStyle: { border: `2px solid ${C.plum}30`, background: 'rgba(109,89,122,0.04)' } as React.CSSProperties,
   },
   {
     n: '03',
@@ -58,24 +40,26 @@ const STEPS = [
       heading: 'Your site is live!',
       items: ['Drag & drop editor', 'RSVP tracking', 'Guest time capsule'],
     },
+    cardStyle: { border: `2px solid ${C.olive}`, background: 'white' } as React.CSSProperties,
   },
 ];
 
 function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
   return (
     <div
-      className="rounded-xl border p-5 w-full max-w-[280px]"
-      style={{
-        background: 'rgba(255,255,255,0.7)',
-        backdropFilter: 'blur(8px)',
-        borderColor: `${step.accent}30`,
-      }}
+      className="rounded-xl p-5 w-full max-w-[400px]"
+      style={step.cardStyle}
     >
-      <div
-        className="text-[0.62rem] font-bold tracking-[0.16em] uppercase mb-3"
-        style={{ color: step.accent }}
-      >
-        {step.mockup.heading}
+      <div className="flex items-center gap-2 mb-3">
+        <div
+          className="text-[0.62rem] font-bold tracking-[0.16em] uppercase"
+          style={{ color: step.accent }}
+        >
+          {step.mockup.heading}
+        </div>
+        {step.n === '03' && (
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#22c55e' }} />
+        )}
       </div>
       <div className="flex flex-col gap-2.5">
         {step.mockup.items.map((item, i) => (
@@ -92,6 +76,18 @@ function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
           </div>
         ))}
       </div>
+      {/* Progress bar for step 2 */}
+      {step.n === '02' && (
+        <div className="mt-4 h-1.5 rounded-full overflow-hidden" style={{ background: `${C.plum}15` }}>
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: C.plum }}
+            initial={{ width: '0%' }}
+            animate={{ width: '72%' }}
+            transition={{ duration: 2, ease: 'easeOut', delay: 0.5 }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -106,31 +102,27 @@ export function HowItWorks() {
       id="how-it-works"
       style={{ background: C.cream, padding: '7rem 1.5rem' }}
     >
-      <div className="max-w-[1000px] mx-auto">
-        {/* Header */}
-        <div className="text-center mb-14">
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5 }}
-            className="mb-4"
+      <div className="max-w-[960px] mx-auto">
+        {/* Header — watermark number behind h2 */}
+        <div className="text-center mb-14 relative">
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"
+            style={{ fontSize: 'clamp(5rem, 12vw, 8rem)', color: C.ink, opacity: 0.03, lineHeight: 1 }}
           >
-            <Pill>
-              <Sparkles size={9} strokeWidth={2.5} /> How Pearloom Works
-            </Pill>
-          </motion.div>
+            3
+          </div>
           <motion.h2
             initial={{ opacity: 0, y: 18 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight"
+            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight relative"
             style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: C.ink }}
           >
             From photos to a finished site in minutes
           </motion.h2>
         </div>
 
-        {/* Progress line (desktop) */}
+        {/* Progress line (desktop) — gradient connector */}
         <div className="hidden md:flex justify-center gap-0 mb-12">
           {STEPS.map((s, i) => (
             <div key={s.n} className="flex items-center">
@@ -152,8 +144,8 @@ export function HowItWorks() {
                   initial={{ scaleX: 0 }}
                   animate={inView ? { scaleX: 1 } : {}}
                   transition={{ delay: i * 0.15 + 0.45, duration: 0.5 }}
-                  className="w-32 h-px origin-left"
-                  style={{ background: C.divider }}
+                  className="w-32 h-0.5 origin-left"
+                  style={{ background: `linear-gradient(to right, ${STEPS[i].accent}60, ${STEPS[i + 1].accent}60)` }}
                 />
               )}
             </div>

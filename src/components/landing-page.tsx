@@ -14,25 +14,12 @@ import { GuestExperience } from './marketing/GuestExperience';
 import { PricingPreview } from './marketing/PricingPreview';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
+import { C, EASE } from './marketing/colors';
 
 interface LandingPageProps {
   handleSignIn: () => void;
   status: string;
 }
-
-const C = {
-  cream: '#F5F1E8',
-  deep: '#EEE8DC',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  dark: '#3D3530',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
-
-const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const up: Variants = {
   hidden: { opacity: 0, y: 28 },
@@ -219,9 +206,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr auto',
           alignItems: 'center',
-          justifyContent: 'space-between',
           padding: '0 clamp(1.5rem,5vw,4rem)',
           height: '64px',
           background: 'rgba(245,241,232,0.92)',
@@ -245,10 +232,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         <div
           className="hidden md:flex"
           style={{
+            display: 'flex',
+            justifyContent: 'center',
             gap: '2.5rem',
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
           }}
         >
           {['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'].map(label => (
@@ -317,23 +303,21 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         id="occasions"
         ref={occasionRef}
         style={{
-          background: C.deep,
+          background: `linear-gradient(160deg, rgba(163,177,138,0.06) 0%, ${C.cream} 40%, ${C.deep} 100%)`,
           padding: '7rem 1.5rem',
           borderTop: `1px solid ${C.divider}`,
           borderBottom: `1px solid ${C.divider}`,
         }}
       >
-        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5 }}
-              style={{ marginBottom: '1.1rem' }}
+              style={{ marginBottom: '1.1rem', display: 'flex', justifyContent: 'center' }}
             >
-              <Pill>
-                <Sparkles size={9} strokeWidth={2.5} /> Every Occasion
-              </Pill>
+              <Ornament />
             </motion.div>
             <motion.h2
               initial={{ opacity: 0, y: 18 }}
@@ -369,9 +353,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 whileHover={{ y: -4, boxShadow: '0 14px 40px rgba(43,43,43,0.08)' }}
                 style={{
                   padding: '2rem 1.5rem',
-                  background: 'rgba(255,255,255,0.65)',
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.9)',
+                  background: 'white',
+                  border: `1px solid ${C.divider}`,
                   borderRadius: '1.25rem',
                   boxShadow: '0 2px 12px rgba(43,43,43,0.04)',
                   position: 'relative',
@@ -427,7 +410,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    height: '3px',
+                    height: '5px',
                     background: `linear-gradient(90deg, ${o.accent}55, transparent)`,
                     borderRadius: '0 0 1.25rem 1.25rem',
                   }}
@@ -447,11 +430,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           borderTop: `1px solid ${C.divider}`,
         }}
       >
-        <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <Pill>
-              <Sparkles size={9} strokeWidth={2.5} /> Loved by real people
-            </Pill>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.olive, marginBottom: '1.1rem' }}>Loved by real people</div>
             <motion.h2
               initial={{ opacity: 0, y: 16 }}
               animate={testInView ? { opacity: 1, y: 0 } : {}}
@@ -471,7 +452,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))',
+              gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))',
               gap: '1.5rem',
             }}
           >
@@ -484,14 +465,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 animate={testInView ? 'show' : 'hidden'}
                 style={{
                   padding: i === 0 ? '2rem' : '1.5rem',
-                  background: 'rgba(255,255,255,0.7)',
-                  backdropFilter: 'blur(8px)',
-                  border:
-                    i === 0
-                      ? '1px solid rgba(163,177,138,0.3)'
-                      : `1px solid ${C.divider}`,
+                  background: 'white',
+                  borderLeft: `3px solid ${i === 0 ? C.plum : C.divider}`,
                   borderRadius: '1.1rem',
-                  transform: i === 0 ? 'scale(1.02)' : undefined,
+                  ...(i === 0 ? { gridColumn: '1 / -1' } : {}),
                 }}
               >
                 <div
@@ -520,9 +497,6 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 >
                   {t.quote}
                 </blockquote>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Ornament />
-                </div>
                 <p
                   style={{
                     marginTop: '1rem',
@@ -551,46 +525,36 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       <section
         ref={ctaRef}
         style={{
-          background: C.deep,
+          background: `linear-gradient(135deg, ${C.ink} 0%, #4A3D5C 50%, ${C.plum} 100%)`,
           padding: '9rem 1.5rem 10rem',
           textAlign: 'center',
-          borderTop: `1px solid ${C.divider}`,
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 700 340"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '90%',
-            maxWidth: '700px',
-            opacity: 0.05,
-            pointerEvents: 'none',
-          }}
-        >
-          <ellipse cx="350" cy="170" rx="340" ry="155" stroke={C.plum} strokeWidth="1" fill="none" />
-          <ellipse cx="350" cy="170" rx="265" ry="110" stroke={C.olive} strokeWidth="0.5" fill="none" strokeDasharray="5 9" />
-        </svg>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 40%, rgba(163,177,138,0.12) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65 }}
           >
-            <Pill>
+            <span
+              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
+              style={{
+                background: 'rgba(163,177,138,0.15)',
+                border: '1px solid rgba(163,177,138,0.3)',
+                color: 'rgba(245,241,232,0.7)',
+              }}
+            >
               <Sparkles size={9} strokeWidth={2.5} /> Start for free
-            </Pill>
+            </span>
             <h2
               style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2rem,5vw,3.25rem)',
                 fontWeight: 700,
-                color: C.ink,
+                color: C.cream,
                 letterSpacing: '-0.035em',
                 lineHeight: 1.1,
                 margin: '1.5rem 0 1.25rem',
@@ -598,12 +562,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             >
               Your moment is already beautiful.
               <br />
-              <span style={{ color: C.plum }}>Let&rsquo;s give it a home.</span>
+              <span style={{ color: C.gold }}>Let&rsquo;s give it a home.</span>
             </h2>
             <p
               style={{
                 fontSize: 'clamp(0.95rem,1.8vw,1.1rem)',
-                color: C.muted,
+                color: 'rgba(245,241,232,0.55)',
                 lineHeight: 1.8,
                 maxWidth: '480px',
                 margin: '0 auto 3rem',
@@ -621,15 +585,15 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             <motion.button
               onClick={handleSignIn}
               disabled={status === 'loading'}
-              whileHover={{ scale: 1.05, boxShadow: '0 14px 50px rgba(163,177,138,0.45)' }}
+              whileHover={{ scale: 1.05, boxShadow: '0 14px 50px rgba(214,198,168,0.5)' }}
               whileTap={{ scale: 0.97 }}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.65rem',
                 padding: '1.1rem 2.8rem',
-                background: C.olive,
-                color: C.cream,
+                background: C.gold,
+                color: C.ink,
                 border: 'none',
                 borderRadius: '0.875rem',
                 fontSize: '1.05rem',
@@ -637,12 +601,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 fontFamily: 'var(--eg-font-body)',
                 cursor: status === 'loading' ? 'not-allowed' : 'pointer',
                 opacity: status === 'loading' ? 0.65 : 1,
-                boxShadow: '0 4px 24px rgba(163,177,138,0.3)',
+                boxShadow: '0 4px 24px rgba(214,198,168,0.4)',
               }}
             >
               Begin Your Story <ArrowRight size={17} strokeWidth={2.2} />
             </motion.button>
-            <p style={{ marginTop: '1.1rem', fontSize: '0.76rem', color: C.muted, letterSpacing: '0.04em' }}>
+            <p style={{ marginTop: '1.1rem', fontSize: '0.76rem', color: 'rgba(245,241,232,0.4)', letterSpacing: '0.04em' }}>
               Free to start &middot; No credit card &middot; Live in minutes
             </p>
           </motion.div>

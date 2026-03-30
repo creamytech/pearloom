@@ -2,19 +2,8 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Check, Sparkles, ArrowRight } from 'lucide-react';
-
-const C = {
-  deep: '#EEE8DC',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  dark: '#3D3530',
-  cream: '#F5F1E8',
-  muted: '#9A9488',
-  divider: '#E6DFD2',
-} as const;
+import { Check, ArrowRight } from 'lucide-react';
+import { C } from './colors';
 
 const TIERS = [
   {
@@ -24,7 +13,7 @@ const TIERS = [
     desc: 'Perfect for getting started. Create your site, share your story.',
     features: [
       'The Loom AI site generation',
-      'Custom Rind™ visual identity',
+      'Custom Rind\u2122 visual identity',
       '5 core block types',
       'Shareable link',
       'Mobile-responsive site',
@@ -65,13 +54,13 @@ export function PricingPreview() {
       ref={ref}
       id="pricing"
       style={{
-        background: C.deep,
+        background: `radial-gradient(ellipse at 30% 0%, rgba(109,89,122,0.08) 0%, transparent 50%), radial-gradient(ellipse at 70% 100%, rgba(163,177,138,0.06) 0%, transparent 50%), ${C.deep}`,
         padding: '7rem 1.5rem',
         borderTop: `1px solid ${C.divider}`,
       }}
     >
       <div className="max-w-[780px] mx-auto">
-        {/* Header */}
+        {/* Header — simple text, no Pill */}
         <div className="text-center mb-12">
           <motion.div
             initial={{ opacity: 0, y: 14 }}
@@ -79,10 +68,10 @@ export function PricingPreview() {
             className="mb-4"
           >
             <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-              style={{ background: 'rgba(214,198,168,0.2)', border: '1px solid rgba(214,198,168,0.4)', color: '#8B7355' }}
+              className="text-[0.68rem] font-bold tracking-[0.14em] uppercase"
+              style={{ color: C.gold }}
             >
-              <Sparkles size={9} strokeWidth={2.5} /> Pricing
+              Pricing
             </span>
           </motion.div>
           <motion.h2
@@ -105,7 +94,7 @@ export function PricingPreview() {
           </motion.p>
         </div>
 
-        {/* Tier cards */}
+        {/* Tier cards — differentiated styles */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {TIERS.map((tier, i) => (
             <motion.div
@@ -113,16 +102,20 @@ export function PricingPreview() {
               initial={{ opacity: 0, y: 24 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: i * 0.12 + 0.3, duration: 0.5 }}
-              className="rounded-2xl border p-7 relative overflow-hidden"
+              className="rounded-2xl p-7 relative overflow-hidden"
               style={{
-                background: tier.highlighted ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.5)',
-                borderColor: tier.highlighted ? `${tier.accent}35` : C.divider,
-                boxShadow: tier.highlighted ? `0 8px 32px rgba(109,89,122,0.08)` : 'none',
+                background: tier.highlighted ? 'white' : 'transparent',
+                border: tier.highlighted
+                  ? `1px solid ${tier.accent}35`
+                  : `1.5px solid ${C.divider}`,
+                boxShadow: tier.highlighted
+                  ? `0 12px 48px rgba(109,89,122,0.12), 0 0 0 1px rgba(109,89,122,0.08)`
+                  : 'none',
               }}
             >
               {tier.highlighted && (
                 <div
-                  className="absolute top-0 left-0 right-0 h-[3px]"
+                  className="absolute top-0 left-0 right-0 h-[4px]"
                   style={{ background: `linear-gradient(90deg, ${C.plum}, ${C.olive})` }}
                 />
               )}
