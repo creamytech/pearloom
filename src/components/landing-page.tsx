@@ -535,7 +535,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           <span style={{ fontFamily:'var(--eg-font-heading)', fontSize:'0.95rem', fontWeight:700, color:C.cream, letterSpacing:'0.04em', fontStyle:'italic' }}>Pearloom</span>
         </div>
         <p style={{ fontSize:'0.7rem', color:'rgba(245,241,232,0.28)', letterSpacing:'0.06em' }}>
-          © 2025 Pearloom · Crafted with love &amp; intelligence
+          © 2026 Pearloom · Crafted with love &amp; intelligence
         </p>
       </footer>
     </div>
