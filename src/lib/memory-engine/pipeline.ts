@@ -331,7 +331,7 @@ export async function generateStoryManifest(
     const vibeSkinForParallel = manifest.vibeSkin;
 
     const [artResult, critiqueResult] = await Promise.allSettled([
-      generateSiteArt(manifest.vibeString, vibeSkinForParallel.palette, apiKey, occasion, coupleNames),
+      generateSiteArt(manifest.vibeString, vibeSkinForParallel.palette, apiKey, occasion, coupleNames, coupleProfile),
       critiqueAndRefineDesign(vibeSkinForParallel, manifest.vibeString, coupleNames, apiKey),
     ]);
 

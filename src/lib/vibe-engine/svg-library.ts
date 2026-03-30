@@ -55,12 +55,37 @@ export const CORNER_STYLES: Record<VibeSkin['curve'], string> = {
 // — SVG art helpers —————————————————————————————————————————————————————————————————————————————————
 export function extractSvgFromField(raw: string): string | null {
   if (!raw || typeof raw !== 'string') return null;
-  const match = raw.match(/<svg[\s\S]*?<\/svg>/i);
-  return match ? match[0] : null;
+
+  // Strip markdown code fences aggressively
+  let cleaned = raw
+    .replace(/^```(?:svg|xml|html)?\s*\n?/gim, '')
+    .replace(/\n?\s*```\s*$/gim, '')
+    .trim();
+
+  // Strip XML declarations that Gemini sometimes prepends
+  cleaned = cleaned.replace(/<\?xml[^?]*\?>\s*/gi, '');
+
+  // Fix escaped quotes (Gemini sometimes double-escapes)
+  cleaned = cleaned.replace(/\\"/g, '"');
+
+  // Try to extract the <svg>...</svg> block
+  const match = cleaned.match(/<svg[\s\S]*?<\/svg>/i);
+  if (match) return match[0];
+
+  // Last resort: if the whole string looks like SVG content but missing wrapper
+  if (cleaned.includes('<path') || cleaned.includes('<circle') || cleaned.includes('<rect')) {
+    const wrappedAttempt = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">${cleaned}</svg>`;
+    if (wrappedAttempt.includes('</svg>')) return wrappedAttempt;
+  }
+
+  return null;
 }
 
 export function isValidSvg(svg: string): boolean {
-  return svg.includes('<svg') && svg.includes('</svg>') && svg.length > 80;
+  if (!svg.includes('<svg') || !svg.includes('</svg>')) return false;
+  // Must contain at least one actual drawing element
+  const hasContent = /<(path|circle|rect|line|ellipse|polygon|polyline|g)\s/i.test(svg);
+  return hasContent && svg.length > 60;
 }
 
 

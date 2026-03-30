@@ -14,7 +14,7 @@ import {
   ElegantHeartIcon,
   PearlDividerIcon,
 } from '@/components/icons/PearloomIcons';
-import { PearSectionDivider } from '@/components/icons/PearShapes';
+import { SectionDivider } from '@/components/site/SectionDivider';
 
 interface RegistryEntry {
   name: string;
@@ -276,11 +276,8 @@ export function RegistryShowcase({
         overflow: 'hidden',
       }}
     >
-      {/* Pear wave divider at top */}
-      <PearSectionDivider
-        color="var(--eg-bg-section)"
-        opacity={1}
-      />
+      {/* Wave divider at top */}
+      <SectionDivider color="var(--eg-bg-section)" />
 
       <div style={{ padding: '4rem 2rem 8rem' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>

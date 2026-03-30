@@ -71,24 +71,83 @@ Rules:
 - heritage: cultural backgrounds if clearly mentioned, else empty
 - illustrationPrompt: make it visually specific, richly detailed, and drawable as SVG lineart`;
 
-  try {
-    // Couple DNA extraction uses Flash-Lite — lightweight JSON extraction, no creativity needed
-    const res = await fetch(
-      `${GEMINI_LITE_URL}?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
-      }
-    );
-    if (!res.ok) return { pets: [], interests: [], locations: [], motifs: [], heritage: [], illustrationPrompt: '' };
-    const json = await res.json();
-    const raw = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
-    return JSON.parse(cleaned) as CoupleProfile;
-  } catch {
-    return { pets: [], interests: [], locations: [], motifs: [], heritage: [], illustrationPrompt: '' };
+  const emptyProfile: CoupleProfile = { pets: [], interests: [], locations: [], motifs: [], heritage: [], illustrationPrompt: '' };
+
+  async function attemptExtraction(attemptPrompt: string): Promise<CoupleProfile | null> {
+    try {
+      const res = await fetch(
+        `${GEMINI_LITE_URL}?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: attemptPrompt }] }] }),
+        }
+      );
+      if (!res.ok) return null;
+      const json = await res.json();
+      const raw = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
+      return JSON.parse(cleaned) as CoupleProfile;
+    } catch {
+      return null;
+    }
   }
+
+  // First attempt with full prompt
+  let profile = await attemptExtraction(prompt);
+
+  // Retry once with a simplified prompt if the first attempt failed
+  if (!profile) {
+    logWarn('[VibeEngine] Couple profile extraction failed — retrying with simplified prompt');
+    const simplePrompt = `Extract personal elements from this vibe description as JSON.
+
+VIBE: ${vibeString}
+
+Return ONLY this JSON:
+{"pets":[],"interests":[],"locations":[],"motifs":[],"heritage":[],"illustrationPrompt":"1-2 sentences describing what to draw to represent this person/couple's world. Be specific and visual."}`;
+    profile = await attemptExtraction(simplePrompt);
+  }
+
+  if (!profile) {
+    logWarn('[VibeEngine] Couple profile extraction failed on both attempts');
+    // Build a fallback illustrationPrompt from vibeString keywords
+    const fallbackPrompt = buildFallbackIllustrationPrompt(vibeString);
+    return { ...emptyProfile, illustrationPrompt: fallbackPrompt };
+  }
+
+  // If the API succeeded but returned an empty illustrationPrompt, generate one from vibeString
+  if (!profile.illustrationPrompt) {
+    profile.illustrationPrompt = buildFallbackIllustrationPrompt(vibeString);
+  }
+
+  return profile;
+}
+
+/**
+ * Builds a basic illustration prompt from vibeString keywords when API extraction fails.
+ * Extracts meaningful nouns/themes to produce at least some content-specific art direction.
+ */
+function buildFallbackIllustrationPrompt(vibeString: string): string {
+  if (!vibeString || vibeString.trim().length === 0) return '';
+
+  // Extract meaningful words (3+ chars, skip common filler words)
+  const skipWords = new Set([
+    'the', 'and', 'for', 'with', 'our', 'this', 'that', 'from', 'have', 'has',
+    'but', 'not', 'are', 'was', 'were', 'been', 'being', 'very', 'really',
+    'just', 'more', 'some', 'than', 'them', 'they', 'will', 'would', 'could',
+    'should', 'about', 'into', 'also', 'like', 'love', 'want', 'make',
+  ]);
+
+  const words = vibeString
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 3 && !skipWords.has(w));
+
+  const unique = [...new Set(words)].slice(0, 8);
+  if (unique.length === 0) return '';
+
+  return `Illustration featuring: ${unique.join(', ')}. Artistic interpretation of these themes and motifs in a cohesive visual composition.`;
 }
 
 export async function generateVibeSkin(
@@ -429,6 +488,7 @@ CRITICAL DESIGN RULES:
       if (raw) {
         const svg = extractSvgFromField(raw);
         if (svg && isValidSvg(svg)) return svg;
+        logWarn(`[VibeEngine] SVG validation failed for "${field}" — using fallback. Raw length: ${raw.length}`);
       }
       return fallbackArt[field as keyof typeof fallbackArt] as string;
     };
@@ -549,13 +609,14 @@ export async function generateSiteArt(
   palette: VibeSkin['palette'],
   apiKey: string,
   occasion?: string,
-  coupleNames?: [string, string]
+  coupleNames?: [string, string],
+  coupleProfile?: CoupleProfile,
 ): Promise<SiteArtResult> {
 
   const occ = occasion || 'wedding';
   const names = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
 
-  // Occasion-specific art direction
+  // Occasion-specific art direction (structural/style guidance)
   const occasionArtDirection: Record<string, string> = {
     wedding: `Soft botanical watercolor with delicate florals — roses, peonies, eucalyptus, trailing vines. Ethereal light rays filtering through. No people, no text. Romantic and timeless. Colors should feel warm, luminous, and aspirational.`,
     anniversary: `Rich oil-painting style scene with intertwined botanical elements — mature roses, deep amber tones, golden hour light. Impressionistic brush strokes. Nostalgic and warm. No people, no text. Evokes the depth and richness of time passing together.`,
@@ -564,7 +625,43 @@ export async function generateSiteArt(
     story: `Intimate impressionistic scene — soft light, personal motifs from nature, abstract washes of color. No people, no text. Literary and introspective. Should feel like the cover of a beautiful memoir.`,
   };
 
-  const artDirection = occasionArtDirection[occ] || occasionArtDirection.wedding;
+  // Build profile-aware art direction: incorporate the couple's actual motifs,
+  // interests, and illustration prompt into the raster art generation.
+  let artDirection = occasionArtDirection[occ] || occasionArtDirection.wedding;
+
+  const hasProfile = coupleProfile && (
+    coupleProfile.illustrationPrompt ||
+    coupleProfile.motifs.length > 0 ||
+    coupleProfile.interests.length > 0 ||
+    coupleProfile.pets.length > 0
+  );
+
+  if (hasProfile) {
+    const profileParts: string[] = [];
+
+    if (coupleProfile.illustrationPrompt) {
+      profileParts.push(`PRIMARY VISUAL THEME: ${coupleProfile.illustrationPrompt}`);
+    }
+
+    if (coupleProfile.motifs.length > 0) {
+      profileParts.push(`KEY MOTIFS TO INCORPORATE: ${coupleProfile.motifs.join(', ')}`);
+    }
+
+    if (coupleProfile.interests.length > 0) {
+      profileParts.push(`PERSONAL INTERESTS (weave subtly into the art): ${coupleProfile.interests.join(', ')}`);
+    }
+
+    if (coupleProfile.pets.length > 0) {
+      profileParts.push(`PETS (include as subtle elements): ${coupleProfile.pets.join(', ')}`);
+    }
+
+    if (coupleProfile.locations.length > 0) {
+      profileParts.push(`MEANINGFUL PLACES (hint at in background/atmosphere): ${coupleProfile.locations.join(', ')}`);
+    }
+
+    // Profile-aware direction: personal motifs take priority, occasion style is secondary
+    artDirection = `${profileParts.join('\n')}\n\nSTYLE GUIDANCE: ${artDirection}`;
+  }
 
   // Extract key color descriptions from the palette
   const colorDesc = [

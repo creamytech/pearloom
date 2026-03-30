@@ -3,14 +3,14 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/hero.tsx
 // Ultra-Premium Cinematic Hero — full-bleed parallax, editorial
-// typography, date/venue badge, poetry tagline, PearBackground watermark
+// typography, date/venue badge, poetry tagline
 // ─────────────────────────────────────────────────────────────
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { CountdownWidget } from '@/components/countdown-widget';
 import { VibeParticles } from '@/components/vibe/VibeParticles';
-import { PearBackground } from '@/components/icons/PearShapes';
+
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 interface HeroProps {
@@ -147,7 +147,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           <FilmGrain />
         </>
       ) : (
-        /* No-photo fallback: gradient + orbs + PearBackground watermark */
+        /* No-photo fallback: gradient + orbs + ambient particles */
         <>
           <div style={{
             position: 'absolute', inset: 0,
@@ -185,13 +185,17 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           {/* Vibe ambient particles */}
           {vibeSkin && <VibeParticles particle={vibeSkin.particle} />}
 
-          {/* PearBackground watermark — bottom-right, no cover photo only */}
-          <div style={{
-            position: 'absolute', bottom: '-20px', right: '-20px',
-            zIndex: 1, pointerEvents: 'none',
-          }}>
-            <PearBackground color="var(--eg-fg)" opacity={0.07} size={350} />
-          </div>
+          {/* Subtle accent orb — bottom-right, no cover photo only */}
+          <motion.div
+            animate={{ scale: [1, 1.08, 1], opacity: [0.06, 0.09, 0.06] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              position: 'absolute', bottom: '-40px', right: '-40px',
+              width: '300px', height: '300px', borderRadius: '50%',
+              background: 'radial-gradient(circle, var(--eg-accent) 0%, transparent 70%)',
+              zIndex: 1, pointerEvents: 'none',
+            }}
+          />
         </>
       )}
 

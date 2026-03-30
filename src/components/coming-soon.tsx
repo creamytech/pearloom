@@ -8,7 +8,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, Check, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { PearBackground } from '@/components/icons/PearShapes';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 import type { ComingSoonConfig } from '@/types';
 
@@ -160,28 +159,27 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
       justifyContent: 'center',
       overflow: 'hidden',
     }}>
-      {/* PearBackground watermark — bottom-right, very low opacity */}
-      <div style={{
-        position: 'absolute',
-        bottom: '-40px',
-        right: '-40px',
-        zIndex: 0,
-        pointerEvents: 'none',
-      }}>
-        <PearBackground color="var(--eg-fg)" opacity={0.05} size={480} />
-      </div>
-
-      {/* Additional watermark top-left for depth */}
-      <div style={{
-        position: 'absolute',
-        top: '-60px',
-        left: '-60px',
-        zIndex: 0,
-        pointerEvents: 'none',
-        transform: 'rotate(180deg)',
-      }}>
-        <PearBackground color="var(--eg-accent)" opacity={0.04} size={340} />
-      </div>
+      {/* Ambient accent orbs — subtle depth without brand shapes */}
+      <motion.div
+        animate={{ scale: [1, 1.08, 1], opacity: [0.06, 0.09, 0.06] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', bottom: '-40px', right: '-40px',
+          width: '300px', height: '300px', borderRadius: '50%',
+          background: 'radial-gradient(circle, var(--eg-fg) 0%, transparent 70%)',
+          zIndex: 0, pointerEvents: 'none',
+        }}
+      />
+      <motion.div
+        animate={{ scale: [1.05, 1, 1.05], opacity: [0.04, 0.07, 0.04] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        style={{
+          position: 'absolute', top: '-60px', left: '-60px',
+          width: '240px', height: '240px', borderRadius: '50%',
+          background: 'radial-gradient(circle, var(--eg-accent) 0%, transparent 70%)',
+          zIndex: 0, pointerEvents: 'none',
+        }}
+      />
 
       {/* Layered ambient glows */}
       <motion.div
