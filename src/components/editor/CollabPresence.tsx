@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   createCollabChannel,
   assignCollabColor,
@@ -44,21 +45,25 @@ function Avatar({ user, showPulse }: { user: CollabUser; showPulse: boolean }) {
   const isRecent = Date.now() - user.lastSeen < 15_000;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.5 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 26 }}
       style={{ position: 'relative', flexShrink: 0 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* Pulse ring for recently active */}
       {showPulse && isRecent && (
-        <div
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.15, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             position: 'absolute',
             inset: '-3px',
             borderRadius: '50%',
             border: `2px solid ${user.color}`,
-            opacity: 0.5,
-            animation: 'collab-pulse 2s ease-in-out infinite',
             pointerEvents: 'none',
           }}
         />
@@ -84,43 +89,49 @@ function Avatar({ user, showPulse }: { user: CollabUser; showPulse: boolean }) {
       </div>
 
       {/* Tooltip */}
-      {hovered && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 6px)',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(30,27,22,0.95)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: '0.4rem',
-            padding: '0.35rem 0.6rem',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            zIndex: 1000,
-          }}
-        >
-          <span style={{ color: '#f5f0e8', fontSize: '0.75rem', fontWeight: 500 }}>
-            {user.name}
-            {user.cursor ? ` · ${user.cursor}` : ''}
-          </span>
-          {/* Arrow */}
-          <div
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.92 }}
+            transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'absolute',
-              top: '100%',
+              bottom: 'calc(100% + 6px)',
               left: '50%',
               transform: 'translateX(-50%)',
-              width: 0,
-              height: 0,
-              borderLeft: '5px solid transparent',
-              borderRight: '5px solid transparent',
-              borderTop: '5px solid rgba(30,27,22,0.95)',
+              background: 'rgba(30,27,22,0.95)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '0.4rem',
+              padding: '0.35rem 0.6rem',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+              zIndex: 1000,
             }}
-          />
-        </div>
-      )}
-    </div>
+          >
+            <span style={{ color: '#f5f0e8', fontSize: '0.75rem', fontWeight: 500 }}>
+              {user.name}
+              {user.cursor ? ` · ${user.cursor}` : ''}
+            </span>
+            {/* Arrow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 0,
+                height: 0,
+                borderLeft: '5px solid transparent',
+                borderRight: '5px solid transparent',
+                borderTop: '5px solid rgba(30,27,22,0.95)',
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -247,46 +258,41 @@ export function CollabPresence({ siteId, currentUser, cursor }: CollabPresencePr
   const overflow = others.length - MAX_VISIBLE_AVATARS;
 
   return (
-    <>
-      {/* Pulse keyframe injection */}
-      <style>{`
-        @keyframes collab-pulse {
-          0%, 100% { transform: scale(1); opacity: 0.5; }
-          50% { transform: scale(1.25); opacity: 0.2; }
-        }
-      `}</style>
-
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.25rem',
-        }}
-        aria-label={`${others.length} other${others.length !== 1 ? 's' : ''} editing`}
-      >
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.25rem',
+      }}
+      aria-label={`${others.length} other${others.length !== 1 ? 's' : ''} editing`}
+    >
+      <AnimatePresence>
         {visible.map(user => (
           <Avatar key={user.userId} user={user} showPulse />
         ))}
-        {overflow > 0 && (
-          <div
-            style={{
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.1)',
-              border: '2px solid rgba(255,255,255,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.65rem',
-              fontWeight: 600,
-              color: 'rgba(245,240,232,0.7)',
-            }}
-          >
-            +{overflow}
-          </div>
-        )}
-      </div>
-    </>
+      </AnimatePresence>
+      {overflow > 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 340, damping: 24 }}
+          style={{
+            width: '30px',
+            height: '30px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.1)',
+            border: '2px solid rgba(255,255,255,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.65rem',
+            fontWeight: 600,
+            color: 'rgba(245,240,232,0.7)',
+          }}
+        >
+          +{overflow}
+        </motion.div>
+      )}
+    </div>
   );
 }
