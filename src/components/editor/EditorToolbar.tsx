@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Monitor, Tablet, Smartphone, Columns2, Settings2, Activity } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Settings2, Activity } from 'lucide-react';
 import {
   ExitIcon, PreviewIcon, PublishIcon, UndoIcon, RedoIcon, CommandIcon,
   SavedIcon, UnsavedIcon,
@@ -354,24 +354,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             >
               <Activity size={12} /> Health
             </motion.button>
-            {/* Visual editor / iframe toggle */}
-            <motion.button
-              onClick={() => dispatch({ type: 'TOGGLE_SPLIT_VIEW' })}
-              title={splitView ? 'Switch to production preview' : 'Switch to visual editor'}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.94 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 10px', borderRadius: '6px',
-                border: `1px solid ${splitView ? 'rgba(163,177,138,0.3)' : 'rgba(214,198,168,0.12)'}`,
-                background: splitView ? 'rgba(163,177,138,0.12)' : 'transparent',
-                color: splitView ? '#A3B18A' : 'rgba(255,255,255,0.6)',
-                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
-              }}
-            >
-              <Columns2 size={13} /> {splitView ? 'Editor' : 'Iframe'}
-            </motion.button>
+            {/* Preview — opens production rendering in new tab */}
             {/* Preview — ghost style */}
             <motion.button
               onClick={actions.storePreviewForOpen}

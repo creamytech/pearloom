@@ -172,68 +172,112 @@ function slugFromNames(n1: string, n2: string): string {
   return `${s1}-and-${s2}`;
 }
 
-const VIBE_MOODS = [
-  {
-    id: 'romantic', label: 'Classic Romance', icon: ElegantHeartIcon, desc: 'Timeless, elegant, deeply emotional',
+// ── Vibe mood visual styles (shared across all occasions) ────
+const MOOD_STYLES = {
+  romantic: {
     cardBg: 'linear-gradient(145deg, #FFF5F7 0%, #FFE0EA 100%)',
     activeBg: 'linear-gradient(145deg, #FFDDE6 0%, #FFC2D1 100%)',
-    activeBorder: '#DB7093',
-    iconColor: '#C75B7A',
-    iconBg: 'rgba(219,112,147,0.14)',
-    activeIconBg: 'rgba(255,255,255,0.6)',
+    activeBorder: '#DB7093', iconColor: '#C75B7A',
+    iconBg: 'rgba(219,112,147,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
     orb: 'rgba(219,112,147,0.18)',
   },
-  {
-    id: 'adventurous', label: 'Adventurous', icon: MountainIcon, desc: 'Wild, exploring the world together',
+  adventurous: {
     cardBg: 'linear-gradient(145deg, #F0F7EC 0%, #DCF0CC 100%)',
     activeBg: 'linear-gradient(145deg, #D4EEC2 0%, #BFDFAA 100%)',
-    activeBorder: '#5A8F3E',
-    iconColor: '#3D6E2A',
-    iconBg: 'rgba(90,143,62,0.14)',
-    activeIconBg: 'rgba(255,255,255,0.6)',
+    activeBorder: '#5A8F3E', iconColor: '#3D6E2A',
+    iconBg: 'rgba(90,143,62,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
     orb: 'rgba(90,143,62,0.18)',
   },
-  {
-    id: 'playful', label: 'Playful & Fun', icon: StarburstIcon, desc: 'Laughter, color, and vibrant energy',
+  playful: {
     cardBg: 'linear-gradient(145deg, #FFF8EE 0%, #FFE5BC 100%)',
     activeBg: 'linear-gradient(145deg, #FFE0A0 0%, #FFCC70 100%)',
-    activeBorder: '#D4931A',
-    iconColor: '#B87C10',
-    iconBg: 'rgba(212,147,26,0.14)',
-    activeIconBg: 'rgba(255,255,255,0.6)',
+    activeBorder: '#D4931A', iconColor: '#B87C10',
+    iconBg: 'rgba(212,147,26,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
     orb: 'rgba(255,180,50,0.18)',
   },
-  {
-    id: 'cozy', label: 'Cozy & Intimate', icon: CoffeeCupIcon, desc: 'Quiet mornings, warmth, and comfort',
+  cozy: {
     cardBg: 'linear-gradient(145deg, #FBF5EE 0%, #F0DEC8 100%)',
     activeBg: 'linear-gradient(145deg, #EACFAA 0%, #D4B080 100%)',
-    activeBorder: '#8B5A2B',
-    iconColor: '#6B3E18',
-    iconBg: 'rgba(139,90,43,0.14)',
-    activeIconBg: 'rgba(255,255,255,0.6)',
+    activeBorder: '#8B5A2B', iconColor: '#6B3E18',
+    iconBg: 'rgba(139,90,43,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
     orb: 'rgba(139,90,43,0.15)',
   },
-  {
-    id: 'wanderlust', label: 'Wanderlust', icon: SuitcaseIcon, desc: 'Travel-driven, worldly, cultured',
+  wanderlust: {
     cardBg: 'linear-gradient(145deg, #EEF3FF 0%, #D8E4FF 100%)',
     activeBg: 'linear-gradient(145deg, #C2D4FF 0%, #A8BEF0 100%)',
-    activeBorder: '#3D5ECC',
-    iconColor: '#2B4AB8',
-    iconBg: 'rgba(65,105,225,0.14)',
-    activeIconBg: 'rgba(255,255,255,0.6)',
+    activeBorder: '#3D5ECC', iconColor: '#2B4AB8',
+    iconBg: 'rgba(65,105,225,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
     orb: 'rgba(65,105,225,0.16)',
   },
-  {
-    id: 'pets', label: 'Our Little Zoo', icon: PawIcon, desc: 'The fur babies are the stars',
+  pets: {
     cardBg: 'linear-gradient(145deg, #FFF7F0 0%, #FFE4CC 100%)',
     activeBg: 'linear-gradient(145deg, #FFD4A8 0%, #FFBC78 100%)',
-    activeBorder: '#C06820',
-    iconColor: '#A05010',
-    iconBg: 'rgba(210,105,30,0.14)',
-    activeIconBg: 'rgba(255,255,255,0.6)',
+    activeBorder: '#C06820', iconColor: '#A05010',
+    iconBg: 'rgba(210,105,30,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
     orb: 'rgba(210,105,30,0.18)',
   },
+  elegant: {
+    cardBg: 'linear-gradient(145deg, #F5F0FF 0%, #E8DDFF 100%)',
+    activeBg: 'linear-gradient(145deg, #DDD0FF 0%, #C8B8F0 100%)',
+    activeBorder: '#6D597A', iconColor: '#5A4870',
+    iconBg: 'rgba(109,89,122,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(109,89,122,0.16)',
+  },
+  nostalgic: {
+    cardBg: 'linear-gradient(145deg, #FDF6EE 0%, #F0E0C8 100%)',
+    activeBg: 'linear-gradient(145deg, #E8D0AA 0%, #D8C090 100%)',
+    activeBorder: '#A08050', iconColor: '#806030',
+    iconBg: 'rgba(160,128,80,0.14)', activeIconBg: 'rgba(255,255,255,0.6)',
+    orb: 'rgba(160,128,80,0.16)',
+  },
+} as const;
+
+// ── Occasion-aware vibe options ──────────────────────────────
+// Each occasion gets moods that make sense for it
+type MoodDef = { id: string; label: string; icon: React.FC<{ size?: number }>; desc: string };
+
+const COUPLE_MOODS: MoodDef[] = [
+  { id: 'romantic',    label: 'Classic Romance',  icon: ElegantHeartIcon, desc: 'Timeless, elegant, deeply emotional' },
+  { id: 'adventurous', label: 'Adventurous',      icon: MountainIcon,     desc: 'Wild, exploring the world together' },
+  { id: 'playful',     label: 'Playful & Fun',    icon: StarburstIcon,    desc: 'Laughter, color, and vibrant energy' },
+  { id: 'cozy',        label: 'Cozy & Intimate',  icon: CoffeeCupIcon,    desc: 'Quiet mornings, warmth, and comfort' },
+  { id: 'wanderlust',  label: 'Wanderlust',       icon: SuitcaseIcon,     desc: 'Travel-driven, worldly, cultured' },
+  { id: 'pets',        label: 'Our Fur Babies',   icon: PawIcon,          desc: 'The pets are part of the love story' },
 ];
+
+const BIRTHDAY_MOODS: MoodDef[] = [
+  { id: 'playful',     label: 'Fun & Colorful',   icon: StarburstIcon,    desc: 'Bright, energetic, full of life' },
+  { id: 'elegant',     label: 'Elegant & Classy', icon: ElegantHeartIcon, desc: 'Sophisticated milestone celebration' },
+  { id: 'adventurous', label: 'Wild Spirit',       icon: MountainIcon,     desc: 'For the one who lives boldly' },
+  { id: 'cozy',        label: 'Warm & Personal',   icon: CoffeeCupIcon,    desc: 'Heartfelt, intimate tribute' },
+  { id: 'nostalgic',   label: 'Down Memory Lane',  icon: MusicNoteIcon,    desc: 'A walk through their best moments' },
+];
+
+const ANNIVERSARY_MOODS: MoodDef[] = [
+  { id: 'romantic',    label: 'Still in Love',     icon: ElegantHeartIcon, desc: 'Timeless romance, deeper than ever' },
+  { id: 'nostalgic',   label: 'Through the Years', icon: MusicNoteIcon,    desc: 'A journey through your shared history' },
+  { id: 'adventurous', label: 'Still Adventuring',  icon: MountainIcon,     desc: 'Partners in crime, still going' },
+  { id: 'cozy',        label: 'Our Quiet Life',     icon: CoffeeCupIcon,    desc: 'The beauty of everyday together' },
+  { id: 'playful',     label: 'Young at Heart',     icon: StarburstIcon,    desc: 'Still laughing after all these years' },
+  { id: 'pets',        label: 'The Whole Family',   icon: PawIcon,          desc: 'Including the four-legged members' },
+];
+
+const STORY_MOODS: MoodDef[] = [
+  { id: 'romantic',    label: 'Love Story',        icon: ElegantHeartIcon, desc: 'A beautiful narrative of connection' },
+  { id: 'adventurous', label: 'Adventurous',       icon: MountainIcon,     desc: 'Stories from the wild side' },
+  { id: 'playful',     label: 'Playful & Fun',     icon: StarburstIcon,    desc: 'Light-hearted and full of joy' },
+  { id: 'cozy',        label: 'Warm & Intimate',   icon: CoffeeCupIcon,    desc: 'Quiet moments that matter most' },
+  { id: 'wanderlust',  label: 'Wanderlust',        icon: SuitcaseIcon,     desc: 'Travel-driven, worldly, cultured' },
+  { id: 'nostalgic',   label: 'Nostalgic',         icon: MusicNoteIcon,    desc: 'A tribute to meaningful moments' },
+];
+
+function getMoodsForOccasion(occasion: string): (MoodDef & typeof MOOD_STYLES[keyof typeof MOOD_STYLES])[] {
+  const moods = occasion === 'birthday' ? BIRTHDAY_MOODS
+    : occasion === 'anniversary' ? ANNIVERSARY_MOODS
+    : occasion === 'story' ? STORY_MOODS
+    : COUPLE_MOODS; // wedding + engagement
+  return moods.map(m => ({ ...m, ...(MOOD_STYLES[m.id as keyof typeof MOOD_STYLES] || MOOD_STYLES.playful) }));
+}
 
 const OCCASIONS = [
   { id: 'wedding',     label: 'Wedding / Save the Date', desc: 'A formal RSVP or details site',               icon: WeddingRingsIcon },
@@ -498,7 +542,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   // Ambient orb color for background — shifts with mood/palette selection
   const ambientOrb = useMemo(() => {
     if (step === 3 && mood) {
-      return VIBE_MOODS.find(m => m.id === mood)?.orb ?? 'rgba(163,177,138,0.12)';
+      return getMoodsForOccasion(occasion).find(m => m.id === mood)?.orb ?? 'rgba(163,177,138,0.12)';
     }
     if (step === 4 && palette && palette !== 'custom') {
       const sel = COLOR_PALETTES.find(p => p.id === palette);
@@ -542,7 +586,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   };
 
   const buildVibeString = () => {
-    const selectedMoodLabel = VIBE_MOODS.find(m => m.id === mood)?.label || '';
+    const selectedMoodLabel = getMoodsForOccasion(occasion).find(m => m.id === mood)?.label || '';
     const selectedOccasionLabel = OCCASIONS.find(o => o.id === occasion)?.label || '';
     const selectedPalette = COLOR_PALETTES.find(p => p.id === palette);
     const paletteInfo = selectedPalette && palette !== 'custom'
@@ -1571,7 +1615,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 : 'This shapes the entire tone — colors, fonts, and narrative voice.'}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
-              {VIBE_MOODS.map(m => {
+              {getMoodsForOccasion(occasion).map(m => {
                 const active = mood === m.id;
                 return (
                   <motion.button

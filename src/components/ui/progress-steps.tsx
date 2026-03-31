@@ -60,10 +60,10 @@ export function ProgressSteps({ steps, currentStepId, aliases, onStepClick, clas
               {/* Label — hidden on small screens */}
               <span
                 className={cn(
-                  'hidden md:block text-[0.88rem] font-semibold tracking-[0.02em] transition-all duration-300',
+                  'hidden md:block text-[0.95rem] font-bold tracking-[0.01em] transition-all duration-300',
                   isActive && 'text-[var(--eg-fg)] opacity-100',
                   isDone && 'text-[var(--eg-fg)] opacity-80',
-                  !isActive && !isDone && 'text-[var(--eg-muted)] opacity-60',
+                  !isActive && !isDone && 'text-[var(--eg-muted)] opacity-50',
                 )}
               >
                 {step.label}

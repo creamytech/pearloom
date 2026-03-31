@@ -6,11 +6,10 @@
 // Redesigned: dot-grid bg, device chrome bezels, increased split scale
 // ─────────────────────────────────────────────────────────────
 
-import { motion } from 'framer-motion';
 import { PreviewPane } from './PreviewPane';
 import { MobilePreviewPane } from './MobilePreviewPane';
 import { MobileChapterActionSheet } from './MobileChapterActionSheet';
-import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
+import { useEditor, stripArtForStorage } from '@/lib/editor-state';
 
 // ── Skeleton Loading Screen ──────────────────────────────────
 const skeletonBg = 'rgba(214,198,168,0.08)';
@@ -93,8 +92,8 @@ export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
   const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom } = state;
 
-  // ── Visual Editor Mode (default) — editable site preview ────
-  if (splitView && !isMobile) {
+  // ── Desktop: ALWAYS show editable PreviewPane ─────────────
+  if (!isMobile) {
     return (
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
@@ -205,45 +204,25 @@ export function EditorCanvas() {
     );
   }
 
-  const showDeviceChrome = !isMobile && device !== 'desktop';
-
+  // ── Fallback: mobile non-visual-edit shows iframe ───────────
   return (
     <div style={{
       flex: 1,
       background: '#1a1916',
-      backgroundImage: 'radial-gradient(rgba(214,198,168,0.04) 1px, transparent 1px)',
-      backgroundSize: '24px 24px',
       display: 'flex', flexDirection: 'column',
-      alignItems: 'center', overflow: 'auto',
-      padding: isMobile ? '0' : device === 'desktop' ? '0' : '2rem 2rem 4rem',
-      paddingBottom: isMobile ? 'calc(56px + env(safe-area-inset-bottom, 0px))' : undefined,
+      overflow: 'auto',
+      paddingBottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
     }}>
-      <motion.div
-        layout
-        layoutId="editor-preview"
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        style={{
-          width: isMobile ? '100%' : DEVICE_DIMS[device].width,
-          height: previewZoom !== 1 && !isMobile ? `${100 / previewZoom}%` : '100%',
-          flexShrink: 0,
-          position: 'relative',
-          display: 'flex', flexDirection: 'column',
-          boxShadow: showDeviceChrome ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
-          borderRadius: showDeviceChrome ? '12px' : 0,
-          overflow: 'hidden',
-          border: showDeviceChrome ? '1px solid rgba(255,255,255,0.08)' : 'none',
-          transform: previewZoom !== 1 && !isMobile ? `scale(${previewZoom})` : undefined,
-          transformOrigin: 'top center',
-        }}
-      >
-        {/* Device chrome bezel for tablet/mobile frames */}
-        {showDeviceChrome && <DeviceBezel />}
-
+      <div style={{
+        width: '100%', height: '100%',
+        position: 'relative',
+        display: 'flex', flexDirection: 'column',
+      }}>
         {!iframeReady && <SkeletonLoading slow={previewSlow} />}
         <iframe
           ref={iframeRef}
           src={`/preview?key=${previewKey}`}
-          style={{ flex: 1, border: 'none', width: '100%', minHeight: isMobile ? '100%' : '600px' }}
+          style={{ flex: 1, border: 'none', width: '100%', minHeight: '100%' }}
           title="Live Preview"
           onLoad={() => {
             dispatch({ type: 'SET_IFRAME_READY', ready: true });
@@ -257,7 +236,7 @@ export function EditorCanvas() {
             } catch {}
           }}
         />
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -480,7 +480,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         id="occasions"
         ref={occasionRef}
         style={{
-          background: C.cream,
+          background: C.deep,
           padding: sectionPadding.y + ' ' + sectionPadding.x,
           borderTop: `1px solid ${C.divider}`,
           borderBottom: `1px solid ${C.divider}`,

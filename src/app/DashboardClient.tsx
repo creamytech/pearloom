@@ -319,7 +319,6 @@ export default function DashboardClient() {
               selectedPhotos={state.photos}
               onPhotosSelected={(photos) => dispatch({ type: 'SET_PHOTOS', photos })}
               onContinue={() => goTo('clusters')}
-              onLocalUpload={() => goTo('upload')}
             />
           )}
 

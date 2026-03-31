@@ -56,7 +56,7 @@ export function PricingPreview() {
       ref={ref}
       id="pricing"
       style={{
-        background: C.cream,
+        background: C.deep,
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
         borderTop: `1px solid ${C.divider}`,
       }}

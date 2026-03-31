@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, Upload, ImagePlus } from 'lucide-react';
+import { ArrowRight, ImagePlus, Lock, Lightbulb } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { Button } from '@/components/ui';
 import { colors, text, card } from '@/lib/design-tokens';
@@ -11,10 +11,9 @@ interface PhotosStepProps {
   selectedPhotos: GooglePhotoMetadata[];
   onPhotosSelected: (photos: GooglePhotoMetadata[]) => void;
   onContinue: () => void;
-  onLocalUpload: () => void;
 }
 
-export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLocalUpload }: PhotosStepProps) {
+export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue }: PhotosStepProps) {
   const [attemptedContinue, setAttemptedContinue] = useState(false);
 
   const handleContinue = () => {
@@ -45,23 +44,22 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
         maxSelection={30}
       />
 
-      {/* Local upload fallback */}
-      <div
-        className="text-center mt-10 py-6 px-6 mx-auto max-w-[480px]"
-        style={{
-          background: card.bg,
-          border: `2px dashed ${colors.divider}`,
-          borderRadius: card.radius,
-        }}
-      >
-        <Upload size={22} style={{ color: colors.muted, margin: '0 auto 8px' }} />
-        <p className="mb-4" style={{ color: colors.muted, fontSize: text.base }}>
-          Google Photos refusing to sync?
-        </p>
-        <Button variant="secondary" size="md" onClick={onLocalUpload} className="min-h-[44px]">
-          Upload from your device
-        </Button>
-      </div>
+      {/* Pro tip — fills dead space below the card */}
+      {selectedPhotos.length === 0 && (
+        <div
+          className="flex items-center gap-3 mx-auto mt-8 px-5 py-4 max-w-[520px]"
+          style={{
+            background: `${colors.olive}0F`,
+            borderRadius: card.radius,
+            border: `1px solid ${colors.olive}22`,
+          }}
+        >
+          <Lightbulb size={18} style={{ color: colors.olive, flexShrink: 0 }} />
+          <p style={{ color: colors.dark, fontSize: text.base, lineHeight: 1.5, margin: 0 }}>
+            <strong>Pro tip:</strong> Select 10–30 of your favorite photos for the best results. Mix close-ups, group shots, and scenic moments.
+          </p>
+        </div>
+      )}
 
       {/* Sticky continue bar */}
       <div
@@ -79,15 +77,16 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
           onClick={handleContinue}
           disabled={selectedPhotos.length === 0}
           className="w-full min-h-[48px]"
-          icon={<ArrowRight size={16} />}
+          style={selectedPhotos.length === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+          icon={selectedPhotos.length > 0 ? <ArrowRight size={16} /> : <Lock size={14} />}
         >
           {selectedPhotos.length > 0
             ? `Continue with ${selectedPhotos.length} photo${selectedPhotos.length === 1 ? '' : 's'}`
             : 'Select photos to continue'}
         </Button>
-        {attemptedContinue && selectedPhotos.length === 0 && (
-          <p className="text-center mt-2.5" style={{ color: colors.plum, fontSize: text.base }}>
-            Select at least 1 photo to continue
+        {selectedPhotos.length === 0 && (
+          <p className="text-center mt-2" style={{ color: colors.muted, fontSize: text.sm }}>
+            {attemptedContinue ? 'Select at least 1 photo to continue' : 'Choose your photos above to proceed'}
           </p>
         )}
       </div>
