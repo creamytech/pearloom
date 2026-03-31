@@ -11,10 +11,9 @@ interface PhotosStepProps {
   selectedPhotos: GooglePhotoMetadata[];
   onPhotosSelected: (photos: GooglePhotoMetadata[]) => void;
   onContinue: () => void;
-  onLocalUpload: () => void;
 }
 
-export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLocalUpload: _onLocalUpload }: PhotosStepProps) {
+export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue }: PhotosStepProps) {
   const [attemptedContinue, setAttemptedContinue] = useState(false);
 
   const handleContinue = () => {
