@@ -180,7 +180,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 clamp(1rem, 3vw, 2rem)' }}>
+    <div style={{ width: '100%' }}>
 
       {/* ── Welcome header ── */}
       <motion.div
