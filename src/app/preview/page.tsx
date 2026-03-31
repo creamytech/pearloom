@@ -17,6 +17,7 @@ import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
+import { EditBridge } from '@/components/preview/EditBridge';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
@@ -80,12 +81,18 @@ function PreviewContent() {
   const [manifest, setManifest] = useState<StoryManifest | null>(initial.manifest);
   const [names, setNames] = useState<[string, string]>(initial.names);
 
+  const [editMode, setEditMode] = useState(false);
+
   // Listen for live editor updates via postMessage
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === 'pearloom-preview-update') {
         setManifest(event.data.manifest);
         if (event.data.names) setNames(event.data.names);
+      }
+      // Edit mode activation from parent editor
+      if (event.data?.type === 'pearloom-edit-mode') {
+        setEditMode(!!event.data.enabled);
       }
       // Also check sessionStorage on focus (fallback)
       if (event.data?.type === 'pearloom-preview-refresh') {
@@ -432,6 +439,7 @@ function PreviewContent() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
+      <EditBridge enabled={editMode} />
       <SiteNav names={names} pages={sitePages} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} />
 
       <CelebrationOverlay
