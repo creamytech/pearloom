@@ -211,7 +211,7 @@ export function ImageManager({
                 <div style={{
                   position: 'absolute', bottom: '4px', left: '4px',
                   background: 'rgba(163,177,138,0.9)', color: '#fff',
-                  fontSize: '0.5rem', fontWeight: 800, letterSpacing: '0.1em',
+                  fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em',
                   textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
                   zIndex: 2,
                 }}>Cover</div>

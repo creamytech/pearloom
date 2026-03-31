@@ -236,7 +236,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                     {/* Group label */}
                     <div style={{
                       padding: '6px 10px 4px',
-                      fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.15em',
+                      fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.15em',
                       textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)',
                     }}>
                       {groupName}

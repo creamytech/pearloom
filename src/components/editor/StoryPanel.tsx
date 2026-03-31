@@ -315,7 +315,7 @@ export function StoryPanel() {
                 }}
               >
                 <span style={{ fontSize: '1rem', lineHeight: 1 }}>{fmt.emoji}</span>
-                <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.04em' }}>{fmt.label}</span>
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.04em' }}>{fmt.label}</span>
               </motion.button>
             );
           })}

@@ -106,6 +106,7 @@ export function MobileEditorSheet() {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
   const { activeTab, mobileSheetOpen, chapters, activeId, rewritingId, sectionOverridesMap } = state;
   const swipeStartY = useRef<number | null>(null);
+  const touchStartTime = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
   const activeChapter = chapters.find(c => c.id === activeId) || null;
   const [moreOpen, setMoreOpen] = useState(false);
@@ -294,12 +295,13 @@ export function MobileEditorSheet() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            onTouchStart={e => { swipeStartY.current = e.touches[0].clientY; }}
+            onTouchStart={e => { swipeStartY.current = e.touches[0].clientY; touchStartTime.current = Date.now(); }}
             onTouchEnd={e => {
               if (swipeStartY.current !== null) {
                 const delta = e.changedTouches[0].clientY - swipeStartY.current;
-                const velocity = delta / 300; // approximate velocity
-                if (delta > 80 || velocity > 1) dispatch({ type: 'SET_MOBILE_SHEET', open: false });
+                const elapsed = Math.max(Date.now() - touchStartTime.current, 1);
+                const velocity = delta / elapsed;
+                if (delta > 80 || velocity > 0.5) dispatch({ type: 'SET_MOBILE_SHEET', open: false });
                 swipeStartY.current = null;
               }
             }}
@@ -323,8 +325,8 @@ export function MobileEditorSheet() {
             }}>
               <motion.div
                 initial={{ width: 48 }}
-                animate={{ width: [48, 56, 48] }}
-                transition={{ duration: 1.2, ease: 'easeInOut', times: [0, 0.5, 1] }}
+                animate={{ width: 52 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
                 style={{
                   height: '4px', borderRadius: '100px',
                   background: 'rgba(214,198,168,0.40)',

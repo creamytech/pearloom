@@ -44,8 +44,8 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
 
   const textareaStyle: React.CSSProperties = {
     width: '100%', padding: '0.75rem', borderRadius: '0.6rem',
-    border: '1.5px solid rgba(0,0,0,0.08)', fontSize: '0.85rem',
-    background: 'rgba(0,0,0,0.02)', fontFamily: 'var(--eg-font-body)',
+    border: '1.5px solid rgba(255,255,255,0.1)', fontSize: '0.85rem',
+    background: 'rgba(255,255,255,0.04)', fontFamily: 'var(--eg-font-body)',
     color: 'var(--eg-fg)', outline: 'none', resize: 'none',
     lineHeight: 1.6, boxSizing: 'border-box',
     transition: 'border-color 0.2s',
@@ -79,13 +79,13 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           <AnimatePresence>
             {voiceSamples.map((sample, i) => (
               <motion.div
-                key={i}
+                key={sample.slice(0, 30)}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 style={{
-                  background: '#fff', borderRadius: '0.6rem', padding: '0.65rem 0.85rem',
-                  border: '1px solid rgba(0,0,0,0.06)', display: 'flex',
+                  background: 'rgba(255,255,255,0.06)', borderRadius: '0.6rem', padding: '0.65rem 0.85rem',
+                  border: '1px solid rgba(255,255,255,0.1)', display: 'flex',
                   alignItems: 'flex-start', gap: '0.5rem',
                 }}
               >
@@ -116,8 +116,8 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           rows={3}
           placeholder={'Paste a real text you\'ve sent, a caption from a post, a voice note transcript — anything that sounds like you...'}
           style={textareaStyle}
-          onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.background = '#fff'; }}
-          onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.08)'; e.target.style.background = 'rgba(0,0,0,0.02)'; }}
+          onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.background = 'rgba(255,255,255,0.08)'; }}
+          onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.04)'; }}
         />
         <button
           onClick={addSample}
@@ -125,7 +125,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
             padding: '0.65rem 1rem', borderRadius: '0.6rem',
-            background: saved ? 'var(--eg-accent, #A3B18A)' : 'var(--eg-fg)', color: '#fff',
+            background: 'var(--eg-accent)', color: '#fff',
             border: 'none', cursor: newSample.trim() ? 'pointer' : 'not-allowed',
             fontSize: '0.8rem', fontWeight: 700, opacity: newSample.trim() ? 1 : 0.4,
             transition: 'all 0.2s',
@@ -142,7 +142,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           onClick={loadExamples}
           style={{
             padding: '0.6rem 1rem', borderRadius: '0.6rem',
-            border: '1.5px dashed rgba(0,0,0,0.12)', background: 'transparent',
+            border: '1.5px dashed rgba(255,255,255,0.12)', background: 'transparent',
             color: 'var(--eg-muted)', fontSize: '0.75rem', cursor: 'pointer',
             fontWeight: 600, letterSpacing: '0.02em',
           }}

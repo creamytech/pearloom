@@ -133,7 +133,7 @@ const EVENT_TYPES: Record<WeddingEvent['type'], {
 
 // ── Shared mini styles ──────────────────────────────────────────
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.58rem', fontWeight: 800,
+  display: 'block', fontSize: '0.62rem', fontWeight: 800,
   letterSpacing: '0.14em', textTransform: 'uppercase',
   color: 'rgba(255,255,255,0.35)', marginBottom: '0.4rem',
 };
@@ -308,7 +308,7 @@ function EventBlockConfig({ events, onChange }: {
             {def.specificFields.length > 0 && (
               <>
                 <div style={{ height: '1px', background: `${def.color}30`, margin: '4px 0' }} />
-                <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: def.color }}>
+                <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: def.color }}>
                   {def.label} specifics
                 </div>
                 {def.specificFields.map(field => (
@@ -541,7 +541,7 @@ function SectionStylePanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', marginTop: '4px' }}>
-      <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
+      <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
         Section Style
       </div>
 
@@ -652,7 +652,7 @@ function SectionStylePanel({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                {!c && <span style={{ fontSize: '0.5rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>A</span>}
+                {!c && <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>A</span>}
               </button>
             );
           })}
@@ -860,7 +860,7 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                       {b.label}
                       {existingTypes.has(b.type) && (
-                        <span style={{ fontSize: '0.5rem', color: b.color, background: `${b.color}15`, padding: '1px 5px', borderRadius: '4px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>added</span>
+                        <span style={{ fontSize: '0.62rem', color: b.color, background: `${b.color}15`, padding: '1px 5px', borderRadius: '4px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>added</span>
                       )}
                     </div>
                     <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)', marginTop: '2px', lineHeight: 1.35 }}>{b.description}</div>
@@ -1107,10 +1107,10 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
 
         {/* Section header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-          <span style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)' }}>
+          <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)' }}>
             {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Page Sections'}
           </span>
-          <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)' }}>
+          <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.2)' }}>
             click to edit · drag to reorder
           </span>
         </div>
@@ -1201,7 +1201,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
           <motion.div
             key={activeBlock.id}
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 340, opacity: 1 }}
+            animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             style={{
@@ -1210,7 +1210,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
               background: `${activeDef.color}06`,
             }}
           >
-            <div style={{ height: 340, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {/* Panel header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{

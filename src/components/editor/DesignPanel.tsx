@@ -8,6 +8,7 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 import FontPicker from '@/components/dashboard/FontPicker';
 import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import { ArtManager } from './ArtManager';
+import { SidebarSection } from './EditorSidebar';
 import { DesignIcon } from '@/components/icons/EditorIcons';
 import type { StoryManifest } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
@@ -153,28 +154,22 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
 
       {/* AI Art Manager — hero, ambient, art strip */}
       {manifest.vibeSkin && (
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
+        <SidebarSection title="AI Art" defaultOpen={false}>
           <ArtManager manifest={manifest} onUpdate={(updates) => onChange({ ...manifest, ...updates })} />
-        </div>
+        </SidebarSection>
       )}
 
       {/* Typography — full font pair picker */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-gold, #D6C6A8)', marginBottom: '10px' }}>
-          Typography
-        </div>
+      <SidebarSection title="Typography" defaultOpen={false}>
         <FontPicker
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
           onChange={(heading, body) => { updateFont('heading', heading); updateFont('body', body); }}
         />
-      </div>
+      </SidebarSection>
 
       {/* Asset Library */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-gold, #D6C6A8)', marginBottom: '10px' }}>
-          Asset Library
-        </div>
+      <SidebarSection title="Asset Library" defaultOpen={false}>
         <p style={{ fontSize: '0.82rem', color: 'rgba(214,198,168,0.5)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
@@ -184,7 +179,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
             onChange({ ...manifest, lastAsset: asset as StoryManifest['lastAsset'] });
           }}
         />
-      </div>
+      </SidebarSection>
 
       {/* Live color preview swatch */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
@@ -192,7 +187,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
           <div style={{ background: colors.background || '#faf9f6', padding: '16px' }}>
             <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: colors.foreground || 'var(--eg-fg, #2B2B2B)', marginBottom: '4px' }}>
-              Shauna & Ben
+              {manifest.chapters?.[0]?.title || 'Preview'}
             </div>
             <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.75rem', marginBottom: '10px' }}>The beginning of everything.</div>
             <div style={{ display: 'flex', gap: '8px' }}>

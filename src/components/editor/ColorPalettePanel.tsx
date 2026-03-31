@@ -110,7 +110,7 @@ function Swatch({ color, onChange, label }: { color: string; onChange: (c: strin
   return (
     <div>
       <label style={{
-        display: 'block', fontSize: '0.58rem', fontWeight: 800,
+        display: 'block', fontSize: '0.62rem', fontWeight: 800,
         letterSpacing: '0.12em', textTransform: 'uppercase',
         color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
       }}>{label}</label>
@@ -337,7 +337,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                   <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#fff' }}>{preset.name}</span>
                   {isCurrent && <Check size={9} color={preset.colors.accent} style={{ marginLeft: 'auto' }} />}
                 </div>
-                <span style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.3 }}>{preset.description}</span>
+                <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.3 }}>{preset.description}</span>
               </motion.button>
             );
           })}
@@ -395,7 +395,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             {/* Place / inspiration */}
             <div>
               <label style={{
-                display: 'block', fontSize: '0.58rem', fontWeight: 800,
+                display: 'block', fontSize: '0.62rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
                 color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
               }}>
@@ -419,7 +419,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             {/* Art style grid */}
             <div>
               <label style={{
-                display: 'block', fontSize: '0.58rem', fontWeight: 800,
+                display: 'block', fontSize: '0.62rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
                 color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
               }}>
@@ -450,7 +450,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             {/* Extra prompt */}
             <div>
               <label style={{
-                display: 'block', fontSize: '0.58rem', fontWeight: 800,
+                display: 'block', fontSize: '0.62rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
                 color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
               }}>
@@ -568,7 +568,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           {prevSvgs.length > 0 && (
             <div>
               <div style={{
-                fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.12em',
+                fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
                 textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: '6px',
               }}>
                 Previous generations
