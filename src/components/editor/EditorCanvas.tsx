@@ -8,6 +8,8 @@
 
 import { motion } from 'framer-motion';
 import { PreviewPane } from './PreviewPane';
+import { MobilePreviewPane } from './MobilePreviewPane';
+import { MobileChapterActionSheet } from './MobileChapterActionSheet';
 import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
 
 // ── Skeleton Loading Screen ──────────────────────────────────
@@ -138,6 +140,65 @@ export function EditorCanvas() {
               poetry: { ...existing, heroTagline: tagline },
             });
           }}
+        />
+      </div>
+    );
+  }
+
+  // ── Mobile Visual Edit Mode ─────────────────────────────────
+  if (isMobile && state.mobileVisualEdit) {
+    const actionChapter = state.mobileActionChapterId
+      ? chapters.find(c => c.id === state.mobileActionChapterId) || null
+      : null;
+    const actionIndex = actionChapter
+      ? chapters.findIndex(c => c.id === actionChapter.id)
+      : -1;
+
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <MobilePreviewPane
+          manifest={{ ...manifest, chapters: chapters.map((ch, i) => ({ ...ch, order: i })) }}
+          coupleNames={coupleNames}
+          vibeSkin={manifest.vibeSkin}
+          selectedChapterId={state.mobileActionChapterId}
+          onChapterTap={(id) => {
+            dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: id });
+          }}
+          onHeroTap={() => {
+            // Open story tab for hero editing
+            dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+            dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+            dispatch({ type: 'SET_MOBILE_VISUAL_EDIT', enabled: false });
+          }}
+        />
+        <MobileChapterActionSheet
+          chapter={actionChapter}
+          chapterIndex={actionIndex}
+          chapterCount={chapters.length}
+          isRewriting={state.rewritingId === actionChapter?.id}
+          onClose={() => dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: null })}
+          onUpdate={actions.updateChapter}
+          onDelete={(id) => { actions.deleteChapter(id); dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: null }); }}
+          onDuplicate={(id) => {
+            const original = chapters.find(c => c.id === id);
+            if (!original) return;
+            const copyId = `ch-${Date.now()}`;
+            const copy = { ...original, id: copyId, title: `${original.title} (copy)`, order: chapters.length };
+            const next = [...chapters, copy];
+            dispatch({ type: 'SET_CHAPTERS', chapters: next });
+            actions.syncManifest(next);
+            dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: copyId });
+          }}
+          onMove={(id, direction) => {
+            const idx = chapters.findIndex(c => c.id === id);
+            if (idx < 0) return;
+            const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+            if (targetIdx < 0 || targetIdx >= chapters.length) return;
+            const next = [...chapters];
+            [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
+            actions.handleReorder(next);
+          }}
+          onAIRewrite={actions.handleAIRewrite}
         />
       </div>
     );

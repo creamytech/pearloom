@@ -7,7 +7,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Image, MoreHorizontal, X } from 'lucide-react';
+import { Plus, Image, MoreHorizontal, X, Eye } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon, PublishIcon,
@@ -153,6 +153,9 @@ export function MobileEditorSheet() {
               aria-label={label}
               onClick={() => {
                 setMoreOpen(false);
+                if (state.mobileVisualEdit) {
+                  dispatch({ type: 'SET_MOBILE_VISUAL_EDIT', enabled: false });
+                }
                 if (activeTab === tab && mobileSheetOpen) {
                   dispatch({ type: 'SET_MOBILE_SHEET', open: false });
                 } else {
@@ -180,6 +183,36 @@ export function MobileEditorSheet() {
             </motion.button>
           );
         })}
+
+        {/* Visual Preview tab */}
+        <motion.button
+          aria-label="Visual preview"
+          onClick={() => {
+            setMoreOpen(false);
+            const entering = !state.mobileVisualEdit;
+            dispatch({ type: 'SET_MOBILE_VISUAL_EDIT', enabled: entering });
+            if (entering) {
+              dispatch({ type: 'SET_MOBILE_SHEET', open: false });
+            }
+          }}
+          whileTap={{ scale: 0.82 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 20 }}
+          style={{
+            flex: 1,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: '3px', padding: '6px 8px',
+            border: 'none', cursor: 'pointer',
+            background: state.mobileVisualEdit ? 'rgba(163,177,138,0.25)' : 'transparent',
+            color: state.mobileVisualEdit ? '#fff' : 'rgba(255,255,255,0.4)',
+            borderTop: state.mobileVisualEdit ? '2px solid var(--eg-accent, #A3B18A)' : '2px solid transparent',
+            minHeight: '48px',
+          }}
+        >
+          <Eye size={22} color={state.mobileVisualEdit ? '#fff' : 'rgba(255,255,255,0.35)'} />
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
+            Preview
+          </span>
+        </motion.button>
 
         {/* More tab */}
         <motion.button

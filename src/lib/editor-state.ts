@@ -69,6 +69,8 @@ export interface EditorState {
 
   // Mobile
   isMobile: boolean;
+  mobileVisualEdit: boolean;
+  mobileActionChapterId: string | null;
 }
 
 export type EditorAction =
@@ -103,6 +105,8 @@ export type EditorAction =
   | { type: 'SET_DRAFT_BANNER'; state: DraftBannerState }
   | { type: 'SET_SECTION_OVERRIDES'; id: string; overrides: SectionStyleOverrides }
   | { type: 'SET_MOBILE'; isMobile: boolean }
+  | { type: 'SET_MOBILE_VISUAL_EDIT'; enabled: boolean }
+  | { type: 'SET_MOBILE_ACTION_SHEET'; chapterId: string | null }
   | { type: 'SET_PREVIEW_ZOOM'; zoom: number }
   | { type: 'MARK_PUBLISHED'; url: string }
   | { type: 'OPEN_PUBLISH' };
@@ -171,6 +175,10 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, sectionOverridesMap: { ...state.sectionOverridesMap, [action.id]: action.overrides } };
     case 'SET_MOBILE':
       return { ...state, isMobile: action.isMobile };
+    case 'SET_MOBILE_VISUAL_EDIT':
+      return { ...state, mobileVisualEdit: action.enabled, mobileActionChapterId: null };
+    case 'SET_MOBILE_ACTION_SHEET':
+      return { ...state, mobileActionChapterId: action.chapterId };
     case 'SET_PREVIEW_ZOOM':
       return { ...state, previewZoom: action.zoom };
     case 'MARK_PUBLISHED':
@@ -279,6 +287,8 @@ export function createInitialEditorState(
     sectionOverridesMap: {},
     previewZoom: 1,
     isMobile: false,
+    mobileVisualEdit: false,
+    mobileActionChapterId: null,
   };
 }
 
