@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Pencil, Copy, Trash2, ArrowUp, ArrowDown, Sparkles,
@@ -65,25 +65,24 @@ export function ChapterContextMenu({
   onEditInSidebar, onDuplicate, onDelete, onMove, onLayoutChange, onAIRewrite,
 }: ChapterContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-
-  // Close on Escape or click outside
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  }, [onClose]);
-
-  const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
-  }, [onClose]);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!state) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseRef.current();
+    };
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onCloseRef.current();
+    };
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [state, handleKeyDown, handleClickOutside]);
+  }, [state]);
 
   if (!state) return null;
 

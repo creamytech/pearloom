@@ -6,7 +6,7 @@
 // With inline visual editing: hover bar, double-click-to-edit, context menu
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Smartphone } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
@@ -205,7 +205,6 @@ function ChapterCard({
   const hoverBar = (
     <ChapterHoverBar
       visible={!!showHoverBar}
-      chapterId={chapter.id}
       chapterIndex={chapterIndex}
       chapterCount={chapterCount}
       currentLayout={chapter.layout}
@@ -350,7 +349,10 @@ export function PreviewPane({
   const containerWidth = DEVICE_WIDTHS[previewDevice];
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
   const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
-  const chapters = [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const chapters = useMemo(
+    () => [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+    [manifest.chapters],
+  );
 
   const handleStartEdit = useCallback((chapterId: string, field: InlineEditState['field']) => {
     setInlineEdit({ chapterId, field });
@@ -440,6 +442,24 @@ export function PreviewPane({
 
             {chapters.map((ch, i) => {
               const isSelected = selectedChapterId === ch.id;
+              const chapterCard = (
+                <ChapterCard
+                  chapter={ch} vibeSkin={vibeSkin} manifest={manifest}
+                  chapterIndex={i} chapterCount={chapters.length}
+                  dragging={!!draggingId}
+                  onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
+                  inlineEdit={inlineEdit}
+                  onStartEdit={(field) => handleStartEdit(ch.id, field)}
+                  onCancelEdit={handleCancelEdit}
+                  onCommitEdit={(field, val) => handleCommitEdit(ch.id, field, val)}
+                  onDuplicate={onDuplicateChapter ? () => onDuplicateChapter(ch.id) : undefined}
+                  onDelete={onDeleteChapter ? () => onDeleteChapter(ch.id) : undefined}
+                  onMove={onMoveChapter ? (d) => onMoveChapter(ch.id, d) : undefined}
+                  onLayoutChange={onUpdateChapter ? (l) => onUpdateChapter(ch.id, { layout: l as Chapter['layout'] }) : undefined}
+                  onAIRewrite={onAIRewrite ? () => onAIRewrite(ch.id) : undefined}
+                  onContextMenu={(e) => handleContextMenu(e, ch.id, i)}
+                />
+              );
               return (
                 <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
                   {isSelected ? (
@@ -449,41 +469,9 @@ export function PreviewPane({
                       borderRadius: '4px',
                       position: 'relative',
                     }}>
-                      <ChapterCard
-                        chapter={ch} vibeSkin={vibeSkin} manifest={manifest}
-                        chapterIndex={i} chapterCount={chapters.length}
-                        dragging={!!draggingId}
-                        onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
-                        inlineEdit={inlineEdit}
-                        onStartEdit={(field) => handleStartEdit(ch.id, field)}
-                        onCancelEdit={handleCancelEdit}
-                        onCommitEdit={(field, val) => handleCommitEdit(ch.id, field, val)}
-                        onDuplicate={onDuplicateChapter ? () => onDuplicateChapter(ch.id) : undefined}
-                        onDelete={onDeleteChapter ? () => onDeleteChapter(ch.id) : undefined}
-                        onMove={onMoveChapter ? (d) => onMoveChapter(ch.id, d) : undefined}
-                        onLayoutChange={onUpdateChapter ? (l) => onUpdateChapter(ch.id, { layout: l as Chapter['layout'] }) : undefined}
-                        onAIRewrite={onAIRewrite ? () => onAIRewrite(ch.id) : undefined}
-                        onContextMenu={(e) => handleContextMenu(e, ch.id, i)}
-                      />
+                      {chapterCard}
                     </div>
-                  ) : (
-                    <ChapterCard
-                      chapter={ch} vibeSkin={vibeSkin} manifest={manifest}
-                      chapterIndex={i} chapterCount={chapters.length}
-                      dragging={!!draggingId}
-                      onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
-                      inlineEdit={inlineEdit}
-                      onStartEdit={(field) => handleStartEdit(ch.id, field)}
-                      onCancelEdit={handleCancelEdit}
-                      onCommitEdit={(field, val) => handleCommitEdit(ch.id, field, val)}
-                      onDuplicate={onDuplicateChapter ? () => onDuplicateChapter(ch.id) : undefined}
-                      onDelete={onDeleteChapter ? () => onDeleteChapter(ch.id) : undefined}
-                      onMove={onMoveChapter ? (d) => onMoveChapter(ch.id, d) : undefined}
-                      onLayoutChange={onUpdateChapter ? (l) => onUpdateChapter(ch.id, { layout: l as Chapter['layout'] }) : undefined}
-                      onAIRewrite={onAIRewrite ? () => onAIRewrite(ch.id) : undefined}
-                      onContextMenu={(e) => handleContextMenu(e, ch.id, i)}
-                    />
-                  )}
+                  ) : chapterCard}
                   {draggingId
                     ? <DropZone id={`drop:after:${i}`} accent={accent} />
                     : i < chapters.length - 1 && (

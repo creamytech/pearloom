@@ -7,12 +7,10 @@ import {
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown';
-import { Tooltip } from '@/components/ui/tooltip';
 import { LAYOUT_OPTS } from '@/components/editor/ChapterActions';
 
 interface ChapterHoverBarProps {
   visible: boolean;
-  chapterId: string;
   chapterIndex: number;
   chapterCount: number;
   currentLayout?: string;
@@ -24,40 +22,39 @@ interface ChapterHoverBarProps {
   onAIRewrite: () => void;
 }
 
+const barBtnStyle: React.CSSProperties = {
+  width: 28, height: 28, borderRadius: 4, border: 'none',
+  background: 'transparent', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  transition: 'background 0.12s, color 0.12s',
+};
+
 function BarButton({
-  icon,
-  label,
-  onClick,
-  danger,
+  icon, label, onClick, danger,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: (e: React.MouseEvent) => void;
   danger?: boolean;
 }) {
+  const color = danger ? '#fca5a5' : 'rgba(255,255,255,0.85)';
   return (
-    <Tooltip content={label}>
-      <button
-        onClick={(e) => { e.stopPropagation(); onClick(e); }}
-        style={{
-          width: 28, height: 28, borderRadius: 4, border: 'none',
-          background: 'transparent', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: danger ? '#fca5a5' : 'rgba(255,255,255,0.85)',
-          transition: 'background 0.12s, color 0.12s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-          if (!danger) e.currentTarget.style.color = '#fff';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = danger ? '#fca5a5' : 'rgba(255,255,255,0.85)';
-        }}
-      >
-        {icon}
-      </button>
-    </Tooltip>
+    <button
+      aria-label={label}
+      title={label}
+      onClick={(e) => { e.stopPropagation(); onClick(e); }}
+      style={{ ...barBtnStyle, color }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+        if (!danger) e.currentTarget.style.color = '#fff';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'transparent';
+        e.currentTarget.style.color = color;
+      }}
+    >
+      {icon}
+    </button>
   );
 }
 
@@ -67,7 +64,6 @@ const Sep = () => (
 
 export function ChapterHoverBar({
   visible,
-  chapterId,
   chapterIndex,
   chapterCount,
   currentLayout,
@@ -103,26 +99,18 @@ export function ChapterHoverBar({
           <BarButton icon={<Trash2 size={14} />} label="Delete" onClick={onDelete} danger />
           <Sep />
 
-          {/* Layout picker */}
+          {/* Layout picker — DropdownMenuTrigger wraps button directly */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div>
-                <Tooltip content="Change layout">
-                  <button
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      width: 28, height: 28, borderRadius: 4, border: 'none',
-                      background: 'transparent', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: 'rgba(255,255,255,0.85)', transition: 'background 0.12s',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <LayoutGrid size={14} />
-                  </button>
-                </Tooltip>
-              </div>
+              <button
+                aria-label="Change layout"
+                onClick={(e) => e.stopPropagation()}
+                style={{ ...barBtnStyle, color: 'rgba(255,255,255,0.85)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <LayoutGrid size={14} />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={6}>
               {LAYOUT_OPTS.map((opt) => (
@@ -141,16 +129,12 @@ export function ChapterHoverBar({
           </DropdownMenu>
 
           <Sep />
-          <BarButton
-            icon={<ArrowUp size={14} />}
-            label="Move up"
-            onClick={() => onMove('up')}
-          />
-          <BarButton
-            icon={<ArrowDown size={14} />}
-            label="Move down"
-            onClick={() => onMove('down')}
-          />
+          {chapterIndex > 0 && (
+            <BarButton icon={<ArrowUp size={14} />} label="Move up" onClick={() => onMove('up')} />
+          )}
+          {chapterIndex < chapterCount - 1 && (
+            <BarButton icon={<ArrowDown size={14} />} label="Move down" onClick={() => onMove('down')} />
+          )}
           <Sep />
           <BarButton icon={<Sparkles size={14} />} label="AI Rewrite" onClick={onAIRewrite} />
         </motion.div>

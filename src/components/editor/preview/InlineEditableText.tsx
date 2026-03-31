@@ -91,7 +91,7 @@ export function InlineEditableText({
       style: {
         ...style,
         cursor: 'text',
-        outline: '2px solid rgba(109,89,122,0.6)',
+        outline: '2px solid var(--eg-plum, #6D597A)',
         outlineOffset: '2px',
         borderRadius: '4px',
         minWidth: '40px',

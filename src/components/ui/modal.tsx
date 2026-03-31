@@ -116,7 +116,6 @@ export function Modal({
       <DialogContent
         className={cn(maxWidth, className)}
         onPointerDownOutside={closeOnBackdrop ? undefined : (e) => e.preventDefault()}
-        onEscapeKeyDown={undefined}
       >
         {/* Visually hidden description for accessibility */}
         <DialogDescription className="sr-only">
