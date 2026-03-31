@@ -246,6 +246,11 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
         const formData = new FormData();
         formData.append('file', file);
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({ error: `HTTP ${uploadRes.status}` }));
+          console.error(`[PhotoBrowser] Upload failed for ${file.name}:`, errData.error);
+          continue;
+        }
         const uploadData = await uploadRes.json();
 
         if (uploadData.publicUrl) {

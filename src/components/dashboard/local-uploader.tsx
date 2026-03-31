@@ -120,7 +120,8 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
         setFiles(prev => prev.map((f, j) => j === i ? { ...f, status: 'done', result } : f));
         uploadedPhotos.push(buildPhotoMeta({ ...entry, result }, i, BASE_DATE));
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Upload failed';
+        const msg = err instanceof Error ? err.message : 'Connection error';
+        console.error(`[Upload] File ${i} (${entry.file.name}, ${entry.file.type}, ${(entry.file.size / 1024 / 1024).toFixed(1)}MB) failed:`, msg);
         setFiles(prev => prev.map((f, j) => j === i ? { ...f, status: 'error', error: msg } : f));
         // Continue to next file — don't stop
       }
@@ -131,7 +132,8 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
     if (uploadedPhotos.length > 0) {
       onUploadComplete(uploadedPhotos);
     } else {
-      setGlobalError('All uploads failed. Please check your connection and try again.');
+      const firstError = files.find(f => f.status === 'error')?.error || 'Unknown error';
+      setGlobalError(`Upload failed: ${firstError}. Check your connection and try again.`);
     }
   };
 
