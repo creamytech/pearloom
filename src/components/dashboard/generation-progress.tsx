@@ -430,7 +430,7 @@ export function GenerationProgress({
     return picked.map((p, i) => {
       const src = p.baseUrl.includes('googleusercontent.com')
         ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=400&h=400`
-        : `${p.baseUrl}=w400-h400-c`;
+        : p.baseUrl;
       return { src, slot: photoSlots[i % photoSlots.length], idx: i };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

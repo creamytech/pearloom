@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence, type Variants } from 'framer-motion';
-import { ArrowRight, Menu, X } from 'lucide-react';
+import { ArrowRight, Menu, X, Sparkles, ChevronRight } from 'lucide-react';
 
 import { MarketingHero } from './marketing/MarketingHero';
 import { SocialProofBar } from './marketing/SocialProofBar';
@@ -295,62 +295,162 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ MOBILE MENU ══════════════ */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden"
-            style={{
-              position: 'sticky',
-              top: '64px',
-              zIndex: 99,
-              overflow: 'hidden',
-              background: 'rgba(245,241,232,0.98)',
-              backdropFilter: 'blur(12px)',
-              borderBottom: `1px solid ${C.divider}`,
-            }}
-          >
-            <div style={{ padding: '1rem 1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              {NAV_LINKS.map(label => (
-                <a
-                  key={label}
-                  href={`#${label.toLowerCase().replace(/ /g, '-')}`}
+          <>
+            {/* Dark overlay / backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 998,
+                background: 'rgba(43,43,43,0.45)',
+                backdropFilter: 'blur(4px)',
+              }}
+            />
+            {/* Slide-in drawer from right */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="md:hidden"
+              style={{
+                position: 'fixed',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                width: 'min(85vw, 360px)',
+                zIndex: 999,
+                background: 'rgba(245,241,232,0.97)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '-8px 0 40px rgba(43,43,43,0.12)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Drawer header with logo and close */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '1.25rem 1.5rem',
+                borderBottom: `1px solid ${C.divider}`,
+              }}>
+                <span style={{
+                  fontFamily: 'var(--eg-font-heading)',
+                  fontSize: text.lg,
+                  fontWeight: 700,
+                  fontStyle: 'italic',
+                  color: C.ink,
+                  letterSpacing: '-0.01em',
+                }}>
+                  Pearloom
+                </span>
+                <button
                   onClick={() => setMobileMenuOpen(false)}
                   style={{
-                    fontSize: text.md,
-                    fontWeight: 500,
-                    color: C.dark,
-                    textDecoration: 'none',
-                    padding: '0.65rem 0.5rem',
-                    borderRadius: '0.5rem',
-                    transition: 'background 0.2s',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '0.35rem', color: C.muted, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    borderRadius: '0.5rem', transition: 'color 0.2s',
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.03)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  aria-label="Close menu"
                 >
-                  {label}
-                </a>
-              ))}
-              <button
-                onClick={() => { setMobileMenuOpen(false); handleSignIn(); }}
-                style={{
-                  marginTop: '0.5rem',
-                  padding: '0.75rem',
-                  background: C.ink,
-                  color: C.cream,
-                  border: 'none',
-                  borderRadius: '0.6rem',
-                  fontSize: text.md,
-                  fontWeight: 600,
-                  fontFamily: 'var(--eg-font-body)',
-                  cursor: 'pointer',
-                }}
-              >
-                Get Started
-              </button>
-            </div>
-          </motion.div>
+                  <X size={22} />
+                </button>
+              </div>
+
+              {/* Nav links */}
+              <div style={{
+                flex: 1, padding: '1.25rem 1rem', display: 'flex',
+                flexDirection: 'column', gap: '0.2rem', overflowY: 'auto',
+              }}>
+                {NAV_LINKS.map((label, i) => (
+                  <motion.a
+                    key={label}
+                    href={`#${label.toLowerCase().replace(/ /g, '-')}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
+                    style={{
+                      fontSize: 'clamp(1.05rem, 2.5vw, 1.15rem)',
+                      fontWeight: 600,
+                      color: C.dark,
+                      textDecoration: 'none',
+                      padding: '0.9rem 1rem',
+                      borderRadius: '0.75rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      transition: 'background 0.2s, color 0.2s',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'rgba(163,177,138,0.1)';
+                      e.currentTarget.style.color = C.ink;
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = C.dark;
+                    }}
+                  >
+                    {label}
+                    <ChevronRight size={16} style={{ opacity: 0.35 }} />
+                  </motion.a>
+                ))}
+              </div>
+
+              {/* Separator */}
+              <div style={{
+                margin: '0 1.5rem',
+                height: '1px',
+                background: `linear-gradient(90deg, transparent, ${C.divider}, transparent)`,
+              }} />
+
+              {/* Bottom CTA */}
+              <div style={{ padding: '1.5rem' }}>
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.35 }}
+                  onClick={() => { setMobileMenuOpen(false); handleSignIn(); }}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    background: `linear-gradient(135deg, ${C.ink} 0%, #4A3D5C 60%, ${C.plum} 100%)`,
+                    color: C.cream,
+                    border: 'none',
+                    borderRadius: '0.85rem',
+                    fontSize: text.md,
+                    fontWeight: 700,
+                    fontFamily: 'var(--eg-font-body)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 8px 30px rgba(43,43,43,0.2)',
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  <Sparkles size={16} />
+                  Get Started Free
+                  <ArrowRight size={16} />
+                </motion.button>
+                <p style={{
+                  textAlign: 'center', marginTop: '0.75rem',
+                  fontSize: text.xs, color: C.muted, letterSpacing: '0.03em',
+                }}>
+                  No credit card required
+                </p>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 

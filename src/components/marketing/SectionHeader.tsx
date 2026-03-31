@@ -29,7 +29,7 @@ export function SectionHeader({
   const subtitleColor = dark ? colors.darkText : colors.muted;
 
   return (
-    <div className="text-center mb-8 md:mb-12 relative">
+    <div className="text-center mb-14 md:mb-12 relative">
       {watermark && (
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"

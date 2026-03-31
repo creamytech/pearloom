@@ -64,7 +64,7 @@ export function BlockTypesGrid() {
         />
 
         {/* Grid — 4 columns for more breathing room */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {BLOCKS.map((b, i) => {
             const Icon = b.icon;
             return (
@@ -73,20 +73,21 @@ export function BlockTypesGrid() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.04 + 0.2, duration: 0.4 }}
-                whileHover={{ boxShadow: `0 8px 24px rgba(0,0,0,0.06), 0 0 0 1.5px ${b.accent}40` }}
+                whileHover={{ boxShadow: `0 10px 28px rgba(0,0,0,0.08), 0 0 0 1.5px ${b.accent}40` }}
                 className="rounded-xl p-4 text-center transition-all duration-200 cursor-default"
                 style={{
-                  background: 'white',
+                  background: `linear-gradient(160deg, white 50%, ${b.accent}0D)`,
                   border: `1.5px solid ${C.divider}`,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                 }}
               >
                 <div className="mx-auto mb-2.5">
-                  <IconCircle icon={Icon} accent={b.accent} size={36} iconSize={16} />
+                  <IconCircle icon={Icon} accent={b.accent} size={44} iconSize={20} />
                 </div>
-                <div className="font-semibold mb-0.5" style={{ fontSize: text.sm, color: C.ink }}>
+                <div className="font-semibold mb-0.5" style={{ fontSize: text.md, color: C.ink }}>
                   {b.name}
                 </div>
-                <div className="leading-snug" style={{ fontSize: text.sm, color: C.muted }}>
+                <div className="leading-snug" style={{ fontSize: text.base, color: C.muted }}>
                   {b.desc}
                 </div>
               </motion.div>

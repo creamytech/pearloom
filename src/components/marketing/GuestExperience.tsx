@@ -81,16 +81,17 @@ export function GuestExperience() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.08 + 0.2, duration: 0.5 }}
-                whileHover={{ boxShadow: `0 10px 32px rgba(0,0,0,0.06), 0 -3px 0 0 ${f.accent} inset` }}
-                className="rounded-xl p-5 transition-all duration-200"
+                whileHover={{ boxShadow: `0 12px 36px rgba(0,0,0,0.08), 0 0 0 1.5px ${f.accent}30` }}
+                className="rounded-xl p-6 transition-all duration-200"
                 style={{
-                  background: 'white',
+                  background: `linear-gradient(135deg, white 60%, ${f.accent}0A)`,
                   border: `1px solid ${C.divider}`,
-                  borderTop: `3px solid ${f.accent}`,
+                  borderLeft: `4px solid ${f.accent}`,
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                 }}
               >
                 <div className="mb-3.5">
-                  <IconCircle icon={Icon} accent={f.accent} size={40} iconSize={18} />
+                  <IconCircle icon={Icon} accent={f.accent} size={48} iconSize={22} />
                 </div>
                 <h3 className="font-semibold mb-1.5" style={{ fontSize: text.md, color: C.ink }}>
                   {f.title}
