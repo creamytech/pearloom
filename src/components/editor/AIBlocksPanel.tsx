@@ -452,7 +452,6 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
   const [generated, setGenerated] = useState<Partial<Record<BlockType, boolean>>>({});
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<BlockType | 'all'>('all');
-  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const handleGenerate = useCallback(async (blockType: BlockType, prompt: string) => {
     setGeneratingBlock(blockType);
@@ -510,11 +509,10 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
     }
   }, [manifest, coupleNames, onChange]);
 
-  const handleRegenerate = useCallback(async () => {
-    setIsRegenerating(true);
-    // Cycle through all blocks to "refresh" suggestions
-    await new Promise<void>(resolve => setTimeout(resolve, 800));
-    setIsRegenerating(false);
+  const handleRegenerate = useCallback(() => {
+    setGenerated({});
+    setActiveEdit(null);
+    setError(null);
   }, []);
 
   // Apply edited data back into manifest for the active sub-editor
@@ -539,20 +537,17 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
         </div>
         <button
           onClick={handleRegenerate}
-          disabled={isRegenerating}
           style={{
             display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
             padding: '6px 10px', borderRadius: '7px',
             border: '1px solid rgba(163,177,138,0.25)',
-            background: isRegenerating ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
-            color: isRegenerating ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent, #A3B18A)',
-            fontSize: '0.65rem', fontWeight: 700, cursor: isRegenerating ? 'not-allowed' : 'pointer',
+            background: 'rgba(163,177,138,0.1)',
+            color: 'var(--eg-accent, #A3B18A)',
+            fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
             transition: 'all 0.15s', whiteSpace: 'nowrap',
           }}
         >
-          {isRegenerating
-            ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Getting ideas…</>
-            : <><Sparkles size={10} /> Get new ideas</>}
+          <Sparkles size={10} /> Reset
         </button>
       </div>
 
@@ -608,22 +603,19 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
         </div>
       )}
 
-      {/* Block library — skeleton during regenerate, cards otherwise */}
+      {/* Block library */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {isRegenerating
-          ? BLOCKS.slice(0, 3).map((_, i) => <SkeletonCard key={i} />)
-          : displayedBlocks.map(block => (
-            <BlockCard
-              key={block.id}
-              block={block}
-              manifest={manifest}
-              onGenerate={handleGenerate}
-              onApply={() => setActiveEdit(activeEdit === block.id ? null : block.id)}
-              isGenerating={generatingBlock === block.id}
-              isApplied={!!generated[block.id]}
-            />
-          ))
-        }
+        {displayedBlocks.map(block => (
+          <BlockCard
+            key={block.id}
+            block={block}
+            manifest={manifest}
+            onGenerate={handleGenerate}
+            onApply={() => setActiveEdit(activeEdit === block.id ? null : block.id)}
+            isGenerating={generatingBlock === block.id}
+            isApplied={!!generated[block.id]}
+          />
+        ))}
       </div>
 
       {/* Applied count badge */}

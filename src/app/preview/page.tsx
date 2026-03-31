@@ -200,7 +200,7 @@ function PreviewContent() {
       case 'rsvp':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="rsvp">
+          <section key={key} id="rsvp" data-pe-section="rsvp" data-pe-label="RSVP">
             <PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} />
           </section>
         );
@@ -237,7 +237,7 @@ function PreviewContent() {
       case 'countdown':
         if (!manifest.logistics?.date) return null;
         return (
-          <section key={key} id="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
+          <section key={key} id="countdown" data-pe-section="countdown" data-pe-label="Countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
             <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, opacity: 0.8 }}>
               <CountdownDisplay targetDate={manifest.logistics.date} accentColor={pal.accent} />
             </div>
@@ -247,8 +247,8 @@ function PreviewContent() {
         const textContent = blockCfg.content as string | undefined;
         if (!textContent) return null;
         return (
-          <section key={key} style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
-            <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}>
+          <section key={key} data-pe-section="text" data-pe-label="Text" style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
+            <p data-pe-editable="true" data-pe-field="content" style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}>
               {textContent}
             </p>
           </section>
@@ -256,7 +256,7 @@ function PreviewContent() {
       }
       case 'quote':
         return (
-          <section key={key} style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="quote" data-pe-label="Quote" style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
             <p style={{
               fontFamily: `"${vibeSkin.fonts.heading}", serif`,
@@ -271,7 +271,7 @@ function PreviewContent() {
         const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
         if (!videoEmbedUrl) return null;
         return (
-          <section key={key} style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="video" data-pe-label="Video" style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', boxShadow: `0 24px 80px ${pal.foreground}18` }}>
               <iframe
                 src={videoEmbedUrl}
@@ -287,7 +287,7 @@ function PreviewContent() {
         const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
         if (!mapAddress) return null;
         return (
-          <section key={key} style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="map" data-pe-label="Map" style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
             <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden', boxShadow: `0 24px 80px ${pal.foreground}18` }}>
               <iframe
                 src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`}
@@ -304,7 +304,7 @@ function PreviewContent() {
       case 'photos': {
         const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
         return (
-          <section key={key} style={{ padding: '4rem 2rem' }}>
+          <section key={key} data-pe-section="photos" data-pe-label="Photos" style={{ padding: '4rem 2rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', fontWeight: 600, color: pal.foreground, marginBottom: '0.5rem' }}>
                 {vibeSkin.sectionLabels?.story || 'Our Photos'}
@@ -331,7 +331,7 @@ function PreviewContent() {
       }
       case 'guestbook':
         return (
-          <section key={key} style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+          <section key={key} data-pe-section="guestbook" data-pe-label="Guestbook" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
             <div style={{
               fontFamily: `"${vibeSkin.fonts.heading}", serif`,
               fontSize: '1.5rem', fontWeight: 600, color: pal.foreground, marginBottom: '1rem',

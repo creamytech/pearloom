@@ -79,7 +79,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           <AnimatePresence>
             {voiceSamples.map((sample, i) => (
               <motion.div
-                key={sample.slice(0, 30)}
+                key={`${sample.slice(0, 30)}-${i}`}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}

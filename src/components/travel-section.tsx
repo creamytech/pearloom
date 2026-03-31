@@ -271,7 +271,7 @@ export function TravelSection({
 
   return (
     <section
-      data-pe-section="travel"
+      data-pe-section="travel" data-pe-label="Travel"
       style={{
         background: 'var(--eg-bg-section)',
         position: 'relative',

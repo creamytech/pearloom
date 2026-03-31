@@ -14,7 +14,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const logistics = manifest.logistics || {};
   const occasion = manifest.occasion || 'wedding';
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
-  const [openSection, setOpenSection] = useState<'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating'>('couple');
+  const [openSection, setOpenSection] = useState<string | null>('couple');
 
   const upd = (data: Partial<typeof logistics>) =>
     onChange({ ...manifest, logistics: { ...logistics, ...data } });
@@ -56,7 +56,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <button
-        onClick={() => setOpenSection(openSection === id ? 'couple' : id)}
+        onClick={() => setOpenSection(openSection === id ? null : id)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',

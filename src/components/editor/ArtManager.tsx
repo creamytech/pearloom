@@ -138,15 +138,16 @@ function ActionButton({
 
 export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
   const [regenerating, setRegenerating] = useState<ArtSlot | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleReplace = async (slot: ArtSlot, file: File) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (!res.ok) return;
+      if (!res.ok) { setError('Upload failed — try again'); setTimeout(() => setError(null), 3000); return; }
       const { publicUrl } = await res.json();
-      if (!publicUrl) return;
+      if (!publicUrl) { setError('Upload failed — try again'); setTimeout(() => setError(null), 3000); return; }
 
       const updatedSkin: VibeSkin = {
         ...manifest.vibeSkin!,
@@ -170,15 +171,18 @@ export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
           regenerateArt: slot,
         }),
       });
-      if (!res.ok) { setRegenerating(null); return; }
+      if (!res.ok) { setRegenerating(null); setError('Regeneration failed — try again'); setTimeout(() => setError(null), 3000); return; }
       const data = await res.json();
 
-      if (data[slot]) {
-        const updatedSkin: VibeSkin = {
-          ...manifest.vibeSkin!,
-          [slot]: data[slot],
-        };
-        onUpdate({ vibeSkin: updatedSkin });
+      if (data.vibeSkin?.[slot]) {
+        // API returns full vibeSkin with the regenerated art
+        onUpdate({ vibeSkin: { ...manifest.vibeSkin!, [slot]: data.vibeSkin[slot] } });
+      } else if (data[slot]) {
+        // Fallback: direct slot value
+        onUpdate({ vibeSkin: { ...manifest.vibeSkin!, [slot]: data[slot] } });
+      } else {
+        setError('Regeneration failed — try again');
+        setTimeout(() => setError(null), 3000);
       }
     } catch (err) {
       console.error('[ArtManager] Regenerate failed:', err);
@@ -198,6 +202,15 @@ export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {error && (
+        <div style={{
+          background: 'rgba(220,60,60,0.12)', border: '1px solid rgba(220,60,60,0.3)',
+          borderRadius: '8px', padding: '8px 12px', fontSize: '0.82rem',
+          color: '#ff6b6b', fontWeight: 600,
+        }}>
+          {error}
+        </div>
+      )}
       <div style={{ marginBottom: '0.25rem' }}>
         <h3 style={{ fontSize: text.md, fontWeight: 700, color: C.ink, marginBottom: '0.25rem' }}>AI Art</h3>
         <p style={{ fontSize: text.sm, color: C.muted, lineHeight: 1.5 }}>
