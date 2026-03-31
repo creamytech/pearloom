@@ -8,9 +8,9 @@ const badgeVariants = {
   success:
     'bg-[rgba(163,177,138,0.15)] text-[var(--eg-accent-dark)]',
   warning:
-    'bg-[#FFFBF0] text-[#92710E] border-[#D4A847]',
+    'bg-[rgba(214,198,168,0.15)] text-[var(--eg-gold)] border-[var(--eg-gold)]',
   error:
-    'bg-[#fef2f2] text-[#b91c1c] border-[#fecaca]',
+    'bg-red-50 text-red-700 border-red-200',
   muted:
     'bg-[rgba(0,0,0,0.04)] text-[var(--eg-muted)]',
 } as const;

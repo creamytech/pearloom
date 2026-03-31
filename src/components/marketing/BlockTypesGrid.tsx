@@ -19,8 +19,7 @@ import {
   Music,
   Puzzle,
 } from 'lucide-react';
-import { C } from './colors';
-import { text } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
 
@@ -51,7 +50,7 @@ export function BlockTypesGrid() {
       ref={ref}
       style={{
         background: C.deep,
-        padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
+        padding: `${sectionPadding.y} ${sectionPadding.x}`,
         borderTop: `1px solid ${C.divider}`,
       }}
     >
@@ -63,7 +62,6 @@ export function BlockTypesGrid() {
           inView={inView}
         />
 
-        {/* Grid — 4 columns for more breathing room */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {BLOCKS.map((b, i) => {
             const Icon = b.icon;
@@ -73,12 +71,13 @@ export function BlockTypesGrid() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.04 + 0.2, duration: 0.4 }}
-                whileHover={{ boxShadow: `0 10px 28px rgba(0,0,0,0.08), 0 0 0 1.5px ${b.accent}40` }}
-                className="rounded-xl p-4 text-center transition-all duration-200 cursor-default"
+                whileHover={{ boxShadow: card.shadowHover, y: -1 }}
+                className="p-4 text-center transition-shadow duration-200 cursor-default"
                 style={{
-                  background: `linear-gradient(160deg, white 50%, ${b.accent}0D)`,
-                  border: `1.5px solid ${C.divider}`,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                  background: card.bg,
+                  border: card.border,
+                  borderRadius: card.radius,
+                  boxShadow: card.shadow,
                 }}
               >
                 <div className="mx-auto mb-2.5">
@@ -87,7 +86,7 @@ export function BlockTypesGrid() {
                 <div className="font-semibold mb-0.5" style={{ fontSize: text.md, color: C.ink }}>
                   {b.name}
                 </div>
-                <div className="leading-snug" style={{ fontSize: text.base, color: C.muted }}>
+                <div className="leading-snug" style={{ fontSize: text.sm, color: C.muted }}>
                   {b.desc}
                 </div>
               </motion.div>

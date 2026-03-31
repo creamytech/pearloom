@@ -8,17 +8,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GooglePhotoMetadata } from '@/types';
-
-// Brand palette aligned with marketing page
-const B = {
-  bg: '#1A1720',
-  cream: '#F5F1E8',
-  olive: '#A3B18A',
-  gold: '#D6C6A8',
-  plum: '#6D597A',
-  ink: '#2B2B2B',
-  muted: '#9A9488',
-} as const;
+import { colors as C, text } from '@/lib/design-tokens';
 
 // ── Pass descriptors ──────────────────────────────────────────
 const PASSES = [
@@ -167,7 +157,7 @@ function TypewriterText({ text, speed = 14 }: { text: string; speed?: number }) 
         <motion.span
           animate={{ opacity: [1, 0, 1] }}
           transition={{ duration: 0.8, repeat: Infinity }}
-          style={{ display: 'inline-block', width: '1px', height: '1em', background: `${B.gold}AA`, marginLeft: '1px', verticalAlign: 'text-bottom' }}
+          style={{ display: 'inline-block', width: '1px', height: '1em', background: `${C.gold}AA`, marginLeft: '1px', verticalAlign: 'text-bottom' }}
         />
       )}
     </>
@@ -219,8 +209,9 @@ function PhotoTile({
         transform: `rotate(${rotation}deg)`,
         borderRadius: 6,
         overflow: 'hidden',
+        border: isActive ? `1px solid ${C.darkBorder}` : 'none',
         boxShadow: isActive
-          ? `0 8px 40px ${B.plum}55, 0 0 0 1px ${B.gold}44`
+          ? '0 4px 20px rgba(0,0,0,0.4)'
           : '0 4px 20px rgba(0,0,0,0.5)',
         pointerEvents: 'none',
       }}
@@ -232,34 +223,6 @@ function PhotoTile({
         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         loading="lazy"
       />
-      {/* Scan line animation */}
-      {isActive && (
-        <motion.div
-          initial={{ top: '-8%' }}
-          animate={{ top: ['-8%', '108%'] }}
-          transition={{ duration: 1.6, ease: 'linear', repeat: Infinity, repeatDelay: 1.2 }}
-          style={{
-            position: 'absolute',
-            left: 0, right: 0,
-            height: '22%',
-            background: `linear-gradient(180deg, transparent 0%, ${B.gold}55 40%, ${B.cream}66 50%, ${B.gold}55 60%, transparent 100%)`,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
-      {/* Corner brackets on active */}
-      {isActive && (
-        <>
-          {[
-            { top: 4, left: 4, borderTop: `1.5px solid ${B.gold}CC`, borderLeft: `1.5px solid ${B.gold}CC` },
-            { top: 4, right: 4, borderTop: `1.5px solid ${B.gold}CC`, borderRight: `1.5px solid ${B.gold}CC` },
-            { bottom: 4, left: 4, borderBottom: `1.5px solid ${B.gold}CC`, borderLeft: `1.5px solid ${B.gold}CC` },
-            { bottom: 4, right: 4, borderBottom: `1.5px solid ${B.gold}CC`, borderRight: `1.5px solid ${B.gold}CC` },
-          ].map((s, i) => (
-            <div key={i} style={{ position: 'absolute', width: 10, height: 10, ...s }} />
-          ))}
-        </>
-      )}
     </motion.div>
   );
 }
@@ -278,7 +241,7 @@ function ThoughtStream({ lines }: { lines: string[] }) {
 
   useEffect(() => {
     if (visibleCount >= lines.length) return;
-    const t = setTimeout(() => setVisibleCount(c => c + 1), 1100 + Math.random() * 700);
+    const t = setTimeout(() => setVisibleCount(c => c + 1), 1400);
     return () => clearTimeout(t);
   }, [visibleCount, lines.length]);
 
@@ -307,7 +270,7 @@ function ThoughtStream({ lines }: { lines: string[] }) {
               fontStyle: 'italic',
               fontWeight: 400,
               fontSize: '0.88rem',
-              color: '#FAF7F2',
+              color: C.darkHeading,
               letterSpacing: '0.01em',
               lineHeight: 1.5,
               textAlign: 'center',
@@ -449,40 +412,11 @@ export function GenerationProgress({
       transition={isComplete ? { duration: 0.6, delay: 1.2, ease: [0.16, 1, 0.3, 1] } : {}}
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        background: `linear-gradient(160deg, ${B.bg} 0%, #231E2A 40%, #1E1B24 100%)`,
+        background: C.darkBg,
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
       }}>
-
-      {/* ── Ambient gradient orbs ── */}
-      <motion.div
-        animate={{ scale: [1, 1.35, 1], opacity: [0.15, 0.28, 0.15] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-        style={{
-          position: 'absolute', width: '650px', height: '650px', borderRadius: '50%',
-          background: `radial-gradient(circle, rgba(109,89,122,0.35) 0%, transparent 68%)`,
-          top: '-22%', left: '-20%', filter: 'blur(90px)', pointerEvents: 'none',
-        }}
-      />
-      <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.22, 0.1] }}
-        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
-        style={{
-          position: 'absolute', width: '550px', height: '550px', borderRadius: '50%',
-          background: `radial-gradient(circle, ${B.gold}4D 0%, transparent 68%)`,
-          bottom: '-18%', right: '-12%', filter: 'blur(90px)', pointerEvents: 'none',
-        }}
-      />
-      <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.16, 0.08] }}
-        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        style={{
-          position: 'absolute', width: '400px', height: '400px', borderRadius: '50%',
-          background: `radial-gradient(circle, ${B.olive}33 0%, transparent 68%)`,
-          top: '40%', right: '-8%', filter: 'blur(80px)', pointerEvents: 'none',
-        }}
-      />
 
       {/* ── Photo collage (only when photos provided) ── */}
       <AnimatePresence>
@@ -518,11 +452,10 @@ export function GenerationProgress({
                 width: i === idx ? 32 : 7,
                 backgroundColor:
                   i < idx
-                    ? `${B.gold}99`
+                    ? `${C.olive}99`
                     : i === idx
-                    ? B.plum
-                    : 'rgba(255,255,255,0.1)',
-                boxShadow: i === idx ? `0 0 14px ${B.plum}88` : 'none',
+                    ? C.olive
+                    : C.darkBorder,
               }}
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               style={{ height: 7, borderRadius: 100 }}
@@ -531,37 +464,18 @@ export function GenerationProgress({
         </div>
 
         {/* ── Pear mark ── */}
-        <div style={{ position: 'relative', width: 80, height: 96, margin: '0 auto 2.5rem' }}>
-          <motion.div
-            animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 1.4, 1] }}
-            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              position: 'absolute', inset: -24,
-              borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
-              background: `radial-gradient(circle, ${B.plum}66 0%, transparent 70%)`,
-              filter: 'blur(16px)',
-            }}
-          />
-          {[0, 1, 2].map(i => (
-            <motion.div
-              key={i}
-              animate={{ rotate: i % 2 === 0 ? [0, 360] : [360, 0] }}
-              transition={{ duration: 7 + i * 2.8, repeat: Infinity, ease: 'linear' }}
-              style={{
-                position: 'absolute', inset: i * 10,
-                borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
-                border: `1.5px solid ${i === 0 ? `${B.gold}BB` : i === 1 ? `${B.plum}88` : `${B.olive}55`}`,
-              }}
-            />
-          ))}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', width: 48, height: 60, margin: '0 auto 2.5rem' }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
             <motion.div
               animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
               style={{
-                width: 18, height: 23,
+                width: 22, height: 28,
                 borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
-                background: `linear-gradient(160deg, ${B.gold} 0%, ${B.plum} 100%)`,
+                background: C.olive,
               }}
             />
           </div>
@@ -580,7 +494,7 @@ export function GenerationProgress({
               fontSize: 'clamp(2.1rem, 5.5vw, 3.2rem)',
               fontWeight: 400,
               fontStyle: 'italic',
-              color: '#FAF7F2',
+              color: C.darkHeading,
               lineHeight: 1.18,
               margin: '0 0 1rem',
               letterSpacing: '-0.01em',
@@ -599,8 +513,8 @@ export function GenerationProgress({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.55, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              fontSize: '0.95rem',
-              color: 'rgba(250,247,242,0.45)',
+              fontSize: text.base,
+              color: C.darkText,
               lineHeight: 1.75,
               maxWidth: '380px',
               margin: '0 auto 1.5rem',
@@ -627,31 +541,18 @@ export function GenerationProgress({
 
         {/* ── Progress bar ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
-          <div style={{ flex: 1, height: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: 100, overflow: 'hidden', position: 'relative' }}>
+          <div style={{ flex: 1, height: '2px', background: C.darkBorder, borderRadius: 100, overflow: 'hidden' }}>
             <motion.div
               animate={{ width: `${pass.pct}%` }}
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 height: '100%',
-                background: `linear-gradient(90deg, ${B.plum}, ${B.gold})`,
+                background: C.olive,
                 borderRadius: 100,
-                boxShadow: `0 0 12px ${B.plum}88`,
-                position: 'relative',
-                overflow: 'hidden',
               }}
-            >
-              <motion.div
-                animate={{ x: ['-100%', '200%'] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', repeatDelay: 0.5 }}
-                style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)',
-                  width: '50%',
-                }}
-              />
-            </motion.div>
+            />
           </div>
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: `${B.gold}99`, fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', minWidth: '28px', textAlign: 'right', letterSpacing: '0.06em' }}>
+          <span style={{ fontSize: text.xs, fontWeight: 700, color: C.darkText, fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', minWidth: '28px', textAlign: 'right', letterSpacing: '0.06em' }}>
             {pass.pct}%
           </span>
         </div>
@@ -665,11 +566,11 @@ export function GenerationProgress({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
             style={{
-              fontSize: '0.65rem',
+              fontSize: text.xs,
               fontWeight: 700,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color: `${B.gold}77`,
+              color: C.darkText,
               fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
               margin: 0,
             }}
@@ -691,8 +592,8 @@ export function GenerationProgress({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5, delay: 1 }}
               style={{
-                marginTop: '0.75rem', fontSize: '0.65rem',
-                color: 'rgba(250,247,242,0.25)',
+                marginTop: '0.75rem', fontSize: text.xs,
+                color: `${C.darkHeading}40`,
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
                 fontStyle: 'italic', margin: '0.75rem 0 0',
               }}
@@ -713,8 +614,8 @@ export function GenerationProgress({
               transition={{ duration: 0.6 }}
               style={{
                 marginTop: '1rem',
-                fontSize: '0.78rem',
-                color: 'rgba(250,247,242,0.3)',
+                fontSize: text.sm,
+                color: C.darkText,
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
                 fontStyle: 'italic',
               }}
@@ -731,8 +632,8 @@ export function GenerationProgress({
               transition={{ duration: 0.6 }}
               style={{
                 marginTop: '1rem',
-                fontSize: '0.78rem',
-                color: 'rgba(250,200,100,0.45)',
+                fontSize: text.sm,
+                color: `${C.gold}88`,
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
                 fontStyle: 'italic',
               }}
@@ -750,7 +651,7 @@ export function GenerationProgress({
               style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
             >
               <p style={{
-                fontSize: '0.78rem', color: 'rgba(248,113,113,0.7)',
+                fontSize: text.sm, color: 'rgba(248,113,113,0.7)',
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
                 fontStyle: 'italic', margin: 0,
               }}>
@@ -762,7 +663,7 @@ export function GenerationProgress({
                   style={{
                     background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)',
                     borderRadius: '8px', padding: '0.45rem 1.1rem',
-                    color: 'rgba(248,113,113,0.75)', fontSize: '0.78rem', cursor: 'pointer',
+                    color: 'rgba(248,113,113,0.75)', fontSize: text.sm, cursor: 'pointer',
                     fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', letterSpacing: '0.05em',
                     transition: 'all 0.2s',
                   }}
@@ -784,11 +685,11 @@ export function GenerationProgress({
             style={{
               marginTop: '1.75rem',
               background: 'transparent',
-              border: elapsed >= 30 ? '1px solid rgba(250,247,242,0.2)' : 'none',
+              border: elapsed >= 30 ? `1px solid ${C.darkBorder}` : 'none',
               borderRadius: '8px',
               padding: elapsed >= 30 ? '0.5rem 1.25rem' : '0.25rem 0.5rem',
-              color: 'rgba(250,247,242,0.3)',
-              fontSize: '0.65rem',
+              color: C.darkText,
+              fontSize: text.xs,
               cursor: 'pointer',
               fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
               letterSpacing: '0.06em',
@@ -797,10 +698,10 @@ export function GenerationProgress({
               textUnderlineOffset: '3px',
             }}
             onMouseOver={(e) => {
-              (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.55)';
+              (e.currentTarget as HTMLElement).style.color = C.darkHeading;
             }}
             onMouseOut={(e) => {
-              (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.3)';
+              (e.currentTarget as HTMLElement).style.color = C.darkText;
             }}
           >
             Cancel

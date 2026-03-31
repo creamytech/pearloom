@@ -17,7 +17,7 @@ import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
 import { Pill } from '@/components/ui/Pill';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
-import { text } from '@/lib/design-tokens';
+import { text, card, sectionPadding } from '@/lib/design-tokens';
 
 interface LandingPageProps {
   handleSignIn: () => void;
@@ -29,7 +29,7 @@ const up: Variants = {
   show: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.65, ease: EASE, delay: i * 0.11 },
+    transition: { duration: 0.8, ease: EASE, delay: i * 0.12 },
   }),
 };
 
@@ -202,7 +202,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           justifyContent: 'space-between',
           padding: '0 clamp(1.25rem,5vw,4rem)',
           height: '64px',
-          background: 'rgba(245,241,232,0.92)',
+          background: `${C.cream}EB`,
           backdropFilter: 'blur(12px)',
           borderBottom: `1px solid ${C.divider}`,
         }}
@@ -258,7 +258,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             className="hidden sm:inline-flex"
             style={{
               padding: '0.5rem 1.25rem',
-              background: C.ink,
+              background: C.olive,
               color: C.cream,
               border: 'none',
               borderRadius: '0.6rem',
@@ -308,7 +308,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 998,
-                background: 'rgba(43,43,43,0.45)',
+                background: `${C.ink}73`,
                 backdropFilter: 'blur(4px)',
               }}
             />
@@ -326,10 +326,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 bottom: 0,
                 width: 'min(85vw, 360px)',
                 zIndex: 999,
-                background: 'rgba(245,241,232,0.97)',
+                background: `${C.cream}F8`,
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                boxShadow: '-8px 0 40px rgba(43,43,43,0.12)',
+                boxShadow: `-8px 0 40px ${C.ink}1F`,
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
@@ -391,7 +391,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                       transition: 'background 0.2s, color 0.2s',
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.background = 'rgba(163,177,138,0.1)';
+                      e.currentTarget.style.background = `${C.olive}1A`;
                       e.currentTarget.style.color = C.ink;
                     }}
                     onMouseLeave={e => {
@@ -409,7 +409,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               <div style={{
                 margin: '0 1.5rem',
                 height: '1px',
-                background: `linear-gradient(90deg, transparent, ${C.divider}, transparent)`,
+                background: C.divider,
               }} />
 
               {/* Bottom CTA */}
@@ -422,7 +422,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   style={{
                     width: '100%',
                     padding: '1rem',
-                    background: `linear-gradient(135deg, ${C.ink} 0%, #4A3D5C 60%, ${C.plum} 100%)`,
+                    background: C.olive,
                     color: C.cream,
                     border: 'none',
                     borderRadius: '0.85rem',
@@ -434,7 +434,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    boxShadow: '0 8px 30px rgba(43,43,43,0.2)',
+                    boxShadow: `0 8px 30px ${C.olive}33`,
                     letterSpacing: '0.01em',
                   }}
                 >
@@ -480,8 +480,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         id="occasions"
         ref={occasionRef}
         style={{
-          background: `linear-gradient(160deg, rgba(163,177,138,0.06) 0%, ${C.cream} 40%, ${C.deep} 100%)`,
-          padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
+          background: C.cream,
+          padding: sectionPadding.y + ' ' + sectionPadding.x,
           borderTop: `1px solid ${C.divider}`,
           borderBottom: `1px solid ${C.divider}`,
         }}
@@ -491,7 +491,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8 }}
               style={{ marginBottom: '1.1rem', display: 'flex', justifyContent: 'center' }}
             >
               <Ornament />
@@ -499,7 +499,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             <motion.h2
               initial={{ opacity: 0, y: 18 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
               style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(1.9rem,4vw,2.9rem)',
@@ -524,32 +524,17 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 variants={up}
                 initial="hidden"
                 animate={occasionInView ? 'show' : 'hidden'}
-                whileHover={{ y: -4, boxShadow: '0 14px 40px rgba(43,43,43,0.08)' }}
+                whileHover={{ y: -4, boxShadow: card.shadowHover }}
                 style={{
-                  padding: '2rem 1.5rem',
-                  background: 'white',
-                  border: `1px solid ${C.divider}`,
-                  borderRadius: '1.25rem',
-                  boxShadow: '0 2px 12px rgba(43,43,43,0.04)',
-                  position: 'relative',
-                  overflow: 'hidden',
+                  padding: '2rem 1.5rem 2rem 1.75rem',
+                  background: card.bg,
+                  border: card.border,
+                  borderLeft: `3px solid ${o.accent}`,
+                  borderRadius: card.radius,
+                  boxShadow: card.shadow,
+                  transition: 'box-shadow 0.25s ease, transform 0.25s ease',
                 }}
               >
-                <div
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '50%',
-                    background: o.bg,
-                    border: `1.5px solid ${o.accent}30`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <OccasionIcon type={o.label} accent={o.accent} />
-                </div>
                 <div
                   style={{
                     fontSize: text.xs,
@@ -557,7 +542,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
                     color: o.accent,
-                    marginBottom: '0.5rem',
+                    marginBottom: '0.6rem',
                   }}
                 >
                   {o.label}
@@ -569,26 +554,15 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     fontWeight: 700,
                     fontStyle: 'italic',
                     color: C.ink,
-                    marginBottom: '0.65rem',
+                    marginBottom: '0.75rem',
                     lineHeight: 1.3,
                   }}
                 >
                   {o.tagline}
                 </div>
-                <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, margin: 0 }}>
+                <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.8, margin: 0 }}>
                   {o.desc}
                 </p>
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: '5px',
-                    background: `linear-gradient(90deg, ${o.accent}55, transparent)`,
-                    borderRadius: '0 0 1.25rem 1.25rem',
-                  }}
-                />
               </motion.div>
             ))}
           </div>
@@ -623,19 +597,20 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 animate={testInView ? 'show' : 'hidden'}
                 className={i === 0 ? 'sm:col-span-2' : ''}
                 style={{
-                  padding: i === 0 ? '2rem' : '1.5rem',
-                  background: 'white',
-                  borderLeft: `3px solid ${i === 0 ? C.plum : C.divider}`,
-                  borderRadius: '1.1rem',
+                  padding: i === 0 ? '2.5rem' : '2rem',
+                  background: card.bg,
+                  border: card.border,
+                  borderRadius: card.radius,
+                  boxShadow: card.shadow,
                 }}
               >
                 <div
                   style={{
                     fontFamily: 'var(--eg-font-heading)',
-                    fontSize: '3.5rem',
+                    fontSize: '4rem',
                     lineHeight: 0.7,
-                    color: C.plum,
-                    opacity: 0.35,
+                    color: C.gold,
+                    opacity: 0.7,
                     marginBottom: '1rem',
                     fontStyle: 'italic',
                   }}
@@ -683,30 +658,31 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       <section
         ref={ctaRef}
         style={{
-          background: `linear-gradient(135deg, ${C.ink} 0%, #4A3D5C 50%, ${C.plum} 100%)`,
+          background: C.ink,
           padding: 'clamp(4rem,8vw,9rem) 1.5rem clamp(4.5rem,9vw,10rem)',
           textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden',
         }}
       >
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 40%, rgba(163,177,138,0.12) 0%, transparent 60%)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: '600px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.65 }}
+            transition={{ duration: 0.8 }}
           >
-            <Pill variant="dark" sparkle>Start for free</Pill>
+            {/* Gold ornamental rule */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
+              <div style={{ width: '80px', height: '1px', background: C.gold, opacity: 0.5 }} />
+            </div>
             <h2
               style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2rem,5vw,3.25rem)',
                 fontWeight: 700,
+                fontStyle: 'italic',
                 color: C.cream,
                 letterSpacing: '-0.035em',
                 lineHeight: 1.1,
-                margin: '1.5rem 0 1.25rem',
+                margin: '0 0 1.25rem',
               }}
             >
               Your moment is already beautiful.
@@ -716,7 +692,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             <p
               style={{
                 fontSize: 'clamp(0.95rem,1.8vw,1.1rem)',
-                color: 'rgba(245,241,232,0.55)',
+                color: C.darkText,
                 lineHeight: 1.8,
                 maxWidth: '480px',
                 margin: '0 auto 3rem',
@@ -729,12 +705,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.25 }}
+            transition={{ duration: 0.8, delay: 0.25 }}
           >
             <motion.button
               onClick={handleSignIn}
               disabled={status === 'loading'}
-              whileHover={{ scale: 1.05, boxShadow: '0 14px 50px rgba(214,198,168,0.5)' }}
+              whileHover={{ scale: 1.05, boxShadow: `0 14px 50px ${C.gold}80` }}
               whileTap={{ scale: 0.97 }}
               style={{
                 display: 'inline-flex',
@@ -750,12 +726,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 fontFamily: 'var(--eg-font-body)',
                 cursor: status === 'loading' ? 'not-allowed' : 'pointer',
                 opacity: status === 'loading' ? 0.65 : 1,
-                boxShadow: '0 4px 24px rgba(214,198,168,0.4)',
+                boxShadow: `0 4px 24px ${C.gold}66`,
               }}
             >
               Begin Your Story <ArrowRight size={17} strokeWidth={2.2} />
             </motion.button>
-            <p style={{ marginTop: '1.1rem', fontSize: text.sm, color: 'rgba(245,241,232,0.4)', letterSpacing: '0.04em' }}>
+            <p style={{ marginTop: '1.1rem', fontSize: text.sm, color: C.darkText, letterSpacing: '0.04em' }}>
               Free to start &middot; No credit card &middot; Live in minutes
             </p>
           </motion.div>

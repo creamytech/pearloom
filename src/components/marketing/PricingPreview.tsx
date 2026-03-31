@@ -2,11 +2,9 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Check, ArrowRight } from 'lucide-react';
-import { C } from './colors';
-import { text } from '@/lib/design-tokens';
+import { ArrowRight } from 'lucide-react';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
-import { Pill } from '@/components/ui/Pill';
 
 const TIERS = [
   {
@@ -57,23 +55,17 @@ export function PricingPreview() {
       ref={ref}
       id="pricing"
       style={{
-        background: `radial-gradient(ellipse at 30% 0%, rgba(109,89,122,0.08) 0%, transparent 50%), radial-gradient(ellipse at 70% 100%, rgba(163,177,138,0.06) 0%, transparent 50%), ${C.deep}`,
-        padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
+        background: C.cream,
+        padding: `${sectionPadding.y} ${sectionPadding.x}`,
         borderTop: `1px solid ${C.divider}`,
       }}
     >
-      <style>{`
-        @keyframes pricing-border-rotate {
-          0% { --border-angle: 0deg; }
-          100% { --border-angle: 360deg; }
-        }
-        @property --border-angle {
-          syntax: "<angle>";
-          initial-value: 0deg;
-          inherits: false;
-        }
-      `}</style>
       <div className="max-w-[780px] mx-auto">
+        {/* Decorative gold rule */}
+        <div className="flex justify-center mb-6">
+          <div style={{ width: 60, height: 1, background: C.gold }} />
+        </div>
+
         <SectionHeader
           eyebrow="Pricing"
           eyebrowColor={C.gold}
@@ -82,7 +74,6 @@ export function PricingPreview() {
           inView={inView}
         />
 
-        {/* Tier cards — differentiated styles */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {TIERS.map((tier, i) => (
             <motion.div
@@ -90,53 +81,68 @@ export function PricingPreview() {
               initial={{ opacity: 0, y: 24 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: i * 0.12 + 0.3, duration: 0.5 }}
-              className="relative"
+              style={{ position: 'relative' }}
             >
-              {/* Animated gradient border for Premium */}
+              {/* RECOMMENDED label for premium */}
               {tier.highlighted && (
                 <div
-                  className="absolute -inset-[2px] rounded-2xl pointer-events-none"
+                  className="text-center mb-2"
                   style={{
-                    background: `conic-gradient(from var(--border-angle, 0deg), ${C.olive}, ${C.plum}, ${C.gold}, ${C.olive})`,
-                    animation: 'pricing-border-rotate 4s linear infinite',
-                    opacity: 0.7,
+                    fontSize: text.xs,
+                    color: C.olive,
+                    letterSpacing: '0.16em',
+                    fontWeight: 600,
+                    textTransform: 'uppercase' as const,
                   }}
-                />
+                >
+                  Recommended
+                </div>
               )}
 
               <div
-                className="rounded-2xl p-7 relative overflow-hidden"
                 style={{
-                  background: tier.highlighted ? 'white' : 'transparent',
+                  borderRadius: card.radius,
+                  background: card.bg,
                   border: tier.highlighted
-                    ? 'none'
-                    : `1.5px solid ${C.divider}`,
-                  boxShadow: tier.highlighted
-                    ? `0 24px 80px rgba(109,89,122,0.18), 0 8px 32px rgba(109,89,122,0.12), 0 0 0 1px rgba(109,89,122,0.06)`
-                    : 'none',
+                    ? `2px solid ${C.olive}`
+                    : card.border,
+                  boxShadow: card.shadow,
+                  padding: '1.75rem',
+                  transition: 'box-shadow 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = card.shadowHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = card.shadow;
                 }}
               >
-                {tier.highlighted && (
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[4px]"
-                    style={{ background: `linear-gradient(90deg, ${C.plum}, ${C.olive})` }}
-                  />
-                )}
-
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="font-bold tracking-[0.14em] uppercase" style={{ fontSize: text.xs, color: tier.accent }}>
+                  <div
+                    className="font-bold tracking-[0.14em] uppercase"
+                    style={{ fontSize: text.xs, color: tier.accent }}
+                  >
                     {tier.name}
                   </div>
                   {tier.highlighted && (
-                    <Pill sparkle variant="plum">
+                    <span
+                      style={{
+                        fontSize: text.xs,
+                        color: C.plum,
+                        fontWeight: 600,
+                        fontVariant: 'small-caps',
+                        letterSpacing: '0.08em',
+                      }}
+                    >
                       Best Value
-                    </Pill>
+                    </span>
                   )}
                 </div>
+
                 <div className="flex items-baseline gap-1 mb-2">
                   <span
-                    className="font-[family-name:var(--eg-font-heading)] text-[2.5rem] font-bold leading-none"
-                    style={{ color: C.ink }}
+                    className="font-[family-name:var(--eg-font-heading)] font-bold leading-none"
+                    style={{ fontSize: '3rem', color: C.ink }}
                   >
                     {tier.price}
                   </span>
@@ -144,6 +150,7 @@ export function PricingPreview() {
                     {tier.period}
                   </span>
                 </div>
+
                 <p className="mb-5" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.6 }}>
                   {tier.desc}
                 </p>
@@ -151,16 +158,15 @@ export function PricingPreview() {
                 <div className="flex flex-col gap-3.5 mb-7">
                   {tier.features.map(f => (
                     <div key={f} className="flex items-start gap-3">
-                      <span
-                        className="inline-flex items-center justify-center rounded-full flex-shrink-0 mt-0.5"
+                      {/* Olive dot bullet */}
+                      <div
+                        className="flex-shrink-0 mt-1.5 rounded-full"
                         style={{
-                          width: 20,
-                          height: 20,
-                          background: `${tier.accent}18`,
+                          width: 6,
+                          height: 6,
+                          background: C.olive,
                         }}
-                      >
-                        <Check size={11} strokeWidth={2.8} style={{ color: tier.accent }} />
-                      </span>
+                      />
                       <span style={{ fontSize: text.sm, color: C.dark }}>
                         {f}
                       </span>
@@ -168,26 +174,18 @@ export function PricingPreview() {
                   ))}
                 </div>
 
-                <motion.button
-                  whileHover={{
-                    scale: 1.02,
-                    boxShadow: tier.highlighted
-                      ? '0 8px 32px rgba(109,89,122,0.25)'
-                      : undefined,
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  className="group w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] cursor-pointer transition-colors duration-200"
+                <button
+                  className="group w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] cursor-pointer transition-colors duration-200 uppercase"
                   style={{
                     fontSize: text.base,
-                    background: tier.highlighted
-                      ? `linear-gradient(135deg, ${C.olive}, ${C.plum})`
-                      : 'transparent',
-                    color: tier.highlighted ? 'white' : tier.accent,
-                    border: tier.highlighted ? 'none' : `1.5px solid ${tier.accent}40`,
+                    letterSpacing: '0.04em',
+                    background: tier.highlighted ? C.olive : 'transparent',
+                    color: tier.highlighted ? '#fff' : C.dark,
+                    border: tier.highlighted ? 'none' : `1px solid ${C.divider}`,
                   }}
                   onMouseEnter={(e) => {
                     if (!tier.highlighted) {
-                      e.currentTarget.style.background = `${tier.accent}12`;
+                      e.currentTarget.style.background = `${C.dark}0A`;
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -197,7 +195,7 @@ export function PricingPreview() {
                   }}
                 >
                   {tier.cta} <ArrowRight size={14} />
-                </motion.button>
+                </button>
               </div>
             </motion.div>
           ))}

@@ -33,7 +33,7 @@ export function SectionHeader({
       {watermark && (
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"
-          style={{ fontSize: 'clamp(5rem, 12vw, 10rem)', color: dark ? 'rgba(255,255,255,0.03)' : `${colors.ink}08`, lineHeight: 1 }}
+          style={{ fontSize: 'clamp(5rem, 12vw, 10rem)', color: dark ? 'rgba(255,255,255,0.03)' : `${colors.ink}06`, lineHeight: 1 }}
         >
           {watermark}
         </div>

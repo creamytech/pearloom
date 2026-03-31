@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
-  Sparkles,
   Eye,
   Mountain,
   Heart,
@@ -17,96 +16,43 @@ import {
   ImageIcon,
   Wind,
 } from 'lucide-react';
-import { C } from './colors';
-import { text } from '@/lib/design-tokens';
-import { Pill } from '@/components/ui/Pill';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
 
-/* ── Floating Particles Background ── */
-function FloatingParticles() {
-  const [particles] = useState(() =>
-    Array.from({ length: 35 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2.5 + 1,
-      duration: Math.random() * 12 + 10,
-      delay: Math.random() * 8,
-      opacity: Math.random() * 0.25 + 0.05,
-    }))
-  );
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      {particles.map(p => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.size,
-            background: `rgba(163,177,138,${p.opacity})`,
-          }}
-          animate={{
-            y: [0, -30, 0],
-            x: [0, Math.random() > 0.5 ? 10 : -10, 0],
-            opacity: [p.opacity, p.opacity * 1.8, p.opacity],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 /* ── 7-Pass Engine Visualization ── */
 const PASSES = [
-  { icon: Eye, label: 'Face Detection', desc: 'Finds the people who matter in every frame', color: '#B4838D' },
-  { icon: Mountain, label: 'Scene Understanding', desc: 'Beach sunset, backyard party, candlelit dinner', color: C.olive },
-  { icon: Heart, label: 'Emotional Mapping', desc: 'The laughter, the tears, the quiet moments', color: '#D4838D' },
-  { icon: GitBranch, label: 'Narrative Threading', desc: 'Weaves moments into a coherent story', color: C.plum },
-  { icon: Star, label: 'Moment Ranking', desc: 'Knows which photos matter most', color: C.gold },
-  { icon: Dna, label: 'Event DNA', desc: 'Extracts what makes this celebration yours', color: '#7B6BA4' },
-  { icon: Layers, label: 'Timeline Weaving', desc: 'Orders everything into a beautiful flow', color: C.olive },
+  { icon: Eye, label: 'Face Detection', desc: 'Finds the people who matter in every frame' },
+  { icon: Mountain, label: 'Scene Understanding', desc: 'Beach sunset, backyard party, candlelit dinner' },
+  { icon: Heart, label: 'Emotional Mapping', desc: 'The laughter, the tears, the quiet moments' },
+  { icon: GitBranch, label: 'Narrative Threading', desc: 'Weaves moments into a coherent story' },
+  { icon: Star, label: 'Moment Ranking', desc: 'Knows which photos matter most' },
+  { icon: Dna, label: 'Event DNA', desc: 'Extracts what makes this celebration yours' },
+  { icon: Layers, label: 'Timeline Weaving', desc: 'Orders everything into a beautiful flow' },
 ];
 
 function LoomEngine() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.15 });
-  const [activePass, setActivePass] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    const timer = setInterval(() => setActivePass(p => (p + 1) % PASSES.length), 2400);
-    return () => clearInterval(timer);
-  }, [inView]);
 
   return (
     <div ref={ref} className="mb-20">
       <div className="text-center mb-14">
         <h3
           className="font-[family-name:var(--eg-font-heading)] font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
-          style={{ color: '#F5F1E8' }}
+          style={{ color: C.darkHeading }}
         >
           Your photos tell a story. The Loom reads it.
         </h3>
-        <p className="max-w-[480px] mx-auto" style={{ fontSize: text.md, color: 'rgba(245,241,232,0.6)', lineHeight: 1.8 }}>
+        <p className="max-w-[480px] mx-auto" style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.8 }}>
           Seven passes. Every photo analyzed for faces, scenes, emotions, and narrative connections.
           The result: a story only you could tell.
         </p>
       </div>
 
-      {/* 7-pass waterfall */}
+      {/* 7-pass list */}
       <div className="max-w-[560px] mx-auto relative">
-        {/* Vertical thread line — gradient with glow */}
+        {/* Vertical thread line */}
         <motion.div
           initial={{ scaleY: 0 }}
           animate={inView ? { scaleY: 1 } : {}}
@@ -114,8 +60,7 @@ function LoomEngine() {
           className="absolute left-[27px] top-0 bottom-0 origin-top"
           style={{
             width: 2,
-            background: `linear-gradient(to bottom, ${C.plum}80, ${C.olive}60, ${C.plum}40)`,
-            boxShadow: `0 0 8px ${C.plum}30`,
+            background: C.darkBorder,
             borderRadius: 2,
           }}
         />
@@ -123,64 +68,31 @@ function LoomEngine() {
         <div className="flex flex-col gap-5">
           {PASSES.map((pass, i) => {
             const Icon = pass.icon;
-            const isActive = activePass === i;
             return (
               <motion.div
                 key={pass.label}
                 initial={{ opacity: 0, x: -24 }}
                 animate={inView ? { opacity: 1, x: 0 } : {}}
                 transition={{ delay: i * 0.12 + 0.2, duration: 0.5 }}
-                className="flex items-start gap-5 pl-1 relative group cursor-default"
-                onMouseEnter={() => setActivePass(i)}
+                className="flex items-start gap-5 pl-1 relative"
               >
-                {/* Connecting horizontal line from vertical bar to node */}
-                <motion.div
-                  className="absolute top-[22px] left-[28px] h-px"
-                  style={{
-                    width: 8,
-                    background: isActive ? pass.color : `${pass.color}40`,
-                    boxShadow: isActive ? `0 0 6px ${pass.color}60` : 'none',
-                    transition: 'all 0.4s ease',
-                  }}
-                />
-
-                {/* Node with glow */}
-                <div
-                  className="relative z-10 flex-shrink-0"
-                  style={{
-                    border: `2px solid ${isActive ? `${pass.color}90` : `${pass.color}35`}`,
-                    borderRadius: '50%',
-                    boxShadow: isActive
-                      ? `0 0 20px ${pass.color}50, 0 0 40px ${pass.color}20, inset 0 0 12px ${pass.color}15`
-                      : `0 0 12px ${pass.color}15`,
-                    transition: 'all 0.4s ease',
-                    marginLeft: 4,
-                  }}
-                >
-                  <IconCircle icon={Icon} accent={pass.color} size={46} iconSize={18} />
+                {/* Node */}
+                <div style={{ marginLeft: 4 }}>
+                  <IconCircle icon={Icon} accent={C.olive} size={46} iconSize={18} />
                 </div>
 
                 {/* Content */}
-                <motion.div
-                  className="pt-1.5"
-                  animate={{ opacity: isActive ? 1 : 0.7 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <div className="pt-1.5">
                   <div
                     className="font-bold tracking-[0.14em] uppercase mb-1"
-                    style={{
-                      fontSize: text.xs,
-                      color: pass.color,
-                      textShadow: isActive ? `0 0 12px ${pass.color}40` : 'none',
-                      transition: 'text-shadow 0.4s ease',
-                    }}
+                    style={{ fontSize: text.xs, color: C.olive }}
                   >
                     Pass {i + 1} · {pass.label}
                   </div>
-                  <p style={{ fontSize: text.base, color: isActive ? 'rgba(245,241,232,0.7)' : 'rgba(245,241,232,0.45)', lineHeight: 1.6, transition: 'color 0.3s ease' }}>
+                  <p style={{ fontSize: text.base, color: C.darkText, lineHeight: 1.6 }}>
                     {pass.desc}
                   </p>
-                </motion.div>
+                </div>
               </motion.div>
             );
           })}
@@ -194,17 +106,17 @@ function LoomEngine() {
 const RIND_EXAMPLES = [
   {
     name: 'Garden Party',
-    palette: ['#B4838D', '#E8D5C4', '#6D8B74', '#F5E6D3', '#8B7355'],
+    palette: [C.plum, C.gold, C.olive, C.cream, C.muted],
     font: 'Playfair Display',
   },
   {
     name: 'Modern Minimalist',
-    palette: ['#2B2B2B', '#F5F1E8', '#9A9488', '#D6C6A8', '#E6DFD2'],
+    palette: [C.ink, C.cream, C.muted, C.gold, C.divider],
     font: 'Inter',
   },
   {
     name: 'Coastal Breeze',
-    palette: ['#4A7C8F', '#E8F0ED', '#B5CFC7', '#F0E6D3', '#6B9FAF'],
+    palette: [C.olive, C.cream, C.gold, C.plum, C.muted],
     font: 'Lora',
   },
 ];
@@ -226,12 +138,12 @@ function RindShowcase() {
       <div className="text-center mb-12">
         <h3
           className="font-[family-name:var(--eg-font-heading)] font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
-          style={{ color: '#F5F1E8' }}
+          style={{ color: C.darkHeading }}
         >
           Every pear has a unique skin. So does every celebration.
         </h3>
-        <p className="max-w-[500px] mx-auto" style={{ fontSize: text.md, color: 'rgba(245,241,232,0.6)', lineHeight: 1.8 }}>
-          Your <strong style={{ color: '#F5F1E8' }}>Rind</strong> is the visual layer that wraps your
+        <p className="max-w-[500px] mx-auto" style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.8 }}>
+          Your <strong style={{ color: C.darkHeading }}>Rind</strong> is the visual layer that wraps your
           entire site — colors, typography, artwork, and atmosphere — all woven by The Loom from
           your personality and vibe keywords.
         </p>
@@ -245,14 +157,14 @@ function RindShowcase() {
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: i * 0.12 + 0.2, duration: 0.5 }}
-            className="rounded-xl p-4 text-center"
+            className="p-4 text-center"
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              boxShadow: `0 4px 24px rgba(0,0,0,0.15)`,
+              borderRadius: card.radius,
+              background: C.darkCard,
+              border: `1px solid ${C.darkBorder}`,
             }}
           >
-            <div className="font-bold tracking-[0.14em] uppercase mb-3" style={{ fontSize: text.xs, color: 'rgba(245,241,232,0.5)' }}>
+            <div className="font-bold tracking-[0.14em] uppercase mb-3" style={{ fontSize: text.xs, color: C.darkText }}>
               {r.name}
             </div>
             {/* Color swatches */}
@@ -260,12 +172,12 @@ function RindShowcase() {
               {r.palette.map((c, j) => (
                 <div
                   key={j}
-                  className="w-9 h-9 rounded-full border"
-                  style={{ background: c, borderColor: 'rgba(255,255,255,0.15)' }}
+                  className="w-9 h-9 rounded-full"
+                  style={{ background: c, border: `1px solid ${C.darkBorder}` }}
                 />
               ))}
             </div>
-            <div className="italic" style={{ fontSize: text.sm, color: 'rgba(245,241,232,0.45)', fontFamily: r.font }}>
+            <div className="italic" style={{ fontSize: text.sm, color: C.darkText, fontFamily: r.font }}>
               {r.font}
             </div>
           </motion.div>
@@ -286,17 +198,14 @@ function RindShowcase() {
             >
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2"
-                style={{
-                  background: 'rgba(109,89,122,0.2)',
-                  boxShadow: `0 0 16px ${C.plum}20, 0 0 4px ${C.plum}15`,
-                }}
+                style={{ background: `${C.plum}33` }}
               >
                 <Icon size={16} style={{ color: C.plum }} />
               </div>
-              <div className="font-semibold" style={{ fontSize: text.xs, color: '#F5F1E8' }}>
+              <div className="font-semibold" style={{ fontSize: text.xs, color: C.darkHeading }}>
                 {f.label}
               </div>
-              <div style={{ fontSize: text.xs, color: 'rgba(245,241,232,0.45)', lineHeight: 1.5 }}>
+              <div style={{ fontSize: text.xs, color: C.darkText, lineHeight: 1.5 }}>
                 {f.desc}
               </div>
             </motion.div>
@@ -314,34 +223,25 @@ function EventDNA() {
 
   return (
     <div ref={ref}>
-      {/* Animated gradient border wrapper */}
-      <div
-        className="max-w-[600px] mx-auto rounded-2xl p-px relative"
-        style={{
-          background: `linear-gradient(135deg, ${C.plum}40, ${C.olive}30, ${C.gold}25, ${C.plum}40)`,
-          backgroundSize: '300% 300%',
-          animation: 'gradientShift 6s ease-in-out infinite',
-        }}
-      >
-        <style>{`@keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }`}</style>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6 }}
-        className="rounded-2xl p-8 text-center relative"
+        className="max-w-[600px] mx-auto p-8 text-center"
         style={{
-          background: '#232030',
-          boxShadow: `0 0 40px rgba(109,89,122,0.08), 0 0 80px rgba(163,177,138,0.04)`,
+          borderRadius: card.radius,
+          background: C.darkCard,
+          border: `1px solid ${C.darkBorder}`,
         }}
       >
-        <Dna size={32} style={{ color: C.plum, margin: '0 auto 1rem', opacity: 0.8, filter: `drop-shadow(0 0 8px ${C.plum}50)` }} />
+        <Dna size={32} style={{ color: C.plum, margin: '0 auto 1rem', opacity: 0.8 }} />
         <h3
           className="font-[family-name:var(--eg-font-heading)] font-extrabold text-[1.5rem] md:text-[1.75rem] mb-3 tracking-tight"
-          style={{ color: '#F5F1E8' }}
+          style={{ color: C.darkHeading }}
         >
           Event DNA Illustrations
         </h3>
-        <p className="mb-6" style={{ fontSize: text.md, color: 'rgba(245,241,232,0.55)', lineHeight: 1.75 }}>
+        <p className="mb-6" style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.75 }}>
           Mention cats, mountains, or your favourite song — and your site&rsquo;s artwork will
           reference them. The Loom extracts the details that make your celebration yours and weaves
           them into bespoke illustrations.
@@ -356,9 +256,9 @@ function EventDNA() {
                 className="px-3 py-1 rounded-full font-medium"
                 style={{
                   fontSize: text.xs,
-                  background: 'rgba(163,177,138,0.15)',
-                  color: '#B5C9A0',
-                  border: '1px solid rgba(163,177,138,0.3)',
+                  background: `${C.olive}26`,
+                  color: C.olive,
+                  border: `1px solid ${C.olive}4D`,
                 }}
               >
                 {tag}
@@ -366,11 +266,10 @@ function EventDNA() {
             ),
           )}
         </div>
-        <p className="mt-4 italic" style={{ fontSize: text.sm, color: 'rgba(245,241,232,0.4)' }}>
+        <p className="mt-4 italic" style={{ fontSize: text.sm, color: C.darkText }}>
           Each tag becomes a thread in your site&rsquo;s visual tapestry.
         </p>
       </motion.div>
-      </div>
     </div>
   );
 }
@@ -386,40 +285,11 @@ export function TheLoomShowcase() {
       id="the-loom"
       className="relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #1E1B24 0%, #2A2233 40%, #252030 70%, #1E1B24 100%)',
-        padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
+        background: C.darkBg,
+        padding: `${sectionPadding.y} ${sectionPadding.x}`,
       }}
     >
-      {/* Subtle radial glow accents */}
-      <div
-        className="absolute pointer-events-none"
-        aria-hidden
-        style={{
-          top: '15%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 600,
-          height: 600,
-          background: `radial-gradient(circle, ${C.plum}12 0%, transparent 70%)`,
-          borderRadius: '50%',
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        aria-hidden
-        style={{
-          bottom: '10%',
-          right: '10%',
-          width: 400,
-          height: 400,
-          background: `radial-gradient(circle, ${C.olive}0A 0%, transparent 70%)`,
-          borderRadius: '50%',
-        }}
-      />
-
-      <FloatingParticles />
-
-      <div className="max-w-[960px] mx-auto relative z-10">
+      <div className="max-w-[960px] mx-auto relative">
         {/* Section header */}
         <SectionHeader
           dark

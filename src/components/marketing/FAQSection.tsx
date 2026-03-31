@@ -3,8 +3,7 @@
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { C } from './colors';
-import { text } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
 const FAQS = [
@@ -56,7 +55,7 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
           {faq.q}
         </span>
         <motion.div
-          animate={{ rotate: isOpen ? 180 : 0, scale: isOpen ? 1.15 : 1 }}
+          animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
           className="flex-shrink-0"
         >
@@ -74,7 +73,7 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
           >
             <p
               className="pb-5 leading-relaxed pl-3"
-              style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, borderLeft: '3px solid #A3B18A' }}
+              style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, borderLeft: `3px solid ${C.olive}` }}
             >
               {faq.a}
             </p>
@@ -94,7 +93,7 @@ export function FAQSection() {
     <section
       ref={ref}
       id="faq"
-      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
+      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div className="max-w-[700px] mx-auto">
         <SectionHeader
@@ -103,16 +102,16 @@ export function FAQSection() {
           inView={inView}
         />
 
-        {/* Accordion — clean white card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="rounded-2xl border p-5 sm:p-8"
+          className="p-5 sm:p-8"
           style={{
-            background: 'white',
-            borderColor: C.divider,
-            boxShadow: '0 8px 32px rgba(43,43,43,0.06)',
+            borderRadius: card.radius,
+            background: card.bg,
+            border: card.border,
+            boxShadow: card.shadow,
           }}
         >
           {FAQS.map((faq, i) => (

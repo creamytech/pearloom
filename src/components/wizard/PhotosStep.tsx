@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ArrowRight, Upload, ImagePlus } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { Button } from '@/components/ui';
-import { colors, shadow, radius, opacity } from '@/lib/design-tokens';
+import { colors, text, card } from '@/lib/design-tokens';
 import type { GooglePhotoMetadata } from '@/types';
 
 interface PhotosStepProps {
@@ -27,21 +27,16 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
 
   return (
     <div>
-      {/* Photo count badge */}
+      {/* Photo count */}
       {selectedPhotos.length > 0 && (
         <div className="flex justify-center mb-6">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[0.88rem] font-medium"
-            style={{
-              background: `${colors.olive}${opacity.light}`,
-              color: colors.olive,
-              border: `1.5px solid ${colors.olive}${opacity.medium}`,
-              boxShadow: shadow.sm,
-            }}
+          <span
+            className="inline-flex items-center gap-2"
+            style={{ color: colors.olive, fontSize: text.base, fontWeight: 500 }}
           >
             <ImagePlus size={15} />
-            <span>{selectedPhotos.length} / 30 photos selected</span>
-          </div>
+            {selectedPhotos.length} / 30 photos selected
+          </span>
         </div>
       )}
 
@@ -52,14 +47,15 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
 
       {/* Local upload fallback */}
       <div
-        className="text-center mt-10 py-6 px-6 rounded-2xl mx-auto max-w-[480px]"
+        className="text-center mt-10 py-6 px-6 mx-auto max-w-[480px]"
         style={{
-          background: `rgba(255,255,255,0.5)`,
+          background: card.bg,
           border: `2px dashed ${colors.divider}`,
+          borderRadius: card.radius,
         }}
       >
         <Upload size={22} style={{ color: colors.muted, margin: '0 auto 8px' }} />
-        <p className="text-[var(--eg-muted)] text-[0.92rem] mb-4">
+        <p className="mb-4" style={{ color: colors.muted, fontSize: text.base }}>
           Google Photos refusing to sync?
         </p>
         <Button variant="secondary" size="md" onClick={onLocalUpload} className="min-h-[44px]">
@@ -69,12 +65,12 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
 
       {/* Sticky continue bar */}
       <div
-        className="sticky bottom-4 mt-8 p-3 rounded-2xl"
+        className="sticky bottom-4 mt-8 p-3"
         style={{
-          background: 'rgba(255,255,255,0.7)',
-          backdropFilter: 'blur(16px)',
-          boxShadow: shadow.lg,
-          border: `1px solid ${colors.divider}`,
+          background: colors.cream,
+          borderTop: card.border,
+          borderRadius: card.radius,
+          boxShadow: card.shadow,
         }}
       >
         <Button
@@ -90,7 +86,7 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
             : 'Select photos to continue'}
         </Button>
         {attemptedContinue && selectedPhotos.length === 0 && (
-          <p className="text-center mt-2.5 text-[0.88rem]" style={{ color: colors.plum }}>
+          <p className="text-center mt-2.5" style={{ color: colors.plum, fontSize: text.base }}>
             Select at least 1 photo to continue
           </p>
         )}

@@ -7,15 +7,15 @@ import { cn } from '@/lib/cn';
 
 const variants = {
   primary:
-    'bg-[var(--eg-fg)] text-white hover:bg-[#3d3530] shadow-[var(--eg-shadow-sm)] hover:shadow-[var(--eg-shadow-md)] hover:-translate-y-px',
+    'bg-[var(--eg-fg)] text-white hover:bg-[var(--eg-dark-2)] shadow-[var(--eg-shadow-sm)] hover:shadow-[var(--eg-shadow-md)] hover:-translate-y-px',
   accent:
-    'bg-[var(--eg-accent)] text-white hover:bg-[var(--eg-accent-hover)] shadow-[0_2px_12px_rgba(163,177,138,0.35)] hover:shadow-[0_6px_24px_rgba(163,177,138,0.45)]',
+    'bg-[var(--eg-accent)] text-white hover:bg-[var(--eg-accent-hover)] shadow-[var(--eg-shadow-sm)] hover:shadow-[var(--eg-shadow-md)]',
   secondary:
-    'bg-transparent border border-[rgba(0,0,0,0.1)] text-[var(--eg-fg)] hover:border-[var(--eg-accent)] hover:bg-[rgba(163,177,138,0.04)]',
+    'bg-transparent border border-[var(--eg-divider)] text-[var(--eg-fg)] hover:border-[var(--eg-accent)] hover:bg-[rgba(163,177,138,0.04)]',
   ghost:
     'bg-transparent text-[var(--eg-muted)] hover:text-[var(--eg-fg)] hover:bg-[rgba(0,0,0,0.03)]',
   danger:
-    'bg-[#ef4444] text-white hover:bg-[#dc2626] shadow-[0_2px_8px_rgba(239,68,68,0.2)]',
+    'bg-red-500 text-white hover:bg-red-600 shadow-[var(--eg-shadow-sm)]',
 } as const;
 
 const sizes = {

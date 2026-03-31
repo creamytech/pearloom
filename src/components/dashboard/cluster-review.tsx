@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { MapPin, Calendar, Camera, Pencil, Check, Loader2, Scissors, Merge } from 'lucide-react';
 import type { GooglePhotoMetadata, PhotoCluster, GeoLocation } from '@/types';
 import { clusterPhotos } from '@/lib/google-photos';
+import { colors as C, text, card } from '@/lib/design-tokens';
 
 interface ClusterReviewProps {
   photos: GooglePhotoMetadata[];
@@ -163,9 +164,9 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-          background: 'var(--eg-accent-light)', color: 'var(--eg-accent)',
+          background: `${C.olive}1A`, color: C.olive,
           padding: '0.4rem 1.1rem', borderRadius: '100px',
-          fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.04em',
+          fontSize: text.sm, fontWeight: 600, letterSpacing: '0.04em',
           marginBottom: '1.25rem',
         }}>
           <Calendar size={13} /> {clusters.length} memory group{clusters.length !== 1 ? 's' : ''} detected
@@ -173,7 +174,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.75rem', fontWeight: 600 }}>
           Where were these taken?
         </h3>
-        <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '480px', margin: '0 auto' }}>
+        <p style={{ color: C.muted, fontSize: text.md, lineHeight: 1.6, maxWidth: '480px', margin: '0 auto' }}>
           We grouped your photos by trip or event. Add a location to any group that&apos;s missing one — the AI uses this to write richer stories.
         </p>
       </div>
@@ -192,11 +193,11 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
               style={{
-                background: 'var(--eg-bg)',
-                borderRadius: '1rem',
-                border: hasLocation ? '1.5px solid rgba(163,177,138,0.35)' : '1.5px solid rgba(0,0,0,0.08)',
+                background: card.bg,
+                borderRadius: card.radius,
+                border: hasLocation ? `1px solid ${C.olive}55` : card.border,
                 overflow: 'hidden',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+                boxShadow: card.shadow,
                 transition: 'border-color 0.25s ease',
               }}
             >
@@ -229,11 +230,11 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                 <div style={{ flex: 1, padding: '1.25rem 1.5rem' }}>
                   {/* Date range + photo count */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--eg-muted)', fontWeight: 500 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: text.sm, color: C.muted, fontWeight: 500 }}>
                       <Calendar size={13} />
                       {formatDateRange(cluster.startDate, cluster.endDate)}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', color: 'var(--eg-muted)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: text.sm, color: C.muted }}>
                       <Camera size={12} />
                       {cluster.photos.length} photo{cluster.photos.length !== 1 ? 's' : ''}
                     </div>
@@ -243,7 +244,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                   {isEditing ? (
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <div style={{ position: 'relative', flex: 1 }}>
-                        <MapPin size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--eg-accent)', opacity: 0.6 }} />
+                        <MapPin size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: C.olive, opacity: 0.6 }} />
                         <input
                           autoFocus
                           type="text"
@@ -259,9 +260,9 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           style={{
                             width: '100%', boxSizing: 'border-box',
                             padding: '0.6rem 0.75rem 0.6rem 2.25rem',
-                            borderRadius: '0.5rem', border: '1.5px solid var(--eg-accent)',
+                            borderRadius: card.radius, border: `1.5px solid ${C.olive}`,
                             fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--eg-font-body)',
-                            outline: 'none', background: 'var(--eg-bg)',
+                            outline: 'none', background: card.bg,
                           }}
                         />
                       </div>
@@ -271,9 +272,9 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         }}
                         disabled={isGeocoding}
                         style={{
-                          padding: '0.6rem 1rem', borderRadius: '0.5rem',
-                          background: 'var(--eg-accent)', color: 'var(--eg-bg)',
-                          border: 'none', cursor: 'pointer', fontSize: '0.85rem',
+                          padding: '0.6rem 1rem', borderRadius: card.radius,
+                          background: C.olive, color: '#fff',
+                          border: 'none', cursor: 'pointer', fontSize: text.sm,
                           fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem',
                           flexShrink: 0,
                         }}
@@ -283,7 +284,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                       </button>
                       <button
                         onClick={() => { setEditingIdx(null); setDraftLocation(''); }}
-                        style={{ padding: '0.6rem', borderRadius: '0.5rem', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', cursor: 'pointer', color: 'var(--eg-muted)', fontSize: '0.85rem' }}
+                        style={{ padding: '0.6rem', borderRadius: card.radius, background: 'transparent', border: card.border, cursor: 'pointer', color: C.muted, fontSize: text.sm }}
                       >
                         ✕
                       </button>
@@ -292,17 +293,17 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div style={{ flex: 1 }}>
                         {hasLocation ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>
-                            <MapPin size={14} color="var(--eg-accent)" />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.md, fontWeight: 600, color: C.ink }}>
+                            <MapPin size={14} color={C.olive} />
                             {cluster.location!.label}
                             {cluster.location!.lat !== 0 && (
-                              <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 400, marginLeft: '0.25rem' }}>
+                              <span style={{ fontSize: text.xs, color: C.muted, fontWeight: 400, marginLeft: '0.25rem' }}>
                                 (GPS verified)
                               </span>
                             )}
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.9rem', color: 'var(--eg-muted)', fontStyle: 'italic' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.base, color: C.muted, fontStyle: 'italic' }}>
                             <MapPin size={14} style={{ opacity: 0.4 }} />
                             No location detected — add one for a richer story
                           </div>
@@ -316,9 +317,9 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.35rem',
                           padding: '0.45rem 0.9rem', borderRadius: '100px',
-                          border: '1px solid rgba(0,0,0,0.1)', background: hasLocation ? 'rgba(163,177,138,0.08)' : '#f5f5f5',
-                          color: hasLocation ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                          fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
+                          border: card.border, background: hasLocation ? `${C.olive}14` : C.cream,
+                          color: hasLocation ? C.olive : C.muted,
+                          fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
                           transition: 'all 0.2s ease', flexShrink: 0,
                         }}
                       >
@@ -341,8 +342,8 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.3rem',
                           padding: '0.35rem 0.7rem', borderRadius: '100px',
-                          border: '1px solid rgba(0,0,0,0.08)', background: '#f9f9f9',
-                          color: 'var(--eg-muted)', fontSize: '0.75rem', fontWeight: 600,
+                          border: card.border, background: C.cream,
+                          color: C.muted, fontSize: text.xs, fontWeight: 600,
                           cursor: 'pointer', transition: 'all 0.2s',
                         }}
                       >
@@ -356,8 +357,8 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.3rem',
                           padding: '0.35rem 0.7rem', borderRadius: '100px',
-                          border: '1px solid rgba(0,0,0,0.08)', background: '#f9f9f9',
-                          color: 'var(--eg-muted)', fontSize: '0.75rem', fontWeight: 600,
+                          border: card.border, background: C.cream,
+                          color: C.muted, fontSize: text.xs, fontWeight: 600,
                           cursor: 'pointer', transition: 'all 0.2s',
                         }}
                       >
@@ -382,26 +383,26 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           width: '100%', boxSizing: 'border-box',
                           padding: '0.55rem 0.75rem',
-                          borderRadius: '0.5rem',
-                          border: '1.5px solid rgba(0,0,0,0.08)',
+                          borderRadius: card.radius,
+                          border: card.border,
                           fontSize: 'max(16px, 0.9rem)',
                           fontFamily: 'var(--eg-font-body)',
-                          color: 'var(--eg-fg)',
+                          color: C.ink,
                           outline: 'none',
                           resize: 'none',
-                          background: '#fafafa',
+                          background: C.cream,
                           lineHeight: 1.5,
                           transition: 'border-color 0.2s',
                         }}
-                        onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; }}
-                        onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                        onFocus={e => { e.target.style.borderColor = C.olive; }}
+                        onBlur={e => { e.target.style.borderColor = C.divider; }}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
-                      <label style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontWeight: 500 }}>
+                      <label style={{ fontSize: text.xs, color: C.muted, fontWeight: 500 }}>
                         What was happening here?
                       </label>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)' }}>
+                      <span style={{ fontSize: text.xs, color: C.muted }}>
                         {120 - ((draftNotes[idx] ?? cluster.note ?? '').length)} remaining
                       </span>
                     </div>
@@ -411,9 +412,9 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                 {/* Done indicator */}
                 {hasLocation && !isEditing && (
                   <div style={{
-                    width: '4px', alignSelf: 'stretch',
-                    background: 'var(--eg-accent)', borderRadius: '0 1rem 1rem 0',
-                    opacity: 0.6,
+                    width: '3px', alignSelf: 'stretch',
+                    background: C.olive, borderRadius: `0 ${card.radius} ${card.radius} 0`,
+                    opacity: 0.5,
                   }} />
                 )}
               </div>
@@ -427,37 +428,38 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         <button
           onClick={onBack}
           style={{
-            padding: '0.9rem 1.75rem', borderRadius: '0.75rem',
-            border: '1px solid rgba(0,0,0,0.1)', background: 'var(--eg-bg)',
-            color: 'var(--eg-fg)', fontSize: '0.95rem', fontWeight: 500,
+            padding: '0.9rem 1.75rem', borderRadius: card.radius,
+            border: card.border, background: card.bg,
+            color: C.ink, fontSize: text.base, fontWeight: 500,
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
-            transition: 'background 0.2s, border-color 0.2s',
+            transition: 'background 0.2s, box-shadow 0.2s',
+            boxShadow: card.shadow,
           }}
-          onMouseOver={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'; }}
-          onMouseOut={e => { e.currentTarget.style.background = 'var(--eg-bg)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}
+          onMouseOver={e => { e.currentTarget.style.boxShadow = card.shadowHover; }}
+          onMouseOut={e => { e.currentTarget.style.boxShadow = card.shadow; }}
         >
           ← Back
         </button>
         <button
           onClick={() => onConfirm(clusters)}
           style={{
-            flex: 1, padding: '1rem 1.5rem', borderRadius: '0.75rem',
-            background: 'var(--eg-fg)', color: 'var(--eg-bg)',
-            border: 'none', fontSize: '0.95rem', fontWeight: 600,
+            flex: 1, padding: '1rem 1.5rem', borderRadius: card.radius,
+            background: C.ink, color: '#fff',
+            border: 'none', fontSize: text.base, fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: '0.5rem',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+            boxShadow: card.shadow,
             transition: 'opacity 0.2s, box-shadow 0.2s',
           }}
-          onMouseOver={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.16)'; }}
-          onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)'; }}
+          onMouseOver={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.boxShadow = card.shadowHover; }}
+          onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.boxShadow = card.shadow; }}
         >
           Continue to Set Your Vibe →
         </button>
       </div>
 
       {!allLocationsSet && (
-        <p style={{ textAlign: 'center', fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '1rem', opacity: 0.7 }}>
+        <p style={{ textAlign: 'center', fontSize: text.sm, color: C.muted, marginTop: '1rem', opacity: 0.7 }}>
           Tip: Adding locations helps the AI write more personal, geographically-detailed stories for each chapter.
         </p>
       )}

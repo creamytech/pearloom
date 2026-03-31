@@ -3,8 +3,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Upload, Cpu, Share2 } from 'lucide-react';
-import { C } from './colors';
-import { text } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
 
@@ -19,7 +18,6 @@ const STEPS = [
       heading: 'Tell us about your celebration',
       items: ['Upload 10+ photos', 'Describe your vibe', 'Add event details'],
     },
-    cardStyle: { border: `2px dashed ${C.olive}40`, background: 'white' } as React.CSSProperties,
   },
   {
     n: '02',
@@ -31,7 +29,6 @@ const STEPS = [
       heading: 'The Loom is working\u2026',
       items: ['Reading your photos', 'Weaving your Rind\u2122', 'Crafting your narrative'],
     },
-    cardStyle: { border: `2px solid ${C.plum}30`, background: 'rgba(109,89,122,0.04)' } as React.CSSProperties,
   },
   {
     n: '03',
@@ -43,18 +40,19 @@ const STEPS = [
       heading: 'Your site is live!',
       items: ['Drag & drop editor', 'RSVP tracking', 'Guest time capsule'],
     },
-    cardStyle: { border: `2px solid ${C.olive}`, background: 'white' } as React.CSSProperties,
   },
 ];
 
 function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
   return (
     <div
-      className="p-5 w-full max-w-[400px]"
+      className="w-full max-w-[400px]"
       style={{
-        ...step.cardStyle,
-        borderRadius: '1rem',
-        boxShadow: '0 8px 32px rgba(43,43,43,0.06)',
+        background: card.bg,
+        borderRadius: card.radius,
+        border: card.border,
+        boxShadow: card.shadow,
+        padding: '1.5rem',
       }}
     >
       <div className="flex items-center gap-2 mb-3">
@@ -65,7 +63,7 @@ function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
           {step.mockup.heading}
         </div>
         {step.n === '03' && (
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#22c55e' }} />
+          <div className="w-2 h-2 rounded-full" style={{ background: C.olive }} />
         )}
       </div>
       <div className="flex flex-col gap-2.5">
@@ -86,12 +84,9 @@ function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
       {/* Progress bar for step 2 */}
       {step.n === '02' && (
         <div className="mt-4 h-1.5 rounded-full overflow-hidden" style={{ background: `${C.plum}15` }}>
-          <motion.div
+          <div
             className="h-full rounded-full"
-            style={{ background: C.plum }}
-            initial={{ width: '0%' }}
-            animate={{ width: '72%' }}
-            transition={{ duration: 2, ease: 'easeOut', delay: 0.5 }}
+            style={{ background: C.plum, width: '72%' }}
           />
         </div>
       )}
@@ -107,22 +102,21 @@ export function HowItWorks() {
     <section
       ref={ref}
       id="how-it-works"
-      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
+      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <style>{`
-        @keyframes pulse-step {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(163,177,138,0.3); }
-          50% { box-shadow: 0 0 0 8px rgba(163,177,138,0); }
-        }
-      `}</style>
       <div className="max-w-[960px] mx-auto">
+        {/* Decorative gold rule */}
+        <div className="flex justify-center mb-6">
+          <div style={{ width: 60, height: 1, background: C.gold }} />
+        </div>
+
         <SectionHeader
           watermark="3"
           title="From photos to a finished site in minutes"
           inView={inView}
         />
 
-        {/* Progress line (desktop) — gradient connector */}
+        {/* Progress line (desktop) — elegant gold connector */}
         <div className="hidden md:flex justify-center gap-0 mb-12">
           {STEPS.map((s, i) => (
             <div key={s.n} className="flex items-center">
@@ -130,24 +124,20 @@ export function HowItWorks() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: i * 0.15 + 0.3 }}
-                className="w-12 h-12 rounded-full flex items-center justify-center font-bold"
+                className="w-10 h-10 rounded-full flex items-center justify-center font-[family-name:var(--eg-font-heading)]"
                 style={{
                   fontSize: text.sm,
-                  background: `${s.accent}18`,
-                  color: s.accent,
-                  border: `2px solid ${s.accent}40`,
-                  animation: i === 0 ? 'pulse-step 2s ease-in-out infinite' : undefined,
+                  fontWeight: 700,
+                  background: s.accent,
+                  color: '#fff',
                 }}
               >
                 {s.n}
               </motion.div>
               {i < STEPS.length - 1 && (
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={inView ? { scaleX: 1 } : {}}
-                  transition={{ delay: i * 0.15 + 0.45, duration: 0.5 }}
-                  className="w-32 origin-left"
-                  style={{ height: 2, background: `linear-gradient(to right, ${STEPS[i].accent}, ${STEPS[i + 1].accent})` }}
+                <div
+                  className="w-32"
+                  style={{ height: 1, background: C.gold }}
                 />
               )}
             </div>
@@ -171,21 +161,15 @@ export function HowItWorks() {
                 <div className="flex-1 text-center md:text-left">
                   <div className="flex items-center gap-3 mb-4 justify-center md:justify-start">
                     <IconCircle icon={Icon} accent={s.accent} size={48} iconSize={22} />
-                    <span
-                      className="font-[family-name:var(--eg-font-heading)] text-[5rem] font-bold leading-none select-none"
-                      style={{ color: `${s.accent}12` }}
-                    >
-                      {s.n}
-                    </span>
                   </div>
                   <h3
-                    className="font-[family-name:var(--eg-font-heading)] font-bold mb-3"
-                    style={{ fontSize: text.xl, color: C.ink }}
+                    className="font-[family-name:var(--eg-font-heading)] mb-3"
+                    style={{ fontSize: text.xl, fontWeight: 600, color: C.ink }}
                   >
                     {s.title}
                   </h3>
                   <p
-                    className="leading-relaxed max-w-[400px] mx-auto md:mx-0"
+                    className="font-[family-name:var(--eg-font-body)] max-w-[400px] mx-auto md:mx-0"
                     style={{ fontSize: text.md, color: C.muted, lineHeight: 1.8 }}
                   >
                     {s.body}
