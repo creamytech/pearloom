@@ -69,6 +69,35 @@ async function uploadPhotoUrl(rawUrl: string): Promise<string> {
   }
 }
 
+/** Upload a base64 data URL to R2, return a permanent URL */
+async function uploadBase64Art(dataUrl: string, label: string): Promise<string> {
+  const r2 = getR2Client();
+  if (!r2 || !r2.publicBase) return dataUrl;
+
+  try {
+    const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (!match) return dataUrl;
+
+    const contentType = match[1];
+    const buffer = Buffer.from(match[2], 'base64');
+    const ext = contentType.includes('png') ? 'png' : 'jpg';
+    const key = `art/${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+    await r2.client.send(new PutObjectCommand({
+      Bucket: r2.bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+      CacheControl: 'public, max-age=31536000, immutable',
+    }));
+
+    return `${r2.publicBase}/${key}`;
+  } catch (err) {
+    console.warn(`[R2 Upload] Failed to upload ${label} art:`, err instanceof Error ? err.message : err);
+    return dataUrl;
+  }
+}
+
 function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean) {
   const base = [
     { id: 'hero', type: 'hero', visible: true, order: 0 },
@@ -427,6 +456,24 @@ export async function POST(req: NextRequest) {
 
     // Pick a context-aware logo icon based on occasion + vibe
     manifest.logoIcon = pickLogoIcon(occasion, vibeString);
+
+    // Upload AI-generated raster art to R2 for permanent URLs (base64 DataURLs are too large for sessionStorage)
+    if (manifest.vibeSkin) {
+      const artUploads = await Promise.all([
+        manifest.vibeSkin.heroArtDataUrl?.startsWith('data:')
+          ? uploadBase64Art(manifest.vibeSkin.heroArtDataUrl, 'hero')
+          : Promise.resolve(manifest.vibeSkin.heroArtDataUrl),
+        manifest.vibeSkin.ambientArtDataUrl?.startsWith('data:')
+          ? uploadBase64Art(manifest.vibeSkin.ambientArtDataUrl, 'ambient')
+          : Promise.resolve(manifest.vibeSkin.ambientArtDataUrl),
+        manifest.vibeSkin.artStripDataUrl?.startsWith('data:')
+          ? uploadBase64Art(manifest.vibeSkin.artStripDataUrl, 'strip')
+          : Promise.resolve(manifest.vibeSkin.artStripDataUrl),
+      ]);
+      if (artUploads[0]) manifest.vibeSkin.heroArtDataUrl = artUploads[0];
+      if (artUploads[1]) manifest.vibeSkin.ambientArtDataUrl = artUploads[1];
+      if (artUploads[2]) manifest.vibeSkin.artStripDataUrl = artUploads[2];
+    }
 
     return NextResponse.json({ manifest });
   } catch (error) {

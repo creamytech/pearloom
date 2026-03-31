@@ -357,17 +357,17 @@ function PreviewContent() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={vibeSkin.heroArtDataUrl} alt="" role="presentation" style={{
             width: '100%', height: '100%', objectFit: 'cover',
-            opacity: 0.22, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+            opacity: 0.50, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
           }} />
         </div>
       )}
       {/* SVG blob art fallback when no raster art */}
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
-        <div style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
+        <div style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.35 }}
           dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }} />
       )}
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
-        <div style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
+        <div style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.25, transform: 'scaleX(-1)' }}
           dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }} />
       )}
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: '0 2rem' }}>
@@ -442,14 +442,14 @@ function PreviewContent() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={vibeSkin.ambientArtDataUrl} alt="" role="presentation" style={{
                   width: '100%', height: '100%', objectFit: 'cover',
-                  opacity: 0.10, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
+                  opacity: 0.28, mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
                 }} />
               </div>
             ) : vibeSkin.heroPatternSvg ? (
               <div style={{
                 position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
                 backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
-                backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.13,
+                backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.22,
               }} />
             ) : null}
             {visibleBlocks.map(block => renderBlock(block.type, block.id))}
