@@ -2,68 +2,29 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/dashboard/generation-progress.tsx
-// Cinematic generation experience — live photo collage + AI thought stream
+// "The Darkroom" — cinematic film-development loading experience
+// Photos develop like Polaroids; AI thoughts scroll like credits
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GooglePhotoMetadata } from '@/types';
 import { colors as C, text } from '@/lib/design-tokens';
 
 // ── Pass descriptors ──────────────────────────────────────────
 const PASSES = [
-  {
-    headline: 'Listening...',
-    copy: 'Reading every photo, every place, every quiet moment you shared.',
-    meta: 'The Loom · Initialising',
-    pct: 5,
-  },
-  {
-    headline: 'Writing your story.',
-    copy: 'Weaving your memories into an intimate narrative — chapters only you could have lived.',
-    meta: 'The Loom · Pass 1 of 7 · Story generation',
-    pct: 20,
-  },
-  {
-    headline: 'Every word, considered.',
-    copy: "Reading every line back — making sure it feels real, specific, and unmistakably yours.",
-    meta: 'The Loom · Pass 2 of 7 · Quality refinement',
-    pct: 34,
-  },
-  {
-    headline: 'Learning who you are.',
-    copy: 'Identifying the details that make you uniquely you — the little things that define a relationship.',
-    meta: 'The Loom · Pass 3 of 7 · Event DNA',
-    pct: 47,
-  },
-  {
-    headline: 'Designing your world.',
-    copy: 'A colour palette, typography, and visual identity — crafted entirely around your vibe.',
-    meta: 'The Loom · Pass 4 of 7 · Visual identity',
-    pct: 61,
-  },
-  {
-    headline: 'Painting your canvas.',
-    copy: 'AI-generated imagery, made for this moment and no other.',
-    meta: 'The Loom · Pass 5 of 7 · Custom artwork',
-    pct: 74,
-  },
-  {
-    headline: 'Refining the details.',
-    copy: 'Colours balanced, proportions harmonised, emotions calibrated just right.',
-    meta: 'The Loom · Pass 6 of 7 · Design critique',
-    pct: 86,
-  },
-  {
-    headline: 'Finding the words.',
-    copy: 'A tagline, a closing line, a welcome in your own voice. The final poetry.',
-    meta: 'The Loom · Pass 7 of 7 · Poetry',
-    pct: 95,
-  },
+  { headline: 'Developing...', copy: 'Loading your memories into the darkroom.', pct: 5 },
+  { headline: 'Writing your story', copy: 'Each photo becomes a chapter only you could have lived.', pct: 20 },
+  { headline: 'Refining every word', copy: 'Making sure it sounds like you, not anyone else.', pct: 34 },
+  { headline: 'Learning your DNA', copy: 'The pets, the places, the inside jokes.', pct: 47 },
+  { headline: 'Designing your world', copy: 'Colors, fonts, and shapes — born from your vibe.', pct: 61 },
+  { headline: 'Painting custom art', copy: 'AI-generated imagery that belongs to no one else.', pct: 74 },
+  { headline: 'Critiquing the design', copy: 'A second opinion on every detail.', pct: 86 },
+  { headline: 'Final poetry', copy: 'The tagline. The closing line. The welcome in your voice.', pct: 95 },
 ];
 
-// ── Build dynamic AI thought lines from real user inputs ──────
-function buildThoughtLines(
+// ── Build dynamic thought lines from user inputs ──────────────
+function buildThoughts(
   passIdx: number,
   names: [string, string],
   vibeString: string,
@@ -71,68 +32,199 @@ function buildThoughtLines(
   photoCount: number,
 ): string[] {
   const [n1, n2] = names;
-  const vibeWords = vibeString
-    .split(/[,;.]+/)
-    .map(s => s.trim().toLowerCase())
-    .filter(s => s.length > 2)
-    .slice(0, 8);
+  const isCouple = n2?.trim().length > 0;
+  const who = isCouple ? `${n1} & ${n2}` : n1 || 'you';
+  const vibeWords = vibeString.split(/[,;.]+/).map(s => s.trim()).filter(s => s.length > 2).slice(0, 6);
 
-  const isCouple = n2 && n2.trim().length > 0;
+  const lines: Record<number, string[]> = {
+    0: [
+      `${photoCount} memories loaded`,
+      `Getting to know ${who}`,
+      vibeWords[0] ? `Feeling something ${vibeWords[0].toLowerCase()}` : 'Reading the quiet details',
+    ],
+    1: [
+      `A story is forming — uniquely ${who}`,
+      'Each chapter is its own small universe',
+      vibeWords[0] ? `"${vibeWords[0]}" woven through every line` : 'Every word chosen with intention',
+    ],
+    2: [
+      'Reading back every line',
+      `Does this feel like ${who}? Truly?`,
+      'Replacing anything that sounds generic',
+    ],
+    3: [
+      'The habits, the places, the inside moments',
+      `Building a portrait of ${who}`,
+      vibeWords[1] ? `"${vibeWords[1]}" keeps surfacing` : 'Details that make this irreplaceable',
+    ],
+    4: [
+      vibeWords[0] ? `A palette born from "${vibeWords[0]}"` : 'Designing a visual world from scratch',
+      'Typography that feels like the story itself',
+      'Every colour chosen with intention',
+    ],
+    5: [
+      'Painting the atmosphere',
+      vibeWords[0] ? `Art direction: ${vibeWords[0]}${vibeWords[1] ? ` meets ${vibeWords[1]}` : ''}` : 'Custom imagery for this moment only',
+      'Something no one else will ever have',
+    ],
+    6: [
+      'Does it feel balanced?',
+      'Adjusting the light, the weight, the silence between sections',
+      'Almost there',
+    ],
+    7: [
+      `A final line written just for ${who}`,
+      'The words that arrive when everything else is ready',
+      "This is the part that can't be rushed",
+    ],
+  };
 
-  if (passIdx === 0) return [
-    `${photoCount} ${photoCount === 1 ? 'memory' : 'memories'} — each one a small world to explore`,
-    isCouple ? `Getting to know ${n1} & ${n2}...` : `Getting to know ${n1 || 'you'}...`,
-    vibeWords[0] ? `Something ${vibeWords[0]} is already taking shape` : `Feeling the quiet details between the lines`,
-  ];
-
-  if (passIdx === 1) return [
-    isCouple ? `A story is forming — uniquely ${n1} & ${n2}` : `A story is forming — uniquely ${n1 || 'yours'}`,
-    `Each chapter is its own small universe`,
-    vibeWords[0] ? `"${vibeWords[0]}" is woven through every line` : `Each word chosen with care`,
-  ];
-
-  if (passIdx === 2) return [
-    `Reading back every line with fresh eyes`,
-    isCouple ? `Does this feel like ${n1} & ${n2}? Truly?` : `Does this feel true?`,
-    `Replacing anything that sounds like anyone else`,
-  ];
-
-  if (passIdx === 3) return [
-    `The little details — habits, places, inside moments`,
-    isCouple ? `Building a portrait of ${n1} & ${n2}` : `Building a portrait of ${n1 || 'you'}`,
-    vibeWords[1] ? `"${vibeWords[1]}" keeps coming back` : `The details that make this story irreplaceable`,
-  ];
-
-  if (passIdx === 4) return [
-    vibeWords[0] ? `A palette born from "${vibeWords[0]}"` : `Designing a visual world from scratch`,
-    `Typography that feels like the story itself`,
-    `Every colour, every curve, chosen with intention`,
-  ];
-
-  if (passIdx === 5) return [
-    `Painting the atmosphere`,
-    vibeWords[0] ? `Art direction: "${vibeWords[0]}"${vibeWords[1] ? ` meets "${vibeWords[1]}"` : ''}` : `Custom imagery made for this moment only`,
-    `Something no one else will ever have`,
-  ];
-
-  if (passIdx === 6) return [
-    `Does it feel balanced? Breathing?`,
-    `Adjusting the light, the weight, the silence between sections`,
-    `Almost there`,
-  ];
-
-  return [
-    isCouple ? `A final line written just for ${n1} & ${n2}` : `The perfect closing line`,
-    `The words that arrive when everything else is ready`,
-    `This is the part that can't be rushed`,
-  ];
+  return lines[passIdx] ?? lines[0];
 }
 
-// ── Typewriter component ──────────────────────────────────────
-function TypewriterText({ text, speed = 14 }: { text: string; speed?: number }) {
+// ── Polaroid developing photo ─────────────────────────────────
+function DevelopingPhoto({
+  src,
+  isActive,
+  position,
+}: {
+  src: string;
+  isActive: boolean;
+  position: 'current' | 'prev' | 'next' | 'far';
+}) {
+  const transforms: Record<string, { x: number; scale: number; rotateY: number; opacity: number; z: number }> = {
+    far: { x: 0, scale: 0.5, rotateY: 0, opacity: 0, z: -200 },
+    prev: { x: -260, scale: 0.65, rotateY: 12, opacity: 0.3, z: -100 },
+    current: { x: 0, scale: 1, rotateY: 0, opacity: 1, z: 0 },
+    next: { x: 260, scale: 0.65, rotateY: -12, opacity: 0.3, z: -100 },
+  };
+
+  const t = transforms[position];
+
+  return (
+    <motion.div
+      animate={{
+        x: t.x,
+        scale: t.scale,
+        rotateY: t.rotateY,
+        opacity: t.opacity,
+        z: t.z,
+      }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: 'absolute',
+        width: 'min(420px, 75vw)',
+        aspectRatio: '4/3',
+        borderRadius: '4px',
+        overflow: 'hidden',
+        boxShadow: isActive
+          ? '0 20px 60px rgba(0,0,0,0.6), 0 0 80px rgba(163,177,138,0.08)'
+          : '0 8px 30px rgba(0,0,0,0.4)',
+        border: isActive ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        transformStyle: 'preserve-3d',
+        willChange: 'transform, opacity',
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+        loading="lazy"
+      />
+      {/* Film grain overlay */}
+      {isActive && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'repeating-conic-gradient(rgba(255,255,255,0.01) 0% 25%, transparent 0% 50%) 0 0 / 3px 3px',
+          mixBlendMode: 'overlay',
+          pointerEvents: 'none',
+        }} />
+      )}
+      {/* Developing reveal mask — wipes down */}
+      {isActive && (
+        <motion.div
+          initial={{ height: '100%' }}
+          animate={{ height: '0%' }}
+          transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+          style={{
+            position: 'absolute', top: 0, left: 0, right: 0,
+            background: C.darkBg,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+    </motion.div>
+  );
+}
+
+// ── Film strip progress bar ───────────────────────────────────
+function FilmStrip({
+  photos,
+  activeIndex,
+  progress,
+}: {
+  photos: string[];
+  activeIndex: number;
+  progress: number;
+}) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: '0.5rem',
+      width: '100%', maxWidth: '600px',
+    }}>
+      {/* Thumbnail strip */}
+      <div style={{
+        display: 'flex', gap: '3px', justifyContent: 'center',
+        padding: '0 1rem', overflow: 'hidden',
+      }}>
+        {photos.slice(0, 12).map((src, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              opacity: i === activeIndex ? 1 : i < activeIndex ? 0.5 : 0.2,
+              scale: i === activeIndex ? 1.1 : 1,
+            }}
+            transition={{ duration: 0.4 }}
+            style={{
+              width: 'clamp(28px, 5vw, 44px)',
+              aspectRatio: '4/3',
+              borderRadius: '2px',
+              overflow: 'hidden',
+              border: i === activeIndex ? `1.5px solid ${C.olive}` : '1px solid rgba(255,255,255,0.06)',
+              flexShrink: 0,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
+          </motion.div>
+        ))}
+      </div>
+      {/* Progress bar */}
+      <div style={{
+        height: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '1px',
+        overflow: 'hidden', width: '100%',
+      }}>
+        <motion.div
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          style={{ height: '100%', background: C.olive, borderRadius: '1px' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── Ambient thought line ──────────────────────────────────────
+function TypewriterText({ text: displayText, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
-  const textRef = useRef(text);
-  textRef.current = text;
+  const textRef = useRef(displayText);
+  textRef.current = displayText;
 
   useEffect(() => {
     setDisplayed('');
@@ -141,142 +233,62 @@ function TypewriterText({ text, speed = 14 }: { text: string; speed?: number }) 
       i++;
       setDisplayed(textRef.current.slice(0, i));
       if (i >= textRef.current.length) return;
-      // Variable speed: punctuation pauses longer
       const ch = textRef.current[i - 1];
-      const delay = /[.,;:!?—–]/.test(ch) ? speed + 60 : speed;
+      const delay = /[.,;:!?—–]/.test(ch) ? speed + 70 : speed;
       setTimeout(advance, delay);
     };
     const t = setTimeout(advance, speed);
     return () => clearTimeout(t);
-  }, [text, speed]);
+  }, [displayText, speed]);
 
   return (
     <>
       {displayed}
-      {displayed.length < text.length && (
+      {displayed.length < displayText.length && (
         <motion.span
           animate={{ opacity: [1, 0, 1] }}
           transition={{ duration: 0.8, repeat: Infinity }}
-          style={{ display: 'inline-block', width: '1px', height: '1em', background: `${C.gold}AA`, marginLeft: '1px', verticalAlign: 'text-bottom' }}
+          style={{ display: 'inline-block', width: '1px', height: '0.9em', background: `${C.gold}88`, marginLeft: '1px', verticalAlign: 'text-bottom' }}
         />
       )}
     </>
   );
 }
 
-// ── Photo tile — floats, scans, and fades ─────────────────────
-function PhotoTile({
-  src,
-  x, y,
-  size,
-  rotation,
-  delay,
-  blurAmount,
-  isActive,
-}: {
-  src: string;
-  x: string; y: string;
-  size: number;
-  rotation: number;
-  delay: number;
-  blurAmount: number;
-  isActive: boolean;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.85 }}
-      animate={{
-        opacity: isActive ? [0.55, 0.85, 0.55] : [0.18, 0.32, 0.18],
-        scale: isActive ? [1, 1.04, 1] : [1, 1.02, 1],
-        y: [0, -12, 4, -8, 0],
-      x: [0, 6, -6, 3, 0],
-        filter: isActive
-          ? [`blur(0px) brightness(1.1)`, `blur(0px) brightness(1.2)`, `blur(0px) brightness(1.1)`]
-          : [`blur(${blurAmount}px) brightness(0.7)`, `blur(${blurAmount * 0.8}px) brightness(0.8)`, `blur(${blurAmount}px) brightness(0.7)`],
-      }}
-      transition={{
-        opacity: { duration: isActive ? 2.5 : 8, repeat: Infinity, ease: 'easeInOut', delay },
-        scale: { duration: isActive ? 2.5 : 12, repeat: Infinity, ease: 'easeInOut', delay },
-        y: { duration: 14 + delay * 2, repeat: Infinity, ease: 'easeInOut', delay },
-        x: { duration: 11 + delay * 1.5, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.5 },
-        filter: { duration: isActive ? 2 : 8, repeat: Infinity, ease: 'easeInOut', delay },
-      }}
-      style={{
-        position: 'absolute',
-        left: x, top: y,
-        width: size,
-        height: size * 0.75,
-        transform: `rotate(${rotation}deg)`,
-        borderRadius: 6,
-        overflow: 'hidden',
-        border: isActive ? `1px solid ${C.darkBorder}` : 'none',
-        boxShadow: isActive
-          ? '0 4px 20px rgba(0,0,0,0.4)'
-          : '0 4px 20px rgba(0,0,0,0.5)',
-        pointerEvents: 'none',
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        loading="lazy"
-      />
-    </motion.div>
-  );
-}
-
-// ── Poetic Thought Stream ─────────────────────────────────────
+// ── Thought stream ────────────────────────────────────────────
 function ThoughtStream({ lines }: { lines: string[] }) {
   const [visibleCount, setVisibleCount] = useState(1);
-  const prevLinesRef = useRef<string[]>([]);
+  const prevRef = useRef<string[]>([]);
 
   useEffect(() => {
-    if (lines.join('|') !== prevLinesRef.current.join('|')) {
-      prevLinesRef.current = lines;
+    if (lines.join('|') !== prevRef.current.join('|')) {
+      prevRef.current = lines;
       setVisibleCount(1);
     }
   }, [lines]);
 
   useEffect(() => {
     if (visibleCount >= lines.length) return;
-    const t = setTimeout(() => setVisibleCount(c => c + 1), 1400);
+    const t = setTimeout(() => setVisibleCount(c => c + 1), 1800);
     return () => clearTimeout(t);
   }, [visibleCount, lines.length]);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '0.6rem',
-      minHeight: '4.5rem',
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', minHeight: '3.5rem' }}>
       <AnimatePresence initial={false}>
         {lines.slice(0, visibleCount).map((line, i) => (
           <motion.p
             key={`${line}-${i}`}
-            initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
-            animate={{
-              opacity: i === visibleCount - 1 ? 0.72 : 0.32,
-              y: 0,
-              filter: 'blur(0px)',
-            }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 6, filter: 'blur(3px)' }}
+            animate={{ opacity: i === visibleCount - 1 ? 0.65 : 0.25, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              margin: 0,
-              fontFamily: 'var(--eg-font-heading, Georgia, serif)',
-              fontStyle: 'italic',
-              fontWeight: 400,
-              fontSize: '0.88rem',
-              color: C.darkHeading,
-              letterSpacing: '0.01em',
-              lineHeight: 1.5,
-              textAlign: 'center',
+              margin: 0, fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+              fontStyle: 'italic', fontWeight: 400, fontSize: '0.82rem',
+              color: C.darkHeading, letterSpacing: '0.01em', lineHeight: 1.5, textAlign: 'center',
             }}
           >
-            {i === visibleCount - 1 ? <TypewriterText text={line} speed={14} /> : line}
+            {i === visibleCount - 1 ? <TypewriterText text={line} speed={18} /> : line}
           </motion.p>
         ))}
       </AnimatePresence>
@@ -284,60 +296,7 @@ function ThoughtStream({ lines }: { lines: string[] }) {
   );
 }
 
-// ── Seeded random for deterministic layouts per couple ────────
-function seededRandom(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 16807 + 0) % 2147483647;
-    return (s - 1) / 2147483646;
-  };
-}
-
-function generatePhotoSlots(names: [string, string]) {
-  // Seed from couple names — unique layout per user, deterministic per session
-  const seedStr = `${names[0]}${names[1]}`.toLowerCase();
-  let seed = 0;
-  for (let i = 0; i < seedStr.length; i++) seed = ((seed << 5) - seed + seedStr.charCodeAt(i)) | 0;
-  if (seed === 0) seed = 42;
-  const rand = seededRandom(Math.abs(seed));
-
-  const slots: Array<{ x: string; y: string; size: number; rot: number; blur: number; delay: number }> = [];
-
-  // Generate 10 positions: 3 left, 3 right, 4 scattered
-  const zones = [
-    // Left column (x: 1-16%)
-    ...Array.from({ length: 3 }, (_, i) => ({
-      x: `${1 + rand() * 15}%`,
-      y: `${5 + i * 30 + rand() * 10}%`,
-      size: 130 + Math.floor(rand() * 60),
-      rot: -7 + rand() * 10,
-      blur: 3 + Math.floor(rand() * 5),
-      delay: rand() * 3,
-    })),
-    // Right column (x: 74-84%)
-    ...Array.from({ length: 3 }, (_, i) => ({
-      x: `${74 + rand() * 10}%`,
-      y: `${4 + i * 30 + rand() * 12}%`,
-      size: 130 + Math.floor(rand() * 55),
-      rot: -6 + rand() * 12,
-      blur: 3 + Math.floor(rand() * 5),
-      delay: 0.5 + rand() * 2.5,
-    })),
-    // Scattered extras
-    ...Array.from({ length: 4 }, () => ({
-      x: `${10 + rand() * 55}%`,
-      y: `${rand() < 0.5 ? 2 + rand() * 12 : 72 + rand() * 18}%`,
-      size: 100 + Math.floor(rand() * 40),
-      rot: -8 + rand() * 16,
-      blur: 5 + Math.floor(rand() * 4),
-      delay: rand() * 3.5,
-    })),
-  ];
-
-  return zones;
-}
-
-// ── Main component ─────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────
 export function GenerationProgress({
   step = 0,
   onCancel,
@@ -362,352 +321,253 @@ export function GenerationProgress({
   const [elapsed, setElapsed] = useState(0);
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
-  // Seeded photo slots based on couple names
-  const photoSlots = useMemo(() => generatePhotoSlots(names), [names]);
-
-  // Completion transition — after showing "ready" state, fade out
+  // Completion transition
   useEffect(() => {
     if (!isComplete || !onComplete) return;
-    const t = setTimeout(onComplete, 1800);
+    const t = setTimeout(onComplete, 2000);
     return () => clearTimeout(t);
   }, [isComplete, onComplete]);
 
+  // Elapsed timer
   useEffect(() => {
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Cycle active photo every 3s
+  // Cycle featured photo every 4 seconds
   useEffect(() => {
     if (photos.length === 0) return;
     const t = setInterval(() => {
-      setActivePhotoIdx(i => (i + 1) % Math.min(photos.length, photoSlots.length));
-    }, 3000);
-    return () => clearTimeout(t);
-  }, [photos.length, photoSlots.length]);
+      setActivePhotoIdx(i => (i + 1) % photos.length);
+    }, 4000);
+    return () => clearInterval(t);
+  }, [photos.length]);
 
-  // Build photo tiles — pick up to 10 photos, route through proxy for Google Photos
-  const photoTiles = useMemo(() => {
-    if (photos.length === 0) return [];
-    const picked = [...photos].sort(() => Math.random() - 0.5).slice(0, photoSlots.length);
-    return picked.map((p, i) => {
-      const src = p.baseUrl.includes('googleusercontent.com')
-        ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=400&h=400`
-        : p.baseUrl;
-      return { src, slot: photoSlots[i % photoSlots.length], idx: i };
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photos.length, photoSlots]);
+  // Build photo URLs
+  const photoUrls = useMemo(() => {
+    return photos.slice(0, 20).map(p =>
+      p.baseUrl.includes('googleusercontent.com')
+        ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=600&h=450`
+        : p.baseUrl
+    );
+  }, [photos]);
 
-  // AI thought lines for current pass — rebuild when pass changes
-  const thoughtLines = useMemo(
-    () => buildThoughtLines(idx, names, vibeString, occasion, photos.length),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [idx],
+  const thoughts = useMemo(
+    () => buildThoughts(idx, names, vibeString, occasion, photos.length),
+    [idx, names, vibeString, occasion, photos.length]
   );
+
+  const getPrevIdx = useCallback(() => (activePhotoIdx - 1 + photoUrls.length) % photoUrls.length, [activePhotoIdx, photoUrls.length]);
+  const getNextIdx = useCallback(() => (activePhotoIdx + 1) % photoUrls.length, [activePhotoIdx, photoUrls.length]);
 
   return (
     <motion.div
-      animate={isComplete ? { opacity: 0, scale: 1.02 } : { opacity: 1, scale: 1 }}
-      transition={isComplete ? { duration: 0.6, delay: 1.2, ease: [0.16, 1, 0.3, 1] } : {}}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isComplete ? 0 : 1 }}
+      transition={{ duration: isComplete ? 0.8 : 0.5 }}
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
         background: C.darkBg,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
-      }}>
-
-      {/* ── Photo collage (only when photos provided) ── */}
-      <AnimatePresence>
-        {photoTiles.map(({ src, slot, idx: tileIdx }) => (
-          <PhotoTile
-            key={src}
-            src={src}
-            x={slot.x} y={slot.y}
-            size={slot.size}
-            rotation={slot.rot as number}
-            delay={slot.delay}
-            blurAmount={slot.blur}
-            isActive={tileIdx === activePhotoIdx}
-          />
-        ))}
-      </AnimatePresence>
-
-      {/* ── Core content ── */}
+      }}
+    >
+      {/* Ambient radial glow behind the photo */}
       <div style={{
-        position: 'relative', zIndex: 10,
-        textAlign: 'center', maxWidth: 'min(680px, 90vw)', padding: '0 2rem', width: '100%',
-      }}>
+        position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%, -50%)',
+        width: '600px', height: '400px', borderRadius: '50%',
+        background: `radial-gradient(ellipse, ${C.olive}0D 0%, transparent 70%)`,
+        pointerEvents: 'none', filter: 'blur(60px)',
+      }} />
 
-        {/* Pass progress dots */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: '6px', marginBottom: '2.75rem',
-        }}>
-          {PASSES.map((_, i) => (
-            <motion.div
-              key={i}
-              animate={{
-                width: i === idx ? 32 : 7,
-                backgroundColor:
-                  i < idx
-                    ? `${C.olive}99`
-                    : i === idx
-                    ? C.olive
-                    : C.darkBorder,
-              }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              style={{ height: 7, borderRadius: 100 }}
-            />
-          ))}
-        </div>
-
-        {/* ── Pear mark ── */}
-        <div style={{ position: 'relative', width: 48, height: 60, margin: '0 auto 2.5rem' }}>
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <motion.div
-              animate={{ opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-              style={{
-                width: 22, height: 28,
-                borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
-                background: C.olive,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* ── Headline ── */}
+      {/* ── Top: Pass headline + copy ── */}
+      <div style={{ textAlign: 'center', marginBottom: 'clamp(1.5rem, 4vh, 3rem)', zIndex: 10, padding: '0 1.5rem' }}>
         <AnimatePresence mode="wait">
-          <motion.h2
-            key={`h-${idx}`}
-            initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
+          <motion.h1
+            key={isComplete ? 'done' : idx}
+            initial={{ opacity: 0, y: 14, filter: 'blur(6px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -14, filter: 'blur(5px)' }}
+            exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
               fontFamily: 'var(--eg-font-heading, Georgia, serif)',
-              fontSize: 'clamp(2.1rem, 5.5vw, 3.2rem)',
-              fontWeight: 400,
-              fontStyle: 'italic',
+              fontSize: 'clamp(1.8rem, 4.5vw, 2.8rem)',
+              fontWeight: 400, fontStyle: 'italic',
               color: C.darkHeading,
-              lineHeight: 1.18,
-              margin: '0 0 1rem',
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.02em', margin: 0,
             }}
           >
             {isComplete ? 'Your story is ready.' : pass.headline}
-          </motion.h2>
+          </motion.h1>
         </AnimatePresence>
-
-        {/* ── Copy ── */}
         <AnimatePresence mode="wait">
           <motion.p
-            key={`c-${idx}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.55, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
+            key={isComplete ? 'done-copy' : idx}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 0.5, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             style={{
-              fontSize: text.base,
-              color: C.darkText,
-              lineHeight: 1.75,
-              maxWidth: '380px',
-              margin: '0 auto 1.5rem',
-              fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+              color: C.darkText, fontSize: text.base,
+              maxWidth: '380px', margin: '0.75rem auto 0', lineHeight: 1.6,
             }}
           >
-            {pass.copy}
+            {isComplete ? 'Opening the editor...' : pass.copy}
           </motion.p>
         </AnimatePresence>
+      </div>
 
-        {/* ── AI Thought Stream ── */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`thoughts-${idx}`}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            style={{ marginBottom: '1.75rem' }}
-          >
-            <ThoughtStream lines={thoughtLines} />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* ── Progress bar ── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
-          <div style={{ flex: 1, height: '2px', background: C.darkBorder, borderRadius: 100, overflow: 'hidden' }}>
-            <motion.div
-              animate={{ width: `${pass.pct}%` }}
-              transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                height: '100%',
-                background: C.olive,
-                borderRadius: 100,
-              }}
+      {/* ── Center: Cinematic photo carousel ── */}
+      {photoUrls.length > 0 && (
+        <div style={{
+          position: 'relative', width: '100%', height: 'clamp(200px, 35vh, 360px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          perspective: '1200px', zIndex: 5,
+          marginBottom: 'clamp(1rem, 3vh, 2rem)',
+        }}>
+          {photoUrls.length >= 3 && (
+            <DevelopingPhoto
+              key={`prev-${getPrevIdx()}`}
+              src={photoUrls[getPrevIdx()]}
+              isActive={false}
+              position="prev"
             />
-          </div>
-          <span style={{ fontSize: text.xs, fontWeight: 700, color: C.darkText, fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', minWidth: '28px', textAlign: 'right', letterSpacing: '0.06em' }}>
-            {pass.pct}%
-          </span>
+          )}
+          <AnimatePresence mode="sync">
+            <DevelopingPhoto
+              key={`active-${activePhotoIdx}`}
+              src={photoUrls[activePhotoIdx]}
+              isActive={true}
+              position="current"
+            />
+          </AnimatePresence>
+          {photoUrls.length >= 3 && (
+            <DevelopingPhoto
+              key={`next-${getNextIdx()}`}
+              src={photoUrls[getNextIdx()]}
+              isActive={false}
+              position="next"
+            />
+          )}
+        </div>
+      )}
+
+      {/* ── Thought stream ── */}
+      <div style={{ zIndex: 10, marginBottom: 'clamp(1rem, 2vh, 1.5rem)', padding: '0 1.5rem' }}>
+        <ThoughtStream lines={thoughts} />
+      </div>
+
+      {/* ── Bottom: Film strip progress ── */}
+      <div style={{ zIndex: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', padding: '0 1.5rem' }}>
+        {photoUrls.length > 0 && (
+          <FilmStrip
+            photos={photoUrls}
+            activeIndex={activePhotoIdx}
+            progress={pass.pct}
+          />
+        )}
+
+        {/* Pass label + elapsed */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+          fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: C.darkText, fontWeight: 600,
+        }}>
+          <span>Pass {idx + 1} of {PASSES.length}</span>
+          <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: C.darkBorder }} />
+          <span>{Math.floor(pass.pct)}%</span>
+          {elapsed > 10 && (
+            <>
+              <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: C.darkBorder }} />
+              <span style={{ opacity: 0.5 }}>{elapsed}s</span>
+            </>
+          )}
         </div>
 
-        {/* ── Meta / pass label ── */}
-        <AnimatePresence mode="wait">
+        {/* Time hint on first pass */}
+        {idx === 0 && elapsed < 20 && (
           <motion.p
-            key={`m-${idx}`}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            animate={{ opacity: 0.35 }}
+            transition={{ delay: 2 }}
             style={{
-              fontSize: text.xs,
-              fontWeight: 700,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              color: C.darkText,
-              fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-              margin: 0,
+              fontSize: '0.78rem', fontStyle: 'italic',
+              color: C.darkText, margin: 0,
             }}
           >
-            {pass.meta}
-            {elapsed > 10 && (
-              <span style={{ opacity: 0.45, marginLeft: '1.2em' }}>{elapsed}s</span>
-            )}
+            This usually takes 2-4 minutes
           </motion.p>
-        </AnimatePresence>
+        )}
 
-        {/* ── Time expectation hint ── */}
-        <AnimatePresence>
-          {idx === 0 && elapsed < 20 && (
-            <motion.p
-              key="time-hint"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, delay: 1 }}
-              style={{
-                marginTop: '0.75rem', fontSize: text.xs,
-                color: `${C.darkHeading}40`,
-                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-                fontStyle: 'italic', margin: '0.75rem 0 0',
-              }}
-            >
-              This usually takes 2–4 minutes
-            </motion.p>
-          )}
-        </AnimatePresence>
-
-        {/* ── Long-running warnings ── */}
-        <AnimatePresence>
-          {elapsed >= 90 && elapsed < 150 && (
-            <motion.p
-              key="slow-warning"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-              style={{
-                marginTop: '1rem',
-                fontSize: text.sm,
-                color: C.darkText,
-                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-                fontStyle: 'italic',
-              }}
-            >
-              Taking a moment — still weaving your story…
-            </motion.p>
-          )}
-          {elapsed >= 150 && elapsed < 270 && (
-            <motion.p
-              key="very-slow-warning"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-              style={{
-                marginTop: '1rem',
-                fontSize: text.sm,
-                color: `${C.gold}88`,
-                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-                fontStyle: 'italic',
-              }}
-            >
-              Almost there — please don&apos;t close this tab.
-            </motion.p>
-          )}
-          {elapsed >= 270 && (
-            <motion.div
-              key="timeout-warning"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-              style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
-            >
-              <p style={{
-                fontSize: text.sm, color: 'rgba(248,113,113,0.7)',
-                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-                fontStyle: 'italic', margin: 0,
-              }}>
-                This is taking unusually long — something may have gone wrong.
-              </p>
-              {onCancel && (
-                <button
-                  onClick={onCancel}
-                  style={{
-                    background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)',
-                    borderRadius: '8px', padding: '0.45rem 1.1rem',
-                    color: 'rgba(248,113,113,0.75)', fontSize: text.sm, cursor: 'pointer',
-                    fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', letterSpacing: '0.05em',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  Stop and try again
-                </button>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Cancel — shown as subtle text link from start, gains border at 30s ── */}
-        {onCancel && (
-          <motion.button
+        {/* Long-running warnings */}
+        {elapsed >= 90 && elapsed < 150 && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            style={{ fontSize: '0.82rem', fontStyle: 'italic', color: C.darkText, margin: 0 }}
+          >
+            Taking a moment — still weaving your story...
+          </motion.p>
+        )}
+        {elapsed >= 150 && elapsed < 270 && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            style={{ fontSize: '0.82rem', fontStyle: 'italic', color: `${C.gold}88`, margin: 0 }}
+          >
+            Almost there — please don't close this tab.
+          </motion.p>
+        )}
+        {elapsed >= 270 && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 2 }}
-            onClick={onCancel}
-            style={{
-              marginTop: '1.75rem',
-              background: 'transparent',
-              border: elapsed >= 30 ? `1px solid ${C.darkBorder}` : 'none',
-              borderRadius: '8px',
-              padding: elapsed >= 30 ? '0.5rem 1.25rem' : '0.25rem 0.5rem',
-              color: C.darkText,
-              fontSize: text.xs,
-              cursor: 'pointer',
-              fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-              letterSpacing: '0.06em',
-              transition: 'all 0.3s',
-              textDecoration: elapsed < 30 ? 'underline' : 'none',
-              textUnderlineOffset: '3px',
-            }}
-            onMouseOver={(e) => {
-              (e.currentTarget as HTMLElement).style.color = C.darkHeading;
-            }}
-            onMouseOut={(e) => {
-              (e.currentTarget as HTMLElement).style.color = C.darkText;
-            }}
+            style={{ textAlign: 'center' }}
           >
-            Cancel
-          </motion.button>
+            <p style={{ fontSize: '0.85rem', color: 'rgba(220,120,120,0.8)', margin: '0 0 0.75rem' }}>
+              This is taking longer than usual.
+            </p>
+            <button
+              onClick={onCancel}
+              style={{
+                padding: '0.6rem 1.5rem', borderRadius: '100px',
+                border: '1px solid rgba(220,120,120,0.3)', background: 'rgba(220,120,120,0.08)',
+                color: 'rgba(220,120,120,0.9)', fontSize: '0.82rem', fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Stop and try again
+            </button>
+          </motion.div>
         )}
       </div>
+
+      {/* ── Cancel link ── */}
+      {onCancel && elapsed < 270 && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 3 }}
+          onClick={onCancel}
+          style={{
+            position: 'absolute',
+            bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))',
+            left: '50%', transform: 'translateX(-50%)',
+            background: 'none', border: elapsed > 30 ? `1px solid ${C.darkBorder}` : 'none',
+            padding: elapsed > 30 ? '0.5rem 1.25rem' : '0.25rem',
+            borderRadius: '100px',
+            color: C.darkText, fontSize: '0.78rem', cursor: 'pointer',
+            textDecoration: elapsed > 30 ? 'none' : 'underline',
+            textUnderlineOffset: '2px',
+            transition: 'all 0.3s ease',
+            zIndex: 20,
+          }}
+          onMouseOver={e => { (e.target as HTMLElement).style.color = C.darkHeading; }}
+          onMouseOut={e => { (e.target as HTMLElement).style.color = C.darkText; }}
+        >
+          Cancel
+        </motion.button>
+      )}
     </motion.div>
   );
 }
