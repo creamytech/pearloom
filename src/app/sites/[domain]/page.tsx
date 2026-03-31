@@ -17,6 +17,7 @@ import type { Chapter } from '@/types';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { SiteClientSections, SiteGallerySection } from '@/components/site/SiteClientSections';
+import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
 import { CountdownBlock } from '@/components/site/CountdownBlock';
 import { SitePasswordWrapper } from '@/components/site/SitePasswordWrapper';
 import { WeddingDayBanner } from '@/components/site/WeddingDayBanner';
@@ -765,6 +766,12 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             vibeSkin={vibeSkin}
           />
         )}
+
+        <CelebrationOverlay
+          occasion={(manifest.occasion as 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story') || 'wedding'}
+          accentColor={pal.accent}
+          accentColor2={pal.accent2 || pal.highlight || pal.accent}
+        />
 
         <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
           {visibleBlocks ? (
