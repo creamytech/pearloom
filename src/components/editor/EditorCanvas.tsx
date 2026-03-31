@@ -6,10 +6,11 @@
 // Redesigned: dot-grid bg, device chrome bezels, increased split scale
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect } from 'react';
 import { PreviewPane } from './PreviewPane';
 import { MobilePreviewPane } from './MobilePreviewPane';
 import { MobileChapterActionSheet } from './MobileChapterActionSheet';
-import { useEditor, stripArtForStorage } from '@/lib/editor-state';
+import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
 
 // ── Skeleton Loading Screen ──────────────────────────────────
 const skeletonBg = 'rgba(214,198,168,0.08)';
@@ -92,58 +93,38 @@ export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
   const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom } = state;
 
-  // ── Desktop: ALWAYS show editable PreviewPane ─────────────
-  if (!isMobile) {
-    return (
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
-        borderLeft: '1px solid rgba(255,255,255,0.06)',
-        transition: 'flex 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-        overflow: 'hidden',
-      }}>
-        <PreviewPane
-          manifest={{ ...manifest, chapters: chapters.map((ch, i) => ({ ...ch, order: i })) }}
-          coupleNames={coupleNames}
-          vibeSkin={manifest.vibeSkin}
-          scale={1.0}
-          draggingId={canvasDragId}
-          selectedChapterId={activeId}
-          onSectionClick={(chapterId) => {
-            dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
-            dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-          }}
-          onUpdateChapter={actions.updateChapter}
-          onDeleteChapter={actions.deleteChapter}
-          onDuplicateChapter={(id) => {
-            const original = chapters.find(c => c.id === id);
-            if (!original) return;
-            const copyId = `ch-${Date.now()}`;
-            const copy = { ...original, id: copyId, title: `${original.title} (copy)`, order: chapters.length };
-            const next = [...chapters, copy];
-            dispatch({ type: 'SET_CHAPTERS', chapters: next });
-            dispatch({ type: 'SET_ACTIVE_ID', id: copyId });
-            actions.syncManifest(next);
-          }}
-          onMoveChapter={(id, direction) => {
-            const idx = chapters.findIndex(c => c.id === id);
-            if (idx < 0) return;
-            const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-            if (targetIdx < 0 || targetIdx >= chapters.length) return;
-            const next = [...chapters];
-            [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
-            actions.handleReorder(next);
-          }}
-          onAIRewrite={actions.handleAIRewrite}
-          onUpdateHeroTagline={(tagline) => {
-            const existing = manifest.poetry || { heroTagline: '', closingLine: '', rsvpIntro: '' };
-            actions.handleChatManifestUpdate({
-              poetry: { ...existing, heroTagline: tagline },
-            });
-          }}
-        />
-      </div>
-    );
-  }
+  // ── Listen for edit messages from the iframe ──────────────
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'pearloom-edit-commit') {
+        const { chapterId, field, value } = event.data;
+        if (chapterId && field && value) {
+          const chapter = chapters.find(c => c.id === chapterId);
+          if (chapter) {
+            actions.updateChapter(chapterId, { [field]: value });
+          }
+        }
+      }
+      if (event.data?.type === 'pearloom-section-click') {
+        const { chapterId } = event.data;
+        if (chapterId) {
+          dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+        }
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [chapters, actions, dispatch]);
+
+  // ── Send edit-mode activation to iframe after load ────────
+  useEffect(() => {
+    if (iframeReady && iframeRef.current && !isMobile) {
+      try {
+        iframeRef.current.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
+      } catch {}
+    }
+  }, [iframeReady, iframeRef, isMobile]);
 
   // ── Mobile Visual Edit Mode ─────────────────────────────────
   if (isMobile && state.mobileVisualEdit) {

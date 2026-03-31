@@ -494,7 +494,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                 margin: '0 0 1rem 0',
                 letterSpacing: '-0.02em',
               }}>
-                {chapter.title}
+                <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>
               {chapter.subtitle && (
                 <motion.p
@@ -504,13 +504,13 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
                   style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
                 >
-                  {chapter.subtitle}
+                  <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
               )}
               <div style={{ marginBottom: '1.5rem', textAlign: isEven ? 'left' : 'right' }}>
                 <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={false} />
               </div>
-              <div style={{ maxWidth: '480px', margin: isEven ? '0' : '0 0 0 auto' }} className="max-md:mx-auto">
+              <div style={{ maxWidth: '480px', margin: isEven ? '0' : '0 0 0 auto' }} className="max-md:mx-auto" data-pe-editable="true" data-pe-field="description">
                 <EnhancedDescription text={chapter.description} />
               </div>
               {chapter.location && (
@@ -1342,14 +1342,20 @@ export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps)
     </div>
   ) : inner;
 
+  const wrapped = (
+    <div data-pe-chapter={chapter.id} data-pe-section="chapter" data-pe-label={`Chapter ${index + 1}`}>
+      {withIcon}
+    </div>
+  );
+
   if (isPeak && index > 0) {
     return (
       <>
         <EmotionalPeakMarker />
-        {withIcon}
+        {wrapped}
       </>
     );
   }
 
-  return withIcon;
+  return wrapped;
 }
