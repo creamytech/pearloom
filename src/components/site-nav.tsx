@@ -203,7 +203,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
           </Link>
 
           {/* ── Desktop inline nav links (≥1024px, guest-facing sites only) ── */}
-          {isDesktop && !isStudio && (
+          {isDesktop && !isStudio ? (
             <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'center' }}>
               {enabledPages.map((page) => {
                 const active = isActive(page.slug);
@@ -242,6 +242,8 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
                 );
               })}
             </nav>
+          ) : (
+            <div />
           )}
 
           {/* ── Right: User nav + hamburger menu ── */}
