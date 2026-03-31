@@ -98,6 +98,60 @@ export async function getSiteConfig(subdomain: string): Promise<SiteConfig | nul
   return baseConfig;
 }
 
+export async function saveSiteDraft(
+  userId: string,
+  subdomain: string,
+  manifest: unknown,
+  names: [string, string] = ['', '']
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  try {
+    const { data: existing } = await supabase
+      .from('sites')
+      .select('id, site_config')
+      .eq('subdomain', subdomain)
+      .maybeSingle();
+
+    if (existing) {
+      const ownerEmail = (existing.site_config as Record<string, unknown>)?.creator_email;
+      if (ownerEmail && ownerEmail !== userId) {
+        return { success: false, error: 'Subdomain is already taken by another user.' };
+      }
+      const { error } = await supabase
+        .from('sites')
+        .update({
+          ai_manifest: manifest,
+          site_config: {
+            ...((existing.site_config as Record<string, unknown>) || {}),
+            slug: subdomain,
+            creator_email: userId,
+            names,
+          },
+        })
+        .eq('subdomain', subdomain);
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    }
+
+    const { error } = await supabase
+      .from('sites')
+      .insert({
+        subdomain: subdomain.toLowerCase(),
+        ai_manifest: { ...(manifest as Record<string, unknown>), comingSoon: { enabled: true } },
+        site_config: {
+          slug: subdomain,
+          creator_email: userId,
+          names,
+          createdAt: new Date().toISOString(),
+        },
+      });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 export async function publishSite(
   userId: string, 
   subdomain: string, 

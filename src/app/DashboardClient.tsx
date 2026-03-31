@@ -127,6 +127,20 @@ export default function DashboardClient() {
       const autoSlug = data.subdomain || generateSlug(data.names);
       dispatch({ type: 'SET_MANIFEST', manifest: result.manifest, subdomain: autoSlug });
       clearDraft();
+
+      // Auto-save draft to database so the user can return to it
+      fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subdomain: autoSlug,
+          manifest: result.manifest,
+          names: data.names,
+        }),
+      }).then(r => {
+        if (r.ok) log('[Generate] Draft auto-saved:', autoSlug);
+        else r.json().then(d => logError('[Generate] Draft save failed:', d.error)).catch(() => {});
+      }).catch(e => logError('[Generate] Draft save network error:', e));
     } catch (err) {
       clearInterval(stepInterval);
       clearTimeout(timeoutId);
