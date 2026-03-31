@@ -70,8 +70,10 @@ export default function DashboardClient() {
     dispatch({ type: 'SET_VIBE', data });
     setLastVibeData(data);
 
+    let stepCount = 0;
     const stepInterval = setInterval(() => {
-      dispatch({ type: 'SET_GENERATION_STEP', step: Math.min(state.generationStep + 1, 6) });
+      stepCount++;
+      dispatch({ type: 'SET_GENERATION_STEP', step: Math.min(stepCount, 7) });
     }, 14000);
 
     const controller = new AbortController();
@@ -136,7 +138,7 @@ export default function DashboardClient() {
       logError('[Generate] Error:', msg);
       dispatch({ type: 'SET_ERROR', error: msg });
     }
-  }, [state.photos, state.clusters, state.generationStep, dispatch, clearDraft]);
+  }, [state.photos, state.clusters, dispatch, clearDraft]);
 
   // ── Step navigation helpers ─────────────────────────────────
   const goTo = (step: WizardStep) => dispatch({ type: 'NAVIGATE', step });
