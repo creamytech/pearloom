@@ -1999,6 +1999,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   </motion.button>
                 );
               })}
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
@@ -2007,15 +2008,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 5: VISUAL INSPIRATION ── */}
-        {step === 5 && (
-          <motion.div key="s5-inspo" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '1.75rem' }}>✨</span>
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Aesthetic Vibes</h2>
-            </div>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2rem' }}>
-              Tell the AI what to channel — sports teams, films, cities, artists, anything with a visual world.
+        {/* PLACEHOLDER_DELETE_START
             </p>
 
             {/* ── Keyword tag input ── */}
