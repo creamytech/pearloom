@@ -32,6 +32,9 @@ export interface VibeFormData {
   guestNotes?: string;
   inspirationUrls?: string[];
   layoutFormat?: string;
+  rsvpDeadline?: string;
+  cashFundUrl?: string;
+  eventVenue?: string;
 }
 
 export interface WizardState {

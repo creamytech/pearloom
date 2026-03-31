@@ -282,6 +282,9 @@ export async function POST(req: NextRequest) {
       guestNotes,
       inspirationUrls,
       layoutFormat,
+      rsvpDeadline,
+      cashFundUrl,
+      eventVenue,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -302,6 +305,9 @@ export async function POST(req: NextRequest) {
       guestNotes?: string;
       inspirationUrls?: string[];
       layoutFormat?: string;
+      rsvpDeadline?: string;
+      cashFundUrl?: string;
+      eventVenue?: string;
     } = body;
 
     if (!photos?.length) {
@@ -364,11 +370,24 @@ export async function POST(req: NextRequest) {
       layoutFormat
     );
 
-    // Pre-populate logistics date from user-provided eventDate
+    // Pre-populate logistics from user-provided fields
     if (eventDate) {
       manifest.logistics = {
         ...(manifest.logistics ?? {}),
         date: eventDate,
+      };
+    }
+    if (rsvpDeadline) {
+      manifest.logistics = { ...(manifest.logistics ?? {}), rsvpDeadline };
+    }
+    if (eventVenue) {
+      manifest.logistics = { ...(manifest.logistics ?? {}), venue: eventVenue };
+    }
+    if (cashFundUrl) {
+      manifest.registry = {
+        ...(manifest.registry ?? { enabled: true }),
+        enabled: true,
+        cashFundUrl,
       };
     }
 

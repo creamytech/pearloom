@@ -157,6 +157,9 @@ interface VibeInputProps {
     guestNotes?: string;
     inspirationUrls?: string[];
     layoutFormat?: string;
+    rsvpDeadline?: string;
+    cashFundUrl?: string;
+    eventVenue?: string;
   }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
@@ -598,18 +601,21 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     // Occasion-specific context
     let occasionContext = '';
     if (occasion === 'anniversary') {
-      if (detailsData.anniversaryYears) {
-        occasionContext += `\nANNIVERSARY: ${detailsData.anniversaryYears} years together${detailsData.anniversaryMilestone ? `, celebrating their ${detailsData.anniversaryMilestone} anniversary` : ''}. Original date: ${detailsData.originalDate || 'cherished'}.`;
-      }
+      const annParts: string[] = [];
+      if (detailsData.anniversaryYears) annParts.push(`${detailsData.anniversaryYears} years together`);
+      if (detailsData.anniversaryMilestone) annParts.push(`celebrating their ${detailsData.anniversaryMilestone} anniversary`);
+      if (detailsData.originalDate) annParts.push(`original date: ${detailsData.originalDate}`);
+      if (annParts.length > 0) occasionContext += `\nANNIVERSARY: ${annParts.join(', ')}.`;
       if (detailsData.coupleEvolution) occasionContext += `\nHOW THEY'VE GROWN: ${detailsData.coupleEvolution}`;
       if (detailsData.celebrationVenue) occasionContext += `\nCELEBRATION VENUE: ${detailsData.celebrationVenue}.`;
       if (detailsData.celebrationTime) occasionContext += ` Time: ${detailsData.celebrationTime}.`;
       if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
     }
     if (occasion === 'birthday') {
-      if (detailsData.birthdayAge) {
-        occasionContext += `\nBIRTHDAY: ${detailsData.birthdayAge}th birthday${isMilestoneBirthday(detailsData.birthdayAge) ? ' — MILESTONE YEAR' : ''}${detailsData.isSurprise ? ' — SECRET SURPRISE PARTY' : ''}.`;
-      }
+      const bdayParts: string[] = [];
+      if (detailsData.birthdayAge) bdayParts.push(`${detailsData.birthdayAge}th birthday${isMilestoneBirthday(detailsData.birthdayAge) ? ' — MILESTONE YEAR' : ''}`);
+      if (detailsData.isSurprise) bdayParts.push('SECRET SURPRISE PARTY');
+      if (bdayParts.length > 0) occasionContext += `\nBIRTHDAY: ${bdayParts.join(' — ')}.`;
       if (detailsData.birthdayPassions) occasionContext += `\nTHEY LOVE: ${detailsData.birthdayPassions}`;
       if (detailsData.birthdayTribute) occasionContext += `\nWHO THEY ARE: ${detailsData.birthdayTribute}`;
       // Party logistics — inject so memory engine sees the event details
@@ -680,6 +686,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       eventDate: eventDate || undefined,
       inspirationUrls: validUrls.length > 0 ? validUrls : undefined,
       layoutFormat: layoutFormat || 'cascade',
+      rsvpDeadline: rsvpDeadline || undefined,
+      cashFundUrl: cashFundUrl || undefined,
+      eventVenue: eventVenue || undefined,
       ...details,
     });
   };

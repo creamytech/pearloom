@@ -106,6 +106,10 @@ export default function DashboardClient() {
           celebrationTime: data.celebrationTime,
           guestNotes: data.guestNotes,
           inspirationUrls: data.inspirationUrls || [],
+          layoutFormat: data.layoutFormat,
+          rsvpDeadline: data.rsvpDeadline,
+          cashFundUrl: data.cashFundUrl,
+          eventVenue: data.eventVenue,
         }),
         signal: controller.signal,
       });
