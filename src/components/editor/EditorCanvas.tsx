@@ -88,7 +88,7 @@ function DeviceBezel() {
 }
 
 export function EditorCanvas() {
-  const { state, dispatch, manifest, coupleNames, previewKey, iframeRef } = useEditor();
+  const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
   const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom } = state;
 
   if (splitView && !isMobile) {
@@ -109,6 +109,34 @@ export function EditorCanvas() {
           onSectionClick={(chapterId) => {
             dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
             dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+          }}
+          onUpdateChapter={actions.updateChapter}
+          onDeleteChapter={actions.deleteChapter}
+          onDuplicateChapter={(id) => {
+            const original = chapters.find(c => c.id === id);
+            if (!original) return;
+            const copyId = `ch-${Date.now()}`;
+            const copy = { ...original, id: copyId, title: `${original.title} (copy)`, order: chapters.length };
+            const next = [...chapters, copy];
+            dispatch({ type: 'SET_CHAPTERS', chapters: next });
+            dispatch({ type: 'SET_ACTIVE_ID', id: copyId });
+            actions.syncManifest(next);
+          }}
+          onMoveChapter={(id, direction) => {
+            const idx = chapters.findIndex(c => c.id === id);
+            if (idx < 0) return;
+            const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+            if (targetIdx < 0 || targetIdx >= chapters.length) return;
+            const next = [...chapters];
+            [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
+            actions.handleReorder(next);
+          }}
+          onAIRewrite={actions.handleAIRewrite}
+          onUpdateHeroTagline={(tagline) => {
+            const existing = manifest.poetry || { heroTagline: '', closingLine: '', rsvpIntro: '' };
+            actions.handleChatManifestUpdate({
+              poetry: { ...existing, heroTagline: tagline },
+            });
           }}
         />
       </div>

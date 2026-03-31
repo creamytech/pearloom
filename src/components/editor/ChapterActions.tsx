@@ -22,7 +22,7 @@ interface ChapterActionsProps {
 }
 
 // ── Layout options with SVG mini-icons ────────────────────────
-const LAYOUT_OPTS: Array<{ id: Layout; label: string; icon: React.ReactNode }> = [
+export const LAYOUT_OPTS: Array<{ id: Layout; label: string; icon: React.ReactNode }> = [
   {
     id: 'editorial',
     label: 'Editorial',
