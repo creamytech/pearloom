@@ -15,6 +15,7 @@ import {
 } from '@/components/icons/PearloomIcons';
 import { PearBackground } from '@/components/icons/PearShapes';
 import { VenueSearch, type VenuePartial } from '@/components/venue/VenueSearch';
+import { Button } from '@/components/ui';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -379,16 +380,6 @@ const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
   e.target.style.transform = 'none';
 };
 
-const btnPrimaryStyle: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: '0.5rem',
-  padding: '1rem 2.25rem', borderRadius: '100px',
-  background: 'linear-gradient(135deg, var(--eg-accent, #A3B18A) 0%, var(--eg-accent-hover, #8FA876) 100%)',
-  color: '#fff', border: 'none',
-  fontSize: '0.95rem', fontWeight: 600, fontFamily: 'var(--eg-font-body)',
-  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-  boxShadow: '0 8px 28px rgba(163,177,138,0.35)',
-  letterSpacing: '0.01em',
-};
 
 function FormatMiniPreview({ id }: { id: string }) {
   const base: React.CSSProperties = {
@@ -1347,25 +1338,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* Build my site button */}
         <div style={{ marginTop: '2.5rem' }}>
-          <button
-            onClick={() => handleFinalSubmit(false)}
-            disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}
-            style={{
-              ...btnPrimaryStyle,
-              width: '100%',
-              justifyContent: 'center',
-              background: (subdomainStatus === 'taken' || subdomainStatus === 'checking')
-                ? 'rgba(0,0,0,0.12)'
-                : 'linear-gradient(135deg, #A3B18A, #8FA876)',
-              boxShadow: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'none' : '0 12px 36px rgba(163,177,138,0.4)',
-              fontSize: '1rem',
-              padding: '1.1rem 2rem',
-              cursor: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'not-allowed' : 'pointer',
-              color: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'var(--eg-muted)' : '#fff',
-            }}
-          >
+          <Button variant="accent" size="lg" className="w-full" onClick={() => handleFinalSubmit(false)} disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}>
             Build my site <LoomThreadIcon size={18} />
-          </button>
+          </Button>
           {subdomainStatus === 'taken' && (
             <p style={{ color: '#b91c1c', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
               This URL is taken — please choose a different name above.
@@ -1527,10 +1502,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </p>
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ ...btnPrimaryStyle, background: 'transparent', color: 'var(--eg-muted)', boxShadow: 'none' }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} style={{ ...btnPrimaryStyle, opacity: canProceedStep1 ? 1 : 0.5 }}>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep1}>
                 Continue <ArrowRight size={18} />
-              </button>
+              </Button>
             </div>
           </motion.div>
         )}
@@ -1605,9 +1580,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>
-              <button onClick={handleNext} disabled={!canProceedStep2} style={{ ...btnPrimaryStyle, opacity: canProceedStep2 ? 1 : 0.5, pointerEvents: canProceedStep2 ? 'auto' : 'none' }}>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep2}>
                 Continue <ArrowRight size={18} />
-              </button>
+              </Button>
             </div>
           </motion.div>
         )}
@@ -1732,15 +1707,15 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     }}
                   />
                   {inspoKeywordInput.trim() && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="accent"
+                      size="sm"
                       onClick={() => {
                         const val = inspoKeywordInput.trim();
                         if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
                         setInspoKeywordInput('');
                       }}
-                      style={{ ...btnPrimaryStyle, padding: '0.65rem 1.25rem', fontSize: '0.875rem' }}
-                    >Add</button>
+                    >Add</Button>
                   )}
                 </div>
               </div>
@@ -1825,8 +1800,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep3} style={{ ...btnPrimaryStyle, opacity: canProceedStep3 ? 1 : 0.5, pointerEvents: canProceedStep3 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep3}>Continue <ArrowRight size={18} /></Button>
             </div>
           </motion.div>
         )}
@@ -2056,8 +2031,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext}>Continue <ArrowRight size={18} /></Button>
             </div>
           </motion.div>
         )}
@@ -2113,8 +2088,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep8} style={{ ...btnPrimaryStyle, opacity: canProceedStep8 ? 1 : 0.5, pointerEvents: canProceedStep8 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep8}>Continue <ArrowRight size={18} /></Button>
             </div>
           </motion.div>
         )}
@@ -2162,11 +2137,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
               {isEvent ? (
-                <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
+                <Button variant="accent" size="lg" onClick={handleNext}>Continue <ArrowRight size={18} /></Button>
               ) : (
-                <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <LoomThreadIcon size={18} /></button>
+                <Button variant="accent" size="lg" onClick={handleSubmit}>Generate My Site <LoomThreadIcon size={18} /></Button>
               )}
             </div>
           </motion.div>
@@ -2201,8 +2176,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <LoomThreadIcon size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleSubmit}>Generate My Site <LoomThreadIcon size={18} /></Button>
             </div>
           </motion.div>
         )}

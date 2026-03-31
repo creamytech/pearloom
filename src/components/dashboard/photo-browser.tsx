@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2, ImageOff, RefreshCw, AlertCircle, ExternalLink, Clock, Upload, X } from 'lucide-react';
 import type { GooglePhotoMetadata } from '@/types';
 import { colors as C, text, card } from '@/lib/design-tokens';
+import { Button } from '@/components/ui';
 
 interface PhotoBrowserProps {
   onSelectionChange: (photos: GooglePhotoMetadata[]) => void;
@@ -23,20 +24,11 @@ const cardStyle: React.CSSProperties = {
   maxWidth: '600px',
   margin: '0 auto',
   borderRadius: card.radius,
-  background: '#FFFFFF',
+  background: card.bg,
   border: `1px solid ${C.divider}`,
   boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
 };
 
-const btnPrimaryStyle: React.CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-  padding: '0.75rem 1.5rem', borderRadius: card.radius,
-  background: C.ink, color: '#fff', border: 'none',
-  fontSize: text.base, fontWeight: 500, fontFamily: 'var(--eg-font-body)',
-  cursor: 'pointer', transition: 'all 0.2s ease',
-  boxShadow: card.shadow,
-  height: '2.75rem', boxSizing: 'border-box' as const,
-};
 
 type BrowserState = 'idle' | 'creating-session' | 'waiting-for-picker' | 'fetching' | 'done' | 'error' | 'session-expired' | 'device-selecting' | 'device-uploading';
 
@@ -297,7 +289,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 400, margin: '0 auto' }}>
           {/* Google Photos option */}
-          <button onClick={startPickerFlow} style={{ ...btnPrimaryStyle, justifyContent: 'flex-start', padding: '0.75rem 1.25rem', gap: '1rem', height: 'auto' }}>
+          <Button variant="primary" size="lg" onClick={startPickerFlow} className="justify-start px-5 gap-4 h-auto">
             <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
                 <path d="M24 4L29.5 14.5H18.5L24 4Z" fill="#EA4335"/>
@@ -311,7 +303,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
               <div style={{ fontSize: '0.78rem', opacity: 0.65, fontWeight: 400 }}>Browse your synced library</div>
             </div>
             <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
-          </button>
+          </Button>
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -321,9 +313,10 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
           </div>
 
           {/* Device upload option */}
-          <button
+          <Button
+            variant="primary" size="lg"
             onClick={() => deviceInputRef.current?.click()}
-            style={{ ...btnPrimaryStyle, justifyContent: 'flex-start', padding: '0.75rem 1.25rem', gap: '1rem', height: 'auto', background: C.ink, color: '#fff', boxShadow: card.shadow, border: 'none' }}
+            className="justify-start px-5 gap-4 h-auto"
           >
             <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Upload size={16} color={C.ink} />
@@ -332,7 +325,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
               <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Upload from device</div>
               <div style={{ fontSize: '0.78rem', opacity: 0.65, fontWeight: 400 }}>iPhone, Android, computer — any photos</div>
             </div>
-          </button>
+          </Button>
           <input
             ref={deviceInputRef}
             type="file"
@@ -381,15 +374,15 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-          <button
+          <Button
+            variant="secondary" size="lg"
             onClick={() => deviceInputRef.current?.click()}
-            style={{ ...btnPrimaryStyle, background: 'transparent', border: card.border, color: C.ink, boxShadow: 'none' }}
           >
             Add more
-          </button>
-          <button onClick={handleDeviceUpload} style={{ ...btnPrimaryStyle, background: C.olive, boxShadow: card.shadow }}>
+          </Button>
+          <Button variant="accent" size="lg" onClick={handleDeviceUpload}>
             <Upload size={15} /> Upload &amp; Continue
-          </button>
+          </Button>
         </div>
         <input
           ref={deviceInputRef}
@@ -480,25 +473,18 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
           {pickerUri && (
-            <button
+            <Button
+              variant="primary" size="lg"
               onClick={() => window.open(pickerUri, 'google-photos-picker', 'width=900,height=700')}
-              style={btnPrimaryStyle}
             >
               <ExternalLink size={16} /> Reopen Picker Window
-            </button>
+            </Button>
           )}
 
           {/* Manual "I'm done" button — for when popup auto-close doesn't fire reliably */}
-          <button
-            onClick={handleDonePicking}
-            style={{
-              ...btnPrimaryStyle,
-              background: C.olive,
-              boxShadow: '0 4px 14px rgba(163,177,138,0.35)',
-            }}
-          >
+          <Button variant="accent" size="lg" onClick={handleDonePicking}>
             <Check size={16} /> I&apos;m Done — Load My Photos
-          </button>
+          </Button>
 
           <button
             onClick={() => { stopPolling(); setState('idle'); }}
@@ -545,9 +531,9 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
         <p style={{ color: C.muted, fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
           The Google Photos connection expired after 30 minutes. Start a new session and pick your photos again — it only takes a moment.
         </p>
-        <button onClick={startPickerFlow} style={btnPrimaryStyle}>
+        <Button variant="primary" size="lg" onClick={startPickerFlow}>
           <RefreshCw size={18} /> Start New Picker Session
-        </button>
+        </Button>
       </div>
     );
   }
@@ -568,12 +554,12 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
           {error}
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button onClick={() => signOut()} style={{ ...btnPrimaryStyle, background: '#dc2626' }}>
+          <Button variant="danger" size="lg" onClick={() => signOut()}>
             Sign Out &amp; Reconnect
-          </button>
-          <button onClick={() => { stopPolling(); startPickerFlow(); }} style={btnPrimaryStyle}>
+          </Button>
+          <Button variant="primary" size="lg" onClick={() => { stopPolling(); startPickerFlow(); }}>
             <RefreshCw size={18} /> Try Again
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -594,13 +580,13 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           {sessionId && (
-            <button onClick={handleDonePicking} style={btnPrimaryStyle}>
+            <Button variant="primary" size="lg" onClick={handleDonePicking}>
               <RefreshCw size={18} /> Try Loading Again
-            </button>
+            </Button>
           )}
-          <button onClick={() => { stopPolling(); startPickerFlow(); }} style={{ ...btnPrimaryStyle, background: 'transparent', border: card.border, color: C.ink, boxShadow: 'none' }}>
+          <Button variant="secondary" size="lg" onClick={() => { stopPolling(); startPickerFlow(); }}>
             Open Picker Again
-          </button>
+          </Button>
         </div>
       </div>
     );
