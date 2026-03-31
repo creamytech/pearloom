@@ -532,7 +532,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                   {theme.name}
                 </div>
                 <div style={{
-                  fontSize: '0.5rem', color: 'rgba(255,255,255,0.25)',
+                  fontSize: '0.62rem', color: 'rgba(255,255,255,0.25)',
                   lineHeight: 1.3,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
@@ -544,7 +544,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
               {isActive && (
                 <div style={{
                   position: 'absolute', top: '4px', right: '4px',
-                  fontSize: '0.42rem', fontWeight: 800, letterSpacing: '0.08em',
+                  fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   background: '#6b7c3f', color: '#fff',
                   padding: '2px 5px', borderRadius: '3px',

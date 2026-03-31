@@ -339,7 +339,7 @@ function BlockCard({
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>{block.label}</span>
             {isApplied && (
-              <span style={{ fontSize: '0.55rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: block.color, background: `${block.color}15`, padding: '2px 6px', borderRadius: '4px' }}>
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: block.color, background: `${block.color}15`, padding: '2px 6px', borderRadius: '4px' }}>
                 Active
               </span>
             )}
@@ -569,7 +569,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           }}
         >
           All
-          <span style={{ background: activeCategory === 'all' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '8px', fontSize: '0.55rem', fontWeight: 800 }}>
+          <span style={{ background: activeCategory === 'all' ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: '8px', fontSize: '0.62rem', fontWeight: 800 }}>
             {BLOCKS.length}
           </span>
         </button>
@@ -592,7 +592,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
               <Icon size={10} color={isActive ? '#fff' : isDone ? block.color : 'rgba(255,255,255,0.4)'} />
               {block.label}
               {isDone && (
-                <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : `${block.color}25`, padding: '1px 4px', borderRadius: '6px', fontSize: '0.5rem', fontWeight: 800 }}>
+                <span style={{ background: isActive ? 'rgba(255,255,255,0.25)' : `${block.color}25`, padding: '1px 4px', borderRadius: '6px', fontSize: '0.62rem', fontWeight: 800 }}>
                   <Check size={7} />
                 </span>
               )}

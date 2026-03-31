@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, X, ChevronDown } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
@@ -67,7 +68,20 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </span>
         <ChevronDown size={12} style={{ transform: openSection === id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
-      {openSection === id && <div style={{ paddingBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>{children}</div>}
+      <AnimatePresence initial={false}>
+        {openSection === id && (
+          <motion.div
+            key={id}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ paddingBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 
@@ -82,7 +96,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
       <Section id="couple" label={occasion === 'birthday' ? 'Honoree' : occasion === 'anniversary' ? 'Couple' : 'Couple'}>
-        {sectionHead(occasion === 'birthday' ? 'Honoree' : 'Couple')}
         {occasion !== 'birthday' && (
           <Field label="Dress Code" value={logistics.dresscode || ''} onChange={v => upd({ dresscode: v })} placeholder="Black Tie Optional" />
         )}
@@ -95,7 +108,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="theday" label={occasion === 'birthday' ? 'The Party' : occasion === 'anniversary' ? 'The Celebration' : 'The Day'}>
-        {sectionHead(occasion === 'birthday' ? 'The Party' : occasion === 'anniversary' ? 'The Celebration' : 'The Day')}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
           <div>
             <label style={lbl}>{occasion === 'birthday' ? 'Party Date' : occasion === 'anniversary' ? 'Anniversary Date' : 'Wedding Date'}</label>
@@ -147,7 +159,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="registry" label="Registry">
-        {sectionHead('Registry')}
         {/* Registry enabled toggle */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Registry enabled</span>
@@ -193,7 +204,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="rsvp" label="RSVP">
-        {sectionHead('RSVP')}
         <div>
           <label style={lbl}>RSVP Deadline</label>
           <input
@@ -208,7 +218,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="travel" label="Travel & Hotels">
-        {sectionHead('Travel & Hotels')}
         <div>
           <label style={lbl}>Airports (one per line)</label>
           <textarea
@@ -254,7 +263,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="faq" label="FAQ">
-        {sectionHead('FAQ')}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
@@ -277,7 +285,6 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="vibe" label="Site Vibe">
-        {sectionHead('Site Vibe')}
         <div>
           <label style={lbl}>Vibe String</label>
           <textarea
@@ -296,10 +303,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
         {/* ── Site Features ── */}
         <div style={{ marginTop: '0.5rem' }}>
-          {sectionHead('Features')}
-
           {/* Guestbook toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Wishes Wall</div>
               <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests leave messages on your site</div>
@@ -311,7 +316,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.guestbook ?? true) ? 'var(--eg-accent, #A3B18A)' : 'rgba(0,0,0,0.15)',
+                background: (manifest.features?.guestbook ?? true) ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -327,7 +332,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </div>
 
           {/* Live Updates toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Live Updates Feed</div>
               <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Enable live updates feed for day-of announcements</div>
@@ -339,7 +344,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.liveUpdates ?? true) ? 'var(--eg-accent, #A3B18A)' : 'rgba(0,0,0,0.15)',
+                background: (manifest.features?.liveUpdates ?? true) ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}

@@ -19,6 +19,7 @@ import { TravelSection } from '@/components/travel-section';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
+import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
@@ -432,6 +433,12 @@ function PreviewContent() {
       <link rel="stylesheet" href={fontUrl} />
 
       <SiteNav names={names} pages={sitePages} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} />
+
+      <CelebrationOverlay
+        occasion={(manifest.occasion as 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story') || 'wedding'}
+        accentColor={pal.accent}
+        accentColor2={pal.accent2 || pal.highlight || pal.accent}
+      />
 
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (

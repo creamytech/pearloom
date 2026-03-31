@@ -98,7 +98,7 @@ export function SidebarSection({
         </span>
         {badge !== undefined && (
           <span style={{
-            fontSize: '0.58rem', padding: '1px 5px', borderRadius: '8px',
+            fontSize: '0.62rem', padding: '1px 5px', borderRadius: '8px',
             background: 'rgba(214,198,168,0.08)', color: 'rgba(214,198,168,0.4)',
           }}>
             {badge}
@@ -304,7 +304,7 @@ export function EditorSidebar({
                 </motion.div>
                 {/* Micro-label */}
                 <span style={{
-                  fontSize: '0.55rem',
+                  fontSize: '0.62rem',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',

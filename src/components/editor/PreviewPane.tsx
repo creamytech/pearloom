@@ -90,7 +90,20 @@ function HeroSection({
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 100%)' }} />
         </div>
       )}
-      {!coverPhoto && (
+      {/* AI hero art overlay */}
+      {vibeSkin?.heroArtDataUrl && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
+        }}>
+          <img src={vibeSkin.heroArtDataUrl} alt="" style={{
+            width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4,
+            mixBlendMode: bg < '#888' ? 'screen' : 'multiply',
+          }} />
+        </div>
+      )}
+      {!coverPhoto && !vibeSkin?.heroArtDataUrl && (
         <div style={{
           position: 'absolute', top: '-60px', right: '-60px',
           width: '280px', height: '280px', borderRadius: '50%',

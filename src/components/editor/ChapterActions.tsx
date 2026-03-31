@@ -202,7 +202,7 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center' }}>{opt.icon}</span>
-                <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                   {opt.label}
                 </span>
               </button>
