@@ -1,61 +1,58 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { forwardRef } from 'react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/cn';
+
+const TooltipProvider = TooltipPrimitive.Provider;
+const TooltipRoot = TooltipPrimitive.Root;
+const TooltipTrigger = TooltipPrimitive.Trigger;
+
+const TooltipContent = forwardRef<
+  React.ComponentRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 6, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        'z-50 overflow-hidden',
+        'bg-[var(--eg-fg)] text-white text-[0.78rem] font-medium',
+        'px-2.5 py-1.5 rounded-lg whitespace-nowrap',
+        'shadow-[0_4px_16px_rgba(0,0,0,0.2)]',
+        'animate-in fade-in-0 zoom-in-95',
+        'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
+        'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2',
+        'data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+        className,
+      )}
+      {...props}
+    />
+  </TooltipPrimitive.Portal>
+));
+TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+
+/* ── Pearloom Tooltip wrapper (preserves existing TooltipProps API) ── */
 
 export interface TooltipProps {
   content: string;
   children: React.ReactNode;
-  /** Position relative to trigger */
   side?: 'top' | 'bottom';
   className?: string;
 }
 
 export function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
-  const [visible, setVisible] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const show = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setVisible(true), 200);
-  };
-
-  const hide = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setVisible(false);
-  };
-
   return (
-    <span
-      className={cn('relative inline-flex', className)}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-      onFocus={show}
-      onBlur={hide}
-    >
-      {children}
-      <AnimatePresence>
-        {visible && (
-          <motion.span
-            initial={{ opacity: 0, y: side === 'top' ? 4 : -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: side === 'top' ? 4 : -4 }}
-            transition={{ duration: 0.15 }}
-            className={cn(
-              'absolute left-1/2 -translate-x-1/2 z-50 pointer-events-none',
-              'bg-[var(--eg-fg)] text-white text-[0.78rem] font-medium',
-              'px-2.5 py-1.5 rounded-lg whitespace-nowrap',
-              'shadow-[0_4px_16px_rgba(0,0,0,0.2)]',
-              side === 'top' && 'bottom-[calc(100%+6px)]',
-              side === 'bottom' && 'top-[calc(100%+6px)]',
-            )}
-            role="tooltip"
-          >
-            {content}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </span>
+    <TooltipProvider delayDuration={200}>
+      <TooltipRoot>
+        <TooltipTrigger asChild>
+          <span className={cn('inline-flex', className)}>{children}</span>
+        </TooltipTrigger>
+        <TooltipContent side={side}>{content}</TooltipContent>
+      </TooltipRoot>
+    </TooltipProvider>
   );
 }
+
+export { TooltipProvider, TooltipRoot, TooltipTrigger, TooltipContent };

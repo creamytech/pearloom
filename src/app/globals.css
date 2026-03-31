@@ -100,6 +100,38 @@
   --color-accent-light: var(--eg-accent-light);
   --color-muted: var(--eg-muted);
   --color-card-bg: var(--eg-card-bg);
+
+  /* ── shadcn/ui theme tokens (mapped to Pearloom brand) ── */
+  --color-border: var(--eg-divider);
+  --color-input: var(--eg-divider);
+  --color-ring: var(--eg-accent);
+  --color-primary: var(--eg-accent);
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: var(--eg-accent-light);
+  --color-secondary-foreground: var(--eg-fg);
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #FFFFFF;
+  --color-muted-foreground: var(--eg-muted);
+  --color-accent-foreground: var(--eg-fg);
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: var(--eg-fg);
+  --color-card: #FFFFFF;
+  --color-card-foreground: var(--eg-fg);
+  --radius: 1rem;
+
+  /* ── shadcn/ui animation tokens ── */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+/* ── Radix / shadcn keyframes ── */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
 }
 
 /* ─── Base Reset ─── */

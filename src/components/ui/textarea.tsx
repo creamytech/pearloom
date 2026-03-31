@@ -11,7 +11,7 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   autoGrow?: boolean;
 }
 
-export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, helper, maxChars, autoGrow = true, className, id, value, onChange, ...props }, ref) => {
     const [focused, setFocused] = useState(false);
     const innerRef = useRef<HTMLTextAreaElement | null>(null);
@@ -36,7 +36,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-[0.78rem] font-bold uppercase tracking-[0.08em] text-[var(--eg-muted)]"
+            className="text-[0.78rem] font-bold uppercase tracking-[0.08em] text-muted-foreground"
           >
             {label}
           </label>
@@ -51,14 +51,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           }}
           className={cn(
             'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5 outline-none resize-none',
-            'text-[max(16px,1rem)] text-[var(--eg-fg)] font-[family-name:var(--eg-font-body)]',
-            'placeholder:text-[var(--eg-muted)] placeholder:opacity-60',
+            'text-[max(16px,1rem)] text-foreground font-[family-name:var(--eg-font-body)]',
+            'placeholder:text-muted-foreground placeholder:opacity-60',
             'transition-all duration-200',
             focused
-              ? 'border-[var(--eg-accent)] shadow-[0_0_0_3px_rgba(163,177,138,0.12)]'
+              ? 'border-ring shadow-[0_0_0_3px_rgba(163,177,138,0.12)]'
               : error
-                ? 'border-[#ef4444]'
-                : 'border-[rgba(0,0,0,0.08)]',
+                ? 'border-destructive'
+                : 'border-input',
             className,
           )}
           onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
@@ -67,14 +67,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         />
         <div className="flex items-center justify-between">
           {error ? (
-            <span className="text-[0.78rem] text-[#ef4444]">{error}</span>
+            <span className="text-[0.78rem] text-destructive">{error}</span>
           ) : helper ? (
-            <span className="text-[0.78rem] text-[var(--eg-muted)]">{helper}</span>
+            <span className="text-[0.78rem] text-muted-foreground">{helper}</span>
           ) : (
             <span />
           )}
           {maxChars && (
-            <span className="text-[0.65rem] text-[var(--eg-muted)]">
+            <span className="text-[0.65rem] text-muted-foreground">
               {maxChars - charCount} remaining
             </span>
           )}
@@ -85,3 +85,5 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 );
 
 Textarea.displayName = 'Textarea';
+
+export { Textarea };
