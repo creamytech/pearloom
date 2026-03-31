@@ -95,6 +95,8 @@ export interface StoryManifest {
   publishedAt?: string;
   // Custom logo icon for the site navbar (chosen based on occasion + mood in wizard)
   logoIcon?: LogoIconId;
+  // AI-generated custom SVG logo icon (overrides logoIcon when present)
+  logoSvg?: string;
   // Page ids to hide from nav: 'schedule' | 'rsvp' | 'registry' | 'travel' | 'faq' | 'venue'
   hiddenPages?: string[];
   // Feature flags for optional site sections
