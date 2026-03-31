@@ -449,6 +449,7 @@ export function WeddingEvents({
 
   return (
     <section
+      data-pe-section="events"
       style={{
         background: sectionBg,
         position: 'relative',

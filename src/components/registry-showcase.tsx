@@ -270,6 +270,7 @@ export function RegistryShowcase({
 
   return (
     <section
+      data-pe-section="registry"
       style={{
         background: 'var(--eg-bg)',
         position: 'relative',

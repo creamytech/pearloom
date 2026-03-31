@@ -653,13 +653,13 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
               textShadow: '0 2px 20px rgba(0,0,0,0.8)',
               letterSpacing: '-0.02em',
             }}>
-              {chapter.title}
+              <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
             </h3>
             <div style={{ marginBottom: '2rem' }}>
               <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={true} />
             </div>
             <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.2)', margin: '0 auto 2.5rem' }} />
-            <div style={{ maxWidth: '600px', margin: '0 auto 2rem', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+            <div style={{ maxWidth: '600px', margin: '0 auto 2rem', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }} data-pe-editable="true" data-pe-field="description">
               <EnhancedDescription text={chapter.description} light />
             </div>
             {chapter.location && (
@@ -771,9 +771,9 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                 margin: '0 0 2.5rem 0',
                 letterSpacing: '-0.025em',
               }}>
-                &ldquo;{chapter.title}&rdquo;
+                &ldquo;<span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>&rdquo;
               </h3>
-              <div style={{ maxWidth: '600px', margin: '0 auto 2rem' }}>
+              <div style={{ maxWidth: '600px', margin: '0 auto 2rem' }} data-pe-editable="true" data-pe-field="description">
                 <EnhancedDescription text={chapter.description} />
               </div>
               {chapter.subtitle && (
@@ -784,7 +784,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
                   style={{ fontStyle: 'italic', color: 'var(--eg-accent)', fontSize: '1rem', marginTop: '1.5rem' }}
                 >
-                  {chapter.subtitle}
+                  <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
               )}
               {chapter.location && (
@@ -882,7 +882,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
                 margin: '0 0 1rem 0',
                 letterSpacing: '-0.02em',
               }}>
-                {chapter.title}
+                <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>
               {chapter.subtitle && (
                 <motion.p
@@ -892,10 +892,10 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
                   style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.05rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
                 >
-                  {chapter.subtitle}
+                  <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
               )}
-              <EnhancedDescription text={chapter.description} />
+              <div data-pe-editable="true" data-pe-field="description"><EnhancedDescription text={chapter.description} /></div>
               {chapter.location && (
                 <div style={{ marginTop: '2.5rem' }}>
                   <LocationPill label={chapter.location.label} />
@@ -946,7 +946,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
               margin: '0 0 1.1rem 0',
               letterSpacing: '-0.02em',
             }}>
-              {chapter.title}
+              <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
             </h3>
             {chapter.subtitle && (
               <motion.p
@@ -956,10 +956,10 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
                 transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
                 style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
               >
-                {chapter.subtitle}
+                <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
               </motion.p>
             )}
-            <EnhancedDescription text={chapter.description} />
+            <div data-pe-editable="true" data-pe-field="description"><EnhancedDescription text={chapter.description} /></div>
             {chapter.location && (
               <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
                 <LocationPill label={chapter.location.label} />
@@ -1124,7 +1124,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                 margin: '0 0 1.25rem 0',
                 letterSpacing: '-0.02em',
               }}>
-                {chapter.title}
+                <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>
               {chapter.subtitle && (
                 <motion.p
@@ -1134,10 +1134,10 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
                   style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
                 >
-                  {chapter.subtitle}
+                  <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
               )}
-              <EnhancedDescription text={chapter.description} />
+              <div data-pe-editable="true" data-pe-field="description"><EnhancedDescription text={chapter.description} /></div>
               {chapter.location && (
                 <div style={{ marginTop: '2.5rem' }}>
                   <LocationPill label={chapter.location.label} />
@@ -1261,7 +1261,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                 margin: '0 0 1.25rem 0',
                 letterSpacing: '-0.02em',
               }}>
-                {chapter.title}
+                <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>
               {chapter.subtitle && (
                 <motion.p
@@ -1271,10 +1271,10 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
                   style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
                 >
-                  {chapter.subtitle}
+                  <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
               )}
-              <EnhancedDescription text={chapter.description} />
+              <div data-pe-editable="true" data-pe-field="description"><EnhancedDescription text={chapter.description} /></div>
               {chapter.location && (
                 <div style={{ marginTop: '2.5rem' }}>
                   <LocationPill label={chapter.location.label} />
