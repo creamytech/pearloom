@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
 const FAQS = [
   {
@@ -33,61 +33,9 @@ const FAQS = [
   },
 ];
 
-function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen: boolean; onToggle: () => void }) {
-  return (
-    <div
-      className="border-b last:border-b-0"
-      style={{ borderColor: C.divider }}
-    >
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between py-5 text-left cursor-pointer border-none rounded-lg transition-colors duration-150"
-        style={{
-          background: isOpen ? `${C.olive}08` : 'transparent',
-          paddingLeft: 8,
-          paddingRight: 8,
-        }}
-      >
-        <span
-          className="font-[family-name:var(--eg-font-heading)] font-semibold pr-4"
-          style={{ fontSize: text.lg, color: C.ink }}
-        >
-          {faq.q}
-        </span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-shrink-0"
-        >
-          <ChevronDown size={18} style={{ color: isOpen ? C.olive : C.muted }} />
-        </motion.div>
-      </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
-          >
-            <p
-              className="pb-5 leading-relaxed pl-3"
-              style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, borderLeft: `3px solid ${C.olive}` }}
-            >
-              {faq.a}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 export function FAQSection() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.15 });
-  const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   return (
     <section
@@ -95,7 +43,7 @@ export function FAQSection() {
       id="faq"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div className="max-w-[700px] mx-auto">
+      <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="FAQ"
           title="Questions? Woven answers."
@@ -114,14 +62,14 @@ export function FAQSection() {
             boxShadow: card.shadow,
           }}
         >
-          {FAQS.map((faq, i) => (
-            <FAQItem
-              key={i}
-              faq={faq}
-              isOpen={openIdx === i}
-              onToggle={() => setOpenIdx(openIdx === i ? null : i)}
-            />
-          ))}
+          <Accordion type="single" collapsible defaultValue="faq-0">
+            {FAQS.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`}>
+                <AccordionTrigger>{faq.q}</AccordionTrigger>
+                <AccordionContent>{faq.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </motion.div>
       </div>
     </section>

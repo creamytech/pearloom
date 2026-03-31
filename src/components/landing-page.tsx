@@ -17,7 +17,7 @@ import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
 import { Pill } from '@/components/ui/Pill';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
-import { text, card, sectionPadding } from '@/lib/design-tokens';
+import { text, card, sectionPadding, layout } from '@/lib/design-tokens';
 
 interface LandingPageProps {
   handleSignIn: () => void;
@@ -486,7 +486,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           borderBottom: `1px solid ${C.divider}`,
         }}
       >
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+        <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <motion.div
               initial={{ opacity: 0, y: 14 }}
@@ -578,7 +578,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           borderTop: `1px solid ${C.divider}`,
         }}
       >
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+        <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
           <SectionHeader
             eyebrow="Loved by real people"
             title="Stories from our community"

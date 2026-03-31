@@ -2,10 +2,11 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { Pill } from '@/components/ui/Pill';
+import { Button, Badge } from '@/components/ui';
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
@@ -65,7 +66,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         background: C.cream,
       }}
     >
-      <div className="relative z-10 w-full max-w-[960px] text-center">
+      <div className="relative z-10 w-full text-center" style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Eyebrow pill with rotating occasion */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -135,40 +136,20 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           transition={{ duration: 0.8, delay: 0.75 }}
           className="flex gap-3 justify-center flex-wrap"
         >
-          <motion.button
+          <Button
+            variant="accent"
+            size="lg"
             onClick={handleSignIn}
             disabled={status === 'loading'}
-            whileHover={{ scale: 1.04, boxShadow: '0 8px 32px rgba(163,177,138,0.35)' }}
-            whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer"
-            style={{
-              padding: '1rem 2.8rem',
-              background: C.olive,
-              color: C.cream,
-              borderRadius: card.radius,
-              fontSize: '1rem',
-              letterSpacing: '0.03em',
-              boxShadow: '0 4px 24px rgba(163,177,138,0.32)',
-              opacity: status === 'loading' ? 0.65 : 1,
-              transition: 'box-shadow 0.25s ease',
-            }}
+            loading={status === 'loading'}
           >
             Create Your Free Site <ArrowRight size={15} strokeWidth={2.2} />
-          </motion.button>
-          <motion.button
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
             onClick={() => window.open('/demo', '_blank')}
-            whileHover={{ scale: 1.02, background: C.deep }}
-            whileTap={{ scale: 0.97 }}
-            className="group inline-flex items-center gap-2 font-medium font-[family-name:var(--eg-font-body)] cursor-pointer"
-            style={{
-              padding: '1rem 2.8rem',
-              background: 'transparent',
-              color: C.dark,
-              border: `1px solid ${C.divider}`,
-              borderRadius: card.radius,
-              fontSize: '1rem',
-              letterSpacing: '0.03em',
-            }}
+            className="group"
           >
             See Examples
             <ArrowRight
@@ -176,7 +157,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
               strokeWidth={2}
               className="transition-transform duration-250 ease-out group-hover:translate-x-1"
             />
-          </motion.button>
+          </Button>
         </motion.div>
 
         {/* Trust badges with checkmarks */}
@@ -204,23 +185,9 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           className="flex items-center justify-center gap-4 flex-wrap"
         >
           {TRUST_ITEMS.map((item) => (
-            <span
-              key={item}
-              className="inline-flex items-center gap-1.5"
-              style={{ fontSize: text.sm, color: C.muted }}
-            >
-              <span
-                className="inline-flex items-center justify-center rounded-full flex-shrink-0"
-                style={{
-                  width: 14,
-                  height: 14,
-                  background: `${C.olive}22`,
-                }}
-              >
-                <Check size={9} strokeWidth={2.8} style={{ color: C.olive }} />
-              </span>
+            <Badge key={item} variant="success">
               {item}
-            </span>
+            </Badge>
           ))}
         </motion.div>
 

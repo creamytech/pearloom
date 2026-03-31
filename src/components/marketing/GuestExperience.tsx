@@ -10,9 +10,10 @@ import {
   Bot,
   MessageSquare,
 } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
+import { Card } from '@/components/ui';
 
 const FEATURES = [
   {
@@ -63,7 +64,7 @@ export function GuestExperience() {
       id="features"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="Guest Experience"
           title={<>Everything your guests need.<br /><span style={{ color: C.plum }}>Nothing they don&rsquo;t.</span></>}
@@ -79,25 +80,23 @@ export function GuestExperience() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.08 + 0.2, duration: 0.5 }}
-                whileHover={{ boxShadow: card.shadowHover }}
-                className="p-6 transition-shadow duration-200"
-                style={{
-                  background: card.bg,
-                  border: card.border,
-                  borderLeft: `3px solid ${f.accent}`,
-                  borderRadius: card.radius,
-                  boxShadow: card.shadow,
-                }}
               >
-                <div className="mb-3.5">
-                  <IconCircle icon={Icon} accent={f.accent} size={48} iconSize={22} />
-                </div>
-                <h3 className="font-semibold mb-1.5" style={{ fontSize: text.md, color: C.ink }}>
-                  {f.title}
-                </h3>
-                <p className="leading-relaxed" style={{ fontSize: text.sm, color: C.muted, lineHeight: 1.7 }}>
-                  {f.desc}
-                </p>
+                <Card
+                  variant="elevated"
+                  interactive
+                  padding="md"
+                  style={{ borderLeft: `3px solid ${f.accent}` }}
+                >
+                  <div className="mb-3.5">
+                    <IconCircle icon={Icon} accent={f.accent} size={48} iconSize={22} />
+                  </div>
+                  <h3 className="font-semibold mb-1.5" style={{ fontSize: text.md, color: C.ink }}>
+                    {f.title}
+                  </h3>
+                  <p className="leading-relaxed" style={{ fontSize: text.sm, color: C.muted, lineHeight: 1.7 }}>
+                    {f.desc}
+                  </p>
+                </Card>
               </motion.div>
             );
           })}

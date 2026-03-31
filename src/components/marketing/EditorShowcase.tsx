@@ -13,8 +13,9 @@ import {
   Columns2,
   ZoomIn,
 } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const FEATURE_ITEMS = [
   { icon: Layers, label: '15 Block Types' },
@@ -158,7 +159,7 @@ export function EditorShowcase() {
       className="relative overflow-hidden"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Header */}
         <SectionHeader
           pill={{ label: 'The Editor', sparkle: true }}
@@ -177,29 +178,48 @@ export function EditorShowcase() {
           <EditorMockup />
         </motion.div>
 
-        {/* Feature grid — simple 3-column grid */}
+        {/* Feature grid — tabbed into 3 groups */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="grid grid-cols-3 sm:grid-cols-3 gap-4 max-w-[520px] mx-auto"
+          className="max-w-[520px] mx-auto"
         >
-          {FEATURE_ITEMS.map(f => {
-            const Icon = f.icon;
-            return (
-              <div key={f.label} className="flex items-center gap-2.5">
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${C.olive}1A` }}
-                >
-                  <Icon size={13} style={{ color: C.olive }} />
+          <Tabs defaultValue="visual">
+            <div className="flex justify-center mb-2">
+              <TabsList>
+                <TabsTrigger value="visual">Visual Editor</TabsTrigger>
+                <TabsTrigger value="ai">AI Powers</TabsTrigger>
+                <TabsTrigger value="collab">Collaboration</TabsTrigger>
+              </TabsList>
+            </div>
+            {[
+              { value: 'visual', items: FEATURE_ITEMS.slice(0, 3) },
+              { value: 'ai', items: FEATURE_ITEMS.slice(3, 6) },
+              { value: 'collab', items: FEATURE_ITEMS.slice(6, 9) },
+            ].map(group => (
+              <TabsContent key={group.value} value={group.value}>
+                <div className="grid grid-cols-3 gap-4">
+                  {group.items.map(f => {
+                    const Icon = f.icon;
+                    return (
+                      <div key={f.label} className="flex items-center gap-2.5">
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: `${C.olive}1A` }}
+                        >
+                          <Icon size={13} style={{ color: C.olive }} />
+                        </div>
+                        <span className="font-medium" style={{ fontSize: text.sm, color: C.dark }}>
+                          {f.label}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <span className="font-medium" style={{ fontSize: text.sm, color: C.dark }}>
-                  {f.label}
-                </span>
-              </div>
-            );
-          })}
+              </TabsContent>
+            ))}
+          </Tabs>
         </motion.div>
       </div>
     </section>

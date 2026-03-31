@@ -3,9 +3,10 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Upload, Cpu, Share2 } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
+import { Card } from '@/components/ui';
 
 const STEPS = [
   {
@@ -45,16 +46,7 @@ const STEPS = [
 
 function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
   return (
-    <div
-      className="w-full max-w-[400px]"
-      style={{
-        background: card.bg,
-        borderRadius: card.radius,
-        border: card.border,
-        boxShadow: card.shadow,
-        padding: '1.5rem',
-      }}
-    >
+    <Card variant="elevated" padding="md" className="w-full max-w-[400px]">
       <div className="flex items-center gap-2 mb-3">
         <div
           className="font-bold tracking-[0.16em] uppercase"
@@ -90,7 +82,7 @@ function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
           />
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -104,7 +96,7 @@ export function HowItWorks() {
       id="how-it-works"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Decorative gold rule */}
         <div className="flex justify-center mb-6">
           <div style={{ width: 60, height: 1, background: C.gold }} />
