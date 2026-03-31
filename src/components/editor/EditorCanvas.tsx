@@ -93,6 +93,7 @@ export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
   const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom } = state;
 
+  // ── Visual Editor Mode (default) — editable site preview ────
   if (splitView && !isMobile) {
     return (
       <div style={{
@@ -105,7 +106,7 @@ export function EditorCanvas() {
           manifest={{ ...manifest, chapters: chapters.map((ch, i) => ({ ...ch, order: i })) }}
           coupleNames={coupleNames}
           vibeSkin={manifest.vibeSkin}
-          scale={0.7}
+          scale={1.0}
           draggingId={canvasDragId}
           selectedChapterId={activeId}
           onSectionClick={(chapterId) => {

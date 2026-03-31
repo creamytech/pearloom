@@ -263,7 +263,7 @@ export function createInitialEditorState(
     device: 'desktop',
     sidebarWidth: 380,
     sidebarCollapsed: false,
-    splitView: false,
+    splitView: true,
     mobileSheetOpen: false,
     cmdPaletteOpen: false,
     showWelcome: true,

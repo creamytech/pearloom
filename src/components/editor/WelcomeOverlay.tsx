@@ -59,7 +59,7 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
           textAlign: 'center',
         }}
       >
-        Let&apos;s bring it to life.
+        Click anywhere on your site to edit it.
       </motion.div>
     </motion.div>
   );
