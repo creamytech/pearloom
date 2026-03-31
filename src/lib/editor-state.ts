@@ -312,13 +312,16 @@ export const LAYOUT_LABELS: Record<string, string> = {
 // ── Preview helpers ─────────────────────────────────────────────
 export function stripArtForStorage(manifest: StoryManifest): StoryManifest {
   if (!manifest.vibeSkin) return manifest;
+  // Only strip base64 DataURLs (too large for sessionStorage).
+  // Permanent URLs (R2/CDN) are small strings and should be preserved.
+  const isBase64 = (url?: string) => url?.startsWith('data:');
   return {
     ...manifest,
     vibeSkin: {
       ...manifest.vibeSkin,
-      heroArtDataUrl: undefined,
-      ambientArtDataUrl: undefined,
-      artStripDataUrl: undefined,
+      heroArtDataUrl: isBase64(manifest.vibeSkin.heroArtDataUrl) ? undefined : manifest.vibeSkin.heroArtDataUrl,
+      ambientArtDataUrl: isBase64(manifest.vibeSkin.ambientArtDataUrl) ? undefined : manifest.vibeSkin.ambientArtDataUrl,
+      artStripDataUrl: isBase64(manifest.vibeSkin.artStripDataUrl) ? undefined : manifest.vibeSkin.artStripDataUrl,
     },
   };
 }

@@ -266,7 +266,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <section key={key} id="schedule" style={{ position: 'relative', overflow: 'hidden', background: cardBg }}>
             {vibeSkin.accentBlobSvg && (
               <div
-                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
+                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.25 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
@@ -483,7 +483,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             alt=""
             style={{
               width: '100%', height: '100%', objectFit: 'cover',
-              opacity: 0.35,
+              opacity: 0.55,
               mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
             }}
           />
@@ -492,13 +492,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       {/* SVG blob art fallback when no raster art — right side */}
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div
-          style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.20 }}
+          style={{ position: 'absolute', right: '-1%', top: '5%', width: '40%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.35 }}
           dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
         />
       )}
       {!vibeSkin.heroArtDataUrl && vibeSkin.heroBlobSvg && (
         <div
-          style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.14, transform: 'scaleX(-1)' }}
+          style={{ position: 'absolute', left: '-1%', top: '10%', width: '36%', height: '80%', zIndex: 0, pointerEvents: 'none', opacity: 0.25, transform: 'scaleX(-1)' }}
           dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.heroBlobSvg) }}
         />
       )}
@@ -785,7 +785,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                     alt=""
                     style={{
                       width: '100%', height: '100%', objectFit: 'cover',
-                      opacity: 0.20,
+                      opacity: 0.30,
                       mixBlendMode: pal.background < '#888' ? 'screen' : 'multiply',
                     }}
                   />
@@ -797,7 +797,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   style={{
                     position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
                     backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
-                    backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.13,
+                    backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.22,
                   }}
                 />
               )}
