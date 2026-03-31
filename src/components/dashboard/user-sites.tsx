@@ -338,21 +338,59 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', padding: '6rem 2rem',
-            background: '#ffffff',
+            background: 'radial-gradient(ellipse at 50% 30%, rgba(163,177,138,0.08) 0%, rgba(214,198,168,0.06) 40%, #ffffff 70%)',
             borderRadius: '1.5rem',
             border: '1px solid var(--eg-divider)',
             textAlign: 'center',
             maxWidth: '640px',
             margin: '0 auto',
             boxShadow: '0 8px 40px rgba(43,43,43,0.06)',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          {/* Decorative thread ornament — top left */}
+          <svg
+            width="120" height="120" viewBox="0 0 120 120" fill="none"
+            aria-hidden="true"
+            style={{ position: 'absolute', top: '-10px', left: '-10px', opacity: 0.12 }}
+          >
+            <path d="M10 110 C 30 60, 70 80, 60 10" stroke="#A3B18A" strokeWidth="1.5" fill="none" />
+            <path d="M20 110 C 50 70, 40 50, 70 10" stroke="#D6C6A8" strokeWidth="1.5" fill="none" />
+          </svg>
+          {/* Decorative thread ornament — bottom right */}
+          <svg
+            width="120" height="120" viewBox="0 0 120 120" fill="none"
+            aria-hidden="true"
+            style={{ position: 'absolute', bottom: '-10px', right: '-10px', opacity: 0.12 }}
+          >
+            <path d="M110 10 C 90 60, 50 40, 60 110" stroke="#A3B18A" strokeWidth="1.5" fill="none" />
+            <path d="M100 10 C 70 50, 80 70, 50 110" stroke="#D6C6A8" strokeWidth="1.5" fill="none" />
+          </svg>
+
+          {/* Pear icon with glow */}
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ marginBottom: '2rem' }}
+            style={{
+              marginBottom: '2rem',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <PearIcon size={64} color="var(--eg-accent)" />
+            {/* Subtle glow behind pear */}
+            <div style={{
+              position: 'absolute',
+              width: '100px',
+              height: '100px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(163,177,138,0.3) 0%, rgba(163,177,138,0) 70%)',
+              filter: 'blur(8px)',
+              pointerEvents: 'none',
+            }} />
+            <PearIcon size={80} color="var(--eg-accent)" />
           </motion.div>
           <h3 style={{
             fontFamily: 'var(--eg-font-heading)',
@@ -363,10 +401,17 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             Start your story
           </h3>
           <p style={{
-            color: 'var(--eg-muted)', maxWidth: '400px', marginBottom: '2.5rem',
+            color: 'var(--eg-muted)', maxWidth: '400px', marginBottom: '0.75rem',
             lineHeight: 1.8, fontSize: '1rem',
           }}>
             Build a stunning celebration website in minutes. Your AI designer is waiting.
+          </p>
+          <p style={{
+            color: 'var(--eg-muted)', fontSize: '0.8rem', marginBottom: '2.5rem',
+            letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
+            opacity: 0.55,
+          }}>
+            Powered by The Loom AI
           </p>
           <button
             onClick={onStartNew}
@@ -379,6 +424,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
               fontFamily: 'var(--eg-font-body)',
               transition: 'transform 0.2s, box-shadow 0.2s',
+              position: 'relative',
+              zIndex: 1,
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
@@ -444,11 +491,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       borderRadius: '1.25rem',
                       overflow: 'hidden',
                       border: isHovered
-                        ? '1px solid var(--eg-gold)'
+                        ? `1px solid ${accentColor}`
                         : '1px solid var(--eg-divider)',
                       boxShadow: isHovered
-                        ? '0 20px 60px rgba(43,43,43,0.10), 0 4px 16px rgba(214,198,168,0.2)'
-                        : 'var(--eg-shadow-sm)',
+                        ? `0 20px 60px rgba(43,43,43,0.10), 0 4px 16px rgba(214,198,168,0.2), 0 0 0 3px ${accentColor}22`
+                        : '0 4px 24px rgba(43,43,43,0.06)',
                       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
                       transition: 'box-shadow 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1)',
                     }}
@@ -465,7 +512,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       }}
                     >
                       {/* Actual cover photo if available */}
-                      {coverPhotoUrl && (
+                      {coverPhotoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={coverPhotoUrl}
@@ -480,13 +527,29 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           onMouseOver={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
                           onMouseOut={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
                         />
+                      ) : (
+                        /* Premium placeholder pattern for sites without a cover photo */
+                        <div style={{
+                          position: 'absolute', inset: 0,
+                          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 50%, ${accentColor}cc 100%)`,
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{
+                            position: 'absolute', inset: '-50%',
+                            background: `radial-gradient(circle at 20% 50%, ${accentColor}44 0%, transparent 50%), radial-gradient(circle at 80% 20%, ${accentDark}55 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(255,255,255,0.08) 0%, transparent 50%)`,
+                          }} />
+                          <div style={{
+                            position: 'absolute', inset: 0,
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                          }} />
+                        </div>
                       )}
-                      {/* Gradient overlay — lighter when photo present so names stay readable */}
+                      {/* Gradient overlay — bottom fade for text readability */}
                       <div style={{
                         position: 'absolute', inset: 0,
                         background: coverPhotoUrl
-                          ? 'linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.55) 100%)'
-                          : 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.35) 100%)',
+                          ? 'linear-gradient(180deg, transparent 0%, transparent 35%, rgba(0,0,0,0.12) 55%, rgba(0,0,0,0.6) 100%)'
+                          : 'linear-gradient(180deg, transparent 0%, transparent 40%, rgba(0,0,0,0.08) 60%, rgba(0,0,0,0.4) 100%)',
                       }} />
 
                       {/* Domain badge */}
@@ -511,20 +574,36 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                       }}>
                         {isLive ? (
-                          <>
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            background: 'rgba(34,197,94,0.18)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)',
+                            borderRadius: '100px',
+                            padding: '0.2rem 0.6rem 0.2rem 0.45rem',
+                            border: '1px solid rgba(34,197,94,0.25)',
+                          }}>
                             <div style={{
-                              width: '6px', height: '6px', borderRadius: '50%',
+                              width: '7px', height: '7px', borderRadius: '50%',
                               background: '#22c55e',
-                              boxShadow: '0 0 0 0 rgba(34,197,94,0.4)',
+                              boxShadow: '0 0 6px rgba(34,197,94,0.6), 0 0 0 0 rgba(34,197,94,0.4)',
                               animation: 'livePulse 2s ease-out infinite',
                             }} />
                             <span style={{ fontSize: text.xs, color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
-                          </>
+                          </div>
                         ) : (
-                          <>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            background: 'rgba(217,170,56,0.2)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)',
+                            borderRadius: '100px',
+                            padding: '0.2rem 0.6rem 0.2rem 0.45rem',
+                            border: '1px solid rgba(217,170,56,0.3)',
+                          }}>
+                            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#D9AA38' }} />
                             <span style={{ fontSize: text.xs, color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
-                          </>
+                          </div>
                         )}
                       </div>
 
@@ -557,7 +636,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     {/* Card body */}
                     <div style={{ padding: '1.25rem 1.5rem 1.5rem' }}>
                       {/* Occasion badge + date row */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem', paddingLeft: '0.75rem', borderLeft: `3px solid ${accentColor}33`, }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {occ && (
                             <span style={{
@@ -678,7 +757,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             transition: 'all 0.25s',
                           }}
                         >
-                          {isCopied ? <Check size={12} /> : <Share2 size={12} />}
+                          <span style={{
+                            display: 'inline-flex',
+                            transform: isCopied ? 'scale(1.2)' : 'scale(1)',
+                            transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                          }}>
+                            {isCopied ? <Check size={12} /> : <Share2 size={12} />}
+                          </span>
                           {isCopied ? 'Copied!' : 'Share'}
                         </button>
 
@@ -688,8 +773,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="Manage Guests"
                           aria-label="Manage guests"
                           style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: '0.75rem',
+                            border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.02)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--eg-muted)', cursor: 'pointer', transition: 'all 0.2s',
                           }}
@@ -699,7 +784,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             e.currentTarget.style.borderColor = 'rgba(163,177,138,0.3)';
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.background = 'rgba(0,0,0,0.02)';
                             e.currentTarget.style.color = 'var(--eg-muted)';
                             e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)';
                           }}
@@ -716,8 +801,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           aria-label="View live site"
                           onClick={(e) => e.stopPropagation()}
                           style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: '0.75rem',
+                            border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.02)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'var(--eg-muted)', textDecoration: 'none',
                             transition: 'all 0.2s',
@@ -728,7 +813,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,0,0,0.12)';
                           }}
                           onMouseOut={(e) => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
+                            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(0,0,0,0.02)';
                             (e.currentTarget as HTMLAnchorElement).style.color = 'var(--eg-muted)';
                             (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,0,0,0.08)';
                           }}
@@ -743,9 +828,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="Delete site"
                           aria-label="Delete site"
                           style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(185,28,28,0.2)',
-                            background: 'transparent',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: '0.75rem',
+                            border: '1px solid rgba(185,28,28,0.15)',
+                            background: 'rgba(185,28,28,0.03)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'rgba(185,28,28,0.55)', cursor: 'pointer',
                             transition: 'all 0.2s',
@@ -756,9 +841,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             e.currentTarget.style.borderColor = 'rgba(185,28,28,0.35)';
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.background = 'rgba(185,28,28,0.03)';
                             e.currentTarget.style.color = 'rgba(185,28,28,0.55)';
-                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.2)';
+                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.15)';
                           }}
                         >
                           {isDeleting
@@ -830,9 +915,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               50% { opacity: 0.5; }
             }
             @keyframes livePulse {
-              0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
-              70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
-              100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+              0% { box-shadow: 0 0 6px rgba(34,197,94,0.6), 0 0 0 0 rgba(34,197,94,0.4); }
+              70% { box-shadow: 0 0 6px rgba(34,197,94,0.6), 0 0 0 7px rgba(34,197,94,0); }
+              100% { box-shadow: 0 0 6px rgba(34,197,94,0.6), 0 0 0 0 rgba(34,197,94,0); }
             }
           `}</style>
         </>

@@ -657,7 +657,11 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                 }}
               >
                 <img
-                  src={photo.baseUrl ? `/api/photos/proxy?url=${encodeURIComponent(photo.baseUrl)}&w=300&h=300` : ''}
+                  src={photo.baseUrl
+                    ? (photo.baseUrl.includes('googleusercontent.com')
+                      ? `/api/photos/proxy?url=${encodeURIComponent(photo.baseUrl)}&w=300&h=300`
+                      : photo.baseUrl)
+                    : ''}
                   alt={photo.filename || 'Photo'}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#f0ebe4' }}
                   loading="lazy"

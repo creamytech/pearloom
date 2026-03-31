@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProgressSteps } from '@/components/ui';
+import { colors, shadow, opacity } from '@/lib/design-tokens';
 import type { WizardStep } from '@/lib/wizard-state';
 
 const WIZARD_STEPS = [
@@ -32,17 +33,39 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
   const showProgress = PROGRESS_STEPS.includes(step);
 
   return (
-    <main className="min-h-dvh pt-24 pb-20" style={{ background: '#F5F1E8' }}>
-      {/* Gradient overlay */}
+    <main className="min-h-dvh pt-24 pb-20 relative overflow-hidden" style={{ background: colors.cream }}>
+      {/* Radial gradient accent — warm olive glow top-center */}
       <div
-        className="absolute top-0 left-0 right-0 h-[500px] pointer-events-none z-0"
-        style={{ background: 'linear-gradient(180deg, rgba(163,177,138,0.08) 0%, rgba(245,241,232,0) 100%)' }}
+        className="absolute top-0 left-0 right-0 h-[600px] pointer-events-none z-0"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% -5%, ${colors.olive}${opacity.light} 0%, transparent 70%),
+            radial-gradient(ellipse 60% 40% at 80% 10%, ${colors.gold}${opacity.subtle} 0%, transparent 60%),
+            linear-gradient(180deg, ${colors.olive}${opacity.subtle} 0%, transparent 100%)
+          `,
+        }}
+      />
+      {/* Subtle dot pattern overlay for texture */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          backgroundImage: `radial-gradient(${colors.olive}${opacity.subtle} 1px, transparent 1px)`,
+          backgroundSize: '24px 24px',
+        }}
       />
 
       <div className="max-w-[1200px] mx-auto px-8 relative z-[1]">
         {/* Step progress bar */}
         {showProgress && (
-          <div className="max-w-[800px] mx-auto mb-16">
+          <div
+            className="max-w-[800px] mx-auto mb-16 px-6 py-4 rounded-2xl"
+            style={{
+              background: `rgba(255,255,255,0.55)`,
+              backdropFilter: 'blur(12px)',
+              boxShadow: `${shadow.sm}, inset 0 1px 0 rgba(255,255,255,0.6)`,
+              border: `1px solid ${colors.divider}`,
+            }}
+          >
             <ProgressSteps
               steps={[...WIZARD_STEPS]}
               currentStepId={step}
@@ -54,15 +77,22 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
 
         {/* Step header */}
         {title && step !== 'dashboard' && step !== 'generating' && (
-          <div className="mb-12 text-center">
+          <div className="mb-14 text-center">
             <h2
-              className="text-[2.5rem] font-semibold tracking-tight mb-3 text-[var(--eg-fg)]"
-              style={{ fontFamily: 'var(--eg-font-heading)', letterSpacing: '-0.02em' }}
+              className="text-[2.5rem] font-semibold tracking-tight mb-4 text-[var(--eg-fg)]"
+              style={{
+                fontFamily: 'var(--eg-font-heading)',
+                letterSpacing: '-0.02em',
+                textShadow: `0 1px 2px rgba(0,0,0,0.04)`,
+              }}
             >
               {title}
             </h2>
             {subtitle && (
-              <p className="text-[var(--eg-muted)] text-[1.05rem] max-w-[500px] mx-auto">
+              <p
+                className="text-[var(--eg-muted)] text-[1.08rem] max-w-[520px] mx-auto leading-relaxed"
+                style={{ color: colors.muted }}
+              >
                 {subtitle}
               </p>
             )}

@@ -6,6 +6,7 @@ import { Check, ArrowRight } from 'lucide-react';
 import { C } from './colors';
 import { text } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { Pill } from '@/components/ui/Pill';
 
 const TIERS = [
   {
@@ -61,6 +62,17 @@ export function PricingPreview() {
         borderTop: `1px solid ${C.divider}`,
       }}
     >
+      <style>{`
+        @keyframes pricing-border-rotate {
+          0% { --border-angle: 0deg; }
+          100% { --border-angle: 360deg; }
+        }
+        @property --border-angle {
+          syntax: "<angle>";
+          initial-value: 0deg;
+          inherits: false;
+        }
+      `}</style>
       <div className="max-w-[780px] mx-auto">
         <SectionHeader
           eyebrow="Pricing"
@@ -78,66 +90,115 @@ export function PricingPreview() {
               initial={{ opacity: 0, y: 24 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: i * 0.12 + 0.3, duration: 0.5 }}
-              className="rounded-2xl p-7 relative overflow-hidden"
-              style={{
-                background: tier.highlighted ? 'white' : 'transparent',
-                border: tier.highlighted
-                  ? `1px solid ${tier.accent}35`
-                  : `1.5px solid ${C.divider}`,
-                boxShadow: tier.highlighted
-                  ? `0 12px 48px rgba(109,89,122,0.12), 0 0 0 1px rgba(109,89,122,0.08)`
-                  : 'none',
-              }}
+              className="relative"
             >
+              {/* Animated gradient border for Premium */}
               {tier.highlighted && (
                 <div
-                  className="absolute top-0 left-0 right-0 h-[4px]"
-                  style={{ background: `linear-gradient(90deg, ${C.plum}, ${C.olive})` }}
+                  className="absolute -inset-[2px] rounded-2xl pointer-events-none"
+                  style={{
+                    background: `conic-gradient(from var(--border-angle, 0deg), ${C.olive}, ${C.plum}, ${C.gold}, ${C.olive})`,
+                    animation: 'pricing-border-rotate 4s linear infinite',
+                    opacity: 0.7,
+                  }}
                 />
               )}
 
-              <div className="font-bold tracking-[0.14em] uppercase mb-2" style={{ fontSize: text.xs, color: tier.accent }}>
-                {tier.name}
-              </div>
-              <div className="flex items-baseline gap-1 mb-2">
-                <span
-                  className="font-[family-name:var(--eg-font-heading)] text-[2.5rem] font-bold leading-none"
-                  style={{ color: C.ink }}
-                >
-                  {tier.price}
-                </span>
-                <span style={{ fontSize: text.sm, color: C.muted }}>
-                  {tier.period}
-                </span>
-              </div>
-              <p className="mb-5" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.6 }}>
-                {tier.desc}
-              </p>
-
-              <div className="flex flex-col gap-2.5 mb-6">
-                {tier.features.map(f => (
-                  <div key={f} className="flex items-start gap-2.5">
-                    <Check size={14} className="mt-0.5 flex-shrink-0" style={{ color: tier.accent }} />
-                    <span style={{ fontSize: text.sm, color: C.dark }}>
-                      {f}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer"
+              <div
+                className="rounded-2xl p-7 relative overflow-hidden"
                 style={{
-                  fontSize: text.base,
-                  background: tier.highlighted ? tier.accent : 'transparent',
-                  color: tier.highlighted ? 'white' : tier.accent,
-                  border: tier.highlighted ? 'none' : `1.5px solid ${tier.accent}40`,
+                  background: tier.highlighted ? 'white' : 'transparent',
+                  border: tier.highlighted
+                    ? 'none'
+                    : `1.5px solid ${C.divider}`,
+                  boxShadow: tier.highlighted
+                    ? `0 24px 80px rgba(109,89,122,0.18), 0 8px 32px rgba(109,89,122,0.12), 0 0 0 1px rgba(109,89,122,0.06)`
+                    : 'none',
                 }}
               >
-                {tier.cta} <ArrowRight size={14} />
-              </motion.button>
+                {tier.highlighted && (
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[4px]"
+                    style={{ background: `linear-gradient(90deg, ${C.plum}, ${C.olive})` }}
+                  />
+                )}
+
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="font-bold tracking-[0.14em] uppercase" style={{ fontSize: text.xs, color: tier.accent }}>
+                    {tier.name}
+                  </div>
+                  {tier.highlighted && (
+                    <Pill sparkle variant="plum">
+                      Best Value
+                    </Pill>
+                  )}
+                </div>
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span
+                    className="font-[family-name:var(--eg-font-heading)] text-[2.5rem] font-bold leading-none"
+                    style={{ color: C.ink }}
+                  >
+                    {tier.price}
+                  </span>
+                  <span style={{ fontSize: text.sm, color: C.muted }}>
+                    {tier.period}
+                  </span>
+                </div>
+                <p className="mb-5" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.6 }}>
+                  {tier.desc}
+                </p>
+
+                <div className="flex flex-col gap-3.5 mb-7">
+                  {tier.features.map(f => (
+                    <div key={f} className="flex items-start gap-3">
+                      <span
+                        className="inline-flex items-center justify-center rounded-full flex-shrink-0 mt-0.5"
+                        style={{
+                          width: 20,
+                          height: 20,
+                          background: `${tier.accent}18`,
+                        }}
+                      >
+                        <Check size={11} strokeWidth={2.8} style={{ color: tier.accent }} />
+                      </span>
+                      <span style={{ fontSize: text.sm, color: C.dark }}>
+                        {f}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <motion.button
+                  whileHover={{
+                    scale: 1.02,
+                    boxShadow: tier.highlighted
+                      ? '0 8px 32px rgba(109,89,122,0.25)'
+                      : undefined,
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] cursor-pointer transition-colors duration-200"
+                  style={{
+                    fontSize: text.base,
+                    background: tier.highlighted
+                      ? `linear-gradient(135deg, ${C.olive}, ${C.plum})`
+                      : 'transparent',
+                    color: tier.highlighted ? 'white' : tier.accent,
+                    border: tier.highlighted ? 'none' : `1.5px solid ${tier.accent}40`,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!tier.highlighted) {
+                      e.currentTarget.style.background = `${tier.accent}12`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!tier.highlighted) {
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  {tier.cta} <ArrowRight size={14} />
+                </motion.button>
+              </div>
             </motion.div>
           ))}
         </div>

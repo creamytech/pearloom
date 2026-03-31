@@ -52,11 +52,12 @@ const FEATURE_GROUPS = [
 /* Stylized editor mockup built with divs */
 function EditorMockup() {
   return (
+    <div className="relative">
     <div
-      className="rounded-xl border overflow-hidden"
+      className="rounded-xl border overflow-hidden relative z-10"
       style={{
         borderColor: C.divider,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06)',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
       }}
     >
       {/* Toolbar */}
@@ -163,6 +164,15 @@ function EditorMockup() {
         </div>
       </div>
     </div>
+    {/* Reflection beneath the mockup */}
+    <div
+      className="absolute left-[5%] right-[5%] -bottom-3 h-8 rounded-xl z-0"
+      style={{
+        background: `linear-gradient(180deg, rgba(0,0,0,0.06) 0%, transparent 100%)`,
+        filter: 'blur(8px)',
+      }}
+    />
+    </div>
   );
 }
 
@@ -174,9 +184,19 @@ export function EditorShowcase() {
     <section
       ref={ref}
       id="editor"
-      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
+      className="relative overflow-hidden"
+      style={{ background: C.cream, padding: 'clamp(4.5rem,8vw,8rem) 1.25rem' }}
     >
-      <div className="max-w-[960px] mx-auto">
+      {/* Faint dot pattern background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        aria-hidden
+        style={{
+          backgroundImage: `radial-gradient(${C.muted}18 1px, transparent 1px)`,
+          backgroundSize: '24px 24px',
+        }}
+      />
+      <div className="max-w-[960px] mx-auto relative z-10">
         {/* Header */}
         <SectionHeader
           pill={{ label: 'The Editor', sparkle: true }}
@@ -190,39 +210,79 @@ export function EditorShowcase() {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.3, duration: 0.7 }}
-          className="mb-10"
+          className="mb-16"
         >
           <EditorMockup />
         </motion.div>
 
-        {/* Feature pills — grouped by category with tinted backgrounds */}
+        {/* Feature groups — prominent stat-style cards */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="flex flex-wrap justify-center gap-6"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-[720px] mx-auto"
         >
           {FEATURE_GROUPS.map(group => (
-            <div key={group.label} className="flex flex-wrap items-center gap-2">
-              {group.items.map(f => {
-                const Icon = f.icon;
-                return (
-                  <motion.div
-                    key={f.label}
-                    whileHover={{ y: -2, boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border font-medium transition-all duration-200"
-                    style={{
-                      fontSize: text.sm,
-                      background: `${group.tint}08`,
-                      borderColor: `${group.tint}20`,
-                      color: C.dark,
-                    }}
-                  >
-                    <Icon size={14} style={{ color: group.tint }} />
-                    {f.label}
-                  </motion.div>
-                );
-              })}
+            <div
+              key={group.label}
+              className="rounded-xl border p-5"
+              style={{
+                background: `${group.tint}06`,
+                borderColor: `${group.tint}18`,
+              }}
+            >
+              <div
+                className="font-bold tracking-[0.14em] uppercase mb-4"
+                style={{ fontSize: text.xs, color: group.tint }}
+              >
+                {group.label}
+              </div>
+              <div className="flex flex-col gap-3">
+                {group.items.map(f => {
+                  const Icon = f.icon;
+                  // Extract leading number from label (e.g. "15" from "15 Block Types")
+                  const numMatch = f.label.match(/^(\d+)\s+(.+)$/);
+                  return (
+                    <div
+                      key={f.label}
+                      className="flex items-center gap-3"
+                    >
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: `${group.tint}18`,
+                          boxShadow: `0 0 8px ${group.tint}12`,
+                        }}
+                      >
+                        <Icon size={13} style={{ color: group.tint }} />
+                      </div>
+                      {numMatch ? (
+                        <div className="flex items-baseline gap-1.5">
+                          <span
+                            className="font-[family-name:var(--eg-font-heading)] font-extrabold"
+                            style={{ fontSize: text.xl, color: C.ink, lineHeight: 1 }}
+                          >
+                            {numMatch[1]}
+                          </span>
+                          <span
+                            className="font-medium"
+                            style={{ fontSize: text.sm, color: C.dark }}
+                          >
+                            {numMatch[2]}
+                          </span>
+                        </div>
+                      ) : (
+                        <span
+                          className="font-medium"
+                          style={{ fontSize: text.sm, color: C.dark }}
+                        >
+                          {f.label}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </motion.div>
