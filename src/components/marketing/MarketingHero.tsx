@@ -62,7 +62,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
       className="relative overflow-hidden flex flex-col items-center"
       style={{
         minHeight: 'min(100dvh, 900px)',
-        padding: 'clamp(3.5rem,8vw,7rem) 1.25rem clamp(2.5rem,4vw,4rem)',
+        padding: 'clamp(3.5rem,8vw,7rem) 1.25rem clamp(4rem,8vw,8rem)',
         background: C.cream,
       }}
     >
@@ -86,7 +86,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
           className="font-[family-name:var(--eg-font-heading)] leading-[1.05] mb-5"
           style={{
-            fontSize: 'clamp(3.2rem, 8vw, 6.5rem)',
+            fontSize: 'clamp(2.5rem, 6vw, 4rem)',
             fontWeight: 700,
             letterSpacing: '-0.04em',
             color: C.ink,

@@ -29,7 +29,7 @@ export function SectionHeader({
   const subtitleColor = dark ? colors.darkText : colors.muted;
 
   return (
-    <div className="text-center mb-14 md:mb-12 relative">
+    <div className="text-center relative" style={{ marginBottom: '3rem' }}>
       {watermark && (
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"
@@ -76,7 +76,7 @@ export function SectionHeader({
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ delay: 0.1 }}
         className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight mb-3 relative"
-        style={{ fontSize: text['2xl'], color: headingColor }}
+        style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: headingColor }}
       >
         {title}
       </motion.h2>
@@ -86,8 +86,8 @@ export function SectionHeader({
           initial={{ opacity: 0, y: 14 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2 }}
-          className="max-w-[480px] mx-auto relative"
-          style={{ fontSize: text.md, color: subtitleColor, lineHeight: 1.75 }}
+          className="mx-auto relative"
+          style={{ fontSize: '1rem', color: subtitleColor, lineHeight: 1.75, maxWidth: '520px' }}
         >
           {subtitle}
         </motion.p>

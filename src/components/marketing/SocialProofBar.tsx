@@ -114,7 +114,7 @@ export function SocialProofBar() {
       style={{
         background: C.deep,
         borderBottom: `1px solid ${C.divider}`,
-        padding: 'clamp(2.5rem,5vw,4.5rem) 1.25rem',
+        padding: 'clamp(3rem,6vw,5rem) 1.25rem',
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
@@ -132,39 +132,60 @@ export function SocialProofBar() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
-          {STATS.map((s, i) => (
-            <div
-              key={s.label}
-              className="text-center"
-              style={{
-                padding: '0 1rem',
-                borderRight: i < STATS.length - 1 ? `1px solid ${C.divider}` : 'none',
-              }}
-            >
-              <div className="flex justify-center mb-3" style={{ opacity: 0.55 }}>
-                <StatIcon icon={s.icon} color={C.olive} />
-              </div>
-
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '1rem',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+            border: `1px solid ${C.divider}`,
+            padding: 'clamp(1.5rem, 3vw, 2.5rem) 0',
+          }}
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
+            {STATS.map((s, i) => (
               <div
-                className="font-[family-name:var(--eg-font-heading)] font-bold leading-none mb-2"
+                key={s.label}
+                className="text-center relative"
                 style={{
-                  color: C.ink,
-                  fontSize: 'clamp(2.2rem, 4vw, 2.8rem)',
-                  fontWeight: 700,
+                  padding: '0 1rem',
                 }}
               >
-                <AnimatedStat stat={s} inView={inView} />
-              </div>
+                {/* Styled divider between stats (visible on md+) */}
+                {i < STATS.length - 1 && (
+                  <div
+                    className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2"
+                    style={{
+                      width: '1px',
+                      height: '60%',
+                      background: `linear-gradient(to bottom, transparent, ${C.divider}, transparent)`,
+                    }}
+                  />
+                )}
 
-              <div
-                className="font-semibold tracking-[0.14em] uppercase"
-                style={{ fontSize: text.sm, color: C.muted }}
-              >
-                {s.label}
+                <div className="flex justify-center mb-3" style={{ opacity: 0.55 }}>
+                  <StatIcon icon={s.icon} color={C.olive} />
+                </div>
+
+                <div
+                  className="font-[family-name:var(--eg-font-heading)] font-bold leading-none"
+                  style={{
+                    color: C.ink,
+                    fontSize: 'clamp(2rem, 4vw, 3rem)',
+                    fontWeight: 700,
+                  }}
+                >
+                  <AnimatedStat stat={s} inView={inView} />
+                </div>
+
+                <div
+                  className="font-semibold tracking-[0.14em] uppercase"
+                  style={{ fontSize: text.sm, color: C.muted, marginTop: '0.35rem' }}
+                >
+                  {s.label}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Testimonial marquee */}

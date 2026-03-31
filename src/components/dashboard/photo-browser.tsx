@@ -18,14 +18,14 @@ interface PhotoBrowserProps {
 }
 
 const cardStyle: React.CSSProperties = {
-  padding: '1.5rem',
+  padding: '2rem 1.5rem',
   textAlign: 'center',
   maxWidth: '600px',
   margin: '0 auto',
   borderRadius: card.radius,
-  background: card.bg,
-  border: card.border,
-  boxShadow: card.shadow,
+  background: '#FFFFFF',
+  border: `1px solid ${C.divider}`,
+  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
 };
 
 const btnPrimaryStyle: React.CSSProperties = {
@@ -318,10 +318,10 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
           {/* Device upload option */}
           <button
             onClick={() => deviceInputRef.current?.click()}
-            style={{ ...btnPrimaryStyle, justifyContent: 'flex-start', padding: '0.75rem 1.25rem', gap: '1rem', height: 'auto', background: card.bg, color: C.ink, boxShadow: 'none', border: card.border }}
+            style={{ ...btnPrimaryStyle, justifyContent: 'flex-start', padding: '0.75rem 1.25rem', gap: '1rem', height: 'auto', background: C.ink, color: '#fff', boxShadow: card.shadow, border: 'none' }}
           >
-            <span style={{ width: 32, height: 32, borderRadius: '50%', background: `${C.olive}1A`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Upload size={16} color={C.olive} />
+            <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Upload size={16} color={C.ink} />
             </span>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Upload from device</div>

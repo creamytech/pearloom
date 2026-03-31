@@ -38,12 +38,12 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
         {/* Step progress bar */}
         {showProgress && (
           <div
-            className="max-w-[800px] mx-auto mb-16 px-6 py-4"
+            className="max-w-[800px] mx-auto mb-16 px-8 py-5"
             style={{
-              background: card.bg,
+              background: '#FFFFFF',
               borderRadius: card.radius,
-              boxShadow: card.shadow,
-              border: card.border,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+              border: `1px solid ${colors.divider}`,
             }}
           >
             <ProgressSteps
@@ -81,7 +81,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
         )}
 
         {/* Step content with transitions */}
-        <div className="min-h-[600px] relative pt-4">
+        <div className="min-h-[360px] relative pt-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
