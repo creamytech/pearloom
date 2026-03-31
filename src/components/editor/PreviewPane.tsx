@@ -3,14 +3,18 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/editor/PreviewPane.tsx
 // Scaled live preview of the wedding site — no iframe
+// With inline visual editing: hover bar, double-click-to-edit, context menu
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Smartphone } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import type { StoryManifest, Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { InlineEditableText } from './preview/InlineEditableText';
+import { ChapterHoverBar } from './preview/ChapterHoverBar';
+import { ChapterContextMenu, type ContextMenuState } from './preview/ChapterContextMenu';
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
@@ -20,16 +24,27 @@ function proxyUrl(rawUrl: string, w: number, h: number): string {
   return rawUrl;
 }
 
+// ── Inline edit state ──────────────────────────────────────────
+interface InlineEditState {
+  chapterId: string;
+  field: 'title' | 'subtitle' | 'description' | 'mood';
+}
+
 export interface PreviewPaneProps {
   manifest: StoryManifest;
   coupleNames: [string, string];
   vibeSkin?: VibeSkin;
-  scale?: number; // default 0.65
+  scale?: number;
   onSectionClick?: (chapterId: string) => void;
-  /** When set, drop zones appear between chapters for drag-and-drop reorder/insert */
   draggingId?: string | null;
-  /** When set, the matching chapter will show a selection ring */
   selectedChapterId?: string | null;
+  // Chapter mutation callbacks
+  onUpdateChapter?: (id: string, data: Partial<Chapter>) => void;
+  onDeleteChapter?: (id: string) => void;
+  onDuplicateChapter?: (id: string) => void;
+  onMoveChapter?: (id: string, direction: 'up' | 'down') => void;
+  onAIRewrite?: (id: string) => void;
+  onUpdateHeroTagline?: (tagline: string) => void;
 }
 
 type PreviewDevice = 'desktop' | 'mobile';
@@ -41,11 +56,15 @@ const DEVICE_WIDTHS: Record<PreviewDevice, number> = {
 
 // ── Hero Section ───────────────────────────────────────────────
 function HeroSection({
-  manifest, coupleNames, vibeSkin,
+  manifest, coupleNames, vibeSkin, editingTagline, onStartEditTagline, onCancelEditTagline, onCommitTagline,
 }: {
   manifest: StoryManifest;
   coupleNames: [string, string];
   vibeSkin?: VibeSkin;
+  editingTagline?: boolean;
+  onStartEditTagline?: () => void;
+  onCancelEditTagline?: () => void;
+  onCommitTagline?: (val: string) => void;
 }) {
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
   const fg = vibeSkin?.palette?.foreground || manifest.theme?.colors?.foreground || '#1a1a1a';
@@ -65,16 +84,12 @@ function HeroSection({
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Cover photo background */}
       {coverPhoto && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 0,
-        }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
           <img src={coverPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', opacity: 0.55 }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 100%)' }} />
         </div>
       )}
-      {/* Decorative accent circle (no-photo mode) */}
       {!coverPhoto && (
         <div style={{
           position: 'absolute', top: '-60px', right: '-60px',
@@ -83,45 +98,61 @@ function HeroSection({
         }} />
       )}
       <div style={{ position: 'relative', zIndex: 1 }}>
-      <div style={{
-        display: 'inline-block',
-        fontSize: '11px', fontWeight: 800, letterSpacing: '0.25em',
-        textTransform: 'uppercase', color: coverPhoto ? 'rgba(255,255,255,0.75)' : accent,
-        marginBottom: '16px', fontFamily: bodyFont,
-      }}>
-        {coupleNames[0]}{hasPair ? ` & ${coupleNames[1]}` : ''}
-      </div>
-      <h1 style={{
-        fontFamily: `"${headingFont}", Georgia, serif`,
-        fontSize: '52px', fontWeight: 700, lineHeight: 1.1,
-        color: coverPhoto ? '#ffffff' : fg, margin: '0 0 16px',
-        letterSpacing: '-0.02em',
-      }}>
-        {coupleNames[0]}{hasPair && (
-          <>
-            <br />
-            <span style={{ fontStyle: 'italic', fontWeight: 400 }}>&amp; {coupleNames[1]}</span>
-          </>
-        )}
-      </h1>
-      <p style={{
-        fontFamily: bodyFont, fontSize: '16px', color: coverPhoto ? 'rgba(255,255,255,0.72)' : `${fg}88`,
-        margin: '0 0 32px', lineHeight: 1.6, maxWidth: '460px', marginLeft: 'auto', marginRight: 'auto',
-      }}>
-        {tagline}
-      </p>
-      {manifest.logistics?.date && (
         <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-          padding: '8px 20px', borderRadius: '100px',
-          background: coverPhoto ? 'rgba(255,255,255,0.12)' : `${accent}15`,
-          border: `1px solid ${coverPhoto ? 'rgba(255,255,255,0.2)' : `${accent}35`}`,
-          fontSize: '13px', fontWeight: 600, color: coverPhoto ? '#fff' : accent, fontFamily: bodyFont,
+          display: 'inline-block',
+          fontSize: '11px', fontWeight: 800, letterSpacing: '0.25em',
+          textTransform: 'uppercase', color: coverPhoto ? 'rgba(255,255,255,0.75)' : accent,
+          marginBottom: '16px', fontFamily: bodyFont,
         }}>
-          {new Date(manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          {manifest.logistics.venue && <> &middot; {manifest.logistics.venue}</>}
+          {coupleNames[0]}{hasPair ? ` & ${coupleNames[1]}` : ''}
         </div>
-      )}
+        <h1 style={{
+          fontFamily: `"${headingFont}", Georgia, serif`,
+          fontSize: '52px', fontWeight: 700, lineHeight: 1.1,
+          color: coverPhoto ? '#ffffff' : fg, margin: '0 0 16px',
+          letterSpacing: '-0.02em',
+        }}>
+          {coupleNames[0]}{hasPair && (
+            <>
+              <br />
+              <span style={{ fontStyle: 'italic', fontWeight: 400 }}>&amp; {coupleNames[1]}</span>
+            </>
+          )}
+        </h1>
+        {onCommitTagline ? (
+          <InlineEditableText
+            value={tagline}
+            isEditing={!!editingTagline}
+            onStartEdit={onStartEditTagline || (() => {})}
+            onCancelEdit={onCancelEditTagline || (() => {})}
+            onCommit={onCommitTagline}
+            tag="p"
+            style={{
+              fontFamily: bodyFont, fontSize: '16px', color: coverPhoto ? 'rgba(255,255,255,0.72)' : `${fg}88`,
+              margin: '0 0 32px', lineHeight: 1.6, maxWidth: '460px', marginLeft: 'auto', marginRight: 'auto',
+            }}
+            placeholder="Add a tagline..."
+          />
+        ) : (
+          <p style={{
+            fontFamily: bodyFont, fontSize: '16px', color: coverPhoto ? 'rgba(255,255,255,0.72)' : `${fg}88`,
+            margin: '0 0 32px', lineHeight: 1.6, maxWidth: '460px', marginLeft: 'auto', marginRight: 'auto',
+          }}>
+            {tagline}
+          </p>
+        )}
+        {manifest.logistics?.date && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            padding: '8px 20px', borderRadius: '100px',
+            background: coverPhoto ? 'rgba(255,255,255,0.12)' : `${accent}15`,
+            border: `1px solid ${coverPhoto ? 'rgba(255,255,255,0.2)' : `${accent}35`}`,
+            fontSize: '13px', fontWeight: 600, color: coverPhoto ? '#fff' : accent, fontFamily: bodyFont,
+          }}>
+            {new Date(manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            {manifest.logistics.venue && <> &middot; {manifest.logistics.venue}</>}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -130,11 +161,28 @@ function HeroSection({
 // ── Chapter Card ───────────────────────────────────────────────
 function ChapterCard({
   chapter, vibeSkin, manifest, onClick,
+  chapterIndex, chapterCount, dragging,
+  inlineEdit, onStartEdit, onCancelEdit, onCommitEdit,
+  onDuplicate, onDelete, onMove, onLayoutChange, onAIRewrite,
+  onContextMenu,
 }: {
   chapter: Chapter;
   vibeSkin?: VibeSkin;
   manifest: StoryManifest;
   onClick?: () => void;
+  chapterIndex: number;
+  chapterCount: number;
+  dragging?: boolean;
+  inlineEdit: InlineEditState | null;
+  onStartEdit: (field: InlineEditState['field']) => void;
+  onCancelEdit: () => void;
+  onCommitEdit: (field: InlineEditState['field'], value: string) => void;
+  onDuplicate?: () => void;
+  onDelete?: () => void;
+  onMove?: (direction: 'up' | 'down') => void;
+  onLayoutChange?: (layout: string) => void;
+  onAIRewrite?: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const bg = vibeSkin?.palette?.card || manifest.theme?.colors?.cardBg || '#fff';
@@ -149,49 +197,58 @@ function ChapterCard({
   const isCinematic = chapter.layout === 'cinematic';
   const isSplit = chapter.layout === 'split';
 
-  // Hover overlay — shown only when onClick is provided
-  const HoverOverlay = onClick ? (
-    <AnimatePresence>
-      {hovered && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          style={{
-            position: 'absolute', inset: 0, zIndex: 10,
-            background: 'rgba(109,89,122,0.08)',
-            border: '2px solid rgba(109,89,122,0.5)',
-            borderRadius: '4px',
-            display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end',
-            padding: '8px',
-            pointerEvents: 'none',
-          }}
-        >
-          <div style={{
-            background: 'rgba(109,89,122,0.9)',
-            color: '#fff', fontSize: '10px', fontWeight: 700,
-            padding: '3px 8px', borderRadius: '4px',
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-          }}>
-            Edit
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  ) : null;
+  const isEditingField = (field: InlineEditState['field']) =>
+    inlineEdit?.chapterId === chapter.id && inlineEdit?.field === field;
+
+  const showHoverBar = hovered && !dragging && onDuplicate;
+
+  const hoverBar = (
+    <ChapterHoverBar
+      visible={!!showHoverBar}
+      chapterId={chapter.id}
+      chapterIndex={chapterIndex}
+      chapterCount={chapterCount}
+      currentLayout={chapter.layout}
+      onEditInSidebar={() => onClick?.()}
+      onDuplicate={() => onDuplicate?.()}
+      onDelete={() => onDelete?.()}
+      onMove={(d) => onMove?.(d)}
+      onLayoutChange={(l) => onLayoutChange?.(l)}
+      onAIRewrite={() => onAIRewrite?.()}
+    />
+  );
+
+  const titleStyle = (fontSize: string, color: string, extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: `"${headingFont}", Georgia, serif`, fontSize, fontWeight: 700,
+    color, margin: '0 0 8px', lineHeight: 1.2, ...extra,
+  });
+
+  const descStyle: React.CSSProperties = {
+    fontFamily: bodyFont, fontSize: '14px', color: muted, lineHeight: 1.7, margin: 0,
+  };
+
+  const commonProps = {
+    onClick,
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+    onContextMenu,
+  };
 
   if (isCinematic) {
     return (
-      <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ position: 'relative', height: '240px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', borderRadius: '12px', marginBottom: '12px', background: '#1a1a18' }}>
-        {HoverOverlay}
-        {thumb && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
-        )}
+      <div {...commonProps} style={{ position: 'relative', height: '240px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', borderRadius: '12px', marginBottom: '12px', background: '#1a1a18' }}>
+        {hoverBar}
+        {thumb && <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
-          <p style={{ fontFamily: `"${headingFont}", serif`, fontSize: '18px', fontStyle: 'italic', color: '#fff', lineHeight: 1.5, margin: 0 }}>&ldquo;{chapter.subtitle || chapter.title}&rdquo;</p>
-          {chapter.title && chapter.subtitle && <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '12px' }}>{chapter.title}</p>}
+          <InlineEditableText
+            value={chapter.subtitle || chapter.title}
+            isEditing={isEditingField('subtitle') || isEditingField('title')}
+            onStartEdit={() => onStartEdit(chapter.subtitle ? 'subtitle' : 'title')}
+            onCancelEdit={onCancelEdit}
+            onCommit={(v) => onCommitEdit(chapter.subtitle ? 'subtitle' : 'title', v)}
+            tag="p"
+            style={{ fontFamily: `"${headingFont}", serif`, fontSize: '18px', fontStyle: 'italic', color: '#fff', lineHeight: 1.5, margin: 0 }}
+          />
         </div>
       </div>
     );
@@ -199,35 +256,16 @@ function ChapterCard({
 
   if (isFullbleed && thumb) {
     return (
-      <div
-        onClick={onClick}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          position: 'relative', height: '380px', overflow: 'hidden',
-          cursor: onClick ? 'pointer' : 'default',
-        }}
-      >
-        {HoverOverlay}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={thumb} alt={chapter.title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-        />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.1) 100%)',
-        }} />
+      <div {...commonProps} style={{ position: 'relative', height: '380px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default' }}>
+        {hoverBar}
+        <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.1) 100%)' }} />
         <div style={{ position: 'absolute', bottom: '36px', left: '48px', right: '48px', color: '#fff' }}>
           <div style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, marginBottom: '8px', fontFamily: bodyFont }}>
             {chapter.mood || ''}
           </div>
-          <h2 style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontSize: '36px', fontWeight: 700, margin: '0 0 10px', lineHeight: 1.1 }}>
-            {chapter.title}
-          </h2>
-          <p style={{ fontFamily: bodyFont, fontSize: '14px', opacity: 0.75, lineHeight: 1.6, margin: 0, WebkitLineClamp: 3, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
-            {chapter.description}
-          </p>
+          <InlineEditableText value={chapter.title} isEditing={isEditingField('title')} onStartEdit={() => onStartEdit('title')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('title', v)} tag="h2" style={titleStyle('36px', '#fff', { margin: '0 0 10px' })} />
+          <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={{ ...descStyle, color: 'rgba(255,255,255,0.75)', WebkitLineClamp: isEditingField('description') ? undefined : 3, display: isEditingField('description') ? 'block' : '-webkit-box', WebkitBoxOrient: 'vertical', overflow: isEditingField('description') ? 'visible' : 'hidden' } as React.CSSProperties} />
         </div>
       </div>
     );
@@ -235,20 +273,10 @@ function ChapterCard({
 
   if (isSplit) {
     return (
-      <div
-        onClick={onClick}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          display: 'flex', background: bg, minHeight: '280px', overflow: 'hidden',
-          cursor: onClick ? 'pointer' : 'default',
-          position: 'relative',
-        }}
-      >
-        {HoverOverlay}
+      <div {...commonProps} style={{ display: 'flex', background: bg, minHeight: '280px', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default', position: 'relative' }}>
+        {hoverBar}
         {thumb && (
           <div style={{ width: '45%', flexShrink: 0, overflow: 'hidden' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
         )}
@@ -256,12 +284,8 @@ function ChapterCard({
           <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: accent, marginBottom: '10px', fontFamily: bodyFont }}>
             {chapter.mood}
           </div>
-          <h2 style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontSize: '28px', fontWeight: 700, color: fg, margin: '0 0 12px', lineHeight: 1.2 }}>
-            {chapter.title}
-          </h2>
-          <p style={{ fontFamily: bodyFont, fontSize: '14px', color: muted, lineHeight: 1.7, margin: 0 }}>
-            {chapter.description?.slice(0, 180)}{chapter.description?.length > 180 ? '…' : ''}
-          </p>
+          <InlineEditableText value={chapter.title} isEditing={isEditingField('title')} onStartEdit={() => onStartEdit('title')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('title', v)} tag="h2" style={titleStyle('28px', fg, { margin: '0 0 12px' })} />
+          <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={descStyle} />
         </div>
       </div>
     );
@@ -269,41 +293,26 @@ function ChapterCard({
 
   // Default editorial layout
   return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: bg, padding: '48px 60px', cursor: onClick ? 'pointer' : 'default',
-        position: 'relative',
-      }}
-    >
-      {HoverOverlay}
+    <div {...commonProps} style={{ background: bg, padding: '48px 60px', cursor: onClick ? 'pointer' : 'default', position: 'relative' }}>
+      {hoverBar}
       {thumb && (
         <div style={{ width: '100%', height: '240px', borderRadius: '12px', overflow: 'hidden', marginBottom: '28px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         </div>
       )}
       <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: accent, marginBottom: '10px', fontFamily: bodyFont }}>
         {chapter.mood}
       </div>
-      <h2 style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontSize: '30px', fontWeight: 700, color: fg, margin: '0 0 8px', lineHeight: 1.2 }}>
-        {chapter.title}
-      </h2>
+      <InlineEditableText value={chapter.title} isEditing={isEditingField('title')} onStartEdit={() => onStartEdit('title')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('title', v)} tag="h2" style={titleStyle('30px', fg)} />
       {chapter.subtitle && (
-        <p style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontStyle: 'italic', fontSize: '16px', color: `${fg}88`, margin: '0 0 16px' }}>
-          {chapter.subtitle}
-        </p>
+        <InlineEditableText value={chapter.subtitle} isEditing={isEditingField('subtitle')} onStartEdit={() => onStartEdit('subtitle')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('subtitle', v)} tag="p" style={{ fontFamily: `"${headingFont}", Georgia, serif`, fontStyle: 'italic', fontSize: '16px', color: `${fg}88`, margin: '0 0 16px' }} />
       )}
-      <p style={{ fontFamily: bodyFont, fontSize: '14px', color: muted, lineHeight: 1.7, margin: 0 }}>
-        {chapter.description?.slice(0, 220)}{chapter.description?.length > 220 ? '…' : ''}
-      </p>
+      <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={descStyle} />
     </div>
   );
 }
 
-// ── Drop Zone (appears between chapters during drag) ──────────────
+// ── Drop Zone ──────────────────────────────────────────────────
 function DropZone({ id, accent }: { id: string; accent: string }) {
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
@@ -311,14 +320,11 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
       ref={setNodeRef}
       style={{
         height: isOver ? '80px' : '24px',
-        margin: '0 48px',
-        borderRadius: '8px',
+        margin: '0 48px', borderRadius: '8px',
         border: isOver ? `2px solid ${accent}` : `2px dotted ${accent}30`,
         background: isOver ? `${accent}22` : `${accent}06`,
         transition: 'all 0.18s ease',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
         pointerEvents: 'all',
       }}
     >
@@ -334,15 +340,37 @@ function DropZone({ id, accent }: { id: string; accent: string }) {
 // ── Main PreviewPane ───────────────────────────────────────────
 export function PreviewPane({
   manifest, coupleNames, vibeSkin, scale = 0.65, onSectionClick, draggingId, selectedChapterId,
+  onUpdateChapter, onDeleteChapter, onDuplicateChapter, onMoveChapter, onAIRewrite, onUpdateHeroTagline,
 }: PreviewPaneProps) {
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
+  const [inlineEdit, setInlineEdit] = useState<InlineEditState | null>(null);
+  const [editingTagline, setEditingTagline] = useState(false);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   const containerWidth = DEVICE_WIDTHS[previewDevice];
   const bg = vibeSkin?.palette?.background || manifest.theme?.colors?.background || '#faf9f6';
   const accent = vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
   const chapters = [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-  // The outer pane fills all available space; the inner content div is scaled
+  const handleStartEdit = useCallback((chapterId: string, field: InlineEditState['field']) => {
+    setInlineEdit({ chapterId, field });
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setInlineEdit(null);
+  }, []);
+
+  const handleCommitEdit = useCallback((chapterId: string, field: InlineEditState['field'], value: string) => {
+    setInlineEdit(null);
+    onUpdateChapter?.(chapterId, { [field]: value });
+  }, [onUpdateChapter]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, chapterId: string, chapterIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, chapterId, chapterIndex });
+  }, []);
+
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100%',
@@ -362,7 +390,6 @@ export function PreviewPane({
         }}>
           Live Preview
         </span>
-        {/* Device toggle */}
         <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px' }}>
           {(['desktop', 'mobile'] as PreviewDevice[]).map(d => (
             <button
@@ -384,32 +411,31 @@ export function PreviewPane({
 
       {/* ── Scrollable scaled preview area ── */}
       <div style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
-        {/* Outer sizing div — determines scroll height */}
-        <div style={{
-          width: '100%',
-          // The scaled content's visual height ≈ naturalHeight * scale.
-          // We allow overflow so the user can scroll to see more.
-        }}>
-          {/* Scaled inner container */}
+        <div style={{ width: '100%' }}>
           <div style={{
             width: `${containerWidth}px`,
             transformOrigin: 'top center',
             transform: `scale(${scale})`,
-            // Push the parent to account for the extra space the unscaled width takes
-            // and shrink the height so the parent scroll area matches visual height.
             marginLeft: `calc(50% - ${containerWidth * scale / 2}px)`,
             marginBottom: `-${100 - scale * 100}%`,
             background: bg,
             minHeight: '100px',
           }}>
             {/* Hero */}
-            <HeroSection manifest={manifest} coupleNames={coupleNames} vibeSkin={vibeSkin} />
+            <HeroSection
+              manifest={manifest}
+              coupleNames={coupleNames}
+              vibeSkin={vibeSkin}
+              editingTagline={editingTagline}
+              onStartEditTagline={onUpdateHeroTagline ? () => setEditingTagline(true) : undefined}
+              onCancelEditTagline={() => setEditingTagline(false)}
+              onCommitTagline={onUpdateHeroTagline ? (v) => { setEditingTagline(false); onUpdateHeroTagline(v); } : undefined}
+            />
 
             {/* Section divider */}
             <div style={{ height: '2px', background: `linear-gradient(to right, transparent, ${accent}40, transparent)` }} />
 
             {/* Chapters */}
-            {/* Top drop zone — insert before first chapter */}
             {draggingId && <DropZone id="drop:before:0" accent={accent} />}
 
             {chapters.map((ch, i) => {
@@ -418,34 +444,44 @@ export function PreviewPane({
                 <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
                   {isSelected ? (
                     <div style={{
-                      outline: `2px solid var(--eg-plum, #6D597A)`,
+                      outline: '2px solid var(--eg-plum, #6D597A)',
                       outlineOffset: '-2px',
                       borderRadius: '4px',
                       position: 'relative',
                     }}>
                       <ChapterCard
-                        chapter={ch}
-                        vibeSkin={vibeSkin}
-                        manifest={manifest}
+                        chapter={ch} vibeSkin={vibeSkin} manifest={manifest}
+                        chapterIndex={i} chapterCount={chapters.length}
+                        dragging={!!draggingId}
                         onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
+                        inlineEdit={inlineEdit}
+                        onStartEdit={(field) => handleStartEdit(ch.id, field)}
+                        onCancelEdit={handleCancelEdit}
+                        onCommitEdit={(field, val) => handleCommitEdit(ch.id, field, val)}
+                        onDuplicate={onDuplicateChapter ? () => onDuplicateChapter(ch.id) : undefined}
+                        onDelete={onDeleteChapter ? () => onDeleteChapter(ch.id) : undefined}
+                        onMove={onMoveChapter ? (d) => onMoveChapter(ch.id, d) : undefined}
+                        onLayoutChange={onUpdateChapter ? (l) => onUpdateChapter(ch.id, { layout: l as Chapter['layout'] }) : undefined}
+                        onAIRewrite={onAIRewrite ? () => onAIRewrite(ch.id) : undefined}
+                        onContextMenu={(e) => handleContextMenu(e, ch.id, i)}
                       />
-                      <div style={{
-                        position: 'absolute', top: '8px', right: '8px',
-                        background: 'var(--eg-plum, #6D597A)',
-                        color: '#fff', fontSize: '0.68rem', fontWeight: 700,
-                        padding: '2px 8px', borderRadius: '100px',
-                        letterSpacing: '0.08em', textTransform: 'uppercase',
-                        pointerEvents: 'none',
-                      }}>
-                        Editing
-                      </div>
                     </div>
                   ) : (
                     <ChapterCard
-                      chapter={ch}
-                      vibeSkin={vibeSkin}
-                      manifest={manifest}
+                      chapter={ch} vibeSkin={vibeSkin} manifest={manifest}
+                      chapterIndex={i} chapterCount={chapters.length}
+                      dragging={!!draggingId}
                       onClick={onSectionClick ? () => onSectionClick(ch.id) : undefined}
+                      inlineEdit={inlineEdit}
+                      onStartEdit={(field) => handleStartEdit(ch.id, field)}
+                      onCancelEdit={handleCancelEdit}
+                      onCommitEdit={(field, val) => handleCommitEdit(ch.id, field, val)}
+                      onDuplicate={onDuplicateChapter ? () => onDuplicateChapter(ch.id) : undefined}
+                      onDelete={onDeleteChapter ? () => onDeleteChapter(ch.id) : undefined}
+                      onMove={onMoveChapter ? (d) => onMoveChapter(ch.id, d) : undefined}
+                      onLayoutChange={onUpdateChapter ? (l) => onUpdateChapter(ch.id, { layout: l as Chapter['layout'] }) : undefined}
+                      onAIRewrite={onAIRewrite ? () => onAIRewrite(ch.id) : undefined}
+                      onContextMenu={(e) => handleContextMenu(e, ch.id, i)}
                     />
                   )}
                   {draggingId
@@ -475,6 +511,20 @@ export function PreviewPane({
           </div>
         </div>
       </div>
+
+      {/* Context Menu (portal-based) */}
+      <ChapterContextMenu
+        state={contextMenu}
+        chapterCount={chapters.length}
+        currentLayout={contextMenu ? chapters.find(c => c.id === contextMenu.chapterId)?.layout : undefined}
+        onClose={() => setContextMenu(null)}
+        onEditInSidebar={(id) => onSectionClick?.(id)}
+        onDuplicate={(id) => onDuplicateChapter?.(id)}
+        onDelete={(id) => onDeleteChapter?.(id)}
+        onMove={(id, d) => onMoveChapter?.(id, d)}
+        onLayoutChange={(id, l) => onUpdateChapter?.(id, { layout: l as Chapter['layout'] })}
+        onAIRewrite={(id) => onAIRewrite?.(id)}
+      />
     </div>
   );
 }
