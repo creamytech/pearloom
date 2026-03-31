@@ -115,7 +115,7 @@ export function EditBridge({ enabled }: EditBridgeProps) {
           const field = htmlEl.getAttribute('data-pe-field');
           const value = htmlEl.innerText.trim();
 
-          if (chapterId && field && value) {
+          if (chapterId && field) {
             window.parent.postMessage({
               type: 'pearloom-edit-commit',
               chapterId,

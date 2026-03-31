@@ -908,7 +908,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
     setBlocks(newBlocks);
     setActiveBlockId(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage]);
+  }, [activePage, manifest.blocks]);
 
   const blocksKey: 'blocks' | { customPageId: string } = isCustomPage
     ? { customPageId: activePage }

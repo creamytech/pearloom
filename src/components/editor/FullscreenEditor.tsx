@@ -189,9 +189,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     historyIndexRef.current += 1;
     const next = historyRef.current[historyIndexRef.current];
     onChange(next);
+    pushToPreview(next);
     dispatch({ type: 'SET_CAN_UNDO', can: true });
     dispatch({ type: 'SET_CAN_REDO', can: historyIndexRef.current < historyRef.current.length - 1 });
-  }, [onChange]);
+  }, [onChange, pushToPreview]);
 
   // ── Core actions ─────────────────────────────────────────────
   const syncManifest = useCallback((newChapters: Chapter[]) => {
@@ -387,7 +388,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       // Cmd+P — preview in new tab
       if (mod && e.key === 'p') { e.preventDefault(); storePreviewForOpen(); return; }
       // Cmd+S — mark as saved
-      if (mod && e.key === 's') { e.preventDefault(); dispatch({ type: 'SET_SAVE_STATE', state: 'saved' }); return; }
+      if (mod && e.key === 's') {
+        e.preventDefault();
+        try { localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ manifest, savedAt: Date.now() })); } catch {}
+        dispatch({ type: 'SET_SAVE_STATE', state: 'saved' });
+        return;
+      }
       // Cmd+1-8 — switch tabs
       if (mod && TAB_KEYS[e.key]) { e.preventDefault(); handleTabChange(TAB_KEYS[e.key]); return; }
       // Escape — close modals/sheets

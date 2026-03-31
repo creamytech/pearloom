@@ -98,7 +98,7 @@ export function EditorCanvas() {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === 'pearloom-edit-commit') {
         const { chapterId, field, value } = event.data;
-        if (chapterId && field && value) {
+        if (chapterId && field !== undefined && field !== null) {
           const chapter = chapters.find(c => c.id === chapterId);
           if (chapter) {
             actions.updateChapter(chapterId, { [field]: value });
@@ -106,10 +106,18 @@ export function EditorCanvas() {
         }
       }
       if (event.data?.type === 'pearloom-section-click') {
-        const { chapterId } = event.data;
+        const { chapterId, sectionId } = event.data;
         if (chapterId) {
           dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+        } else if (sectionId === 'hero') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+        } else if (sectionId === 'events') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
+        } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+        } else {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         }
       }
     };
@@ -215,6 +223,8 @@ export function EditorCanvas() {
                 names: coupleNames,
               }, '*');
             } catch {}
+            // Re-activate edit mode on iframe reload
+            iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
           }}
         />
       </div>

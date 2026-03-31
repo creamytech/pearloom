@@ -93,6 +93,8 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   return (
     <section
       ref={ref}
+      data-pe-section="hero"
+      data-pe-label="Hero"
       style={{
         position: 'relative',
         height: '100dvh',
@@ -237,19 +239,22 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         )}
 
         {/* Names — cinematic size, light weight, italic elegance */}
-        <h1 style={{
-          fontFamily: 'var(--eg-font-heading)',
-          fontSize: 'clamp(4rem, 12vw, 10rem)',
-          lineHeight: 0.88,
-          fontWeight: 300,
-          fontStyle: 'italic',
-          letterSpacing: '-0.04em',
-          margin: '0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          color: coverPhoto ? '#ffffff' : 'var(--eg-fg)',
-        }}>
+        <h1
+          data-pe-editable="true"
+          data-pe-field="names"
+          style={{
+            fontFamily: 'var(--eg-font-heading)',
+            fontSize: 'clamp(4rem, 12vw, 10rem)',
+            lineHeight: 0.88,
+            fontWeight: 300,
+            fontStyle: 'italic',
+            letterSpacing: '-0.04em',
+            margin: '0',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            color: coverPhoto ? '#ffffff' : 'var(--eg-fg)',
+          }}>
           <AnimatedName
             text={names[0]}
             delay={0.35}
@@ -333,7 +338,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               letterSpacing: '0.02em',
             }}
           >
-            {heroTagline}
+            <span data-pe-editable="true" data-pe-field="heroTagline" data-pe-section="hero">{heroTagline}</span>
           </motion.p>
         )}
 
@@ -353,7 +358,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               letterSpacing: '0.02em',
             }}
           >
-            {subtitle}
+            <span data-pe-editable="true" data-pe-field="subtitle">{subtitle}</span>
           </motion.p>
         )}
 

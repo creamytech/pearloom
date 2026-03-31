@@ -164,7 +164,7 @@ export function FaqSection({
       : sorted.filter((f) => (f.category || 'General') === activeCategory);
 
   return (
-    <section style={{ padding: '8rem 2rem', background: 'var(--eg-bg)' }}>
+    <section data-pe-section="faq" data-pe-label="FAQ" style={{ padding: '8rem 2rem', background: 'var(--eg-bg)' }}>
       <div style={{ maxWidth: '780px', margin: '0 auto' }}>
         {/* Section header */}
         <motion.div

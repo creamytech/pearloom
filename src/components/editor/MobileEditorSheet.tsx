@@ -280,7 +280,7 @@ export function MobileEditorSheet() {
           cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 4px 20px rgba(109,89,122,0.4), 0 2px 8px rgba(0,0,0,0.3)',
-          zIndex: mobileSheetOpen ? 1040 : 1090,
+          zIndex: 1100,
         }}
       >
         <PublishIcon size={20} />
@@ -390,17 +390,36 @@ export function MobileEditorSheet() {
                       const thumb = getThumb(ch);
                       const isActive = activeId === ch.id;
                       return (
-                        <button
+                        <div
                           key={ch.id}
-                          onClick={() => dispatch({ type: 'SET_ACTIVE_ID', id: ch.id })}
-                          style={{
-                            flexShrink: 0, width: '100px', borderRadius: '10px', border: 'none',
-                            background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.05)',
-                            outline: isActive ? '2px solid rgba(163,177,138,0.5)' : 'none',
-                            cursor: 'pointer', padding: 0, overflow: 'hidden',
-                            minHeight: '44px',
-                          }}
+                          style={{ position: 'relative', flexShrink: 0 }}
                         >
+                          {chapters.length > 1 && (
+                            <button
+                              aria-label={`Delete chapter ${ch.title || 'Untitled'}`}
+                              onClick={(e) => { e.stopPropagation(); actions.deleteChapter(ch.id); }}
+                              style={{
+                                position: 'absolute', top: '4px', right: '4px', zIndex: 2,
+                                width: '22px', height: '22px', borderRadius: '50%',
+                                background: 'rgba(0,0,0,0.6)', border: 'none',
+                                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '12px', lineHeight: 1, padding: 0,
+                              }}
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => dispatch({ type: 'SET_ACTIVE_ID', id: ch.id })}
+                            style={{
+                              flexShrink: 0, width: '100px', borderRadius: '10px', border: 'none',
+                              background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.05)',
+                              outline: isActive ? '2px solid rgba(163,177,138,0.5)' : 'none',
+                              cursor: 'pointer', padding: 0, overflow: 'hidden',
+                              minHeight: '44px',
+                            }}
+                          >
                           <div style={{
                             width: '100%', height: '60px',
                             background: thumb ? 'transparent' : 'rgba(255,255,255,0.06)',
@@ -420,6 +439,7 @@ export function MobileEditorSheet() {
                             <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>Ch. {i + 1}</div>
                           </div>
                         </button>
+                        </div>
                       );
                     })}
                   </div>

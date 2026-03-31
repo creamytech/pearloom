@@ -153,11 +153,18 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       <ColorPalettePanel manifest={manifest} onChange={onChange} />
 
       {/* AI Art Manager — hero, ambient, art strip */}
-      {manifest.vibeSkin && (
-        <SidebarSection title="AI Art" defaultOpen={false}>
+      <SidebarSection title="AI Art" defaultOpen={false}>
+        {manifest.vibeSkin ? (
           <ArtManager manifest={manifest} onUpdate={(updates) => onChange({ ...manifest, ...updates })} />
-        </SidebarSection>
-      )}
+        ) : (
+          <div style={{ padding: '1rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>
+            <p style={{ marginBottom: '0.75rem' }}>No AI art generated yet.</p>
+            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '100px', background: 'var(--eg-accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+              Generate AI Art
+            </button>
+          </div>
+        )}
+      </SidebarSection>
 
       {/* Typography — full font pair picker */}
       <SidebarSection title="Typography" defaultOpen={false}>
