@@ -23,7 +23,7 @@ export async function generateStoryManifest(
 ): Promise<StoryManifest> {
   // Cap chapters to number of photos (one chapter per photo cluster)
   const photoCount = clusters.length;
-  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount);
+  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount, layoutFormat);
 
   // Build the multimodal parts array
   const parts: Record<string, unknown>[] = [{ text: prompt }];

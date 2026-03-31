@@ -10,7 +10,8 @@ export function buildPrompt(
   coupleNames: [string, string],
   occasion?: string,
   eventDate?: string,
-  photoCount?: number
+  photoCount?: number,
+  layoutFormat?: string
 ): string {
   // Build richly detailed cluster summaries including per-photo metadata
   const clusterSummary = clusters.map((c, i) => {
@@ -278,6 +279,14 @@ Available layouts: "editorial", "fullbleed", "split", "cinematic", "gallery", "m
 - Maximum: 7 chapters. If there are more than 7 clusters, intelligently merge the least visually distinct ones into nearby chapters.
 - Minimum: If there is only 1 cluster, generate exactly 1 chapter. Do NOT pad to 3.
 - Each chapter must have emotional momentum — the full arc from first spark to certainty.
+
+---
+## MACRO LAYOUT FORMAT
+The couple chose the "${layoutFormat || 'cascade'}" timeline format. Optimize per-chapter layouts for this presentation:
+${layoutFormat === 'filmstrip' ? '- Favor "cinematic" and "fullbleed" layouts for dramatic horizontal impact' : ''}
+${layoutFormat === 'scrapbook' ? '- Favor "gallery" and "mosaic" layouts for a casual, multi-photo feel' : ''}
+${layoutFormat === 'magazine' ? '- Favor "editorial" and "split" layouts for clean editorial spreads' : ''}
+${layoutFormat === 'starmap' ? '- Favor "cinematic" layouts for celestial drama' : ''}
 
 ---
 ## OUTPUT SCHEMA (strict JSON, NO markdown)

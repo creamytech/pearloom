@@ -1779,33 +1779,123 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* ── STEP 4: COLORS & STYLE (merged palette + layout) ── */}
         {step === 4 && (
-          <motion.div key="s4-format" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              How should your story look?
-            </h2>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
-              Choose the format for your timeline — the visual structure of your memories.
+          <motion.div key="s4-colors-style" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <Palette size={28} color="var(--eg-accent)" />
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Colors & Style</h2>
+            </div>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+              Pick a palette that feels like your relationship. The AI will use this as a starting point.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {TIMELINE_FORMATS.map(fmt => {
-                const active = layoutFormat === fmt.id;
+
+            {/* Note when step 3 has keywords */}
+            {hasInspoInput && (
+              <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.5rem', border: '1px solid rgba(163,177,138,0.2)' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--eg-accent)', fontWeight: 600, margin: 0 }}>
+                  ✨ Your inspiration vibes will also influence colors
+                </p>
+              </div>
+            )}
+
+            {/* Color palette grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.875rem', marginBottom: '2.5rem' }}>
+              {COLOR_PALETTES.map(p => {
+                const active = palette === p.id;
+                const isCustom = p.id === 'custom';
                 return (
                   <motion.button
-                    key={fmt.id}
-                    onClick={() => setLayoutFormat(fmt.id)}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.99 }}
-                    transition={{ duration: 0.15 }}
+                    key={p.id}
+                    onClick={() => setPalette(p.id)}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.18 }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '1.25rem',
-                      padding: '1rem 1.25rem', borderRadius: '12px 12px 24px 24px', textAlign: 'left',
-                      border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                      background: active ? 'var(--eg-accent-light)' : '#fff',
+                      padding: 0, borderRadius: '12px 12px 24px 24px', textAlign: 'left',
+                      border: `2px solid ${active ? 'var(--eg-fg)' : 'rgba(0,0,0,0.06)'}`,
+                      background: '#fff',
                       cursor: 'pointer',
-                      transition: 'background 0.2s, border-color 0.2s',
-                      boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      overflow: 'hidden',
+                      boxShadow: active ? '0 8px 28px rgba(0,0,0,0.14)' : '0 2px 10px rgba(0,0,0,0.03)',
+                      transition: 'border-color 0.2s, box-shadow 0.25s',
                     }}
                   >
+                    {/* Gradient strip */}
+                    <div style={{
+                      height: '52px',
+                      background: isCustom
+                        ? 'linear-gradient(90deg, #A3B18A, #D6C6A8, #6D597A, #1a1713, #8FA876)'
+                        : `linear-gradient(90deg, ${p.colors.join(', ')})`,
+                      position: 'relative',
+                    }}>
+                      {active && (
+                        <div style={{
+                          position: 'absolute', top: '50%', right: '0.75rem',
+                          transform: 'translateY(-50%)',
+                          width: '22px', height: '22px', borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.9)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.75rem',
+                        }}>✓</div>
+                      )}
+                    </div>
+                    <div style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{isCustom && hasInspoInput ? 'Let AI match my vibes' : p.name}</span>
+                        {/* Mini swatches */}
+                        <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                          {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
+                            <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                          ))}
+                        </div>
+                      </div>
+                      {/* Color swatches row */}
+                      <div style={{ display: 'flex', gap: '3px', marginTop: '6px' }}>
+                        {p.colors?.map((color: string, i: number) => (
+                          <div
+                            key={i}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '4px',
+                              background: color,
+                              border: '1px solid rgba(0,0,0,0.08)',
+                              flexShrink: 0,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Timeline Layout section */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '2rem' }}>
+              <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem', marginBottom: '0.5rem' }}>Timeline Layout</h3>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                Choose the format for your timeline — the visual structure of your memories.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {TIMELINE_FORMATS.map(fmt => {
+                  const active = layoutFormat === fmt.id;
+                  return (
+                    <motion.button
+                      key={fmt.id}
+                      onClick={() => setLayoutFormat(fmt.id)}
+                      whileHover={{ y: -1 }}
+                      whileTap={{ scale: 0.99 }}
+                      transition={{ duration: 0.15 }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '1.25rem',
+                        padding: '1rem 1.25rem', borderRadius: '12px 12px 24px 24px', textAlign: 'left',
+                        border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
+                        background: active ? 'var(--eg-accent-light)' : '#fff',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s, border-color 0.2s',
+                        boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      }}
+                    >
                     {/* Mini visual preview */}
                     <div style={{
                       width: '72px', height: '50px', borderRadius: '0.5rem',
