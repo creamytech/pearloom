@@ -19,6 +19,7 @@ import {
 import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 /* ── 7-Pass Engine Visualization ── */
 const PASSES = [
@@ -149,40 +150,51 @@ function RindShowcase() {
         </p>
       </div>
 
-      {/* 3 Rind examples */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-[680px] mx-auto mb-10">
-        {RIND_EXAMPLES.map((r, i) => (
-          <motion.div
-            key={r.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: i * 0.12 + 0.2, duration: 0.5 }}
-            className="p-4 text-center"
-            style={{
-              borderRadius: card.radius,
-              background: C.darkCard,
-              border: `1px solid ${C.darkBorder}`,
-            }}
-          >
-            <div className="font-bold tracking-[0.14em] uppercase mb-3" style={{ fontSize: text.xs, color: C.darkText }}>
-              {r.name}
-            </div>
-            {/* Color swatches */}
-            <div className="flex justify-center gap-1.5 mb-3">
-              {r.palette.map((c, j) => (
-                <div
-                  key={j}
-                  className="w-9 h-9 rounded-full"
-                  style={{ background: c, border: `1px solid ${C.darkBorder}` }}
-                />
-              ))}
-            </div>
-            <div className="italic" style={{ fontSize: text.sm, color: C.darkText, fontFamily: r.font }}>
-              {r.font}
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {/* 3 Rind examples — tabbed */}
+      <Tabs defaultValue="garden" className="max-w-[680px] mx-auto mb-10">
+        <div className="flex justify-center mb-4">
+          <TabsList>
+            <TabsTrigger value="garden">Garden Party</TabsTrigger>
+            <TabsTrigger value="modern">Modern Minimalist</TabsTrigger>
+            <TabsTrigger value="coastal">Coastal Breeze</TabsTrigger>
+          </TabsList>
+        </div>
+        {RIND_EXAMPLES.map((r, i) => {
+          const val = ['garden', 'modern', 'coastal'][i];
+          return (
+            <TabsContent key={r.name} value={val}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="p-4 text-center"
+                style={{
+                  borderRadius: card.radius,
+                  background: C.darkCard,
+                  border: `1px solid ${C.darkBorder}`,
+                }}
+              >
+                <div className="font-bold tracking-[0.14em] uppercase mb-3" style={{ fontSize: text.xs, color: C.darkText }}>
+                  {r.name}
+                </div>
+                {/* Color swatches */}
+                <div className="flex justify-center gap-1.5 mb-3">
+                  {r.palette.map((c, j) => (
+                    <div
+                      key={j}
+                      className="w-9 h-9 rounded-full"
+                      style={{ background: c, border: `1px solid ${C.darkBorder}` }}
+                    />
+                  ))}
+                </div>
+                <div className="italic" style={{ fontSize: text.sm, color: C.darkText, fontFamily: r.font }}>
+                  {r.font}
+                </div>
+              </motion.div>
+            </TabsContent>
+          );
+        })}
+      </Tabs>
 
       {/* Rind features */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-[700px] mx-auto">

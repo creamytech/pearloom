@@ -19,9 +19,10 @@ import {
   Music,
   Puzzle,
 } from 'lucide-react';
-import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
+import { colors as C, text, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
+import { Card } from '@/components/ui';
 
 const BLOCKS = [
   { icon: Crown, name: 'Hero', desc: 'Full-bleed cinematic opener', accent: C.plum },
@@ -71,24 +72,18 @@ export function BlockTypesGrid() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.04 + 0.2, duration: 0.4 }}
-                whileHover={{ boxShadow: card.shadowHover, y: -1 }}
-                className="p-4 text-center transition-shadow duration-200 cursor-default"
-                style={{
-                  background: card.bg,
-                  border: card.border,
-                  borderRadius: card.radius,
-                  boxShadow: card.shadow,
-                }}
               >
-                <div className="mx-auto mb-2.5">
-                  <IconCircle icon={Icon} accent={b.accent} size={44} iconSize={20} />
-                </div>
-                <div className="font-semibold mb-0.5" style={{ fontSize: text.md, color: C.ink }}>
-                  {b.name}
-                </div>
-                <div className="leading-snug" style={{ fontSize: text.sm, color: C.muted }}>
-                  {b.desc}
-                </div>
+                <Card variant="elevated" interactive padding="sm" className="text-center cursor-default">
+                  <div className="mx-auto mb-2.5">
+                    <IconCircle icon={Icon} accent={b.accent} size={44} iconSize={20} />
+                  </div>
+                  <div className="font-semibold mb-0.5" style={{ fontSize: text.md, color: C.ink }}>
+                    {b.name}
+                  </div>
+                  <div className="leading-snug" style={{ fontSize: text.sm, color: C.muted }}>
+                    {b.desc}
+                  </div>
+                </Card>
               </motion.div>
             );
           })}

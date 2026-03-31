@@ -3,6 +3,8 @@
 import { useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useRef, useEffect } from 'react';
 import { colors as C, text, layout } from '@/lib/design-tokens';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Marquee } from '@/components/ui/marquee';
 
 const STATS = [
   { value: '2,000+', numericEnd: 2000, suffix: '+', label: 'Sites Created', icon: 'globe' },
@@ -93,6 +95,15 @@ function AnimatedStat({ stat, inView }: { stat: typeof STATS[number]; inView: bo
   );
 }
 
+const testimonials = [
+  { names: 'Jess & Marco', quote: '"Our guests couldn\'t stop talking about it"' },
+  { names: 'Sarah & Kim', quote: '"Built our entire site in 3 minutes"' },
+  { names: 'Dev & Priya', quote: '"The AI understood our vibe perfectly"' },
+  { names: 'Alex & Jordan', quote: '"Better than any template we tried"' },
+  { names: 'Luna & Sam', quote: '"The love story section made us cry"' },
+  { names: 'Tom & Hana', quote: '"Guests RSVP\'d within minutes"' },
+];
+
 export function SocialProofBar() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.3 });
@@ -107,6 +118,20 @@ export function SocialProofBar() {
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
+        {/* Avatar pile */}
+        <div className="flex justify-center mb-6">
+          <div className="flex -space-x-2">
+            {['J&M', 'S&K', 'A&R', 'L&D', 'P&C'].map((initials, i) => (
+              <Avatar key={i} className="h-8 w-8 border-2 border-[var(--eg-bg)]">
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+            ))}
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--eg-accent)] text-white text-[0.6rem] font-bold border-2 border-[var(--eg-bg)]">
+              2k+
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
           {STATS.map((s, i) => (
             <div
@@ -140,6 +165,18 @@ export function SocialProofBar() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Testimonial marquee */}
+        <div className="mt-8">
+          <Marquee speed={50} pauseOnHover>
+            {testimonials.map((t, i) => (
+              <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-[var(--eg-divider)] text-sm">
+                <span className="font-medium text-[var(--eg-fg)]">{t.names}</span>
+                <span className="text-[var(--eg-muted)]">{t.quote}</span>
+              </div>
+            ))}
+          </Marquee>
         </div>
       </div>
     </section>

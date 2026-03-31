@@ -5,6 +5,7 @@ import { motion, useInView } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { Card, Button, Badge } from '@/components/ui';
 
 const TIERS = [
   {
@@ -85,37 +86,15 @@ export function PricingPreview() {
             >
               {/* RECOMMENDED label for premium */}
               {tier.highlighted && (
-                <div
-                  className="text-center mb-2"
-                  style={{
-                    fontSize: text.xs,
-                    color: C.olive,
-                    letterSpacing: '0.16em',
-                    fontWeight: 600,
-                    textTransform: 'uppercase' as const,
-                  }}
-                >
-                  Recommended
+                <div className="text-center mb-2">
+                  <Badge variant="success">Recommended</Badge>
                 </div>
               )}
 
-              <div
-                style={{
-                  borderRadius: card.radius,
-                  background: card.bg,
-                  border: tier.highlighted
-                    ? `2px solid ${C.olive}`
-                    : card.border,
-                  boxShadow: card.shadow,
-                  padding: '1.75rem',
-                  transition: 'box-shadow 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = card.shadowHover;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = card.shadow;
-                }}
+              <Card
+                variant={tier.highlighted ? 'elevated' : 'outlined'}
+                padding="lg"
+                className={tier.highlighted ? 'border-2 border-[var(--eg-accent)]' : ''}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <div
@@ -125,17 +104,7 @@ export function PricingPreview() {
                     {tier.name}
                   </div>
                   {tier.highlighted && (
-                    <span
-                      style={{
-                        fontSize: text.xs,
-                        color: C.plum,
-                        fontWeight: 600,
-                        fontVariant: 'small-caps',
-                        letterSpacing: '0.08em',
-                      }}
-                    >
-                      Best Value
-                    </span>
+                    <Badge variant="warning">Best Value</Badge>
                   )}
                 </div>
 
@@ -174,29 +143,14 @@ export function PricingPreview() {
                   ))}
                 </div>
 
-                <button
-                  className="group w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] cursor-pointer transition-colors duration-200 uppercase"
-                  style={{
-                    fontSize: text.base,
-                    letterSpacing: '0.04em',
-                    background: tier.highlighted ? C.olive : 'transparent',
-                    color: tier.highlighted ? '#fff' : C.dark,
-                    border: tier.highlighted ? 'none' : `1px solid ${C.divider}`,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!tier.highlighted) {
-                      e.currentTarget.style.background = `${C.dark}0A`;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!tier.highlighted) {
-                      e.currentTarget.style.background = 'transparent';
-                    }
-                  }}
+                <Button
+                  variant={tier.highlighted ? 'accent' : 'secondary'}
+                  size="lg"
+                  className="w-full uppercase tracking-[0.04em]"
                 >
                   {tier.cta} <ArrowRight size={14} />
-                </button>
-              </div>
+                </Button>
+              </Card>
             </motion.div>
           ))}
         </div>
