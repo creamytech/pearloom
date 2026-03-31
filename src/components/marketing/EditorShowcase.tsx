@@ -3,7 +3,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
-  Sparkles,
   Layers,
   LayoutGrid,
   Monitor,
@@ -14,56 +13,37 @@ import {
   Columns2,
   ZoomIn,
 } from 'lucide-react';
-import { C } from './colors';
-import { text, radius } from '@/lib/design-tokens';
-import { Pill } from '@/components/ui/Pill';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
-const FEATURE_GROUPS = [
-  {
-    label: 'Layout',
-    tint: C.olive,
-    items: [
-      { icon: Layers, label: '15 Block Types' },
-      { icon: LayoutGrid, label: '6 Layouts' },
-      { icon: Columns2, label: 'Split View' },
-    ],
-  },
-  {
-    label: 'Editing',
-    tint: C.plum,
-    items: [
-      { icon: GripVertical, label: 'Drag & Drop' },
-      { icon: Undo2, label: 'Undo / Redo' },
-      { icon: Command, label: 'Command Palette' },
-      { icon: PenLine, label: 'AI Rewrite' },
-    ],
-  },
-  {
-    label: 'Preview',
-    tint: C.gold,
-    items: [
-      { icon: Monitor, label: 'Device Preview' },
-      { icon: ZoomIn, label: 'Zoom Controls' },
-    ],
-  },
+const FEATURE_ITEMS = [
+  { icon: Layers, label: '15 Block Types' },
+  { icon: LayoutGrid, label: '6 Layouts' },
+  { icon: Columns2, label: 'Split View' },
+  { icon: GripVertical, label: 'Drag & Drop' },
+  { icon: Undo2, label: 'Undo / Redo' },
+  { icon: Command, label: 'Command Palette' },
+  { icon: PenLine, label: 'AI Rewrite' },
+  { icon: Monitor, label: 'Device Preview' },
+  { icon: ZoomIn, label: 'Zoom Controls' },
 ];
 
-/* Stylized editor mockup built with divs */
+/* Stylized editor mockup */
 function EditorMockup() {
   return (
-    <div className="relative">
     <div
-      className="rounded-xl border overflow-hidden relative z-10"
       style={{
-        borderColor: C.divider,
-        boxShadow: '0 24px 80px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
+        borderRadius: card.radius,
+        border: card.border,
+        boxShadow: card.shadow,
+        background: card.bg,
+        overflow: 'hidden',
       }}
     >
       {/* Toolbar */}
       <div
-        className="flex items-center justify-between px-4 py-2 border-b"
-        style={{ background: 'rgba(255,255,255,0.9)', borderColor: C.divider }}
+        className="flex items-center justify-between px-4 py-2"
+        style={{ borderBottom: card.border, background: card.bg }}
       >
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full" style={{ background: C.olive }} />
@@ -75,7 +55,7 @@ function EditorMockup() {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="px-2 py-0.5 rounded font-semibold" style={{ fontSize: text.xs, background: `${C.olive}15`, color: C.olive }}>
+          <div className="px-2 py-0.5 rounded font-semibold" style={{ fontSize: text.xs, background: `${C.olive}1A`, color: C.olive }}>
             Preview
           </div>
           <div className="px-2 py-0.5 rounded font-semibold" style={{ fontSize: text.xs, background: C.olive, color: 'white' }}>
@@ -88,8 +68,8 @@ function EditorMockup() {
       <div className="flex" style={{ minHeight: 280, maxHeight: 420, height: 'clamp(280px, 40vw, 360px)', background: C.cream }}>
         {/* Sidebar */}
         <div
-          className="w-[180px] border-r p-3 flex-shrink-0 hidden sm:block"
-          style={{ borderColor: C.divider, background: 'rgba(255,255,255,0.5)' }}
+          className="w-[180px] p-3 flex-shrink-0 hidden sm:block"
+          style={{ borderRight: card.border, background: card.bg }}
         >
           <div className="font-bold tracking-[0.12em] uppercase mb-3" style={{ fontSize: text.xs, color: C.muted }}>
             Chapters
@@ -100,7 +80,7 @@ function EditorMockup() {
               className="flex items-center gap-2 py-1.5 px-2 rounded-md mb-1"
               style={{
                 fontSize: text.sm,
-                background: i === 0 ? `${C.olive}10` : 'transparent',
+                background: i === 0 ? `${C.olive}1A` : 'transparent',
                 color: i === 0 ? C.ink : C.muted,
                 fontWeight: i === 0 ? 600 : 400,
               }}
@@ -118,7 +98,7 @@ function EditorMockup() {
               <div
                 key={b}
                 className="text-center py-1.5 rounded font-medium"
-                style={{ fontSize: text.xs, background: 'rgba(0,0,0,0.03)', color: C.muted }}
+                style={{ fontSize: text.xs, background: `${C.divider}66`, color: C.muted }}
               >
                 {b}
               </div>
@@ -129,8 +109,8 @@ function EditorMockup() {
         {/* Canvas */}
         <div className="flex-1 flex flex-col items-center justify-center p-4 gap-4">
           <div
-            className="w-full max-w-[300px] rounded-lg border p-5 text-center"
-            style={{ background: 'white', borderColor: `${C.olive}30` }}
+            className="w-full max-w-[300px] rounded-lg p-5 text-center"
+            style={{ background: card.bg, border: card.border }}
           >
             <div className="font-bold tracking-[0.16em] uppercase mb-2" style={{ fontSize: text.xs, color: C.olive }}>
               Chapter 1
@@ -145,33 +125,24 @@ function EditorMockup() {
               It started with a coffee that lasted four hours and a conversation that
               never really ended...
             </div>
-            {/* Fake image placeholder */}
+            {/* Placeholder image */}
             <div
               className="w-full h-14 rounded-md mt-3"
-              style={{ background: `linear-gradient(135deg, ${C.gold}30, ${C.plum}15)` }}
+              style={{ background: `linear-gradient(135deg, ${C.gold}4D, ${C.plum}26)` }}
             />
           </div>
-          {/* Second content block — faux photo grid */}
+          {/* Photo grid placeholder */}
           <div className="w-full max-w-[300px] flex gap-2">
             {[C.gold, C.olive, C.plum, C.gold].map((color, j) => (
               <div
                 key={j}
                 className="flex-1 h-10 rounded-md"
-                style={{ background: `${color}20` }}
+                style={{ background: `${color}33` }}
               />
             ))}
           </div>
         </div>
       </div>
-    </div>
-    {/* Reflection beneath the mockup */}
-    <div
-      className="absolute left-[5%] right-[5%] -bottom-3 h-8 rounded-xl z-0"
-      style={{
-        background: `linear-gradient(180deg, rgba(0,0,0,0.06) 0%, transparent 100%)`,
-        filter: 'blur(8px)',
-      }}
-    />
     </div>
   );
 }
@@ -185,18 +156,9 @@ export function EditorShowcase() {
       ref={ref}
       id="editor"
       className="relative overflow-hidden"
-      style={{ background: C.cream, padding: 'clamp(4.5rem,8vw,8rem) 1.25rem' }}
+      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      {/* Faint dot pattern background */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        aria-hidden
-        style={{
-          backgroundImage: `radial-gradient(${C.muted}18 1px, transparent 1px)`,
-          backgroundSize: '24px 24px',
-        }}
-      />
-      <div className="max-w-[960px] mx-auto relative z-10">
+      <div className="max-w-[960px] mx-auto">
         {/* Header */}
         <SectionHeader
           pill={{ label: 'The Editor', sparkle: true }}
@@ -215,76 +177,29 @@ export function EditorShowcase() {
           <EditorMockup />
         </motion.div>
 
-        {/* Feature groups — prominent stat-style cards */}
+        {/* Feature grid — simple 3-column grid */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-[720px] mx-auto"
+          className="grid grid-cols-3 sm:grid-cols-3 gap-4 max-w-[520px] mx-auto"
         >
-          {FEATURE_GROUPS.map(group => (
-            <div
-              key={group.label}
-              className="rounded-xl border p-5"
-              style={{
-                background: `${group.tint}06`,
-                borderColor: `${group.tint}18`,
-              }}
-            >
-              <div
-                className="font-bold tracking-[0.14em] uppercase mb-4"
-                style={{ fontSize: text.xs, color: group.tint }}
-              >
-                {group.label}
+          {FEATURE_ITEMS.map(f => {
+            const Icon = f.icon;
+            return (
+              <div key={f.label} className="flex items-center gap-2.5">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${C.olive}1A` }}
+                >
+                  <Icon size={13} style={{ color: C.olive }} />
+                </div>
+                <span className="font-medium" style={{ fontSize: text.sm, color: C.dark }}>
+                  {f.label}
+                </span>
               </div>
-              <div className="flex flex-col gap-3">
-                {group.items.map(f => {
-                  const Icon = f.icon;
-                  // Extract leading number from label (e.g. "15" from "15 Block Types")
-                  const numMatch = f.label.match(/^(\d+)\s+(.+)$/);
-                  return (
-                    <div
-                      key={f.label}
-                      className="flex items-center gap-3"
-                    >
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{
-                          background: `${group.tint}18`,
-                          boxShadow: `0 0 8px ${group.tint}12`,
-                        }}
-                      >
-                        <Icon size={13} style={{ color: group.tint }} />
-                      </div>
-                      {numMatch ? (
-                        <div className="flex items-baseline gap-1.5">
-                          <span
-                            className="font-[family-name:var(--eg-font-heading)] font-extrabold"
-                            style={{ fontSize: text.xl, color: C.ink, lineHeight: 1 }}
-                          >
-                            {numMatch[1]}
-                          </span>
-                          <span
-                            className="font-medium"
-                            style={{ fontSize: text.sm, color: C.dark }}
-                          >
-                            {numMatch[2]}
-                          </span>
-                        </div>
-                      ) : (
-                        <span
-                          className="font-medium"
-                          style={{ fontSize: text.sm, color: C.dark }}
-                        >
-                          {f.label}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
     </section>

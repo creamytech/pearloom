@@ -111,6 +111,16 @@ export const sectionPadding = {
   x: '1.25rem',
 } as const;
 
+// ── Card Styles (ONE standard, used everywhere) ─────────────
+
+export const card = {
+  radius:      '0.875rem',
+  bg:          '#FFFFFF',
+  border:      `1px solid ${colors.divider}`,
+  shadow:      '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)',
+  shadowHover: '0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05)',
+} as const;
+
 // ── Convenience re-export ────────────────────────────────────
 // Shorthand for the full token set
 
@@ -124,4 +134,5 @@ export const T = {
   shadow,
   ease,
   sectionPadding,
+  card,
 } as const;

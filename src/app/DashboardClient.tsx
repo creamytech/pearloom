@@ -13,8 +13,10 @@ const logError = isDev ? console.error.bind(console) : () => {};
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
+import { AlertTriangle } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
 import { ThemeProvider } from '@/components/theme-provider';
+import { colors as C, card } from '@/lib/design-tokens';
 import { SiteNav } from '@/components/site-nav';
 import { LandingPage } from '@/components/landing-page';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -205,30 +207,28 @@ export default function DashboardClient() {
           {/* Error display */}
           {state.error && (
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.98 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
               className="mb-8 p-5 flex gap-5"
               style={{
-                borderRadius: 'var(--eg-radius)',
-                background: 'var(--eg-card-bg)',
-                border: '1px solid rgba(185,28,28,0.18)',
-                boxShadow: '0 8px 30px rgba(185,28,28,0.06), var(--eg-shadow-sm)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
+                borderRadius: card.radius,
+                background: card.bg,
+                border: card.border,
+                borderLeft: '3px solid #b91c1c',
+                boxShadow: card.shadow,
               }}
             >
               <div
-                className="flex-shrink-0 flex items-center justify-center text-[1.25rem]"
+                className="flex-shrink-0 flex items-center justify-center"
                 style={{
                   width: 44,
                   height: 44,
-                  borderRadius: '50%',
-                  background: 'rgba(185,28,28,0.07)',
+                  color: '#b91c1c',
                 }}
               >
-                ⚠
+                <AlertTriangle size={22} />
               </div>
               <div className="flex-1">
                 <div

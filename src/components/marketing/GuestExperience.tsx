@@ -10,8 +10,7 @@ import {
   Bot,
   MessageSquare,
 } from 'lucide-react';
-import { C } from './colors';
-import { text } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
 
@@ -62,7 +61,7 @@ export function GuestExperience() {
     <section
       ref={ref}
       id="features"
-      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
+      style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div className="max-w-[960px] mx-auto">
         <SectionHeader
@@ -71,7 +70,6 @@ export function GuestExperience() {
           inView={inView}
         />
 
-        {/* Feature grid — solid cards with accent top border */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURES.map((f, i) => {
             const Icon = f.icon;
@@ -81,13 +79,14 @@ export function GuestExperience() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.08 + 0.2, duration: 0.5 }}
-                whileHover={{ boxShadow: `0 12px 36px rgba(0,0,0,0.08), 0 0 0 1.5px ${f.accent}30` }}
-                className="rounded-xl p-6 transition-all duration-200"
+                whileHover={{ boxShadow: card.shadowHover }}
+                className="p-6 transition-shadow duration-200"
                 style={{
-                  background: `linear-gradient(135deg, white 60%, ${f.accent}0A)`,
-                  border: `1px solid ${C.divider}`,
-                  borderLeft: `4px solid ${f.accent}`,
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                  background: card.bg,
+                  border: card.border,
+                  borderLeft: `3px solid ${f.accent}`,
+                  borderRadius: card.radius,
+                  boxShadow: card.shadow,
                 }}
               >
                 <div className="mb-3.5">
@@ -96,7 +95,7 @@ export function GuestExperience() {
                 <h3 className="font-semibold mb-1.5" style={{ fontSize: text.md, color: C.ink }}>
                   {f.title}
                 </h3>
-                <p className="leading-relaxed" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.7 }}>
+                <p className="leading-relaxed" style={{ fontSize: text.sm, color: C.muted, lineHeight: 1.7 }}>
                   {f.desc}
                 </p>
               </motion.div>
