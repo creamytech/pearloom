@@ -7,13 +7,14 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Map, Palette, Globe, Info, ChevronDown } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Palette, Globe, Info, ChevronDown } from 'lucide-react';
 import {
   ElegantHeartIcon, MountainIcon, StarburstIcon, CoffeeCupIcon,
   SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
   WeddingRingsIcon, ChampagneIcon, GiftIcon, EnvelopeIcon,
 } from '@/components/icons/PearloomIcons';
 import { PearBackground } from '@/components/icons/PearShapes';
+import { VenueSearch, type VenuePartial } from '@/components/venue/VenueSearch';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -257,17 +258,6 @@ const COLOR_PALETTES = [
   { id: 'custom',        name: 'Let AI decide',     colors: ['#888', '#aaa', '#ccc', '#eee', '#333'] },
 ];
 
-const PLACES = [
-  { id: 'beach', label: 'Beach / Coast', vibe: 'coastal, sandy, sun-kissed' },
-  { id: 'mountains', label: 'Mountains', vibe: 'alpine, crisp, panoramic views' },
-  { id: 'city', label: 'City / Urban', vibe: 'skyline, nightlife, rooftop drinks' },
-  { id: 'countryside', label: 'Countryside', vibe: 'rolling fields, golden light, rustic' },
-  { id: 'tropical', label: 'Tropical', vibe: 'lush, warm, paradise' },
-  { id: 'europe', label: 'European', vibe: 'cobblestone, cafés, old-world charm' },
-  { id: 'desert', label: 'Desert', vibe: 'vast, terracotta, sunset tones' },
-  { id: 'home', label: 'Home Sweet Home', vibe: 'domestic bliss, couch cuddles, kitchen dances' },
-];
-
 const TIMELINE_FORMATS = [
   {
     id: 'cascade',
@@ -448,9 +438,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [showValidation, setShowValidation] = useState(false);
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
   const isBirthday = occasion === 'birthday';
-  // Step 4 = Timeline Format (new), Step 5 = Inspiration, Step 6 = Color Palette, Steps 7-10 shifted +1
-  // If inspiration URLs provided, Step 6 (color) is auto-skipped → AI decides colors
-  const totalSteps = isEvent ? 10 : 9;
+  // Consolidated wizard: 8 steps for events (wedding/engagement), 7 otherwise
+  const totalSteps = isEvent ? 8 : 7;
 
   // Step 1: Names
   const [name1, setName1] = useState(initialNames?.[0] ?? '');
@@ -460,11 +449,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [mood, setMood] = useState<string>('');
   // Step 4: Timeline Format
   const [layoutFormat, setLayoutFormat] = useState<string>('cascade');
-  // Step 3: Color Palette
+  // Step 4: Color Palette
   const [palette, setPalette] = useState<string>('');
-  // Step 4: Favorite places
-  const [favPlaces, setFavPlaces] = useState<string[]>([]);
-  const [customPlace, setCustomPlace] = useState('');
   // Step 5: Your Story
   const [meetCute, setMeetCute] = useState('');
   const [relationship, setRelationship] = useState('');
@@ -483,9 +469,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const canProceedStep3 = mood !== '';
   // Step 4 = Timeline Format (always has default — can change or skip)
   // Step 5 = Inspiration (always optional — can skip)
-  const canProceedStep6 = palette !== '';     // Step 6 = Color Palette
-  const canProceedStep7 = favPlaces.length > 0; // Step 7 = Places
-  const canProceedStep8 = meetCute.trim() !== ''; // Step 8 = Story
+  const canProceedStep6 = palette !== '';     // Color Palette (used in step 4 now)
+  const canProceedStep8 = meetCute.trim() !== ''; // Story (used in step 5 now)
 
   const hasInspirationUrls = inspirationUrls.some(u => u.trim().match(/^https?:\/\/.+/));
   const hasInspoInput = inspoKeywords.length > 0 || hasInspirationUrls;
@@ -516,7 +501,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     if (step === 3 && mood) {
       return VIBE_MOODS.find(m => m.id === mood)?.orb ?? 'rgba(163,177,138,0.12)';
     }
-    if (step === 6 && palette && palette !== 'custom') {
+    if (step === 4 && palette && palette !== 'custom') {
       const sel = COLOR_PALETTES.find(p => p.id === palette);
       if (sel) {
         const hex = sel.colors[0].replace('#', '');
@@ -530,14 +515,13 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   }, [step, mood, palette]);
 
   const canProceedCurrentStep = () => {
-    if (step === 1) return !!canProceedStep2;
-    if (step === 2) return !!canProceedStep1;
-    if (step === 3) return !!canProceedStep3;
-    if (step === 4) return true; // timeline format — always has a default
-    if (step === 5) return true; // inspiration is optional
-    if (step === 6) return !!canProceedStep6;
-    if (step === 7) return !!canProceedStep7;
-    if (step === 8) return !!canProceedStep8;
+    if (step === 1) return !!canProceedStep2;    // occasion
+    if (step === 2) return !!canProceedStep1;    // names
+    if (step === 3) return !!canProceedStep3;    // mood required (keywords optional)
+    if (step === 4) return true;                  // palette has default, layout has default
+    if (step === 5) return !!canProceedStep8;    // story (meetCute required)
+    if (step === 6) return true;                  // special details optional
+    if (step === 7) return true;                  // event details (optional fields)
     return true;
   };
 
@@ -547,26 +531,15 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       return;
     }
     setShowValidation(false);
-    // If inspiration provided (keywords or images), skip color palette — AI uses the vibes
-    if (step === 5 && hasInspoInput) {
+    // When step 3 has keywords, auto-set palette to 'custom' as default but still show step 4
+    if (step === 3 && hasInspoInput && !palette) {
       setPalette('custom');
-      setStep(7);
-      return;
     }
     if (step < totalSteps) setStep(step + 1);
   };
   const handleBack = () => {
     setShowValidation(false);
-    // If at places (step 7) and we skipped color via inspiration/keywords, go back to step 5
-    if (step === 7 && hasInspoInput) {
-      setStep(5);
-      return;
-    }
     if (step > 1) setStep(step - 1);
-  };
-
-  const togglePlace = (id: string) => {
-    setFavPlaces(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
   };
 
   const buildVibeString = () => {
@@ -576,17 +549,6 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const paletteInfo = selectedPalette && palette !== 'custom'
       ? `MANDATORY COLOR PALETTE — the couple chose "${selectedPalette.name}". You MUST use these exact hex colors as the basis for the design: ${selectedPalette.colors.join(', ')}. Do NOT substitute muted or desaturated alternatives. These colors are required.`
       : 'Let the AI choose colors that match the overall vibe.';
-
-    const placeVibes = favPlaces.map(id => {
-      const p = PLACES.find(pl => pl.id === id);
-      return p ? p.vibe : id;
-    });
-    // Merge chip selections + custom place into one unified place line (avoid double-counting)
-    const allPlaces = [...placeVibes];
-    if (customPlace.trim()) allPlaces.push(customPlace.trim());
-    const placeString = allPlaces.length > 0
-      ? `Place aesthetics and settings: ${allPlaces.join('; ')}.`
-      : '';
 
     // Occasion-specific context
     let occasionContext = '';
@@ -630,7 +592,6 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         : '',
       `Core Vibe: ${selectedMoodLabel}.`,
       paletteInfo,
-      placeString,
       isBirthday
         ? `What makes ${name1.trim()} special: ${meetCute}.`
         : `How they met: ${meetCute}.`,
@@ -806,28 +767,31 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <AccordionSection title="Ceremony" icon="💒" defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <label style={fieldLabel}>Venue name<Tooltip text="Used to create your events page and guest directions" /></label>
-                    <input
-                      type="text"
-                      placeholder="St. Mary's Church"
-                      value={detailsData.ceremonyVenue ?? ''}
-                      onChange={e => setDetail('ceremonyVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </div>
-                  <div>
-                    <label style={fieldLabel}>Address / city</label>
-                    <input
-                      type="text"
-                      placeholder="123 Main St, Napa, CA"
-                      value={detailsData.ceremonyAddress ?? ''}
-                      onChange={e => setDetail('ceremonyAddress', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
+                    {detailsData.ceremonyVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.ceremonyVenue}</div>
+                          {detailsData.ceremonyAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.ceremonyAddress}</div>}
+                        </div>
+                        <button
+                          onClick={() => { setDetail('ceremonyVenue', ''); setDetail('ceremonyAddress', ''); }}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for your ceremony venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('ceremonyVenue', venue.name ?? '');
+                          setDetail('ceremonyAddress', venue.address ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('ceremonyVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Start time</label>
@@ -847,28 +811,31 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <AccordionSection title="Reception & Style" icon="🥂" defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <label style={fieldLabel}>Venue name<Tooltip text="Used to create your events page and guest directions" /></label>
-                    <input
-                      type="text"
-                      placeholder="The Vineyard Estate"
-                      value={detailsData.receptionVenue ?? ''}
-                      onChange={e => setDetail('receptionVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </div>
-                  <div>
-                    <label style={fieldLabel}>Address / city</label>
-                    <input
-                      type="text"
-                      placeholder="456 Vineyard Rd, Sonoma, CA"
-                      value={detailsData.receptionAddress ?? ''}
-                      onChange={e => setDetail('receptionAddress', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
+                    {detailsData.receptionVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.receptionVenue}</div>
+                          {detailsData.receptionAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.receptionAddress}</div>}
+                        </div>
+                        <button
+                          onClick={() => { setDetail('receptionVenue', ''); setDetail('receptionAddress', ''); }}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for your reception venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('receptionVenue', venue.name ?? '');
+                          setDetail('receptionAddress', venue.address ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('receptionVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Start time</label>
@@ -978,15 +945,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                    <input
-                      type="text"
-                      placeholder="The Grand Hotel Rooftop"
-                      value={detailsData.celebrationVenue ?? ''}
-                      onChange={e => setDetail('celebrationVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    {detailsData.celebrationVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.celebrationVenue}</div>
+                        </div>
+                        <button
+                          onClick={() => setDetail('celebrationVenue', '')}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for your celebration venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('celebrationVenue', venue.name ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('celebrationVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Any notes for guests <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1079,15 +1059,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue / location <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                    <input
-                      type="text"
-                      placeholder="The Rooftop Garden"
-                      value={detailsData.celebrationVenue ?? ''}
-                      onChange={e => setDetail('celebrationVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    {detailsData.celebrationVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.celebrationVenue}</div>
+                        </div>
+                        <button
+                          onClick={() => setDetail('celebrationVenue', '')}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for the party venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('celebrationVenue', venue.name ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('celebrationVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Start time <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1337,14 +1330,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const STEP_NAMES: Record<number, string> = {
     1: 'Occasion',
     2: 'Names',
-    3: 'Vibe',
-    4: 'Layout',
-    5: 'Aesthetic',
-    6: 'Color Palette',
-    7: 'Places',
-    8: 'Your Story',
-    9: 'Final Details',
-    10: 'Event Details',
+    3: 'Your Vibe',
+    4: 'Colors & Style',
+    5: 'Your Story',
+    6: 'Final Details',
+    7: 'Event Details',
   };
 
   return (
@@ -1629,6 +1619,157 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 );
               })}
             </div>
+
+            {/* ── Make it yours (optional) — inspiration keywords/URLs ── */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '2rem', marginTop: '2.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>✨</span>
+                <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem', margin: 0 }}>Make it yours</h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
+              </div>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                Tell the AI what to channel — sports teams, films, cities, artists, anything with a visual world.
+              </p>
+
+              {/* Keyword tag input */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                {inspoKeywords.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    {inspoKeywords.map(kw => (
+                      <span key={kw} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        padding: '0.35rem 0.85rem', borderRadius: '100px',
+                        background: 'var(--eg-accent)', color: '#fff',
+                        fontSize: '0.88rem', fontWeight: 600,
+                      }}>
+                        {kw}
+                        <button
+                          type="button"
+                          onClick={() => setInspoKeywords(prev => prev.filter(k => k !== kw))}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', padding: 0, lineHeight: 1, fontSize: '1rem' }}
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    value={inspoKeywordInput}
+                    placeholder="e.g. Knicks, Coco, Art Deco, Paris..."
+                    onChange={e => setInspoKeywordInput(e.target.value)}
+                    onKeyDown={e => {
+                      if ((e.key === 'Enter' || e.key === ',') && inspoKeywordInput.trim()) {
+                        e.preventDefault();
+                        const val = inspoKeywordInput.trim().replace(/,$/, '');
+                        if (val && !inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                        setInspoKeywordInput('');
+                      }
+                    }}
+                    style={{ ...inputStyle, flex: 1 }}
+                    onFocus={getFocusStyle}
+                    onBlur={e => {
+                      getBlurStyle(e);
+                      if (inspoKeywordInput.trim()) {
+                        const val = inspoKeywordInput.trim();
+                        if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                        setInspoKeywordInput('');
+                      }
+                    }}
+                  />
+                  {inspoKeywordInput.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = inspoKeywordInput.trim();
+                        if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                        setInspoKeywordInput('');
+                      }}
+                      style={{ ...btnPrimaryStyle, padding: '0.65rem 1.25rem', fontSize: '0.875rem' }}
+                    >Add</button>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick-pick suggestions */}
+              <div style={{ marginBottom: '2rem' }}>
+                <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>Quick picks</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {INSPO_SUGGESTIONS.filter(s => !inspoKeywords.includes(s.label)).map(s => (
+                    <button
+                      key={s.label}
+                      type="button"
+                      onClick={() => setInspoKeywords(prev => [...prev, s.label])}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                        padding: '0.35rem 0.85rem', borderRadius: '100px',
+                        background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
+                        color: 'var(--eg-fg)', fontSize: '0.84rem', cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(163,177,138,0.15)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--eg-accent)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                    >
+                      <span>{s.emoji}</span> {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Image URL section (secondary) */}
+              <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '1.5rem', marginBottom: '0.5rem' }}>
+                <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>
+                  Or paste direct image URLs <span style={{ fontWeight: 400 }}>(Pinterest, Imgur — ends in .jpg/.png)</span>
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  {(inspirationUrls.length === 0 ? [''] : inspirationUrls).map((url, idx) => {
+                    const isDirectImage = /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(url);
+                    const isKnownCdn = /(?:^|\.)(?:i\.imgur\.com|cdn\.discordapp\.com|images\.unsplash\.com|imagedelivery\.net|cloudinary\.com|res\.cloudinary\.com|live\.staticflickr\.com)(?:\/|$)/i.test(url);
+                    const isValid = /^https?:\/\/.+/.test(url.trim());
+                    const warnNotDirectImage = isValid && !isDirectImage && !isKnownCdn;
+                    return (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {isDirectImage && isValid && (
+                            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(214,198,168,0.2)' }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={url} alt="inspiration preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                            </div>
+                          )}
+                          <input
+                            type="url"
+                            value={url}
+                            placeholder="https://i.pinimg.com/..."
+                            onChange={e => {
+                              const next = [...(inspirationUrls.length === 0 ? [''] : inspirationUrls)];
+                              next[idx] = e.target.value;
+                              setInspirationUrls(next.filter((u, i) => i === 0 || u.trim()));
+                            }}
+                            style={{ ...inputStyle, flex: 1, fontSize: '0.85rem', borderColor: url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)' }}
+                            onFocus={getFocusStyle}
+                            onBlur={getBlurStyle}
+                          />
+                          {idx > 0 && (
+                            <button type="button" onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: '0.25rem', flexShrink: 0 }}>✕</button>
+                          )}
+                        </div>
+                        {warnNotDirectImage && (
+                          <p style={{ fontSize: '0.76rem', color: '#f59e0b', margin: 0, paddingLeft: '0.25rem' }}>
+                            ⚠ Paste a direct image URL (ending in .jpg / .png) for best results
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {inspirationUrls.length < 4 && (
+                  <button type="button" onClick={() => setInspirationUrls(prev => [...(prev.length === 0 ? [''] : prev), ''])} style={{ background: 'none', border: '1px dashed rgba(163,177,138,0.45)', borderRadius: '0.5rem', padding: '0.4rem 0.9rem', color: 'var(--eg-accent)', cursor: 'pointer', fontSize: '0.84rem', fontWeight: 600 }}>
+                    + Add image URL
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
               <button onClick={handleNext} disabled={!canProceedStep3} style={{ ...btnPrimaryStyle, opacity: canProceedStep3 ? 1 : 0.5, pointerEvents: canProceedStep3 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
@@ -1636,35 +1777,125 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 4: TIMELINE FORMAT (new) ── */}
+        {/* ── STEP 4: COLORS & STYLE (merged palette + layout) ── */}
         {step === 4 && (
-          <motion.div key="s4-format" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
-              How should your story look?
-            </h2>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
-              Choose the format for your timeline — the visual structure of your memories.
+          <motion.div key="s4-colors-style" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <Palette size={28} color="var(--eg-accent)" />
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Colors & Style</h2>
+            </div>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+              Pick a palette that feels like your relationship. The AI will use this as a starting point.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {TIMELINE_FORMATS.map(fmt => {
-                const active = layoutFormat === fmt.id;
+
+            {/* Note when step 3 has keywords */}
+            {hasInspoInput && (
+              <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.5rem', border: '1px solid rgba(163,177,138,0.2)' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--eg-accent)', fontWeight: 600, margin: 0 }}>
+                  ✨ Your inspiration vibes will also influence colors
+                </p>
+              </div>
+            )}
+
+            {/* Color palette grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.875rem', marginBottom: '2.5rem' }}>
+              {COLOR_PALETTES.map(p => {
+                const active = palette === p.id;
+                const isCustom = p.id === 'custom';
                 return (
                   <motion.button
-                    key={fmt.id}
-                    onClick={() => setLayoutFormat(fmt.id)}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.99 }}
-                    transition={{ duration: 0.15 }}
+                    key={p.id}
+                    onClick={() => setPalette(p.id)}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.18 }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '1.25rem',
-                      padding: '1rem 1.25rem', borderRadius: '12px 12px 24px 24px', textAlign: 'left',
-                      border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                      background: active ? 'var(--eg-accent-light)' : '#fff',
+                      padding: 0, borderRadius: '12px 12px 24px 24px', textAlign: 'left',
+                      border: `2px solid ${active ? 'var(--eg-fg)' : 'rgba(0,0,0,0.06)'}`,
+                      background: '#fff',
                       cursor: 'pointer',
-                      transition: 'background 0.2s, border-color 0.2s',
-                      boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      overflow: 'hidden',
+                      boxShadow: active ? '0 8px 28px rgba(0,0,0,0.14)' : '0 2px 10px rgba(0,0,0,0.03)',
+                      transition: 'border-color 0.2s, box-shadow 0.25s',
                     }}
                   >
+                    {/* Gradient strip */}
+                    <div style={{
+                      height: '52px',
+                      background: isCustom
+                        ? 'linear-gradient(90deg, #A3B18A, #D6C6A8, #6D597A, #1a1713, #8FA876)'
+                        : `linear-gradient(90deg, ${p.colors.join(', ')})`,
+                      position: 'relative',
+                    }}>
+                      {active && (
+                        <div style={{
+                          position: 'absolute', top: '50%', right: '0.75rem',
+                          transform: 'translateY(-50%)',
+                          width: '22px', height: '22px', borderRadius: '50%',
+                          background: 'rgba(255,255,255,0.9)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.75rem',
+                        }}>✓</div>
+                      )}
+                    </div>
+                    <div style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--eg-fg)', flex: 1 }}>{isCustom && hasInspoInput ? 'Let AI match my vibes' : p.name}</span>
+                        {/* Mini swatches */}
+                        <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                          {(isCustom ? p.colors.slice(0, 3) : p.colors.slice(0, 4)).map((c, i) => (
+                            <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                          ))}
+                        </div>
+                      </div>
+                      {/* Color swatches row */}
+                      <div style={{ display: 'flex', gap: '3px', marginTop: '6px' }}>
+                        {p.colors?.map((color: string, i: number) => (
+                          <div
+                            key={i}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '4px',
+                              background: color,
+                              border: '1px solid rgba(0,0,0,0.08)',
+                              flexShrink: 0,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Timeline Layout section */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '2rem' }}>
+              <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem', marginBottom: '0.5rem' }}>Timeline Layout</h3>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                Choose the format for your timeline — the visual structure of your memories.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {TIMELINE_FORMATS.map(fmt => {
+                  const active = layoutFormat === fmt.id;
+                  return (
+                    <motion.button
+                      key={fmt.id}
+                      onClick={() => setLayoutFormat(fmt.id)}
+                      whileHover={{ y: -1 }}
+                      whileTap={{ scale: 0.99 }}
+                      transition={{ duration: 0.15 }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '1.25rem',
+                        padding: '1rem 1.25rem', borderRadius: '12px 12px 24px 24px', textAlign: 'left',
+                        border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
+                        background: active ? 'var(--eg-accent-light)' : '#fff',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s, border-color 0.2s',
+                        boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      }}
+                    >
                     {/* Mini visual preview */}
                     <div style={{
                       width: '72px', height: '50px', borderRadius: '0.5rem',
@@ -1768,6 +1999,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   </motion.button>
                 );
               })}
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
@@ -1776,15 +2008,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 5: VISUAL INSPIRATION ── */}
-        {step === 5 && (
-          <motion.div key="s5-inspo" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '1.75rem' }}>✨</span>
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Aesthetic Vibes</h2>
-            </div>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2rem' }}>
-              Tell the AI what to channel — sports teams, films, cities, artists, anything with a visual world.
+        {/* PLACEHOLDER_DELETE_START
             </p>
 
             {/* ── Keyword tag input ── */}

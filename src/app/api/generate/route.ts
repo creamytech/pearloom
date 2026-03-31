@@ -14,7 +14,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { clusterPhotos, reverseGeocode } from '@/lib/google-photos';
 import { generateStoryManifest } from '@/lib/memory-engine';
-import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent } from '@/types';
+import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
@@ -140,6 +140,31 @@ function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean
   ];
 }
 
+/** Pick a logo icon based on occasion + vibe string keywords */
+function pickLogoIcon(occasion?: string, vibeString?: string): LogoIconId {
+  const vibe = (vibeString ?? '').toLowerCase();
+
+  // Occasion-specific defaults
+  if (occasion === 'wedding') {
+    if (vibe.includes('bouquet') || vibe.includes('floral') || vibe.includes('garden')) return 'bouquet';
+    return 'wedding-rings';
+  }
+  if (occasion === 'anniversary') return 'champagne';
+  if (occasion === 'engagement') return 'heart';
+  if (occasion === 'birthday') return 'gift';
+
+  // Mood-based overrides for "story" / "just because"
+  if (vibe.includes('adventurous') || vibe.includes('mountain') || vibe.includes('alpine')) return 'mountain';
+  if (vibe.includes('wanderlust') || vibe.includes('travel') || vibe.includes('suitcase')) return 'suitcase';
+  if (vibe.includes('cozy') || vibe.includes('coffee') || vibe.includes('intimate')) return 'coffee';
+  if (vibe.includes('pet') || vibe.includes('zoo') || vibe.includes('paw') || vibe.includes('fur')) return 'paw';
+  if (vibe.includes('music') || vibe.includes('song') || vibe.includes('melody')) return 'music-note';
+  if (vibe.includes('playful') || vibe.includes('fun') || vibe.includes('vibrant')) return 'starburst';
+  if (vibe.includes('romance') || vibe.includes('romantic') || vibe.includes('love')) return 'heart';
+
+  return 'pearl';
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
@@ -193,6 +218,7 @@ export async function POST(req: NextRequest) {
       celebrationTime,
       guestNotes,
       inspirationUrls,
+      layoutFormat,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -212,6 +238,7 @@ export async function POST(req: NextRequest) {
       celebrationTime?: string;
       guestNotes?: string;
       inspirationUrls?: string[];
+      layoutFormat?: string;
     } = body;
 
     if (!photos?.length) {
@@ -270,7 +297,8 @@ export async function POST(req: NextRequest) {
       session.accessToken,
       occasion,
       eventDate,
-      inspirationUrls  // NEW: passed to memory-engine for visual style matching
+      inspirationUrls,  // passed to memory-engine for visual style matching
+      layoutFormat
     );
 
     // Pre-populate logistics date from user-provided eventDate
@@ -383,14 +411,22 @@ export async function POST(req: NextRequest) {
         }));
 
         // ALWAYS use cluster location — never trust AI-generated ones
-        if (cluster.location && cluster.location.label) {
-          chapter.location = cluster.location;
+        if (cluster.location) {
+          // If we have GPS coords but label is missing, try reverse geocoding one more time
+          if (!cluster.location.label && (cluster.location.lat || cluster.location.lng)) {
+            const label = await reverseGeocode(cluster.location.lat, cluster.location.lng);
+            cluster.location.label = label || `${cluster.location.lat.toFixed(2)}, ${cluster.location.lng.toFixed(2)}`;
+          }
+          chapter.location = cluster.location.label ? cluster.location : null;
         } else {
           chapter.location = null;
         }
       }
       return chapter;
     }));
+
+    // Pick a context-aware logo icon based on occasion + vibe
+    manifest.logoIcon = pickLogoIcon(occasion, vibeString);
 
     return NextResponse.json({ manifest });
   } catch (error) {

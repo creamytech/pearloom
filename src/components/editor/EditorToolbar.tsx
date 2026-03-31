@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Monitor, Tablet, Smartphone, Columns2, Settings2 } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Columns2, Settings2, Activity } from 'lucide-react';
 import {
   ExitIcon, PreviewIcon, PublishIcon, UndoIcon, RedoIcon, CommandIcon,
   SavedIcon, UnsavedIcon,
@@ -337,6 +337,23 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         {/* Split + Preview + Publish — desktop only */}
         {!isMobile && (
           <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+            {/* Site Health — AI completeness check */}
+            <motion.button
+              onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'blocks' })}
+              title="AI Site Health Check"
+              whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.12)' }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '6px 10px', borderRadius: '6px',
+                border: '1px solid rgba(163,177,138,0.2)',
+                background: 'transparent', color: 'rgba(163,177,138,0.9)',
+                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+              }}
+            >
+              <Activity size={12} /> Health
+            </motion.button>
             {/* Split view toggle — plum active state */}
             <motion.button
               onClick={() => dispatch({ type: 'TOGGLE_SPLIT_VIEW' })}

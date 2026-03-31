@@ -121,6 +121,22 @@ export async function POST(req: NextRequest) {
       }).catch((e: unknown) => console.error('[RSVP] Resend error:', e));
     }
 
+    // Non-blocking: send AI-personalized confirmation email to the guest
+    if (email && resendKey) {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
+      fetch(`${baseUrl}/api/rsvp-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId,
+          guestName: String(guestName),
+          guestEmail: String(email),
+          status: String(status),
+          events: selectedEvents,
+        }),
+      }).catch((e: unknown) => console.error('[RSVP] Confirmation email error:', e));
+    }
+
     return NextResponse.json({
       success: true,
       guest: data,

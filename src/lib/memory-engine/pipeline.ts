@@ -18,11 +18,12 @@ export async function generateStoryManifest(
   googleAccessToken?: string,
   occasion?: string,
   eventDate?: string,
-  inspirationUrls?: string[]
+  inspirationUrls?: string[],
+  layoutFormat?: string
 ): Promise<StoryManifest> {
   // Cap chapters to number of photos (one chapter per photo cluster)
   const photoCount = clusters.length;
-  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount);
+  const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount, layoutFormat);
 
   // Build the multimodal parts array
   const parts: Record<string, unknown>[] = [{ text: prompt }];
@@ -197,7 +198,7 @@ export async function generateStoryManifest(
     }));
 
   // Prevent consecutive identical layouts
-  const LAYOUT_CYCLE = ['editorial', 'split', 'fullbleed', 'cinematic', 'gallery'] as const;
+  const LAYOUT_CYCLE = ['editorial', 'split', 'fullbleed', 'cinematic', 'gallery', 'mosaic'] as const;
   for (let i = 1; i < manifest.chapters.length; i++) {
     if (manifest.chapters[i].layout === manifest.chapters[i - 1].layout) {
       const current = manifest.chapters[i].layout || 'editorial';
@@ -343,6 +344,22 @@ export async function generateStoryManifest(
       logWarn('[Memory Engine] Design critique pass failed (non-fatal):', critiqueResult.reason);
     }
 
+    // Reconcile theme.colors with vibeSkin.palette — single source of truth
+    if (manifest.vibeSkin?.palette) {
+      const p = manifest.vibeSkin.palette;
+      manifest.theme = {
+        ...manifest.theme,
+        colors: {
+          background: p.bg || manifest.theme.colors.background,
+          foreground: p.ink || manifest.theme.colors.foreground,
+          accent: p.accent || manifest.theme.colors.accent,
+          accentLight: p.highlight || manifest.theme.colors.accentLight,
+          muted: p.subtle || manifest.theme.colors.muted,
+          cardBg: p.card || manifest.theme.colors.cardBg,
+        },
+      };
+    }
+
     // Apply raster art on top (additive — sets art DataURLs on the (possibly critiqued) skin)
     if (artResult.status === 'fulfilled') {
       const siteArt = artResult.value;
@@ -352,6 +369,18 @@ export async function generateStoryManifest(
       log('[Memory Engine] Pass 2.5: Raster art generation complete');
     } else {
       logWarn('[Memory Engine] Raster art generation failed (non-fatal):', artResult.reason);
+    }
+  }
+
+  // Enforce emotional arc: last chapter should be the emotional peak
+  if (manifest.chapters.length > 1) {
+    const last = manifest.chapters[manifest.chapters.length - 1];
+    if ((last.emotionalIntensity ?? 0) < 7) {
+      manifest.chapters[manifest.chapters.length - 1] = {
+        ...last,
+        emotionalIntensity: 8,
+        isEmotionalPeak: true,
+      };
     }
   }
 
