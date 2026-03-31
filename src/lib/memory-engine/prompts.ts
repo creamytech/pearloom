@@ -22,17 +22,24 @@ export function buildPrompt(
       mimeType: p.mimeType,
     }));
 
+    // Summarize the distinct dates in this cluster for the AI
+    const uniqueDates = [...new Set(c.photos.map(p => p.creationTime?.slice(0, 10)).filter(Boolean))].sort();
+    const dateContext = uniqueDates.length === 1
+      ? `Single day: ${uniqueDates[0]}`
+      : `${uniqueDates.length} days: ${uniqueDates.join(', ')}`;
+
     return {
       clusterIndex: i,
       dateRange: `${c.startDate.slice(0, 10)} to ${c.endDate.slice(0, 10)}`,
+      dateContext,
       photoCount: c.photos.length,
       note: c.note || null,
       noteInstruction: c.note
-        ? `⚠️ HIGHEST PRIORITY CONTEXT — written BY THE COUPLE about this exact moment: '${c.note}'. The chapter title, subtitle, and description MUST directly reflect this note's emotion, details, and voice.`
+        ? `⚠️ HIGHEST PRIORITY CONTEXT — written BY THE COUPLE about this exact moment: '${c.note}'. The chapter title, subtitle, and description MUST directly reflect this note's emotion, details, and voice. This note describes ONLY this cluster — do not apply it to other clusters.`
         : null,
       location: c.location?.label || null,
       locationInstruction: c.location?.label
-        ? `This chapter takes place in ${c.location.label}. Weave this place into the narrative naturally — the light there, the feeling of arriving, what made it memorable. Do NOT invent a location if none is provided.`
+        ? `This chapter takes place in ${c.location.label}. Weave this place into the narrative naturally — the light there, the feeling of arriving, what made it memorable. This is a DIFFERENT location from other clusters — write about THIS specific place, not other clusters' locations.`
         : 'No specific location was given for this chapter. Do NOT make up or invent a location. Write about the emotional space and feeling instead of a geographical place.',
       photos: photoDetails,
     };
@@ -156,15 +163,35 @@ ${eventSchemaGuidance}
 ${faqGuidance}
 
 ---
-## Their Vibe & Personality
+## Their Vibe & Personality (OVERALL TONE ONLY — NOT chapter content)
+The vibe string below describes the couple's general personality, aesthetic preferences, and emotional tone.
+Use this ONLY to set the writing STYLE, VOICE, and EMOTIONAL REGISTER across all chapters.
+DO NOT use interests, hobbies, or personality traits from the vibe to describe WHAT IS HAPPENING in a specific photo or chapter.
+
+For example:
+- If the vibe says "loves hiking" but a chapter's photos are from a dinner → write about the dinner, NOT hiking
+- If the vibe says "coffee lovers" but photos show a beach → write about the beach, NOT coffee
+- The vibe informs HOW you write (warm, playful, poetic), not WHAT you write about
+
 ${vibeString}
 
-## Photo Clusters (rich metadata)
+---
+## Photo Clusters (CHAPTER CONTENT SOURCE — this is what each chapter is ABOUT)
+Each cluster below represents a distinct moment/location. The chapter content MUST describe what is actually in the photos and the note/location provided — NOT the couple's general interests from the vibe above.
+
 ${JSON.stringify(clusterSummary, null, 2)}
+
+## CRITICAL: DATA SEPARATION RULES (non-negotiable)
+1. CHAPTER CONTENT comes from the CLUSTER DATA above (dates, location, note, what's visible in photos)
+2. WRITING STYLE comes from the VIBE STRING (tone, voice, emotional register)
+3. NEVER mix these up. A chapter about a beach trip should describe the beach, not the couple's hobby of cooking just because the vibe mentions cooking.
+4. Each cluster is a SEPARATE chapter about a SEPARATE moment. Do not blend content between clusters.
 
 ## CRITICAL LOCATION AND CONTEXT RULES (non-negotiable)
 - Each cluster above has a "locationInstruction" field. You MUST follow it exactly for that chapter.
 - NEVER invent a location if "location" is null. Use the locationInstruction's fallback language instead.
+- If a cluster has a location, the chapter description MUST reference that specific place.
+- If two clusters have DIFFERENT locations, their chapters MUST describe DIFFERENT places — do not generalize.
 
 ## BLURB/NOTE RULES (HIGHEST PRIORITY):
 - Each cluster may have a "note" field — a personal caption written BY THE COUPLE about that moment
@@ -173,6 +200,7 @@ ${JSON.stringify(clusterSummary, null, 2)}
 - Do NOT paraphrase or genericize the note — honor its specific details, feelings, and voice
 - If the note mentions a specific activity, place, feeling, or inside joke — weave it directly into the narrative
 - The note represents what the couple themselves want remembered about this moment
+- The note describes THIS SPECIFIC MOMENT — do not blend it with interests from the vibe string
 
 ---
 ## NARRATIVE QUALITY STANDARDS (non-negotiable)
@@ -223,7 +251,12 @@ You have been provided with one representative image per cluster. YOU MUST LOOK 
 - What environment they're in (indoor, outdoor, landmark, specific setting)
 - What the emotional register of the moment is
 
-WRITE DESCRIPTIONS BASED ON WHAT YOU ACTUALLY SEE. If the location metadata says "Unknown" but you can clearly see they're at a ski mountain, write about the mountain. Never gaslighting the couple with incorrect descriptions.
+WRITE DESCRIPTIONS BASED ON WHAT YOU ACTUALLY SEE IN THE PHOTOS — not what the vibe string says about the couple's interests.
+- If photos show a restaurant dinner → write about the dinner, even if the vibe says "outdoorsy"
+- If photos show a park → write about the park, even if the vibe says "homebodies"
+- The vibe string tells you HOW to write (tone), the photos tell you WHAT to write about (content)
+
+If the location metadata says "Unknown" but you can clearly see they're at a ski mountain, write about the mountain. Never gaslighting the couple with incorrect descriptions.
 
 If a cluster location is unknown, deduce it from the visual. Do NOT hallucinate a location based on the vibe string alone.
 
