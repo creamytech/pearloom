@@ -97,11 +97,6 @@ export function HowItWorks() {
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
-        {/* Decorative gold rule */}
-        <div className="flex justify-center mb-6">
-          <div style={{ width: 60, height: 1, background: C.gold }} />
-        </div>
-
         <SectionHeader
           watermark="3"
           title="From photos to a finished site in minutes"

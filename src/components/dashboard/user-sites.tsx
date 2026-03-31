@@ -191,7 +191,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
       >
         <h1 style={{
           fontFamily: 'var(--eg-font-heading)',
-          fontSize: 'clamp(2rem, 5vw, 3rem)',
+          fontSize: 'clamp(1.5rem, 3vw, 2rem)',
           fontWeight: 600,
           fontStyle: 'italic',
           color: 'var(--eg-fg)',
@@ -209,7 +209,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
         }}>
           <p style={{
             fontFamily: 'var(--eg-font-body)',
-            fontSize: text.xs,
+            fontSize: text.sm,
             fontWeight: 600,
             color: C.muted,
             letterSpacing: '0.14em',

@@ -299,7 +299,7 @@ const COLOR_PALETTES = [
   { id: 'dark-romance',  name: 'Dark Romance',      colors: ['#6A0F2A', '#A83050', '#D4A0A0', '#F8F0F2', '#1A0408'] },
   { id: 'celestial',     name: 'Celestial Night',   colors: ['#0D1B2A', '#1B3A6B', '#C8A0E8', '#F0EAFF', '#E8D8FF'] },
   { id: 'modern-luxe',   name: 'Modern Luxe',       colors: ['#1A1A1A', '#B8962A', '#DFC870', '#F5F2ED', '#0A0A0A'] },
-  { id: 'custom',        name: 'Let AI decide',     colors: ['#888', '#aaa', '#ccc', '#eee', '#333'] },
+  { id: 'custom',        name: 'Let AI decide',     colors: ['#E8A0BF', '#A8D8EA', '#D4E09B', '#F6D365', '#B8A9C4'] },
 ];
 
 const TIMELINE_FORMATS = [
@@ -520,8 +520,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
   const INSPO_SUGGESTIONS = [
     { label: 'NYC Energy', emoji: '🗽' },
-    { label: 'Knicks', emoji: '🏀' },
-    { label: 'Lakers', emoji: '💜' },
+    { label: 'Film Noir', emoji: '🎬' },
+    { label: 'Mediterranean', emoji: '🫒' },
     { label: 'Coco (Pixar)', emoji: '🌼' },
     { label: 'Moana', emoji: '🌊' },
     { label: 'La La Land', emoji: '🎷' },
@@ -537,6 +537,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     { label: 'Golden Hour', emoji: '🌇' },
     { label: 'Boho', emoji: '🪬' },
     { label: 'Minimal', emoji: '◻' },
+    { label: 'Scandinavian', emoji: '🏔' },
+    { label: 'Kinfolk', emoji: '🍂' },
   ];
 
   // Ambient orb color for background — shifts with mood/palette selection
@@ -625,7 +627,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const birthdayCreator = name2.trim() ? `Created as a gift by ${name2.trim()}.` : '';
 
     const keywordDirective = inspoKeywords.length > 0
-      ? `AESTHETIC REFERENCES (treat these as strong visual and cultural cues for color palette, motifs, and art direction): ${inspoKeywords.join(', ')}. For example, if "Knicks" → orange and blue with NYC energy; if "Coco" → marigolds, papel picado, warm golds and purples; if "Art Deco" → gold geometry, black, cream; if "Coastal" → sea glass greens, sandy neutrals. Translate each reference into its visual DNA.`
+      ? `AESTHETIC REFERENCES (treat these as strong visual and cultural cues for color palette, motifs, and art direction): ${inspoKeywords.join(', ')}. For example, if "Film Noir" → moody blacks, silver, dramatic shadows; if "Coco" → marigolds, papel picado, warm golds and purples; if "Art Deco" → gold geometry, black, cream; if "Coastal" → sea glass greens, sandy neutrals. Translate each reference into its visual DNA.`
       : '';
 
     return [
@@ -1699,7 +1701,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   <input
                     type="text"
                     value={inspoKeywordInput}
-                    placeholder="e.g. Knicks, Coco, Art Deco, Paris..."
+                    placeholder="e.g. Film Noir, Coco, Art Deco, Paris..."
                     onChange={e => setInspoKeywordInput(e.target.value)}
                     onKeyDown={e => {
                       if ((e.key === 'Enter' || e.key === ',') && inspoKeywordInput.trim()) {
