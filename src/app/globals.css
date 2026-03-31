@@ -8,20 +8,21 @@
 /* ─── Design Tokens ─── */
 :root {
   /* ── Core Palette ── */
-  --eg-bg: #F5F1E8;                  /* Pear Cream — main background */
-  --eg-bg-section: #EEE8DC;          /* slightly deeper cream for alternating sections */
-  --eg-fg: #2B2B2B;                  /* Charcoal Ink — never pure black */
+  --eg-bg: #FAF7F2;                  /* Warm Cream — main background (lighter for contrast) */
+  --eg-bg-section: #F0EBE0;          /* Warm Sand — alternating sections (visible contrast) */
+  --eg-bg-dark-section: #2B2B2B;     /* Dark section for dramatic contrast */
+  --eg-fg: #1A1A1A;                  /* Near-black — stronger text contrast */
   --eg-accent: #A3B18A;              /* Soft Olive — primary brand color */
   --eg-accent-hover: #8FA876;        /* darker olive for hover states */
   --eg-accent-dark: #6E8C5C;         /* deep olive for pressed/active states */
   --eg-accent-light: #EEE8DC;        /* cream tint for accent backgrounds */
-  --eg-gold: #D6C6A8;                /* Dusty Gold — premium accent, dividers, glows */
+  --eg-gold: #C4A96A;                /* Richer Gold — premium accent, dividers */
   --eg-plum: #6D597A;                /* Muted Plum — emotional highlights, selected states */
   --eg-plum-light: rgba(109,89,122,0.12); /* plum tint for selected backgrounds */
-  --eg-muted: #9A9488;               /* warm muted text */
-  --eg-divider: #E6DFD2;             /* super-subtle warm divider lines */
-  --eg-card-bg: rgba(255,255,255,0.55); /* soft glass cards */
-  --eg-dark: #2B2B2B;                /* Charcoal Ink */
+  --eg-muted: #7A756E;               /* Darker muted text for better readability */
+  --eg-divider: #E0D8CA;             /* Warmer, slightly more visible divider */
+  --eg-card-bg: rgba(255,255,255,0.75); /* Glass cards with more opacity */
+  --eg-dark: #1A1A1A;                /* True dark */
   --eg-dark-2: #3D3530;              /* deeper warm dark for editor/dark surfaces */
 
   /* ── Typography ── */
@@ -32,11 +33,11 @@
   --eg-radius: 1rem;
   --eg-radius-sm: 0.75rem;
 
-  /* ── Shadows (warm-tinted) ── */
-  --eg-shadow-sm: 0 2px 8px rgba(43,43,43,0.05);
-  --eg-shadow-md: 0 8px 32px rgba(43,43,43,0.07);
-  --eg-shadow-lg: 0 20px 60px rgba(43,43,43,0.09);
-  --eg-shadow-xl: 0 32px 80px rgba(43,43,43,0.11);
+  /* ── Shadows (warm-tinted, more depth) ── */
+  --eg-shadow-sm: 0 1px 3px rgba(43,43,43,0.06), 0 4px 12px rgba(43,43,43,0.04);
+  --eg-shadow-md: 0 4px 16px rgba(43,43,43,0.08), 0 12px 40px rgba(43,43,43,0.05);
+  --eg-shadow-lg: 0 12px 40px rgba(43,43,43,0.10), 0 24px 60px rgba(43,43,43,0.06);
+  --eg-shadow-xl: 0 24px 60px rgba(43,43,43,0.12), 0 40px 80px rgba(43,43,43,0.08);
 
   /* ── Gradients ── */
   --eg-gradient-warm: linear-gradient(135deg, #EEE8DC 0%, #F5F1E8 50%, #E8E2D8 100%);
@@ -88,9 +89,9 @@
   /* Card standard (ONE style everywhere) */
   --eg-card-radius: 0.875rem;
   --eg-card-bg: #FFFFFF;
-  --eg-card-border: 1px solid #E6DFD2;
-  --eg-card-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
-  --eg-card-shadow-hover: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
+  --eg-card-border: 1px solid #E0D8CA;
+  --eg-card-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 6px 20px rgba(0,0,0,0.04);
+  --eg-card-shadow-hover: 0 4px 12px rgba(0,0,0,0.08), 0 16px 40px rgba(0,0,0,0.06);
 }
 
 @theme inline {

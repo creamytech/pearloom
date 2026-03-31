@@ -6,15 +6,15 @@
 // ── Color Palette ────────────────────────────────────────────
 
 export const colors = {
-  cream:   '#F5F1E8',
-  deep:    '#EEE8DC',
+  cream:   '#FAF7F2',
+  deep:    '#F0EBE0',
   olive:   '#A3B18A',
-  gold:    '#D6C6A8',
+  gold:    '#C4A96A',
   plum:    '#6D597A',
-  ink:     '#2B2B2B',
+  ink:     '#1A1A1A',
   dark:    '#3D3530',
-  muted:   '#9A9488',
-  divider: '#E6DFD2',
+  muted:   '#7A756E',
+  divider: '#E0D8CA',
 
   // Dark sections (The Loom, editor, generation)
   darkBg:      '#1E1B24',
