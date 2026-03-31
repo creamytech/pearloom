@@ -10,7 +10,7 @@ import {
   Bot,
   MessageSquare,
 } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
 
@@ -63,7 +63,7 @@ export function GuestExperience() {
       id="features"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="Guest Experience"
           title={<>Everything your guests need.<br /><span style={{ color: C.plum }}>Nothing they don&rsquo;t.</span></>}

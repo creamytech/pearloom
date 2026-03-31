@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { Pill } from '@/components/ui/Pill';
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
@@ -65,7 +65,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         background: C.cream,
       }}
     >
-      <div className="relative z-10 w-full max-w-[960px] text-center">
+      <div className="relative z-10 w-full text-center" style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Eyebrow pill with rotating occasion */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}

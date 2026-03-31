@@ -12,6 +12,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { SitePage, LogoIconId } from '@/types';
+import { layout } from '@/lib/design-tokens';
 import { UserNav } from '@/components/dashboard/user-nav';
 import { signOut } from 'next-auth/react';
 import {
@@ -187,8 +188,8 @@ export function SiteNav({ names, pages, logoIcon, currentPage, user, onGoToDashb
         )}
 
         <div style={{
-          maxWidth: '1200px', margin: '0 auto',
-          padding: '0 2rem',
+          maxWidth: layout.maxWidth, margin: '0 auto',
+          padding: `0 ${layout.padding}`,
           position: 'relative',
           display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center',
           height: '3.25rem',

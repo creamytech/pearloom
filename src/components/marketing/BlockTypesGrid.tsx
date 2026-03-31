@@ -19,7 +19,7 @@ import {
   Music,
   Puzzle,
 } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { IconCircle } from '@/components/ui/IconCircle';
 
@@ -54,7 +54,7 @@ export function BlockTypesGrid() {
         borderTop: `1px solid ${C.divider}`,
       }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <SectionHeader
           watermark="15"
           title="15 blocks. Infinite possibilities."

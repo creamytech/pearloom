@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProgressSteps } from '@/components/ui';
-import { colors, text, card } from '@/lib/design-tokens';
+import { colors, text, card, layout } from '@/lib/design-tokens';
 import type { WizardStep } from '@/lib/wizard-state';
 
 const WIZARD_STEPS = [
@@ -34,7 +34,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
 
   return (
     <main className="min-h-dvh pt-24 pb-20 relative" style={{ background: colors.cream }}>
-      <div className="max-w-[1200px] mx-auto px-8 relative">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto', padding: `0 ${layout.padding}`, position: 'relative' }}>
         {/* Step progress bar */}
         {showProgress && (
           <div

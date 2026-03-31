@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
-import { colors as C, text, card } from '@/lib/design-tokens';
+import { colors as C, text, card, layout } from '@/lib/design-tokens';
 
 import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 
@@ -180,7 +180,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', maxWidth: layout.maxWidth, margin: '0 auto' }}>
 
       {/* ── Welcome header ── */}
       <motion.div
@@ -241,7 +241,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           className="site-card-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             gap: '1.5rem',
           }}
         >
@@ -379,7 +379,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             className="site-card-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
               gap: '1.5rem',
             }}
           >

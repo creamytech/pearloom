@@ -13,7 +13,7 @@ import {
   Columns2,
   ZoomIn,
 } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
 const FEATURE_ITEMS = [
@@ -158,7 +158,7 @@ export function EditorShowcase() {
       className="relative overflow-hidden"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Header */}
         <SectionHeader
           pill={{ label: 'The Editor', sparkle: true }}

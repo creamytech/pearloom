@@ -55,7 +55,7 @@ export function SiteFooter({
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1200px', margin: '0 auto', padding: '4rem 2rem 0' }}>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1080px', margin: '0 auto', padding: '4rem 2rem 0' }}>
 
         {/* Pearl divider */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem', opacity: 0.25 }}>

@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
 const TIERS = [
@@ -60,7 +60,7 @@ export function PricingPreview() {
         borderTop: `1px solid ${C.divider}`,
       }}
     >
-      <div className="max-w-[780px] mx-auto">
+      <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
         {/* Decorative gold rule */}
         <div className="flex justify-center mb-6">
           <div style={{ width: 60, height: 1, background: C.gold }} />

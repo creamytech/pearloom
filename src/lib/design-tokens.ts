@@ -111,6 +111,21 @@ export const sectionPadding = {
   x: '1.25rem',
 } as const;
 
+// ── Layout Containers ────────────────────────────────────────
+// Single source of truth for page-level max-widths.
+// Every section must use one of these — no hardcoded widths.
+
+export const layout = {
+  /** Main page container — nav, sections, dashboard, wizard */
+  maxWidth: '1080px',
+  /** Horizontal padding on the container */
+  padding: '2rem',
+  /** Narrow container for focused content (forms, text-heavy sections) */
+  narrowWidth: '720px',
+  /** Wide container for hero/showcase sections */
+  wideWidth: '1200px',
+} as const;
+
 // ── Card Styles (ONE standard, used everywhere) ─────────────
 
 export const card = {
@@ -135,4 +150,5 @@ export const T = {
   ease,
   sectionPadding,
   card,
+  layout,
 } as const;

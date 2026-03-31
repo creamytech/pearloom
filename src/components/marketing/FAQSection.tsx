@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
 const FAQS = [
@@ -95,7 +95,7 @@ export function FAQSection() {
       id="faq"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div className="max-w-[700px] mx-auto">
+      <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="FAQ"
           title="Questions? Woven answers."

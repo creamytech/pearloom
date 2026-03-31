@@ -1,6 +1,6 @@
 'use client';
 
-import { colors as C, text } from '@/lib/design-tokens';
+import { colors as C, text, layout } from '@/lib/design-tokens';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 
 const COLUMNS = [
@@ -74,7 +74,7 @@ export function MarketingFooter() {
         borderTop: `1px solid ${C.darkBorder}`,
       }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Top row: logo + columns */}
         <div className="flex flex-col md:flex-row gap-10 mb-12">
           {/* Brand column */}

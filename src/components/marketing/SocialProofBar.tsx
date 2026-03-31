@@ -2,7 +2,7 @@
 
 import { useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useRef, useEffect } from 'react';
-import { colors as C, text } from '@/lib/design-tokens';
+import { colors as C, text, layout } from '@/lib/design-tokens';
 
 const STATS = [
   { value: '2,000+', numericEnd: 2000, suffix: '+', label: 'Sites Created', icon: 'globe' },
@@ -106,7 +106,7 @@ export function SocialProofBar() {
         padding: 'clamp(2.5rem,5vw,4.5rem) 1.25rem',
       }}
     >
-      <div className="max-w-[960px] mx-auto">
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
           {STATS.map((s, i) => (
             <div
