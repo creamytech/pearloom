@@ -169,29 +169,63 @@ function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean
   ];
 }
 
-/** Pick a logo icon based on occasion + vibe string keywords */
-function pickLogoIcon(occasion?: string, vibeString?: string): LogoIconId {
-  const vibe = (vibeString ?? '').toLowerCase();
+/** Generate a custom logo SVG icon via AI based on the couple's vibe + occasion */
+async function generateLogoIcon(occasion: string | undefined, vibeString: string | undefined, names: [string, string], apiKey: string): Promise<{ logoIcon: LogoIconId; logoSvg?: string }> {
+  // Default fallback per occasion
+  const fallbackIcon: LogoIconId = occasion === 'wedding' ? 'wedding-rings'
+    : occasion === 'anniversary' ? 'champagne'
+    : occasion === 'engagement' ? 'heart'
+    : occasion === 'birthday' ? 'gift'
+    : 'pearl';
 
-  // Occasion-specific defaults
-  if (occasion === 'wedding') {
-    if (vibe.includes('bouquet') || vibe.includes('floral') || vibe.includes('garden')) return 'bouquet';
-    return 'wedding-rings';
+  if (!apiKey || !vibeString) return { logoIcon: fallbackIcon };
+
+  try {
+    const isBirthday = occasion === 'birthday';
+    const who = isBirthday ? names[0] : `${names[0]} & ${names[1]}`;
+
+    const prompt = `Design a tiny logo icon (24x24 SVG viewBox) for a ${occasion || 'celebration'} website for ${who}.
+
+Their vibe/interests: "${vibeString.slice(0, 300)}"
+
+Create a SINGLE elegant SVG icon that reflects their SPECIFIC interests, not a generic symbol. Examples:
+- If they mention "Knicks" → a basketball with a subtle heart
+- If they mention "hiking" → a mountain peak with a trail
+- If they mention "coffee" → a coffee cup with steam curling into a heart
+- If they mention "cats" → an elegant cat silhouette
+- If they mention "music" → a musical note with personality
+- ${isBirthday ? 'For a birthday, incorporate a candle or cake element subtly' : 'For a wedding, weave in a subtle romantic element'}
+
+Return ONLY a valid SVG string. ViewBox must be "0 0 24 24". Use stroke-based design (stroke-width 1.5, stroke-linecap round). NO fill on the main paths (fill="none"). Keep it minimal — 3-6 path elements max. The icon should be recognizable at 18px.`;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.8, maxOutputTokens: 500 },
+        }),
+        signal: AbortSignal.timeout(8000),
+      }
+    );
+
+    if (!res.ok) return { logoIcon: fallbackIcon };
+
+    const data = await res.json();
+    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    // Extract SVG from response (may have markdown wrapping)
+    const svgMatch = raw.match(/<svg[\s\S]*?<\/svg>/i);
+    if (svgMatch && svgMatch[0].length > 50 && svgMatch[0].length < 2000) {
+      return { logoIcon: fallbackIcon, logoSvg: svgMatch[0] };
+    }
+
+    return { logoIcon: fallbackIcon };
+  } catch {
+    return { logoIcon: fallbackIcon };
   }
-  if (occasion === 'anniversary') return 'champagne';
-  if (occasion === 'engagement') return 'heart';
-  if (occasion === 'birthday') return 'gift';
-
-  // Mood-based overrides for "story" / "just because"
-  if (vibe.includes('adventurous') || vibe.includes('mountain') || vibe.includes('alpine')) return 'mountain';
-  if (vibe.includes('wanderlust') || vibe.includes('travel') || vibe.includes('suitcase')) return 'suitcase';
-  if (vibe.includes('cozy') || vibe.includes('coffee') || vibe.includes('intimate')) return 'coffee';
-  if (vibe.includes('pet') || vibe.includes('zoo') || vibe.includes('paw') || vibe.includes('fur')) return 'paw';
-  if (vibe.includes('music') || vibe.includes('song') || vibe.includes('melody')) return 'music-note';
-  if (vibe.includes('playful') || vibe.includes('fun') || vibe.includes('vibrant')) return 'starburst';
-  if (vibe.includes('romance') || vibe.includes('romantic') || vibe.includes('love')) return 'heart';
-
-  return 'pearl';
 }
 
 export async function POST(req: NextRequest) {
@@ -454,8 +488,10 @@ export async function POST(req: NextRequest) {
       return chapter;
     }));
 
-    // Pick a context-aware logo icon based on occasion + vibe
-    manifest.logoIcon = pickLogoIcon(occasion, vibeString);
+    // Generate a custom AI logo icon based on occasion + vibe + interests
+    const logoResult = await generateLogoIcon(occasion, vibeString, names, apiKey);
+    manifest.logoIcon = logoResult.logoIcon;
+    if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
 
     // Upload AI-generated raster art to R2 for permanent URLs (base64 DataURLs are too large for sessionStorage)
     if (manifest.vibeSkin) {

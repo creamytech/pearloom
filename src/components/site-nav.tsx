@@ -60,6 +60,8 @@ interface SiteNavProps {
   pages: SitePage[];
   /** Custom logo icon ID from manifest (based on occasion + mood) */
   logoIcon?: LogoIconId;
+  /** AI-generated custom SVG logo (overrides logoIcon) */
+  logoSvg?: string;
   /** Current sub-page slug for server-side active highlighting (e.g. 'travel') */
   currentPage?: string;
   user?: {
@@ -86,7 +88,7 @@ function PageIcon({ slug, size = 18 }: { slug: string; size?: number }) {
   return <PearlIcon size={size} color={color} />;
 }
 
-export function SiteNav({ names, pages, logoIcon, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
+export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
   const [scrollY, setScrollY] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -219,7 +221,14 @@ export function SiteNav({ names, pages, logoIcon, currentPage, user, onGoToDashb
               />
             ) : (
               <>
-                <LogoIcon iconId={logoIcon} size={18} color="var(--eg-accent)" />
+                {logoSvg ? (
+                  <span
+                    style={{ display: 'flex', alignItems: 'center', width: '18px', height: '18px', color: 'var(--eg-accent)' }}
+                    dangerouslySetInnerHTML={{ __html: logoSvg.replace(/width="[^"]*"/, 'width="18"').replace(/height="[^"]*"/, 'height="18"').replace(/stroke="[^"]*"/g, 'stroke="currentColor"') }}
+                  />
+                ) : (
+                  <LogoIcon iconId={logoIcon} size={18} color="var(--eg-accent)" />
+                )}
                 <span style={{
                   fontFamily: 'var(--eg-font-heading)',
                   fontWeight: 600,
@@ -228,7 +237,7 @@ export function SiteNav({ names, pages, logoIcon, currentPage, user, onGoToDashb
                   letterSpacing: '-0.01em',
                   whiteSpace: 'nowrap',
                 }}>
-                  {names[0]} & {names[1]}
+                  {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
                 </span>
               </>
             )}
@@ -360,7 +369,7 @@ export function SiteNav({ names, pages, logoIcon, currentPage, user, onGoToDashb
                   letterSpacing: '-0.015em',
                   lineHeight: 1.15,
                 }}>
-                  {isStudio ? 'Pearloom' : `${names[0]} & ${names[1]}`}
+                  {isStudio ? 'Pearloom' : names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
                 </span>
                 <button
                   onClick={() => setDrawerOpen(false)}

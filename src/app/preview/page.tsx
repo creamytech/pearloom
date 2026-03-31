@@ -431,7 +431,7 @@ function PreviewContent() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
-      <SiteNav names={names} pages={sitePages} logoIcon={manifest.logoIcon} />
+      <SiteNav names={names} pages={sitePages} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} />
 
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (

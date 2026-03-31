@@ -287,7 +287,7 @@ export function createInitialEditorState(
     sectionOverridesMap: {},
     previewZoom: 1,
     isMobile: false,
-    mobileVisualEdit: false,
+    mobileVisualEdit: true,
     mobileActionChapterId: null,
   };
 }

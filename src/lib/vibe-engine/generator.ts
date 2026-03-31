@@ -315,14 +315,22 @@ Read the actual emotional tone words in the vibe and derive the palette from the
 - "tropical neon pop maximalist" → electric teal (#00C9B1), hot pink (#FF4D8D), deep violet (#3D0066), lime (#B8F400), bg: #0A0A1A
 - "warm festive mexican boho colorful" → terracotta (#C45C1A), magenta (#D4225A), golden (#F5A800), cobalt (#1A3A8F), bg: #FFF8F0
 
-## SECTION LABEL GUIDANCE
-Avoid generic defaults. Use personality-driven labels:
-- story: "How We Fell" / "The Chapter" / "Our Beginning" / "How It Started"
-- events: "The Celebration" / "Join Us" / "The Day" / "Mark Your Calendar"
-- registry: "Wish List" / "Gift Guide" / "The Registry" / "Help Us Celebrate"
-- travel: "Finding Us" / "Getting There" / "The Journey Here" / "Plan Your Trip"
-- faqs: "What to Know" / "Your Questions" / "Things We Get Asked" / "Need to Know"
-- rsvp: "Will You Be There?" / "Save a Seat" / "Let Us Know" / "RSVP With Love"
+## SECTION LABEL GUIDANCE — OCCASION-AWARE (CRITICAL)
+Avoid generic defaults. Labels MUST match the occasion:
+${occasion === 'birthday' ? `This is a BIRTHDAY site. NEVER use couple language ("Our", "We", "How We Fell"). Use:
+- story: "About [Name]" / "Their Story" / "The Legend" / "Who They Are"
+- events: "The Party" / "The Celebration" / "Join the Fun"
+- registry: "Wish List" / "Gift Ideas" / "Surprise Them"
+- rsvp: "Can You Make It?" / "Join the Celebration" / "Be There"` :
+occasion === 'anniversary' ? `This is an ANNIVERSARY site. Use reflective, nostalgic language:
+- story: "Our Journey" / "Through the Years" / "How It All Began"
+- events: "The Anniversary" / "Celebrating Us" / "The Occasion"` :
+`Use personality-driven labels that match the couple's vibe:
+- story: "How We Fell" / "The Chapter" / "Our Beginning"
+- events: "The Celebration" / "Join Us" / "The Day"`}
+- travel: "Finding Us" / "Getting There" / "The Journey Here"
+- faqs: "What to Know" / "Your Questions" / "Need to Know"
+- rsvp: "Will You Be There?" / "Save a Seat" / "RSVP With Love"
 
 ## FONT PAIRINGS (choose one that matches the aesthetic)
 - Classic romantic: Cormorant Garamond + Raleway
@@ -535,14 +543,14 @@ CRITICAL DESIGN RULES:
         // Occasion-aware fallback labels — used when Gemini doesn't provide custom labels
         const occ = occasion || 'wedding';
         const occasionDefaults: Record<string, Partial<Record<string, string>>> = {
-          birthday: { story: 'About Me', events: 'The Party', registry: 'Wish List', photos: 'Birthday Photos' },
+          birthday: { story: 'Their Story', events: 'The Party', registry: 'Wish List', photos: 'Gallery', rsvp: 'Join the Celebration' },
           anniversary: { story: 'Our Journey', events: 'The Anniversary', registry: 'Wish List', photos: 'Through the Years', rsvp: 'Join Us' },
           engagement: { story: 'Our Beginning', events: 'The Engagement', photos: 'Our Photos' },
           story: { story: 'Our Story', events: 'Our Moments', photos: 'Our Photos' },
         };
         const d = occasionDefaults[occ] || {};
         return {
-          story: parsed.sectionLabels?.story || d.story || 'How We Fell',
+          story: parsed.sectionLabels?.story || d.story || 'The Story',
           events: parsed.sectionLabels?.events || d.events || 'The Celebration',
           registry: parsed.sectionLabels?.registry || d.registry || 'Gift Guide',
           travel: parsed.sectionLabels?.travel || 'Getting There',
