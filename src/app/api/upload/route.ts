@@ -37,17 +37,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Only jpeg, png, webp, and gif images are allowed' }, { status: 400 });
+      return NextResponse.json({ error: 'Only jpeg, png, webp, gif, and heic images are allowed' }, { status: 400 });
     }
 
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       return NextResponse.json({ error: `File too large (max ${MAX_SIZE_MB}MB)` }, { status: 413 });
     }
 
-    const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+    let ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    // Normalize HEIC/HEIF to jpg for storage (browsers can't render HEIC directly)
+    if (ext === 'heic' || ext === 'heif') ext = 'jpg';
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       return NextResponse.json({ error: 'Invalid file extension' }, { status: 400 });
     }
