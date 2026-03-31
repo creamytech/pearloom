@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Camera, Pencil, Check, Loader2, Scissors, Merge } from 'lucide-react';
+import { MapPin, Calendar, Camera, Pencil, Check, Loader2, Scissors, Merge, Sparkles } from 'lucide-react';
 import type { GooglePhotoMetadata, PhotoCluster, GeoLocation } from '@/types';
 import { clusterPhotos } from '@/lib/google-photos';
 import { colors as C, text, card } from '@/lib/design-tokens';
@@ -37,6 +37,8 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
   const [draftLocation, setDraftLocation] = useState('');
   const [geocoding, setGeocoding] = useState<number | null>(null);
   const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
+  const [aiSuggesting, setAiSuggesting] = useState<number | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Record<number, { location: string; confidence: string; reason: string }>>({});
 
   useEffect(() => {
     // Cluster the photos whenever the photo set changes
@@ -155,6 +157,47 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
     } finally {
       setGeocoding(null);
     }
+  };
+
+  // Ask AI to suggest a location based on photo metadata
+  const suggestLocation = useCallback(async (idx: number) => {
+    const cluster = clusters[idx];
+    if (!cluster) return;
+    setAiSuggesting(idx);
+    try {
+      const res = await fetch('/api/suggest-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photos: cluster.photos.slice(0, 10).map(p => ({
+            filename: p.filename,
+            creationTime: p.creationTime,
+            cameraMake: p.cameraMake,
+            cameraModel: p.cameraModel,
+            description: p.description,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (data.location) {
+        setAiSuggestions(prev => ({ ...prev, [idx]: data }));
+      } else {
+        setAiSuggestions(prev => ({ ...prev, [idx]: { location: '', confidence: 'low', reason: data.reason || 'Could not determine location' } }));
+      }
+    } catch {
+      setAiSuggestions(prev => ({ ...prev, [idx]: { location: '', confidence: 'low', reason: 'Request failed' } }));
+    } finally {
+      setAiSuggesting(null);
+    }
+  }, [clusters]);
+
+  const acceptSuggestion = (idx: number) => {
+    const suggestion = aiSuggestions[idx];
+    if (!suggestion?.location) return;
+    // Set the label, then geocode to get coords
+    setClusterLabel(idx, suggestion.location);
+    handleGeocodeFromText(idx, suggestion.location);
+    setAiSuggestions(prev => { const next = { ...prev }; delete next[idx]; return next; });
   };
 
   const allLocationsSet = clusters.every(c => c.location?.label);
@@ -303,29 +346,88 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             )}
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.base, color: C.muted, fontStyle: 'italic' }}>
-                            <MapPin size={14} style={{ opacity: 0.4 }} />
-                            No location detected — add one for a richer story
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.base, color: C.muted, fontStyle: 'italic' }}>
+                              <MapPin size={14} style={{ opacity: 0.4 }} />
+                              No location detected
+                            </div>
+                            {/* AI suggestion result */}
+                            {aiSuggestions[idx] && aiSuggestions[idx].location && (
+                              <div style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem',
+                                padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
+                                background: `${C.olive}0D`, border: `1px solid ${C.olive}33`,
+                              }}>
+                                <Sparkles size={13} color={C.olive} />
+                                <span style={{ fontSize: text.sm, color: C.ink, fontWeight: 500, flex: 1 }}>
+                                  {aiSuggestions[idx].location}
+                                  <span style={{ fontSize: text.xs, color: C.muted, fontWeight: 400, marginLeft: '0.35rem' }}>
+                                    ({aiSuggestions[idx].confidence})
+                                  </span>
+                                </span>
+                                <button
+                                  onClick={() => acceptSuggestion(idx)}
+                                  style={{
+                                    padding: '0.3rem 0.7rem', borderRadius: '100px',
+                                    background: C.olive, color: '#fff', border: 'none',
+                                    fontSize: text.xs, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
+                                  }}
+                                >Accept</button>
+                                <button
+                                  onClick={() => setAiSuggestions(prev => { const n = { ...prev }; delete n[idx]; return n; })}
+                                  style={{
+                                    padding: '0.3rem 0.5rem', borderRadius: '100px',
+                                    background: 'transparent', color: C.muted, border: card.border,
+                                    fontSize: text.xs, cursor: 'pointer', flexShrink: 0,
+                                  }}
+                                >Dismiss</button>
+                              </div>
+                            )}
+                            {aiSuggestions[idx] && !aiSuggestions[idx].location && (
+                              <div style={{ fontSize: text.xs, color: C.muted, marginTop: '0.35rem' }}>
+                                Could not suggest — please add manually
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                      <button
-                        onClick={() => {
-                          setEditingIdx(idx);
-                          setDraftLocation(cluster.location?.label ?? '');
-                        }}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '0.35rem',
-                          padding: '0.45rem 0.9rem', borderRadius: '100px',
-                          border: card.border, background: hasLocation ? `${C.olive}14` : C.cream,
-                          color: hasLocation ? C.olive : C.muted,
-                          fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
-                          transition: 'all 0.2s ease', flexShrink: 0,
-                        }}
-                      >
-                        <Pencil size={11} />
-                        {hasLocation ? 'Edit' : 'Add Location'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                        {!hasLocation && !aiSuggestions[idx] && (
+                          <button
+                            onClick={() => suggestLocation(idx)}
+                            disabled={aiSuggesting === idx}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '0.35rem',
+                              padding: '0.45rem 0.9rem', borderRadius: '100px',
+                              border: `1px solid ${C.olive}55`, background: `${C.olive}0A`,
+                              color: C.olive,
+                              fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
+                              transition: 'all 0.2s ease', flexShrink: 0,
+                              opacity: aiSuggesting === idx ? 0.7 : 1,
+                            }}
+                          >
+                            {aiSuggesting === idx ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={11} />}
+                            {aiSuggesting === idx ? 'Thinking...' : 'AI Suggest'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setEditingIdx(idx);
+                            setDraftLocation(cluster.location?.label ?? '');
+                          }}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.35rem',
+                            padding: '0.45rem 0.9rem', borderRadius: '100px',
+                            border: card.border, background: hasLocation ? `${C.olive}14` : C.cream,
+                            color: hasLocation ? C.olive : C.muted,
+                            fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
+                            transition: 'all 0.2s ease', flexShrink: 0,
+                          }}
+                        >
+                          <Pencil size={11} />
+                          {hasLocation ? 'Edit' : 'Manual'}
+                        </button>
+                      </div>
                     </div>
                   )}
 

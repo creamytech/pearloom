@@ -93,6 +93,8 @@ export interface StoryManifest {
   subdomain?: string;
   // ISO 8601 timestamp of when the site was first published
   publishedAt?: string;
+  // Custom logo icon for the site navbar (chosen based on occasion + mood in wizard)
+  logoIcon?: LogoIconId;
   // Page ids to hide from nav: 'schedule' | 'rsvp' | 'registry' | 'travel' | 'faq' | 'venue'
   hiddenPages?: string[];
   // Feature flags for optional site sections
@@ -610,6 +612,26 @@ export interface AIProposal {
 // ─────────────────────────────────────────────────────────────
 // Google Places
 // ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+// Logo Icon System — occasion+mood-aware icons for site navbar
+// ─────────────────────────────────────────────────────────────
+
+export type LogoIconId =
+  | 'wedding-rings'
+  | 'heart'
+  | 'champagne'
+  | 'gift'
+  | 'envelope'
+  | 'bouquet'
+  | 'mountain'
+  | 'coffee'
+  | 'music-note'
+  | 'paw'
+  | 'suitcase'
+  | 'starburst'
+  | 'pearl'
+  | 'pear'; // fallback / default
 
 export interface PlaceResult {
   placeId: string;

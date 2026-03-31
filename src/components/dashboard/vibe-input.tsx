@@ -14,6 +14,7 @@ import {
   WeddingRingsIcon, ChampagneIcon, GiftIcon, EnvelopeIcon,
 } from '@/components/icons/PearloomIcons';
 import { PearBackground } from '@/components/icons/PearShapes';
+import { VenueSearch, type VenuePartial } from '@/components/venue/VenueSearch';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -806,28 +807,31 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <AccordionSection title="Ceremony" icon="💒" defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <label style={fieldLabel}>Venue name<Tooltip text="Used to create your events page and guest directions" /></label>
-                    <input
-                      type="text"
-                      placeholder="St. Mary's Church"
-                      value={detailsData.ceremonyVenue ?? ''}
-                      onChange={e => setDetail('ceremonyVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </div>
-                  <div>
-                    <label style={fieldLabel}>Address / city</label>
-                    <input
-                      type="text"
-                      placeholder="123 Main St, Napa, CA"
-                      value={detailsData.ceremonyAddress ?? ''}
-                      onChange={e => setDetail('ceremonyAddress', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
+                    {detailsData.ceremonyVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.ceremonyVenue}</div>
+                          {detailsData.ceremonyAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.ceremonyAddress}</div>}
+                        </div>
+                        <button
+                          onClick={() => { setDetail('ceremonyVenue', ''); setDetail('ceremonyAddress', ''); }}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for your ceremony venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('ceremonyVenue', venue.name ?? '');
+                          setDetail('ceremonyAddress', venue.address ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('ceremonyVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Start time</label>
@@ -847,28 +851,31 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               <AccordionSection title="Reception & Style" icon="🥂" defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <label style={fieldLabel}>Venue name<Tooltip text="Used to create your events page and guest directions" /></label>
-                    <input
-                      type="text"
-                      placeholder="The Vineyard Estate"
-                      value={detailsData.receptionVenue ?? ''}
-                      onChange={e => setDetail('receptionVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </div>
-                  <div>
-                    <label style={fieldLabel}>Address / city</label>
-                    <input
-                      type="text"
-                      placeholder="456 Vineyard Rd, Sonoma, CA"
-                      value={detailsData.receptionAddress ?? ''}
-                      onChange={e => setDetail('receptionAddress', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
+                    {detailsData.receptionVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.receptionVenue}</div>
+                          {detailsData.receptionAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.receptionAddress}</div>}
+                        </div>
+                        <button
+                          onClick={() => { setDetail('receptionVenue', ''); setDetail('receptionAddress', ''); }}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for your reception venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('receptionVenue', venue.name ?? '');
+                          setDetail('receptionAddress', venue.address ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('receptionVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Start time</label>
@@ -978,15 +985,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                    <input
-                      type="text"
-                      placeholder="The Grand Hotel Rooftop"
-                      value={detailsData.celebrationVenue ?? ''}
-                      onChange={e => setDetail('celebrationVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    {detailsData.celebrationVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.celebrationVenue}</div>
+                        </div>
+                        <button
+                          onClick={() => setDetail('celebrationVenue', '')}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for your celebration venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('celebrationVenue', venue.name ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('celebrationVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Any notes for guests <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1079,15 +1099,28 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue / location <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                    <input
-                      type="text"
-                      placeholder="The Rooftop Garden"
-                      value={detailsData.celebrationVenue ?? ''}
-                      onChange={e => setDetail('celebrationVenue', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    {detailsData.celebrationVenue ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.celebrationVenue}</div>
+                        </div>
+                        <button
+                          onClick={() => setDetail('celebrationVenue', '')}
+                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                        >Change</button>
+                      </div>
+                    ) : (
+                      <VenueSearch
+                        placeholder="Search for the party venue..."
+                        onSelect={(venue: VenuePartial) => {
+                          setDetail('celebrationVenue', venue.name ?? '');
+                        }}
+                        onAddManually={() => {
+                          const name = prompt('Enter venue name:');
+                          if (name) setDetail('celebrationVenue', name);
+                        }}
+                      />
+                    )}
                   </div>
                   <div>
                     <label style={fieldLabel}>Start time <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>

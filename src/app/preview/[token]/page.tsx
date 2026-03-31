@@ -500,7 +500,7 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
   return (
     <ThemeProvider theme={dynamicTheme}>
       <div style={{ minHeight: '100vh', background: bgColor, color: pal.foreground }}>
-        <SiteNav pages={sitePages} names={safeNames} />
+        <SiteNav pages={sitePages} names={safeNames} logoIcon={manifest.logoIcon} />
         {visibleBlocks
           ? visibleBlocks.map(b => renderSection(b.type))
           : legacyOrder.map(t => renderSection(t))

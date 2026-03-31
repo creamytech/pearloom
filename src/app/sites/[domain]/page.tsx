@@ -756,7 +756,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       <link rel="stylesheet" href={fontUrl} />
 
       <div style={{ ...siteVarsStyle, scrollBehavior: 'smooth' }}>
-        <SiteNav names={safeNames} pages={sitePages} />
+        <SiteNav names={safeNames} pages={sitePages} logoIcon={manifest.logoIcon} />
 
         {manifest.logistics?.date && (
           <WeddingDayBanner

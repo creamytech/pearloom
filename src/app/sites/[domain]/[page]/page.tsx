@@ -370,7 +370,7 @@ export default async function SiteSubPage(
 
   return (
     <ThemeProvider theme={manifest.theme || undefined}>
-      <SiteNav names={safeNames} pages={sitePages} currentPage={page} />
+      <SiteNav names={safeNames} pages={sitePages} currentPage={page} logoIcon={manifest.logoIcon} />
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
         {content}
       </main>

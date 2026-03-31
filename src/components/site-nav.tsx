@@ -11,7 +11,7 @@ import { Menu, X, LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import type { SitePage } from '@/types';
+import type { SitePage, LogoIconId } from '@/types';
 import { UserNav } from '@/components/dashboard/user-nav';
 import { signOut } from 'next-auth/react';
 import {
@@ -23,11 +23,42 @@ import {
   PearlIcon,
   StarburstIcon,
   ElegantHeartIcon,
+  WeddingRingsIcon,
+  ChampagneIcon,
+  MountainIcon,
+  CoffeeCupIcon,
+  MusicNoteIcon,
+  PawIcon,
+  SuitcaseIcon,
+  BouquetIcon,
 } from '@/components/icons/PearloomIcons';
+
+/** Maps logoIcon IDs to the appropriate icon component */
+function LogoIcon({ iconId, size = 18, color }: { iconId?: LogoIconId; size?: number; color: string }) {
+  switch (iconId) {
+    case 'wedding-rings': return <WeddingRingsIcon size={size} color={color} />;
+    case 'heart': return <ElegantHeartIcon size={size} color={color} />;
+    case 'champagne': return <ChampagneIcon size={size} color={color} />;
+    case 'gift': return <GiftIcon size={size} color={color} />;
+    case 'envelope': return <EnvelopeIcon size={size} color={color} />;
+    case 'bouquet': return <BouquetIcon size={size} color={color} />;
+    case 'mountain': return <MountainIcon size={size} color={color} />;
+    case 'coffee': return <CoffeeCupIcon size={size} color={color} />;
+    case 'music-note': return <MusicNoteIcon size={size} color={color} />;
+    case 'paw': return <PawIcon size={size} color={color} />;
+    case 'suitcase': return <SuitcaseIcon size={size} color={color} />;
+    case 'starburst': return <StarburstIcon size={size} color={color} />;
+    case 'pearl': return <PearlIcon size={size} color={color} />;
+    case 'pear':
+    default: return <PearIcon size={size} color={color} />;
+  }
+}
 
 interface SiteNavProps {
   names: [string, string];
   pages: SitePage[];
+  /** Custom logo icon ID from manifest (based on occasion + mood) */
+  logoIcon?: LogoIconId;
   /** Current sub-page slug for server-side active highlighting (e.g. 'travel') */
   currentPage?: string;
   user?: {
@@ -54,7 +85,7 @@ function PageIcon({ slug, size = 18 }: { slug: string; size?: number }) {
   return <PearlIcon size={size} color={color} />;
 }
 
-export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
+export function SiteNav({ names, pages, logoIcon, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
   const [scrollY, setScrollY] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -187,7 +218,7 @@ export function SiteNav({ names, pages, currentPage, user, onGoToDashboard, onSt
               />
             ) : (
               <>
-                <PearIcon size={18} color="var(--eg-accent)" />
+                <LogoIcon iconId={logoIcon} size={18} color="var(--eg-accent)" />
                 <span style={{
                   fontFamily: 'var(--eg-font-heading)',
                   fontWeight: 600,
