@@ -425,7 +425,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   }, []);
 
   const [step, setStep] = useState(1);
-  // 'main' = steps 1-8 of the original wizard, 'details' = optional details sub-step
+  // 'main' = steps 1-7/8 of the wizard, 'details' = optional details sub-step
   const [wizardPhase, setWizardPhase] = useState<'main' | 'details'>('main');
   const [detailsData, setDetailsData] = useState<DetailsData>({});
   const [inspirationUrls, setInspirationUrls] = useState<string[]>([]);
@@ -447,17 +447,16 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   // Step 2: Occasion (already declared above)
   // Step 3: Mood
   const [mood, setMood] = useState<string>('');
-  // Step 4: Timeline Format
+  // Step 4: Timeline Format + Color Palette (merged)
   const [layoutFormat, setLayoutFormat] = useState<string>('cascade');
-  // Step 4: Color Palette
   const [palette, setPalette] = useState<string>('');
   // Step 5: Your Story
   const [meetCute, setMeetCute] = useState('');
   const [relationship, setRelationship] = useState('');
-  // Step 7: Special details
+  // Step 6: Special details
   const [petsDetails, setPetsDetails] = useState('');
   const [musicSong, setMusicSong] = useState('');
-  // Step 8: Event Details (Conditional)
+  // Step 7: Event Details (wedding/engagement only)
   const [eventDate, setEventDate] = useState('');
   const [eventVenue, setEventVenue] = useState('');
   const [rsvpDeadline, setRsvpDeadline] = useState('');
@@ -2065,9 +2064,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 9: SPECIAL DETAILS (was step 8) ── */}
-        {step === 9 && (
-          <motion.div key="s9-special" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 6: SPECIAL DETAILS ── */}
+        {step === 6 && (
+          <motion.div key="s6-special" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <div style={{
                 width: '5rem', height: '6.4rem',
@@ -2118,9 +2117,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 10: EVENT DETAILS (Conditional, was step 9) ── */}
-        {step === 10 && isEvent && (
-          <motion.div key="s10-event" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+        {/* ── STEP 7: EVENT DETAILS (wedding/engagement only) ── */}
+        {step === 7 && isEvent && (
+          <motion.div key="s7-event" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Event Details</h2>
               <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem' }}>
