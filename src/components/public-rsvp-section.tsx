@@ -215,7 +215,7 @@ export function PublicRsvpSection({
           viewport={{ once: true }}
           transition={{ duration: 0.9, delay: 0.2 }}
           style={{
-            background: '#fff',
+            background: 'var(--eg-bg)',
             borderRadius: '1.5rem',
             border: '1px solid rgba(0,0,0,0.06)',
             boxShadow: '0 8px 40px rgba(43,43,43,0.06)',

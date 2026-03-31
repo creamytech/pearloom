@@ -26,7 +26,7 @@ export function VibeStep({ coupleNames, vibeString, onSubmit, onBack }: VibeStep
           onBack();
         }}
       >
-        Back to photos
+        Back to locations
       </Button>
       <VibeInput
         onSubmit={onSubmit}

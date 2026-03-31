@@ -211,7 +211,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             border: '1px solid rgba(214,198,168,0.12)',
             background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.35)',
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-            letterSpacing: '0.04em',
+            letterSpacing: '0.04em', minHeight: '32px',
           }}
         >
           <CommandIcon size={10} />
@@ -237,6 +237,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               background: 'rgba(255,255,255,0.06)',
               color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
               cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', minHeight: '36px', minWidth: '36px',
             }}
           ><UndoIcon size={isMobile ? 11 : 13} /></motion.button>
           <motion.button
@@ -249,6 +250,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               background: 'rgba(255,255,255,0.06)',
               color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
               cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', minHeight: '36px', minWidth: '36px',
             }}
           ><RedoIcon size={isMobile ? 11 : 13} /></motion.button>
         </div>
@@ -325,6 +327,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               padding: '5px 7px', borderRadius: '6px', border: 'none',
               background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)',
               cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', minHeight: '44px', minWidth: '44px',
             }}
           >
             <PreviewIcon size={13} />

@@ -192,7 +192,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
               style={{
-                background: '#fff',
+                background: 'var(--eg-bg)',
                 borderRadius: '1rem',
                 border: hasLocation ? '1.5px solid rgba(163,177,138,0.35)' : '1.5px solid rgba(0,0,0,0.08)',
                 overflow: 'hidden',
@@ -257,7 +257,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             padding: '0.6rem 0.75rem 0.6rem 2.25rem',
                             borderRadius: '0.5rem', border: '1.5px solid var(--eg-accent)',
                             fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--eg-font-body)',
-                            outline: 'none', background: '#fff',
+                            outline: 'none', background: 'var(--eg-bg)',
                           }}
                         />
                       </div>
@@ -268,7 +268,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         disabled={isGeocoding}
                         style={{
                           padding: '0.6rem 1rem', borderRadius: '0.5rem',
-                          background: 'var(--eg-accent)', color: '#fff',
+                          background: 'var(--eg-accent)', color: 'var(--eg-bg)',
                           border: 'none', cursor: 'pointer', fontSize: '0.85rem',
                           fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem',
                           flexShrink: 0,
@@ -424,10 +424,13 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
           onClick={onBack}
           style={{
             padding: '0.9rem 1.75rem', borderRadius: '0.75rem',
-            border: '1px solid rgba(0,0,0,0.1)', background: '#fff',
+            border: '1px solid rgba(0,0,0,0.1)', background: 'var(--eg-bg)',
             color: 'var(--eg-fg)', fontSize: '0.95rem', fontWeight: 500,
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+            transition: 'background 0.2s, border-color 0.2s',
           }}
+          onMouseOver={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.18)'; }}
+          onMouseOut={e => { e.currentTarget.style.background = 'var(--eg-bg)'; e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; }}
         >
           ← Back
         </button>
@@ -435,12 +438,15 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
           onClick={() => onConfirm(clusters)}
           style={{
             flex: 1, padding: '1rem 1.5rem', borderRadius: '0.75rem',
-            background: 'var(--eg-fg)', color: '#fff',
+            background: 'var(--eg-fg)', color: 'var(--eg-bg)',
             border: 'none', fontSize: '0.95rem', fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: '0.5rem',
             boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+            transition: 'opacity 0.2s, box-shadow 0.2s',
           }}
+          onMouseOver={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.16)'; }}
+          onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)'; }}
         >
           Continue to Set Your Vibe →
         </button>

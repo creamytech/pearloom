@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,16 @@ function getSupabase() {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 20 requests per IP per hour to prevent AI cost abuse
+  const ip = getClientIp(req);
+  const rateCheck = checkRateLimit(`ask-couple:${ip}`, { max: 20, windowMs: 60 * 60 * 1000 });
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Too many questions — please wait a while and try again.' },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 500 });
 

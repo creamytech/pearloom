@@ -13,6 +13,7 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,16 @@ function mapRow(row: CapsuleRecord | Record<string, unknown>) {
 // ── POST — create a time capsule ──────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  // Rate limit: 5 capsules per IP per hour
+  const ip = getClientIp(request);
+  const rateCheck = checkRateLimit(`time-capsule:${ip}`, { max: 5, windowMs: 60 * 60 * 1000 });
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Too many submissions. Please wait before creating another capsule.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { siteId, fromName, toName, letter, unlockDate, unlockYears } = body;

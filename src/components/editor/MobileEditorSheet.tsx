@@ -13,14 +13,16 @@ import {
   DetailsIcon, AIBlocksIcon, VoiceIcon, PublishIcon,
 } from '@/components/icons/EditorIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
-import { DesignPanel } from './DesignPanel';
-import { EventsPanel } from './EventsPanel';
-import { DetailsPanel } from './DetailsPanel';
-import { PagesPanel } from './PagesPanel';
-import { AIBlocksPanel } from './AIBlocksPanel';
-import { VoiceTrainerPanel } from './VoiceTrainerPanel';
-import { CanvasEditor } from './CanvasEditor';
-import { ChapterPanel } from './ChapterPanel';
+import dynamic from 'next/dynamic';
+
+const DesignPanel = dynamic(() => import('./DesignPanel').then(m => ({ default: m.DesignPanel })), { ssr: false });
+const EventsPanel = dynamic(() => import('./EventsPanel').then(m => ({ default: m.EventsPanel })), { ssr: false });
+const DetailsPanel = dynamic(() => import('./DetailsPanel').then(m => ({ default: m.DetailsPanel })), { ssr: false });
+const PagesPanel = dynamic(() => import('./PagesPanel').then(m => ({ default: m.PagesPanel })), { ssr: false });
+const AIBlocksPanel = dynamic(() => import('./AIBlocksPanel').then(m => ({ default: m.AIBlocksPanel })), { ssr: false });
+const VoiceTrainerPanel = dynamic(() => import('./VoiceTrainerPanel').then(m => ({ default: m.VoiceTrainerPanel })), { ssr: false });
+const CanvasEditor = dynamic(() => import('./CanvasEditor').then(m => ({ default: m.CanvasEditor })), { ssr: false });
+const ChapterPanel = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
 
 // ── Tab Configuration ─────────────────────────────────────────
 const PRIMARY_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [

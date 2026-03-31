@@ -1677,7 +1677,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                       {fmt.preview === 'cascade' && (
                         <>
                           <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : '#ccc', flexShrink: 0 }} />
+                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : 'var(--eg-divider, #E6DFD2)', flexShrink: 0 }} />
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}>
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '70%' }} />
@@ -1688,7 +1688,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#bbb', width: '60%' }} />
                             </div>
-                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : '#ccc', flexShrink: 0 }} />
+                            <div style={{ width: '28px', height: '14px', borderRadius: '2px', background: active ? '#A3B18A' : 'var(--eg-divider, #E6DFD2)', flexShrink: 0 }} />
                           </div>
                         </>
                       )}
@@ -1708,7 +1708,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                       {fmt.preview === 'scrapbook' && (
                         <>
                           <div style={{ position: 'absolute', left: '6px', top: '5px', width: '28px', height: '32px', background: active ? '#C4D4A8' : '#ddd', borderRadius: '1px', transform: 'rotate(-5deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.15)' }}>
-                            <div style={{ width: '100%', height: '22px', background: active ? '#A3B18A' : '#ccc', borderRadius: '1px 1px 0 0' }} />
+                            <div style={{ width: '100%', height: '22px', background: active ? '#A3B18A' : 'var(--eg-divider, #E6DFD2)', borderRadius: '1px 1px 0 0' }} />
                           </div>
                           <div style={{ position: 'absolute', right: '6px', top: '8px', width: '26px', height: '30px', background: active ? '#D6C6A8' : '#e8e8e8', borderRadius: '1px', transform: 'rotate(4deg)', boxShadow: '1px 2px 4px rgba(0,0,0,0.12)' }}>
                             <div style={{ width: '100%', height: '20px', background: active ? '#C4B490' : '#d0d0d0', borderRadius: '1px 1px 0 0' }} />
@@ -1718,12 +1718,12 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                       {fmt.preview === 'magazine' && (
                         <>
                           <div style={{ display: 'flex', gap: '4px', height: '40px' }}>
-                            <div style={{ width: '36px', height: '100%', background: active ? '#A3B18A' : '#ccc', borderRadius: '2px' }} />
+                            <div style={{ width: '36px', height: '100%', background: active ? '#A3B18A' : 'var(--eg-divider, #E6DFD2)', borderRadius: '2px' }} />
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', justifyContent: 'center' }}>
                               <div style={{ height: '4px', borderRadius: 1, background: active ? '#1a1713' : '#bbb' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc' }} />
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc', width: '80%' }} />
-                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc', width: '60%' }} />
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : 'var(--eg-divider, #E6DFD2)', width: '80%' }} />
+                              <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : 'var(--eg-divider, #E6DFD2)', width: '60%' }} />
                             </div>
                           </div>
                         </>

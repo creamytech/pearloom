@@ -9,6 +9,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,6 +98,11 @@ export async function GET(request: NextRequest) {
 // POST /api/registry — create a new registry source
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { siteId, storeName, registryUrl, category, notes } = body;
 
@@ -173,6 +180,11 @@ export async function POST(request: NextRequest) {
 // PATCH /api/registry — update an existing registry source
 export async function PATCH(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { id, storeName, registryUrl, category, notes, sortOrder } = body;
 
@@ -212,6 +224,11 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/registry?id=xxx
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = request.nextUrl.searchParams.get('id');
     if (!id) {
       return NextResponse.json({ error: 'id is required' }, { status: 400 });

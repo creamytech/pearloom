@@ -10,7 +10,7 @@ interface DashboardStepProps {
   onDismissDraft: () => void;
   onStartNew: () => void;
   onEditSite: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
-  onManageGuests: (site: { domain: string }) => void;
+  onManageGuests: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
 }
 
 export function DashboardStep({

@@ -126,11 +126,11 @@ export function SiteSharePanel({
     >
       {/* ── URL display ── */}
       <div style={{
-        background: '#fff',
+        background: 'var(--eg-bg)',
         borderRadius: '1.25rem',
         border: '1px solid rgba(0,0,0,0.06)',
         padding: '1.5rem',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
           <Globe size={13} color="var(--eg-accent)" />
@@ -211,9 +211,9 @@ export function SiteSharePanel({
 
         {/* QR Code */}
         <div style={{
-          background: '#fff', borderRadius: '1.25rem',
+          background: 'var(--eg-bg)', borderRadius: '1.25rem',
           border: '1px solid rgba(0,0,0,0.06)',
-          padding: '1.25rem', boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+          padding: '1.25rem', boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
         }}>
           <div style={{
@@ -253,9 +253,9 @@ export function SiteSharePanel({
 
         {/* Social preview mock */}
         <div style={{
-          background: '#fff', borderRadius: '1.25rem',
+          background: 'var(--eg-bg)', borderRadius: '1.25rem',
           border: '1px solid rgba(0,0,0,0.06)',
-          padding: '1.25rem', boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+          padding: '1.25rem', boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
           flex: 1,
         }}>
           <span style={{
@@ -298,9 +298,9 @@ export function SiteSharePanel({
       {/* ── Password gate section ── */}
       {passwordProtected && (
         <div style={{
-          background: '#fff', borderRadius: '1.25rem',
+          background: 'var(--eg-bg)', borderRadius: '1.25rem',
           border: '1px solid rgba(0,0,0,0.06)',
-          padding: '1.5rem', boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+          padding: '1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <Lock size={14} color="var(--eg-muted)" />
