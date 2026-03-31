@@ -42,7 +42,12 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
     >
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between py-5 text-left cursor-pointer bg-transparent border-none"
+        className="w-full flex items-center justify-between py-5 text-left cursor-pointer border-none rounded-lg transition-colors duration-150"
+        style={{
+          background: isOpen ? `${C.olive}08` : 'transparent',
+          paddingLeft: 8,
+          paddingRight: 8,
+        }}
       >
         <span
           className="font-[family-name:var(--eg-font-heading)] font-semibold pr-4"
@@ -51,11 +56,11 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
           {faq.q}
         </span>
         <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.25 }}
+          animate={{ rotate: isOpen ? 180 : 0, scale: isOpen ? 1.15 : 1 }}
+          transition={{ duration: 0.2 }}
           className="flex-shrink-0"
         >
-          <ChevronDown size={18} style={{ color: C.muted }} />
+          <ChevronDown size={18} style={{ color: isOpen ? C.olive : C.muted }} />
         </motion.div>
       </button>
       <AnimatePresence initial={false}>
@@ -64,12 +69,12 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
             <p
               className="pb-5 leading-relaxed pl-3"
-              style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, borderLeft: `3px solid ${C.olive}` }}
+              style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, borderLeft: '3px solid #A3B18A' }}
             >
               {faq.a}
             </p>
@@ -103,10 +108,11 @@ export function FAQSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="rounded-2xl border p-4 sm:p-6"
+          className="rounded-2xl border p-5 sm:p-8"
           style={{
             background: 'white',
             borderColor: C.divider,
+            boxShadow: '0 8px 32px rgba(43,43,43,0.06)',
           }}
         >
           {FAQS.map((faq, i) => (

@@ -50,8 +50,12 @@ const STEPS = [
 function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
   return (
     <div
-      className="rounded-xl p-5 w-full max-w-[400px]"
-      style={step.cardStyle}
+      className="p-5 w-full max-w-[400px]"
+      style={{
+        ...step.cardStyle,
+        borderRadius: '1rem',
+        boxShadow: '0 8px 32px rgba(43,43,43,0.06)',
+      }}
     >
       <div className="flex items-center gap-2 mb-3">
         <div
@@ -105,6 +109,12 @@ export function HowItWorks() {
       id="how-it-works"
       style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
     >
+      <style>{`
+        @keyframes pulse-step {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(163,177,138,0.3); }
+          50% { box-shadow: 0 0 0 8px rgba(163,177,138,0); }
+        }
+      `}</style>
       <div className="max-w-[960px] mx-auto">
         <SectionHeader
           watermark="3"
@@ -120,12 +130,13 @@ export function HowItWorks() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: i * 0.15 + 0.3 }}
-                className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
+                className="w-12 h-12 rounded-full flex items-center justify-center font-bold"
                 style={{
                   fontSize: text.sm,
                   background: `${s.accent}18`,
                   color: s.accent,
                   border: `2px solid ${s.accent}40`,
+                  animation: i === 0 ? 'pulse-step 2s ease-in-out infinite' : undefined,
                 }}
               >
                 {s.n}
@@ -135,8 +146,8 @@ export function HowItWorks() {
                   initial={{ scaleX: 0 }}
                   animate={inView ? { scaleX: 1 } : {}}
                   transition={{ delay: i * 0.15 + 0.45, duration: 0.5 }}
-                  className="w-32 h-0.5 origin-left"
-                  style={{ background: `linear-gradient(to right, ${STEPS[i].accent}60, ${STEPS[i + 1].accent}60)` }}
+                  className="w-32 origin-left"
+                  style={{ height: 2, background: `linear-gradient(to right, ${STEPS[i].accent}, ${STEPS[i + 1].accent})` }}
                 />
               )}
             </div>
@@ -159,10 +170,10 @@ export function HowItWorks() {
                 {/* Text side */}
                 <div className="flex-1 text-center md:text-left">
                   <div className="flex items-center gap-3 mb-4 justify-center md:justify-start">
-                    <IconCircle icon={Icon} accent={s.accent} />
+                    <IconCircle icon={Icon} accent={s.accent} size={48} iconSize={22} />
                     <span
-                      className="font-[family-name:var(--eg-font-heading)] text-[3.5rem] font-bold leading-none"
-                      style={{ color: `${s.accent}20` }}
+                      className="font-[family-name:var(--eg-font-heading)] text-[5rem] font-bold leading-none select-none"
+                      style={{ color: `${s.accent}12` }}
                     >
                       {s.n}
                     </span>

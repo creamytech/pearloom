@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
 import { C, EASE } from './colors';
 import { text, radius } from '@/lib/design-tokens';
@@ -62,6 +62,88 @@ function ThreadOrnament() {
   );
 }
 
+/* Floating decorative dots in brand colors */
+const FLOATING_DOTS = [
+  { color: C.olive, size: 6, left: '12%', top: '18%', delay: 0, duration: 18 },
+  { color: C.gold, size: 4, left: '8%', top: '55%', delay: 2, duration: 22 },
+  { color: C.plum, size: 5, left: '85%', top: '25%', delay: 1.5, duration: 20 },
+  { color: C.olive, size: 3, left: '90%', top: '60%', delay: 3, duration: 16 },
+  { color: C.gold, size: 7, left: '25%', top: '72%', delay: 0.5, duration: 24 },
+  { color: C.plum, size: 4, left: '75%', top: '78%', delay: 2.5, duration: 19 },
+  { color: C.olive, size: 5, left: '50%', top: '12%', delay: 1, duration: 21 },
+  { color: C.gold, size: 3, left: '65%', top: '45%', delay: 3.5, duration: 17 },
+  { color: C.plum, size: 6, left: '35%', top: '85%', delay: 0.8, duration: 23 },
+];
+
+function FloatingDots() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      {FLOATING_DOTS.map((dot, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: dot.size,
+            height: dot.size,
+            left: dot.left,
+            top: dot.top,
+            background: dot.color,
+            opacity: 0.18,
+          }}
+          animate={{
+            y: [0, -20, 5, -15, 0],
+            x: [0, 8, -5, 12, 0],
+            opacity: [0.18, 0.28, 0.14, 0.24, 0.18],
+          }}
+          transition={{
+            duration: dot.duration,
+            repeat: Infinity,
+            delay: dot.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* Animated gradient mesh background */
+function GradientMesh() {
+  return (
+    <motion.div
+      className="absolute inset-0 pointer-events-none"
+      aria-hidden="true"
+      animate={{
+        background: [
+          `radial-gradient(ellipse 60% 50% at 25% 30%, rgba(163,177,138,0.14) 0%, transparent 70%),
+           radial-gradient(ellipse 50% 60% at 75% 65%, rgba(109,89,122,0.10) 0%, transparent 70%),
+           radial-gradient(ellipse 40% 40% at 55% 20%, rgba(214,198,168,0.08) 0%, transparent 60%)`,
+          `radial-gradient(ellipse 60% 50% at 35% 50%, rgba(163,177,138,0.12) 0%, transparent 70%),
+           radial-gradient(ellipse 50% 60% at 65% 35%, rgba(109,89,122,0.12) 0%, transparent 70%),
+           radial-gradient(ellipse 40% 40% at 45% 70%, rgba(214,198,168,0.10) 0%, transparent 60%)`,
+          `radial-gradient(ellipse 60% 50% at 20% 60%, rgba(163,177,138,0.10) 0%, transparent 70%),
+           radial-gradient(ellipse 50% 60% at 80% 40%, rgba(109,89,122,0.14) 0%, transparent 70%),
+           radial-gradient(ellipse 40% 40% at 50% 30%, rgba(214,198,168,0.06) 0%, transparent 60%)`,
+          `radial-gradient(ellipse 60% 50% at 25% 30%, rgba(163,177,138,0.14) 0%, transparent 70%),
+           radial-gradient(ellipse 50% 60% at 75% 65%, rgba(109,89,122,0.10) 0%, transparent 70%),
+           radial-gradient(ellipse 40% 40% at 55% 20%, rgba(214,198,168,0.08) 0%, transparent 60%)`,
+        ],
+      }}
+      transition={{
+        duration: 12,
+        repeat: Infinity,
+        ease: 'easeInOut',
+      }}
+    />
+  );
+}
+
+const TRUST_ITEMS = [
+  'Free to start',
+  'No credit card',
+  'Live in minutes',
+];
+
 interface MarketingHeroProps {
   handleSignIn: () => void;
   status: string;
@@ -77,11 +159,15 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
       style={{
         minHeight: 'min(100dvh, 900px)',
         padding: 'clamp(3.5rem,8vw,7rem) 1.25rem clamp(2.5rem,4vw,4rem)',
-        background: `radial-gradient(ellipse at 20% 30%, rgba(163,177,138,0.09) 0%, transparent 55%),
-                     radial-gradient(ellipse at 80% 70%, rgba(109,89,122,0.07) 0%, transparent 50%),
-                     ${C.cream}`,
+        background: C.cream,
       }}
     >
+      {/* Animated gradient mesh */}
+      <GradientMesh />
+
+      {/* Floating decorative dots */}
+      <FloatingDots />
+
       {/* Decorative rings */}
       <svg
         aria-hidden="true"
@@ -159,28 +245,57 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           <motion.button
             onClick={handleSignIn}
             disabled={status === 'loading'}
-            whileHover={{ scale: 1.04, boxShadow: '0 10px 40px rgba(163,177,138,0.42)' }}
+            whileHover={{ scale: 1.04, boxShadow: '0 14px 50px rgba(163,177,138,0.48)' }}
             whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer"
+            className="group inline-flex items-center gap-2 font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer relative overflow-hidden"
             style={{
-              padding: '0.95rem 2.1rem',
+              padding: '1.1rem 2.6rem',
               background: 'linear-gradient(135deg, #A3B18A, #8BA77A)',
               color: C.cream,
               borderRadius: radius.md,
               fontSize: text.md,
-              boxShadow: '0 2px 16px rgba(163,177,138,0.28)',
+              boxShadow: '0 4px 24px rgba(163,177,138,0.32)',
               opacity: status === 'loading' ? 0.65 : 1,
             }}
           >
-            Create Your Free Site <ArrowRight size={15} strokeWidth={2.2} />
+            {/* Shimmer/shine overlay on hover */}
+            <span
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none"
+              style={{
+                background: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.25) 45%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.25) 55%, transparent 65%)',
+                backgroundSize: '250% 100%',
+                animation: 'none',
+                transition: 'opacity 0.3s ease',
+              }}
+            />
+            <style>{`
+              .group:hover .shimmer-sweep {
+                animation: shimmer-sweep 0.8s ease forwards;
+              }
+              @keyframes shimmer-sweep {
+                0% { background-position: 100% 0; }
+                100% { background-position: -50% 0; }
+              }
+            `}</style>
+            <span
+              className="shimmer-sweep absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none"
+              style={{
+                background: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.2) 55%, transparent 65%)',
+                backgroundSize: '250% 100%',
+                backgroundPosition: '100% 0',
+              }}
+            />
+            <span className="relative z-10 inline-flex items-center gap-2">
+              Create Your Free Site <ArrowRight size={15} strokeWidth={2.2} />
+            </span>
           </motion.button>
           <motion.button
             onClick={() => window.open('/demo', '_blank')}
             whileHover={{ scale: 1.02, background: C.deep }}
             whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 font-medium font-[family-name:var(--eg-font-body)] cursor-pointer"
+            className="group inline-flex items-center gap-2 font-medium font-[family-name:var(--eg-font-body)] cursor-pointer"
             style={{
-              padding: '0.95rem 2.1rem',
+              padding: '1.1rem 2.6rem',
               background: 'transparent',
               color: C.dark,
               border: `1.5px solid ${C.gold}`,
@@ -189,18 +304,46 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
             }}
           >
             See Examples
+            <motion.span
+              className="inline-flex"
+              style={{ transition: 'transform 0.25s ease' }}
+            >
+              <ArrowRight
+                size={14}
+                strokeWidth={2}
+                className="transition-transform duration-250 ease-out group-hover:translate-x-1"
+              />
+            </motion.span>
           </motion.button>
         </motion.div>
 
-        <motion.p
+        {/* Trust badges with checkmarks */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0, duration: 0.5 }}
-          className="mt-5 tracking-wider"
-          style={{ fontSize: text.sm, color: C.muted }}
+          className="mt-5 flex items-center justify-center gap-4 flex-wrap"
         >
-          Free to start · No credit card · Live in minutes
-        </motion.p>
+          {TRUST_ITEMS.map((item, i) => (
+            <span
+              key={item}
+              className="inline-flex items-center gap-1.5"
+              style={{ fontSize: text.sm, color: C.muted }}
+            >
+              <span
+                className="inline-flex items-center justify-center rounded-full flex-shrink-0"
+                style={{
+                  width: 14,
+                  height: 14,
+                  background: `${C.olive}22`,
+                }}
+              >
+                <Check size={9} strokeWidth={2.8} style={{ color: C.olive }} />
+              </span>
+              {item}
+            </span>
+          ))}
+        </motion.div>
 
         {/* Product preview mockup */}
         <motion.div
