@@ -37,7 +37,7 @@ export function MarketingFooter() {
     <footer
       style={{
         background: 'linear-gradient(180deg, #3D3530 0%, #322B26 100%)',
-        padding: '4rem 1.5rem 2.5rem',
+        padding: 'clamp(2.5rem,4vw,4rem) 1.25rem 2.5rem',
         borderTop: '1px solid rgba(214,198,168,0.1)',
       }}
     >
@@ -61,7 +61,7 @@ export function MarketingFooter() {
           </div>
 
           {/* Link columns */}
-          <div className="flex-1 grid grid-cols-3 gap-6">
+          <div className="flex-1 grid grid-cols-3 gap-4 sm:gap-6">
             {COLUMNS.map(col => (
               <div key={col.title}>
                 <div

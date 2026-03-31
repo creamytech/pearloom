@@ -87,8 +87,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
       ref={ref}
       className="relative overflow-hidden flex flex-col items-center"
       style={{
-        minHeight: '100dvh',
-        padding: 'clamp(6rem,12vw,9rem) 1.5rem 4rem',
+        minHeight: 'min(100dvh, 900px)',
+        padding: 'clamp(3.5rem,8vw,7rem) 1.25rem clamp(2.5rem,4vw,4rem)',
         background: `radial-gradient(ellipse at 20% 30%, rgba(163,177,138,0.09) 0%, transparent 55%),
                      radial-gradient(ellipse at 80% 70%, rgba(109,89,122,0.07) 0%, transparent 50%),
                      ${C.cream}`,
@@ -224,7 +224,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         >
           <SiteMockup />
         </motion.div>
-        <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '400px', background: 'radial-gradient(ellipse, rgba(214,198,168,0.15) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0 }} />
+        <div className="hidden sm:block" style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '400px', background: 'radial-gradient(ellipse, rgba(214,198,168,0.15) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0 }} />
       </div>
 
       {/* Scroll cue */}

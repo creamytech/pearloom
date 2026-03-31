@@ -48,7 +48,7 @@ export function BlockTypesGrid() {
       ref={ref}
       style={{
         background: C.deep,
-        padding: '7rem 1.5rem',
+        padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
         borderTop: `1px solid ${C.divider}`,
       }}
     >
@@ -106,10 +106,10 @@ export function BlockTypesGrid() {
                 >
                   <Icon size={16} style={{ color: b.accent }} />
                 </div>
-                <div className="text-[0.78rem] font-semibold mb-0.5" style={{ color: C.ink }}>
+                <div className="text-[0.82rem] font-semibold mb-0.5" style={{ color: C.ink }}>
                   {b.name}
                 </div>
-                <div className="text-[0.62rem] leading-snug" style={{ color: C.muted }}>
+                <div className="text-[0.72rem] leading-snug" style={{ color: C.muted }}>
                   {b.desc}
                 </div>
               </motion.div>

@@ -100,11 +100,11 @@ export function HowItWorks() {
     <section
       ref={ref}
       id="how-it-works"
-      style={{ background: C.cream, padding: '7rem 1.5rem' }}
+      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
     >
       <div className="max-w-[960px] mx-auto">
         {/* Header — watermark number behind h2 */}
-        <div className="text-center mb-14 relative">
+        <div className="text-center mb-10 md:mb-14 relative">
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"
             style={{ fontSize: 'clamp(5rem, 12vw, 8rem)', color: C.ink, opacity: 0.03, lineHeight: 1 }}

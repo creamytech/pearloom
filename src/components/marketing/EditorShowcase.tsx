@@ -92,7 +92,7 @@ function EditorMockup() {
       </div>
 
       {/* Body */}
-      <div className="flex" style={{ height: 360, background: C.cream }}>
+      <div className="flex" style={{ minHeight: 280, maxHeight: 420, height: 'clamp(280px, 40vw, 360px)', background: C.cream }}>
         {/* Sidebar */}
         <div
           className="w-[180px] border-r p-3 flex-shrink-0 hidden sm:block"
@@ -181,11 +181,11 @@ export function EditorShowcase() {
     <section
       ref={ref}
       id="editor"
-      style={{ background: C.cream, padding: '7rem 1.5rem' }}
+      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
     >
       <div className="max-w-[960px] mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 md:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}

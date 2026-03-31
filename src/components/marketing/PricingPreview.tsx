@@ -55,7 +55,7 @@ export function PricingPreview() {
       id="pricing"
       style={{
         background: `radial-gradient(ellipse at 30% 0%, rgba(109,89,122,0.08) 0%, transparent 50%), radial-gradient(ellipse at 70% 100%, rgba(163,177,138,0.06) 0%, transparent 50%), ${C.deep}`,
-        padding: '7rem 1.5rem',
+        padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
         borderTop: `1px solid ${C.divider}`,
       }}
     >

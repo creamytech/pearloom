@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef } from 'react';
-import { motion, useInView, type Variants } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { motion, useInView, AnimatePresence, type Variants } from 'framer-motion';
+import { Sparkles, ArrowRight, Menu, X } from 'lucide-react';
 
 import { MarketingHero } from './marketing/MarketingHero';
 import { SocialProofBar } from './marketing/SocialProofBar';
@@ -185,10 +185,13 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
   const occasionRef = useRef<HTMLElement>(null);
   const testRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const occasionInView = useInView(occasionRef, { once: true, amount: 0.1 });
   const testInView = useInView(testRef, { once: true, amount: 0.2 });
   const ctaInView = useInView(ctaRef, { once: true, amount: 0.3 });
+
+  const NAV_LINKS = ['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'];
 
   return (
     <div
@@ -206,10 +209,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr auto',
+          display: 'flex',
           alignItems: 'center',
-          padding: '0 clamp(1.5rem,5vw,4rem)',
+          justifyContent: 'space-between',
+          padding: '0 clamp(1.25rem,5vw,4rem)',
           height: '64px',
           background: 'rgba(245,241,232,0.92)',
           backdropFilter: 'blur(12px)',
@@ -229,15 +232,17 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           Pearloom
         </span>
 
+        {/* Desktop nav links */}
         <div
           className="hidden md:flex"
           style={{
-            display: 'flex',
-            justifyContent: 'center',
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
             gap: '2.5rem',
           }}
         >
-          {['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'].map(label => (
+          {NAV_LINKS.map(label => (
             <a
               key={label}
               href={`#${label.toLowerCase().replace(/ /g, '-')}`}
@@ -257,25 +262,109 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           ))}
         </div>
 
-        <motion.button
-          onClick={handleSignIn}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            padding: '0.5rem 1.25rem',
-            background: C.ink,
-            color: C.cream,
-            border: 'none',
-            borderRadius: '0.6rem',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            fontFamily: 'var(--eg-font-body)',
-            cursor: 'pointer',
-          }}
-        >
-          Get Started
-        </motion.button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <motion.button
+            onClick={handleSignIn}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="hidden sm:inline-flex"
+            style={{
+              padding: '0.5rem 1.25rem',
+              background: C.ink,
+              color: C.cream,
+              border: 'none',
+              borderRadius: '0.6rem',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              fontFamily: 'var(--eg-font-body)',
+              cursor: 'pointer',
+            }}
+          >
+            Get Started
+          </motion.button>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem',
+              color: C.ink,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </nav>
+
+      {/* ══════════════ MOBILE MENU ══════════════ */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="md:hidden"
+            style={{
+              position: 'sticky',
+              top: '64px',
+              zIndex: 99,
+              overflow: 'hidden',
+              background: 'rgba(245,241,232,0.98)',
+              backdropFilter: 'blur(12px)',
+              borderBottom: `1px solid ${C.divider}`,
+            }}
+          >
+            <div style={{ padding: '1rem 1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              {NAV_LINKS.map(label => (
+                <a
+                  key={label}
+                  href={`#${label.toLowerCase().replace(/ /g, '-')}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                    color: C.dark,
+                    textDecoration: 'none',
+                    padding: '0.65rem 0.5rem',
+                    borderRadius: '0.5rem',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.03)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  {label}
+                </a>
+              ))}
+              <button
+                onClick={() => { setMobileMenuOpen(false); handleSignIn(); }}
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem',
+                  background: C.ink,
+                  color: C.cream,
+                  border: 'none',
+                  borderRadius: '0.6rem',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  fontFamily: 'var(--eg-font-body)',
+                  cursor: 'pointer',
+                }}
+              >
+                Get Started
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ══════════════ HERO ══════════════ */}
       <MarketingHero handleSignIn={handleSignIn} status={status} />
@@ -304,7 +393,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         ref={occasionRef}
         style={{
           background: `linear-gradient(160deg, rgba(163,177,138,0.06) 0%, ${C.cream} 40%, ${C.deep} 100%)`,
-          padding: '7rem 1.5rem',
+          padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
           borderTop: `1px solid ${C.divider}`,
           borderBottom: `1px solid ${C.divider}`,
         }}
@@ -337,11 +426,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           </div>
 
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))',
-              gap: '1.25rem',
-            }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            style={{ gap: '1.25rem' }}
           >
             {OCCASIONS.map((o, i) => (
               <motion.div
@@ -426,12 +512,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         ref={testRef}
         style={{
           background: C.cream,
-          padding: '7rem 1.5rem',
+          padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
           borderTop: `1px solid ${C.divider}`,
         }}
       >
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem,4vw,4rem)' }}>
             <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.olive, marginBottom: '1.1rem' }}>Loved by real people</div>
             <motion.h2
               initial={{ opacity: 0, y: 16 }}
@@ -450,11 +536,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             </motion.h2>
           </div>
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))',
-              gap: '1.5rem',
-            }}
+            className="grid grid-cols-1 sm:grid-cols-2"
+            style={{ gap: '1.25rem' }}
           >
             {TESTIMONIALS.map((t, i) => (
               <motion.div
@@ -463,12 +546,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 variants={up}
                 initial="hidden"
                 animate={testInView ? 'show' : 'hidden'}
+                className={i === 0 ? 'sm:col-span-2' : ''}
                 style={{
                   padding: i === 0 ? '2rem' : '1.5rem',
                   background: 'white',
                   borderLeft: `3px solid ${i === 0 ? C.plum : C.divider}`,
                   borderRadius: '1.1rem',
-                  ...(i === 0 ? { gridColumn: '1 / -1' } : {}),
                 }}
               >
                 <div
@@ -526,7 +609,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         ref={ctaRef}
         style={{
           background: `linear-gradient(135deg, ${C.ink} 0%, #4A3D5C 50%, ${C.plum} 100%)`,
-          padding: '9rem 1.5rem 10rem',
+          padding: 'clamp(4rem,8vw,9rem) 1.5rem clamp(4.5rem,9vw,10rem)',
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',

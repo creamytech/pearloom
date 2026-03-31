@@ -225,7 +225,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 clamp(1rem, 3vw, 2rem)' }}>
 
       {/* ── Welcome header ── */}
       <motion.div
@@ -281,12 +281,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
       {/* ── Loading ── */}
       {loading ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '1.5rem',
-        }}
+        <div
           className="site-card-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gap: '1.5rem',
+          }}
         >
           {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
         </div>

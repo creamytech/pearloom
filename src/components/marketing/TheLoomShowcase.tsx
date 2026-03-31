@@ -197,7 +197,7 @@ function RindShowcase() {
       </div>
 
       {/* Rind features */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 max-w-[700px] mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-[700px] mx-auto">
         {RIND_FEATURES.map((f, i) => {
           const Icon = f.icon;
           return (
@@ -295,7 +295,7 @@ export function TheLoomShowcase() {
       id="the-loom"
       style={{
         background: 'linear-gradient(180deg, #1E1B24 0%, #2A2233 50%, #1E1B24 100%)',
-        padding: '7rem 1.5rem',
+        padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
       }}
     >
       <div className="max-w-[960px] mx-auto">

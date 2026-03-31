@@ -87,7 +87,7 @@ export function FAQSection() {
     <section
       ref={ref}
       id="faq"
-      style={{ background: C.cream, padding: '7rem 1.5rem' }}
+      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
     >
       <div className="max-w-[700px] mx-auto">
         {/* Header — simple label */}
@@ -120,7 +120,7 @@ export function FAQSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="rounded-2xl border p-1 sm:p-6"
+          className="rounded-2xl border p-4 sm:p-6"
           style={{
             background: 'white',
             borderColor: C.divider,

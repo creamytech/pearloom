@@ -42,7 +42,13 @@ const TAB_LABELS: Record<string, string> = {
 };
 
 function getThumb(ch: { images?: Array<{ url?: string }> }) {
-  return ch.images?.[0]?.url || null;
+  const raw = ch.images?.[0]?.url || null;
+  if (!raw) return null;
+  // Google Photos baseUrls require OAuth — route through server-side proxy
+  if (raw.includes('googleusercontent.com')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(raw)}&w=200&h=200`;
+  }
+  return raw;
 }
 
 // ── More Menu Grid ────────────────────────────────────────────
