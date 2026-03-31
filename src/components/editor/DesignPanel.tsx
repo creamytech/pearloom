@@ -7,6 +7,7 @@ import { ColorPalettePanel } from './ColorPalettePanel';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import FontPicker from '@/components/dashboard/FontPicker';
 import { AssetPicker } from '@/components/asset-library/AssetPicker';
+import { ArtManager } from './ArtManager';
 import { DesignIcon } from '@/components/icons/EditorIcons';
 import type { StoryManifest } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
@@ -149,6 +150,13 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
 
       {/* AI palette + pattern picker */}
       <ColorPalettePanel manifest={manifest} onChange={onChange} />
+
+      {/* AI Art Manager — hero, ambient, art strip */}
+      {manifest.vibeSkin && (
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
+          <ArtManager manifest={manifest} onUpdate={(updates) => onChange({ ...manifest, ...updates })} />
+        </div>
+      )}
 
       {/* Typography — full font pair picker */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
