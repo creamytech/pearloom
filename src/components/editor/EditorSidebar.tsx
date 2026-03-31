@@ -203,10 +203,10 @@ export function EditorSidebar({
       {/* ── Icon Rail ─────────────────────────────────────────── */}
       <div
         style={{
-          width: '48px',
+          width: '64px',
           flexShrink: 0,
           height: '100%',
-          background: '#1C1916',
+          background: 'linear-gradient(180deg, #1C1916, #19170F)',
           borderRight: '1px solid rgba(214,198,168,0.07)',
           display: 'flex',
           flexDirection: 'column',
@@ -246,48 +246,48 @@ export function EditorSidebar({
                     if (collapsed) onCollapsedChange(false);
                   }
                 }}
-                whileHover={!(isActive && !collapsed) ? { backgroundColor: 'rgba(214,198,168,0.09)', scale: 1.06 } : { scale: 1.04 }}
+                whileHover={!(isActive && !collapsed) ? { backgroundColor: 'rgba(214,198,168,0.09)', scale: 1.04 } : { scale: 1.02 }}
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '56px',
+                  height: '40px',
                   flexShrink: 0,
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: '2px',
                   border: 'none',
                   cursor: 'pointer',
                   borderRadius: '6px',
-                  margin: '1px 2px',
+                  margin: '1px 4px',
                   position: 'relative',
                   background: isActive && !collapsed
-                    ? 'rgba(163,177,138,0.18)'
+                    ? 'rgba(109,89,122,0.18)'
                     : 'transparent',
-                  borderLeft: isActive && !collapsed
-                    ? '3px solid #A3B18A'
-                    : '3px solid transparent',
-                  color: isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)',
+                  color: isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.35)',
                   boxSizing: 'border-box',
                 }}
               >
-                {/* Sliding active pill indicator */}
+                {/* Bottom pill active indicator */}
                 <AnimatePresence>
                   {isActive && !collapsed && (
                     <motion.div
-                      layoutId="sidebar-active-pill"
-                      initial={{ opacity: 0, scaleY: 0.5 }}
-                      animate={{ opacity: 1, scaleY: 1 }}
-                      exit={{ opacity: 0, scaleY: 0.5 }}
+                      layoutId="sidebar-pill"
+                      initial={{ opacity: 0, scaleX: 0.5 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      exit={{ opacity: 0, scaleX: 0.5 }}
                       transition={{ type: 'spring', stiffness: 380, damping: 28 }}
                       style={{
                         position: 'absolute',
-                        left: 0,
-                        top: '8px',
-                        bottom: '8px',
-                        width: '3px',
-                        borderRadius: '0 2px 2px 0',
-                        background: '#A3B18A',
+                        bottom: 0,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '24px',
+                        height: '3px',
+                        borderRadius: '100px',
+                        background: '#6D597A',
                       }}
                     />
                   )}
@@ -298,9 +298,24 @@ export function EditorSidebar({
                 >
                   <Icon
                     size={16}
-                    color={isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)'}
+                    color={isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.35)'}
                   />
                 </motion.div>
+                {/* Micro-label */}
+                <span style={{
+                  fontSize: '0.55rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1,
+                  color: isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.3)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '52px',
+                }}>
+                  {item.label.length > 8 ? item.label.slice(0, 6) + '…' : item.label}
+                </span>
               </motion.button>
             </React.Fragment>
           );
@@ -317,7 +332,7 @@ export function EditorSidebar({
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 420, damping: 22 }}
           style={{
-            width: '44px',
+            width: '56px',
             height: '36px',
             display: 'flex',
             alignItems: 'center',
@@ -358,18 +373,19 @@ export function EditorSidebar({
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 10px 0 12px',
-                borderBottom: '1px solid rgba(214,198,168,0.07)',
+                borderBottom: '1px solid rgba(214,198,168,0.12)',
                 gap: '8px',
               }}
             >
               <span
                 style={{
                   flex: 1,
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(214,198,168,0.5)',
+                  fontSize: '0.78rem',
+                  fontWeight: 400,
+                  fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                  fontStyle: 'italic',
+                  letterSpacing: '-0.01em',
+                  color: 'rgba(214,198,168,0.6)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',

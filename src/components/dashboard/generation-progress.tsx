@@ -128,7 +128,7 @@ function buildThoughtLines(
 }
 
 // ── Typewriter component ──────────────────────────────────────
-function TypewriterText({ text, speed = 22 }: { text: string; speed?: number }) {
+function TypewriterText({ text, speed = 14 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
   const textRef = useRef(text);
   textRef.current = text;
@@ -136,12 +136,17 @@ function TypewriterText({ text, speed = 22 }: { text: string; speed?: number }) 
   useEffect(() => {
     setDisplayed('');
     let i = 0;
-    const t = setInterval(() => {
+    const advance = () => {
       i++;
       setDisplayed(textRef.current.slice(0, i));
-      if (i >= textRef.current.length) clearInterval(t);
-    }, speed);
-    return () => clearInterval(t);
+      if (i >= textRef.current.length) return;
+      // Variable speed: punctuation pauses longer
+      const ch = textRef.current[i - 1];
+      const delay = /[.,;:!?—–]/.test(ch) ? speed + 60 : speed;
+      setTimeout(advance, delay);
+    };
+    const t = setTimeout(advance, speed);
+    return () => clearTimeout(t);
   }, [text, speed]);
 
   return (
@@ -183,6 +188,7 @@ function PhotoTile({
         opacity: isActive ? [0.55, 0.85, 0.55] : [0.18, 0.32, 0.18],
         scale: isActive ? [1, 1.04, 1] : [1, 1.02, 1],
         y: [0, -12, 4, -8, 0],
+      x: [0, 6, -6, 3, 0],
         filter: isActive
           ? [`blur(0px) brightness(1.1)`, `blur(0px) brightness(1.2)`, `blur(0px) brightness(1.1)`]
           : [`blur(${blurAmount}px) brightness(0.7)`, `blur(${blurAmount * 0.8}px) brightness(0.8)`, `blur(${blurAmount}px) brightness(0.7)`],
@@ -191,6 +197,7 @@ function PhotoTile({
         opacity: { duration: isActive ? 2.5 : 8, repeat: Infinity, ease: 'easeInOut', delay },
         scale: { duration: isActive ? 2.5 : 12, repeat: Infinity, ease: 'easeInOut', delay },
         y: { duration: 14 + delay * 2, repeat: Infinity, ease: 'easeInOut', delay },
+        x: { duration: 11 + delay * 1.5, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.5 },
         filter: { duration: isActive ? 2 : 8, repeat: Infinity, ease: 'easeInOut', delay },
       }}
       style={{
@@ -295,7 +302,7 @@ function ThoughtStream({ lines }: { lines: string[] }) {
               textAlign: 'center',
             }}
           >
-            {i === visibleCount - 1 ? <TypewriterText text={line} speed={28} /> : line}
+            {i === visibleCount - 1 ? <TypewriterText text={line} speed={14} /> : line}
           </motion.p>
         ))}
       </AnimatePresence>
@@ -303,22 +310,58 @@ function ThoughtStream({ lines }: { lines: string[] }) {
   );
 }
 
-// ── Photo layout — deterministic scatter positions ────────────
-const PHOTO_SLOTS = [
-  // left column
-  { x: '2%',  y: '8%',  size: 180, rot: -4,  blur: 4, delay: 0 },
-  { x: '1%',  y: '42%', size: 140, rot: 3,   blur: 6, delay: 1.2 },
-  { x: '4%',  y: '70%', size: 160, rot: -2,  blur: 5, delay: 2.4 },
-  // right column
-  { x: '78%', y: '6%',  size: 170, rot: 4,   blur: 5, delay: 0.6 },
-  { x: '81%', y: '38%', size: 145, rot: -3,  blur: 4, delay: 1.8 },
-  { x: '76%', y: '68%', size: 165, rot: 2,   blur: 6, delay: 3.0 },
-  // scattered extras
-  { x: '15%', y: '5%',  size: 120, rot: -6,  blur: 7, delay: 0.9 },
-  { x: '64%', y: '78%', size: 125, rot: 5,   blur: 7, delay: 1.5 },
-  { x: '18%', y: '80%', size: 110, rot: 3,   blur: 8, delay: 2.1 },
-  { x: '60%', y: '4%',  size: 115, rot: -5,  blur: 8, delay: 2.7 },
-];
+// ── Seeded random for deterministic layouts per couple ────────
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+function generatePhotoSlots(names: [string, string]) {
+  // Seed from couple names — unique layout per user, deterministic per session
+  const seedStr = `${names[0]}${names[1]}`.toLowerCase();
+  let seed = 0;
+  for (let i = 0; i < seedStr.length; i++) seed = ((seed << 5) - seed + seedStr.charCodeAt(i)) | 0;
+  if (seed === 0) seed = 42;
+  const rand = seededRandom(Math.abs(seed));
+
+  const slots: Array<{ x: string; y: string; size: number; rot: number; blur: number; delay: number }> = [];
+
+  // Generate 10 positions: 3 left, 3 right, 4 scattered
+  const zones = [
+    // Left column (x: 1-16%)
+    ...Array.from({ length: 3 }, (_, i) => ({
+      x: `${1 + rand() * 15}%`,
+      y: `${5 + i * 30 + rand() * 10}%`,
+      size: 130 + Math.floor(rand() * 60),
+      rot: -7 + rand() * 10,
+      blur: 3 + Math.floor(rand() * 5),
+      delay: rand() * 3,
+    })),
+    // Right column (x: 74-84%)
+    ...Array.from({ length: 3 }, (_, i) => ({
+      x: `${74 + rand() * 10}%`,
+      y: `${4 + i * 30 + rand() * 12}%`,
+      size: 130 + Math.floor(rand() * 55),
+      rot: -6 + rand() * 12,
+      blur: 3 + Math.floor(rand() * 5),
+      delay: 0.5 + rand() * 2.5,
+    })),
+    // Scattered extras
+    ...Array.from({ length: 4 }, () => ({
+      x: `${10 + rand() * 55}%`,
+      y: `${rand() < 0.5 ? 2 + rand() * 12 : 72 + rand() * 18}%`,
+      size: 100 + Math.floor(rand() * 40),
+      rot: -8 + rand() * 16,
+      blur: 5 + Math.floor(rand() * 4),
+      delay: rand() * 3.5,
+    })),
+  ];
+
+  return zones;
+}
 
 // ── Main component ─────────────────────────────────────────────
 export function GenerationProgress({
@@ -328,6 +371,8 @@ export function GenerationProgress({
   names = ['', ''],
   vibeString = '',
   occasion = 'wedding',
+  isComplete = false,
+  onComplete,
 }: {
   step?: number;
   onCancel?: () => void;
@@ -335,11 +380,23 @@ export function GenerationProgress({
   names?: [string, string];
   vibeString?: string;
   occasion?: string;
+  isComplete?: boolean;
+  onComplete?: () => void;
 }) {
   const idx = Math.min(step, PASSES.length - 1);
   const pass = PASSES[idx];
   const [elapsed, setElapsed] = useState(0);
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
+
+  // Seeded photo slots based on couple names
+  const photoSlots = useMemo(() => generatePhotoSlots(names), [names]);
+
+  // Completion transition — after showing "ready" state, fade out
+  useEffect(() => {
+    if (!isComplete || !onComplete) return;
+    const t = setTimeout(onComplete, 1800);
+    return () => clearTimeout(t);
+  }, [isComplete, onComplete]);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
@@ -350,23 +407,23 @@ export function GenerationProgress({
   useEffect(() => {
     if (photos.length === 0) return;
     const t = setInterval(() => {
-      setActivePhotoIdx(i => (i + 1) % Math.min(photos.length, PHOTO_SLOTS.length));
+      setActivePhotoIdx(i => (i + 1) % Math.min(photos.length, photoSlots.length));
     }, 3000);
     return () => clearTimeout(t);
-  }, [photos.length]);
+  }, [photos.length, photoSlots.length]);
 
   // Build photo tiles — pick up to 10 photos, route through proxy for Google Photos
   const photoTiles = useMemo(() => {
     if (photos.length === 0) return [];
-    const picked = [...photos].sort(() => Math.random() - 0.5).slice(0, PHOTO_SLOTS.length);
+    const picked = [...photos].sort(() => Math.random() - 0.5).slice(0, photoSlots.length);
     return picked.map((p, i) => {
       const src = p.baseUrl.includes('googleusercontent.com')
         ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=400&h=400`
         : `${p.baseUrl}=w400-h400-c`;
-      return { src, slot: PHOTO_SLOTS[i % PHOTO_SLOTS.length], idx: i };
+      return { src, slot: photoSlots[i % photoSlots.length], idx: i };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photos.length]);
+  }, [photos.length, photoSlots]);
 
   // AI thought lines for current pass — rebuild when pass changes
   const thoughtLines = useMemo(
@@ -376,13 +433,16 @@ export function GenerationProgress({
   );
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: '#1C1916',
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      overflow: 'hidden',
-    }}>
+    <motion.div
+      animate={isComplete ? { opacity: 0, scale: 1.02 } : { opacity: 1, scale: 1 }}
+      transition={isComplete ? { duration: 0.6, delay: 1.2, ease: [0.16, 1, 0.3, 1] } : {}}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: '#1C1916',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden',
+      }}>
 
       {/* ── Ambient gradient orbs ── */}
       <motion.div
@@ -412,7 +472,7 @@ export function GenerationProgress({
             src={src}
             x={slot.x} y={slot.y}
             size={slot.size}
-            rotation={slot.rot}
+            rotation={slot.rot as number}
             delay={slot.delay}
             blurAmount={slot.blur}
             isActive={tileIdx === activePhotoIdx}
@@ -423,7 +483,7 @@ export function GenerationProgress({
       {/* ── Core content ── */}
       <div style={{
         position: 'relative', zIndex: 10,
-        textAlign: 'center', maxWidth: '580px', padding: '0 2rem', width: '100%',
+        textAlign: 'center', maxWidth: 'min(680px, 90vw)', padding: '0 2rem', width: '100%',
       }}>
 
         {/* Pass progress dots */}
@@ -435,22 +495,23 @@ export function GenerationProgress({
             <motion.div
               key={i}
               animate={{
-                width: i === idx ? 28 : 6,
+                width: i === idx ? 36 : 8,
                 backgroundColor:
                   i < idx
                     ? 'rgba(163,177,138,0.55)'
                     : i === idx
                     ? '#A3B18A'
                     : 'rgba(255,255,255,0.13)',
+                boxShadow: i === idx ? '0 0 12px rgba(163,177,138,0.5)' : 'none',
               }}
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              style={{ height: 6, borderRadius: 100 }}
+              style={{ height: 8, borderRadius: 100 }}
             />
           ))}
         </div>
 
         {/* ── Pear mark ── */}
-        <div style={{ position: 'relative', width: 68, height: 82, margin: '0 auto 2.25rem' }}>
+        <div style={{ position: 'relative', width: 88, height: 106, margin: '0 auto 2.25rem' }}>
           <motion.div
             animate={{ opacity: [0.25, 0.65, 0.25], scale: [1, 1.45, 1] }}
             transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -505,7 +566,7 @@ export function GenerationProgress({
               letterSpacing: '-0.01em',
             }}
           >
-            {pass.headline}
+            {isComplete ? 'Your story is ready.' : pass.headline}
           </motion.h2>
         </AnimatePresence>
 
@@ -545,17 +606,35 @@ export function GenerationProgress({
         </AnimatePresence>
 
         {/* ── Progress bar ── */}
-        <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden', marginBottom: '1rem' }}>
-          <motion.div
-            animate={{ width: `${pass.pct}%` }}
-            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              height: '100%',
-              background: 'linear-gradient(90deg, #8FA876, #C4D4A8)',
-              borderRadius: 100,
-              boxShadow: '0 0 10px rgba(163,177,138,0.7)',
-            }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+          <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.07)', borderRadius: 100, overflow: 'hidden', position: 'relative' }}>
+            <motion.div
+              animate={{ width: `${pass.pct}%` }}
+              transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                height: '100%',
+                background: 'linear-gradient(90deg, #8FA876, #C4D4A8)',
+                borderRadius: 100,
+                boxShadow: '0 0 10px rgba(163,177,138,0.7)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Shimmer */}
+              <motion.div
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', repeatDelay: 0.5 }}
+                style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                  width: '50%',
+                }}
+              />
+            </motion.div>
+          </div>
+          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(163,177,138,0.6)', fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', minWidth: '28px', textAlign: 'right' }}>
+            {pass.pct}%
+          </span>
         </div>
 
         {/* ── Meta / pass label ── */}
@@ -583,9 +662,30 @@ export function GenerationProgress({
           </motion.p>
         </AnimatePresence>
 
+        {/* ── Time expectation hint ── */}
+        <AnimatePresence>
+          {idx === 0 && elapsed < 20 && (
+            <motion.p
+              key="time-hint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, delay: 1 }}
+              style={{
+                marginTop: '0.75rem', fontSize: '0.72rem',
+                color: 'rgba(250,247,242,0.25)',
+                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+                fontStyle: 'italic', margin: '0.75rem 0 0',
+              }}
+            >
+              This usually takes 2–4 minutes
+            </motion.p>
+          )}
+        </AnimatePresence>
+
         {/* ── Long-running warnings ── */}
         <AnimatePresence>
-          {elapsed >= 120 && elapsed < 200 && (
+          {elapsed >= 90 && elapsed < 150 && (
             <motion.p
               key="slow-warning"
               initial={{ opacity: 0, y: 6 }}
@@ -600,10 +700,10 @@ export function GenerationProgress({
                 fontStyle: 'italic',
               }}
             >
-              This is taking a little longer than usual — still working…
+              Taking a moment — still weaving your story…
             </motion.p>
           )}
-          {elapsed >= 200 && elapsed < 360 && (
+          {elapsed >= 150 && elapsed < 270 && (
             <motion.p
               key="very-slow-warning"
               initial={{ opacity: 0, y: 6 }}
@@ -618,10 +718,10 @@ export function GenerationProgress({
                 fontStyle: 'italic',
               }}
             >
-              Still going — complex stories take time. Please don&apos;t close this tab.
+              Almost there — please don&apos;t close this tab.
             </motion.p>
           )}
-          {elapsed >= 360 && (
+          {elapsed >= 270 && (
             <motion.div
               key="timeout-warning"
               initial={{ opacity: 0, y: 6 }}
@@ -655,43 +755,39 @@ export function GenerationProgress({
           )}
         </AnimatePresence>
 
-        {/* ── Cancel button (shown after 30s) ── */}
-        <AnimatePresence>
-          {onCancel && elapsed >= 30 && (
-            <motion.button
-              key="cancel-btn"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              onClick={onCancel}
-              style={{
-                marginTop: '1.75rem',
-                background: 'transparent',
-                border: '1px solid rgba(250,247,242,0.2)',
-                borderRadius: '8px',
-                padding: '0.5rem 1.25rem',
-                color: 'rgba(250,247,242,0.4)',
-                fontSize: '0.78rem',
-                cursor: 'pointer',
-                fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-                letterSpacing: '0.06em',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(250,247,242,0.4)';
-                (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.65)';
-              }}
-              onMouseOut={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(250,247,242,0.2)';
-                (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.4)';
-              }}
-            >
-              Cancel generation
-            </motion.button>
-          )}
-        </AnimatePresence>
+        {/* ── Cancel — shown as subtle text link from start, gains border at 30s ── */}
+        {onCancel && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 2 }}
+            onClick={onCancel}
+            style={{
+              marginTop: '1.75rem',
+              background: 'transparent',
+              border: elapsed >= 30 ? '1px solid rgba(250,247,242,0.2)' : 'none',
+              borderRadius: '8px',
+              padding: elapsed >= 30 ? '0.5rem 1.25rem' : '0.25rem 0.5rem',
+              color: 'rgba(250,247,242,0.3)',
+              fontSize: '0.72rem',
+              cursor: 'pointer',
+              fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
+              letterSpacing: '0.06em',
+              transition: 'all 0.3s',
+              textDecoration: elapsed < 30 ? 'underline' : 'none',
+              textUnderlineOffset: '3px',
+            }}
+            onMouseOver={(e) => {
+              (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.55)';
+            }}
+            onMouseOut={(e) => {
+              (e.currentTarget as HTMLElement).style.color = 'rgba(250,247,242,0.3)';
+            }}
+          >
+            Cancel
+          </motion.button>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }

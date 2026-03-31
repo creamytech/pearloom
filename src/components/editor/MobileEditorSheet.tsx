@@ -2,12 +2,12 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / MobileEditorSheet.tsx — Mobile bottom tab bar + sheet panel
-// Extracted from FullscreenEditor lines ~1754-2029
+// Redesigned: 4 tabs + More overflow, FAB publish, 55vh sheet, keyboard avoidance
 // ─────────────────────────────────────────────────────────────
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Image } from 'lucide-react';
+import { Plus, Image, MoreHorizontal, X } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon, PublishIcon,
@@ -22,29 +22,110 @@ import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
 import { ChapterPanel } from './ChapterPanel';
 
-const TAB_ICONS: Record<string, React.ElementType> = {
-  canvas: SectionsIcon, story: StoryIcon, events: EventsIcon, design: DesignIcon,
-  details: DetailsIcon, blocks: AIBlocksIcon, voice: VoiceIcon,
-};
+// ── Tab Configuration ─────────────────────────────────────────
+const PRIMARY_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
+  { tab: 'story',  icon: StoryIcon,    label: 'Story' },
+  { tab: 'design', icon: DesignIcon,   label: 'Design' },
+  { tab: 'canvas', icon: SectionsIcon, label: 'Sections' },
+];
+
+const OVERFLOW_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
+  { tab: 'events',  icon: EventsIcon,   label: 'Events' },
+  { tab: 'details', icon: DetailsIcon,  label: 'Details' },
+  { tab: 'blocks',  icon: AIBlocksIcon, label: 'AI Blocks' },
+  { tab: 'voice',   icon: VoiceIcon,    label: 'Voice' },
+];
 
 const TAB_LABELS: Record<string, string> = {
   story: 'Story', canvas: 'Sections', events: 'Events', design: 'Design',
-  details: 'Details', blocks: 'AI', voice: 'Voice',
+  details: 'Details', blocks: 'AI Blocks', voice: 'Voice',
 };
 
 function getThumb(ch: { images?: Array<{ url?: string }> }) {
   return ch.images?.[0]?.url || null;
 }
 
+// ── More Menu Grid ────────────────────────────────────────────
+function MoreMenuGrid({
+  onSelect,
+  onClose,
+}: {
+  onSelect: (tab: EditorTab) => void;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px) + 8px)',
+        right: '8px', width: '180px',
+        background: 'rgba(36,30,26,0.98)',
+        border: '1px solid rgba(214,198,168,0.12)',
+        borderRadius: '12px', padding: '8px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        backdropFilter: 'blur(20px)',
+        zIndex: 1200,
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px',
+      }}
+    >
+      {OVERFLOW_TABS.map(({ tab, icon: Icon, label }) => (
+        <motion.button
+          key={tab}
+          onClick={() => { onSelect(tab); onClose(); }}
+          whileHover={{ backgroundColor: 'rgba(214,198,168,0.1)' }}
+          whileTap={{ scale: 0.9 }}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+            padding: '10px 4px', borderRadius: '8px', border: 'none',
+            background: 'transparent', color: 'rgba(255,255,255,0.6)',
+            cursor: 'pointer', minHeight: '44px',
+          }}
+        >
+          <Icon size={20} color="rgba(255,255,255,0.5)" />
+          <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.04em' }}>{label}</span>
+        </motion.button>
+      ))}
+    </motion.div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────
 export function MobileEditorSheet() {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
   const { activeTab, mobileSheetOpen, chapters, activeId, rewritingId, sectionOverridesMap } = state;
   const swipeStartY = useRef<number | null>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const activeChapter = chapters.find(c => c.id === activeId) || null;
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Check if active tab is in overflow
+  const isOverflowTab = OVERFLOW_TABS.some(t => t.tab === activeTab);
+
+  // ── Keyboard avoidance ──────────────────────────────────────
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv || !sheetRef.current) return;
+
+    const handler = () => {
+      if (!sheetRef.current) return;
+      const keyboardHeight = window.innerHeight - vv.height;
+      if (keyboardHeight > 100) {
+        sheetRef.current.style.transform = `translateY(-${keyboardHeight}px)`;
+      } else {
+        sheetRef.current.style.transform = '';
+      }
+    };
+
+    vv.addEventListener('resize', handler);
+    return () => vv.removeEventListener('resize', handler);
+  }, [mobileSheetOpen]);
 
   return (
     <>
-      {/* Bottom tab bar */}
+      {/* ── Bottom Tab Bar ──────────────────────────────────── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
@@ -53,15 +134,15 @@ export function MobileEditorSheet() {
         background: 'var(--eg-dark-2, #3D3530)',
         borderTop: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', alignItems: 'stretch',
-        overflowX: 'auto', WebkitOverflowScrolling: 'touch',
       } as React.CSSProperties}>
-        {(['canvas', 'story', 'events', 'design', 'details', 'blocks', 'voice'] as EditorTab[]).map(tab => {
-          const Icon = TAB_ICONS[tab];
+        {/* Primary tabs — equal distribution */}
+        {PRIMARY_TABS.map(({ tab, icon: Icon, label }) => {
           const isActive = activeTab === tab && mobileSheetOpen;
           return (
             <motion.button
               key={tab}
               onClick={() => {
+                setMoreOpen(false);
                 if (activeTab === tab && mobileSheetOpen) {
                   dispatch({ type: 'SET_MOBILE_SHEET', open: false });
                 } else {
@@ -72,7 +153,7 @@ export function MobileEditorSheet() {
               whileTap={{ scale: 0.82 }}
               transition={{ type: 'spring', stiffness: 420, damping: 20 }}
               style={{
-                flex: '0 0 auto', minWidth: '52px',
+                flex: 1,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 gap: '3px', padding: '6px 8px',
                 border: 'none', cursor: 'pointer',
@@ -82,44 +163,105 @@ export function MobileEditorSheet() {
                 minHeight: '48px',
               }}
             >
-              <Icon size={18} color={isActive ? '#fff' : 'rgba(255,255,255,0.35)'} />
-              <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
-                {TAB_LABELS[tab] || tab}
+              <Icon size={22} color={isActive ? '#fff' : 'rgba(255,255,255,0.35)'} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
+                {label}
               </span>
             </motion.button>
           );
         })}
-        <div style={{ flex: 1 }} />
-        {/* Publish */}
+
+        {/* More tab */}
         <motion.button
-          onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
-          whileTap={{ scale: 0.88 }}
+          onClick={() => setMoreOpen(!moreOpen)}
+          whileTap={{ scale: 0.82 }}
           transition={{ type: 'spring', stiffness: 420, damping: 20 }}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '8px 16px', border: 'none',
-            background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
-            color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-            borderTop: '2px solid transparent',
+            flex: 1,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: '3px', padding: '6px 8px',
+            border: 'none', cursor: 'pointer',
+            background: (moreOpen || isOverflowTab) ? 'rgba(109,89,122,0.3)' : 'transparent',
+            color: (moreOpen || isOverflowTab) ? '#fff' : 'rgba(255,255,255,0.4)',
+            borderTop: (moreOpen || isOverflowTab) ? '2px solid var(--eg-plum, #6D597A)' : '2px solid transparent',
             minHeight: '48px',
           }}
         >
-          <PublishIcon size={14} />
+          <MoreHorizontal size={22} color={(moreOpen || isOverflowTab) ? '#fff' : 'rgba(255,255,255,0.35)'} />
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
+            More
+          </span>
         </motion.button>
       </div>
 
-      {/* Bottom sheet panel */}
+      {/* ── More Menu Overlay ──────────────────────────────── */}
+      <AnimatePresence>
+        {moreOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMoreOpen(false)}
+              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1150 }}
+            />
+            <MoreMenuGrid
+              onSelect={(tab) => {
+                dispatch({ type: 'SET_ACTIVE_TAB', tab });
+                dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+              }}
+              onClose={() => setMoreOpen(false)}
+            />
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Floating Publish FAB ───────────────────────────── */}
+      <motion.button
+        onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+        style={{
+          position: 'fixed',
+          bottom: 'calc(56px + env(safe-area-inset-bottom, 0px) + 16px)',
+          right: '16px',
+          width: '52px', height: '52px',
+          borderRadius: '50%', border: 'none',
+          background: 'linear-gradient(135deg, #A3B18A 0%, #7A917A 50%, #6D597A 100%)',
+          color: 'var(--eg-bg, #F5F1E8)',
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(109,89,122,0.4), 0 2px 8px rgba(0,0,0,0.3)',
+          zIndex: mobileSheetOpen ? 1040 : 1090,
+        }}
+      >
+        <PublishIcon size={20} />
+      </motion.button>
+
+      {/* ── Bottom Sheet Panel ─────────────────────────────── */}
       <AnimatePresence>
         {mobileSheetOpen && (
           <motion.div
+            ref={sheetRef}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            onTouchStart={e => { swipeStartY.current = e.touches[0].clientY; }}
+            onTouchEnd={e => {
+              if (swipeStartY.current !== null) {
+                const delta = e.changedTouches[0].clientY - swipeStartY.current;
+                const velocity = delta / 300; // approximate velocity
+                if (delta > 80 || velocity > 1) dispatch({ type: 'SET_MOBILE_SHEET', open: false });
+                swipeStartY.current = null;
+              }
+            }}
             style={{
               position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
               left: 0, right: 0,
-              height: 'calc(80vh - 52px)',
+              height: '55vh',
               zIndex: 1050,
               background: 'var(--eg-dark-2, #3D3530)',
               borderRadius: '16px 16px 0 0',
@@ -128,32 +270,29 @@ export function MobileEditorSheet() {
               boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
               overflow: 'hidden',
             }}
-            onTouchStart={e => { swipeStartY.current = e.touches[0].clientY; }}
-            onTouchEnd={e => {
-              if (swipeStartY.current !== null) {
-                const delta = e.changedTouches[0].clientY - swipeStartY.current;
-                if (delta > 80) dispatch({ type: 'SET_MOBILE_SHEET', open: false });
-                swipeStartY.current = null;
-              }
-            }}
           >
             {/* Drag handle */}
             <div style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
               padding: '10px 16px 6px', flexShrink: 0,
             }}>
-              <div style={{
-                width: '36px', height: '4px', borderRadius: '100px',
-                background: 'rgba(255,255,255,0.2)',
-              }} />
+              <motion.div
+                initial={{ width: 48 }}
+                animate={{ width: [48, 56, 48] }}
+                transition={{ duration: 1.2, ease: 'easeInOut', times: [0, 0.5, 1] }}
+                style={{
+                  height: '4px', borderRadius: '100px',
+                  background: 'rgba(214,198,168,0.40)',
+                }}
+              />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <span style={{
-                  fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em',
-                  textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)',
+                  fontSize: '0.82rem', fontWeight: 400,
+                  fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                  fontStyle: 'italic',
+                  color: 'var(--eg-muted, #9A9488)',
                 }}>
-                  {activeTab === 'story' ? 'Story' : activeTab === 'events' ? 'Events' :
-                   activeTab === 'design' ? 'Design' : activeTab === 'details' ? 'Details' :
-                   activeTab === 'blocks' ? 'AI Blocks' : activeTab === 'voice' ? 'Voice' : 'Sections'}
+                  {TAB_LABELS[activeTab] || activeTab}
                 </span>
                 <button
                   onClick={() => dispatch({ type: 'SET_MOBILE_SHEET', open: false })}

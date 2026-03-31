@@ -208,12 +208,17 @@ function haversineKm(
 /**
  * Clusters photos by proximity in time AND location.
  * - A new cluster starts when more than `gapDays` days have elapsed.
+ *   Default is 2 days — photos from May 2 and May 4 stay separate unless
+ *   they're at the same location. Use a larger value (e.g. 7-14) for
+ *   trip-based grouping where consecutive days should merge.
  * - Within the same date window, photos >50km apart are split into
  *   separate clusters so "Rome trip + Paris trip" don't merge.
+ * - Photos on the same calendar day always stay in the same date cluster
+ *   (before location splitting).
  */
 export function clusterPhotos(
   photos: GooglePhotoMetadata[],
-  gapDays: number = 14
+  gapDays: number = 2
 ): PhotoCluster[] {
   if (!photos.length) return [];
 
@@ -241,8 +246,9 @@ export function clusterPhotos(
     dateClusters.push(currentGroup);
   }
 
-  // Pass 2: sub-split each date cluster by location distance (>50km)
-  const DISTANCE_THRESHOLD_KM = 50;
+  // Pass 2: sub-split each date cluster by location distance (>30km)
+  // Reduced from 50km to catch cases like two cities in the same region
+  const DISTANCE_THRESHOLD_KM = 30;
   const finalClusters: PhotoCluster[] = [];
 
   for (const group of dateClusters) {

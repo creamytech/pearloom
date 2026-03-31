@@ -7,9 +7,9 @@
 // manually enter a location for any clusters missing GPS data.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Camera, Pencil, Check, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, Camera, Pencil, Check, Loader2, Scissors, Merge } from 'lucide-react';
 import type { GooglePhotoMetadata, PhotoCluster, GeoLocation } from '@/types';
 import { clusterPhotos } from '@/lib/google-photos';
 
@@ -39,13 +39,69 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
 
   useEffect(() => {
     // Cluster the photos whenever the photo set changes
-    const built = clusterPhotos(photos, 14);
+    // Default gap: 2 days — consecutive days at different locations stay separate
+    const built = clusterPhotos(photos, 2);
     setClusters(built);
   }, [photos]);
 
   const setClusterNote = (idx: number, note: string) => {
     setClusters(prev => prev.map((c, i) => i === idx ? { ...c, note } : c));
   };
+
+  // ── Split a cluster into two at a specific photo boundary ──
+  const splitCluster = useCallback((clusterIdx: number, splitAfterPhotoIdx: number) => {
+    setClusters(prev => {
+      const cluster = prev[clusterIdx];
+      if (!cluster || splitAfterPhotoIdx < 0 || splitAfterPhotoIdx >= cluster.photos.length - 1) return prev;
+
+      const photosA = cluster.photos.slice(0, splitAfterPhotoIdx + 1);
+      const photosB = cluster.photos.slice(splitAfterPhotoIdx + 1);
+
+      const buildMiniCluster = (photos: GooglePhotoMetadata[]): PhotoCluster => {
+        const dates = photos.map(p => new Date(p.creationTime).getTime());
+        const geoPhotos = photos.filter(p => p.location && (p.location.latitude || p.location.longitude));
+        let location: GeoLocation | null = null;
+        if (geoPhotos.length > 0) {
+          const avgLat = geoPhotos.reduce((s, p) => s + (p.location?.latitude ?? 0), 0) / geoPhotos.length;
+          const avgLng = geoPhotos.reduce((s, p) => s + (p.location?.longitude ?? 0), 0) / geoPhotos.length;
+          location = { lat: avgLat, lng: avgLng, label: '' };
+        }
+        return {
+          startDate: new Date(Math.min(...dates)).toISOString(),
+          endDate: new Date(Math.max(...dates)).toISOString(),
+          location: location || cluster.location,
+          photos,
+        };
+      };
+
+      const next = [...prev];
+      next.splice(clusterIdx, 1, buildMiniCluster(photosA), buildMiniCluster(photosB));
+      return next;
+    });
+  }, []);
+
+  // ── Merge a cluster with the next one ──
+  const mergeWithNext = useCallback((clusterIdx: number) => {
+    setClusters(prev => {
+      if (clusterIdx >= prev.length - 1) return prev;
+      const a = prev[clusterIdx];
+      const b = prev[clusterIdx + 1];
+      const mergedPhotos = [...a.photos, ...b.photos].sort(
+        (x, y) => new Date(x.creationTime).getTime() - new Date(y.creationTime).getTime()
+      );
+      const dates = mergedPhotos.map(p => new Date(p.creationTime).getTime());
+      const merged: PhotoCluster = {
+        startDate: new Date(Math.min(...dates)).toISOString(),
+        endDate: new Date(Math.max(...dates)).toISOString(),
+        location: a.location || b.location,
+        photos: mergedPhotos,
+        note: [a.note, b.note].filter(Boolean).join('. ') || undefined,
+      };
+      const next = [...prev];
+      next.splice(clusterIdx, 2, merged);
+      return next;
+    });
+  }, []);
 
   const setClusterLabel = (idx: number, label: string) => {
     setClusters(prev => prev.map((c, i) => {
@@ -267,6 +323,44 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                       </button>
                     </div>
                   )}
+
+                  {/* Split / Merge controls */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.65rem' }}>
+                    {cluster.photos.length >= 2 && (
+                      <button
+                        onClick={() => {
+                          // Split at the midpoint by default
+                          const mid = Math.floor(cluster.photos.length / 2) - 1;
+                          splitCluster(idx, mid);
+                        }}
+                        title="Split this group into two"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.3rem',
+                          padding: '0.35rem 0.7rem', borderRadius: '100px',
+                          border: '1px solid rgba(0,0,0,0.08)', background: '#f9f9f9',
+                          color: 'var(--eg-muted)', fontSize: '0.75rem', fontWeight: 600,
+                          cursor: 'pointer', transition: 'all 0.2s',
+                        }}
+                      >
+                        <Scissors size={11} /> Split
+                      </button>
+                    )}
+                    {idx < clusters.length - 1 && (
+                      <button
+                        onClick={() => mergeWithNext(idx)}
+                        title="Merge with the group below"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.3rem',
+                          padding: '0.35rem 0.7rem', borderRadius: '100px',
+                          border: '1px solid rgba(0,0,0,0.08)', background: '#f9f9f9',
+                          color: 'var(--eg-muted)', fontSize: '0.75rem', fontWeight: 600,
+                          cursor: 'pointer', transition: 'all 0.2s',
+                        }}
+                      >
+                        <Merge size={11} /> Merge with next
+                      </button>
+                    )}
+                  </div>
 
                   {/* Note / blurb field */}
                   <div style={{ marginTop: '0.85rem' }}>
