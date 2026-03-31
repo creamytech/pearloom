@@ -212,7 +212,11 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                   {cluster.photos.slice(0, 2).map((p, pi) => (
                     <div key={pi} style={{ overflow: 'hidden', background: '#f0ebe4' }}>
                       <img
-                        src={p.baseUrl ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=120&h=120` : ''}
+                        src={p.baseUrl
+                          ? (p.baseUrl.includes('googleusercontent.com')
+                            ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=120&h=120`
+                            : p.baseUrl)
+                          : ''}
                         alt=""
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                         loading="lazy"

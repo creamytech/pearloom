@@ -338,21 +338,59 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', padding: '6rem 2rem',
-            background: '#ffffff',
+            background: 'radial-gradient(ellipse at 50% 30%, rgba(163,177,138,0.08) 0%, rgba(214,198,168,0.06) 40%, #ffffff 70%)',
             borderRadius: '1.5rem',
             border: '1px solid var(--eg-divider)',
             textAlign: 'center',
             maxWidth: '640px',
             margin: '0 auto',
             boxShadow: '0 8px 40px rgba(43,43,43,0.06)',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          {/* Decorative thread ornament — top left */}
+          <svg
+            width="120" height="120" viewBox="0 0 120 120" fill="none"
+            aria-hidden="true"
+            style={{ position: 'absolute', top: '-10px', left: '-10px', opacity: 0.12 }}
+          >
+            <path d="M10 110 C 30 60, 70 80, 60 10" stroke="#A3B18A" strokeWidth="1.5" fill="none" />
+            <path d="M20 110 C 50 70, 40 50, 70 10" stroke="#D6C6A8" strokeWidth="1.5" fill="none" />
+          </svg>
+          {/* Decorative thread ornament — bottom right */}
+          <svg
+            width="120" height="120" viewBox="0 0 120 120" fill="none"
+            aria-hidden="true"
+            style={{ position: 'absolute', bottom: '-10px', right: '-10px', opacity: 0.12 }}
+          >
+            <path d="M110 10 C 90 60, 50 40, 60 110" stroke="#A3B18A" strokeWidth="1.5" fill="none" />
+            <path d="M100 10 C 70 50, 80 70, 50 110" stroke="#D6C6A8" strokeWidth="1.5" fill="none" />
+          </svg>
+
+          {/* Pear icon with glow */}
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ marginBottom: '2rem' }}
+            style={{
+              marginBottom: '2rem',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <PearIcon size={64} color="var(--eg-accent)" />
+            {/* Subtle glow behind pear */}
+            <div style={{
+              position: 'absolute',
+              width: '100px',
+              height: '100px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(163,177,138,0.3) 0%, rgba(163,177,138,0) 70%)',
+              filter: 'blur(8px)',
+              pointerEvents: 'none',
+            }} />
+            <PearIcon size={80} color="var(--eg-accent)" />
           </motion.div>
           <h3 style={{
             fontFamily: 'var(--eg-font-heading)',
@@ -363,10 +401,17 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             Start your story
           </h3>
           <p style={{
-            color: 'var(--eg-muted)', maxWidth: '400px', marginBottom: '2.5rem',
+            color: 'var(--eg-muted)', maxWidth: '400px', marginBottom: '0.75rem',
             lineHeight: 1.8, fontSize: '1rem',
           }}>
             Build a stunning celebration website in minutes. Your AI designer is waiting.
+          </p>
+          <p style={{
+            color: 'var(--eg-muted)', fontSize: '0.8rem', marginBottom: '2.5rem',
+            letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
+            opacity: 0.55,
+          }}>
+            Powered by The Loom AI
           </p>
           <button
             onClick={onStartNew}
@@ -379,6 +424,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
               fontFamily: 'var(--eg-font-body)',
               transition: 'transform 0.2s, box-shadow 0.2s',
+              position: 'relative',
+              zIndex: 1,
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
