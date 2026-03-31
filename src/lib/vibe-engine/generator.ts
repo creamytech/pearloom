@@ -80,7 +80,14 @@ Rules:
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: attemptPrompt }] }] }),
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: attemptPrompt }] }],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 1024,
+              responseMimeType: 'application/json',
+            },
+          }),
         }
       );
       if (!res.ok) return null;
@@ -392,14 +399,14 @@ CRITICAL DESIGN RULES:
 6. dividerQuote: MUST be 6-10 words maximum. Short, poetic, specific to this couple's vibe. Never a generic love quote.
 7. All 9 palette colors must form a cohesive, premium visual system. Prefer analogous schemes with one contrasting accent.
 8. heroBlobSvg: MUST illustrate the couple's actual world using the COUPLE DNA above. Not generic branches. Draw their pets, hobbies, locations. Fill 70%+ of the 500x700 canvas.
-16. chapterIcons: Each icon must be specific to that chapter's content — not generic. A coffee chapter = coffee cup. A travel chapter = airplane or map. A proposal chapter = ring. Simple, elegant, 3-5 stroke elements max per icon.
-9. accentBlobSvg: The blob polygon must be irregular and organic, filling ~60% of canvas.
-10. sectionBlobPath: Match curve type exactly — cascade/ribbon/mountain have distinct geometries.
-11. headingStyle: italic-serif for romantic, uppercase-tracked for minimal/luxury, script-like for handcrafted, bold-editorial for modern, thin-elegant for art deco.
-12. cardStyle: glass for dreamy/cosmic, elevated for luxurious, outlined for minimal, solid for rustic, minimal for zen.
-13. sectionGradient: use palette.subtle → palette.card → palette.background for a gentle wash.
-14. curve / wavePath: The wave dividers between sections should be GENTLE and SUBTLE. Prefer: ribbon (wide sinusoid), arch (smooth arc), organic (soft flowing). Reserve mountain/geometric for bold/modern vibes. The rendered height is max 80px — the SVG path coords should reflect gentle height changes, NOT dramatic peaks.
-15. RESPECT THE BRIEF: If the couple chose vibrant hex colors or submitted vibrant inspiration images, USE THOSE COLORS at full saturation. Do not desaturate or mute colors that the couple chose. A Coco / festival / fiesta vibe should look like hot pink, deep navy, and golden yellow — not dusty rose and cream. Serve the couple's actual vision.`;
+9. chapterIcons: Each icon must be specific to that chapter's content — not generic. A coffee chapter = coffee cup. A travel chapter = airplane or map. A proposal chapter = ring. Simple, elegant, 3-5 stroke elements max per icon.
+10. accentBlobSvg: The blob polygon must be irregular and organic, filling ~60% of canvas.
+11. sectionBlobPath: Match curve type exactly — cascade/ribbon/mountain have distinct geometries.
+12. headingStyle: italic-serif for romantic, uppercase-tracked for minimal/luxury, script-like for handcrafted, bold-editorial for modern, thin-elegant for art deco.
+13. cardStyle: glass for dreamy/cosmic, elevated for luxurious, outlined for minimal, solid for rustic, minimal for zen.
+14. sectionGradient: use palette.subtle → palette.card → palette.background for a gentle wash.
+15. curve / wavePath: The wave dividers between sections should be GENTLE and SUBTLE. Prefer: ribbon (wide sinusoid), arch (smooth arc), organic (soft flowing). Reserve mountain/geometric for bold/modern vibes. The rendered height is max 80px — the SVG path coords should reflect gentle height changes, NOT dramatic peaks.
+16. RESPECT THE BRIEF: If the couple chose vibrant hex colors or submitted vibrant inspiration images, USE THOSE COLORS at full saturation. Do not desaturate or mute colors that the couple chose. A Coco / festival / fiesta vibe should look like hot pink, deep navy, and golden yellow — not dusty rose and cream. Serve the couple's actual vision.`;
 
   try {
     // Fetch inspiration images as base64 inline_data parts

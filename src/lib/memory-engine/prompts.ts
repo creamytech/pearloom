@@ -193,14 +193,7 @@ ${JSON.stringify(clusterSummary, null, 2)}
 - If a cluster has a location, the chapter description MUST reference that specific place.
 - If two clusters have DIFFERENT locations, their chapters MUST describe DIFFERENT places — do not generalize.
 
-## BLURB/NOTE RULES (HIGHEST PRIORITY):
-- Each cluster may have a "note" field — a personal caption written BY THE COUPLE about that moment
-- If a cluster has a "note", it is the SINGLE MOST IMPORTANT piece of context for that chapter
-- The chapter title, subtitle, and description MUST reflect the emotion and content of the note
-- Do NOT paraphrase or genericize the note — honor its specific details, feelings, and voice
-- If the note mentions a specific activity, place, feeling, or inside joke — weave it directly into the narrative
-- The note represents what the couple themselves want remembered about this moment
-- The note describes THIS SPECIFIC MOMENT — do not blend it with interests from the vibe string
+## BLURB/NOTE RULES: See noteInstruction in each cluster above
 
 ---
 ## NARRATIVE QUALITY STANDARDS (non-negotiable)
@@ -210,6 +203,10 @@ ${JSON.stringify(clusterSummary, null, 2)}
 âŒ Bad: "Our Journey Begins", "Beautiful Memories", "The Start of Us", "First Meeting", "A New Chapter"
 
 Titles must feel like chapter headings from a memoir or short film. They should surprise the reader, not telegraph the obvious.
+
+BANNED TITLES: "Our Story", "The Beginning", "A New Chapter", "Love Story", "Together", "Where It Started", "The First Chapter". ALWAYS include a specific detail — a place name, activity, season, or inside reference from the cluster photos.
+Strong title examples: "Kyoto in the Rain", "That Brooklyn Rooftop", "Dancing at Three AM", "Sand Between Our Toes"
+Weak title examples (NEVER use these): "Our Story Begins", "A Beautiful Day", "The Start of Something"
 
 ### Descriptions â€” Write in FIRST PERSON PLURAL, from inside the memory
 - 3â€“4 sentences, intimate and specific

@@ -218,6 +218,7 @@ export async function POST(req: NextRequest) {
       celebrationTime,
       guestNotes,
       inspirationUrls,
+      layoutFormat,
     }: {
       photos: GooglePhotoMetadata[];
       clusters?: PhotoCluster[];
@@ -237,6 +238,7 @@ export async function POST(req: NextRequest) {
       celebrationTime?: string;
       guestNotes?: string;
       inspirationUrls?: string[];
+      layoutFormat?: string;
     } = body;
 
     if (!photos?.length) {
@@ -295,7 +297,8 @@ export async function POST(req: NextRequest) {
       session.accessToken,
       occasion,
       eventDate,
-      inspirationUrls  // NEW: passed to memory-engine for visual style matching
+      inspirationUrls,  // passed to memory-engine for visual style matching
+      layoutFormat
     );
 
     // Pre-populate logistics date from user-provided eventDate

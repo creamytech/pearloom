@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Map, Palette, Globe, Info, ChevronDown } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Palette, Globe, Info, ChevronDown } from 'lucide-react';
 import {
   ElegantHeartIcon, MountainIcon, StarburstIcon, CoffeeCupIcon,
   SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
@@ -258,17 +258,6 @@ const COLOR_PALETTES = [
   { id: 'custom',        name: 'Let AI decide',     colors: ['#888', '#aaa', '#ccc', '#eee', '#333'] },
 ];
 
-const PLACES = [
-  { id: 'beach', label: 'Beach / Coast', vibe: 'coastal, sandy, sun-kissed' },
-  { id: 'mountains', label: 'Mountains', vibe: 'alpine, crisp, panoramic views' },
-  { id: 'city', label: 'City / Urban', vibe: 'skyline, nightlife, rooftop drinks' },
-  { id: 'countryside', label: 'Countryside', vibe: 'rolling fields, golden light, rustic' },
-  { id: 'tropical', label: 'Tropical', vibe: 'lush, warm, paradise' },
-  { id: 'europe', label: 'European', vibe: 'cobblestone, cafés, old-world charm' },
-  { id: 'desert', label: 'Desert', vibe: 'vast, terracotta, sunset tones' },
-  { id: 'home', label: 'Home Sweet Home', vibe: 'domestic bliss, couch cuddles, kitchen dances' },
-];
-
 const TIMELINE_FORMATS = [
   {
     id: 'cascade',
@@ -449,9 +438,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [showValidation, setShowValidation] = useState(false);
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
   const isBirthday = occasion === 'birthday';
-  // Step 4 = Timeline Format (new), Step 5 = Inspiration, Step 6 = Color Palette, Steps 7-10 shifted +1
-  // If inspiration URLs provided, Step 6 (color) is auto-skipped → AI decides colors
-  const totalSteps = isEvent ? 10 : 9;
+  // Consolidated wizard: 8 steps for events (wedding/engagement), 7 otherwise
+  const totalSteps = isEvent ? 8 : 7;
 
   // Step 1: Names
   const [name1, setName1] = useState(initialNames?.[0] ?? '');
@@ -461,11 +449,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [mood, setMood] = useState<string>('');
   // Step 4: Timeline Format
   const [layoutFormat, setLayoutFormat] = useState<string>('cascade');
-  // Step 3: Color Palette
+  // Step 4: Color Palette
   const [palette, setPalette] = useState<string>('');
-  // Step 4: Favorite places
-  const [favPlaces, setFavPlaces] = useState<string[]>([]);
-  const [customPlace, setCustomPlace] = useState('');
   // Step 5: Your Story
   const [meetCute, setMeetCute] = useState('');
   const [relationship, setRelationship] = useState('');
@@ -484,9 +469,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const canProceedStep3 = mood !== '';
   // Step 4 = Timeline Format (always has default — can change or skip)
   // Step 5 = Inspiration (always optional — can skip)
-  const canProceedStep6 = palette !== '';     // Step 6 = Color Palette
-  const canProceedStep7 = favPlaces.length > 0; // Step 7 = Places
-  const canProceedStep8 = meetCute.trim() !== ''; // Step 8 = Story
+  const canProceedStep6 = palette !== '';     // Color Palette (used in step 4 now)
+  const canProceedStep8 = meetCute.trim() !== ''; // Story (used in step 5 now)
 
   const hasInspirationUrls = inspirationUrls.some(u => u.trim().match(/^https?:\/\/.+/));
   const hasInspoInput = inspoKeywords.length > 0 || hasInspirationUrls;
@@ -517,7 +501,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     if (step === 3 && mood) {
       return VIBE_MOODS.find(m => m.id === mood)?.orb ?? 'rgba(163,177,138,0.12)';
     }
-    if (step === 6 && palette && palette !== 'custom') {
+    if (step === 4 && palette && palette !== 'custom') {
       const sel = COLOR_PALETTES.find(p => p.id === palette);
       if (sel) {
         const hex = sel.colors[0].replace('#', '');
@@ -531,14 +515,13 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   }, [step, mood, palette]);
 
   const canProceedCurrentStep = () => {
-    if (step === 1) return !!canProceedStep2;
-    if (step === 2) return !!canProceedStep1;
-    if (step === 3) return !!canProceedStep3;
-    if (step === 4) return true; // timeline format — always has a default
-    if (step === 5) return true; // inspiration is optional
-    if (step === 6) return !!canProceedStep6;
-    if (step === 7) return !!canProceedStep7;
-    if (step === 8) return !!canProceedStep8;
+    if (step === 1) return !!canProceedStep2;    // occasion
+    if (step === 2) return !!canProceedStep1;    // names
+    if (step === 3) return !!canProceedStep3;    // mood required (keywords optional)
+    if (step === 4) return true;                  // palette has default, layout has default
+    if (step === 5) return !!canProceedStep8;    // story (meetCute required)
+    if (step === 6) return true;                  // special details optional
+    if (step === 7) return true;                  // event details (optional fields)
     return true;
   };
 
@@ -548,26 +531,15 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       return;
     }
     setShowValidation(false);
-    // If inspiration provided (keywords or images), skip color palette — AI uses the vibes
-    if (step === 5 && hasInspoInput) {
+    // When step 3 has keywords, auto-set palette to 'custom' as default but still show step 4
+    if (step === 3 && hasInspoInput && !palette) {
       setPalette('custom');
-      setStep(7);
-      return;
     }
     if (step < totalSteps) setStep(step + 1);
   };
   const handleBack = () => {
     setShowValidation(false);
-    // If at places (step 7) and we skipped color via inspiration/keywords, go back to step 5
-    if (step === 7 && hasInspoInput) {
-      setStep(5);
-      return;
-    }
     if (step > 1) setStep(step - 1);
-  };
-
-  const togglePlace = (id: string) => {
-    setFavPlaces(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
   };
 
   const buildVibeString = () => {
@@ -577,17 +549,6 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const paletteInfo = selectedPalette && palette !== 'custom'
       ? `MANDATORY COLOR PALETTE — the couple chose "${selectedPalette.name}". You MUST use these exact hex colors as the basis for the design: ${selectedPalette.colors.join(', ')}. Do NOT substitute muted or desaturated alternatives. These colors are required.`
       : 'Let the AI choose colors that match the overall vibe.';
-
-    const placeVibes = favPlaces.map(id => {
-      const p = PLACES.find(pl => pl.id === id);
-      return p ? p.vibe : id;
-    });
-    // Merge chip selections + custom place into one unified place line (avoid double-counting)
-    const allPlaces = [...placeVibes];
-    if (customPlace.trim()) allPlaces.push(customPlace.trim());
-    const placeString = allPlaces.length > 0
-      ? `Place aesthetics and settings: ${allPlaces.join('; ')}.`
-      : '';
 
     // Occasion-specific context
     let occasionContext = '';
@@ -631,7 +592,6 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
         : '',
       `Core Vibe: ${selectedMoodLabel}.`,
       paletteInfo,
-      placeString,
       isBirthday
         ? `What makes ${name1.trim()} special: ${meetCute}.`
         : `How they met: ${meetCute}.`,
@@ -1370,14 +1330,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const STEP_NAMES: Record<number, string> = {
     1: 'Occasion',
     2: 'Names',
-    3: 'Vibe',
-    4: 'Layout',
-    5: 'Aesthetic',
-    6: 'Color Palette',
-    7: 'Places',
-    8: 'Your Story',
-    9: 'Final Details',
-    10: 'Event Details',
+    3: 'Your Vibe',
+    4: 'Colors & Style',
+    5: 'Your Story',
+    6: 'Final Details',
+    7: 'Event Details',
   };
 
   return (
@@ -1662,6 +1619,157 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                 );
               })}
             </div>
+
+            {/* ── Make it yours (optional) — inspiration keywords/URLs ── */}
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '2rem', marginTop: '2.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>✨</span>
+                <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem', margin: 0 }}>Make it yours</h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
+              </div>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                Tell the AI what to channel — sports teams, films, cities, artists, anything with a visual world.
+              </p>
+
+              {/* Keyword tag input */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                {inspoKeywords.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    {inspoKeywords.map(kw => (
+                      <span key={kw} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        padding: '0.35rem 0.85rem', borderRadius: '100px',
+                        background: 'var(--eg-accent)', color: '#fff',
+                        fontSize: '0.88rem', fontWeight: 600,
+                      }}>
+                        {kw}
+                        <button
+                          type="button"
+                          onClick={() => setInspoKeywords(prev => prev.filter(k => k !== kw))}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', padding: 0, lineHeight: 1, fontSize: '1rem' }}
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    value={inspoKeywordInput}
+                    placeholder="e.g. Knicks, Coco, Art Deco, Paris..."
+                    onChange={e => setInspoKeywordInput(e.target.value)}
+                    onKeyDown={e => {
+                      if ((e.key === 'Enter' || e.key === ',') && inspoKeywordInput.trim()) {
+                        e.preventDefault();
+                        const val = inspoKeywordInput.trim().replace(/,$/, '');
+                        if (val && !inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                        setInspoKeywordInput('');
+                      }
+                    }}
+                    style={{ ...inputStyle, flex: 1 }}
+                    onFocus={getFocusStyle}
+                    onBlur={e => {
+                      getBlurStyle(e);
+                      if (inspoKeywordInput.trim()) {
+                        const val = inspoKeywordInput.trim();
+                        if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                        setInspoKeywordInput('');
+                      }
+                    }}
+                  />
+                  {inspoKeywordInput.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = inspoKeywordInput.trim();
+                        if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
+                        setInspoKeywordInput('');
+                      }}
+                      style={{ ...btnPrimaryStyle, padding: '0.65rem 1.25rem', fontSize: '0.875rem' }}
+                    >Add</button>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick-pick suggestions */}
+              <div style={{ marginBottom: '2rem' }}>
+                <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.6rem' }}>Quick picks</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {INSPO_SUGGESTIONS.filter(s => !inspoKeywords.includes(s.label)).map(s => (
+                    <button
+                      key={s.label}
+                      type="button"
+                      onClick={() => setInspoKeywords(prev => [...prev, s.label])}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                        padding: '0.35rem 0.85rem', borderRadius: '100px',
+                        background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)',
+                        color: 'var(--eg-fg)', fontSize: '0.84rem', cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(163,177,138,0.15)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--eg-accent)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.04)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}
+                    >
+                      <span>{s.emoji}</span> {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Image URL section (secondary) */}
+              <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '1.5rem', marginBottom: '0.5rem' }}>
+                <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>
+                  Or paste direct image URLs <span style={{ fontWeight: 400 }}>(Pinterest, Imgur — ends in .jpg/.png)</span>
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  {(inspirationUrls.length === 0 ? [''] : inspirationUrls).map((url, idx) => {
+                    const isDirectImage = /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(url);
+                    const isKnownCdn = /(?:^|\.)(?:i\.imgur\.com|cdn\.discordapp\.com|images\.unsplash\.com|imagedelivery\.net|cloudinary\.com|res\.cloudinary\.com|live\.staticflickr\.com)(?:\/|$)/i.test(url);
+                    const isValid = /^https?:\/\/.+/.test(url.trim());
+                    const warnNotDirectImage = isValid && !isDirectImage && !isKnownCdn;
+                    return (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {isDirectImage && isValid && (
+                            <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(214,198,168,0.2)' }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={url} alt="inspiration preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                            </div>
+                          )}
+                          <input
+                            type="url"
+                            value={url}
+                            placeholder="https://i.pinimg.com/..."
+                            onChange={e => {
+                              const next = [...(inspirationUrls.length === 0 ? [''] : inspirationUrls)];
+                              next[idx] = e.target.value;
+                              setInspirationUrls(next.filter((u, i) => i === 0 || u.trim()));
+                            }}
+                            style={{ ...inputStyle, flex: 1, fontSize: '0.85rem', borderColor: url.trim() && !isValid ? '#ef4444' : 'rgba(0,0,0,0.12)' }}
+                            onFocus={getFocusStyle}
+                            onBlur={getBlurStyle}
+                          />
+                          {idx > 0 && (
+                            <button type="button" onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: '0.25rem', flexShrink: 0 }}>✕</button>
+                          )}
+                        </div>
+                        {warnNotDirectImage && (
+                          <p style={{ fontSize: '0.76rem', color: '#f59e0b', margin: 0, paddingLeft: '0.25rem' }}>
+                            ⚠ Paste a direct image URL (ending in .jpg / .png) for best results
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {inspirationUrls.length < 4 && (
+                  <button type="button" onClick={() => setInspirationUrls(prev => [...(prev.length === 0 ? [''] : prev), ''])} style={{ background: 'none', border: '1px dashed rgba(163,177,138,0.45)', borderRadius: '0.5rem', padding: '0.4rem 0.9rem', color: 'var(--eg-accent)', cursor: 'pointer', fontSize: '0.84rem', fontWeight: 600 }}>
+                    + Add image URL
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
               <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
               <button onClick={handleNext} disabled={!canProceedStep3} style={{ ...btnPrimaryStyle, opacity: canProceedStep3 ? 1 : 0.5, pointerEvents: canProceedStep3 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
@@ -1669,7 +1777,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </motion.div>
         )}
 
-        {/* ── STEP 4: TIMELINE FORMAT (new) ── */}
+        {/* ── STEP 4: COLORS & STYLE (merged palette + layout) ── */}
         {step === 4 && (
           <motion.div key="s4-format" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>

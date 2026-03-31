@@ -42,7 +42,7 @@ export async function critiqueAndRefineChapters(
 
   const prompt = `You are a world-class story editor reviewing chapters for ${namesCtx}'s ${occ} website on Pearloom.
 
-Their vibe: "${vibeString.slice(0, 300)}"
+Their vibe: "${vibeString.slice(0, 500)}"
 ${notesSection}
 CHAPTERS TO REVIEW:
 ${chapterList}
@@ -73,7 +73,7 @@ Return ONLY valid JSON (no markdown):
 REWRITE RULES (apply only when score < 7):
 - Preserve the date, mood, location metadata — only rewrite the prose
 - Must use "We" / "us" / "our" throughout
-- Must weave specific details from: "${vibeString.slice(0, 200)}"
+- Must weave specific details from: "${vibeString.slice(0, 500)}"
 - BANNED WORDS: journey, adventure, soulmate, fairy tale, magical, beautiful memories, new chapter, story of us, chapter of our lives
 - Each rewritten description must feel like it could ONLY be THIS couple's site`;
 
@@ -169,7 +169,9 @@ export async function generatePoetryPass(
 
   // Pull a few chapter titles to give Gemini narrative context
   const chapterTitles = chapters.slice(0, 5).map(c => `"${c.title}"`).join(', ');
-  const chapterDescSample = chapters[0]?.description?.slice(0, 150) || '';
+  const chapterContext = chapters.slice(0, 8).map(c =>
+    `"${c.title}": ${c.description?.slice(0, 300) || ''}`
+  ).join('\n');
 
   const occasionSectionLabels: Record<string, string> = {
     wedding:     'Our Story, The Ceremony, The Celebration, Our Registry, Getting There, Good to Know',
@@ -210,7 +212,8 @@ export async function generatePoetryPass(
   const poetryPrompt = `You are a gifted copywriter and poet writing for ${namesCtx}'s ${occCap} website on Pearloom.
 Their vibe: "${vibeString}"
 Story chapters: ${chapterTitles || 'the beginning of their love'}
-Sample chapter prose: "${chapterDescSample}"
+Chapter summaries:
+${chapterContext}
 
 This is a ${occCap} site — every piece of writing must reflect THIS specific occasion and THIS specific person/couple.
 
@@ -255,7 +258,7 @@ Return ONLY valid JSON (no markdown, no backticks):
         generationConfig: {
           responseMimeType: 'application/json',
           temperature: 1.0,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
         },
       }),
     }
@@ -352,7 +355,7 @@ If ANY score below 7, return ONLY the fields that need improvement:
 Return ONLY valid JSON. No markdown. No backticks.`;
 
   // Pass 3 uses Flash — analytical judgment, not creative output
-  const res = await fetch(
+  const res = await geminiRetryFetch(
     `${GEMINI_FLASH}?key=${apiKey}`,
     {
       method: 'POST',
