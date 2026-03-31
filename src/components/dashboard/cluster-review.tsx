@@ -38,7 +38,10 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
   const [geocoding, setGeocoding] = useState<number | null>(null);
   const [draftNotes, setDraftNotes] = useState<Record<number, string>>({});
   const [aiSuggesting, setAiSuggesting] = useState<number | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<Record<number, { location: string; confidence: string; reason: string }>>({});
+  const [aiSuggestions, setAiSuggestions] = useState<Record<number, { location: string; confidence: string; reason: string; suggestedTitle?: string }>>({});
+  const [storyAdvice, setStoryAdvice] = useState<{ arcQuality: string; arcSummary: string; strengths: string[]; suggestions: string[] } | null>(null);
+  const [storyAdviceLoading, setStoryAdviceLoading] = useState(false);
+  const [storyAdviceDismissed, setStoryAdviceDismissed] = useState(false);
 
   useEffect(() => {
     // Cluster the photos whenever the photo set changes
@@ -46,6 +49,28 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
     const built = clusterPhotos(photos, 2);
     setClusters(built);
   }, [photos]);
+
+  // Auto-fetch story arc advice when clusters are ready
+  useEffect(() => {
+    if (clusters.length >= 2 && !storyAdvice && !storyAdviceLoading && !storyAdviceDismissed) {
+      setStoryAdviceLoading(true);
+      fetch('/api/story-advisor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clusters: clusters.map(c => ({
+            startDate: c.startDate, endDate: c.endDate,
+            location: c.location, note: c.note,
+            photos: c.photos.map(p => ({ filename: p.filename, creationTime: p.creationTime })),
+          })),
+        }),
+      })
+        .then(r => r.json())
+        .then(data => { if (data.arcQuality) setStoryAdvice(data); })
+        .catch(() => {})
+        .finally(() => setStoryAdviceLoading(false));
+    }
+  }, [clusters.length >= 2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setClusterNote = (idx: number, note: string) => {
     setClusters(prev => prev.map((c, i) => i === idx ? { ...c, note } : c));
@@ -197,6 +222,10 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
     // Set the label, then geocode to get coords
     setClusterLabel(idx, suggestion.location);
     handleGeocodeFromText(idx, suggestion.location);
+    // Also set the suggested title as the cluster note if available
+    if (suggestion.suggestedTitle && !clusters[idx]?.note) {
+      setClusterNote(idx, suggestion.suggestedTitle);
+    }
     setAiSuggestions(prev => { const next = { ...prev }; delete next[idx]; return next; });
   };
 
@@ -364,6 +393,11 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                                   <span style={{ fontSize: text.xs, color: C.muted, fontWeight: 400, marginLeft: '0.35rem' }}>
                                     ({aiSuggestions[idx].confidence})
                                   </span>
+                                  {aiSuggestions[idx].suggestedTitle && (
+                                    <span style={{ display: 'block', fontSize: text.xs, color: C.olive, fontWeight: 500, marginTop: '0.15rem', fontStyle: 'italic' }}>
+                                      &ldquo;{aiSuggestions[idx].suggestedTitle}&rdquo;
+                                    </span>
+                                  )}
                                 </span>
                                 <button
                                   onClick={() => acceptSuggestion(idx)}
@@ -524,6 +558,40 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
           );
         })}
       </div>
+
+      {/* Story Arc Advisor */}
+      {storyAdvice && !storyAdviceDismissed && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            marginBottom: '1.5rem', padding: '1.25rem 1.5rem',
+            background: storyAdvice.arcQuality === 'strong' ? `${C.olive}0D` : '#FFF',
+            borderRadius: card.radius,
+            border: `1px solid ${storyAdvice.arcQuality === 'strong' ? `${C.olive}33` : 'rgba(0,0,0,0.06)'}`,
+            boxShadow: card.shadow,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <Sparkles size={14} color={C.olive} />
+              <span style={{ fontSize: text.sm, fontWeight: 700, color: C.olive, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Story Arc: {storyAdvice.arcQuality === 'strong' ? 'Excellent' : storyAdvice.arcQuality === 'good' ? 'Good' : 'Could be stronger'}
+              </span>
+            </div>
+            <button
+              onClick={() => setStoryAdviceDismissed(true)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: text.xs, flexShrink: 0 }}
+            >Dismiss</button>
+          </div>
+          <p style={{ fontSize: text.base, color: C.ink, marginBottom: '0.5rem', lineHeight: 1.5 }}>{storyAdvice.arcSummary}</p>
+          {storyAdvice.suggestions.length > 0 && (
+            <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: text.sm, color: C.muted, lineHeight: 1.6 }}>
+              {storyAdvice.suggestions.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          )}
+        </motion.div>
+      )}
 
       {/* Action buttons */}
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

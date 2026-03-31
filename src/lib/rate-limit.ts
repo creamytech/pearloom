@@ -91,4 +91,8 @@ export const RATE_LIMITS = {
   rsvp: { max: 10, windowMs: 60 * 1000 },
   /** Guestbook — 5 per minute per IP */
   guestbook: { max: 5, windowMs: 60 * 1000 },
+  /** AI rewrite — 30 per hour per user */
+  aiRewrite: { max: 30, windowMs: 60 * 60 * 1000 },
+  /** Site health analysis — 10 per hour per user */
+  siteHealth: { max: 10, windowMs: 60 * 60 * 1000 },
 } as const;

@@ -60,11 +60,13 @@ Based on the photo metadata below, suggest the most likely location where these 
 Photo metadata:
 ${photoSummary}
 
+Also suggest a warm, evocative title for this group of photos (3-5 words, like "Beach Sunset Picnic" or "Rooftop Date Night").
+
 Respond with ONLY a JSON object in this exact format:
-{"location": "City, Country", "confidence": "high"|"medium"|"low", "reason": "brief explanation"}
+{"location": "City, Country", "confidence": "high"|"medium"|"low", "reason": "brief explanation", "suggestedTitle": "Evocative 3-5 word title"}
 
 If you truly cannot determine a location from the metadata, respond with:
-{"location": "", "confidence": "low", "reason": "insufficient metadata"}`;
+{"location": "", "confidence": "low", "reason": "insufficient metadata", "suggestedTitle": "Beautiful Memories"}`;
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -97,6 +99,7 @@ If you truly cannot determine a location from the metadata, respond with:
         location: parsed.location || '',
         confidence: parsed.confidence || 'low',
         reason: parsed.reason || '',
+        suggestedTitle: parsed.suggestedTitle || '',
       });
     } catch {
       return NextResponse.json({ location: '', confidence: 'low', reason: 'Failed to parse AI response' });

@@ -64,6 +64,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -113,6 +114,12 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
       // Simulate typing delay for realism
       await new Promise((r) => setTimeout(r, 600 + Math.random() * 800));
       setMessages((prev) => [...prev, { role: 'couple', text: data.answer }]);
+      // Set suggestions from API (only on first message)
+      if (data.suggestions && suggestions.length === 0) {
+        setSuggestions(data.suggestions);
+      } else if (suggestions.length > 0) {
+        setSuggestions([]); // clear after first interaction
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -288,6 +295,69 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
 
               <div ref={bottomRef} />
             </div>
+
+            {/* Suggested question chips */}
+            {suggestions.length > 0 && !typing && (
+              <div
+                style={{
+                  padding: '0.5rem 1rem 0',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.4rem',
+                }}
+              >
+                {suggestions.map((s, i) => (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.08 }}
+                    onClick={() => {
+                      setInput(s);
+                      setSuggestions([]);
+                      // Auto-send after a tick
+                      setTimeout(() => {
+                        const userMsg: Message = { role: 'user', text: s };
+                        setMessages((prev) => [...prev, userMsg]);
+                        setTyping(true);
+                        setInput('');
+                        fetch('/api/ask-couple', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ siteId, question: s, history: messages.map((m) => ({ role: m.role, text: m.text })) }),
+                        })
+                          .then(r => r.json())
+                          .then(async (data) => {
+                            await new Promise((r) => setTimeout(r, 600 + Math.random() * 800));
+                            setMessages((prev) => [...prev, { role: 'couple', text: data.answer }]);
+                          })
+                          .catch(() => {
+                            setMessages((prev) => [...prev, { role: 'couple', text: "We'll catch up at the wedding!" }]);
+                          })
+                          .finally(() => setTyping(false));
+                      }, 50);
+                    }}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '100px',
+                      border: '1.5px solid rgba(0,0,0,0.08)',
+                      background: 'var(--eg-bg)',
+                      fontSize: '0.78rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      color: 'var(--eg-fg)',
+                      fontFamily: 'var(--eg-font-body)',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                    whileHover={{ scale: 1.03, borderColor: 'var(--eg-accent)' }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {s}
+                  </motion.button>
+                ))}
+              </div>
+            )}
 
             {/* Pill-shaped input bar */}
             <div
