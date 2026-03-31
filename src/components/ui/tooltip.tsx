@@ -44,7 +44,7 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
             transition={{ duration: 0.15 }}
             className={cn(
               'absolute left-1/2 -translate-x-1/2 z-50 pointer-events-none',
-              'bg-[var(--eg-fg)] text-white text-[0.75rem] font-medium',
+              'bg-[var(--eg-fg)] text-white text-[0.78rem] font-medium',
               'px-2.5 py-1.5 rounded-lg whitespace-nowrap',
               'shadow-[0_4px_16px_rgba(0,0,0,0.2)]',
               side === 'top' && 'bottom-[calc(100%+6px)]',

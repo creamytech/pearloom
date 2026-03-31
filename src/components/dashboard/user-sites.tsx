@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
+import { text } from '@/lib/design-tokens';
 
 import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 
@@ -225,7 +226,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
   // ── Render ──────────────────────────────────────────────────
   return (
-    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+    <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '0 clamp(1rem, 3vw, 2rem)' }}>
 
       {/* ── Welcome header ── */}
       <motion.div
@@ -281,12 +282,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
 
       {/* ── Loading ── */}
       {loading ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '1.5rem',
-        }}
+        <div
           className="site-card-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gap: '1.5rem',
+          }}
         >
           {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
@@ -495,7 +497,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         WebkitBackdropFilter: 'blur(10px)',
                         borderRadius: '100px', padding: '0.3rem 0.8rem',
                         border: '1px solid rgba(255,255,255,0.22)',
-                        fontSize: '0.68rem', fontWeight: 700, color: '#fff',
+                        fontSize: text.xs, fontWeight: 700, color: '#fff',
                         letterSpacing: '0.06em',
                         display: 'flex', alignItems: 'center', gap: '0.4rem',
                       }}>
@@ -516,12 +518,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                               boxShadow: '0 0 0 0 rgba(34,197,94,0.4)',
                               animation: 'livePulse 2s ease-out infinite',
                             }} />
-                            <span style={{ fontSize: '0.62rem', color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
+                            <span style={{ fontSize: text.xs, color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
                           </>
                         ) : (
                           <>
                             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }} />
-                            <span style={{ fontSize: '0.62rem', color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
+                            <span style={{ fontSize: text.xs, color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
                           </>
                         )}
                       </div>
@@ -539,7 +541,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         </div>
                         {weddingDate && (
                           <div style={{
-                            fontSize: '0.68rem', color: 'rgba(255,255,255,0.75)',
+                            fontSize: text.xs, color: 'rgba(255,255,255,0.75)',
                             marginTop: '0.35rem', letterSpacing: '0.12em',
                             textTransform: 'uppercase', fontWeight: 600,
                             textShadow: '0 1px 8px rgba(0,0,0,0.5)',
@@ -559,7 +561,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {occ && (
                             <span style={{
-                              fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.09em',
+                              fontSize: text.xs, fontWeight: 700, letterSpacing: '0.09em',
                               textTransform: 'uppercase', padding: '0.2rem 0.6rem',
                               borderRadius: '100px', color: occ.color, background: occ.bg,
                             }}>
@@ -567,7 +569,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             </span>
                           )}
                           <code style={{
-                            fontSize: '0.7rem', background: 'rgba(0,0,0,0.04)',
+                            fontSize: text.xs, background: 'rgba(0,0,0,0.04)',
                             padding: '0.2rem 0.55rem', borderRadius: '0.4rem',
                             color: 'var(--eg-muted)', letterSpacing: '0.01em',
                             fontFamily: 'ui-monospace, monospace',
@@ -576,7 +578,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             {site.domain}.pearloom.com
                           </code>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--eg-muted)', fontSize: '0.7rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--eg-muted)', fontSize: text.xs }}>
                           <Calendar size={11} />
                           <span>{formattedDate}</span>
                         </div>
@@ -585,7 +587,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       {/* Analytics */}
                       {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
                         <div style={{
-                          fontSize: '0.7rem', color: 'rgba(0,0,0,0.4)',
+                          fontSize: text.xs, color: 'rgba(0,0,0,0.4)',
                           display: 'flex', alignItems: 'center', gap: '0.3rem',
                           marginTop: '0.25rem',
                         }}>
@@ -648,7 +650,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
                             background: 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
                             color: '#fff', border: 'none', cursor: 'pointer',
-                            fontWeight: 600, fontSize: '0.78rem', letterSpacing: '0.04em',
+                            fontWeight: 600, fontSize: text.sm, letterSpacing: '0.04em',
                             fontFamily: 'var(--eg-font-body)',
                             boxShadow: '0 4px 14px rgba(163,177,138,0.35)',
                             transition: 'opacity 0.2s, box-shadow 0.2s',
@@ -671,7 +673,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                             background: isCopied ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.08)',
                             color: isCopied ? 'var(--eg-accent, #A3B18A)' : 'var(--eg-accent)',
                             border: isCopied ? '1px solid rgba(163,177,138,0.3)' : '1px solid rgba(163,177,138,0.2)',
-                            cursor: 'pointer', fontWeight: 600, fontSize: '0.78rem',
+                            cursor: 'pointer', fontWeight: 600, fontSize: text.sm,
                             fontFamily: 'var(--eg-font-body)',
                             transition: 'all 0.25s',
                           }}
@@ -684,6 +686,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         <button
                           onClick={(e) => { e.stopPropagation(); onManageGuests(site); }}
                           title="Manage Guests"
+                          aria-label="Manage guests"
                           style={{
                             flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
                             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
@@ -710,6 +713,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           target="_blank"
                           rel="noreferrer"
                           title="View Live Site"
+                          aria-label="View live site"
                           onClick={(e) => e.stopPropagation()}
                           style={{
                             flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
@@ -737,6 +741,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           onClick={(e) => { e.stopPropagation(); setConfirmDelete(site); }}
                           disabled={isDeleting}
                           title="Delete site"
+                          aria-label="Delete site"
                           style={{
                             flex: '1 1 auto', minWidth: '70px', height: '38px', borderRadius: '0.75rem',
                             border: '1px solid rgba(185,28,28,0.2)',
@@ -801,10 +806,10 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 <Plus size={22} color="var(--eg-accent)" />
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontWeight: 700, color: 'var(--eg-accent)', fontSize: '0.9rem', marginBottom: '0.35rem' }}>
+                <div style={{ fontWeight: 700, color: 'var(--eg-accent)', fontSize: text.md, marginBottom: '0.35rem' }}>
                   Start a new site
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', maxWidth: '150px', lineHeight: 1.55 }}>
+                <div style={{ fontSize: text.base, color: 'var(--eg-muted)', maxWidth: '150px', lineHeight: 1.55 }}>
                   Build a new love story in 90 seconds
                 </div>
               </div>

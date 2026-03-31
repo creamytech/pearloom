@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,16 @@ function getSupabase() {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit by IP — prevent RSVP spam
+  const ip = getClientIp(req);
+  const rateCheck = checkRateLimit(`sites-rsvp:${ip}`, RATE_LIMITS.rsvp);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Too many submissions. Please wait a moment and try again.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const { siteId, name, email, attending, dietary } = await req.json();
 

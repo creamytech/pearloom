@@ -109,14 +109,19 @@ export async function POST(req: NextRequest) {
     if (!image) {
       return NextResponse.json({ error: 'No image file provided' }, { status: 400 });
     }
-    if (!image.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'Only image files are allowed' }, { status: 400 });
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!ALLOWED_MIME_TYPES.includes(image.type)) {
+      return NextResponse.json({ error: 'Only jpeg, png, webp, and gif images are allowed' }, { status: 400 });
     }
     if (image.size > MAX_SIZE_MB * 1024 * 1024) {
       return NextResponse.json({ error: `File too large (max ${MAX_SIZE_MB}MB)` }, { status: 413 });
     }
 
+    const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
     const ext = image.name.split('.').pop()?.toLowerCase() || 'jpg';
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return NextResponse.json({ error: 'Invalid file extension' }, { status: 400 });
+    }
     const uid = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const storagePath = `${siteId}/${uid}.${ext}`;
 

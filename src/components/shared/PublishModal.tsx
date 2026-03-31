@@ -209,7 +209,7 @@ export function PublishModal({
           <p className="text-[var(--eg-muted)] mb-1">
             We&apos;ve pre-filled a unique URL — customize it below.
           </p>
-          <p className="text-[var(--eg-muted)] text-[0.8rem] mb-8 opacity-70">
+          <p className="text-[var(--eg-muted)] text-[0.78rem] mb-8 opacity-70">
             You can upgrade to a full custom domain later.
           </p>
 

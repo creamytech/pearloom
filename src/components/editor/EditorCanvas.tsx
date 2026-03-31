@@ -6,8 +6,61 @@
 // Redesigned: dot-grid bg, device chrome bezels, increased split scale
 // ─────────────────────────────────────────────────────────────
 
+import { motion } from 'framer-motion';
 import { PreviewPane } from './PreviewPane';
 import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
+
+// ── Skeleton Loading Screen ──────────────────────────────────
+const skeletonBg = 'rgba(214,198,168,0.08)';
+const skeletonShimmer = 'linear-gradient(90deg, rgba(214,198,168,0.08) 0%, rgba(214,198,168,0.15) 50%, rgba(214,198,168,0.08) 100%)';
+const skeletonBarStyle = (width: string, height: string, delay: number): React.CSSProperties => ({
+  width, height, borderRadius: '6px',
+  background: skeletonShimmer,
+  backgroundSize: '200% 100%',
+  animation: `shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite ${delay}s`,
+});
+
+function SkeletonLoading({ slow }: { slow: boolean }) {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+      background: '#1a1916', pointerEvents: 'none', zIndex: 1, padding: '2rem',
+      gap: '1.25rem',
+    }}>
+      {/* Header bar skeleton */}
+      <div style={skeletonBarStyle('60%', '18px', 0)} />
+
+      {/* Hero image placeholder */}
+      <div style={{
+        width: '100%', height: '200px', borderRadius: '8px',
+        background: skeletonShimmer, backgroundSize: '200% 100%',
+        animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.15s',
+      }} />
+
+      {/* Content line skeletons */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={skeletonBarStyle('90%', '12px', 0.25)} />
+        <div style={skeletonBarStyle('75%', '12px', 0.35)} />
+        <div style={skeletonBarStyle('60%', '12px', 0.45)} />
+      </div>
+
+      {/* Status text */}
+      <div style={{
+        marginTop: 'auto', textAlign: 'center',
+        color: 'rgba(214,198,168,0.35)', fontSize: '0.8rem',
+      }}>
+        {slow ? 'Taking longer than usual\u2026 still loading' : 'Loading preview\u2026'}
+      </div>
+
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 // ── Device Chrome Bezel ───────────────────────────────────────
 function DeviceBezel() {
@@ -75,31 +128,28 @@ export function EditorCanvas() {
       padding: isMobile ? '0' : device === 'desktop' ? '0' : '2rem 2rem 4rem',
       paddingBottom: isMobile ? 'calc(56px + env(safe-area-inset-bottom, 0px))' : undefined,
     }}>
-      <div style={{
-        width: isMobile ? '100%' : DEVICE_DIMS[device].width,
-        height: previewZoom !== 1 && !isMobile ? `${100 / previewZoom}%` : '100%',
-        flexShrink: 0,
-        position: 'relative',
-        display: 'flex', flexDirection: 'column',
-        boxShadow: showDeviceChrome ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
-        borderRadius: showDeviceChrome ? '12px' : 0,
-        overflow: 'hidden',
-        border: showDeviceChrome ? '1px solid rgba(255,255,255,0.08)' : 'none',
-        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-        transform: previewZoom !== 1 && !isMobile ? `scale(${previewZoom})` : undefined,
-        transformOrigin: 'top center',
-      }}>
+      <motion.div
+        layout
+        layoutId="editor-preview"
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        style={{
+          width: isMobile ? '100%' : DEVICE_DIMS[device].width,
+          height: previewZoom !== 1 && !isMobile ? `${100 / previewZoom}%` : '100%',
+          flexShrink: 0,
+          position: 'relative',
+          display: 'flex', flexDirection: 'column',
+          boxShadow: showDeviceChrome ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
+          borderRadius: showDeviceChrome ? '12px' : 0,
+          overflow: 'hidden',
+          border: showDeviceChrome ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          transform: previewZoom !== 1 && !isMobile ? `scale(${previewZoom})` : undefined,
+          transformOrigin: 'top center',
+        }}
+      >
         {/* Device chrome bezel for tablet/mobile frames */}
         {showDeviceChrome && <DeviceBezel />}
 
-        {!iframeReady && (
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: '#1a1916', color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', pointerEvents: 'none',
-          }}>
-            {previewSlow ? 'Taking longer than usual… still loading' : 'Loading preview…'}
-          </div>
-        )}
+        {!iframeReady && <SkeletonLoading slow={previewSlow} />}
         <iframe
           ref={iframeRef}
           src={`/preview?key=${previewKey}`}
@@ -117,7 +167,7 @@ export function EditorCanvas() {
             } catch {}
           }}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }

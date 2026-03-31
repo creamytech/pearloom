@@ -18,17 +18,10 @@ import {
   Wind,
 } from 'lucide-react';
 import { C } from './colors';
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-      style={{ background: 'rgba(109,89,122,0.25)', border: '1px solid rgba(109,89,122,0.4)', color: '#B9A4C7' }}
-    >
-      {children}
-    </span>
-  );
-}
+import { text } from '@/lib/design-tokens';
+import { Pill } from '@/components/ui/Pill';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { IconCircle } from '@/components/ui/IconCircle';
 
 /* ── 7-Pass Engine Visualization ── */
 const PASSES = [
@@ -54,7 +47,7 @@ function LoomEngine() {
         >
           Your photos tell a story. The Loom reads it.
         </h3>
-        <p className="text-[0.9rem] max-w-[480px] mx-auto" style={{ color: 'rgba(245,241,232,0.55)', lineHeight: 1.75 }}>
+        <p className="max-w-[480px] mx-auto" style={{ fontSize: text.base, color: 'rgba(245,241,232,0.55)', lineHeight: 1.75 }}>
           Seven passes. Every photo analyzed for faces, scenes, emotions, and narrative connections.
           The result: a story only you could tell.
         </p>
@@ -83,26 +76,19 @@ function LoomEngine() {
                 className="flex items-start gap-4 pl-1"
               >
                 {/* Node */}
-                <div
-                  className="w-[46px] h-[46px] rounded-full flex items-center justify-center flex-shrink-0 relative z-10"
-                  style={{
-                    background: `${pass.color}12`,
-                    border: `2px solid ${pass.color}35`,
-                    boxShadow: `0 0 16px ${pass.color}25`,
-                  }}
-                >
-                  <Icon size={18} style={{ color: pass.color }} />
+                <div className="relative z-10" style={{ border: `2px solid ${pass.color}35`, borderRadius: '50%', boxShadow: `0 0 16px ${pass.color}25` }}>
+                  <IconCircle icon={Icon} accent={pass.color} size={46} iconSize={18} />
                 </div>
 
                 {/* Content */}
                 <div className="pt-2">
                   <div
-                    className="text-[0.68rem] font-bold tracking-[0.12em] uppercase mb-0.5"
-                    style={{ color: pass.color }}
+                    className="font-bold tracking-[0.12em] uppercase mb-0.5"
+                    style={{ fontSize: text.xs, color: pass.color }}
                   >
                     Pass {i + 1} · {pass.label}
                   </div>
-                  <p className="text-[0.86rem]" style={{ color: 'rgba(245,241,232,0.5)', lineHeight: 1.6 }}>
+                  <p style={{ fontSize: text.base, color: 'rgba(245,241,232,0.5)', lineHeight: 1.6 }}>
                     {pass.desc}
                   </p>
                 </div>
@@ -155,7 +141,7 @@ function RindShowcase() {
         >
           Every pear has a unique skin. So does every celebration.
         </h3>
-        <p className="text-[0.9rem] max-w-[500px] mx-auto" style={{ color: 'rgba(245,241,232,0.55)', lineHeight: 1.75 }}>
+        <p className="max-w-[500px] mx-auto" style={{ fontSize: text.base, color: 'rgba(245,241,232,0.55)', lineHeight: 1.75 }}>
           Your <strong style={{ color: '#F5F1E8' }}>Rind</strong> is the visual layer that wraps your
           entire site — colors, typography, artwork, and atmosphere — all woven by The Loom from
           your personality and vibe keywords.
@@ -176,7 +162,7 @@ function RindShowcase() {
               border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
-            <div className="text-[0.65rem] font-bold tracking-[0.14em] uppercase mb-3" style={{ color: 'rgba(245,241,232,0.5)' }}>
+            <div className="font-bold tracking-[0.14em] uppercase mb-3" style={{ fontSize: text.xs, color: 'rgba(245,241,232,0.5)' }}>
               {r.name}
             </div>
             {/* Color swatches */}
@@ -189,7 +175,7 @@ function RindShowcase() {
                 />
               ))}
             </div>
-            <div className="text-[0.72rem] italic" style={{ color: 'rgba(245,241,232,0.45)', fontFamily: r.font }}>
+            <div className="italic" style={{ fontSize: text.sm, color: 'rgba(245,241,232,0.45)', fontFamily: r.font }}>
               {r.font}
             </div>
           </motion.div>
@@ -197,7 +183,7 @@ function RindShowcase() {
       </div>
 
       {/* Rind features */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 max-w-[700px] mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-[700px] mx-auto">
         {RIND_FEATURES.map((f, i) => {
           const Icon = f.icon;
           return (
@@ -214,10 +200,10 @@ function RindShowcase() {
               >
                 <Icon size={16} style={{ color: C.plum }} />
               </div>
-              <div className="text-[0.7rem] font-semibold" style={{ color: '#F5F1E8' }}>
+              <div className="font-semibold" style={{ fontSize: text.xs, color: '#F5F1E8' }}>
                 {f.label}
               </div>
-              <div className="text-[0.62rem]" style={{ color: 'rgba(245,241,232,0.45)', lineHeight: 1.5 }}>
+              <div style={{ fontSize: text.xs, color: 'rgba(245,241,232,0.45)', lineHeight: 1.5 }}>
                 {f.desc}
               </div>
             </motion.div>
@@ -252,7 +238,7 @@ function EventDNA() {
         >
           Event DNA Illustrations
         </h3>
-        <p className="text-[0.92rem] mb-6" style={{ color: 'rgba(245,241,232,0.55)', lineHeight: 1.75 }}>
+        <p className="mb-6" style={{ fontSize: text.md, color: 'rgba(245,241,232,0.55)', lineHeight: 1.75 }}>
           Mention cats, mountains, or your favourite song — and your site&rsquo;s artwork will
           reference them. The Loom extracts the details that make your celebration yours and weaves
           them into bespoke illustrations.
@@ -264,8 +250,9 @@ function EventDNA() {
             tag => (
               <span
                 key={tag}
-                className="px-3 py-1 rounded-full text-[0.7rem] font-medium"
+                className="px-3 py-1 rounded-full font-medium"
                 style={{
+                  fontSize: text.xs,
                   background: 'rgba(163,177,138,0.15)',
                   color: '#B5C9A0',
                   border: '1px solid rgba(163,177,138,0.3)',
@@ -276,7 +263,7 @@ function EventDNA() {
             ),
           )}
         </div>
-        <p className="text-[0.72rem] mt-4 italic" style={{ color: 'rgba(245,241,232,0.4)' }}>
+        <p className="mt-4 italic" style={{ fontSize: text.sm, color: 'rgba(245,241,232,0.4)' }}>
           Each tag becomes a thread in your site&rsquo;s visual tapestry.
         </p>
       </motion.div>
@@ -295,42 +282,18 @@ export function TheLoomShowcase() {
       id="the-loom"
       style={{
         background: 'linear-gradient(180deg, #1E1B24 0%, #2A2233 50%, #1E1B24 100%)',
-        padding: '7rem 1.5rem',
+        padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
       }}
     >
       <div className="max-w-[960px] mx-auto">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            className="mb-4"
-          >
-            <Pill>
-              <Sparkles size={9} strokeWidth={2.5} /> The Loom
-            </Pill>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 18 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight mb-4"
-            style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: '#F5F1E8' }}
-          >
-            Meet The Loom.
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 }}
-            className="text-[0.95rem] max-w-[580px] mx-auto"
-            style={{ color: 'rgba(245,241,232,0.55)', lineHeight: 1.8 }}
-          >
-            Every Pearloom site is woven — not assembled. The Loom reads your photos, understands
-            your vibe, and threads together a site that&rsquo;s unmistakably yours. Weddings,
-            birthdays, reunions — whatever the occasion.
-          </motion.p>
-        </div>
+        <SectionHeader
+          dark
+          pill={{ label: 'The Loom', sparkle: true, variant: 'plum' }}
+          title="Meet The Loom."
+          subtitle={<>Every Pearloom site is woven — not assembled. The Loom reads your photos, understands your vibe, and threads together a site that&rsquo;s unmistakably yours. Weddings, birthdays, reunions — whatever the occasion.</>}
+          inView={inView}
+        />
 
         <LoomEngine />
         <RindShowcase />

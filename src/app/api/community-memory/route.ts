@@ -234,9 +234,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload photo if provided
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
     let photoUrl: string | null = null;
-    if (photo && photo.type.startsWith('image/')) {
+    if (photo && ALLOWED_MIME_TYPES.includes(photo.type)) {
       const ext = photo.name.split('.').pop()?.toLowerCase() || 'jpg';
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        return NextResponse.json({ error: 'Invalid file extension' }, { status: 400 });
+      }
       const uuid = Math.random().toString(36).substring(2, 12);
       const storagePath = `${siteId}/${Date.now()}_${uuid}.${ext}`;
       const arrayBuffer = await photo.arrayBuffer();

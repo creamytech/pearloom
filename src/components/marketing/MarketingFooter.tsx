@@ -1,6 +1,7 @@
 'use client';
 
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
 
 const COLUMNS = [
   {
@@ -37,7 +38,7 @@ export function MarketingFooter() {
     <footer
       style={{
         background: 'linear-gradient(180deg, #3D3530 0%, #322B26 100%)',
-        padding: '4rem 1.5rem 2.5rem',
+        padding: 'clamp(2.5rem,4vw,4rem) 1.25rem 2.5rem',
         borderTop: '1px solid rgba(214,198,168,0.1)',
       }}
     >
@@ -55,18 +56,18 @@ export function MarketingFooter() {
                 Pearloom
               </span>
             </div>
-            <p className="text-[0.78rem] leading-relaxed" style={{ color: 'rgba(245,241,232,0.35)' }}>
+            <p className="leading-relaxed" style={{ fontSize: text.sm, color: 'rgba(245,241,232,0.35)' }}>
               Every moment worth celebrating deserves its own world. Powered by The Loom.
             </p>
           </div>
 
           {/* Link columns */}
-          <div className="flex-1 grid grid-cols-3 gap-6">
+          <div className="flex-1 grid grid-cols-3 gap-4 sm:gap-6">
             {COLUMNS.map(col => (
               <div key={col.title}>
                 <div
-                  className="text-[0.62rem] font-bold tracking-[0.16em] uppercase mb-3"
-                  style={{ color: 'rgba(245,241,232,0.3)' }}
+                  className="font-bold tracking-[0.16em] uppercase mb-3"
+                  style={{ fontSize: text.xs, color: 'rgba(245,241,232,0.3)' }}
                 >
                   {col.title}
                 </div>
@@ -75,8 +76,8 @@ export function MarketingFooter() {
                     <a
                       key={link.label}
                       href={link.href}
-                      className="text-[0.78rem] no-underline transition-colors duration-200 hover:text-[rgba(245,241,232,0.8)]"
-                      style={{ color: 'rgba(245,241,232,0.45)' }}
+                      className="no-underline transition-colors duration-200 hover:text-[rgba(245,241,232,0.8)]"
+                      style={{ fontSize: text.sm, color: 'rgba(245,241,232,0.45)' }}
                     >
                       {link.label}
                     </a>
@@ -92,7 +93,7 @@ export function MarketingFooter() {
 
         {/* Bottom row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[0.68rem]" style={{ color: 'rgba(245,241,232,0.2)', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: text.xs, color: 'rgba(245,241,232,0.2)', letterSpacing: '0.04em' }}>
             &copy; 2026 Pearloom &middot; Crafted with love &amp; intelligence
           </p>
           <div className="flex items-center gap-1.5">

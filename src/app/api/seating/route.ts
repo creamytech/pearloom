@@ -6,6 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import type { SeatingTable, Seat, Guest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -101,6 +103,11 @@ function makeDemoGuests(): Guest[] {
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const siteId = req.nextUrl.searchParams.get('siteId');
     if (!siteId) {
       return NextResponse.json({ error: 'siteId required' }, { status: 400 });
@@ -181,6 +188,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json() as Record<string, unknown>;
     const { action } = body;
 
@@ -301,6 +313,11 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json() as Record<string, unknown>;
     const { id, ...updates } = body as { id: string; x?: number; y?: number; rotation?: number; label?: string; capacity?: number; shape?: string; notes?: string };
 
@@ -339,6 +356,11 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = req.nextUrl.searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 

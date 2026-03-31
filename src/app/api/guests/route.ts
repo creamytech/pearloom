@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +15,11 @@ function getSupabase() {
 // GET /api/guests?siteId=xxx — list all guests for a site
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const siteId = req.nextUrl.searchParams.get('siteId');
     if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
@@ -51,6 +58,11 @@ export async function GET(req: NextRequest) {
 // POST /api/guests — add a guest manually
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { siteId, name, email, plusOne } = body;
 
@@ -95,6 +107,11 @@ export async function POST(req: NextRequest) {
 // DELETE /api/guests?id=xxx — remove a guest
 export async function DELETE(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = req.nextUrl.searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 

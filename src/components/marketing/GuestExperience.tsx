@@ -11,6 +11,9 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { IconCircle } from '@/components/ui/IconCircle';
 
 const FEATURES = [
   {
@@ -59,35 +62,14 @@ export function GuestExperience() {
     <section
       ref={ref}
       id="features"
-      style={{ background: C.cream, padding: '7rem 1.5rem' }}
+      style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
     >
       <div className="max-w-[960px] mx-auto">
-        {/* Header — simple uppercase label instead of Pill */}
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            className="mb-4"
-          >
-            <span
-              className="text-[0.68rem] font-bold tracking-[0.14em] uppercase"
-              style={{ color: C.olive }}
-            >
-              Guest Experience
-            </span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 18 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight mb-3"
-            style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: C.ink }}
-          >
-            Everything your guests need.
-            <br />
-            <span style={{ color: C.plum }}>Nothing they don&rsquo;t.</span>
-          </motion.h2>
-        </div>
+        <SectionHeader
+          eyebrow="Guest Experience"
+          title={<>Everything your guests need.<br /><span style={{ color: C.plum }}>Nothing they don&rsquo;t.</span></>}
+          inView={inView}
+        />
 
         {/* Feature grid — solid cards with accent top border */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -107,16 +89,13 @@ export function GuestExperience() {
                   borderTop: `3px solid ${f.accent}`,
                 }}
               >
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center mb-3.5"
-                  style={{ background: `${f.accent}12` }}
-                >
-                  <Icon size={18} style={{ color: f.accent }} />
+                <div className="mb-3.5">
+                  <IconCircle icon={Icon} accent={f.accent} size={40} iconSize={18} />
                 </div>
-                <h3 className="text-[0.95rem] font-semibold mb-1.5" style={{ color: C.ink }}>
+                <h3 className="font-semibold mb-1.5" style={{ fontSize: text.md, color: C.ink }}>
                   {f.title}
                 </h3>
-                <p className="text-[0.84rem] leading-relaxed" style={{ color: C.muted, lineHeight: 1.7 }}>
+                <p className="leading-relaxed" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.7 }}>
                   {f.desc}
                 </p>
               </motion.div>

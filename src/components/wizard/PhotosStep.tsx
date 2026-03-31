@@ -32,7 +32,7 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
       />
 
       <div className="text-center mt-10">
-        <p className="text-[var(--eg-muted)] text-[0.9rem] mb-4">
+        <p className="text-[var(--eg-muted)] text-[0.95rem] mb-4">
           Google Photos refusing to sync?
         </p>
         <Button variant="secondary" size="md" onClick={onLocalUpload}>
@@ -54,7 +54,7 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onLoc
             : 'Select photos to continue'}
         </Button>
         {attemptedContinue && selectedPhotos.length === 0 && (
-          <p className="text-center mt-2.5 text-[0.85rem] text-[var(--eg-muted)]">
+          <p className="text-center mt-2.5 text-[0.88rem] text-[var(--eg-muted)]">
             Select at least 1 photo to continue
           </p>
         )}

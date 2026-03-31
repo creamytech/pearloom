@@ -3,6 +3,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
 
 const STATS = [
   { value: '2,000+', label: 'Sites Created' },
@@ -22,20 +23,20 @@ export function SocialProofBar() {
       style={{
         background: `linear-gradient(to right, ${C.deep}, rgba(255,255,255,0.3), ${C.deep})`,
         borderColor: C.divider,
-        padding: '3.5rem 1.5rem',
+        padding: 'clamp(2rem,4vw,3.5rem) 1.25rem',
       }}
     >
       <div className="max-w-[960px] mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {STATS.map((s, i) => (
             <motion.div
               key={s.label}
               initial={{ opacity: 0, y: 16 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="text-center"
+              className="text-center md:border-r md:last:border-r-0"
               style={{
-                borderRight: i < STATS.length - 1 ? `1px solid ${C.divider}` : 'none',
+                borderColor: C.divider,
               }}
             >
               <div
@@ -45,8 +46,8 @@ export function SocialProofBar() {
                 {s.value}
               </div>
               <div
-                className="text-[0.72rem] font-semibold tracking-[0.12em] uppercase"
-                style={{ color: C.muted }}
+                className="font-semibold tracking-[0.12em] uppercase"
+                style={{ fontSize: text.sm, color: C.muted }}
               >
                 {s.label}
               </div>

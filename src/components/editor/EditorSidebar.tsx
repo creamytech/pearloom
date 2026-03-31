@@ -238,6 +238,7 @@ export function EditorSidebar({
               )}
               <motion.button
                 title={item.label}
+                aria-label={item.label}
                 onClick={() => {
                   if (isActive) {
                     onCollapsedChange(!collapsed);
@@ -327,6 +328,7 @@ export function EditorSidebar({
         {/* Collapse arrow at bottom */}
         <motion.button
           title={collapsed ? 'Expand panel' : 'Collapse panel'}
+          aria-label={collapsed ? 'Expand panel' : 'Collapse panel'}
           onClick={() => onCollapsedChange(!collapsed)}
           whileHover={{ backgroundColor: 'rgba(214,198,168,0.08)', color: 'rgba(214,198,168,0.65)', scale: 1.08 }}
           whileTap={{ scale: 0.88 }}
@@ -397,6 +399,7 @@ export function EditorSidebar({
               {/* Expand to max button */}
               <motion.button
                 title={isAtMax ? 'Restore width' : 'Expand to full width'}
+                aria-label={isAtMax ? 'Restore panel width' : 'Expand panel to full width'}
                 onClick={handleExpandToggle}
                 whileHover={!isAtMax ? { backgroundColor: 'rgba(214,198,168,0.09)', color: 'rgba(214,198,168,0.65)', scale: 1.12 } : { scale: 1.08 }}
                 whileTap={{ scale: 0.86 }}

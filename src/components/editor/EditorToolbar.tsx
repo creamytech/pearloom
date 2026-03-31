@@ -55,7 +55,7 @@ function ViewportPopover({
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
       <motion.button
         onClick={() => setOpen(!open)}
-        title="Device & Zoom"
+        title="Device & Zoom" aria-label="Device and zoom settings"
         whileHover={{ scale: 1.04, borderColor: 'rgba(214,198,168,0.2)' }}
         whileTap={{ scale: 0.94 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
@@ -101,6 +101,7 @@ function ViewportPopover({
                 return (
                   <motion.button
                     key={mode}
+                    aria-label={`Switch to ${DEVICE_DIMS[mode].label} view`}
                     onClick={() => onDeviceChange(mode)}
                     whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                     whileTap={{ scale: 0.9 }}
@@ -200,7 +201,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <EditorBreadcrumb />
         <motion.button
           onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}
-          title="Command Palette (Cmd+K)"
+          title="Command Palette (Cmd+K)" aria-label="Open command palette"
           whileHover={{ scale: 1.05, borderColor: 'rgba(214,198,168,0.25)', color: 'rgba(255,255,255,0.75)' }}
           whileTap={{ scale: 0.93 }}
           transition={{ type: 'spring', stiffness: 420, damping: 22 }}
@@ -210,7 +211,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             border: '1px solid rgba(214,198,168,0.12)',
             background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.35)',
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-            letterSpacing: '0.04em',
+            letterSpacing: '0.04em', minHeight: '32px',
           }}
         >
           <CommandIcon size={10} />
@@ -227,7 +228,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         {/* Undo/Redo — desktop + compact mobile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
           <motion.button
-            onClick={actions.undo} disabled={!canUndo} title="Undo (Cmd+Z)"
+            onClick={actions.undo} disabled={!canUndo} title="Undo (Cmd+Z)" aria-label="Undo"
             whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
             whileTap={canUndo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
@@ -236,10 +237,11 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               background: 'rgba(255,255,255,0.06)',
               color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
               cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', minHeight: '36px', minWidth: '36px',
             }}
           ><UndoIcon size={isMobile ? 11 : 13} /></motion.button>
           <motion.button
-            onClick={actions.redo} disabled={!canRedo} title="Redo (Cmd+Shift+Z)"
+            onClick={actions.redo} disabled={!canRedo} title="Redo (Cmd+Shift+Z)" aria-label="Redo"
             whileHover={canRedo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
             whileTap={canRedo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
@@ -248,6 +250,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               background: 'rgba(255,255,255,0.06)',
               color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
               cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', minHeight: '36px', minWidth: '36px',
             }}
           ><RedoIcon size={isMobile ? 11 : 13} /></motion.button>
         </div>
@@ -316,7 +319,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         {isMobile && (
           <motion.button
             onClick={actions.storePreviewForOpen}
-            title="Preview"
+            title="Preview" aria-label="Preview site"
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 400, damping: 22 }}
@@ -324,6 +327,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               padding: '5px 7px', borderRadius: '6px', border: 'none',
               background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)',
               cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', minHeight: '44px', minWidth: '44px',
             }}
           >
             <PreviewIcon size={13} />

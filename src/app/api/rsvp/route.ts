@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
     const notifEmail = process.env.NOTIFICATION_EMAIL;
     const resendKey = process.env.RESEND_API_KEY;
     if (notifEmail && resendKey) {
+      const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       const resend = new Resend(resendKey);
       const fromEmail = process.env.EMAIL_FROM || 'noreply@pearloom.com';
       const emoji = status === 'attending' ? '🎉' : status === 'declined' ? '😢' : '⏳';
@@ -100,21 +101,21 @@ export async function POST(req: NextRequest) {
       resend.emails.send({
         from: fromEmail,
         to: notifEmail,
-        subject: `${emoji} ${guestName} ${statusLabel} — ${siteId}`,
+        subject: `${emoji} ${String(guestName).slice(0, 100)} ${statusLabel} — ${String(siteId).slice(0, 60)}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem">
             <h2 style="margin:0 0 0.5rem">${emoji} New RSVP</h2>
-            <p style="margin:0 0 1rem;color:#666">Someone responded to <strong>${siteId}</strong></p>
+            <p style="margin:0 0 1rem;color:#666">Someone responded to <strong>${esc(String(siteId))}</strong></p>
             <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
-              <tr><td style="padding:0.4rem 0;color:#999;width:140px">Guest</td><td><strong>${guestName}</strong></td></tr>
-              <tr><td style="padding:0.4rem 0;color:#999">Status</td><td style="text-transform:capitalize"><strong>${status}</strong></td></tr>
-              ${email ? `<tr><td style="padding:0.4rem 0;color:#999">Email</td><td>${email}</td></tr>` : ''}
-              ${plusOne ? `<tr><td style="padding:0.4rem 0;color:#999">+1</td><td>${plusOneName || 'Yes'}</td></tr>` : ''}
-              ${mealPreference ? `<tr><td style="padding:0.4rem 0;color:#999">Meal</td><td>${mealPreference}</td></tr>` : ''}
-              ${songRequest ? `<tr><td style="padding:0.4rem 0;color:#999">Song request</td><td style="font-style:italic">${songRequest}</td></tr>` : ''}
-              ${message ? `<tr><td style="padding:0.4rem 0;color:#999">Message</td><td style="font-style:italic">"${message}"</td></tr>` : ''}
+              <tr><td style="padding:0.4rem 0;color:#999;width:140px">Guest</td><td><strong>${esc(String(guestName))}</strong></td></tr>
+              <tr><td style="padding:0.4rem 0;color:#999">Status</td><td style="text-transform:capitalize"><strong>${esc(String(status))}</strong></td></tr>
+              ${email ? `<tr><td style="padding:0.4rem 0;color:#999">Email</td><td>${esc(String(email))}</td></tr>` : ''}
+              ${plusOne ? `<tr><td style="padding:0.4rem 0;color:#999">+1</td><td>${esc(String(plusOneName || 'Yes'))}</td></tr>` : ''}
+              ${mealPreference ? `<tr><td style="padding:0.4rem 0;color:#999">Meal</td><td>${esc(String(mealPreference))}</td></tr>` : ''}
+              ${songRequest ? `<tr><td style="padding:0.4rem 0;color:#999">Song request</td><td style="font-style:italic">${esc(String(songRequest))}</td></tr>` : ''}
+              ${message ? `<tr><td style="padding:0.4rem 0;color:#999">Message</td><td style="font-style:italic">"${esc(String(message))}"</td></tr>` : ''}
             </table>
-            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${process.env.NEXT_PUBLIC_SITE_URL}" style="color:#A3B18A">pearloom.com</a></p>
+            <p style="margin:1.5rem 0 0;font-size:0.8rem;color:#aaa">Sent by Pearloom · <a href="${esc(process.env.NEXT_PUBLIC_SITE_URL || '')}" style="color:#A3B18A">pearloom.com</a></p>
           </div>
         `,
       }).catch((e: unknown) => console.error('[RSVP] Resend error:', e));

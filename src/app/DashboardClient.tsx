@@ -70,8 +70,10 @@ export default function DashboardClient() {
     dispatch({ type: 'SET_VIBE', data });
     setLastVibeData(data);
 
+    let stepCount = 0;
     const stepInterval = setInterval(() => {
-      dispatch({ type: 'SET_GENERATION_STEP', step: Math.min(state.generationStep + 1, 6) });
+      stepCount++;
+      dispatch({ type: 'SET_GENERATION_STEP', step: Math.min(stepCount, 7) });
     }, 14000);
 
     const controller = new AbortController();
@@ -125,6 +127,20 @@ export default function DashboardClient() {
       const autoSlug = data.subdomain || generateSlug(data.names);
       dispatch({ type: 'SET_MANIFEST', manifest: result.manifest, subdomain: autoSlug });
       clearDraft();
+
+      // Auto-save draft to database so the user can return to it
+      fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subdomain: autoSlug,
+          manifest: result.manifest,
+          names: data.names,
+        }),
+      }).then(r => {
+        if (r.ok) log('[Generate] Draft auto-saved:', autoSlug);
+        else r.json().then(d => logError('[Generate] Draft save failed:', d.error)).catch(() => {});
+      }).catch(e => logError('[Generate] Draft save network error:', e));
     } catch (err) {
       clearInterval(stepInterval);
       clearTimeout(timeoutId);
@@ -136,7 +152,7 @@ export default function DashboardClient() {
       logError('[Generate] Error:', msg);
       dispatch({ type: 'SET_ERROR', error: msg });
     }
-  }, [state.photos, state.clusters, state.generationStep, dispatch, clearDraft]);
+  }, [state.photos, state.clusters, dispatch, clearDraft]);
 
   // ── Step navigation helpers ─────────────────────────────────
   const goTo = (step: WizardStep) => dispatch({ type: 'NAVIGATE', step });
@@ -189,38 +205,92 @@ export default function DashboardClient() {
           {/* Error display */}
           {state.error && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8 p-5 rounded-[1rem] bg-white border border-[#fecaca] flex gap-5"
-              style={{ boxShadow: '0 8px 30px rgba(239,68,68,0.08)' }}
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              className="mb-8 p-5 flex gap-5"
+              style={{
+                borderRadius: 'var(--eg-radius)',
+                background: 'var(--eg-card-bg)',
+                border: '1px solid rgba(185,28,28,0.18)',
+                boxShadow: '0 8px 30px rgba(185,28,28,0.06), var(--eg-shadow-sm)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+              }}
             >
-              <div className="w-11 h-11 rounded-full bg-[#fef2f2] flex-shrink-0 flex items-center justify-center text-[1.25rem]">
+              <div
+                className="flex-shrink-0 flex items-center justify-center text-[1.25rem]"
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: 'rgba(185,28,28,0.07)',
+                }}
+              >
                 ⚠
               </div>
               <div className="flex-1">
-                <div className="font-bold text-[#b91c1c] text-[0.9rem] mb-1">Generation failed</div>
-                <div className="text-[#6b7280] text-[0.85rem] leading-relaxed mb-1">{state.error}</div>
-                <div className="text-[0.82rem] text-[#6b7280] leading-relaxed italic">
+                <div
+                  className="font-bold text-[0.95rem] mb-1"
+                  style={{ color: '#b91c1c' }}
+                >
+                  Generation failed
+                </div>
+                <div
+                  className="text-[0.88rem] leading-relaxed mb-1"
+                  style={{ color: 'var(--eg-muted)' }}
+                >
+                  {state.error}
+                </div>
+                <div
+                  className="text-[0.88rem] leading-relaxed italic"
+                  style={{ color: 'var(--eg-muted)' }}
+                >
                   This sometimes happens when our AI is busy. It usually works on the second try.
                 </div>
                 <div className="flex gap-3 mt-4 flex-wrap">
                   {lastVibeData && (
                     <button
                       onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); handleVibeSubmit(lastVibeData); }}
-                      className="px-5 py-2 rounded-full bg-[var(--eg-accent)] text-white border-none cursor-pointer text-[0.82rem] font-bold tracking-wide"
+                      className="px-5 py-2 border-none cursor-pointer text-[0.88rem] font-bold tracking-wide"
+                      style={{
+                        borderRadius: 'var(--eg-radius-sm)',
+                        background: 'var(--eg-accent)',
+                        color: '#fff',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--eg-accent-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--eg-accent)')}
                     >
                       Try Again
                     </button>
                   )}
                   <button
                     onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); goTo('photos'); }}
-                    className="px-5 py-2 rounded-full bg-transparent text-[#6b7280] border border-[rgba(0,0,0,0.12)] cursor-pointer text-[0.82rem] font-semibold tracking-wide"
+                    className="px-5 py-2 bg-transparent cursor-pointer text-[0.88rem] font-semibold tracking-wide"
+                    style={{
+                      borderRadius: 'var(--eg-radius-sm)',
+                      color: 'var(--eg-muted)',
+                      border: '1px solid var(--eg-divider)',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--eg-gold)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--eg-divider)')}
                   >
                     Start Over
                   </button>
                   <button
                     onClick={() => dispatch({ type: 'SET_ERROR', error: null })}
-                    className="px-4 py-2 rounded-full bg-transparent text-[#9ca3af] border-none cursor-pointer text-[0.82rem] font-medium"
+                    className="px-4 py-2 bg-transparent border-none cursor-pointer text-[0.88rem] font-medium"
+                    style={{
+                      borderRadius: 'var(--eg-radius-sm)',
+                      color: 'var(--eg-muted)',
+                      opacity: 0.7,
+                      transition: 'opacity 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
                   >
                     Dismiss
                   </button>
@@ -240,7 +310,7 @@ export default function DashboardClient() {
               onDismissDraft={() => { clearDraft(); goTo('photos'); }}
               onStartNew={() => goTo('photos')}
               onEditSite={(site) => dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] })}
-              onManageGuests={(site) => { dispatch({ type: 'SET_COUPLE_NAMES', names: ['', ''] }); dispatch({ type: 'NAVIGATE', step: 'guests' }); }}
+              onManageGuests={(site) => { dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] }); dispatch({ type: 'NAVIGATE', step: 'guests' }); }}
             />
           )}
 
@@ -273,7 +343,7 @@ export default function DashboardClient() {
               coupleNames={state.coupleNames}
               vibeString={state.vibeData?.vibeString || ''}
               onSubmit={handleVibeSubmit}
-              onBack={() => goTo('photos')}
+              onBack={() => goTo('clusters')}
             />
           )}
 

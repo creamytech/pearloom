@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef } from 'react';
-import { motion, useInView, type Variants } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { motion, useInView, AnimatePresence, type Variants } from 'framer-motion';
+import { ArrowRight, Menu, X } from 'lucide-react';
 
 import { MarketingHero } from './marketing/MarketingHero';
 import { SocialProofBar } from './marketing/SocialProofBar';
@@ -15,6 +15,9 @@ import { PricingPreview } from './marketing/PricingPreview';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
+import { Pill } from '@/components/ui/Pill';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { text } from '@/lib/design-tokens';
 
 interface LandingPageProps {
   handleSignIn: () => void;
@@ -132,21 +135,6 @@ function Ornament() {
   );
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-      style={{
-        background: 'rgba(163,177,138,0.12)',
-        border: '1px solid rgba(163,177,138,0.3)',
-        color: C.olive,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
 const TESTIMONIALS = [
   {
     quote:
@@ -185,10 +173,13 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
   const occasionRef = useRef<HTMLElement>(null);
   const testRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const occasionInView = useInView(occasionRef, { once: true, amount: 0.1 });
   const testInView = useInView(testRef, { once: true, amount: 0.2 });
   const ctaInView = useInView(ctaRef, { once: true, amount: 0.3 });
+
+  const NAV_LINKS = ['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'];
 
   return (
     <div
@@ -206,10 +197,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr auto',
+          display: 'flex',
           alignItems: 'center',
-          padding: '0 clamp(1.5rem,5vw,4rem)',
+          justifyContent: 'space-between',
+          padding: '0 clamp(1.25rem,5vw,4rem)',
           height: '64px',
           background: 'rgba(245,241,232,0.92)',
           backdropFilter: 'blur(12px)',
@@ -219,7 +210,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         <span
           style={{
             fontFamily: 'var(--eg-font-heading)',
-            fontSize: '1.15rem',
+            fontSize: text.lg,
             fontWeight: 700,
             fontStyle: 'italic',
             color: C.ink,
@@ -229,20 +220,22 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           Pearloom
         </span>
 
+        {/* Desktop nav links */}
         <div
           className="hidden md:flex"
           style={{
-            display: 'flex',
-            justifyContent: 'center',
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
             gap: '2.5rem',
           }}
         >
-          {['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'].map(label => (
+          {NAV_LINKS.map(label => (
             <a
               key={label}
               href={`#${label.toLowerCase().replace(/ /g, '-')}`}
               style={{
-                fontSize: '0.82rem',
+                fontSize: text.base,
                 fontWeight: 500,
                 color: C.muted,
                 textDecoration: 'none',
@@ -257,25 +250,109 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           ))}
         </div>
 
-        <motion.button
-          onClick={handleSignIn}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            padding: '0.5rem 1.25rem',
-            background: C.ink,
-            color: C.cream,
-            border: 'none',
-            borderRadius: '0.6rem',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            fontFamily: 'var(--eg-font-body)',
-            cursor: 'pointer',
-          }}
-        >
-          Get Started
-        </motion.button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <motion.button
+            onClick={handleSignIn}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="hidden sm:inline-flex"
+            style={{
+              padding: '0.5rem 1.25rem',
+              background: C.ink,
+              color: C.cream,
+              border: 'none',
+              borderRadius: '0.6rem',
+              fontSize: text.base,
+              fontWeight: 600,
+              fontFamily: 'var(--eg-font-body)',
+              cursor: 'pointer',
+            }}
+          >
+            Get Started
+          </motion.button>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem',
+              color: C.ink,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </nav>
+
+      {/* ══════════════ MOBILE MENU ══════════════ */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="md:hidden"
+            style={{
+              position: 'sticky',
+              top: '64px',
+              zIndex: 99,
+              overflow: 'hidden',
+              background: 'rgba(245,241,232,0.98)',
+              backdropFilter: 'blur(12px)',
+              borderBottom: `1px solid ${C.divider}`,
+            }}
+          >
+            <div style={{ padding: '1rem 1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              {NAV_LINKS.map(label => (
+                <a
+                  key={label}
+                  href={`#${label.toLowerCase().replace(/ /g, '-')}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{
+                    fontSize: text.md,
+                    fontWeight: 500,
+                    color: C.dark,
+                    textDecoration: 'none',
+                    padding: '0.65rem 0.5rem',
+                    borderRadius: '0.5rem',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.03)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  {label}
+                </a>
+              ))}
+              <button
+                onClick={() => { setMobileMenuOpen(false); handleSignIn(); }}
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem',
+                  background: C.ink,
+                  color: C.cream,
+                  border: 'none',
+                  borderRadius: '0.6rem',
+                  fontSize: text.md,
+                  fontWeight: 600,
+                  fontFamily: 'var(--eg-font-body)',
+                  cursor: 'pointer',
+                }}
+              >
+                Get Started
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ══════════════ HERO ══════════════ */}
       <MarketingHero handleSignIn={handleSignIn} status={status} />
@@ -304,7 +381,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         ref={occasionRef}
         style={{
           background: `linear-gradient(160deg, rgba(163,177,138,0.06) 0%, ${C.cream} 40%, ${C.deep} 100%)`,
-          padding: '7rem 1.5rem',
+          padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
           borderTop: `1px solid ${C.divider}`,
           borderBottom: `1px solid ${C.divider}`,
         }}
@@ -337,11 +414,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           </div>
 
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))',
-              gap: '1.25rem',
-            }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            style={{ gap: '1.25rem' }}
           >
             {OCCASIONS.map((o, i) => (
               <motion.div
@@ -378,7 +452,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 </div>
                 <div
                   style={{
-                    fontSize: '0.68rem',
+                    fontSize: text.xs,
                     fontWeight: 700,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
@@ -391,7 +465,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 <div
                   style={{
                     fontFamily: 'var(--eg-font-heading)',
-                    fontSize: '1rem',
+                    fontSize: text.lg,
                     fontWeight: 700,
                     fontStyle: 'italic',
                     color: C.ink,
@@ -401,7 +475,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 >
                   {o.tagline}
                 </div>
-                <p style={{ fontSize: '0.84rem', color: C.muted, lineHeight: 1.75, margin: 0 }}>
+                <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, margin: 0 }}>
                   {o.desc}
                 </p>
                 <div
@@ -426,35 +500,19 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         ref={testRef}
         style={{
           background: C.cream,
-          padding: '7rem 1.5rem',
+          padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
           borderTop: `1px solid ${C.divider}`,
         }}
       >
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.olive, marginBottom: '1.1rem' }}>Loved by real people</div>
-            <motion.h2
-              initial={{ opacity: 0, y: 16 }}
-              animate={testInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.1 }}
-              style={{
-                fontFamily: 'var(--eg-font-heading)',
-                fontSize: 'clamp(1.9rem,4vw,2.75rem)',
-                fontWeight: 700,
-                color: C.ink,
-                letterSpacing: '-0.03em',
-                marginTop: '1.1rem',
-              }}
-            >
-              Stories from our community
-            </motion.h2>
-          </div>
+          <SectionHeader
+            eyebrow="Loved by real people"
+            title="Stories from our community"
+            inView={testInView}
+          />
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))',
-              gap: '1.5rem',
-            }}
+            className="grid grid-cols-1 sm:grid-cols-2"
+            style={{ gap: '1.25rem' }}
           >
             {TESTIMONIALS.map((t, i) => (
               <motion.div
@@ -463,12 +521,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 variants={up}
                 initial="hidden"
                 animate={testInView ? 'show' : 'hidden'}
+                className={i === 0 ? 'sm:col-span-2' : ''}
                 style={{
                   padding: i === 0 ? '2rem' : '1.5rem',
                   background: 'white',
                   borderLeft: `3px solid ${i === 0 ? C.plum : C.divider}`,
                   borderRadius: '1.1rem',
-                  ...(i === 0 ? { gridColumn: '1 / -1' } : {}),
                 }}
               >
                 <div
@@ -500,7 +558,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 <p
                   style={{
                     marginTop: '1rem',
-                    fontSize: '0.76rem',
+                    fontSize: text.sm,
                     fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
@@ -526,7 +584,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         ref={ctaRef}
         style={{
           background: `linear-gradient(135deg, ${C.ink} 0%, #4A3D5C 50%, ${C.plum} 100%)`,
-          padding: '9rem 1.5rem 10rem',
+          padding: 'clamp(4rem,8vw,9rem) 1.5rem clamp(4.5rem,9vw,10rem)',
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
@@ -539,16 +597,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65 }}
           >
-            <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-              style={{
-                background: 'rgba(163,177,138,0.15)',
-                border: '1px solid rgba(163,177,138,0.3)',
-                color: 'rgba(245,241,232,0.7)',
-              }}
-            >
-              <Sparkles size={9} strokeWidth={2.5} /> Start for free
-            </span>
+            <Pill variant="dark" sparkle>Start for free</Pill>
             <h2
               style={{
                 fontFamily: 'var(--eg-font-heading)',
@@ -596,7 +645,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 color: C.ink,
                 border: 'none',
                 borderRadius: '0.875rem',
-                fontSize: '1.05rem',
+                fontSize: text.lg,
                 fontWeight: 700,
                 fontFamily: 'var(--eg-font-body)',
                 cursor: status === 'loading' ? 'not-allowed' : 'pointer',
@@ -606,7 +655,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             >
               Begin Your Story <ArrowRight size={17} strokeWidth={2.2} />
             </motion.button>
-            <p style={{ marginTop: '1.1rem', fontSize: '0.76rem', color: 'rgba(245,241,232,0.4)', letterSpacing: '0.04em' }}>
+            <p style={{ marginTop: '1.1rem', fontSize: text.sm, color: 'rgba(245,241,232,0.4)', letterSpacing: '0.04em' }}>
               Free to start &middot; No credit card &middot; Live in minutes
             </p>
           </motion.div>

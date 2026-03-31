@@ -13,14 +13,16 @@ import {
   DetailsIcon, AIBlocksIcon, VoiceIcon, PublishIcon,
 } from '@/components/icons/EditorIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
-import { DesignPanel } from './DesignPanel';
-import { EventsPanel } from './EventsPanel';
-import { DetailsPanel } from './DetailsPanel';
-import { PagesPanel } from './PagesPanel';
-import { AIBlocksPanel } from './AIBlocksPanel';
-import { VoiceTrainerPanel } from './VoiceTrainerPanel';
-import { CanvasEditor } from './CanvasEditor';
-import { ChapterPanel } from './ChapterPanel';
+import dynamic from 'next/dynamic';
+
+const DesignPanel = dynamic(() => import('./DesignPanel').then(m => ({ default: m.DesignPanel })), { ssr: false });
+const EventsPanel = dynamic(() => import('./EventsPanel').then(m => ({ default: m.EventsPanel })), { ssr: false });
+const DetailsPanel = dynamic(() => import('./DetailsPanel').then(m => ({ default: m.DetailsPanel })), { ssr: false });
+const PagesPanel = dynamic(() => import('./PagesPanel').then(m => ({ default: m.PagesPanel })), { ssr: false });
+const AIBlocksPanel = dynamic(() => import('./AIBlocksPanel').then(m => ({ default: m.AIBlocksPanel })), { ssr: false });
+const VoiceTrainerPanel = dynamic(() => import('./VoiceTrainerPanel').then(m => ({ default: m.VoiceTrainerPanel })), { ssr: false });
+const CanvasEditor = dynamic(() => import('./CanvasEditor').then(m => ({ default: m.CanvasEditor })), { ssr: false });
+const ChapterPanel = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
 
 // ── Tab Configuration ─────────────────────────────────────────
 const PRIMARY_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
@@ -42,7 +44,13 @@ const TAB_LABELS: Record<string, string> = {
 };
 
 function getThumb(ch: { images?: Array<{ url?: string }> }) {
-  return ch.images?.[0]?.url || null;
+  const raw = ch.images?.[0]?.url || null;
+  if (!raw) return null;
+  // Google Photos baseUrls require OAuth — route through server-side proxy
+  if (raw.includes('googleusercontent.com')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(raw)}&w=200&h=200`;
+  }
+  return raw;
 }
 
 // ── More Menu Grid ────────────────────────────────────────────
@@ -74,6 +82,7 @@ function MoreMenuGrid({
       {OVERFLOW_TABS.map(({ tab, icon: Icon, label }) => (
         <motion.button
           key={tab}
+          aria-label={label}
           onClick={() => { onSelect(tab); onClose(); }}
           whileHover={{ backgroundColor: 'rgba(214,198,168,0.1)' }}
           whileTap={{ scale: 0.9 }}
@@ -141,6 +150,7 @@ export function MobileEditorSheet() {
           return (
             <motion.button
               key={tab}
+              aria-label={label}
               onClick={() => {
                 setMoreOpen(false);
                 if (activeTab === tab && mobileSheetOpen) {
@@ -173,6 +183,7 @@ export function MobileEditorSheet() {
 
         {/* More tab */}
         <motion.button
+          aria-label="More options"
           onClick={() => setMoreOpen(!moreOpen)}
           whileTap={{ scale: 0.82 }}
           transition={{ type: 'spring', stiffness: 420, damping: 20 }}
@@ -219,6 +230,7 @@ export function MobileEditorSheet() {
 
       {/* ── Floating Publish FAB ───────────────────────────── */}
       <motion.button
+        aria-label="Publish site"
         onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.9 }}

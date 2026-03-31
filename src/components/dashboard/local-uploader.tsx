@@ -94,7 +94,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
   };
 
   return (
-    <div style={{ padding: '2rem', background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 20px 40px rgba(0,0,0,0.02)' }}>
+    <div style={{ padding: '2rem', background: 'var(--eg-bg)', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
       <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>Upload Photos Directly</h2>
       <p style={{ color: 'var(--eg-muted)', marginBottom: '2rem' }}>
         Select your favorite high-quality images. The Pearloom AI will parse them.
@@ -154,9 +154,12 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
               style={{
                 marginLeft: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: '0.5rem', padding: '1rem 2rem', borderRadius: '2rem',
-                background: 'var(--eg-fg)', color: '#fff', fontSize: '1rem',
+                background: 'var(--eg-fg)', color: 'var(--eg-bg)', fontSize: '1rem',
                 fontWeight: 500, cursor: 'pointer', border: 'none',
+                transition: 'opacity 0.2s, box-shadow 0.2s',
               }}
+              onMouseOver={e => { if (!isUploading) { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)'; } }}
+              onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               {isUploading ? (
                 <>

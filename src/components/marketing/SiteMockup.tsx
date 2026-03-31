@@ -65,7 +65,7 @@ export function SiteMockup() {
       {/* Site preview area */}
       <div
         className="rounded-b-xl border overflow-hidden relative"
-        style={{ borderColor: C.divider, height: 380 }}
+        style={{ borderColor: C.divider, height: 'clamp(280px, 45vw, 380px)' }}
       >
         <AnimatePresence mode="wait">
           <motion.div

@@ -2,9 +2,11 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
 import { C, EASE } from './colors';
+import { text, radius } from '@/lib/design-tokens';
+import { Pill } from '@/components/ui/Pill';
 
 const OCCASIONS = [
   'Weddings',
@@ -38,20 +40,6 @@ function RotatingOccasion() {
   );
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-      style={{
-        background: 'rgba(163,177,138,0.12)',
-        border: '1px solid rgba(163,177,138,0.3)',
-        color: C.olive,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
 
 /* Decorative thread SVG — pear-loom brand motif */
 function ThreadOrnament() {
@@ -87,8 +75,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
       ref={ref}
       className="relative overflow-hidden flex flex-col items-center"
       style={{
-        minHeight: '100dvh',
-        padding: 'clamp(6rem,12vw,9rem) 1.5rem 4rem',
+        minHeight: 'min(100dvh, 900px)',
+        padding: 'clamp(3.5rem,8vw,7rem) 1.25rem clamp(2.5rem,4vw,4rem)',
         background: `radial-gradient(ellipse at 20% 30%, rgba(163,177,138,0.09) 0%, transparent 55%),
                      radial-gradient(ellipse at 80% 70%, rgba(109,89,122,0.07) 0%, transparent 50%),
                      ${C.cream}`,
@@ -122,8 +110,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mb-8 flex justify-center"
         >
-          <Pill>
-            <Sparkles size={9} strokeWidth={2.5} />
+          <Pill sparkle>
             Powered by The Loom · <RotatingOccasion />
           </Pill>
         </motion.div>
@@ -179,8 +166,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
               padding: '0.95rem 2.1rem',
               background: 'linear-gradient(135deg, #A3B18A, #8BA77A)',
               color: C.cream,
-              borderRadius: '0.8rem',
-              fontSize: '0.95rem',
+              borderRadius: radius.md,
+              fontSize: text.md,
               boxShadow: '0 2px 16px rgba(163,177,138,0.28)',
               opacity: status === 'loading' ? 0.65 : 1,
             }}
@@ -197,8 +184,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
               background: 'transparent',
               color: C.dark,
               border: `1.5px solid ${C.gold}`,
-              borderRadius: '0.8rem',
-              fontSize: '0.95rem',
+              borderRadius: radius.md,
+              fontSize: text.md,
             }}
           >
             See Examples
@@ -209,8 +196,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0, duration: 0.5 }}
-          className="mt-5 text-[0.76rem] tracking-wider"
-          style={{ color: C.muted }}
+          className="mt-5 tracking-wider"
+          style={{ fontSize: text.sm, color: C.muted }}
         >
           Free to start · No credit card · Live in minutes
         </motion.p>
@@ -224,7 +211,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         >
           <SiteMockup />
         </motion.div>
-        <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '400px', background: 'radial-gradient(ellipse, rgba(214,198,168,0.15) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0 }} />
+        <div className="hidden sm:block" style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '400px', background: 'radial-gradient(ellipse, rgba(214,198,168,0.15) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0 }} />
       </div>
 
       {/* Scroll cue */}
@@ -232,8 +219,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2 }}
-        className="absolute bottom-8 flex flex-col items-center gap-1.5 text-[0.6rem] font-bold tracking-[0.18em] uppercase"
-        style={{ color: C.gold }}
+        className="absolute bottom-8 flex flex-col items-center gap-1.5 font-bold tracking-[0.18em] uppercase"
+        style={{ fontSize: text.xs, color: C.gold }}
       >
         <motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
           <svg width="13" height="20" viewBox="0 0 13 20" fill="none" aria-hidden="true">

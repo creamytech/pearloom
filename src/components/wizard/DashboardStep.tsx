@@ -10,7 +10,7 @@ interface DashboardStepProps {
   onDismissDraft: () => void;
   onStartNew: () => void;
   onEditSite: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
-  onManageGuests: (site: { domain: string }) => void;
+  onManageGuests: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
 }
 
 export function DashboardStep({
@@ -32,7 +32,7 @@ export function DashboardStep({
             <Button variant="ghost" size="sm" onClick={onResumeDraft} className="underline underline-offset-2 text-[var(--eg-accent)]">
               Continue where you left off
             </Button>
-            <span className="text-[0.8rem] text-[var(--eg-gold)]">or</span>
+            <span className="text-[0.78rem] text-[var(--eg-gold)]">or</span>
             <Button variant="ghost" size="sm" onClick={onDismissDraft} className="text-[var(--eg-muted)]">
               Start fresh
             </Button>

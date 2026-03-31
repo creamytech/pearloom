@@ -6,8 +6,9 @@
 // Returns { questions: QuizQuestion[] }
 // ─────────────────────────────────────────────────────────────
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { Chapter } from '@/types';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +40,16 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 10 quiz generations per IP per hour
+  const ip = getClientIp(req);
+  const rateCheck = checkRateLimit(`quiz:${ip}`, { max: 10, windowMs: 60 * 60 * 1000 });
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests — please wait a while and try again.' },
+      { status: 429 }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });

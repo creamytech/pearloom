@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
+import { saveSiteDraft } from '@/lib/db';
 
 // Force this route to always be server-rendered (never statically collected)
 export const dynamic = 'force-dynamic';
@@ -58,5 +59,35 @@ export async function GET() {
     console.error('Error fetching sites:', error);
     // Return empty list so the UI degrades gracefully
     return NextResponse.json({ sites: [] }, { status: 200 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { subdomain, manifest, names } = await req.json();
+    if (!subdomain || !manifest) {
+      return NextResponse.json({ error: 'Missing subdomain or manifest' }, { status: 400 });
+    }
+
+    const result = await saveSiteDraft(
+      session.user.email,
+      subdomain,
+      manifest,
+      names || ['', '']
+    );
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 409 });
+    }
+
+    return NextResponse.json({ success: true }, { status: 201 });
+  } catch (error) {
+    console.error('Error saving site draft:', error);
+    return NextResponse.json({ error: 'Failed to save site' }, { status: 500 });
   }
 }

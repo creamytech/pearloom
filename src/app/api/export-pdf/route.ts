@@ -38,12 +38,18 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
+// Sanitize values used in CSS contexts to prevent injection
+function sanitizeCssValue(val: string): string {
+  // Remove characters that could break out of CSS context
+  return val.replace(/[^a-zA-Z0-9 ,\-#().]/g, '');
+}
+
 function buildHtml(manifest: StoryManifest, siteId: string): string {
   const chapters = manifest.chapters ?? [];
   const coupleNames = (manifest as unknown as { names?: [string, string] })?.names ?? ['', ''];
-  const headingFont = manifest.vibeSkin?.fonts?.heading ?? 'Georgia';
-  const bodyFont = manifest.vibeSkin?.fonts?.body ?? 'Georgia';
-  const accent = manifest.vibeSkin?.palette?.accent ?? '#6B8F5A';
+  const headingFont = sanitizeCssValue(manifest.vibeSkin?.fonts?.heading ?? 'Georgia');
+  const bodyFont = sanitizeCssValue(manifest.vibeSkin?.fonts?.body ?? 'Georgia');
+  const accent = sanitizeCssValue(manifest.vibeSkin?.palette?.accent ?? '#6B8F5A');
 
   const chaptersHtml = chapters
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
