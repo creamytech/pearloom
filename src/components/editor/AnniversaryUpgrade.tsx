@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui';
 import type { StoryManifest, Chapter } from '@/types';
 
 interface AnniversaryUpgradeProps {
@@ -171,20 +172,6 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
     marginBottom: '1rem',
   };
 
-  const btnPrimaryStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.3rem',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.5rem',
-    background: '#A3B18A',
-    color: '#1e1b16',
-    fontWeight: 600,
-    fontSize: '0.85rem',
-    border: 'none',
-    cursor: 'pointer',
-  };
-
   const btnSecondaryStyle: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -210,9 +197,9 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
           Your site is celebrating your love story continuing.
         </p>
         <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-          <button style={btnPrimaryStyle} onClick={handleAddChapter}>
+          <Button variant="accent" size="sm" onClick={handleAddChapter}>
             Add Anniversary Chapter +
-          </button>
+          </Button>
           <button style={btnSecondaryStyle} onClick={handleRevert}>
             Revert to Wedding Site
           </button>
@@ -238,9 +225,9 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
           ? `Your wedding was ${timeLabel} ago. Transform your site into an anniversary celebration — add new memories and a "Then & Now" section.`
           : 'Transform your wedding site into an anniversary celebration — add new memories and a "Then & Now" section.'}
       </p>
-      <button style={btnPrimaryStyle} onClick={handleTransform}>
+      <Button variant="accent" size="sm" onClick={handleTransform}>
         Transform to Anniversary Site →
-      </button>
+      </Button>
     </div>
   );
 }

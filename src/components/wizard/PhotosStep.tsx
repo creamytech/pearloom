@@ -65,7 +65,7 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue }: Pho
       <div
         className="sticky bottom-4 mt-8 p-3"
         style={{
-          background: '#FFFFFF',
+          background: card.bg,
           borderTop: card.border,
           borderRadius: card.radius,
           boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
