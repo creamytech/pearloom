@@ -3,10 +3,36 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / EditorCanvas.tsx — Center preview area
 // Handles iframe preview, split view with PreviewPane, device framing
+// Redesigned: dot-grid bg, device chrome bezels, increased split scale
 // ─────────────────────────────────────────────────────────────
 
 import { PreviewPane } from './PreviewPane';
 import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
+
+// ── Device Chrome Bezel ───────────────────────────────────────
+function DeviceBezel() {
+  return (
+    <div style={{
+      height: '12px', flexShrink: 0,
+      background: 'linear-gradient(180deg, #2a2622, #242018)',
+      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'relative',
+    }}>
+      {/* Center notch pill */}
+      <div style={{
+        width: '36px', height: '4px', borderRadius: '100px',
+        background: 'rgba(255,255,255,0.08)',
+      }} />
+      {/* Reflective sheen */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 30%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 70%, transparent 100%)',
+        pointerEvents: 'none',
+      }} />
+    </div>
+  );
+}
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, previewKey, iframeRef } = useEditor();
@@ -24,7 +50,7 @@ export function EditorCanvas() {
           manifest={{ ...manifest, chapters: chapters.map((ch, i) => ({ ...ch, order: i })) }}
           coupleNames={coupleNames}
           vibeSkin={manifest.vibeSkin}
-          scale={0.55}
+          scale={0.7}
           draggingId={canvasDragId}
           selectedChapterId={activeId}
           onSectionClick={(chapterId) => {
@@ -36,9 +62,14 @@ export function EditorCanvas() {
     );
   }
 
+  const showDeviceChrome = !isMobile && device !== 'desktop';
+
   return (
     <div style={{
-      flex: 1, background: '#1a1916',
+      flex: 1,
+      background: '#1a1916',
+      backgroundImage: 'radial-gradient(rgba(214,198,168,0.04) 1px, transparent 1px)',
+      backgroundSize: '24px 24px',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', overflow: 'auto',
       padding: isMobile ? '0' : device === 'desktop' ? '0' : '2rem 2rem 4rem',
@@ -50,14 +81,17 @@ export function EditorCanvas() {
         flexShrink: 0,
         position: 'relative',
         display: 'flex', flexDirection: 'column',
-        boxShadow: !isMobile && device !== 'desktop' ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
-        borderRadius: !isMobile && device !== 'desktop' ? '12px' : 0,
+        boxShadow: showDeviceChrome ? '0 20px 80px rgba(0,0,0,0.5)' : 'none',
+        borderRadius: showDeviceChrome ? '12px' : 0,
         overflow: 'hidden',
-        border: !isMobile && device !== 'desktop' ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        border: showDeviceChrome ? '1px solid rgba(255,255,255,0.08)' : 'none',
         transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         transform: previewZoom !== 1 && !isMobile ? `scale(${previewZoom})` : undefined,
         transformOrigin: 'top center',
       }}>
+        {/* Device chrome bezel for tablet/mobile frames */}
+        {showDeviceChrome && <DeviceBezel />}
+
         {!iframeReady && (
           <div style={{
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
