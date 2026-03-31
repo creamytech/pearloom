@@ -18,8 +18,8 @@ export const colors = {
 
   // Dark sections (The Loom, editor, generation)
   darkBg:      '#1E1B24',
-  darkCard:    'rgba(255,255,255,0.06)',
-  darkBorder:  'rgba(255,255,255,0.1)',
+  darkCard:    'rgba(255,255,255,0.10)',
+  darkBorder:  'rgba(255,255,255,0.14)',
   darkText:    'rgba(245,241,232,0.6)',
   darkHeading: '#F5F1E8',
 } as const;
@@ -40,10 +40,10 @@ export const space = {
 // ── Typography Scale ─────────────────────────────────────────
 
 export const text = {
-  xs:   '0.65rem',   // micro labels, badges, uppercase tags
-  sm:   '0.78rem',   // secondary text, captions, meta
-  base: '0.88rem',   // body copy, descriptions
-  md:   '0.95rem',   // emphasis paragraphs, feature descriptions
+  xs:   '0.72rem',   // micro labels, badges, uppercase tags
+  sm:   '0.85rem',   // secondary text, captions, meta
+  base: '0.95rem',   // body copy, descriptions
+  md:   '1.05rem',   // emphasis paragraphs, feature descriptions
   lg:   '1.1rem',    // subheadings, card titles
   xl:   '1.3rem',    // section sub-titles
   '2xl': 'clamp(1.9rem, 4vw, 2.8rem)',  // section headings
