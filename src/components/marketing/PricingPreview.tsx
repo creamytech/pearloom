@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Check, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
@@ -55,12 +55,17 @@ export function PricingPreview() {
       ref={ref}
       id="pricing"
       style={{
-        background: C.deep,
+        background: C.cream,
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
         borderTop: `1px solid ${C.divider}`,
       }}
     >
       <div className="max-w-[780px] mx-auto">
+        {/* Decorative gold rule */}
+        <div className="flex justify-center mb-6">
+          <div style={{ width: 60, height: 1, background: C.gold }} />
+        </div>
+
         <SectionHeader
           eyebrow="Pricing"
           eyebrowColor={C.gold}
@@ -76,88 +81,122 @@ export function PricingPreview() {
               initial={{ opacity: 0, y: 24 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: i * 0.12 + 0.3, duration: 0.5 }}
-              style={{
-                borderRadius: card.radius,
-                background: card.bg,
-                border: tier.highlighted
-                  ? `2px solid ${C.olive}`
-                  : card.border,
-                boxShadow: card.shadow,
-                padding: '1.75rem',
-                transition: 'box-shadow 0.2s ease',
-              }}
-              whileHover={{ boxShadow: card.shadowHover }}
+              style={{ position: 'relative' }}
             >
-              <div className="flex items-center gap-2 mb-2">
+              {/* RECOMMENDED label for premium */}
+              {tier.highlighted && (
                 <div
-                  className="font-bold tracking-[0.14em] uppercase"
-                  style={{ fontSize: text.xs, color: tier.accent }}
+                  className="text-center mb-2"
+                  style={{
+                    fontSize: text.xs,
+                    color: C.olive,
+                    letterSpacing: '0.16em',
+                    fontWeight: 600,
+                    textTransform: 'uppercase' as const,
+                  }}
                 >
-                  {tier.name}
+                  Recommended
                 </div>
-                {tier.highlighted && (
-                  <span
-                    className="font-semibold uppercase tracking-wide"
-                    style={{ fontSize: text.xs, color: C.plum }}
-                  >
-                    Best Value
-                  </span>
-                )}
-              </div>
+              )}
 
-              <div className="flex items-baseline gap-1 mb-2">
-                <span
-                  className="font-[family-name:var(--eg-font-heading)] text-[2.5rem] font-bold leading-none"
-                  style={{ color: C.ink }}
-                >
-                  {tier.price}
-                </span>
-                <span style={{ fontSize: text.sm, color: C.muted }}>
-                  {tier.period}
-                </span>
-              </div>
-
-              <p className="mb-5" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.6 }}>
-                {tier.desc}
-              </p>
-
-              <div className="flex flex-col gap-3.5 mb-7">
-                {tier.features.map(f => (
-                  <div key={f} className="flex items-start gap-3">
-                    <Check
-                      size={16}
-                      strokeWidth={2.5}
-                      className="flex-shrink-0 mt-0.5"
-                      style={{ color: tier.accent }}
-                    />
-                    <span style={{ fontSize: text.sm, color: C.dark }}>
-                      {f}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                className="group w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] cursor-pointer transition-colors duration-200"
+              <div
                 style={{
-                  fontSize: text.base,
-                  background: tier.highlighted ? C.olive : 'transparent',
-                  color: tier.highlighted ? '#fff' : tier.accent,
-                  border: tier.highlighted ? 'none' : `1px solid ${tier.accent}40`,
+                  borderRadius: card.radius,
+                  background: card.bg,
+                  border: tier.highlighted
+                    ? `2px solid ${C.olive}`
+                    : card.border,
+                  boxShadow: card.shadow,
+                  padding: '1.75rem',
+                  transition: 'box-shadow 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
-                  if (!tier.highlighted) {
-                    e.currentTarget.style.background = `${tier.accent}12`;
-                  }
+                  e.currentTarget.style.boxShadow = card.shadowHover;
                 }}
                 onMouseLeave={(e) => {
-                  if (!tier.highlighted) {
-                    e.currentTarget.style.background = 'transparent';
-                  }
+                  e.currentTarget.style.boxShadow = card.shadow;
                 }}
               >
-                {tier.cta} <ArrowRight size={14} />
-              </button>
+                <div className="flex items-center gap-2 mb-2">
+                  <div
+                    className="font-bold tracking-[0.14em] uppercase"
+                    style={{ fontSize: text.xs, color: tier.accent }}
+                  >
+                    {tier.name}
+                  </div>
+                  {tier.highlighted && (
+                    <span
+                      style={{
+                        fontSize: text.xs,
+                        color: C.plum,
+                        fontWeight: 600,
+                        fontVariant: 'small-caps',
+                        letterSpacing: '0.08em',
+                      }}
+                    >
+                      Best Value
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span
+                    className="font-[family-name:var(--eg-font-heading)] font-bold leading-none"
+                    style={{ fontSize: '3rem', color: C.ink }}
+                  >
+                    {tier.price}
+                  </span>
+                  <span style={{ fontSize: text.sm, color: C.muted }}>
+                    {tier.period}
+                  </span>
+                </div>
+
+                <p className="mb-5" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.6 }}>
+                  {tier.desc}
+                </p>
+
+                <div className="flex flex-col gap-3.5 mb-7">
+                  {tier.features.map(f => (
+                    <div key={f} className="flex items-start gap-3">
+                      {/* Olive dot bullet */}
+                      <div
+                        className="flex-shrink-0 mt-1.5 rounded-full"
+                        style={{
+                          width: 6,
+                          height: 6,
+                          background: C.olive,
+                        }}
+                      />
+                      <span style={{ fontSize: text.sm, color: C.dark }}>
+                        {f}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  className="group w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] cursor-pointer transition-colors duration-200 uppercase"
+                  style={{
+                    fontSize: text.base,
+                    letterSpacing: '0.04em',
+                    background: tier.highlighted ? C.olive : 'transparent',
+                    color: tier.highlighted ? '#fff' : C.dark,
+                    border: tier.highlighted ? 'none' : `1px solid ${C.divider}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!tier.highlighted) {
+                      e.currentTarget.style.background = `${C.dark}0A`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!tier.highlighted) {
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  {tier.cta} <ArrowRight size={14} />
+                </button>
+              </div>
             </motion.div>
           ))}
         </div>

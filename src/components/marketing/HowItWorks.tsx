@@ -46,12 +46,13 @@ const STEPS = [
 function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
   return (
     <div
-      className="p-5 w-full max-w-[400px]"
+      className="w-full max-w-[400px]"
       style={{
         background: card.bg,
         borderRadius: card.radius,
         border: card.border,
         boxShadow: card.shadow,
+        padding: '1.5rem',
       }}
     >
       <div className="flex items-center gap-2 mb-3">
@@ -104,13 +105,18 @@ export function HowItWorks() {
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
       <div className="max-w-[960px] mx-auto">
+        {/* Decorative gold rule */}
+        <div className="flex justify-center mb-6">
+          <div style={{ width: 60, height: 1, background: C.gold }} />
+        </div>
+
         <SectionHeader
           watermark="3"
           title="From photos to a finished site in minutes"
           inView={inView}
         />
 
-        {/* Progress line (desktop) — solid connector */}
+        {/* Progress line (desktop) — elegant gold connector */}
         <div className="hidden md:flex justify-center gap-0 mb-12">
           {STEPS.map((s, i) => (
             <div key={s.n} className="flex items-center">
@@ -118,9 +124,10 @@ export function HowItWorks() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: i * 0.15 + 0.3 }}
-                className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
+                className="w-10 h-10 rounded-full flex items-center justify-center font-[family-name:var(--eg-font-heading)]"
                 style={{
                   fontSize: text.sm,
+                  fontWeight: 700,
                   background: s.accent,
                   color: '#fff',
                 }}
@@ -130,7 +137,7 @@ export function HowItWorks() {
               {i < STEPS.length - 1 && (
                 <div
                   className="w-32"
-                  style={{ height: 2, background: C.divider }}
+                  style={{ height: 1, background: C.gold }}
                 />
               )}
             </div>
@@ -156,13 +163,13 @@ export function HowItWorks() {
                     <IconCircle icon={Icon} accent={s.accent} size={48} iconSize={22} />
                   </div>
                   <h3
-                    className="font-[family-name:var(--eg-font-heading)] font-bold mb-3"
-                    style={{ fontSize: text.xl, color: C.ink }}
+                    className="font-[family-name:var(--eg-font-heading)] mb-3"
+                    style={{ fontSize: text.xl, fontWeight: 600, color: C.ink }}
                   >
                     {s.title}
                   </h3>
                   <p
-                    className="leading-relaxed max-w-[400px] mx-auto md:mx-0"
+                    className="font-[family-name:var(--eg-font-body)] max-w-[400px] mx-auto md:mx-0"
                     style={{ fontSize: text.md, color: C.muted, lineHeight: 1.8 }}
                   >
                     {s.body}

@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
-import { colors as C, text, radius, card, shadow } from '@/lib/design-tokens';
+import { colors as C, text, card, sectionPadding } from '@/lib/design-tokens';
 import { Pill } from '@/components/ui/Pill';
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
@@ -70,7 +70,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
           className="mb-8 flex justify-center"
         >
           <Pill sparkle>
@@ -82,30 +82,45 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
-          className="font-[family-name:var(--eg-font-heading)] font-bold leading-[1.05] tracking-[-0.035em] mb-5"
+          transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
+          className="font-[family-name:var(--eg-font-heading)] leading-[1.05] mb-5"
           style={{
-            fontSize: 'clamp(2.8rem, 7vw, 5.8rem)',
+            fontSize: 'clamp(3.2rem, 8vw, 6.5rem)',
+            fontWeight: 700,
+            letterSpacing: '-0.04em',
             color: C.ink,
           }}
         >
           Every moment worth celebrating
           <br />
-          <span style={{ color: C.plum }}>deserves its own world.</span>
+          <span style={{ color: C.plum, fontStyle: 'italic' }}>deserves its own world.</span>
         </motion.h1>
+
+        {/* Gold editorial rule */}
+        <motion.div
+          initial={{ opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          transition={{ duration: 0.8, delay: 0.45, ease: EASE }}
+          style={{
+            width: '80px',
+            height: '1px',
+            background: C.gold,
+            margin: '0 auto 2rem',
+          }}
+        />
 
         {/* Sub-headline */}
         <motion.p
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: 0.5 }}
-          className="mx-auto mb-8 leading-relaxed"
+          transition={{ duration: 0.8, delay: 0.55 }}
+          className="mx-auto mb-8"
           style={{
-            fontSize: 'clamp(1rem, 1.8vw, 1.15rem)',
+            fontSize: 'clamp(1.05rem, 1.8vw, 1.2rem)',
             fontFamily: 'var(--eg-font-body)',
             color: C.muted,
-            maxWidth: 540,
-            lineHeight: 1.8,
+            maxWidth: 480,
+            lineHeight: 1.9,
           }}
         >
           Upload your photos. Share your vibe. Watch{' '}
@@ -117,7 +132,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.7 }}
+          transition={{ duration: 0.8, delay: 0.75 }}
           className="flex gap-3 justify-center flex-wrap"
         >
           <motion.button
@@ -127,11 +142,12 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
             whileTap={{ scale: 0.97 }}
             className="inline-flex items-center gap-2 font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer"
             style={{
-              padding: '1.1rem 2.6rem',
+              padding: '1rem 2.8rem',
               background: C.olive,
               color: C.cream,
               borderRadius: card.radius,
-              fontSize: text.md,
+              fontSize: '1rem',
+              letterSpacing: '0.03em',
               boxShadow: '0 4px 24px rgba(163,177,138,0.32)',
               opacity: status === 'loading' ? 0.65 : 1,
               transition: 'box-shadow 0.25s ease',
@@ -145,12 +161,13 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
             whileTap={{ scale: 0.97 }}
             className="group inline-flex items-center gap-2 font-medium font-[family-name:var(--eg-font-body)] cursor-pointer"
             style={{
-              padding: '1.1rem 2.6rem',
+              padding: '1rem 2.8rem',
               background: 'transparent',
               color: C.dark,
-              border: `1.5px solid ${C.gold}`,
+              border: `1px solid ${C.divider}`,
               borderRadius: card.radius,
-              fontSize: text.md,
+              fontSize: '1rem',
+              letterSpacing: '0.03em',
             }}
           >
             See Examples
@@ -166,8 +183,25 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.0, duration: 0.5 }}
-          className="mt-5 flex items-center justify-center gap-4 flex-wrap"
+          transition={{ delay: 1.0, duration: 0.8 }}
+          className="mt-5 flex flex-col items-center"
+        >
+          {/* Gold rule above trust badges */}
+          <div
+            style={{
+              width: '60px',
+              height: '1px',
+              background: C.gold,
+              opacity: 0.4,
+              marginBottom: '1.25rem',
+            }}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1, duration: 0.8 }}
+          className="flex items-center justify-center gap-4 flex-wrap"
         >
           {TRUST_ITEMS.map((item) => (
             <span
@@ -194,7 +228,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
+          transition={{ duration: 1.0, delay: 1.0, ease: EASE }}
           style={{ position: 'relative', zIndex: 1 }}
         >
           <SiteMockup />
@@ -205,24 +239,16 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-        className="absolute bottom-8 flex flex-col items-center gap-1.5 font-bold tracking-[0.18em] uppercase"
-        style={{ fontSize: text.xs, color: C.gold }}
+        transition={{ delay: 2, duration: 0.8 }}
+        className="absolute bottom-8 flex flex-col items-center gap-1"
+        style={{ fontSize: text.xs, color: C.gold, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}
       >
-        <motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-          <svg width="13" height="20" viewBox="0 0 13 20" fill="none" aria-hidden="true">
-            <rect x="0.75" y="0.75" width="11.5" height="18.5" rx="5.75" stroke="currentColor" strokeWidth="1.2" />
-            <motion.circle
-              cx="6.5"
-              cy="5.5"
-              r="1.8"
-              fill="currentColor"
-              animate={{ cy: [5.5, 11.5, 5.5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            />
+        Scroll
+        <motion.div animate={{ y: [0, 4, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}>
+          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
+            <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </motion.div>
-        Scroll
       </motion.div>
     </section>
   );

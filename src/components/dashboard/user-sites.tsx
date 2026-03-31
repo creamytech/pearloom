@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Globe, Pencil, ExternalLink, Calendar, Loader2,
@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
-import { text } from '@/lib/design-tokens';
+import { colors as C, text, card } from '@/lib/design-tokens';
 
 import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 
@@ -20,62 +20,16 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-// ── Magnetic Button ─────────────────────────────────────────────
-function MagneticButton({
-  onClick,
-  style,
-  children,
-  strength = 0.35,
-}: {
-  onClick: () => void;
-  style?: React.CSSProperties;
-  children: React.ReactNode;
-  strength?: number;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    setPos({ x: (e.clientX - cx) * strength, y: (e.clientY - cy) * strength });
-  };
-
-  const handleMouseLeave = () => setPos({ x: 0, y: 0 });
-
-  return (
-    // Static container keeps layout stable — only the inner button moves
-    <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ display: 'inline-flex' }}
-    >
-      <motion.button
-        onClick={onClick}
-        animate={{ x: pos.x, y: pos.y }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        style={style}
-      >
-        {children}
-      </motion.button>
-    </div>
-  );
-}
-
 // ── Skeleton Card ────────────────────────────────────────────────
 function SkeletonCard() {
   return (
     <div
       style={{
-        background: '#fff',
-        borderRadius: '1.25rem',
+        background: card.bg,
+        borderRadius: card.radius,
         overflow: 'hidden',
-        border: '1px solid rgba(0,0,0,0.05)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+        border: card.border,
+        boxShadow: card.shadow,
       }}
     >
       <div
@@ -238,7 +192,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
         <h1 style={{
           fontFamily: 'var(--eg-font-heading)',
           fontSize: 'clamp(2rem, 5vw, 3rem)',
-          fontWeight: 400,
+          fontWeight: 600,
+          fontStyle: 'italic',
           color: 'var(--eg-fg)',
           letterSpacing: '-0.025em',
           lineHeight: 1.1,
@@ -253,30 +208,30 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           borderBottom: '1px solid var(--eg-divider)',
         }}>
           <p style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: '1.1rem',
-            fontWeight: 400,
-            color: 'var(--eg-muted)',
-            fontStyle: 'italic',
-            letterSpacing: '0.01em',
+            fontFamily: 'var(--eg-font-body)',
+            fontSize: text.xs,
+            fontWeight: 600,
+            color: C.muted,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
           }}>
             Your Sites
           </p>
-          <MagneticButton
+          <button
             onClick={onStartNew}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-              padding: '0.85rem 1.75rem', borderRadius: '100px',
-              background: 'linear-gradient(135deg, var(--eg-dark) 0%, var(--eg-dark-2) 100%)',
+              padding: '0.85rem 1.75rem', borderRadius: card.radius,
+              background: C.ink,
               color: '#fff', fontWeight: 600, fontSize: '0.875rem',
+              height: '40px',
               border: 'none', cursor: 'pointer', letterSpacing: '0.01em',
-              boxShadow: '0 8px 30px rgba(26,23,19,0.18)',
               fontFamily: 'var(--eg-font-body)',
             }}
           >
             <Plus size={16} />
             Create New Site
-          </MagneticButton>
+          </button>
         </div>
       </motion.div>
 
@@ -299,12 +254,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
-            background: '#fff',
-            borderRadius: '1.25rem',
+            background: card.bg,
+            borderRadius: card.radius,
             padding: '3rem',
             textAlign: 'center',
-            border: '1px solid rgba(109,89,122,0.12)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+            border: card.border,
+            boxShadow: card.shadow,
           }}
         >
           <AlertTriangle size={36} color="rgba(109,89,122,0.5)" style={{ margin: '0 auto 1.25rem' }} />
@@ -349,65 +304,41 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             overflow: 'hidden',
           }}
         >
-          {/* Decorative thread ornament — top left */}
-          <svg
-            width="120" height="120" viewBox="0 0 120 120" fill="none"
-            aria-hidden="true"
-            style={{ position: 'absolute', top: '-10px', left: '-10px', opacity: 0.12 }}
-          >
-            <path d="M10 110 C 30 60, 70 80, 60 10" stroke="#A3B18A" strokeWidth="1.5" fill="none" />
-            <path d="M20 110 C 50 70, 40 50, 70 10" stroke="#D6C6A8" strokeWidth="1.5" fill="none" />
-          </svg>
-          {/* Decorative thread ornament — bottom right */}
-          <svg
-            width="120" height="120" viewBox="0 0 120 120" fill="none"
-            aria-hidden="true"
-            style={{ position: 'absolute', bottom: '-10px', right: '-10px', opacity: 0.12 }}
-          >
-            <path d="M110 10 C 90 60, 50 40, 60 110" stroke="#A3B18A" strokeWidth="1.5" fill="none" />
-            <path d="M100 10 C 70 50, 80 70, 50 110" stroke="#D6C6A8" strokeWidth="1.5" fill="none" />
-          </svg>
-
-          {/* Pear icon with glow */}
-          <motion.div
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          {/* Pear icon */}
+          <div
             style={{
               marginBottom: '2rem',
-              position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            {/* Subtle glow behind pear */}
-            <div style={{
-              position: 'absolute',
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(163,177,138,0.3) 0%, rgba(163,177,138,0) 70%)',
-              filter: 'blur(8px)',
-              pointerEvents: 'none',
-            }} />
             <PearIcon size={80} color="var(--eg-accent)" />
-          </motion.div>
+          </div>
           <h3 style={{
             fontFamily: 'var(--eg-font-heading)',
             fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-            fontWeight: 400, color: 'var(--eg-fg)',
-            marginBottom: '1rem', letterSpacing: '-0.02em', lineHeight: 1.1,
+            fontWeight: 600, fontStyle: 'italic',
+            color: 'var(--eg-fg)',
+            marginBottom: '1.25rem', letterSpacing: '-0.02em', lineHeight: 1.1,
           }}>
             Start your story
           </h3>
+          {/* Gold horizontal rule */}
+          <div style={{
+            width: '80px', height: '1px',
+            background: C.gold,
+            margin: '0 auto 1.25rem',
+          }} />
           <p style={{
-            color: 'var(--eg-muted)', maxWidth: '400px', marginBottom: '0.75rem',
-            lineHeight: 1.8, fontSize: '1rem',
+            fontFamily: 'var(--eg-font-body)',
+            color: C.muted, maxWidth: '400px', marginBottom: '0.75rem',
+            lineHeight: 1.8, fontSize: text.base,
           }}>
             Build a stunning celebration website in minutes. Your AI designer is waiting.
           </p>
           <p style={{
-            color: 'var(--eg-muted)', fontSize: '0.8rem', marginBottom: '2.5rem',
+            color: C.muted, fontSize: text.xs, marginBottom: '2.5rem',
             letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
             opacity: 0.55,
           }}>
@@ -418,10 +349,10 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.65rem',
               padding: '1rem 2.5rem', borderRadius: '100px',
-              background: 'linear-gradient(135deg, #A3B18A, #8FA876)',
+              background: C.olive,
               color: '#fff', fontWeight: 600, fontSize: '1.05rem',
               border: 'none', cursor: 'pointer',
-              boxShadow: '0 12px 40px rgba(163,177,138,0.4)',
+              boxShadow: '0 8px 24px rgba(163,177,138,0.3)',
               fontFamily: 'var(--eg-font-body)',
               transition: 'transform 0.2s, box-shadow 0.2s',
               position: 'relative',
@@ -429,11 +360,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 16px 50px rgba(163,177,138,0.5)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(163,177,138,0.4)';
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 12px 40px rgba(163,177,138,0.4)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(163,177,138,0.3)';
             }}
           >
             <Plus size={18} />
@@ -468,11 +399,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 const weddingDate = site.manifest?.logistics?.date || site.manifest?.events?.[0]?.date;
                 const isLive = !site.manifest?.comingSoon?.enabled;
                 const occasionMeta: Record<string, { label: string; color: string; bg: string }> = {
-                  wedding:     { label: 'Wedding',     color: '#6D597A', bg: 'rgba(109,89,122,0.10)' },
-                  anniversary: { label: 'Anniversary', color: '#8A6D3B', bg: 'rgba(214,198,168,0.25)' },
-                  engagement:  { label: 'Engagement',  color: '#6D597A', bg: 'rgba(109,89,122,0.10)' },
-                  birthday:    { label: 'Birthday',    color: '#5C7A6E', bg: 'rgba(163,177,138,0.18)' },
-                  story:       { label: 'Story',       color: 'var(--eg-muted)', bg: 'rgba(0,0,0,0.05)' },
+                  wedding:     { label: 'Wedding',     color: C.plum, bg: `${C.plum}1A` },
+                  anniversary: { label: 'Anniversary', color: C.gold, bg: `${C.gold}33` },
+                  engagement:  { label: 'Engagement',  color: C.plum, bg: `${C.plum}1A` },
+                  birthday:    { label: 'Birthday',    color: C.olive, bg: `${C.olive}2E` },
+                  story:       { label: 'Story',       color: C.muted, bg: `${C.muted}0F` },
                 };
                 const occ = occasionMeta[site.manifest?.occasion || ''];
 
@@ -488,14 +419,14 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     onHoverEnd={() => setHoveredId(null)}
                     style={{
                       background: 'var(--eg-bg)',
-                      borderRadius: '1.25rem',
+                      borderRadius: card.radius,
                       overflow: 'hidden',
                       border: isHovered
                         ? `1px solid ${accentColor}`
-                        : '1px solid var(--eg-divider)',
+                        : card.border,
                       boxShadow: isHovered
-                        ? `0 20px 60px rgba(43,43,43,0.10), 0 4px 16px rgba(214,198,168,0.2), 0 0 0 3px ${accentColor}22`
-                        : '0 4px 24px rgba(43,43,43,0.06)',
+                        ? card.shadowHover
+                        : card.shadow,
                       transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
                       transition: 'box-shadow 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1)',
                     }}
@@ -611,8 +542,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       <div style={{ position: 'absolute', bottom: '1.25rem', left: '1.5rem', right: '1.5rem' }}>
                         <div style={{
                           fontFamily: 'var(--eg-font-heading)',
-                          fontSize: coverPhotoUrl ? '1.7rem' : '1.55rem',
-                          fontWeight: 400, color: '#fff',
+                          fontSize: '1.4rem',
+                          fontWeight: 400, fontStyle: 'italic', color: '#fff',
                           letterSpacing: '-0.015em', lineHeight: 1.05,
                           textShadow: coverPhotoUrl ? '0 2px 24px rgba(0,0,0,0.6)' : '0 2px 16px rgba(0,0,0,0.3)',
                         }}>
@@ -724,18 +655,17 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         <button
                           onClick={(e) => { e.stopPropagation(); onEditSite(site); }}
                           style={{
-                            flex: '1 1 auto', minWidth: '70px',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                            padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
-                            background: 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
+                            padding: '0 0.75rem', borderRadius: card.radius,
+                            background: C.olive,
                             color: '#fff', border: 'none', cursor: 'pointer',
                             fontWeight: 600, fontSize: text.sm, letterSpacing: '0.04em',
                             fontFamily: 'var(--eg-font-body)',
-                            boxShadow: '0 4px 14px rgba(163,177,138,0.35)',
-                            transition: 'opacity 0.2s, box-shadow 0.2s',
+                            transition: 'opacity 0.2s',
                           }}
-                          onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(163,177,138,0.5)'; e.currentTarget.style.opacity = '0.92'; }}
-                          onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 4px 14px rgba(163,177,138,0.35)'; e.currentTarget.style.opacity = '1'; }}
+                          onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; }}
+                          onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; }}
                         >
                           <Pencil size={12} />
                           Edit Site
@@ -746,12 +676,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           onClick={(e) => handleCopyUrl(site, e)}
                           title="Copy site URL"
                           style={{
-                            flex: '1 1 auto', minWidth: '70px',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                            padding: '0.65rem 0.75rem', borderRadius: '0.75rem',
+                            padding: '0 0.75rem', borderRadius: card.radius,
                             background: isCopied ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.08)',
-                            color: isCopied ? 'var(--eg-accent, #A3B18A)' : 'var(--eg-accent)',
-                            border: isCopied ? '1px solid rgba(163,177,138,0.3)' : '1px solid rgba(163,177,138,0.2)',
+                            color: isCopied ? C.olive : C.olive,
+                            border: `1px solid ${C.divider}`,
                             cursor: 'pointer', fontWeight: 600, fontSize: text.sm,
                             fontFamily: 'var(--eg-font-body)',
                             transition: 'all 0.25s',
@@ -773,20 +703,20 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="Manage Guests"
                           aria-label="Manage guests"
                           style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.02)',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: card.radius,
+                            border: `1px solid ${C.divider}`, background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'var(--eg-muted)', cursor: 'pointer', transition: 'all 0.2s',
+                            color: C.muted, cursor: 'pointer', transition: 'all 0.2s',
                           }}
                           onMouseOver={(e) => {
-                            e.currentTarget.style.background = '#EEE8DC';
-                            e.currentTarget.style.color = 'var(--eg-accent)';
-                            e.currentTarget.style.borderColor = 'rgba(163,177,138,0.3)';
+                            e.currentTarget.style.background = C.deep;
+                            e.currentTarget.style.color = C.olive;
+                            e.currentTarget.style.borderColor = C.olive;
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'rgba(0,0,0,0.02)';
-                            e.currentTarget.style.color = 'var(--eg-muted)';
-                            e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)';
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = C.muted;
+                            e.currentTarget.style.borderColor = C.divider;
                           }}
                         >
                           <Users size={14} />
@@ -801,21 +731,21 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           aria-label="View live site"
                           onClick={(e) => e.stopPropagation()}
                           style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: '0.75rem',
-                            border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.02)',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: card.radius,
+                            border: `1px solid ${C.divider}`, background: 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'var(--eg-muted)', textDecoration: 'none',
+                            color: C.muted, textDecoration: 'none',
                             transition: 'all 0.2s',
                           }}
                           onMouseOver={(e) => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = '#EEE8DC';
-                            (e.currentTarget as HTMLAnchorElement).style.color = 'var(--eg-fg)';
-                            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,0,0,0.12)';
+                            (e.currentTarget as HTMLAnchorElement).style.background = C.deep;
+                            (e.currentTarget as HTMLAnchorElement).style.color = C.ink;
+                            (e.currentTarget as HTMLAnchorElement).style.borderColor = C.divider;
                           }}
                           onMouseOut={(e) => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(0,0,0,0.02)';
-                            (e.currentTarget as HTMLAnchorElement).style.color = 'var(--eg-muted)';
-                            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(0,0,0,0.08)';
+                            (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
+                            (e.currentTarget as HTMLAnchorElement).style.color = C.muted;
+                            (e.currentTarget as HTMLAnchorElement).style.borderColor = C.divider;
                           }}
                         >
                           <ExternalLink size={14} />
@@ -828,7 +758,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="Delete site"
                           aria-label="Delete site"
                           style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: '0.75rem',
+                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: card.radius,
                             border: '1px solid rgba(185,28,28,0.15)',
                             background: 'rgba(185,28,28,0.03)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -867,7 +797,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               onClick={onStartNew}
               style={{
                 background: 'rgba(163,177,138,0.04)',
-                borderRadius: '1.25rem',
+                borderRadius: card.radius,
                 overflow: 'hidden',
                 border: '2px dashed rgba(163,177,138,0.3)',
                 cursor: 'pointer', minHeight: '320px',
