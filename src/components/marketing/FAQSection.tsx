@@ -4,6 +4,8 @@ import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
 
 const FAQS = [
   {
@@ -43,8 +45,8 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
         className="w-full flex items-center justify-between py-5 text-left cursor-pointer bg-transparent border-none"
       >
         <span
-          className="font-[family-name:var(--eg-font-heading)] text-[1.02rem] font-semibold pr-4"
-          style={{ color: C.ink }}
+          className="font-[family-name:var(--eg-font-heading)] font-semibold pr-4"
+          style={{ fontSize: text.lg, color: C.ink }}
         >
           {faq.q}
         </span>
@@ -66,8 +68,8 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: (typeof FAQS)[number]; isOpen
             className="overflow-hidden"
           >
             <p
-              className="pb-5 text-[0.88rem] leading-relaxed pl-3"
-              style={{ color: C.muted, lineHeight: 1.75, borderLeft: `3px solid ${C.olive}` }}
+              className="pb-5 leading-relaxed pl-3"
+              style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, borderLeft: `3px solid ${C.olive}` }}
             >
               {faq.a}
             </p>
@@ -90,30 +92,11 @@ export function FAQSection() {
       style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
     >
       <div className="max-w-[700px] mx-auto">
-        {/* Header — simple label */}
-        <div className="text-center mb-10">
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            className="mb-4"
-          >
-            <span
-              className="text-[0.68rem] font-bold tracking-[0.14em] uppercase"
-              style={{ color: C.olive }}
-            >
-              FAQ
-            </span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 18 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight"
-            style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: C.ink }}
-          >
-            Questions? Woven answers.
-          </motion.h2>
-        </div>
+        <SectionHeader
+          eyebrow="FAQ"
+          title="Questions? Woven answers."
+          inView={inView}
+        />
 
         {/* Accordion — clean white card */}
         <motion.div

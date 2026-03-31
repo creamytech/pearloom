@@ -214,29 +214,29 @@ export default function DashboardClient() {
                 ⚠
               </div>
               <div className="flex-1">
-                <div className="font-bold text-[#b91c1c] text-[0.9rem] mb-1">Generation failed</div>
-                <div className="text-[#6b7280] text-[0.85rem] leading-relaxed mb-1">{state.error}</div>
-                <div className="text-[0.82rem] text-[#6b7280] leading-relaxed italic">
+                <div className="font-bold text-[#b91c1c] text-[0.95rem] mb-1">Generation failed</div>
+                <div className="text-[#6b7280] text-[0.88rem] leading-relaxed mb-1">{state.error}</div>
+                <div className="text-[0.88rem] text-[#6b7280] leading-relaxed italic">
                   This sometimes happens when our AI is busy. It usually works on the second try.
                 </div>
                 <div className="flex gap-3 mt-4 flex-wrap">
                   {lastVibeData && (
                     <button
                       onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); handleVibeSubmit(lastVibeData); }}
-                      className="px-5 py-2 rounded-full bg-[var(--eg-accent)] text-white border-none cursor-pointer text-[0.82rem] font-bold tracking-wide"
+                      className="px-5 py-2 rounded-full bg-[var(--eg-accent)] text-white border-none cursor-pointer text-[0.88rem] font-bold tracking-wide"
                     >
                       Try Again
                     </button>
                   )}
                   <button
                     onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); goTo('photos'); }}
-                    className="px-5 py-2 rounded-full bg-transparent text-[#6b7280] border border-[rgba(0,0,0,0.12)] cursor-pointer text-[0.82rem] font-semibold tracking-wide"
+                    className="px-5 py-2 rounded-full bg-transparent text-[#6b7280] border border-[rgba(0,0,0,0.12)] cursor-pointer text-[0.88rem] font-semibold tracking-wide"
                   >
                     Start Over
                   </button>
                   <button
                     onClick={() => dispatch({ type: 'SET_ERROR', error: null })}
-                    className="px-4 py-2 rounded-full bg-transparent text-[#9ca3af] border-none cursor-pointer text-[0.82rem] font-medium"
+                    className="px-4 py-2 rounded-full bg-transparent text-[#9ca3af] border-none cursor-pointer text-[0.88rem] font-medium"
                   >
                     Dismiss
                   </button>

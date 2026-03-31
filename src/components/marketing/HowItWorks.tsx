@@ -4,6 +4,9 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Upload, Cpu, Share2 } from 'lucide-react';
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { IconCircle } from '@/components/ui/IconCircle';
 
 const STEPS = [
   {
@@ -52,8 +55,8 @@ function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
     >
       <div className="flex items-center gap-2 mb-3">
         <div
-          className="text-[0.62rem] font-bold tracking-[0.16em] uppercase"
-          style={{ color: step.accent }}
+          className="font-bold tracking-[0.16em] uppercase"
+          style={{ fontSize: text.xs, color: step.accent }}
         >
           {step.mockup.heading}
         </div>
@@ -65,12 +68,12 @@ function StepMockup({ step }: { step: (typeof STEPS)[number] }) {
         {step.mockup.items.map((item, i) => (
           <div key={i} className="flex items-center gap-2.5">
             <div
-              className="w-6 h-6 rounded-full flex items-center justify-center text-[0.55rem] font-bold"
-              style={{ background: `${step.accent}15`, color: step.accent }}
+              className="w-6 h-6 rounded-full flex items-center justify-center font-bold"
+              style={{ fontSize: text.xs, background: `${step.accent}15`, color: step.accent }}
             >
               {i + 1}
             </div>
-            <span className="text-[0.8rem]" style={{ color: C.ink }}>
+            <span style={{ fontSize: text.sm, color: C.ink }}>
               {item}
             </span>
           </div>
@@ -103,24 +106,11 @@ export function HowItWorks() {
       style={{ background: C.cream, padding: 'clamp(3.5rem,7vw,7rem) 1.25rem' }}
     >
       <div className="max-w-[960px] mx-auto">
-        {/* Header — watermark number behind h2 */}
-        <div className="text-center mb-10 md:mb-14 relative">
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"
-            style={{ fontSize: 'clamp(5rem, 12vw, 8rem)', color: C.ink, opacity: 0.03, lineHeight: 1 }}
-          >
-            3
-          </div>
-          <motion.h2
-            initial={{ opacity: 0, y: 18 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight relative"
-            style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: C.ink }}
-          >
-            From photos to a finished site in minutes
-          </motion.h2>
-        </div>
+        <SectionHeader
+          watermark="3"
+          title="From photos to a finished site in minutes"
+          inView={inView}
+        />
 
         {/* Progress line (desktop) — gradient connector */}
         <div className="hidden md:flex justify-center gap-0 mb-12">
@@ -130,8 +120,9 @@ export function HowItWorks() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: i * 0.15 + 0.3 }}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-[0.8rem] font-bold"
+                className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
                 style={{
+                  fontSize: text.sm,
                   background: `${s.accent}18`,
                   color: s.accent,
                   border: `2px solid ${s.accent}40`,
@@ -168,12 +159,7 @@ export function HowItWorks() {
                 {/* Text side */}
                 <div className="flex-1 text-center md:text-left">
                   <div className="flex items-center gap-3 mb-4 justify-center md:justify-start">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ background: `${s.accent}15` }}
-                    >
-                      <Icon size={18} style={{ color: s.accent }} />
-                    </div>
+                    <IconCircle icon={Icon} accent={s.accent} />
                     <span
                       className="font-[family-name:var(--eg-font-heading)] text-[3.5rem] font-bold leading-none"
                       style={{ color: `${s.accent}20` }}
@@ -182,14 +168,14 @@ export function HowItWorks() {
                     </span>
                   </div>
                   <h3
-                    className="font-[family-name:var(--eg-font-heading)] font-bold text-[1.3rem] mb-3"
-                    style={{ color: C.ink }}
+                    className="font-[family-name:var(--eg-font-heading)] font-bold mb-3"
+                    style={{ fontSize: text.xl, color: C.ink }}
                   >
                     {s.title}
                   </h3>
                   <p
-                    className="text-[0.92rem] leading-relaxed max-w-[400px] mx-auto md:mx-0"
-                    style={{ color: C.muted, lineHeight: 1.8 }}
+                    className="leading-relaxed max-w-[400px] mx-auto md:mx-0"
+                    style={{ fontSize: text.md, color: C.muted, lineHeight: 1.8 }}
                   >
                     {s.body}
                   </p>

@@ -19,8 +19,8 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: 'text-[0.8rem] px-3 py-1.5 gap-1.5 rounded-[var(--eg-radius-sm)]',
-  md: 'text-[0.9rem] px-5 py-2.5 gap-2 rounded-[var(--eg-radius-sm)]',
+  sm: 'text-[0.78rem] px-3 py-1.5 gap-1.5 rounded-[var(--eg-radius-sm)]',
+  md: 'text-[0.95rem] px-5 py-2.5 gap-2 rounded-[var(--eg-radius-sm)]',
   lg: 'text-[1rem] px-7 py-3 gap-2.5 rounded-[var(--eg-radius)]',
 } as const;
 

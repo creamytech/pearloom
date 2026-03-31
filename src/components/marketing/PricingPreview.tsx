@@ -4,6 +4,8 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Check, ArrowRight } from 'lucide-react';
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
 
 const TIERS = [
   {
@@ -60,39 +62,13 @@ export function PricingPreview() {
       }}
     >
       <div className="max-w-[780px] mx-auto">
-        {/* Header — simple text, no Pill */}
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            className="mb-4"
-          >
-            <span
-              className="text-[0.68rem] font-bold tracking-[0.14em] uppercase"
-              style={{ color: C.gold }}
-            >
-              Pricing
-            </span>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 18 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight mb-3"
-            style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: C.ink }}
-          >
-            Start free. Upgrade when you&rsquo;re ready.
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 }}
-            className="text-[0.95rem]"
-            style={{ color: C.muted, lineHeight: 1.75 }}
-          >
-            No subscriptions. One price per celebration.
-          </motion.p>
-        </div>
+        <SectionHeader
+          eyebrow="Pricing"
+          eyebrowColor={C.gold}
+          title={<>Start free. Upgrade when you&rsquo;re ready.</>}
+          subtitle="No subscriptions. One price per celebration."
+          inView={inView}
+        />
 
         {/* Tier cards — differentiated styles */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -120,7 +96,7 @@ export function PricingPreview() {
                 />
               )}
 
-              <div className="text-[0.68rem] font-bold tracking-[0.14em] uppercase mb-2" style={{ color: tier.accent }}>
+              <div className="font-bold tracking-[0.14em] uppercase mb-2" style={{ fontSize: text.xs, color: tier.accent }}>
                 {tier.name}
               </div>
               <div className="flex items-baseline gap-1 mb-2">
@@ -130,11 +106,11 @@ export function PricingPreview() {
                 >
                   {tier.price}
                 </span>
-                <span className="text-[0.8rem]" style={{ color: C.muted }}>
+                <span style={{ fontSize: text.sm, color: C.muted }}>
                   {tier.period}
                 </span>
               </div>
-              <p className="text-[0.84rem] mb-5" style={{ color: C.muted, lineHeight: 1.6 }}>
+              <p className="mb-5" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.6 }}>
                 {tier.desc}
               </p>
 
@@ -142,7 +118,7 @@ export function PricingPreview() {
                 {tier.features.map(f => (
                   <div key={f} className="flex items-start gap-2.5">
                     <Check size={14} className="mt-0.5 flex-shrink-0" style={{ color: tier.accent }} />
-                    <span className="text-[0.82rem]" style={{ color: C.dark }}>
+                    <span style={{ fontSize: text.sm, color: C.dark }}>
                       {f}
                     </span>
                   </div>
@@ -152,8 +128,9 @@ export function PricingPreview() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg text-[0.88rem] font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg font-semibold font-[family-name:var(--eg-font-body)] border-none cursor-pointer"
                 style={{
+                  fontSize: text.base,
                   background: tier.highlighted ? tier.accent : 'transparent',
                   color: tier.highlighted ? 'white' : tier.accent,
                   border: tier.highlighted ? 'none' : `1.5px solid ${tier.accent}40`,

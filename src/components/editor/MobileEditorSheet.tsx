@@ -80,6 +80,7 @@ function MoreMenuGrid({
       {OVERFLOW_TABS.map(({ tab, icon: Icon, label }) => (
         <motion.button
           key={tab}
+          aria-label={label}
           onClick={() => { onSelect(tab); onClose(); }}
           whileHover={{ backgroundColor: 'rgba(214,198,168,0.1)' }}
           whileTap={{ scale: 0.9 }}
@@ -147,6 +148,7 @@ export function MobileEditorSheet() {
           return (
             <motion.button
               key={tab}
+              aria-label={label}
               onClick={() => {
                 setMoreOpen(false);
                 if (activeTab === tab && mobileSheetOpen) {
@@ -179,6 +181,7 @@ export function MobileEditorSheet() {
 
         {/* More tab */}
         <motion.button
+          aria-label="More options"
           onClick={() => setMoreOpen(!moreOpen)}
           whileTap={{ scale: 0.82 }}
           transition={{ type: 'spring', stiffness: 420, damping: 20 }}
@@ -225,6 +228,7 @@ export function MobileEditorSheet() {
 
       {/* ── Floating Publish FAB ───────────────────────────── */}
       <motion.button
+        aria-label="Publish site"
         onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.9 }}

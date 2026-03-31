@@ -3,6 +3,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
 
 const STATS = [
   { value: '2,000+', label: 'Sites Created' },
@@ -45,8 +46,8 @@ export function SocialProofBar() {
                 {s.value}
               </div>
               <div
-                className="text-[0.72rem] font-semibold tracking-[0.12em] uppercase"
-                style={{ color: C.muted }}
+                className="font-semibold tracking-[0.12em] uppercase"
+                style={{ fontSize: text.sm, color: C.muted }}
               >
                 {s.label}
               </div>

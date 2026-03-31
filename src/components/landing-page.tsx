@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence, type Variants } from 'framer-motion';
-import { Sparkles, ArrowRight, Menu, X } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 
 import { MarketingHero } from './marketing/MarketingHero';
 import { SocialProofBar } from './marketing/SocialProofBar';
@@ -15,6 +15,9 @@ import { PricingPreview } from './marketing/PricingPreview';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
+import { Pill } from '@/components/ui/Pill';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { text } from '@/lib/design-tokens';
 
 interface LandingPageProps {
   handleSignIn: () => void;
@@ -132,21 +135,6 @@ function Ornament() {
   );
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-      style={{
-        background: 'rgba(163,177,138,0.12)',
-        border: '1px solid rgba(163,177,138,0.3)',
-        color: C.olive,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
 const TESTIMONIALS = [
   {
     quote:
@@ -222,7 +210,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         <span
           style={{
             fontFamily: 'var(--eg-font-heading)',
-            fontSize: '1.15rem',
+            fontSize: text.lg,
             fontWeight: 700,
             fontStyle: 'italic',
             color: C.ink,
@@ -247,7 +235,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               key={label}
               href={`#${label.toLowerCase().replace(/ /g, '-')}`}
               style={{
-                fontSize: '0.82rem',
+                fontSize: text.base,
                 fontWeight: 500,
                 color: C.muted,
                 textDecoration: 'none',
@@ -274,7 +262,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               color: C.cream,
               border: 'none',
               borderRadius: '0.6rem',
-              fontSize: '0.82rem',
+              fontSize: text.base,
               fontWeight: 600,
               fontFamily: 'var(--eg-font-body)',
               cursor: 'pointer',
@@ -330,7 +318,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   href={`#${label.toLowerCase().replace(/ /g, '-')}`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={{
-                    fontSize: '0.95rem',
+                    fontSize: text.md,
                     fontWeight: 500,
                     color: C.dark,
                     textDecoration: 'none',
@@ -353,7 +341,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   color: C.cream,
                   border: 'none',
                   borderRadius: '0.6rem',
-                  fontSize: '0.9rem',
+                  fontSize: text.md,
                   fontWeight: 600,
                   fontFamily: 'var(--eg-font-body)',
                   cursor: 'pointer',
@@ -464,7 +452,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 </div>
                 <div
                   style={{
-                    fontSize: '0.68rem',
+                    fontSize: text.xs,
                     fontWeight: 700,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
@@ -477,7 +465,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 <div
                   style={{
                     fontFamily: 'var(--eg-font-heading)',
-                    fontSize: '1rem',
+                    fontSize: text.lg,
                     fontWeight: 700,
                     fontStyle: 'italic',
                     color: C.ink,
@@ -487,7 +475,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 >
                   {o.tagline}
                 </div>
-                <p style={{ fontSize: '0.84rem', color: C.muted, lineHeight: 1.75, margin: 0 }}>
+                <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, margin: 0 }}>
                   {o.desc}
                 </p>
                 <div
@@ -517,24 +505,11 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         }}
       >
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem,4vw,4rem)' }}>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.olive, marginBottom: '1.1rem' }}>Loved by real people</div>
-            <motion.h2
-              initial={{ opacity: 0, y: 16 }}
-              animate={testInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.1 }}
-              style={{
-                fontFamily: 'var(--eg-font-heading)',
-                fontSize: 'clamp(1.9rem,4vw,2.75rem)',
-                fontWeight: 700,
-                color: C.ink,
-                letterSpacing: '-0.03em',
-                marginTop: '1.1rem',
-              }}
-            >
-              Stories from our community
-            </motion.h2>
-          </div>
+          <SectionHeader
+            eyebrow="Loved by real people"
+            title="Stories from our community"
+            inView={testInView}
+          />
           <div
             className="grid grid-cols-1 sm:grid-cols-2"
             style={{ gap: '1.25rem' }}
@@ -583,7 +558,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 <p
                   style={{
                     marginTop: '1rem',
-                    fontSize: '0.76rem',
+                    fontSize: text.sm,
                     fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
@@ -622,16 +597,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65 }}
           >
-            <span
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[0.7rem] font-bold tracking-[0.14em] uppercase"
-              style={{
-                background: 'rgba(163,177,138,0.15)',
-                border: '1px solid rgba(163,177,138,0.3)',
-                color: 'rgba(245,241,232,0.7)',
-              }}
-            >
-              <Sparkles size={9} strokeWidth={2.5} /> Start for free
-            </span>
+            <Pill variant="dark" sparkle>Start for free</Pill>
             <h2
               style={{
                 fontFamily: 'var(--eg-font-heading)',
@@ -679,7 +645,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 color: C.ink,
                 border: 'none',
                 borderRadius: '0.875rem',
-                fontSize: '1.05rem',
+                fontSize: text.lg,
                 fontWeight: 700,
                 fontFamily: 'var(--eg-font-body)',
                 cursor: status === 'loading' ? 'not-allowed' : 'pointer',
@@ -689,7 +655,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             >
               Begin Your Story <ArrowRight size={17} strokeWidth={2.2} />
             </motion.button>
-            <p style={{ marginTop: '1.1rem', fontSize: '0.76rem', color: 'rgba(245,241,232,0.4)', letterSpacing: '0.04em' }}>
+            <p style={{ marginTop: '1.1rem', fontSize: text.sm, color: 'rgba(245,241,232,0.4)', letterSpacing: '0.04em' }}>
               Free to start &middot; No credit card &middot; Live in minutes
             </p>
           </motion.div>

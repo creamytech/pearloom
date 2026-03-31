@@ -67,14 +67,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         />
         <div className="flex items-center justify-between">
           {error ? (
-            <span className="text-[0.8rem] text-[#ef4444]">{error}</span>
+            <span className="text-[0.78rem] text-[#ef4444]">{error}</span>
           ) : helper ? (
             <span className="text-[0.78rem] text-[var(--eg-muted)]">{helper}</span>
           ) : (
             <span />
           )}
           {maxChars && (
-            <span className="text-[0.72rem] text-[var(--eg-muted)]">
+            <span className="text-[0.65rem] text-[var(--eg-muted)]">
               {maxChars - charCount} remaining
             </span>
           )}

@@ -50,6 +50,40 @@
   --eg-thread: rgba(163,177,138,0.30);        /* Soft Olive thread */
   --eg-thread-glow: rgba(163,177,138,0.10);   /* soft olive glow fill */
   --eg-thread-gold: rgba(214,198,168,0.40);   /* Dusty Gold thread highlight */
+
+  /* ── Design Token Scale ── */
+  /* Spacing (4px base) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 64px;
+
+  /* Typography scale */
+  --text-xs: 0.65rem;
+  --text-sm: 0.78rem;
+  --text-base: 0.88rem;
+  --text-md: 0.95rem;
+  --text-lg: 1.1rem;
+  --text-xl: 1.3rem;
+
+  /* Border radius scale */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 100px;
+
+  /* Z-index stacking context */
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-max: 500;
 }
 
 @theme inline {
@@ -98,6 +132,18 @@ body {
 /* ─── Touch targets — Apple HIG minimum 44×44pt ─── */
 button, a, [role="button"] {
   touch-action: manipulation;
+}
+
+/* ─── Focus-visible — keyboard accessibility ─── */
+*:focus-visible {
+  outline: 2px solid var(--eg-plum);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline-offset: 2px;
 }
 
 /* ─── Prevent iOS input zoom (triggers when font-size < 16px) ─── */

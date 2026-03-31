@@ -24,7 +24,7 @@ export function FormField({ label, children, error, helper, required, className 
         {required && <span className="text-[var(--eg-accent)] ml-0.5">*</span>}
       </label>
       {children}
-      {error && <span className="text-[0.8rem] text-[#ef4444]">{error}</span>}
+      {error && <span className="text-[0.78rem] text-[#ef4444]">{error}</span>}
       {helper && !error && <span className="text-[0.78rem] text-[var(--eg-muted)]">{helper}</span>}
     </div>
   );
@@ -137,7 +137,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--eg-muted)] pointer-events-none"
           />
         </div>
-        {error && <span className="text-[0.8rem] text-[#ef4444]">{error}</span>}
+        {error && <span className="text-[0.78rem] text-[#ef4444]">{error}</span>}
       </div>
     );
   },
@@ -174,7 +174,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           )}
           {...props}
         />
-        {error && <span className="text-[0.8rem] text-[#ef4444]">{error}</span>}
+        {error && <span className="text-[0.78rem] text-[#ef4444]">{error}</span>}
       </div>
     );
   },
@@ -211,7 +211,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
           )}
           {...props}
         />
-        {error && <span className="text-[0.8rem] text-[#ef4444]">{error}</span>}
+        {error && <span className="text-[0.78rem] text-[#ef4444]">{error}</span>}
       </div>
     );
   },

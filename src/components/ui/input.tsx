@@ -57,13 +57,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {suffix && (
-            <div className="pr-3 pl-1 text-[var(--eg-muted)] flex-shrink-0 flex items-center text-[0.9rem] font-medium">
+            <div className="pr-3 pl-1 text-[var(--eg-muted)] flex-shrink-0 flex items-center text-[0.95rem] font-medium">
               {suffix}
             </div>
           )}
         </div>
         {error && (
-          <span className="text-[0.8rem] text-[#ef4444]">{error}</span>
+          <span className="text-[0.78rem] text-[#ef4444]">{error}</span>
         )}
         {helper && !error && (
           <span className="text-[0.78rem] text-[var(--eg-muted)]">{helper}</span>

@@ -651,7 +651,7 @@ export function GenerationProgress({
               />
             </motion.div>
           </div>
-          <span style={{ fontSize: '0.62rem', fontWeight: 700, color: `${B.gold}99`, fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', minWidth: '28px', textAlign: 'right', letterSpacing: '0.06em' }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: `${B.gold}99`, fontFamily: 'var(--eg-font-body, system-ui, sans-serif)', minWidth: '28px', textAlign: 'right', letterSpacing: '0.06em' }}>
             {pass.pct}%
           </span>
         </div>
@@ -691,7 +691,7 @@ export function GenerationProgress({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5, delay: 1 }}
               style={{
-                marginTop: '0.75rem', fontSize: '0.72rem',
+                marginTop: '0.75rem', fontSize: '0.65rem',
                 color: 'rgba(250,247,242,0.25)',
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
                 fontStyle: 'italic', margin: '0.75rem 0 0',
@@ -713,7 +713,7 @@ export function GenerationProgress({
               transition={{ duration: 0.6 }}
               style={{
                 marginTop: '1rem',
-                fontSize: '0.75rem',
+                fontSize: '0.78rem',
                 color: 'rgba(250,247,242,0.3)',
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
                 fontStyle: 'italic',
@@ -731,7 +731,7 @@ export function GenerationProgress({
               transition={{ duration: 0.6 }}
               style={{
                 marginTop: '1rem',
-                fontSize: '0.75rem',
+                fontSize: '0.78rem',
                 color: 'rgba(250,200,100,0.45)',
                 fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
                 fontStyle: 'italic',
@@ -788,7 +788,7 @@ export function GenerationProgress({
               borderRadius: '8px',
               padding: elapsed >= 30 ? '0.5rem 1.25rem' : '0.25rem 0.5rem',
               color: 'rgba(250,247,242,0.3)',
-              fontSize: '0.72rem',
+              fontSize: '0.65rem',
               cursor: 'pointer',
               fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
               letterSpacing: '0.06em',

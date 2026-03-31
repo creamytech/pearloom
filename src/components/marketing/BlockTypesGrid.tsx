@@ -20,6 +20,9 @@ import {
   Puzzle,
 } from 'lucide-react';
 import { C } from './colors';
+import { text } from '@/lib/design-tokens';
+import { SectionHeader } from '@/components/marketing/SectionHeader';
+import { IconCircle } from '@/components/ui/IconCircle';
 
 const BLOCKS = [
   { icon: Crown, name: 'Hero', desc: 'Full-bleed cinematic opener', accent: C.plum },
@@ -53,35 +56,12 @@ export function BlockTypesGrid() {
       }}
     >
       <div className="max-w-[960px] mx-auto">
-        {/* Header with decorative watermark number */}
-        <div className="text-center mb-12 relative">
-          {/* Watermark "15" */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-[family-name:var(--eg-font-heading)] font-bold select-none pointer-events-none"
-            style={{ fontSize: 'clamp(6rem, 14vw, 10rem)', color: C.ink, opacity: 0.03, lineHeight: 1 }}
-          >
-            15
-          </div>
-          <motion.h2
-            initial={{ opacity: 0, y: 18 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1 }}
-            className="font-[family-name:var(--eg-font-heading)] font-bold tracking-[-0.03em] leading-tight mb-3 relative"
-            style={{ fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', color: C.ink }}
-          >
-            15 blocks. Infinite possibilities.
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 }}
-            className="text-[0.95rem] max-w-[460px] mx-auto relative"
-            style={{ color: C.muted, lineHeight: 1.75 }}
-          >
-            Mix and match blocks to build exactly the site you need — from intimate stories to
-            full event management.
-          </motion.p>
-        </div>
+        <SectionHeader
+          watermark="15"
+          title="15 blocks. Infinite possibilities."
+          subtitle="Mix and match blocks to build exactly the site you need — from intimate stories to full event management."
+          inView={inView}
+        />
 
         {/* Grid — 4 columns for more breathing room */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -100,16 +80,13 @@ export function BlockTypesGrid() {
                   border: `1.5px solid ${C.divider}`,
                 }}
               >
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center mx-auto mb-2.5"
-                  style={{ background: `${b.accent}12` }}
-                >
-                  <Icon size={16} style={{ color: b.accent }} />
+                <div className="mx-auto mb-2.5">
+                  <IconCircle icon={Icon} accent={b.accent} size={36} iconSize={16} />
                 </div>
-                <div className="text-[0.82rem] font-semibold mb-0.5" style={{ color: C.ink }}>
+                <div className="font-semibold mb-0.5" style={{ fontSize: text.sm, color: C.ink }}>
                   {b.name}
                 </div>
-                <div className="text-[0.72rem] leading-snug" style={{ color: C.muted }}>
+                <div className="leading-snug" style={{ fontSize: text.sm, color: C.muted }}>
                   {b.desc}
                 </div>
               </motion.div>
