@@ -350,11 +350,11 @@ export async function generateStoryManifest(
       manifest.theme = {
         ...manifest.theme,
         colors: {
-          background: p.bg || manifest.theme.colors.background,
-          foreground: p.ink || manifest.theme.colors.foreground,
+          background: p.background || manifest.theme.colors.background,
+          foreground: p.foreground || manifest.theme.colors.foreground,
           accent: p.accent || manifest.theme.colors.accent,
           accentLight: p.highlight || manifest.theme.colors.accentLight,
-          muted: p.subtle || manifest.theme.colors.muted,
+          muted: p.muted || manifest.theme.colors.muted,
           cardBg: p.card || manifest.theme.colors.cardBg,
         },
       };
