@@ -47,6 +47,48 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
+// ── Venue aesthetic chip — shows AI-detected style under venue card ──
+function VenueAestheticChip({ loading, style, mood }: { loading: boolean; style: string; mood: string }) {
+  if (!loading && !style) return null;
+  return (
+    <div
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+        padding: '0.35rem 0.75rem', borderRadius: '100px',
+        background: loading ? 'rgba(163,177,138,0.07)' : 'rgba(163,177,138,0.12)',
+        border: '1px solid rgba(163,177,138,0.22)',
+        fontSize: '0.72rem', color: 'var(--eg-accent)',
+        fontWeight: 600, lineHeight: 1.3,
+        transition: 'all 0.3s',
+        maxWidth: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      {loading ? (
+        <>
+          <span style={{
+            display: 'inline-block', width: '10px', height: '10px',
+            border: '1.5px solid rgba(163,177,138,0.35)',
+            borderTopColor: 'var(--eg-accent)',
+            borderRadius: '50%',
+            animation: 'spin 0.75s linear infinite',
+            flexShrink: 0,
+          }} />
+          <span style={{ color: 'var(--eg-muted)' }}>Reading venue style…</span>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </>
+      ) : (
+        <>
+          <span style={{ flexShrink: 0 }}>✦</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {style}{mood ? ` · ${mood}` : ''}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Collapsible accordion for Phase 2 details ──────────────────
 function AccordionSection({ title, icon, children, defaultOpen = true }: {
   title: string;
@@ -501,6 +543,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [eventVenue, setEventVenue] = useState('');
   const [rsvpDeadline, setRsvpDeadline] = useState('');
   const [cashFundUrl, setCashFundUrl] = useState('');
+  // Venue aesthetic — display state (the full injection goes into detailsData)
+  const [venueAestheticLoading, setVenueAestheticLoading] = useState(false);
+  const [venueStyleLabel, setVenueStyleLabel] = useState('');
+  const [venueStyleMood, setVenueStyleMood] = useState('');
 
   // For birthday only name1 (the birthday person) is required; name2 is optional gift-giver
   const canProceedStep1 = isBirthday ? !!name1.trim() : !!(name1.trim() && name2.trim());
@@ -839,15 +885,19 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
                     {detailsData.ceremonyVenue ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.ceremonyVenue}</div>
-                          {detailsData.ceremonyAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.ceremonyAddress}</div>}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.ceremonyVenue}</div>
+                            {detailsData.ceremonyAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.ceremonyAddress}</div>}
+                          </div>
+                          <button
+                            onClick={() => { setDetail('ceremonyVenue', ''); setDetail('ceremonyAddress', ''); setDetail('venueAesthetic', ''); setVenueStyleLabel(''); setVenueStyleMood(''); }}
+                            style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                          >Change</button>
                         </div>
-                        <button
-                          onClick={() => { setDetail('ceremonyVenue', ''); setDetail('ceremonyAddress', ''); }}
-                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
-                        >Change</button>
+                        {/* Venue aesthetic chip */}
+                        <VenueAestheticChip loading={venueAestheticLoading} style={venueStyleLabel} mood={venueStyleMood} />
                       </div>
                     ) : (
                       <VenueSearch
@@ -855,16 +905,24 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                         onSelect={(venue: VenuePartial) => {
                           setDetail('ceremonyVenue', venue.name ?? '');
                           setDetail('ceremonyAddress', venue.address ?? '');
-                          // Silently fetch venue aesthetic to inform AI generation
+                          // Fetch venue aesthetic to inform AI generation + show style chip
                           if (venue.name) {
+                            setVenueAestheticLoading(true);
+                            setVenueStyleLabel('');
+                            setVenueStyleMood('');
                             fetch('/api/venue/aesthetic', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ venueName: venue.name, address: venue.address }),
                             })
                               .then(r => r.json())
-                              .then(d => { if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection); })
-                              .catch(() => {});
+                              .then(d => {
+                                if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection);
+                                if (d.style) setVenueStyleLabel(d.style);
+                                if (d.moodWords) setVenueStyleMood(d.moodWords);
+                                setVenueAestheticLoading(false);
+                              })
+                              .catch(() => { setVenueAestheticLoading(false); });
                           }
                         }}
                         onAddManually={() => {
@@ -894,15 +952,19 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
                     {detailsData.receptionVenue ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.receptionVenue}</div>
-                          {detailsData.receptionAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.receptionAddress}</div>}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.receptionVenue}</div>
+                            {detailsData.receptionAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.receptionAddress}</div>}
+                          </div>
+                          <button
+                            onClick={() => { setDetail('receptionVenue', ''); setDetail('receptionAddress', ''); if (!detailsData.ceremonyVenue) { setDetail('venueAesthetic', ''); setVenueStyleLabel(''); setVenueStyleMood(''); } }}
+                            style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                          >Change</button>
                         </div>
-                        <button
-                          onClick={() => { setDetail('receptionVenue', ''); setDetail('receptionAddress', ''); }}
-                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
-                        >Change</button>
+                        {/* Show chip only if ceremony didn't already show it */}
+                        {!detailsData.ceremonyVenue && <VenueAestheticChip loading={venueAestheticLoading} style={venueStyleLabel} mood={venueStyleMood} />}
                       </div>
                     ) : (
                       <VenueSearch
@@ -912,14 +974,22 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                           setDetail('receptionAddress', venue.address ?? '');
                           // Only fetch aesthetic from reception if ceremony venue didn't already set it
                           if (venue.name && !detailsData.venueAesthetic) {
+                            setVenueAestheticLoading(true);
+                            setVenueStyleLabel('');
+                            setVenueStyleMood('');
                             fetch('/api/venue/aesthetic', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ venueName: venue.name, address: venue.address }),
                             })
                               .then(r => r.json())
-                              .then(d => { if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection); })
-                              .catch(() => {});
+                              .then(d => {
+                                if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection);
+                                if (d.style) setVenueStyleLabel(d.style);
+                                if (d.moodWords) setVenueStyleMood(d.moodWords);
+                                setVenueAestheticLoading(false);
+                              })
+                              .catch(() => { setVenueAestheticLoading(false); });
                           }
                         }}
                         onAddManually={() => {
