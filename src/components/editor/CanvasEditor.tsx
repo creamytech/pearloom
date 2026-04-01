@@ -952,16 +952,22 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
   }, [manifest, onChange, pushToPreview, isCustomPage, currentCustomPage, activePage]);
 
   // ── Drag-and-drop reordering via useDragSort ──────────────────
+  const ghostRef = useRef<HTMLDivElement>(null);
+  const ghostOffsetRef = useRef({ x: 0, y: 0 });
+
   const {
     orderedItems: dragOrderedBlocks,
     getDragProps,
     getHandleProps,
     isDragging,
     dropIndex,
+    dragId,
   } = useDragSort<PageBlock>({
     items: blocks,
     getKey: (b) => b.id,
     onReorder: (newBlocks) => commit(newBlocks),
+    ghostRef: ghostRef as unknown as { current: HTMLElement | null },
+    ghostOffsetRef,
   });
 
   const toggleVisible = useCallback((id: string) => {
@@ -1166,12 +1172,36 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
 
         {/* ── Drag-sortable block list ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', position: 'relative' }}>
-          {dragOrderedBlocks.map((block, idx) => {
+          {(() => {
+            // Convert the hook's final-array dropIndex to the visual list position
+            // where the indicator line should appear.
+            //
+            // dropIndex = where item will land after removing it from the list (0..N-1).
+            // draggedIdx = current visual position of the dragged item (0..N-1).
+            //
+            // When dragging an item BEFORE itself (dropIndex < draggedIdx): the visual
+            //   slot to highlight is exactly dropIndex (no offset needed).
+            // When dragging an item AFTER itself (dropIndex >= draggedIdx): every item
+            //   above the drop target visually shifts up by 1 because the ghost is still
+            //   occupying draggedIdx, so visualIdx = dropIndex + 1.
+            // When dropIndex === N-1 (end of list): show line AFTER the last item.
+            // When dropIndex === draggedIdx: no-op, suppress the indicator.
+            const N = dragOrderedBlocks.length;
+            const draggedIdx = dragId ? dragOrderedBlocks.findIndex(b => b.id === dragId) : -1;
+            type VisualLine = 'none' | 'after-last' | number;
+            const visualDropLine: VisualLine = (() => {
+              if (!isDragging || dropIndex === null || draggedIdx === -1) return 'none';
+              if (dropIndex === draggedIdx) return 'none';
+              if (dropIndex === N - 1 && dropIndex !== draggedIdx - 1) return 'after-last';
+              return dropIndex >= draggedIdx ? dropIndex + 1 : dropIndex;
+            })();
+
+            return dragOrderedBlocks.map((block, idx) => {
             const def = BLOCK_CATALOGUE.find(d => d.type === block.type);
             const dragProps = getDragProps(block);
             const handleProps = getHandleProps(block);
-            const showDropLine = isDragging && dropIndex === idx;
-            const showDropLineAfter = isDragging && dropIndex === dragOrderedBlocks.length - 1 && idx === dragOrderedBlocks.length - 1;
+            const showDropLine = typeof visualDropLine === 'number' && visualDropLine === idx;
+            const showDropLineAfter = visualDropLine === 'after-last' && idx === N - 1;
 
             return (
               <div
@@ -1211,7 +1241,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                 )}
               </div>
             );
-          })}
+            });
+          })()}
         </div>
 
         <AddBlockPicker onAdd={addBlock} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
@@ -1269,6 +1300,61 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Drag ghost — follows pointer via imperative DOM updates in useDragSort ── */}
+      {(() => {
+        const draggedBlock = dragId ? dragOrderedBlocks.find(b => b.id === dragId) : null;
+        const draggedDef = draggedBlock ? BLOCK_CATALOGUE.find(d => d.type === draggedBlock.type) : null;
+        const ghostColor = draggedDef?.color ?? 'rgba(163,177,138,1)';
+        const GhostIcon = draggedDef?.icon ?? LayoutTemplate;
+        return (
+          <div
+            ref={ghostRef}
+            style={{
+              display: isDragging ? 'flex' : 'none',
+              position: 'fixed',
+              pointerEvents: 'none',
+              zIndex: 9999,
+              alignItems: 'center',
+              gap: '10px',
+              padding: '13px 10px',
+              borderRadius: '10px',
+              background: `${ghostColor}18`,
+              border: `1px solid ${ghostColor}55`,
+              borderLeft: `3px solid ${ghostColor}`,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3)',
+              transform: 'rotate(1.5deg) scale(1.03)',
+              opacity: 0.95,
+              backdropFilter: 'blur(8px)',
+              cursor: 'grabbing',
+            }}
+          >
+            <div style={{
+              width: '8px', height: '14px', display: 'flex', flexDirection: 'column',
+              justifyContent: 'center', gap: '3px', flexShrink: 0,
+            }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{ width: '8px', height: '2px', borderRadius: '1px', background: `${ghostColor}80` }} />
+              ))}
+            </div>
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+              background: `${ghostColor}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1px solid ${ghostColor}40`,
+            }}>
+              <GhostIcon size={15} color={ghostColor} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', lineHeight: 1.3 }}>
+                {draggedDef?.label ?? draggedBlock?.type}
+              </div>
+              <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>
+                Drag to reorder
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
