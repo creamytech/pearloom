@@ -57,7 +57,7 @@ function getVideoEmbedUrl(url?: string): string | null {
 // ── Main Preview ──────────────────────────────────────────────
 
 // ── Subpage preview (mirrors [domain]/[page] route) ──────────
-function SubpagePreview({ page, manifest, names }: { page: string; manifest: StoryManifest; names: [string, string] }) {
+function SubpagePreview({ page, manifest, names, rawParams }: { page: string; manifest: StoryManifest; names: [string, string]; rawParams?: string }) {
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
@@ -119,7 +119,18 @@ function SubpagePreview({ page, manifest, names }: { page: string; manifest: Sto
     <ThemeProvider theme={manifest.theme || dynamicTheme}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
-      <SiteNav names={names} pages={sitePages} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} />
+      <SiteNav
+        names={names}
+        pages={sitePages}
+        logoIcon={manifest.logoIcon}
+        logoSvg={manifest.logoSvg}
+        pageHrefOverride={(slug) => {
+          const params = new URLSearchParams(rawParams ?? '');
+          if (!slug || slug === 'our-story') { params.delete('page'); }
+          else { params.set('page', slug); }
+          return `/preview?${params.toString()}`;
+        }}
+      />
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
         {content}
       </main>
@@ -201,7 +212,7 @@ function PreviewContent() {
   // Per-page preview — renders the subpage view when ?page= is set
   const previewPageSlug = searchParams.get('page');
   if (previewPageSlug && previewPageSlug !== 'our-story') {
-    return <SubpagePreview page={previewPageSlug} manifest={manifest} names={names} />;
+    return <SubpagePreview page={previewPageSlug} manifest={manifest} names={names} rawParams={searchParams.toString()} />;
   }
 
   // Derive visual skin
@@ -526,7 +537,18 @@ function PreviewContent() {
       <link rel="stylesheet" href={fontUrl} />
 
       <EditBridge enabled={editMode} />
-      <SiteNav names={names} pages={sitePages} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} />
+      <SiteNav
+        names={names}
+        pages={sitePages}
+        logoIcon={manifest.logoIcon}
+        logoSvg={manifest.logoSvg}
+        pageHrefOverride={(slug) => {
+          const params = new URLSearchParams(searchParams.toString());
+          if (!slug || slug === 'our-story') { params.delete('page'); }
+          else { params.set('page', slug); }
+          return `/preview?${params.toString()}`;
+        }}
+      />
 
       <CelebrationOverlay
         occasion={(manifest.occasion as 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story') || 'wedding'}

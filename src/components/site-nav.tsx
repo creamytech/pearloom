@@ -74,6 +74,8 @@ interface SiteNavProps {
   logoIcon?: LogoIconId;
   logoSvg?: string;
   currentPage?: string;
+  /** When provided, overrides the default path-based href generation for page links. */
+  pageHrefOverride?: (slug: string) => string;
   user?: { name?: string | null; email?: string | null; image?: string | null };
   onGoToDashboard?: () => void;
   onStartNew?: () => void;
@@ -85,6 +87,7 @@ export function SiteNav({
   logoIcon,
   logoSvg,
   currentPage,
+  pageHrefOverride,
   user,
   onGoToDashboard,
   onStartNew,
@@ -132,7 +135,7 @@ export function SiteNav({
     return '/' + parts[1];
   })();
 
-  const getHref = (slug: string) => (slug === '' ? basePath : `${basePath}/${slug}`);
+  const getHref = (slug: string) => pageHrefOverride ? pageHrefOverride(slug) : (slug === '' ? basePath : `${basePath}/${slug}`);
 
   return (
     <>
