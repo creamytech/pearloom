@@ -17,6 +17,7 @@ import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
+import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
@@ -49,20 +50,21 @@ async function uploadPhotoUrl(rawUrl: string): Promise<string> {
     const res = await fetch(fetchUrl, { signal: AbortSignal.timeout(12000) });
     if (!res.ok) return rawUrl;
 
-    const buffer = Buffer.from(await res.arrayBuffer());
+    const plaintext = Buffer.from(await res.arrayBuffer());
     const contentType = res.headers.get('content-type') || 'image/jpeg';
     const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
     const key = `chapters/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+    const body = isEncryptionEnabled() ? encryptBuffer(plaintext) : plaintext;
 
     await r2.client.send(new PutObjectCommand({
       Bucket: r2.bucket,
       Key: key,
-      Body: buffer,
-      ContentType: contentType,
+      Body: body,
+      ContentType: 'application/octet-stream',
       CacheControl: 'public, max-age=31536000, immutable',
     }));
 
-    return `${r2.publicBase}/${key}`;
+    return `/api/img/${key}`;
   } catch (err) {
     console.warn('[R2 Upload] Failed to upload photo to R2 — site will use ephemeral Google Photos URL:', err instanceof Error ? err.message : err);
     return rawUrl; // on any failure, fall back gracefully
@@ -79,19 +81,20 @@ async function uploadBase64Art(dataUrl: string, label: string): Promise<string> 
     if (!match) return dataUrl;
 
     const contentType = match[1];
-    const buffer = Buffer.from(match[2], 'base64');
+    const plaintext = Buffer.from(match[2], 'base64');
     const ext = contentType.includes('png') ? 'png' : 'jpg';
     const key = `art/${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const body = isEncryptionEnabled() ? encryptBuffer(plaintext) : plaintext;
 
     await r2.client.send(new PutObjectCommand({
       Bucket: r2.bucket,
       Key: key,
-      Body: buffer,
-      ContentType: contentType,
+      Body: body,
+      ContentType: 'application/octet-stream',
       CacheControl: 'public, max-age=31536000, immutable',
     }));
 
-    return `${r2.publicBase}/${key}`;
+    return `/api/img/${key}`;
   } catch (err) {
     console.warn(`[R2 Upload] Failed to upload ${label} art:`, err instanceof Error ? err.message : err);
     return dataUrl;
