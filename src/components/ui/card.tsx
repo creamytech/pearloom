@@ -1,7 +1,6 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
 // ─────────────────────────────────────────────────────────────
@@ -50,8 +49,7 @@ const paddingMap = {
   xl:   'p-10',
 } as const;
 
-export interface CardProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'> {
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: keyof typeof cardVariants;
   interactive?: boolean;
   padding?: keyof typeof paddingMap;
@@ -59,29 +57,20 @@ export interface CardProps
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ variant = 'elevated', interactive = false, padding = 'md', className, children, ...props }, ref) => {
-    const Comp = interactive ? motion.div : 'div';
-
     return (
-      <Comp
+      <div
         ref={ref}
-        {...(interactive
-          ? {
-              whileHover: { scale: 1.012, y: -2 },
-              whileTap:   { scale: 0.99 },
-              transition: { type: 'spring', stiffness: 380, damping: 26 },
-            }
-          : {})}
         className={cn(
           'rounded-[var(--pl-radius-md)]',
           cardVariants[variant],
           paddingMap[padding],
-          interactive && 'cursor-pointer',
+          interactive && 'cursor-pointer hover:scale-[1.012] hover:-translate-y-0.5 active:scale-[0.99]',
           className,
         )}
-        {...(props as React.HTMLAttributes<HTMLDivElement>)}
+        {...props}
       >
         {children}
-      </Comp>
+      </div>
     );
   },
 );

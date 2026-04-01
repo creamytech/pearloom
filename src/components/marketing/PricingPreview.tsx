@@ -100,7 +100,7 @@ export function PricingPreview() {
                     {tier.name}
                   </div>
                   {tier.highlighted && (
-                    <Badge variant="warning">Best Value</Badge>
+                    <Badge variant="gold">Best Value</Badge>
                   )}
                 </div>
 
