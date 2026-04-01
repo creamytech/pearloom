@@ -25,7 +25,7 @@ function getGreeting(): string {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-[var(--pl-radius-md)] overflow-hidden border border-[var(--pl-divider)] shadow-[var(--pl-shadow-sm)]">
+    <div className="bg-white rounded-[var(--pl-radius-md)] overflow-hidden border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]">
       <div className="h-48 skeleton" />
       <div className="p-5 flex flex-col gap-3">
         <div className="h-3 rounded-full w-[60%] skeleton" />
@@ -165,7 +165,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[var(--pl-shadow-sm)] p-12 text-center"
+          className="bg-white rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] p-12 text-center"
         >
           <AlertTriangle size={36} className="text-[var(--pl-plum)] opacity-50 mx-auto mb-5" />
           <h3 className="font-[family-name:var(--pl-font-heading)] text-[1.4rem] font-normal mb-3 text-[var(--pl-ink-soft)]">
@@ -185,7 +185,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="flex flex-col items-center justify-center text-center py-24 px-8 rounded-[var(--pl-radius-xl)] border border-[var(--pl-divider)] shadow-[var(--pl-shadow-md)] max-w-[600px] mx-auto relative overflow-hidden"
+          className="flex flex-col items-center justify-center text-center py-24 px-8 rounded-[var(--pl-radius-xl)] border border-[var(--pl-divider)] shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)] max-w-[600px] mx-auto relative overflow-hidden"
           style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(163,177,138,0.07) 0%, rgba(214,198,168,0.05) 40%, #fff 70%)' }}
         >
           <PearIcon size={72} color="var(--pl-olive)" />
@@ -229,7 +229,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     viewport={{ once: true, margin: '-40px' }}
                     transition={{ duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
                     exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                    className="bg-[var(--pl-cream)] rounded-[var(--pl-radius-md)] overflow-hidden border border-[var(--pl-divider)] shadow-[var(--pl-shadow-sm)] transition-all duration-400 hover:shadow-[var(--pl-shadow-md)] hover:-translate-y-1"
+                    className="bg-[var(--pl-cream)] rounded-[var(--pl-radius-md)] overflow-hidden border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] transition-all duration-400 hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)] hover:-translate-y-1"
                     style={{ ['--hover-border' as string]: accentColor }}
                   >
                     {/* ── Card cover header ── */}

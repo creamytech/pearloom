@@ -46,7 +46,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             'flex items-center bg-white rounded-[var(--pl-radius-sm)]',
             'border-[1.5px] transition-all duration-200',
             focused
-              ? 'border-[var(--pl-olive)] shadow-[var(--pl-shadow-focus)]'
+              ? 'border-[var(--pl-olive)] shadow-[0_0_0_3px_rgba(163,177,138,0.22)]'
               : error
                 ? 'border-destructive'
                 : 'border-[var(--pl-divider)] hover:border-[var(--pl-olive-hover)]',

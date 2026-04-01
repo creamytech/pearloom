@@ -105,7 +105,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.98 }}
             transition={{ duration: 0.14, ease: 'easeOut' }}
-            className="absolute top-[calc(100%+0.5rem)] right-0 w-[272px] bg-white rounded-[var(--pl-radius-md)] border border-[var(--pl-divider)] shadow-[var(--pl-shadow-lg)] overflow-hidden z-[100]"
+            className="absolute top-[calc(100%+0.5rem)] right-0 w-[272px] bg-white rounded-[var(--pl-radius-md)] border border-[var(--pl-divider)] shadow-[0_12px_40px_rgba(43,30,20,0.12),0_20px_50px_rgba(43,30,20,0.07)] overflow-hidden z-[100]"
           >
             <AnimatePresence mode="wait" initial={false}>
 
@@ -190,7 +190,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
                         placeholder="Your name"
-                        className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.9rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] focus:shadow-[var(--pl-shadow-focus)] transition-all font-[family-name:var(--pl-font-body)]"
+                        className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.9rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] focus:shadow-[0_0_0_3px_rgba(163,177,138,0.22)] transition-all font-[family-name:var(--pl-font-body)]"
                       />
                     </div>
                     <div>

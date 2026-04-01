@@ -24,7 +24,7 @@ export function DashboardStep({
   return (
     <>
       {draftBanner && (
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-8 px-6 py-4 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] border-l-[3px] border-l-[var(--pl-olive)] shadow-[var(--pl-shadow-xs)]">
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-8 px-6 py-4 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] border-l-[3px] border-l-[var(--pl-olive)] shadow-[0_1px_2px_rgba(43,30,20,0.06)]">
           <div className="flex-1 min-w-0">
             <p className="text-[0.92rem] font-medium text-[var(--pl-ink)]">
               You have an unsaved draft

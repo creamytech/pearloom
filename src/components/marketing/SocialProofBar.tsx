@@ -76,7 +76,7 @@ export function SocialProofBar() {
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         {/* Stats card */}
-        <div className="bg-white/85 rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[var(--pl-shadow-sm)] py-[clamp(1.5rem,3vw,2.5rem)]">
+        <div className="bg-white/85 rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] py-[clamp(1.5rem,3vw,2.5rem)]">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
             {STATS.map((s, i) => (
               <div key={s.label} className="text-center relative px-4">

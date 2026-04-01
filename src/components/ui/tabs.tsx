@@ -35,7 +35,7 @@ const TabsTrigger = forwardRef<
       'text-[var(--pl-muted)] hover:text-[var(--pl-ink)]',
       'transition-all duration-200',
       'data-[state=active]:bg-white data-[state=active]:text-[var(--pl-ink)]',
-      'data-[state=active]:shadow-[var(--pl-shadow-xs)]',
+      'data-[state=active]:shadow-[0_1px_2px_rgba(43,30,20,0.06)]',
       'focus-visible:outline-none',
       className,
     )}

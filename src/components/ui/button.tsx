@@ -15,7 +15,7 @@ import { cn } from '@/lib/cn';
 const buttonVariants = cva(
   // Base — shared across all variants
   [
-    'inline-flex items-center justify-center font-medium leading-none',
+    'inline-flex items-center justify-center font-semibold leading-none',
     'transition-all duration-200 cursor-pointer select-none',
     'font-[family-name:var(--pl-font-body)]',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
@@ -28,14 +28,14 @@ const buttonVariants = cva(
         primary: [
           'bg-[var(--pl-ink)] text-white border border-[var(--pl-ink)]',
           'hover:bg-[var(--pl-ink-soft)] hover:-translate-y-px',
-          'shadow-[var(--pl-shadow-sm)] hover:shadow-[var(--pl-shadow-md)]',
+          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
         ].join(' '),
 
         /** Olive-filled — brand CTA */
         accent: [
           'bg-[var(--pl-olive)] text-white border border-[var(--pl-olive)]',
           'hover:bg-[var(--pl-olive-hover)] hover:-translate-y-px',
-          'shadow-[var(--pl-shadow-sm)] hover:shadow-[var(--pl-shadow-md)]',
+          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
         ].join(' '),
 
         /** Outlined — secondary action */
@@ -59,7 +59,7 @@ const buttonVariants = cva(
         /** Destructive */
         danger: [
           'bg-destructive text-destructive-foreground border border-destructive',
-          'hover:opacity-90 shadow-[var(--pl-shadow-sm)]',
+          'hover:opacity-90 shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]',
         ].join(' '),
 
         /** Dark-surface ghost — for use inside editor / dark panels */

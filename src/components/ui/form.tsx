@@ -134,7 +134,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
               className={cn(
                 'relative z-50 min-w-[8rem] overflow-hidden',
                 'bg-white rounded-xl border border-[rgba(0,0,0,0.08)]',
-                'shadow-[var(--eg-shadow-md)]',
+                'shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
                 'data-[state=open]:animate-in data-[state=closed]:animate-out',
                 'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
                 'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',

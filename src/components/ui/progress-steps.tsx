@@ -33,7 +33,7 @@ export function ProgressSteps({
         'flex items-center justify-between',
         'bg-white rounded-[var(--pl-radius-full)]',
         'px-5 py-2.5',
-        'shadow-[var(--pl-shadow-xs)] border border-[var(--pl-divider)]',
+        'shadow-[0_1px_2px_rgba(43,30,20,0.06)] border border-[var(--pl-divider)]',
         className,
       )}
     >
