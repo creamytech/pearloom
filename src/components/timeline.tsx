@@ -6,7 +6,7 @@
 // Layouts: cascade | filmstrip | scrapbook | magazine | chapters | starmap
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TimelineItem } from './timeline-item';
 import { useTheme } from '@/components/theme-provider';
@@ -27,7 +27,7 @@ interface TimelineProps {
 // ── Section header shared across all layouts ──────────────────
 function SectionHeader({ title, subtitle, eyebrowLabel }: { title: string; subtitle: string; eyebrowLabel: string }) {
   return (
-    <div style={{ textAlign: 'center', marginBottom: '5rem', padding: '0 2rem' }}>
+    <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 5vw, 5rem)', padding: '0 clamp(1rem, 4vw, 2rem)' }}>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -81,7 +81,7 @@ function CascadeLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
       {chapters.map((chapter, i) => (
         <div key={chapter.id}>
           {i > 0 && <div style={{ height: '1px', background: 'var(--eg-divider, rgba(0,0,0,0.07))', margin: '0 clamp(0.5rem, 4vw, 2rem)' }} />}
-          <div style={{ background: i % 2 === 0 ? 'var(--eg-bg)' : 'var(--eg-bg-section)', paddingTop: '5rem', paddingBottom: '5rem', position: 'relative' }}>
+          <div style={{ background: i % 2 === 0 ? 'var(--eg-bg)' : 'var(--eg-bg-section)', paddingTop: 'clamp(2rem, 5vw, 5rem)', paddingBottom: 'clamp(2rem, 5vw, 5rem)', position: 'relative' }}>
             {(chapter.ambientColor || vibeSkin?.chapterColors?.[i]) && (
               <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: chapter.ambientColor || vibeSkin?.chapterColors?.[i], opacity: 0.045 }} />
             )}
@@ -191,6 +191,14 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
 // ── SCRAPBOOK — polaroids scattered on a linen board ──────────
 function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?: VibeSkin }) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mq.matches);
+    const h = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
   // Deterministic rotation/position offsets per card
   const offsets = chapters.map((_, i) => ({
     rotate: ((i * 37 + 7) % 18) - 9, // -9 to +9 degrees
@@ -199,12 +207,12 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
   }));
 
   return (
-    <div>
+    <div style={{ overflow: 'hidden' }}>
       <div style={{
         background: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 32px), repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 32px)',
-        padding: '3rem 2rem',
+        padding: isMobile ? '2rem 1rem' : '3rem 2rem',
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center', alignItems: 'flex-start' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: isMobile ? '1.25rem' : '2rem', justifyContent: 'center', alignItems: 'flex-start' }}>
           {chapters.map((chapter, i) => {
             const coverImg = chapter.images?.[chapter.heroPhotoIndex ?? 0]?.url || chapter.images?.[0]?.url;
             const { rotate, tx, ty } = offsets[i];
@@ -215,20 +223,20 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 key={chapter.id}
                 onClick={() => setActiveIdx(isActive ? null : i)}
                 initial={{ opacity: 0, scale: 0.85, rotate: rotate - 5 }}
-                whileInView={{ opacity: 1, scale: 1, rotate: isActive ? 0 : rotate }}
+                whileInView={{ opacity: 1, scale: 1, rotate: isActive ? 0 : (isMobile ? 0 : rotate) }}
                 whileHover={{ scale: 1.06, rotate: 0, zIndex: 20 }}
                 whileTap={{ scale: 0.98 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                 style={{
-                  width: 'clamp(160px, 80vw, 220px)',
+                  width: isMobile ? 'calc(50% - 0.625rem)' : 'clamp(160px, 28vw, 220px)',
                   background: '#faf9f6',
-                  padding: '12px 12px 48px',
+                  padding: isMobile ? '10px 10px 36px' : '12px 12px 48px',
                   boxShadow: isActive
                     ? '0 30px 80px rgba(0,0,0,0.25), 0 0 0 3px rgba(163,177,138,0.5)'
                     : '0 8px 30px rgba(0,0,0,0.18)',
                   cursor: 'pointer',
-                  transform: `translate(${tx}px, ${ty}px)`,
+                  transform: isMobile ? undefined : `translate(${tx}px, ${ty}px)`,
                   position: 'relative',
                   zIndex: isActive ? 30 : 1,
                 }}
@@ -286,6 +294,15 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
 
 // ── MAGAZINE — editorial full-bleed spreads ───────────────────
 function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?: VibeSkin }) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mq.matches);
+    const h = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
       {chapters.map((chapter, i) => {
@@ -301,14 +318,17 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                style={{ position: 'relative', height: 'clamp(360px, 55vw, 640px)', overflow: 'hidden' }}
+                style={{ position: 'relative', height: isMobile ? 'clamp(280px, 60vw, 420px)' : 'clamp(360px, 55vw, 640px)', overflow: 'hidden' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={coverImg} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: isEven ? 'linear-gradient(to right, rgba(0,0,0,0.65) 40%, transparent)' : 'linear-gradient(to left, rgba(0,0,0,0.65) 40%, transparent)' }} />
+                {/* On mobile: gradient covers full bottom; on desktop: side gradient */}
+                <div style={{ position: 'absolute', inset: 0, background: isMobile
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)'
+                  : (isEven ? 'linear-gradient(to right, rgba(0,0,0,0.65) 40%, transparent)' : 'linear-gradient(to left, rgba(0,0,0,0.65) 40%, transparent)') }} />
 
                 {/* Overlay headline */}
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 'clamp(1rem, 4vw, 3rem)', maxWidth: isEven ? 'min(55%, 90vw)' : undefined, marginLeft: isEven ? 0 : 'auto' }}>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: isMobile ? 'flex-end' : 'center', padding: isMobile ? '1.5rem 1.25rem' : 'clamp(1rem, 4vw, 3rem)', maxWidth: isMobile ? '100%' : (isEven ? 'min(60%, 90vw)' : undefined), marginLeft: !isMobile && isEven ? 0 : (!isMobile && !isEven ? 'auto' : 0) }}>
                   <motion.div
                     initial={{ opacity: 0, x: isEven ? -30 : 30 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -330,7 +350,7 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
             )}
 
             {/* Editorial text body */}
-            <div style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 2rem', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+            <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '2rem 1.25rem 2.5rem' : '4rem 2rem', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -365,7 +385,7 @@ function ChaptersLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
   const [openIdx, setOpenIdx] = useState<number>(0);
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 1.5rem' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 clamp(1rem, 4vw, 1.5rem)' }}>
       {chapters.map((chapter, i) => {
         const isOpen = openIdx === i;
         const coverImg = chapter.images?.[chapter.heroPhotoIndex ?? 0]?.url || chapter.images?.[0]?.url;
@@ -378,8 +398,8 @@ function ChaptersLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
               whileHover={{ x: 4 }}
               transition={{ duration: 0.15 }}
               style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: '1.5rem',
-                padding: '2.25rem 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                width: '100%', display: 'flex', alignItems: 'center', gap: 'clamp(0.75rem, 3vw, 1.5rem)',
+                padding: 'clamp(1.25rem, 4vw, 2.25rem) 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
               }}
             >
               {/* Chapter number */}
@@ -445,6 +465,14 @@ function ChaptersLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
 // ── STARMAP — constellation on a night sky ────────────────────
 function StarmapLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?: VibeSkin }) {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mq.matches);
+    const h = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
 
   // Positions: arc across the canvas for a constellation feel
   const starPositions = chapters.map((_, i) => {
@@ -459,7 +487,7 @@ function StarmapLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
   return (
     <div>
       {/* Star canvas */}
-      <div style={{ position: 'relative', background: 'linear-gradient(180deg, #0a0e1a 0%, #0d1b2a 60%, #1b2a1f 100%)', minHeight: '420px', overflow: 'hidden', padding: '3rem 0' }}>
+      <div style={{ position: 'relative', background: 'linear-gradient(180deg, #0a0e1a 0%, #0d1b2a 60%, #1b2a1f 100%)', minHeight: isMobile ? '340px' : '420px', overflow: 'hidden', padding: '3rem 0' }}>
         {/* Twinkling background stars */}
         {[...Array(40)].map((_, i) => (
           <motion.div
@@ -543,8 +571,8 @@ function StarmapLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
               </motion.div>
 
               {/* Star label */}
-              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', textAlign: 'center' }}>
-                <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '0.85rem', fontStyle: 'italic', color: isActive ? '#A3B18A' : 'rgba(220,235,255,0.88)', lineHeight: 1.3 }}>
+              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', textAlign: 'center', maxWidth: isMobile ? '80px' : '160px' }}>
+                <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: isMobile ? '0.65rem' : '0.85rem', fontStyle: 'italic', color: isActive ? '#A3B18A' : 'rgba(220,235,255,0.88)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {chapter.title}
                 </div>
               </div>
