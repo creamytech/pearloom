@@ -165,6 +165,15 @@ export async function generatePoetryPass(
   const name1 = coupleNames?.[0] ?? 'We';
   const occ = occasion || 'wedding';
 
+  // Strip structural preamble from vibeString before injecting into poetry prompt.
+  // buildVibeString() prepends meta-instructions like "Occasion / Project Type: ..."
+  // that are useful for Pass 1 (storytelling) but cause the poetry model to echo
+  // them back verbatim as the heroTagline instead of generating a creative tagline.
+  const vibeForPoetry = vibeString
+    .replace(/^Occasion\s*\/\s*Project Type:[^\n]*\n?/im, '')
+    .replace(/^This is a (?:BIRTHDAY|WEDDING|ANNIVERSARY|ENGAGEMENT|CELEBRATION)[^\n]*\n?/gim, '')
+    .trim();
+
   // Pull a few chapter titles to give Gemini narrative context
   const chapterTitles = chapters.slice(0, 5).map(c => `"${c.title}"`).join(', ');
   const chapterContext = chapters.slice(0, 8).map(c =>
@@ -208,7 +217,7 @@ export async function generatePoetryPass(
   const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
 
   const poetryPrompt = `You are a gifted copywriter and poet writing for ${namesCtx}'s ${occCap} website on Pearloom.
-Their vibe: "${vibeString}"
+Their vibe: "${vibeForPoetry}"
 Story chapters: ${chapterTitles || 'the beginning of their love'}
 Chapter summaries:
 ${chapterContext}
@@ -231,7 +240,7 @@ Write ${needsMilestones ? '5' : '4'} pieces of text — each must be deeply spec
    CRITICAL RULES:
    - 3-5 sentences. No more.
    - Must feel like a REAL person wrote it, not an AI. Conversational, specific, alive.
-   - Must reference at least ONE specific detail from their vibe: "${vibeString.slice(0, 200)}"
+   - Must reference at least ONE specific detail from their vibe: "${vibeForPoetry.slice(0, 200)}"
    - Banned: "journey", "adventure", "fairy tale", "soulmate", "beautifully unique story"
    - Must make a guest feel like they know these people after reading it.
    - Strong example tone: "We're Mia and Carlos. We met at a salsa class in Miami — he stepped on her feet twice, she forgave him anyway. Four years later, we're doing this. This site is our way of sharing a little of what got us here before the big day."
@@ -277,11 +286,16 @@ Return ONLY valid JSON (no markdown, no backticks):
     milestones?: Array<{ year: number; label: string; emoji?: string }>;
   };
 
+  // Validate word counts — if the model echoed back instructions instead of
+  // generating copy, the output will be far too long and must be rejected.
+  const isShortEnough = (s: string, maxWords: number) =>
+    typeof s === 'string' && s.length > 0 && s.split(/\s+/).length <= maxWords;
+
   return {
-    heroTagline: typeof result.heroTagline === 'string' && result.heroTagline.length > 0
-      ? result.heroTagline : 'A love story worth every page',
-    closingLine: typeof result.closingLine === 'string' && result.closingLine.length > 0
-      ? result.closingLine : 'Thank you for being part of our story.',
+    heroTagline: isShortEnough(result.heroTagline ?? '', 12)
+      ? result.heroTagline! : 'A love story worth every page',
+    closingLine: isShortEnough(result.closingLine ?? '', 20)
+      ? result.closingLine! : 'Thank you for being part of our story.',
     rsvpIntro: typeof result.rsvpIntro === 'string' && result.rsvpIntro.length > 0
       ? result.rsvpIntro : "We can't wait to celebrate with you. Please let us know if you'll be joining us.",
     ...(typeof result.welcomeStatement === 'string' && result.welcomeStatement.length > 10
