@@ -289,7 +289,7 @@ export function SiteNav({
             >
               {/* Drawer header */}
               <div className="flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
-                <span className="font-heading text-[1.3rem] font-normal text-[var(--pl-ink-soft)] tracking-tight leading-tight">
+                <span className="font-heading text-[1.3rem] font-semibold italic text-[var(--pl-ink-soft)] tracking-tight leading-tight">
                   {isStudio ? 'Pearloom' : (names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0])}
                 </span>
                 <button

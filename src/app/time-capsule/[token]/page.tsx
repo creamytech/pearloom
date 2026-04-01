@@ -6,6 +6,7 @@
 export const dynamic = 'force-dynamic';
 
 import { CapsuleReveal } from './CapsuleReveal';
+import { parseLocalDate } from '@/lib/date';
 
 interface CapsuleData {
   letter?: string;
@@ -38,7 +39,7 @@ async function fetchCapsule(token: string): Promise<CapsuleData> {
 
 function formatDate(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return parseLocalDate(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

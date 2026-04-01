@@ -13,6 +13,7 @@ import type { Chapter } from '@/types';
 import { MoodDecorator } from '@/components/mood-decorator';
 import { LocationPinIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
 import { VideoChapterPlayer } from '@/components/site/VideoChapterPlayer';
+import { parseLocalDate } from '@/lib/date';
 
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 
@@ -96,13 +97,13 @@ function proxyUrl(rawUrl: string, w: number, h: number): string {
 
 function formatDate(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return parseLocalDate(dateStr).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   } catch { return dateStr; }
 }
 
 function formatDateFull(dateStr: string): string {
   try {
-    const d = new Date(dateStr);
+    const d = parseLocalDate(dateStr);
     const day = d.getDate().toString().padStart(2, '0');
     const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
     const year = d.getFullYear();
@@ -488,11 +489,12 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                fontWeight: 400,
+                fontWeight: 600,
+                fontStyle: 'italic',
                 color: chapter.styleOverrides?.textColor || 'var(--eg-fg)',
                 lineHeight: 1.05,
                 margin: '0 0 1rem 0',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.03em',
               }}>
                 <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>
@@ -646,12 +648,13 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             <h3 style={{
               fontFamily: 'var(--eg-font-heading)',
               fontSize: 'clamp(3rem, 7vw, 5.5rem)',
-              fontWeight: 400,
+              fontWeight: 600,
+              fontStyle: 'italic',
               lineHeight: 1.0,
               margin: '0 0 2rem 0',
               color: '#ffffff',
               textShadow: '0 2px 20px rgba(0,0,0,0.8)',
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.03em',
             }}>
               <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
             </h3>
@@ -764,12 +767,12 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2.5rem, 6vw, 4.8rem)',
-                fontWeight: 400,
+                fontWeight: 600,
                 fontStyle: 'italic',
                 color: chapter.styleOverrides?.textColor || 'var(--eg-fg)',
-                lineHeight: 1.15,
+                lineHeight: 1.1,
                 margin: '0 0 2.5rem 0',
-                letterSpacing: '-0.025em',
+                letterSpacing: '-0.03em',
               }}>
                 &ldquo;<span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>&rdquo;
               </h3>
@@ -876,11 +879,12 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                fontWeight: 400,
+                fontWeight: 600,
+                fontStyle: 'italic',
                 color: 'var(--eg-fg)',
-                lineHeight: 1.08,
+                lineHeight: 1.05,
                 margin: '0 0 1rem 0',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.03em',
               }}>
                 <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>
@@ -940,11 +944,12 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             <h3 style={{
               fontFamily: 'var(--eg-font-heading)',
               fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-              fontWeight: 400,
+              fontWeight: 600,
+              fontStyle: 'italic',
               color: 'var(--eg-fg)',
               lineHeight: 1.05,
               margin: '0 0 1.1rem 0',
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.03em',
             }}>
               <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
             </h3>
@@ -1118,11 +1123,12 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-                fontWeight: 400,
+                fontWeight: 600,
+                fontStyle: 'italic',
                 color: 'var(--eg-fg)',
-                lineHeight: 1.08,
+                lineHeight: 1.05,
                 margin: '0 0 1.25rem 0',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.03em',
               }}>
                 <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>
@@ -1255,11 +1261,12 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
               <h3 style={{
                 fontFamily: 'var(--eg-font-heading)',
                 fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-                fontWeight: 400,
+                fontWeight: 600,
+                fontStyle: 'italic',
                 color: 'var(--eg-fg)',
-                lineHeight: 1.08,
+                lineHeight: 1.05,
                 margin: '0 0 1.25rem 0',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.03em',
               }}>
                 <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
               </h3>

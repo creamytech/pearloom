@@ -3,13 +3,14 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon,
 } from '@/components/icons/EditorIcons';
 
 // ── Types ──────────────────────────────────────────────────────
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging';
 
 interface EditorSidebarProps {
   activeTab: EditorTab;
@@ -36,13 +37,14 @@ const TAB_CONFIG: Array<{
   { tab: 'design',  icon: DesignIcon,   label: 'Design',    group: 'top' },
   { tab: 'details', icon: DetailsIcon,  label: 'Details',   group: 'bottom' },
   { tab: 'blocks',  icon: AIBlocksIcon, label: 'AI Blocks', group: 'bottom' },
-  { tab: 'voice',   icon: VoiceIcon,    label: 'Voice',     group: 'bottom' },
+  { tab: 'voice',      icon: VoiceIcon,    label: 'Voice',      group: 'bottom' },
+  { tab: 'messaging',  icon: Mail,         label: 'Messaging',  group: 'bottom' },
 ];
 
 const TAB_LABELS: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story Chapters', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
-  blocks: 'AI Blocks', voice: 'Voice',
+  blocks: 'AI Blocks', voice: 'Voice', messaging: 'Message Guests',
 };
 
 const MIN_WIDTH = 260;
@@ -265,9 +267,9 @@ export function EditorSidebar({
                   margin: '1px 4px',
                   position: 'relative',
                   background: isActive && !collapsed
-                    ? 'rgba(109,89,122,0.18)'
+                    ? 'rgba(109,89,122,0.22)'
                     : 'transparent',
-                  color: isActive && !collapsed ? '#F5F1E8' : 'rgba(214,198,168,0.35)',
+                  color: isActive && !collapsed ? 'rgba(245,241,232,0.95)' : 'rgba(214,198,168,0.38)',
                   boxSizing: 'border-box',
                 }}
               >
@@ -370,24 +372,25 @@ export function EditorSidebar({
             {/* Panel Header */}
             <div
               style={{
-                height: '40px',
+                height: '48px',
                 flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
-                padding: '0 10px 0 12px',
-                borderBottom: '1px solid rgba(214,198,168,0.12)',
+                padding: '0 10px 0 14px',
+                borderBottom: '1px solid rgba(214,198,168,0.1)',
                 gap: '8px',
+                background: 'linear-gradient(180deg, rgba(214,198,168,0.04) 0%, transparent 100%)',
               }}
             >
               <span
                 style={{
                   flex: 1,
-                  fontSize: '0.78rem',
-                  fontWeight: 400,
+                  fontSize: '0.92rem',
+                  fontWeight: 500,
                   fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
                   fontStyle: 'italic',
                   letterSpacing: '-0.01em',
-                  color: 'rgba(214,198,168,0.6)',
+                  color: 'rgba(214,198,168,0.88)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',

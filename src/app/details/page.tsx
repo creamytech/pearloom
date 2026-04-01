@@ -10,6 +10,7 @@ import { SiteNav } from '@/components/site-nav';
 import { SiteFooter } from '@/components/site-footer';
 import { ThemeProvider } from '@/components/theme-provider';
 import type { SitePage, ThemeSchema, WeddingEvent, TravelInfo } from '@/types';
+import { parseLocalDate } from '@/lib/date';
 
 const NAMES: [string, string] = ['Ben', 'Shauna'];
 
@@ -159,7 +160,7 @@ export default function DetailsPage() {
                   <div style={detailRowStyle}>
                     <Calendar size={15} color="#A3B18A" />
                     <span>
-                      {new Date(event.date).toLocaleDateString('en-US', {
+                      {parseLocalDate(event.date).toLocaleDateString('en-US', {
                         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
                       })}
                     </span>

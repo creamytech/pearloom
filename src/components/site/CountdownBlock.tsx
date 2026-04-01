@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from 'react';
+import { parseLocalDate } from '@/lib/date';
 
 interface CountdownBlockProps {
   targetDate: string;        // ISO date string
@@ -27,7 +28,7 @@ interface TimeLeft {
 }
 
 function calcTimeLeft(target: string): TimeLeft | null {
-  const diff = new Date(target).getTime() - Date.now();
+  const diff = parseLocalDate(target).getTime() - Date.now();
   if (diff <= 0) return null;
   return {
     days: Math.floor(diff / 86400000),

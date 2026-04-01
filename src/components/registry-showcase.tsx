@@ -193,12 +193,13 @@ function RegistryCard({
         <h3
           style={{
             fontFamily: 'var(--eg-font-heading)',
-            fontSize: 'clamp(1.35rem, 2.5vw, 1.6rem)',
-            fontWeight: 400,
+            fontSize: 'clamp(1.2rem, 2.2vw, 1.45rem)',
+            fontWeight: 500,
+            fontStyle: 'italic',
             color: 'var(--eg-fg)',
             marginBottom: entry.note ? '0.6rem' : '0',
             lineHeight: 1.15,
-            letterSpacing: '-0.01em',
+            letterSpacing: '-0.015em',
           }}
         >
           {entry.name}
@@ -322,9 +323,10 @@ export function RegistryShowcase({
             <h2
               style={{
                 fontFamily: 'var(--eg-font-heading)',
-                fontSize: 'clamp(2.75rem, 5.5vw, 4.25rem)',
-                fontWeight: 400,
-                letterSpacing: '-0.025em',
+                fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
+                fontWeight: 600,
+                fontStyle: 'italic',
+                letterSpacing: '-0.03em',
                 color: 'var(--eg-fg)',
                 marginBottom: '1.5rem',
                 lineHeight: 1.05,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { parseLocalDate } from '@/lib/date';
 
 interface CapsuleRevealProps {
   letter: string;
@@ -13,7 +14,7 @@ interface CapsuleRevealProps {
 function formatDate(dateStr: string): string {
   if (!dateStr) return '';
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return parseLocalDate(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

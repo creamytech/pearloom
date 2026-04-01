@@ -7,10 +7,10 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Image, MoreHorizontal, X, Eye } from 'lucide-react';
+import { Plus, Image, MoreHorizontal, X } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
-  DetailsIcon, AIBlocksIcon, VoiceIcon, PublishIcon,
+  DetailsIcon, AIBlocksIcon, VoiceIcon,
 } from '@/components/icons/EditorIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import dynamic from 'next/dynamic';
@@ -27,12 +27,12 @@ const ChapterPanel = dynamic(() => import('./ChapterPanel').then(m => ({ default
 // ── Tab Configuration ─────────────────────────────────────────
 const PRIMARY_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
   { tab: 'story',  icon: StoryIcon,    label: 'Story' },
+  { tab: 'events', icon: EventsIcon,   label: 'Events' },
   { tab: 'design', icon: DesignIcon,   label: 'Design' },
   { tab: 'canvas', icon: SectionsIcon, label: 'Sections' },
 ];
 
 const OVERFLOW_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
-  { tab: 'events',  icon: EventsIcon,   label: 'Events' },
   { tab: 'details', icon: DetailsIcon,  label: 'Details' },
   { tab: 'blocks',  icon: AIBlocksIcon, label: 'AI Blocks' },
   { tab: 'voice',   icon: VoiceIcon,    label: 'Voice' },
@@ -154,9 +154,6 @@ export function MobileEditorSheet() {
               aria-label={label}
               onClick={() => {
                 setMoreOpen(false);
-                if (state.mobileVisualEdit) {
-                  dispatch({ type: 'SET_MOBILE_VISUAL_EDIT', enabled: false });
-                }
                 if (activeTab === tab && mobileSheetOpen) {
                   dispatch({ type: 'SET_MOBILE_SHEET', open: false });
                 } else {
@@ -184,36 +181,6 @@ export function MobileEditorSheet() {
             </motion.button>
           );
         })}
-
-        {/* Visual Preview tab */}
-        <motion.button
-          aria-label="Visual preview"
-          onClick={() => {
-            setMoreOpen(false);
-            const entering = !state.mobileVisualEdit;
-            dispatch({ type: 'SET_MOBILE_VISUAL_EDIT', enabled: entering });
-            if (entering) {
-              dispatch({ type: 'SET_MOBILE_SHEET', open: false });
-            }
-          }}
-          whileTap={{ scale: 0.82 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 20 }}
-          style={{
-            flex: 1,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: '3px', padding: '6px 8px',
-            border: 'none', cursor: 'pointer',
-            background: state.mobileVisualEdit ? 'rgba(163,177,138,0.25)' : 'transparent',
-            color: state.mobileVisualEdit ? '#fff' : 'rgba(255,255,255,0.4)',
-            borderTop: state.mobileVisualEdit ? '2px solid var(--eg-accent, #A3B18A)' : '2px solid transparent',
-            minHeight: '48px',
-          }}
-        >
-          <Eye size={22} color={state.mobileVisualEdit ? '#fff' : 'rgba(255,255,255,0.35)'} />
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
-            Preview
-          </span>
-        </motion.button>
 
         {/* More tab */}
         <motion.button
@@ -261,30 +228,6 @@ export function MobileEditorSheet() {
           </>
         )}
       </AnimatePresence>
-
-      {/* ── Floating Publish FAB ───────────────────────────── */}
-      <motion.button
-        aria-label="Publish site"
-        onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.9 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 20 }}
-        style={{
-          position: 'fixed',
-          bottom: 'calc(56px + env(safe-area-inset-bottom, 0px) + 16px)',
-          right: '16px',
-          width: '52px', height: '52px',
-          borderRadius: '50%', border: 'none',
-          background: 'linear-gradient(135deg, #A3B18A 0%, #7A917A 50%, #6D597A 100%)',
-          color: 'var(--eg-bg, #F5F1E8)',
-          cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(109,89,122,0.4), 0 2px 8px rgba(0,0,0,0.3)',
-          zIndex: 1100,
-        }}
-      >
-        <PublishIcon size={20} />
-      </motion.button>
 
       {/* ── Bottom Sheet Panel ─────────────────────────────── */}
       <AnimatePresence>

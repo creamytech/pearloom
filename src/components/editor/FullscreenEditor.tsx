@@ -35,6 +35,8 @@ import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
 import { AIEditorChat } from './AIEditorChat';
+import { MessagingPanel } from '@/components/dashboard/MessagingPanel';
+import { PostWeddingBanner } from './PostWeddingBanner';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -632,11 +634,28 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             {state.activeTab === 'canvas' && (
               <CanvasEditor manifest={manifest} onChange={(m) => { onChange(m); }} pushToPreview={pushToPreview} />
             )}
+
+            {state.activeTab === 'messaging' && (
+              <MessagingPanel
+                manifest={manifest}
+                siteId={state.subdomain}
+                subdomain={state.subdomain}
+              />
+            )}
           </EditorSidebar>
         )}
 
-        {/* Center Canvas */}
-        <EditorCanvas />
+        {/* Center Canvas + Post-Wedding Banner */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {!state.isMobile && (
+            <PostWeddingBanner
+              manifest={manifest}
+              subdomain={state.subdomain}
+              onUpdate={(m) => { onChange(m); pushToPreview(m); }}
+            />
+          )}
+          <EditorCanvas />
+        </div>
       </div>
 
       {/* Mobile */}

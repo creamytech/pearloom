@@ -18,6 +18,7 @@ const TAB_LABELS: Record<EditorTab, string> = {
   pages: 'Pages',
   blocks: 'AI Blocks',
   voice: 'Voice',
+  messaging: 'Messaging',
 };
 
 export function EditorBreadcrumb() {

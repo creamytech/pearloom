@@ -194,13 +194,16 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          photos: cluster.photos.slice(0, 10).map(p => ({
+          photos: cluster.photos.slice(0, 20).map(p => ({
             filename: p.filename,
             creationTime: p.creationTime,
             cameraMake: p.cameraMake,
             cameraModel: p.cameraModel,
             description: p.description,
+            latitude: p.location?.latitude,
+            longitude: p.location?.longitude,
           })),
+          clusterLabel: cluster.suggestedTitle,
         }),
       });
       const data = await res.json();

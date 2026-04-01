@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react';
+import { parseLocalDate } from '@/lib/date';
 
 // ── Shared label/input styles ──────────────────────────────────
 export const lbl: React.CSSProperties = {
@@ -56,6 +57,6 @@ export function Field({ label, value, onChange, rows, placeholder }: {
 
 // ── Small helpers ──────────────────────────────────────────────
 export function slugDate(iso: string) {
-  try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); }
+  try { return parseLocalDate(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); }
   catch { return ''; }
 }

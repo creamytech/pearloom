@@ -64,7 +64,7 @@ export function SiteFooter({
         >
           {/* Col 1: Couple + Pearloom brand */}
           <div>
-            <h3 className="font-heading text-2xl font-normal text-[rgba(245,241,232,0.95)] tracking-[-0.015em] leading-tight mb-3">
+            <h3 className="font-heading text-2xl font-semibold italic text-[rgba(245,241,232,0.95)] tracking-[-0.025em] leading-tight mb-3">
               {displayNames}
             </h3>
             {closingLine && (
