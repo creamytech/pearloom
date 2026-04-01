@@ -71,35 +71,6 @@ async function uploadPhotoUrl(rawUrl: string): Promise<string> {
   }
 }
 
-/** Upload a base64 data URL to R2, return a permanent URL */
-async function uploadBase64Art(dataUrl: string, label: string): Promise<string> {
-  const r2 = getR2Client();
-  if (!r2 || !r2.publicBase) return dataUrl;
-
-  try {
-    const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
-    if (!match) return dataUrl;
-
-    const contentType = match[1];
-    const plaintext = Buffer.from(match[2], 'base64');
-    const ext = contentType.includes('png') ? 'png' : 'jpg';
-    const key = `art/${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const body = isEncryptionEnabled() ? encryptBuffer(plaintext) : plaintext;
-
-    await r2.client.send(new PutObjectCommand({
-      Bucket: r2.bucket,
-      Key: key,
-      Body: body,
-      ContentType: 'application/octet-stream',
-      CacheControl: 'public, max-age=31536000, immutable',
-    }));
-
-    return `/api/img/${key}`;
-  } catch (err) {
-    console.warn(`[R2 Upload] Failed to upload ${label} art:`, err instanceof Error ? err.message : err);
-    return dataUrl;
-  }
-}
 
 function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean) {
   const base = [
@@ -482,8 +453,8 @@ export async function POST(req: NextRequest) {
     }
     const uploadLimit = pLimit(8); // max 8 concurrent R2 uploads
 
-    // Run chapter uploads, logo generation, and art uploads all in parallel
-    const [updatedChapters, logoResult, artUrls] = await Promise.all([
+    // Run chapter photo uploads and logo generation in parallel
+    const [updatedChapters, logoResult] = await Promise.all([
       // 1. Upload chapter photos to R2 + resolve locations
       Promise.all(manifest.chapters.map(async (chapter, i) => {
         const cluster = enrichedClusters[i];
@@ -517,29 +488,11 @@ export async function POST(req: NextRequest) {
 
       // 2. Generate custom AI logo icon
       generateLogoIcon(occasion, vibeString, names, apiKey),
-
-      // 3. Upload AI-generated raster art to R2 for permanent URLs
-      manifest.vibeSkin ? Promise.all([
-        manifest.vibeSkin.heroArtDataUrl?.startsWith('data:')
-          ? uploadBase64Art(manifest.vibeSkin.heroArtDataUrl, 'hero')
-          : Promise.resolve(manifest.vibeSkin.heroArtDataUrl),
-        manifest.vibeSkin.ambientArtDataUrl?.startsWith('data:')
-          ? uploadBase64Art(manifest.vibeSkin.ambientArtDataUrl, 'ambient')
-          : Promise.resolve(manifest.vibeSkin.ambientArtDataUrl),
-        manifest.vibeSkin.artStripDataUrl?.startsWith('data:')
-          ? uploadBase64Art(manifest.vibeSkin.artStripDataUrl, 'strip')
-          : Promise.resolve(manifest.vibeSkin.artStripDataUrl),
-      ]) : Promise.resolve(null),
     ]);
 
     manifest.chapters = updatedChapters;
     manifest.logoIcon = logoResult.logoIcon;
     if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
-    if (manifest.vibeSkin && artUrls) {
-      if (artUrls[0]) manifest.vibeSkin.heroArtDataUrl = artUrls[0];
-      if (artUrls[1]) manifest.vibeSkin.ambientArtDataUrl = artUrls[1];
-      if (artUrls[2]) manifest.vibeSkin.artStripDataUrl = artUrls[2];
-    }
 
     return NextResponse.json({ manifest });
   } catch (error) {

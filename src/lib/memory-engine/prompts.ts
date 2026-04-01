@@ -18,9 +18,6 @@ export function buildPrompt(
     const photoDetails = c.photos.map(p => ({
       filename: p.filename,
       date: p.creationTime?.slice(0, 10),
-      camera: [p.cameraMake, p.cameraModel].filter(Boolean).join(' ') || 'unknown',
-      dimensions: `${p.width}x${p.height}`,
-      mimeType: p.mimeType,
     }));
 
     // Summarize the distinct dates in this cluster for the AI

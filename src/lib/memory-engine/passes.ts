@@ -1,11 +1,9 @@
 // ─────────────────────────────────────────────────────────────────
 // Pearloom / lib/memory-engine/passes.ts — AI refinement passes
-// (chapter critique, poetry, design critique)
+// (chapter critique, poetry)
 // ─────────────────────────────────────────────────────────────────
 
-import type { VibeSkin } from './types';
 import { GEMINI_PRO, GEMINI_FLASH, log, logWarn, geminiRetryFetch } from './gemini-client';
-import { WAVE_PATHS } from '@/lib/vibe-engine';
 
 // ── Pass 1.2: Chapter Story Quality Gate ─────────────────────────────
 // Gemini reviews every chapter description and scores it 1–10 for
@@ -293,126 +291,3 @@ Return ONLY valid JSON (no markdown, no backticks):
   };
 }
 
-// ── Design critique & iterative refinement pass ───────────────────────
-// Gemini reviews the VibeSkin it just generated and asks:
-//   "Is this design truly specific to this couple's world,
-//    or could it belong to any wedding site?"
-// Scores each dimension 1-10 and patches any below 7.
-export async function critiqueAndRefineDesign(
-  skin: VibeSkin,
-  vibeString: string,
-  coupleNames: [string, string] | undefined,
-  apiKey: string
-): Promise<VibeSkin> {
-
-  const namesCtx = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'this couple';
-
-  const critiquePrompt = `You are a senior art director and brand strategist reviewing an AI-generated wedding website design for ${namesCtx}.
-
-Their vibe: "${vibeString}"
-
-Current design spec:
-- Visual tone: ${skin.tone}
-- Curve/shape language: ${skin.curve}
-- Color accent: ${skin.particleColor}
-- Primary motif: ${skin.accentSymbol}
-- Decorative icons: ${skin.decorIcons.join(' ')}
-- Divider quote: "${skin.dividerQuote}"
-- Section labels: ${JSON.stringify(skin.sectionLabels, null, 2)}
-- Custom SVG art generated: ${[skin.heroPatternSvg, skin.sectionBorderSvg, skin.medallionSvg].filter(Boolean).length}/3 pieces
-
-Your job: Score each of these dimensions 1-10 for how SPECIFIC and UNIQUE they feel to "${vibeString}" (vs. being generic wedding defaults):
-1. particleColor — does this hex feel emotionally tied to their specific vibe world?
-2. decorIcons — are these icons thematically tied to their world (not just generic hearts/stars)?  
-3. dividerQuote — does this quote feel written FOR them specifically (not a cliche)?
-4. sectionLabels — do these feel like a letter written to this couple, not just relabeled defaults?
-5. tone — is this the right emotional register for their specific vibe?
-
-If ALL score 7+, return: { "approved": true }
-
-If ANY score below 7, return ONLY the fields that need improvement:
-{
-  "approved": false,
-  "reason": "<single sentence: what's the weakest point>",
-  "improvements": {
-    "particleColor": "<more evocative hex if needed>",
-    "accentSymbol": "<more thematically specific symbol if needed>",
-    "decorIcons": ["<5 icons tightly tied to their specific vibe world>"],
-    "dividerQuote": "<original quote that could only be for THIS couple — intimate, specific, under 14 words>",
-    "tone": "<corrected tone if needed — dreamy|playful|luxurious|wild|intimate|cosmic|rustic>",
-    "curve": "<corrected curve if needed — organic|arch|geometric|wave|petal>",
-    "sectionLabels": {
-      "story": "<poetic label that fits their vibe>",
-      "events": "<label>",
-      "registry": "<label>",
-      "travel": "<label>",
-      "faqs": "<label>",
-      "rsvp": "<personal invitation in their voice>"
-    }
-  }
-}
-
-Return ONLY valid JSON. No markdown. No backticks.`;
-
-  // Pass 3 uses Flash — analytical judgment, not creative output
-  const res = await geminiRetryFetch(
-    `${GEMINI_FLASH}?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: critiquePrompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.5,
-          maxOutputTokens: 2048,
-        },
-      }),
-    }
-  );
-
-  if (!res.ok) throw new Error(`Design critique API \${res.status}`);
-
-  const data = await res.json();
-  let raw: string = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}').trim()
-    .replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim()
-    .replace(/,\s*([}\]])/g, '$1');
-
-  const result = JSON.parse(raw) as {
-    approved?: boolean;
-    reason?: string;
-    improvements?: Partial<VibeSkin & { sectionLabels: VibeSkin['sectionLabels'] }>;
-  };
-
-  if (result.approved) {
-    log('[Design Critique] Design approved — thematically specific, no changes needed');
-    return skin;
-  }
-
-  const imp = result.improvements ?? {};
-  log(`[Design Critique] Refining design: \${result.reason || 'generic elements detected'}`);
-
-  const VALID_CURVES: VibeSkin['curve'][] = ['organic', 'arch', 'geometric', 'wave', 'petal'];
-  const VALID_TONES: VibeSkin['tone'][] = ['dreamy', 'playful', 'luxurious', 'wild', 'intimate', 'cosmic', 'rustic'];
-
-  const curve: VibeSkin['curve'] = (imp.curve && VALID_CURVES.includes(imp.curve as VibeSkin['curve']))
-    ? imp.curve as VibeSkin['curve'] : skin.curve;
-  const waveDef = WAVE_PATHS[curve];
-
-  return {
-    ...skin,
-    curve,
-    wavePath: waveDef.d,
-    wavePathInverted: waveDef.di,
-    ...(imp.tone && VALID_TONES.includes(imp.tone as VibeSkin['tone']) ? { tone: imp.tone as VibeSkin['tone'] } : {}),
-    ...(imp.particle ? { particle: imp.particle } : {}),
-    ...(imp.particleColor ? { particleColor: imp.particleColor } : {}),
-    ...(imp.accentSymbol ? { accentSymbol: imp.accentSymbol } : {}),
-    ...(Array.isArray(imp.decorIcons) && imp.decorIcons.length >= 3
-      ? { decorIcons: imp.decorIcons.slice(0, 5) } : {}),
-    ...(imp.dividerQuote ? { dividerQuote: imp.dividerQuote } : {}),
-    ...(imp.sectionLabels ? {
-      sectionLabels: { ...skin.sectionLabels, ...imp.sectionLabels }
-    } : {}),
-  };
-}
