@@ -1,32 +1,60 @@
 // ─────────────────────────────────────────────────────────────
-// Pearloom Design Tokens — Single source of truth
-// Import from here, not from marketing/colors.ts or globals.css
+// Pearloom Design Tokens v3 — single source of truth
+// All values mirror the CSS vars in globals.css (:root block).
+// Import from here, never hardcode hex values in components.
 // ─────────────────────────────────────────────────────────────
 
-// ── Color Palette ────────────────────────────────────────────
+// ── Color Palette ─────────────────────────────────────────────
 
 export const colors = {
-  cream:   '#FAF7F2',
-  deep:    '#F0EBE0',
-  olive:   '#A3B18A',
-  gold:    '#C4A96A',
-  plum:    '#6D597A',
-  ink:     '#1A1A1A',
-  dark:    '#3D3530',
-  muted:   '#7A756E',
-  divider: '#E0D8CA',
+  // Base surfaces
+  cream:      '#FAF7F2',   // --pl-cream
+  deep:       '#F0EBE0',   // --pl-cream-deep
+  card:       '#FFFFFF',   // --pl-cream-card
+  ink:        '#1A1A1A',   // --pl-ink
+  inkSoft:    '#3D3530',   // --pl-ink-soft
+  muted:      '#7A756E',   // --pl-muted
+  divider:    '#E0D8CA',   // --pl-divider
 
-  // Dark sections (The Loom, editor, generation)
+  // Brand
+  olive:      '#A3B18A',   // --pl-olive
+  oliveHover: '#8FA876',   // --pl-olive-hover
+  oliveDeep:  '#6E8C5C',   // --pl-olive-deep
+  oliveMist:  '#EEE8DC',   // --pl-olive-mist
+  gold:       '#C4A96A',   // --pl-gold
+  goldMist:   'rgba(196,169,106,0.12)',
+  plum:       '#6D597A',   // --pl-plum
+  plumMist:   'rgba(109,89,122,0.10)',
+
+  // Dark surfaces (editor, generation)
   darkBg:      '#1E1B24',
-  darkCard:    'rgba(255,255,255,0.10)',
-  darkBorder:  'rgba(255,255,255,0.14)',
-  darkText:    'rgba(245,241,232,0.6)',
+  darkCard:    'rgba(255,255,255,0.09)',
+  darkBorder:  'rgba(255,255,255,0.12)',
+  darkText:    'rgba(245,241,232,0.55)',
   darkHeading: '#F5F1E8',
+
+  // Backward-compat aliases
+  dark:        '#3D3530',   // alias for inkSoft
+  border:      '#E0D8CA',   // alias for divider
 } as const;
 
-// ── Spacing Scale (4px base) ─────────────────────────────────
+// ── Spacing Scale (4px base) ──────────────────────────────────
 
 export const space = {
+  '1':  '4px',
+  '2':  '8px',
+  '3':  '12px',
+  '4':  '16px',
+  '5':  '20px',
+  '6':  '24px',
+  '8':  '32px',
+  '10': '40px',
+  '12': '48px',
+  '16': '64px',
+  '20': '80px',
+  '24': '96px',
+
+  // Named aliases for readability
   xs:   '4px',
   sm:   '8px',
   md:   '12px',
@@ -37,115 +65,91 @@ export const space = {
   '4xl': '64px',
 } as const;
 
-// ── Typography Scale ─────────────────────────────────────────
+// ── Typography Scale ──────────────────────────────────────────
 
 export const text = {
-  xs:   '0.72rem',   // micro labels, badges, uppercase tags
-  sm:   '0.85rem',   // secondary text, captions, meta
-  base: '0.95rem',   // body copy, descriptions
-  md:   '1.05rem',   // emphasis paragraphs, feature descriptions
-  lg:   '1.1rem',    // subheadings, card titles
-  xl:   '1.3rem',    // section sub-titles
-  '2xl': 'clamp(1.9rem, 4vw, 2.8rem)',  // section headings
-  '3xl': 'clamp(2.2rem, 5.5vw, 3.5rem)', // hero-level headings
+  xs:   '0.72rem',    // micro labels, badges, uppercase tags
+  sm:   '0.85rem',    // secondary text, captions, meta
+  base: '0.95rem',    // body copy, descriptions
+  md:   '1.05rem',    // emphasis paragraphs
+  lg:   '1.15rem',    // subheadings, card titles
+  xl:   '1.35rem',    // section sub-titles
+  '2xl': 'clamp(1.9rem, 4vw, 2.8rem)',    // section headings
+  '3xl': 'clamp(2.4rem, 5.5vw, 3.8rem)',  // hero headings
 } as const;
 
-// ── Border Radius ────────────────────────────────────────────
+// ── Border Radius ─────────────────────────────────────────────
 
 export const radius = {
-  sm:   '0.5rem',
-  md:   '0.75rem',
-  lg:   '1rem',
-  xl:   '1.25rem',
+  xs:   '0.375rem',
+  sm:   '0.625rem',
+  md:   '0.875rem',
+  lg:   '1.25rem',
+  xl:   '1.75rem',
   full: '100px',
 } as const;
 
-// ── Opacity Levels ───────────────────────────────────────────
-// Use for border/bg alpha: `${colors.olive}${opacity.light}` → '#A3B18A1A'
-
-export const opacity = {
-  subtle:   '0F',  // 6%  — dot grids, faintest borders
-  light:    '1A',  // 10% — hover backgrounds, secondary borders
-  medium:   '33',  // 20% — active borders, badges
-  strong:   '66',  // 40% — prominent borders, accents
-  emphasis: '99',  // 60% — primary accents, strong indicators
-} as const;
-
-// ── Z-Index Stacking ─────────────────────────────────────────
-
-export const zIndex = {
-  dropdown:  50,
-  sticky:   100,
-  overlay:  200,
-  modal:    300,
-  toast:    400,
-  max:      500,
-} as const;
-
-// ── Box Shadows ──────────────────────────────────────────────
+// ── Shadows ───────────────────────────────────────────────────
 
 export const shadow = {
-  sm:  '0 2px 8px rgba(0,0,0,0.06)',
-  md:  '0 4px 16px rgba(0,0,0,0.08)',
-  lg:  '0 12px 40px rgba(0,0,0,0.12)',
-  xl:  '0 20px 60px rgba(0,0,0,0.16)',
+  xs:   '0 1px 2px rgba(43,30,20,0.04)',
+  sm:   '0 1px 4px rgba(43,30,20,0.05), 0 4px 14px rgba(43,30,20,0.04)',
+  md:   '0 4px 16px rgba(43,30,20,0.08), 0 12px 40px rgba(43,30,20,0.05)',
+  lg:   '0 12px 40px rgba(43,30,20,0.10), 0 24px 60px rgba(43,30,20,0.06)',
+  xl:   '0 24px 60px rgba(43,30,20,0.12), 0 40px 80px rgba(43,30,20,0.07)',
+  focus: '0 0 0 3px rgba(163,177,138,0.22)',
   glow: (color: string) => `0 0 14px ${color}88`,
 } as const;
 
-// ── Animation ────────────────────────────────────────────────
+// ── Animation Easing ──────────────────────────────────────────
 
 export const ease = {
   smooth: [0.22, 1, 0.36, 1] as [number, number, number, number],
-  spring: { type: 'spring' as const, stiffness: 400, damping: 22 },
+  spring: { type: 'spring' as const, stiffness: 380, damping: 28 },
   duration: {
     fast:   0.15,
-    normal: 0.35,
+    normal: 0.32,
     slow:   0.6,
   },
 } as const;
 
-// ── Section Padding (responsive) ─────────────────────────────
+// ── Section Padding (responsive) ──────────────────────────────
 
 export const sectionPadding = {
-  y: 'clamp(3.5rem, 7vw, 7rem)',
-  x: '1.25rem',
+  y: 'clamp(4rem, 8vw, 8rem)',
+  x: '1.5rem',
 } as const;
 
-// ── Layout Containers ────────────────────────────────────────
-// Single source of truth for page-level max-widths.
-// Every section must use one of these — no hardcoded widths.
+// ── Layout Containers ─────────────────────────────────────────
 
 export const layout = {
-  /** Main page container — nav, sections, dashboard, wizard */
-  maxWidth: '1080px',
-  /** Horizontal padding on the container */
-  padding: '2rem',
-  /** Narrow container for focused content (forms, text-heavy sections) */
-  narrowWidth: '720px',
-  /** Wide container for hero/showcase sections */
-  wideWidth: '1200px',
+  /** Main page container */
+  maxWidth:    '1080px',
+  /** Page-level horizontal padding */
+  padding:     '1.5rem',
+  /** Narrow container for focused content */
+  narrowWidth: '680px',
+  /** Wide container for hero/showcase */
+  wideWidth:   '1240px',
 } as const;
 
-// ── Card Styles (ONE standard, used everywhere) ─────────────
+// ── Card Styles ───────────────────────────────────────────────
 
 export const card = {
   radius:      '0.875rem',
   bg:          '#FFFFFF',
-  border:      `1px solid ${colors.divider}`,
-  shadow:      '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)',
-  shadowHover: '0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05)',
+  border:      `1px solid #E0D8CA`,
+  shadow:      '0 1px 4px rgba(43,30,20,0.05), 0 4px 14px rgba(43,30,20,0.04)',
+  shadowHover: '0 4px 16px rgba(43,30,20,0.08), 0 12px 40px rgba(43,30,20,0.05)',
 } as const;
 
-// ── Convenience re-export ────────────────────────────────────
-// Shorthand for the full token set
+// ── Convenience re-export ─────────────────────────────────────
 
 export const T = {
   colors,
   space,
   text,
   radius,
-  opacity,
-  zIndex,
   shadow,
   ease,
   sectionPadding,

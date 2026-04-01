@@ -4,28 +4,57 @@ import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
+// ─────────────────────────────────────────────────────────────
+// Pearloom Card — one cohesive system, four surface variants
+// ─────────────────────────────────────────────────────────────
+
 const cardVariants = {
-  elevated:
-    'bg-card border border-[rgba(0,0,0,0.05)] shadow-[var(--eg-shadow-sm)] hover:shadow-[var(--eg-shadow-md)] hover:-translate-y-0.5',
-  outlined:
-    'bg-white border-[1.5px] border-[rgba(0,0,0,0.08)] hover:border-[var(--eg-accent)]',
-  flat:
-    'bg-[rgba(245,241,232,0.5)]',
-  glass:
-    'bg-[var(--eg-glass)] backdrop-blur-[20px] backdrop-saturate-150 border border-[var(--eg-glass-border)]',
+  /** Default white card with warm shadow */
+  elevated: [
+    'bg-white border border-[var(--pl-divider)]',
+    'shadow-[var(--pl-shadow-sm)] hover:shadow-[var(--pl-shadow-md)] hover:-translate-y-0.5',
+    'transition-all duration-300',
+  ].join(' '),
+
+  /** Cream-tinted flat card — section blocks */
+  flat: [
+    'bg-[var(--pl-cream-deep)] border border-[var(--pl-divider)]',
+    'transition-all duration-300',
+  ].join(' '),
+
+  /** Outlined — table rows, list items */
+  outlined: [
+    'bg-white border-[1.5px] border-[var(--pl-divider)]',
+    'hover:border-[var(--pl-olive)] transition-all duration-200',
+  ].join(' '),
+
+  /** Frosted glass — overlaid on imagery or gradients */
+  glass: [
+    'bg-[var(--pl-glass)] border border-[var(--pl-glass-border)]',
+    'backdrop-blur-[20px] backdrop-saturate-150',
+    'shadow-[var(--pl-shadow-sm)]',
+  ].join(' '),
+
+  /** Dark card — inside editor / loom panels */
+  dark: [
+    'bg-[var(--pl-dark-card)] border border-[var(--pl-dark-border)]',
+  ].join(' '),
 } as const;
 
-const paddings = {
+const paddingMap = {
   none: '',
-  sm: 'p-3',
-  md: 'p-5',
-  lg: 'p-8',
-};
+  xs:   'p-3',
+  sm:   'p-4',
+  md:   'p-5',
+  lg:   'p-7',
+  xl:   'p-10',
+} as const;
 
-export interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'> {
+export interface CardProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'> {
   variant?: keyof typeof cardVariants;
   interactive?: boolean;
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  padding?: keyof typeof paddingMap;
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -37,19 +66,19 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
         ref={ref}
         {...(interactive
           ? {
-              whileHover: { scale: 1.01 },
-              whileTap: { scale: 0.99 },
-              transition: { type: 'spring', stiffness: 400, damping: 25 },
+              whileHover: { scale: 1.012, y: -2 },
+              whileTap:   { scale: 0.99 },
+              transition: { type: 'spring', stiffness: 380, damping: 26 },
             }
           : {})}
         className={cn(
-          'rounded-[var(--eg-radius)] transition-all duration-300',
+          'rounded-[var(--pl-radius-md)]',
           cardVariants[variant],
-          paddings[padding],
+          paddingMap[padding],
           interactive && 'cursor-pointer',
           className,
         )}
-        {...props}
+        {...(props as React.HTMLAttributes<HTMLDivElement>)}
       >
         {children}
       </Comp>
@@ -61,21 +90,32 @@ Card.displayName = 'Card';
 
 const CardHeader = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+    <div ref={ref} className={cn('flex flex-col gap-1.5 p-6', className)} {...props} />
   ),
 );
 CardHeader.displayName = 'CardHeader';
 
 const CardTitle = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('font-[family-name:var(--eg-font-heading)] text-2xl font-semibold leading-none tracking-tight', className)} {...props} />
+    <div
+      ref={ref}
+      className={cn(
+        'font-[family-name:var(--pl-font-heading)] text-xl font-semibold leading-tight tracking-tight text-[var(--pl-ink-soft)]',
+        className,
+      )}
+      {...props}
+    />
   ),
 );
 CardTitle.displayName = 'CardTitle';
 
 const CardDescription = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+    <div
+      ref={ref}
+      className={cn('text-[0.85rem] text-[var(--pl-muted)] leading-relaxed', className)}
+      {...props}
+    />
   ),
 );
 CardDescription.displayName = 'CardDescription';
@@ -89,7 +129,7 @@ CardContent.displayName = 'CardContent';
 
 const CardFooter = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
+    <div ref={ref} className={cn('flex items-center p-6 pt-0 gap-3', className)} {...props} />
   ),
 );
 CardFooter.displayName = 'CardFooter';

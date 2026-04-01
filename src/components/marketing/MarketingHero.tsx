@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { SiteMockup } from './SiteMockup';
-import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
+import { layout } from '@/lib/design-tokens';
 import { Pill } from '@/components/ui/Pill';
 import { Button, Badge } from '@/components/ui';
 
@@ -22,9 +22,10 @@ const OCCASIONS = [
 function RotatingOccasion() {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI(x => (x + 1) % OCCASIONS.length), 2400);
+    const t = setInterval(() => setI((x) => (x + 1) % OCCASIONS.length), 2400);
     return () => clearInterval(t);
   }, []);
+
   return (
     <AnimatePresence mode="wait">
       <motion.span
@@ -32,9 +33,8 @@ function RotatingOccasion() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -12 }}
-        transition={{ duration: 0.35, ease: EASE }}
-        className="inline-block"
-        style={{ color: C.plum }}
+        transition={{ duration: 0.32, ease: EASE }}
+        className="inline-block text-[var(--pl-plum)]"
       >
         {OCCASIONS[i]}
       </motion.span>
@@ -42,11 +42,7 @@ function RotatingOccasion() {
   );
 }
 
-const TRUST_ITEMS = [
-  'Free to start',
-  'No credit card',
-  'Live in minutes',
-];
+const TRUST_ITEMS = ['Free to start', 'No credit card', 'Live in minutes'];
 
 interface MarketingHeroProps {
   handleSignIn: () => void;
@@ -62,16 +58,41 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
       className="relative overflow-hidden flex flex-col items-center"
       style={{
         minHeight: 'min(100dvh, 900px)',
-        padding: 'clamp(3.5rem,8vw,7rem) 1.25rem clamp(4rem,8vw,8rem)',
-        background: `radial-gradient(ellipse at 50% 0%, ${C.deep} 0%, ${C.cream} 50%, ${C.cream} 100%)`,
+        padding: 'clamp(4rem,8vw,7.5rem) 1.5rem clamp(4rem,8vw,8rem)',
+        background: 'radial-gradient(ellipse at 50% 0%, var(--pl-cream-deep) 0%, var(--pl-cream) 55%)',
       }}
     >
-      <div className="relative z-10 w-full text-center" style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
-        {/* Eyebrow pill with rotating occasion */}
+      {/* Ambient orb */}
+      <div
+        aria-hidden="true"
+        className="absolute top-[-10%] right-[-12%] w-[55vw] h-[55vw] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, var(--pl-olive-mist) 0%, transparent 70%)',
+          filter: 'blur(90px)',
+          opacity: 0.55,
+          animation: 'orb-drift 22s ease-in-out infinite',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute bottom-[-8%] left-[-10%] w-[40vw] h-[40vw] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, var(--pl-plum-mist) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+          opacity: 0.35,
+          animation: 'orb-drift 28s ease-in-out infinite reverse',
+        }}
+      />
+
+      <div
+        className="relative z-10 w-full text-center"
+        style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}
+      >
+        {/* Eyebrow pill */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
           className="mb-8 flex justify-center"
         >
           <Pill sparkle>
@@ -84,48 +105,34 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
-          className="font-[family-name:var(--eg-font-heading)] leading-[1.05] mb-5"
-          style={{
-            fontSize: 'clamp(2.5rem, 6vw, 4rem)',
-            fontWeight: 700,
-            letterSpacing: '-0.04em',
-            color: C.ink,
-          }}
+          className="font-[family-name:var(--pl-font-heading)] leading-[1.05] mb-5 text-[var(--pl-ink-soft)]"
+          style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 700, letterSpacing: '-0.04em' }}
         >
           Every moment worth celebrating
           <br />
-          <span style={{ color: C.plum, fontStyle: 'italic' }}>deserves its own world.</span>
+          <em className="text-[var(--pl-plum)] not-italic" style={{ fontStyle: 'italic' }}>
+            deserves its own world.
+          </em>
         </motion.h1>
 
         {/* Gold editorial rule */}
         <motion.div
           initial={{ opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.8, delay: 0.45, ease: EASE }}
-          style={{
-            width: '80px',
-            height: '1px',
-            background: C.gold,
-            margin: '0 auto 2rem',
-          }}
+          transition={{ duration: 0.7, delay: 0.42, ease: EASE }}
+          className="w-20 h-px bg-[var(--pl-gold)] mx-auto mb-8"
         />
 
         {/* Sub-headline */}
         <motion.p
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.55 }}
-          className="mx-auto mb-8"
-          style={{
-            fontSize: 'clamp(1.05rem, 1.8vw, 1.2rem)',
-            fontFamily: 'var(--eg-font-body)',
-            color: C.muted,
-            maxWidth: 480,
-            lineHeight: 1.9,
-          }}
+          transition={{ duration: 0.8, delay: 0.52 }}
+          className="mx-auto mb-10 text-[var(--pl-muted)] font-[family-name:var(--pl-font-body)]"
+          style={{ fontSize: 'clamp(1.05rem, 1.8vw, 1.2rem)', maxWidth: 480, lineHeight: 1.9 }}
         >
           Upload your photos. Share your vibe. Watch{' '}
-          <strong style={{ color: C.dark, fontWeight: 600 }}>The Loom</strong> weave a site
+          <strong className="text-[var(--pl-ink-soft)] font-semibold">The Loom</strong> weave a site
           that&rsquo;s unmistakably, irreplaceably yours.
         </motion.p>
 
@@ -133,7 +140,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.75 }}
+          transition={{ duration: 0.8, delay: 0.7 }}
           className="flex gap-3 justify-center flex-wrap"
         >
           <Button
@@ -143,7 +150,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
             disabled={status === 'loading'}
             loading={status === 'loading'}
           >
-            Create Your Free Site <ArrowRight size={15} strokeWidth={2.2} />
+            Create Your Free Site
+            <ArrowRight size={15} strokeWidth={2.2} />
           </Button>
           <Button
             variant="secondary"
@@ -155,34 +163,25 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
             <ArrowRight
               size={14}
               strokeWidth={2}
-              className="transition-transform duration-250 ease-out group-hover:translate-x-1"
+              className="transition-transform duration-200 group-hover:translate-x-1"
             />
           </Button>
         </motion.div>
 
-        {/* Trust badges with checkmarks */}
+        {/* Trust badges */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.0, duration: 0.8 }}
-          className="mt-5 flex flex-col items-center"
+          className="mt-5 mb-2 flex justify-center"
         >
-          {/* Gold rule above trust badges */}
-          <div
-            style={{
-              width: '60px',
-              height: '1px',
-              background: C.gold,
-              opacity: 0.4,
-              marginBottom: '1.25rem',
-            }}
-          />
+          <div className="w-14 h-px bg-[var(--pl-gold)] opacity-40" />
         </motion.div>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.1, duration: 0.8 }}
-          className="flex items-center justify-center gap-4 flex-wrap"
+          className="flex items-center justify-center gap-3 flex-wrap"
         >
           {TRUST_ITEMS.map((item) => (
             <Badge key={item} variant="success">
@@ -191,12 +190,12 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           ))}
         </motion.div>
 
-        {/* Product preview mockup */}
+        {/* Product preview */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.0, delay: 1.0, ease: EASE }}
-          style={{ position: 'relative', zIndex: 1 }}
+          transition={{ duration: 1.0, delay: 0.95, ease: EASE }}
+          className="relative z-10"
         >
           <SiteMockup />
         </motion.div>
@@ -207,11 +206,13 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2, duration: 0.8 }}
-        className="absolute bottom-8 flex flex-col items-center gap-1"
-        style={{ fontSize: text.xs, color: C.gold, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}
+        className="absolute bottom-8 flex flex-col items-center gap-1 text-[0.62rem] font-bold tracking-[0.18em] uppercase text-[var(--pl-gold)]"
       >
         Scroll
-        <motion.div animate={{ y: [0, 4, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}>
+        <motion.div
+          animate={{ y: [0, 4, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+        >
           <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
             <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

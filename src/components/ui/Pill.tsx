@@ -1,49 +1,40 @@
 'use client';
 
-import { colors, text } from '@/lib/design-tokens';
 import { Sparkles } from 'lucide-react';
+import { cn } from '@/lib/cn';
+
+// ─────────────────────────────────────────────────────────────
+// Pill — eyebrow label chip used on section headers
+// Pure Tailwind, no inline styles
+// ─────────────────────────────────────────────────────────────
 
 const VARIANTS = {
-  olive: {
-    background: `${colors.olive}1F`,
-    border: `1px solid ${colors.olive}4D`,
-    color: colors.olive,
-  },
-  plum: {
-    background: `${colors.plum}40`,
-    border: `1px solid ${colors.plum}66`,
-    color: '#B9A4C7',
-  },
-  dark: {
-    background: 'rgba(163,177,138,0.15)',
-    border: '1px solid rgba(163,177,138,0.3)',
-    color: 'rgba(245,241,232,0.7)',
-  },
+  olive: 'bg-[rgba(163,177,138,0.12)] border-[rgba(163,177,138,0.28)] text-[var(--pl-olive-deep)]',
+  plum:  'bg-[var(--pl-plum-mist)] border-[rgba(109,89,122,0.22)] text-[var(--pl-plum)]',
+  gold:  'bg-[var(--pl-gold-mist)] border-[rgba(196,169,106,0.28)] text-[var(--pl-gold)]',
+  dark:  'bg-white/10 border-white/20 text-[rgba(245,241,232,0.75)]',
 } as const;
 
 interface PillProps {
   children: React.ReactNode;
   variant?: keyof typeof VARIANTS;
   sparkle?: boolean;
+  className?: string;
 }
 
-export function Pill({ children, variant = 'olive', sparkle = false }: PillProps) {
-  const v = VARIANTS[variant];
+export function Pill({ children, variant = 'olive', sparkle = false, className }: PillProps) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full"
-      style={{
-        padding: '0.25rem 0.875rem',
-        fontSize: text.xs,
-        fontWeight: 700,
-        letterSpacing: '0.14em',
-        textTransform: 'uppercase',
-        background: v.background,
-        border: v.border,
-        color: v.color,
-      }}
+      className={cn(
+        'inline-flex items-center gap-1.5',
+        'rounded-[var(--pl-radius-full)] border',
+        'px-3 py-1',
+        'text-[0.65rem] font-bold uppercase tracking-[0.14em]',
+        VARIANTS[variant],
+        className,
+      )}
     >
-      {sparkle && <Sparkles size={9} strokeWidth={2.5} />}
+      {sparkle && <Sparkles size={9} strokeWidth={2.5} className="flex-shrink-0" />}
       {children}
     </span>
   );

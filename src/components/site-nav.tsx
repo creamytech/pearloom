@@ -1,11 +1,12 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / components/site-nav.tsx
-// Always-drawer navigation — hamburger on both mobile + desktop
+// Pearloom / site-nav.tsx — v3
+// Glass nav bar + slide-in drawer
+// Pure Tailwind — no inline style props for visual properties
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { Menu, X, LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
@@ -33,67 +34,65 @@ import {
   SuitcaseIcon,
   BouquetIcon,
 } from '@/components/icons/PearloomIcons';
+import { cn } from '@/lib/cn';
 
-/** Maps logoIcon IDs to the appropriate icon component */
 function LogoIcon({ iconId, size = 18, color }: { iconId?: LogoIconId; size?: number; color: string }) {
   switch (iconId) {
     case 'wedding-rings': return <WeddingRingsIcon size={size} color={color} />;
-    case 'heart': return <ElegantHeartIcon size={size} color={color} />;
-    case 'champagne': return <ChampagneIcon size={size} color={color} />;
-    case 'gift': return <GiftIcon size={size} color={color} />;
-    case 'envelope': return <EnvelopeIcon size={size} color={color} />;
-    case 'bouquet': return <BouquetIcon size={size} color={color} />;
-    case 'mountain': return <MountainIcon size={size} color={color} />;
-    case 'coffee': return <CoffeeCupIcon size={size} color={color} />;
-    case 'music-note': return <MusicNoteIcon size={size} color={color} />;
-    case 'paw': return <PawIcon size={size} color={color} />;
-    case 'suitcase': return <SuitcaseIcon size={size} color={color} />;
-    case 'starburst': return <StarburstIcon size={size} color={color} />;
-    case 'pearl': return <PearlIcon size={size} color={color} />;
+    case 'heart':         return <ElegantHeartIcon size={size} color={color} />;
+    case 'champagne':     return <ChampagneIcon size={size} color={color} />;
+    case 'gift':          return <GiftIcon size={size} color={color} />;
+    case 'envelope':      return <EnvelopeIcon size={size} color={color} />;
+    case 'bouquet':       return <BouquetIcon size={size} color={color} />;
+    case 'mountain':      return <MountainIcon size={size} color={color} />;
+    case 'coffee':        return <CoffeeCupIcon size={size} color={color} />;
+    case 'music-note':    return <MusicNoteIcon size={size} color={color} />;
+    case 'paw':           return <PawIcon size={size} color={color} />;
+    case 'suitcase':      return <SuitcaseIcon size={size} color={color} />;
+    case 'starburst':     return <StarburstIcon size={size} color={color} />;
+    case 'pearl':         return <PearlIcon size={size} color={color} />;
     case 'pear':
-    default: return <PearIcon size={size} color={color} />;
+    default:              return <PearIcon size={size} color={color} />;
   }
+}
+
+function PageIcon({ slug, size = 17 }: { slug: string; size?: number }) {
+  const c = 'var(--pl-olive)';
+  if (slug === '' || slug === 'our-story' || slug === 'story') return <ElegantHeartIcon size={size} color={c} />;
+  if (slug === 'events' || slug === 'ceremony' || slug === 'schedule') return <CalendarHeartIcon size={size} color={c} />;
+  if (slug === 'registry')  return <GiftIcon size={size} color={c} />;
+  if (slug === 'travel')    return <LocationPinIcon size={size} color={c} />;
+  if (slug === 'rsvp')      return <EnvelopeIcon size={size} color={c} />;
+  if (slug === 'faq')       return <PearlIcon size={size} color={c} />;
+  if (slug === 'photos')    return <StarburstIcon size={size} color={c} />;
+  return <PearlIcon size={size} color={c} />;
 }
 
 interface SiteNavProps {
   names: [string, string];
   pages: SitePage[];
-  /** Custom logo icon ID from manifest (based on occasion + mood) */
   logoIcon?: LogoIconId;
-  /** AI-generated custom SVG logo (overrides logoIcon) */
   logoSvg?: string;
-  /** Current sub-page slug for server-side active highlighting (e.g. 'travel') */
   currentPage?: string;
-  user?: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
-  /** If provided, studio-mode links (Dashboard / New Site) are shown */
+  user?: { name?: string | null; email?: string | null; image?: string | null };
   onGoToDashboard?: () => void;
   onStartNew?: () => void;
 }
 
-/** Map page slugs to the appropriate icon component */
-function PageIcon({ slug, size = 18 }: { slug: string; size?: number }) {
-  const color = 'var(--eg-accent)';
-  if (slug === '' || slug === 'our-story' || slug === 'story') return <ElegantHeartIcon size={size} color={color} />;
-  if (slug === 'events' || slug === 'ceremony' || slug === 'schedule') return <CalendarHeartIcon size={size} color={color} />;
-  if (slug === 'registry') return <GiftIcon size={size} color={color} />;
-  if (slug === 'travel') return <LocationPinIcon size={size} color={color} />;
-  if (slug === 'rsvp') return <EnvelopeIcon size={size} color={color} />;
-  if (slug === 'faq') return <PearlIcon size={size} color={color} />;
-  if (slug === 'photos') return <StarburstIcon size={size} color={color} />;
-  // Default fallback — PearlIcon is clearly recognisable at small sizes
-  return <PearlIcon size={size} color={color} />;
-}
-
-export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, onGoToDashboard, onStartNew }: SiteNavProps) {
-  const [scrollY, setScrollY] = useState(0);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+export function SiteNav({
+  names,
+  pages,
+  logoIcon,
+  logoSvg,
+  currentPage,
+  user,
+  onGoToDashboard,
+  onStartNew,
+}: SiteNavProps) {
+  const [scrollY, setScrollY]     = useState(0);
+  const [drawerOpen, setDrawer]   = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const pathname = usePathname();
-  const prevScrollY = useRef(0);
 
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -102,40 +101,27 @@ export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, on
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Scroll progress bar
   const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 });
+  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 32, restDelta: 0.001 });
 
   useEffect(() => {
-    const onScroll = () => {
-      const current = window.scrollY;
-      setScrollY(current);
-      prevScrollY.current = current;
-    };
+    const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Prevent body scroll when drawer is open
   useEffect(() => {
-    if (drawerOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = drawerOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [drawerOpen]);
 
-  const isAtTop = scrollY < 20;
+  const atTop    = scrollY < 20;
   const scrolled = scrollY > 60;
-
   const isStudio = names[0] === 'Pearloom';
   const enabledPages = pages.filter((p) => p.enabled).sort((a, b) => a.order - b.order);
 
   const isActive = (slug: string) => {
-    if (currentPage !== undefined) {
-      return slug === '' ? currentPage === '' : currentPage === slug;
-    }
+    if (currentPage !== undefined) return slug === '' ? currentPage === '' : currentPage === slug;
     if (slug === '') return pathname.split('/').filter(Boolean).length === 1;
     return pathname.endsWith(`/${slug}`);
   };
@@ -146,37 +132,25 @@ export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, on
     return '/' + parts[1];
   })();
 
-  const getHref = (slug: string) => {
-    if (slug === '') return basePath;
-    return `${basePath}/${slug}`;
-  };
-
-  // Background behavior: scroll down = opaque, at top = transparent
-  const navBg = isAtTop && !isStudio
-    ? 'transparent'
-    : 'rgba(245,241,232,0.95)';
-  const navBackdrop = isAtTop && !isStudio ? 'none' : 'blur(12px) saturate(1.5)';
-  const navBorder = isAtTop && !isStudio ? '1px solid transparent' : '1px solid rgba(0,0,0,0.04)';
+  const getHref = (slug: string) => (slug === '' ? basePath : `${basePath}/${slug}`);
 
   return (
     <>
+      {/* ── Nav bar ── */}
       <motion.nav
-        style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0,
-          zIndex: 50,
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-          background: navBg,
-          backdropFilter: navBackdrop,
-          WebkitBackdropFilter: navBackdrop,
-          borderBottom: navBorder,
-          boxShadow: scrolled && !isAtTop ? '0 4px 30px rgba(0,0,0,0.04)' : 'none',
-          transition: 'background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, padding 0.35s ease',
-          padding: scrolled ? '0.6rem 0' : '1.25rem 0',
-        }}
+        className={cn(
+          'fixed top-0 left-0 right-0 z-[100]',
+          'pt-[env(safe-area-inset-top,0px)]',
+          'transition-[background,box-shadow,border-color,padding] duration-300',
+          atTop && !isStudio
+            ? 'bg-transparent border-b border-transparent shadow-none'
+            : 'bg-[rgba(245,241,232,0.94)] border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
+          scrolled ? 'py-2' : 'py-4',
+        )}
+        style={{ backdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)', WebkitBackdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)' }}
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Scroll progress bar */}
         {!isStudio && (
@@ -184,31 +158,24 @@ export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, on
             style={{
               position: 'absolute', top: 0, left: 0, right: 0,
               height: '2px', scaleX, transformOrigin: '0%',
-              background: 'linear-gradient(90deg, var(--eg-accent), color-mix(in srgb, var(--eg-accent) 60%, #fff))',
+              background: 'linear-gradient(90deg, var(--pl-olive), color-mix(in srgb, var(--pl-olive) 60%, white))',
             }}
           />
         )}
 
-        <div style={{
-          maxWidth: layout.maxWidth, margin: '0 auto',
-          padding: `0 ${layout.padding}`,
-          position: 'relative',
-          display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center',
-          height: '3.25rem',
-          overflow: 'visible',
-        }}>
-
-          {/* ── Left: Couple name / brand ── */}
+        <div
+          className="relative mx-auto grid items-center h-[3.25rem]"
+          style={{
+            maxWidth: layout.maxWidth,
+            padding: `0 ${layout.padding}`,
+            gridTemplateColumns: 'auto 1fr auto',
+            overflow: 'visible',
+          }}
+        >
+          {/* ── Brand / couple name ── */}
           <Link
             href={basePath}
-            style={{
-              display: 'flex', alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'opacity 0.2s ease',
-              textDecoration: 'none',
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.opacity = '0.75'; }}
-            onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; }}
+            className="flex items-center gap-2 no-underline hover:opacity-75 transition-opacity duration-200"
           >
             {isStudio ? (
               <Image
@@ -216,67 +183,48 @@ export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, on
                 alt="Pearloom"
                 width={130}
                 height={40}
-                style={{ objectFit: 'contain', width: 'auto', height: '32px', maxWidth: '140px' }}
+                className="object-contain h-8 w-auto max-w-[140px]"
                 priority
               />
             ) : (
               <>
                 {logoSvg ? (
                   <span
-                    style={{ display: 'flex', alignItems: 'center', width: '18px', height: '18px', color: 'var(--eg-accent)' }}
-                    dangerouslySetInnerHTML={{ __html: logoSvg.replace(/width="[^"]*"/, 'width="18"').replace(/height="[^"]*"/, 'height="18"').replace(/stroke="[^"]*"/g, 'stroke="currentColor"') }}
+                    className="flex items-center w-[18px] h-[18px] text-[var(--pl-olive)]"
+                    dangerouslySetInnerHTML={{
+                      __html: logoSvg
+                        .replace(/width="[^"]*"/, 'width="18"')
+                        .replace(/height="[^"]*"/, 'height="18"')
+                        .replace(/stroke="[^"]*"/g, 'stroke="currentColor"'),
+                    }}
                   />
                 ) : (
-                  <LogoIcon iconId={logoIcon} size={18} color="var(--eg-accent)" />
+                  <LogoIcon iconId={logoIcon} size={18} color="var(--pl-olive)" />
                 )}
-                <span style={{
-                  fontFamily: 'var(--eg-font-heading)',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  color: 'var(--eg-fg)',
-                  letterSpacing: '-0.01em',
-                  whiteSpace: 'nowrap',
-                }}>
+                <span className="font-[family-name:var(--pl-font-heading)] font-semibold text-[1rem] text-[var(--pl-ink-soft)] tracking-[-0.01em] whitespace-nowrap">
                   {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
                 </span>
               </>
             )}
           </Link>
 
-          {/* ── Desktop inline nav links (≥1024px, guest-facing sites only) ── */}
+          {/* ── Desktop inline nav (≥1024px, guest sites only) ── */}
           {isDesktop && !isStudio ? (
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'center' }}>
+            <nav className="flex items-center gap-0.5 justify-center">
               {enabledPages.map((page) => {
                 const active = isActive(page.slug);
                 return (
                   <Link
                     key={page.id}
                     href={getHref(page.slug)}
-                    style={{
-                      padding: '0.4rem 0.85rem',
-                      borderRadius: '2rem',
-                      fontSize: '0.88rem',
-                      fontWeight: active ? 600 : 450,
-                      fontFamily: 'var(--eg-font-body)',
-                      color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
-                      textDecoration: 'none',
-                      background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
-                      border: active ? '1px solid rgba(163,177,138,0.25)' : '1px solid transparent',
-                      transition: 'all 0.18s ease',
-                      whiteSpace: 'nowrap',
-                    }}
-                    onMouseOver={(e) => {
-                      if (!active) {
-                        (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
-                        (e.currentTarget as HTMLElement).style.color = 'var(--eg-fg)';
-                      }
-                    }}
-                    onMouseOut={(e) => {
-                      if (!active) {
-                        (e.currentTarget as HTMLElement).style.background = 'transparent';
-                        (e.currentTarget as HTMLElement).style.color = 'var(--eg-muted)';
-                      }
-                    }}
+                    className={cn(
+                      'px-3.5 py-1.5 rounded-[var(--pl-radius-full)]',
+                      'text-[0.875rem] font-[family-name:var(--pl-font-body)] no-underline',
+                      'border transition-all duration-150 whitespace-nowrap',
+                      active
+                        ? 'font-semibold text-[var(--pl-ink)] bg-[var(--pl-olive-mist)] border-[rgba(163,177,138,0.22)]'
+                        : 'font-[450] text-[var(--pl-muted)] bg-transparent border-transparent hover:bg-[rgba(0,0,0,0.04)] hover:text-[var(--pl-ink)]',
+                    )}
                   >
                     {page.label}
                   </Link>
@@ -287,35 +235,28 @@ export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, on
             <div />
           )}
 
-          {/* ── Right: User nav + hamburger menu ── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {user && (
-              <UserNav user={user} onDashboard={onGoToDashboard} />
-            )}
-            {/* Hamburger — hidden on desktop for guest sites, always shown for studio */}
+          {/* ── Right: user avatar + hamburger ── */}
+          <div className="flex items-center gap-2.5">
+            {user && <UserNav user={user} onDashboard={onGoToDashboard} />}
             {(!isDesktop || isStudio) && (
               <button
-                onClick={() => setDrawerOpen(!drawerOpen)}
+                onClick={() => setDrawer(!drawerOpen)}
                 aria-label="Open navigation menu"
                 aria-expanded={drawerOpen}
-                style={{
-                  padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
-                  border: 'none', background: 'transparent',
-                  color: 'var(--eg-fg)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'background 0.2s ease',
-                }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                className={cn(
+                  'flex items-center justify-center w-9 h-9 rounded-[var(--pl-radius-sm)]',
+                  'text-[var(--pl-ink)] bg-transparent border-0 cursor-pointer',
+                  'hover:bg-[rgba(0,0,0,0.05)] transition-colors duration-150',
+                )}
               >
-                {drawerOpen ? <X size={22} /> : <Menu size={22} />}
+                {drawerOpen ? <X size={21} /> : <Menu size={21} />}
               </button>
             )}
           </div>
         </div>
       </motion.nav>
 
-      {/* ── Navigation Drawer — slides in from right on all viewports ── */}
+      {/* ── Slide-in drawer ── */}
       <AnimatePresence>
         {drawerOpen && (
           <>
@@ -324,116 +265,66 @@ export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, on
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setDrawerOpen(false)}
-              style={{
-                position: 'fixed', inset: 0, zIndex: 48,
-                background: 'rgba(0,0,0,0.4)',
-                backdropFilter: 'blur(4px)',
-                WebkitBackdropFilter: 'blur(4px)',
-              }}
+              transition={{ duration: 0.22 }}
+              onClick={() => setDrawer(false)}
+              className="fixed inset-0 z-[48] bg-black/35 backdrop-blur-[4px]"
             />
 
-            {/* Slide-in panel from right */}
+            {/* Panel */}
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                position: 'fixed', top: 0, right: 0, bottom: 0,
-                zIndex: 49,
-                width: 'min(320px, 100vw)',
-                background: 'rgba(245,241,232,0.98)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                display: 'flex', flexDirection: 'column',
-                paddingBottom: 'env(safe-area-inset-bottom, 24px)',
-                borderLeft: '1px solid rgba(0,0,0,0.05)',
-                boxShadow: '-20px 0 60px rgba(0,0,0,0.1)',
-                overflowY: 'auto',
-              }}
+              transition={{ type: 'tween', duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className={cn(
+                'fixed top-0 right-0 bottom-0 z-[49]',
+                'w-[min(300px,100vw)]',
+                'flex flex-col',
+                'bg-[rgba(245,241,232,0.98)] border-l border-[rgba(0,0,0,0.05)]',
+                'shadow-[-16px_0_50px_rgba(0,0,0,0.09)]',
+                'pb-[env(safe-area-inset-bottom,24px)]',
+                'overflow-y-auto',
+              )}
+              style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
             >
               {/* Drawer header */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: 'calc(env(safe-area-inset-top, 0px) + 1.5rem) 1.5rem 1.25rem',
-                borderBottom: '1px solid rgba(0,0,0,0.06)',
-                flexShrink: 0,
-              }}>
-                <span style={{
-                  fontFamily: 'var(--eg-font-heading)',
-                  fontSize: '1.4rem',
-                  fontWeight: 400,
-                  color: 'var(--eg-fg)',
-                  letterSpacing: '-0.015em',
-                  lineHeight: 1.15,
-                }}>
-                  {isStudio ? 'Pearloom' : names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
+              <div className="flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
+                <span className="font-[family-name:var(--pl-font-heading)] text-[1.3rem] font-normal text-[var(--pl-ink-soft)] tracking-tight leading-tight">
+                  {isStudio ? 'Pearloom' : (names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0])}
                 </span>
                 <button
-                  onClick={() => setDrawerOpen(false)}
+                  onClick={() => setDrawer(false)}
                   aria-label="Close menu"
-                  style={{
-                    background: 'rgba(0,0,0,0.06)', border: 'none', borderRadius: '50%',
-                    width: '36px', height: '36px', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--eg-fg)', flexShrink: 0,
-                    transition: 'background 0.2s ease',
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
+                  className="flex items-center justify-center w-9 h-9 rounded-full bg-[rgba(0,0,0,0.06)] text-[var(--pl-ink)] border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.10)] transition-colors duration-150 flex-shrink-0"
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              {/* Studio actions */}
+              {/* Studio-mode actions */}
               {isStudio && user && (
-                <div style={{ padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
+                <div className="py-1.5 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0">
                   {onGoToDashboard && (
                     <motion.button
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 16 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.05 }}
-                      onClick={() => { onGoToDashboard(); setDrawerOpen(false); }}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '0.875rem',
-                        width: '100%',
-                        minHeight: '56px',
-                        padding: '0 1.5rem',
-                        fontFamily: 'var(--eg-font-body)', fontSize: '0.95rem', fontWeight: 500,
-                        color: 'var(--eg-fg)', background: 'transparent', border: 'none',
-                        cursor: 'pointer', textAlign: 'left',
-                        transition: 'background 0.15s ease',
-                      }}
-                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
-                      onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      onClick={() => { onGoToDashboard(); setDrawer(false); }}
+                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-[family-name:var(--pl-font-body)] bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
                     >
-                      <LayoutDashboard size={18} color="var(--eg-accent)" />
+                      <LayoutDashboard size={17} className="text-[var(--pl-olive)]" />
                       My Sites
                     </motion.button>
                   )}
                   {onStartNew && (
                     <motion.button
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 16 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.08 }}
-                      onClick={() => { onStartNew(); setDrawerOpen(false); }}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '0.875rem',
-                        width: '100%',
-                        minHeight: '56px',
-                        padding: '0 1.5rem',
-                        fontFamily: 'var(--eg-font-body)', fontSize: '0.95rem', fontWeight: 500,
-                        color: 'var(--eg-fg)', background: 'transparent', border: 'none',
-                        cursor: 'pointer', textAlign: 'left',
-                        transition: 'background 0.15s ease',
-                      }}
-                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
-                      onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      onClick={() => { onStartNew(); setDrawer(false); }}
+                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-[family-name:var(--pl-font-body)] bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
                     >
-                      <Plus size={18} color="var(--eg-accent)" />
+                      <Plus size={17} className="text-[var(--pl-olive)]" />
                       New Site
                     </motion.button>
                   )}
@@ -441,92 +332,74 @@ export function SiteNav({ names, pages, logoIcon, logoSvg, currentPage, user, on
               )}
 
               {/* Page links */}
-              <nav style={{ flex: 1, padding: '0.75rem 0' }}>
+              <nav className="flex-1 py-1.5">
                 {enabledPages.map((page, i) => {
                   const active = isActive(page.slug);
                   return (
                     <motion.div
                       key={page.id}
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 16 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.055 + 0.06 }}
+                      transition={{ delay: i * 0.05 + 0.06 }}
                     >
                       <Link
                         href={getHref(page.slug)}
-                        onClick={() => setDrawerOpen(false)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '0.875rem',
-                          minHeight: '56px',
-                          padding: '0 1.5rem',
-                          fontFamily: 'var(--eg-font-body)',
-                          fontSize: '0.95rem', fontWeight: active ? 600 : 500,
-                          color: active ? 'var(--eg-fg)' : 'var(--eg-muted)',
-                          textDecoration: 'none',
-                          position: 'relative',
-                          transition: 'background 0.15s ease, color 0.15s ease',
-                          background: active ? 'rgba(163,177,138,0.08)' : 'transparent',
-                          borderLeft: active ? '3px solid var(--eg-accent, #A3B18A)' : '3px solid transparent',
-                        }}
-                        onMouseOver={(e) => {
-                          if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)';
-                        }}
-                        onMouseOut={(e) => {
-                          if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent';
-                        }}
+                        onClick={() => setDrawer(false)}
+                        className={cn(
+                          'flex items-center gap-3.5 min-h-[52px] px-5',
+                          'text-[0.92rem] font-[family-name:var(--pl-font-body)] no-underline',
+                          'border-l-[3px] transition-all duration-150',
+                          active
+                            ? 'font-semibold text-[var(--pl-ink)] bg-[rgba(163,177,138,0.07)] border-l-[var(--pl-olive)]'
+                            : 'font-[500] text-[var(--pl-muted)] bg-transparent border-l-transparent hover:bg-[rgba(163,177,138,0.06)]',
+                        )}
                       >
-                        <PageIcon slug={page.slug} size={18} />
-                        <span style={{ flex: 1 }}>{page.label}</span>
+                        <PageIcon slug={page.slug} size={17} />
+                        <span className="flex-1">{page.label}</span>
                       </Link>
                     </motion.div>
                   );
                 })}
               </nav>
 
-              {/* Bottom area — account row + powered by */}
-              <div style={{ flexShrink: 0, borderTop: '1px solid rgba(0,0,0,0.06)', padding: '1rem 1.5rem' }}>
+              {/* Account row + powered-by */}
+              <div className="flex-shrink-0 border-t border-[rgba(0,0,0,0.06)] px-5 py-4">
                 {user && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}
+                    transition={{ delay: 0.28 }}
+                    className="flex items-center gap-2.5 mb-3.5"
                   >
                     {user.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={user.image} alt="" role="presentation" style={{ width: '2rem', height: '2rem', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                      <img
+                        src={user.image}
+                        alt=""
+                        role="presentation"
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      />
                     ) : (
-                      <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: 'var(--eg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div className="w-8 h-8 rounded-full bg-[var(--pl-olive)] flex items-center justify-center flex-shrink-0">
                         <LogOut size={12} color="#fff" />
                       </div>
                     )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--eg-fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name || 'Your Account'}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[0.8rem] font-semibold text-[var(--pl-ink)] truncate">
+                        {user.name || 'Your Account'}
+                      </div>
+                      <div className="text-[0.68rem] text-[var(--pl-muted)] truncate">{user.email}</div>
                     </div>
                     <button
-                      onClick={() => { setDrawerOpen(false); signOut(); }}
+                      onClick={() => { setDrawer(false); signOut(); }}
                       title="Sign out"
-                      style={{
-                        background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '0.5rem',
-                        padding: '0.4rem', cursor: 'pointer', color: 'var(--eg-muted)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
-                      onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; }}
+                      className="flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-lg bg-[rgba(0,0,0,0.05)] text-[var(--pl-muted)] border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.10)] hover:text-[var(--pl-ink)] transition-all duration-150"
                     >
-                      <LogOut size={14} />
+                      <LogOut size={13} />
                     </button>
                   </motion.div>
                 )}
-                <p style={{
-                  fontSize: '0.72rem',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: 'var(--eg-muted)',
-                  opacity: 0.7,
-                  margin: 0,
-                }}>
+                <p className="text-[0.65rem] uppercase tracking-[0.12em] text-[var(--pl-muted)] opacity-60 m-0">
                   Powered by Pearloom
                 </p>
               </div>

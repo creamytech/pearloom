@@ -1,6 +1,6 @@
 'use client';
 
-import { colors as C, text, layout } from '@/lib/design-tokens';
+import { layout } from '@/lib/design-tokens';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 
 const COLUMNS = [
@@ -35,95 +35,52 @@ const COLUMNS = [
 
 function SocialIcon({ type }: { type: 'twitter' | 'instagram' }) {
   const props = {
-    width: 18,
-    height: 18,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.5,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
+    width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none',
+    stroke: 'currentColor', strokeWidth: 1.5,
+    strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const,
     'aria-hidden': true as const,
   };
   if (type === 'twitter') {
-    return (
-      <svg {...props}>
-        <path d="M4 4l6.5 8L4 20h2l5.3-6.5L15 20h5l-6.8-8.5L19.5 4h-2l-5 6.2L9 4H4z" />
-      </svg>
-    );
+    return <svg {...props}><path d="M4 4l6.5 8L4 20h2l5.3-6.5L15 20h5l-6.8-8.5L19.5 4h-2l-5 6.2L9 4H4z" /></svg>;
   }
-  return (
-    <svg {...props}>
-      <rect x="2" y="2" width="20" height="20" rx="5" />
-      <circle cx="12" cy="12" r="5" />
-      <circle cx="18" cy="6" r="1.2" fill="currentColor" stroke="none" />
-    </svg>
-  );
+  return <svg {...props}><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="5" /><circle cx="18" cy="6" r="1.2" fill="currentColor" stroke="none" /></svg>;
 }
 
 export function MarketingFooter() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <footer
-      style={{
-        background: C.ink,
-        padding: 'clamp(3rem,5vw,5rem) 1.25rem 2.5rem',
-        borderTop: `1px solid ${C.darkBorder}`,
-      }}
+      className="bg-[var(--pl-ink)] border-t border-[var(--pl-dark-border)] py-[clamp(3rem,5vw,5rem)] px-6 pb-10"
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
-        {/* Top row: logo + columns */}
+        {/* Top row */}
         <div className="flex flex-col md:flex-row gap-10 mb-12">
           {/* Brand column */}
           <div className="md:w-[260px] flex-shrink-0">
             <div className="flex items-center gap-2.5 mb-4">
-              <PearIcon size={30} color={C.olive} />
-              <span
-                className="font-[family-name:var(--eg-font-heading)] text-[1.4rem] font-bold italic"
-                style={{ color: C.darkHeading, letterSpacing: '0.03em' }}
-              >
+              <PearIcon size={28} color="var(--pl-olive)" />
+              <span className="font-[family-name:var(--pl-font-heading)] text-[1.35rem] font-bold italic tracking-[0.03em] text-[var(--pl-dark-heading)]">
                 Pearloom
               </span>
             </div>
-            <p className="leading-relaxed mb-6" style={{ fontSize: text.sm, color: C.darkText }}>
+            <p className="text-[0.85rem] text-[var(--pl-dark-text)] leading-relaxed mb-6">
               Every moment worth celebrating deserves its own world. Powered by The Loom.
             </p>
 
-            {/* Newsletter signup */}
-            <div className="mb-2">
-              <p
-                className="font-semibold tracking-[0.1em] uppercase mb-3"
-                style={{ fontSize: text.xs, color: C.darkText }}
-              >
+            {/* Newsletter */}
+            <div>
+              <p className="text-[0.65rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-dark-text)] mb-3">
                 Stay in the loop
               </p>
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="flex gap-0"
-              >
+              <form onSubmit={(e) => e.preventDefault()} className="flex gap-0">
                 <input
                   type="email"
                   placeholder="your@email.com"
                   aria-label="Email address for newsletter"
-                  className="flex-1 min-w-0 px-3 py-2 rounded-l-md border-0 outline-none"
-                  style={{
-                    background: 'rgba(245,241,232,0.08)',
-                    color: C.darkHeading,
-                    fontSize: text.sm,
-                  }}
+                  className="flex-1 min-w-0 px-3 py-2 rounded-l-[var(--pl-radius-sm)] border-0 outline-none text-[max(16px,0.85rem)] text-[var(--pl-dark-heading)] bg-white/[0.08] placeholder:text-white/30"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-r-md font-semibold tracking-wider uppercase cursor-pointer"
-                  style={{
-                    background: C.olive,
-                    color: '#fff',
-                    fontSize: text.xs,
-                    border: 'none',
-                  }}
+                  className="px-4 py-2 rounded-r-[var(--pl-radius-sm)] font-semibold tracking-widest uppercase cursor-pointer bg-[var(--pl-olive)] text-white text-[0.62rem] border-0 hover:bg-[var(--pl-olive-hover)] transition-colors duration-150"
                 >
                   Join
                 </button>
@@ -133,21 +90,17 @@ export function MarketingFooter() {
 
           {/* Link columns */}
           <div className="flex-1 grid grid-cols-3 gap-4 sm:gap-6">
-            {COLUMNS.map(col => (
+            {COLUMNS.map((col) => (
               <div key={col.title}>
-                <div
-                  className="font-bold tracking-[0.16em] uppercase mb-3"
-                  style={{ fontSize: text.xs, color: C.darkHeading }}
-                >
+                <div className="text-[0.65rem] font-bold tracking-[0.16em] uppercase text-[var(--pl-dark-heading)] mb-3">
                   {col.title}
                 </div>
                 <div className="flex flex-col gap-2">
-                  {col.links.map(link => (
+                  {col.links.map((link) => (
                     <a
                       key={link.label}
                       href={link.href}
-                      className="no-underline hover:underline"
-                      style={{ fontSize: text.sm, color: C.darkText }}
+                      className="text-[0.85rem] text-[var(--pl-dark-text)] no-underline hover:underline hover:text-white/80 transition-colors duration-150"
                     >
                       {link.label}
                     </a>
@@ -159,40 +112,27 @@ export function MarketingFooter() {
         </div>
 
         {/* Divider */}
-        <div className="h-px mb-5" style={{ background: C.darkBorder }} />
+        <div className="h-px bg-[var(--pl-dark-border)] mb-5" />
 
         {/* Bottom row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p style={{ fontSize: text.xs, color: C.darkText, letterSpacing: '0.04em' }}>
+          <p className="text-[0.68rem] text-[var(--pl-dark-text)] tracking-[0.04em]">
             &copy; 2026 Pearloom &middot; Crafted with love &amp; intelligence
           </p>
 
           <div className="flex items-center gap-4">
-            {/* Social icons */}
-            <div className="flex items-center gap-2.5">
-              <a
-                href="#"
-                aria-label="Follow us on X"
-                className="hover:opacity-80"
-                style={{ color: C.darkText }}
-              >
+            <div className="flex items-center gap-2.5 text-[var(--pl-dark-text)]">
+              <a href="#" aria-label="Follow on X" className="hover:opacity-80 transition-opacity">
                 <SocialIcon type="twitter" />
               </a>
-              <a
-                href="#"
-                aria-label="Follow us on Instagram"
-                className="hover:opacity-80"
-                style={{ color: C.darkText }}
-              >
+              <a href="#" aria-label="Follow on Instagram" className="hover:opacity-80 transition-opacity">
                 <SocialIcon type="instagram" />
               </a>
             </div>
 
-            {/* Back to top */}
             <button
-              onClick={scrollToTop}
-              className="flex items-center gap-1.5 hover:opacity-80 cursor-pointer bg-transparent border-0"
-              style={{ color: C.darkText, fontSize: text.xs, letterSpacing: '0.06em' }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center gap-1.5 text-[var(--pl-dark-text)] text-[0.68rem] tracking-[0.06em] cursor-pointer bg-transparent border-0 hover:opacity-80 transition-opacity"
               aria-label="Back to top"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

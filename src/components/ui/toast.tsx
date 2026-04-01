@@ -8,9 +8,10 @@ import {
   useState,
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, Info, X } from 'lucide-react';
+import { Check, Info, X, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -31,21 +32,27 @@ interface ToastContextValue {
   showToast: (options: ShowToastOptions) => void;
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+// ─── Context ──────────────────────────────────────────────────
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
-// ─── Styling helpers ──────────────────────────────────────────────────────────
+// ─── Variant styles ───────────────────────────────────────────
 
-const VARIANT_STYLES: Record<ToastType, React.CSSProperties> = {
-  success: { background: 'rgba(163,177,138,0.95)' },
-  error:   { background: 'rgba(185,28,28,0.93)' },
-  info:    { background: 'rgba(43,43,43,0.93)' },
+const VARIANT_CLASS: Record<ToastType, string> = {
+  success: 'bg-[rgba(163,177,138,0.96)]',
+  error:   'bg-[rgba(185,28,28,0.94)]',
+  info:    'bg-[rgba(43,43,43,0.94)]',
 };
+
+function ToastIcon({ type }: { type: ToastType }) {
+  if (type === 'success') return <Check size={15} strokeWidth={2.5} />;
+  if (type === 'error')   return <AlertTriangle size={15} strokeWidth={2.5} />;
+  return <Info size={15} strokeWidth={2.5} />;
+}
 
 const MAX_VISIBLE = 3;
 
-// ─── Individual Toast ─────────────────────────────────────────────────────────
+// ─── Single toast ─────────────────────────────────────────────
 
 function ToastItem({
   toast,
@@ -54,87 +61,53 @@ function ToastItem({
   toast: ToastItem;
   onDismiss: (id: string) => void;
 }) {
-  const Icon =
-    toast.type === 'success' ? Check : toast.type === 'error' ? X : Info;
-
   return (
     <motion.div
       layout
       key={toast.id}
-      initial={{ opacity: 0, y: 24, scale: 0.96 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 8, scale: 0.96, transition: { duration: 0.18 } }}
-      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-      style={{
-        ...VARIANT_STYLES[toast.type],
-        color: '#fff',
-        borderRadius: 12,
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        padding: '10px 14px 10px 12px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        minWidth: 240,
-        maxWidth: 380,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-        fontFamily: 'var(--eg-font-body, system-ui, sans-serif)',
-        fontSize: 14,
-        lineHeight: 1.4,
-        pointerEvents: 'auto',
-      }}
+      exit={{ opacity: 0, y: 6, scale: 0.96, transition: { duration: 0.17 } }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       role="alert"
       aria-live="polite"
+      className={cn(
+        'flex items-center gap-2.5 pointer-events-auto',
+        'rounded-xl px-3.5 py-2.5',
+        'text-white text-[0.85rem] font-[family-name:var(--pl-font-body)] leading-snug',
+        'min-w-[220px] max-w-[360px]',
+        'shadow-[0_4px_20px_rgba(0,0,0,0.18)]',
+        'backdrop-blur-md',
+        VARIANT_CLASS[toast.type],
+      )}
     >
       {/* Icon */}
-      <span
-        style={{
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 20,
-          height: 20,
-        }}
-      >
-        <Icon size={16} strokeWidth={2.5} />
+      <span className="flex-shrink-0 flex items-center justify-center w-5 h-5">
+        <ToastIcon type={toast.type} />
       </span>
 
       {/* Message */}
-      <span style={{ flex: 1 }}>{toast.message}</span>
+      <span className="flex-1">{toast.message}</span>
 
-      {/* Close button */}
+      {/* Dismiss */}
       <button
         onClick={() => onDismiss(toast.id)}
         aria-label="Dismiss notification"
-        style={{
-          flexShrink: 0,
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'rgba(255,255,255,0.75)',
-          padding: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: 4,
-          transition: 'color 0.15s',
-        }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLButtonElement).style.color = '#fff')
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLButtonElement).style.color =
-            'rgba(255,255,255,0.75)')
-        }
+        className={cn(
+          'flex-shrink-0 flex items-center justify-center',
+          'w-5 h-5 rounded cursor-pointer',
+          'text-white/70 hover:text-white',
+          'bg-transparent border-0',
+          'transition-colors duration-150',
+        )}
       >
-        <X size={14} strokeWidth={2.5} />
+        <X size={13} strokeWidth={2.5} />
       </button>
     </motion.div>
   );
 }
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// ─── Provider ─────────────────────────────────────────────────
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -152,12 +125,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       const item: ToastItem = { id, message, type, duration };
 
       setToasts((prev) => {
-        // Keep only the latest MAX_VISIBLE - 1 existing toasts before appending
         const next = prev.slice(-(MAX_VISIBLE - 1));
-        // Dismiss any that got evicted
-        prev
-          .slice(0, prev.length - (MAX_VISIBLE - 1))
-          .forEach((t) => dismiss(t.id));
+        prev.slice(0, prev.length - (MAX_VISIBLE - 1)).forEach((t) => dismiss(t.id));
         return [...next, item];
       });
 
@@ -173,21 +142,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
 
-      {/* Portal-like fixed container */}
+      {/* Fixed notification stack */}
       <div
         aria-label="Notifications"
-        style={{
-          position: 'fixed',
-          bottom: 24,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 8,
-          pointerEvents: 'none',
-        }}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 pointer-events-none"
       >
         <AnimatePresence mode="sync" initial={false}>
           {visible.map((toast) => (
@@ -199,12 +157,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Hook ─────────────────────────────────────────────────────
 
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext);
-  if (!ctx) {
-    throw new Error('useToast must be used within a <ToastProvider>');
-  }
+  if (!ctx) throw new Error('useToast must be used within a <ToastProvider>');
   return ctx;
 }

@@ -8,11 +8,12 @@ import {
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
-import { colors as C, text, card, layout } from '@/lib/design-tokens';
+import { layout } from '@/lib/design-tokens';
+import { Button } from '@/components/ui';
+import { cn } from '@/lib/cn';
 
 import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 
-// ── Greeting helper ────────────────────────────────────────────
 function getGreeting(): string {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
@@ -20,73 +21,26 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-// ── Skeleton Card ────────────────────────────────────────────────
+// ── Skeleton Card ─────────────────────────────────────────────
+
 function SkeletonCard() {
   return (
-    <div
-      style={{
-        background: card.bg,
-        borderRadius: card.radius,
-        overflow: 'hidden',
-        border: card.border,
-        boxShadow: card.shadow,
-      }}
-    >
-      <div
-        style={{
-          height: '200px',
-          background: 'linear-gradient(90deg, #f5f0e8 0%, #fdf8f2 50%, #f5f0e8 100%)',
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        }}
-      />
-      <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div
-          style={{
-            height: '12px', borderRadius: '100px', width: '60%',
-            background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.1s',
-          }}
-        />
-        <div
-          style={{
-            height: '10px', borderRadius: '100px', width: '35%',
-            background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.2s',
-          }}
-        />
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr auto auto',
-            gap: '0.5rem',
-            marginTop: '0.5rem',
-          }}
-        >
-          {[...Array(4)].map((_, idx) => (
-            <div
-              key={idx}
-              style={{
-                height: '40px', borderRadius: '0.75rem',
-                background: 'linear-gradient(90deg, #f0ece4 0%, #faf7f2 50%, #f0ece4 100%)',
-                backgroundSize: '200% 100%',
-                animation: `shimmer 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite ${0.1 * idx}s`,
-              }}
-            />
+    <div className="bg-white rounded-[var(--pl-radius-md)] overflow-hidden border border-[var(--pl-divider)] shadow-[var(--pl-shadow-sm)]">
+      <div className="h-48 skeleton" />
+      <div className="p-5 flex flex-col gap-3">
+        <div className="h-3 rounded-full w-[60%] skeleton" />
+        <div className="h-2.5 rounded-full w-[35%] skeleton" />
+        <div className="grid grid-cols-4 gap-2 mt-1">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-10 rounded-[var(--pl-radius-sm)] skeleton" />
           ))}
         </div>
       </div>
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-      `}</style>
     </div>
   );
 }
+
+// ── Types ─────────────────────────────────────────────────────
 
 interface UserSite {
   id: string;
@@ -103,25 +57,34 @@ interface UserSitesProps {
   userName?: string;
 }
 
+// ── OccasionBadge ─────────────────────────────────────────────
+
+const OCCASION_STYLES: Record<string, { label: string; className: string }> = {
+  wedding:     { label: 'Wedding',     className: 'bg-[var(--pl-plum-mist)] text-[var(--pl-plum)]'       },
+  anniversary: { label: 'Anniversary', className: 'bg-[var(--pl-gold-mist)] text-[var(--pl-gold)]'        },
+  engagement:  { label: 'Engagement',  className: 'bg-[var(--pl-plum-mist)] text-[var(--pl-plum)]'       },
+  birthday:    { label: 'Birthday',    className: 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)]' },
+  story:       { label: 'Story',       className: 'bg-[rgba(0,0,0,0.04)] text-[var(--pl-muted)]'         },
+};
+
+// ── UserSites component ───────────────────────────────────────
+
 export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: UserSitesProps) {
-  const [sites, setSites] = useState<UserSite[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(false);
+  const [sites, setSites]                   = useState<UserSite[]>([]);
+  const [loading, setLoading]               = useState(true);
+  const [fetchError, setFetchError]         = useState(false);
   const [deletingDomain, setDeletingDomain] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<UserSite | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete]   = useState<UserSite | null>(null);
+  const [deleteError, setDeleteError]       = useState<string | null>(null);
+  const [copiedId, setCopiedId]             = useState<string | null>(null);
   const [expandedCompleteness, setExpandedCompleteness] = useState<string | null>(null);
 
   const loadSites = () => {
     setFetchError(false);
     setLoading(true);
     fetch('/api/sites')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.sites) setSites(data.sites);
-      })
+      .then((r) => r.json())
+      .then((d) => { if (d.sites) setSites(d.sites); })
       .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   };
@@ -138,14 +101,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
         setConfirmDelete(null);
       } else {
         let msg = 'Delete failed. Please try again.';
-        try {
-          const body = await res.json();
-          if (body?.error) msg = body.error;
-        } catch { /* ignore parse error */ }
+        try { const b = await res.json(); if (b?.error) msg = b.error; } catch { /* ignore */ }
         setDeleteError(msg);
       }
     } catch {
-      setDeleteError('Network error — please check your connection and try again.');
+      setDeleteError('Network error — please check your connection.');
     } finally {
       setDeletingDomain(null);
     }
@@ -155,7 +115,6 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
     if (typeof window === 'undefined') return `https://${domain}.pearloom.com`;
     const { hostname, origin } = window.location;
     if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
-    // On Vercel preview deployments use path-based routing
     if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
     return `https://${domain}.pearloom.com`;
   };
@@ -166,85 +125,38 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
       await navigator.clipboard.writeText(getSiteUrl(site.domain));
       setCopiedId(site.id);
       setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      // silent
-    }
+    } catch { /* silent */ }
   };
 
-  const getFormattedDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
+  const getFormattedDate = (d: string) =>
+    new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  // ── Render ──────────────────────────────────────────────────
   return (
-    <div style={{ width: '100%', maxWidth: layout.maxWidth, margin: '0 auto' }}>
+    <div className="w-full mx-auto" style={{ maxWidth: layout.maxWidth }}>
 
       {/* ── Welcome header ── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        style={{ marginBottom: '3rem', textAlign: 'center' }}
+        className="mb-10 text-center"
       >
-        <h1 style={{
-          fontFamily: 'var(--eg-font-heading)',
-          fontSize: 'clamp(1.5rem, 3vw, 2rem)',
-          fontWeight: 600,
-          fontStyle: 'italic',
-          color: 'var(--eg-fg)',
-          letterSpacing: '-0.025em',
-          lineHeight: 1.1,
-          marginBottom: '1.5rem',
-        }}>
+        <h1 className="font-[family-name:var(--pl-font-heading)] text-[clamp(1.5rem,3vw,2rem)] font-semibold italic text-[var(--pl-ink-soft)] tracking-tight leading-tight mb-6">
           {getGreeting()}{userName ? `, ${userName}` : ''}
         </h1>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: '1.5rem',
-          paddingBottom: '2rem',
-          borderBottom: '1px solid var(--eg-divider)',
-        }}>
-          <p style={{
-            fontFamily: 'var(--eg-font-body)',
-            fontSize: text.sm,
-            fontWeight: 600,
-            color: C.muted,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-          }}>
+        <div className="flex items-center justify-center gap-4 pb-8 border-b border-[var(--pl-divider)]">
+          <p className="text-[0.72rem] font-bold text-[var(--pl-muted)] tracking-[0.14em] uppercase">
             Your Sites
           </p>
-          <button
-            onClick={onStartNew}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-              padding: '0.85rem 1.75rem', borderRadius: card.radius,
-              background: C.ink,
-              color: '#fff', fontWeight: 600, fontSize: '0.875rem',
-              height: '40px',
-              border: 'none', cursor: 'pointer', letterSpacing: '0.01em',
-              fontFamily: 'var(--eg-font-body)',
-            }}
-          >
-            <Plus size={16} />
+          <Button variant="primary" size="sm" onClick={onStartNew} icon={<Plus size={14} />}>
             Create New Site
-          </button>
+          </Button>
         </div>
       </motion.div>
 
       {/* ── Loading ── */}
       {loading ? (
-        <div
-          className="site-card-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: '1.5rem',
-          }}
-        >
+        <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
           {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
 
@@ -253,35 +165,18 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{
-            background: card.bg,
-            borderRadius: card.radius,
-            padding: '3rem',
-            textAlign: 'center',
-            border: card.border,
-            boxShadow: card.shadow,
-          }}
+          className="bg-white rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[var(--pl-shadow-sm)] p-12 text-center"
         >
-          <AlertTriangle size={36} color="rgba(109,89,122,0.5)" style={{ margin: '0 auto 1.25rem' }} />
-          <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.4rem', fontWeight: 400, marginBottom: '0.75rem', color: 'var(--eg-fg)' }}>
+          <AlertTriangle size={36} className="text-[var(--pl-plum)] opacity-50 mx-auto mb-5" />
+          <h3 className="font-[family-name:var(--pl-font-heading)] text-[1.4rem] font-normal mb-3 text-[var(--pl-ink-soft)]">
             Could not load your sites
           </h3>
-          <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1.75rem' }}>
+          <p className="text-[var(--pl-muted)] text-[0.9rem] mb-6">
             Check your connection and try again.
           </p>
-          <button
-            onClick={loadSites}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-              padding: '0.8rem 1.75rem', borderRadius: '0.75rem',
-              background: 'var(--eg-fg)', color: '#fff',
-              border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem',
-              fontFamily: 'var(--eg-font-body)',
-            }}
-          >
-            <RefreshCw size={14} />
+          <Button variant="primary" size="md" onClick={loadSites} icon={<RefreshCw size={14} />}>
             Retry
-          </button>
+          </Button>
         </motion.div>
 
       ) : sites.length === 0 ? (
@@ -290,122 +185,41 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', padding: '6rem 2rem',
-            background: 'radial-gradient(ellipse at 50% 30%, rgba(163,177,138,0.08) 0%, rgba(214,198,168,0.06) 40%, #ffffff 70%)',
-            borderRadius: '1.5rem',
-            border: '1px solid var(--eg-divider)',
-            textAlign: 'center',
-            maxWidth: '640px',
-            margin: '0 auto',
-            boxShadow: '0 8px 40px rgba(43,43,43,0.06)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
+          className="flex flex-col items-center justify-center text-center py-24 px-8 rounded-[var(--pl-radius-xl)] border border-[var(--pl-divider)] shadow-[var(--pl-shadow-md)] max-w-[600px] mx-auto relative overflow-hidden"
+          style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(163,177,138,0.07) 0%, rgba(214,198,168,0.05) 40%, #fff 70%)' }}
         >
-          {/* Pear icon */}
-          <div
-            style={{
-              marginBottom: '2rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <PearIcon size={80} color="var(--eg-accent)" />
-          </div>
-          <h3 style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-            fontWeight: 600, fontStyle: 'italic',
-            color: 'var(--eg-fg)',
-            marginBottom: '1.25rem', letterSpacing: '-0.02em', lineHeight: 1.1,
-          }}>
+          <PearIcon size={72} color="var(--pl-olive)" />
+          <h3 className="font-[family-name:var(--pl-font-heading)] text-[clamp(1.75rem,4vw,2.4rem)] font-semibold italic text-[var(--pl-ink-soft)] mt-6 mb-3 tracking-tight leading-tight">
             Start your story
           </h3>
-          {/* Gold horizontal rule */}
-          <div style={{
-            width: '80px', height: '1px',
-            background: C.gold,
-            margin: '0 auto 1.25rem',
-          }} />
-          <p style={{
-            fontFamily: 'var(--eg-font-body)',
-            color: C.muted, maxWidth: '400px', marginBottom: '0.75rem',
-            lineHeight: 1.8, fontSize: text.base,
-          }}>
+          <div className="w-16 h-px bg-[var(--pl-gold)] mx-auto mb-4" />
+          <p className="text-[var(--pl-muted)] max-w-[360px] leading-[1.8] text-[0.95rem] mb-2">
             Build a stunning celebration website in minutes. Your AI designer is waiting.
           </p>
-          <p style={{
-            color: C.muted, fontSize: text.xs, marginBottom: '2.5rem',
-            letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600,
-            opacity: 0.55,
-          }}>
+          <p className="text-[0.65rem] uppercase tracking-[0.1em] font-bold text-[var(--pl-muted)] opacity-50 mb-9">
             Powered by The Loom AI
           </p>
-          <button
-            onClick={onStartNew}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.65rem',
-              padding: '1rem 2.5rem', borderRadius: '100px',
-              background: C.olive,
-              color: '#fff', fontWeight: 600, fontSize: '1.05rem',
-              border: 'none', cursor: 'pointer',
-              boxShadow: '0 8px 24px rgba(163,177,138,0.3)',
-              fontFamily: 'var(--eg-font-body)',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-              position: 'relative',
-              zIndex: 1,
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(163,177,138,0.4)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(163,177,138,0.3)';
-            }}
-          >
-            <Plus size={18} />
+          <Button variant="accent" size="lg" onClick={onStartNew} icon={<Plus size={16} />}>
             Create Your Site
-          </button>
+          </Button>
         </motion.div>
 
       ) : (
         /* ── Site grid ── */
         <>
-          <div
-            className="site-card-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: '1.5rem',
-            }}
-          >
+          <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             <AnimatePresence>
               {sites.map((site, i) => {
-                const vibeSkin = site.manifest?.vibeSkin;
-                const accentColor = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
-                const accentDark = vibeSkin?.palette?.highlight || site.manifest?.theme?.colors?.muted || '#8FA876';
+                const vibeSkin      = site.manifest?.vibeSkin;
+                const accentColor   = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
+                const accentDark    = vibeSkin?.palette?.highlight || site.manifest?.theme?.colors?.muted || '#8FA876';
                 const coverPhotoUrl = site.manifest?.chapters?.[0]?.images?.[0]?.url;
-                const formattedDate = getFormattedDate(site.created_at);
-                const isDeleting = deletingDomain === site.domain;
-                const isHovered = hoveredId === site.id;
-                const isCopied = copiedId === site.id;
-                const displayNames = (site.names || ['', '']).map(
-                  (n) => n.charAt(0).toUpperCase() + n.slice(1)
-                ).join(' & ');
-                const weddingDate = site.manifest?.logistics?.date || site.manifest?.events?.[0]?.date;
-                const isLive = !site.manifest?.comingSoon?.enabled;
-                const occasionMeta: Record<string, { label: string; color: string; bg: string }> = {
-                  wedding:     { label: 'Wedding',     color: C.plum, bg: `${C.plum}1A` },
-                  anniversary: { label: 'Anniversary', color: C.gold, bg: `${C.gold}33` },
-                  engagement:  { label: 'Engagement',  color: C.plum, bg: `${C.plum}1A` },
-                  birthday:    { label: 'Birthday',    color: C.olive, bg: `${C.olive}2E` },
-                  story:       { label: 'Story',       color: C.muted, bg: `${C.muted}0F` },
-                };
-                const occ = occasionMeta[site.manifest?.occasion || ''];
+                const isDeleting    = deletingDomain === site.domain;
+                const isCopied      = copiedId === site.id;
+                const displayNames  = (site.names || ['', '']).map((n) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
+                const weddingDate   = site.manifest?.logistics?.date || site.manifest?.events?.[0]?.date;
+                const isLive        = !site.manifest?.comingSoon?.enabled;
+                const occ           = OCCASION_STYLES[site.manifest?.occasion || ''];
 
                 return (
                   <motion.article
@@ -414,215 +228,119 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: '-40px' }}
                     transition={{ duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
-                    exit={{ opacity: 0, scale: 0.94, y: -10 }}
-                    onHoverStart={() => setHoveredId(site.id)}
-                    onHoverEnd={() => setHoveredId(null)}
-                    style={{
-                      background: 'var(--eg-bg)',
-                      borderRadius: card.radius,
-                      overflow: 'hidden',
-                      border: isHovered
-                        ? `1px solid ${accentColor}`
-                        : card.border,
-                      boxShadow: isHovered
-                        ? card.shadowHover
-                        : card.shadow,
-                      transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-                      transition: 'box-shadow 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1)',
-                    }}
+                    exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                    className="bg-[var(--pl-cream)] rounded-[var(--pl-radius-md)] overflow-hidden border border-[var(--pl-divider)] shadow-[var(--pl-shadow-sm)] transition-all duration-400 hover:shadow-[var(--pl-shadow-md)] hover:-translate-y-1"
+                    style={{ ['--hover-border' as string]: accentColor }}
                   >
-                    {/* Visual header — cover photo or gradient from vibeSkin palette */}
+                    {/* ── Card cover header ── */}
                     <div
                       onClick={() => onEditSite(site)}
-                      style={{
-                        height: '200px',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 100%)`,
-                      }}
+                      className="h-48 relative overflow-hidden cursor-pointer"
+                      style={{ background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 100%)` }}
                     >
-                      {/* Actual cover photo if available */}
                       {coverPhotoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={coverPhotoUrl}
                           alt=""
                           role="presentation"
-                          style={{
-                            position: 'absolute', inset: 0,
-                            width: '100%', height: '100%',
-                            objectFit: 'cover',
-                            transition: 'transform 0.6s ease',
-                          }}
-                          onMouseOver={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
-                          onMouseOut={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-600 hover:scale-[1.04]"
                         />
                       ) : (
-                        /* Premium placeholder pattern for sites without a cover photo */
-                        <div style={{
-                          position: 'absolute', inset: 0,
-                          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 50%, ${accentColor}cc 100%)`,
-                          overflow: 'hidden',
-                        }}>
-                          <div style={{
-                            position: 'absolute', inset: '-50%',
-                            background: `radial-gradient(circle at 20% 50%, ${accentColor}44 0%, transparent 50%), radial-gradient(circle at 80% 20%, ${accentDark}55 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(255,255,255,0.08) 0%, transparent 50%)`,
-                          }} />
-                          <div style={{
-                            position: 'absolute', inset: 0,
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                          }} />
-                        </div>
+                        <div
+                          className="absolute inset-0"
+                          style={{ background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 50%, ${accentColor}cc 100%)` }}
+                        />
                       )}
-                      {/* Gradient overlay — bottom fade for text readability */}
-                      <div style={{
-                        position: 'absolute', inset: 0,
-                        background: coverPhotoUrl
-                          ? 'linear-gradient(180deg, transparent 0%, transparent 35%, rgba(0,0,0,0.12) 55%, rgba(0,0,0,0.6) 100%)'
-                          : 'linear-gradient(180deg, transparent 0%, transparent 40%, rgba(0,0,0,0.08) 60%, rgba(0,0,0,0.4) 100%)',
-                      }} />
 
-                      {/* Domain badge */}
-                      <div style={{
-                        position: 'absolute', top: '1rem', right: '1rem',
-                        background: 'rgba(255,255,255,0.18)',
-                        backdropFilter: 'blur(10px)',
-                        WebkitBackdropFilter: 'blur(10px)',
-                        borderRadius: '100px', padding: '0.3rem 0.8rem',
-                        border: '1px solid rgba(255,255,255,0.22)',
-                        fontSize: text.xs, fontWeight: 700, color: '#fff',
-                        letterSpacing: '0.06em',
-                        display: 'flex', alignItems: 'center', gap: '0.4rem',
-                      }}>
-                        <Globe size={10} />
+                      {/* Bottom gradient overlay */}
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ background: coverPhotoUrl ? 'linear-gradient(180deg, transparent 35%, rgba(0,0,0,0.55) 100%)' : 'linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.35) 100%)' }}
+                      />
+
+                      {/* Domain badge (top right) */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.18] border border-white/25 backdrop-blur-[10px] text-[0.62rem] font-bold text-white tracking-wide">
+                        <Globe size={9} />
                         {site.domain}
                       </div>
 
-                      {/* Live/Draft indicator */}
-                      <div style={{
-                        position: 'absolute', top: '1rem', left: '1rem',
-                        display: 'flex', alignItems: 'center', gap: '0.4rem',
-                      }}>
+                      {/* Live / Draft indicator (top left) */}
+                      <div className="absolute top-3 left-3">
                         {isLive ? (
-                          <div style={{
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            background: 'rgba(34,197,94,0.18)',
-                            backdropFilter: 'blur(8px)',
-                            WebkitBackdropFilter: 'blur(8px)',
-                            borderRadius: '100px',
-                            padding: '0.2rem 0.6rem 0.2rem 0.45rem',
-                            border: '1px solid rgba(34,197,94,0.25)',
-                          }}>
-                            <div style={{
-                              width: '7px', height: '7px', borderRadius: '50%',
-                              background: '#22c55e',
-                              boxShadow: '0 0 6px rgba(34,197,94,0.6), 0 0 0 0 rgba(34,197,94,0.4)',
-                              animation: 'livePulse 2s ease-out infinite',
-                            }} />
-                            <span style={{ fontSize: text.xs, color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>LIVE</span>
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[rgba(34,197,94,0.18)] border border-[rgba(34,197,94,0.28)] backdrop-blur-[8px]">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.7)] animate-pulse" />
+                            <span className="text-[0.58rem] font-bold text-white tracking-widest">LIVE</span>
                           </div>
                         ) : (
-                          <div style={{
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            background: 'rgba(217,170,56,0.2)',
-                            backdropFilter: 'blur(8px)',
-                            WebkitBackdropFilter: 'blur(8px)',
-                            borderRadius: '100px',
-                            padding: '0.2rem 0.6rem 0.2rem 0.45rem',
-                            border: '1px solid rgba(217,170,56,0.3)',
-                          }}>
-                            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#D9AA38' }} />
-                            <span style={{ fontSize: text.xs, color: '#fff', fontWeight: 700, letterSpacing: '0.1em' }}>DRAFT</span>
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[rgba(217,170,56,0.22)] border border-[rgba(217,170,56,0.32)] backdrop-blur-[8px]">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#D9AA38]" />
+                            <span className="text-[0.58rem] font-bold text-white tracking-widest">DRAFT</span>
                           </div>
                         )}
                       </div>
 
-                      {/* Couple names overlay */}
-                      <div style={{ position: 'absolute', bottom: '1.25rem', left: '1.5rem', right: '1.5rem' }}>
-                        <div style={{
-                          fontFamily: 'var(--eg-font-heading)',
-                          fontSize: '1.4rem',
-                          fontWeight: 400, fontStyle: 'italic', color: '#fff',
-                          letterSpacing: '-0.015em', lineHeight: 1.05,
-                          textShadow: coverPhotoUrl ? '0 2px 24px rgba(0,0,0,0.6)' : '0 2px 16px rgba(0,0,0,0.3)',
-                        }}>
+                      {/* Couple names */}
+                      <div className="absolute bottom-4 left-5 right-5">
+                        <div
+                          className="font-[family-name:var(--pl-font-heading)] text-[1.35rem] font-normal italic text-white leading-tight"
+                          style={{ textShadow: coverPhotoUrl ? '0 2px 20px rgba(0,0,0,0.6)' : '0 2px 12px rgba(0,0,0,0.3)' }}
+                        >
                           {displayNames}
                         </div>
                         {weddingDate && (
-                          <div style={{
-                            fontSize: text.xs, color: 'rgba(255,255,255,0.75)',
-                            marginTop: '0.35rem', letterSpacing: '0.12em',
-                            textTransform: 'uppercase', fontWeight: 600,
-                            textShadow: '0 1px 8px rgba(0,0,0,0.5)',
-                          }}>
-                            {new Date(weddingDate).toLocaleDateString('en-US', {
-                              month: 'long', day: 'numeric', year: 'numeric',
-                            })}
+                          <div className="text-[0.62rem] text-white/75 mt-1 tracking-[0.12em] uppercase font-semibold" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}>
+                            {new Date(weddingDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Card body */}
-                    <div style={{ padding: '1.25rem 1.5rem 1.5rem' }}>
-                      {/* Occasion badge + date row */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem', paddingLeft: '0.75rem', borderLeft: `3px solid ${accentColor}33`, }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {/* ── Card body ── */}
+                    <div className="p-4 pb-5">
+                      {/* Occasion + date row */}
+                      <div
+                        className="flex items-center justify-between flex-wrap gap-2 mb-3 pb-3 pl-2.5"
+                        style={{ borderLeft: `3px solid ${accentColor}30` }}
+                      >
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {occ && (
-                            <span style={{
-                              fontSize: text.xs, fontWeight: 700, letterSpacing: '0.09em',
-                              textTransform: 'uppercase', padding: '0.2rem 0.6rem',
-                              borderRadius: '100px', color: occ.color, background: occ.bg,
-                            }}>
+                            <span className={cn('text-[0.6rem] font-bold uppercase tracking-[0.09em] px-2 py-0.5 rounded-full', occ.className)}>
                               {occ.label}
                             </span>
                           )}
-                          <code style={{
-                            fontSize: text.xs, background: 'rgba(0,0,0,0.04)',
-                            padding: '0.2rem 0.55rem', borderRadius: '0.4rem',
-                            color: 'var(--eg-muted)', letterSpacing: '0.01em',
-                            fontFamily: 'ui-monospace, monospace',
-                            border: '1px solid var(--eg-divider)',
-                          }}>
+                          <code className="text-[0.62rem] bg-[rgba(0,0,0,0.04)] border border-[var(--pl-divider)] px-1.5 py-0.5 rounded text-[var(--pl-muted)] font-mono">
                             {site.domain}.pearloom.com
                           </code>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--eg-muted)', fontSize: text.xs }}>
-                          <Calendar size={11} />
-                          <span>{formattedDate}</span>
+                        <div className="flex items-center gap-1 text-[var(--pl-muted)] text-[0.68rem]">
+                          <Calendar size={10} />
+                          <span>{getFormattedDate(site.created_at)}</span>
                         </div>
                       </div>
 
-                      {/* Analytics */}
+                      {/* Analytics views */}
                       {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
-                        <div style={{
-                          fontSize: text.xs, color: 'rgba(0,0,0,0.4)',
-                          display: 'flex', alignItems: 'center', gap: '0.3rem',
-                          marginTop: '0.25rem',
-                        }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
+                        <div className="flex items-center gap-1 text-[0.68rem] text-[rgba(0,0,0,0.4)] mb-2">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
                           </svg>
                           <span>{site.manifest.analytics.views.toLocaleString()} view{site.manifest.analytics.views !== 1 ? 's' : ''}</span>
                           {site.manifest.analytics.lastViewed && (
-                            <span style={{ opacity: 0.6 }}>
+                            <span className="opacity-60">
                               · {new Date(site.manifest.analytics.lastViewed).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                           )}
                         </div>
                       )}
 
-                      {/* Completeness bar — click to expand full panel */}
+                      {/* Completeness panel */}
                       {site.manifest && (
-                        <div style={{ marginBottom: '0.85rem' }}>
+                        <div className="mb-3">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExpandedCompleteness(prev => prev === site.id ? null : site.id);
-                            }}
-                            style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+                            onClick={(e) => { e.stopPropagation(); setExpandedCompleteness((p) => p === site.id ? null : site.id); }}
+                            className="w-full bg-transparent border-0 cursor-pointer p-0 text-left"
                           >
                             <SiteCompletenessPanel
                               manifest={site.manifest}
@@ -636,8 +354,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: 'auto', opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                style={{ overflow: 'hidden', marginTop: '8px' }}
+                                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                                className="overflow-hidden mt-2"
                               >
                                 <SiteCompletenessPanel
                                   manifest={site.manifest}
@@ -650,79 +368,44 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       )}
 
                       {/* Action row */}
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className="flex gap-1.5 flex-wrap">
                         {/* Edit — primary */}
                         <button
                           onClick={(e) => { e.stopPropagation(); onEditSite(site); }}
-                          style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                            padding: '0 0.75rem', borderRadius: card.radius,
-                            background: C.olive,
-                            color: '#fff', border: 'none', cursor: 'pointer',
-                            fontWeight: 600, fontSize: text.sm, letterSpacing: '0.04em',
-                            fontFamily: 'var(--eg-font-body)',
-                            transition: 'opacity 0.2s',
-                          }}
-                          onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; }}
-                          onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; }}
+                          className="flex-1 min-w-[60px] min-h-[40px] flex items-center justify-center gap-1.5 px-3 rounded-[var(--pl-radius-sm)] bg-[var(--pl-olive)] text-white text-[0.78rem] font-semibold border-0 cursor-pointer hover:opacity-88 transition-opacity font-[family-name:var(--pl-font-body)]"
                         >
-                          <Pencil size={12} />
-                          Edit Site
+                          <Pencil size={11} />
+                          Edit
                         </button>
 
-                        {/* Share — secondary */}
+                        {/* Copy / Share */}
                         <button
                           onClick={(e) => handleCopyUrl(site, e)}
                           title="Copy site URL"
-                          style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                            padding: '0 0.75rem', borderRadius: card.radius,
-                            background: isCopied ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.08)',
-                            color: isCopied ? C.olive : C.olive,
-                            border: `1px solid ${C.divider}`,
-                            cursor: 'pointer', fontWeight: 600, fontSize: text.sm,
-                            fontFamily: 'var(--eg-font-body)',
-                            transition: 'all 0.25s',
-                          }}
+                          className={cn(
+                            'flex-1 min-w-[60px] min-h-[40px] flex items-center justify-center gap-1.5 px-3 rounded-[var(--pl-radius-sm)] text-[0.78rem] font-semibold border cursor-pointer transition-all font-[family-name:var(--pl-font-body)]',
+                            isCopied
+                              ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)] border-[var(--pl-olive-mist)]'
+                              : 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive)] border-[var(--pl-divider)] hover:border-[var(--pl-olive)]',
+                          )}
                         >
-                          <span style={{
-                            display: 'inline-flex',
-                            transform: isCopied ? 'scale(1.2)' : 'scale(1)',
-                            transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                          }}>
-                            {isCopied ? <Check size={12} /> : <Share2 size={12} />}
+                          <span className={cn('transition-transform duration-250', isCopied && 'scale-125')}>
+                            {isCopied ? <Check size={11} /> : <Share2 size={11} />}
                           </span>
                           {isCopied ? 'Copied!' : 'Share'}
                         </button>
 
-                        {/* Guests — tertiary */}
+                        {/* Guests */}
                         <button
                           onClick={(e) => { e.stopPropagation(); onManageGuests(site); }}
                           title="Manage Guests"
                           aria-label="Manage guests"
-                          style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: card.radius,
-                            border: `1px solid ${C.divider}`, background: 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: C.muted, cursor: 'pointer', transition: 'all 0.2s',
-                          }}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.background = C.deep;
-                            e.currentTarget.style.color = C.olive;
-                            e.currentTarget.style.borderColor = C.olive;
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = C.muted;
-                            e.currentTarget.style.borderColor = C.divider;
-                          }}
+                          className="flex-1 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-[var(--pl-radius-sm)] bg-transparent border border-[var(--pl-divider)] text-[var(--pl-muted)] cursor-pointer hover:bg-[var(--pl-cream-deep)] hover:text-[var(--pl-olive)] hover:border-[var(--pl-olive)] transition-all duration-150"
                         >
-                          <Users size={14} />
+                          <Users size={13} />
                         </button>
 
-                        {/* View Live — icon only, external link */}
+                        {/* View live */}
                         <a
                           href={getSiteUrl(site.domain)}
                           target="_blank"
@@ -730,25 +413,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           title="View Live Site"
                           aria-label="View live site"
                           onClick={(e) => e.stopPropagation()}
-                          style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: card.radius,
-                            border: `1px solid ${C.divider}`, background: 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: C.muted, textDecoration: 'none',
-                            transition: 'all 0.2s',
-                          }}
-                          onMouseOver={(e) => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = C.deep;
-                            (e.currentTarget as HTMLAnchorElement).style.color = C.ink;
-                            (e.currentTarget as HTMLAnchorElement).style.borderColor = C.divider;
-                          }}
-                          onMouseOut={(e) => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = 'transparent';
-                            (e.currentTarget as HTMLAnchorElement).style.color = C.muted;
-                            (e.currentTarget as HTMLAnchorElement).style.borderColor = C.divider;
-                          }}
+                          className="flex-1 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-[var(--pl-radius-sm)] bg-transparent border border-[var(--pl-divider)] text-[var(--pl-muted)] no-underline hover:bg-[var(--pl-cream-deep)] hover:text-[var(--pl-ink)] transition-all duration-150"
                         >
-                          <ExternalLink size={14} />
+                          <ExternalLink size={13} />
                         </a>
 
                         {/* Delete */}
@@ -757,28 +424,11 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           disabled={isDeleting}
                           title="Delete site"
                           aria-label="Delete site"
-                          style={{
-                            flex: '1 1 auto', minWidth: '70px', height: '40px', borderRadius: card.radius,
-                            border: '1px solid rgba(185,28,28,0.15)',
-                            background: 'rgba(185,28,28,0.03)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'rgba(185,28,28,0.55)', cursor: 'pointer',
-                            transition: 'all 0.2s',
-                          }}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.background = 'rgba(185,28,28,0.06)';
-                            e.currentTarget.style.color = 'rgb(185,28,28)';
-                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.35)';
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.background = 'rgba(185,28,28,0.03)';
-                            e.currentTarget.style.color = 'rgba(185,28,28,0.55)';
-                            e.currentTarget.style.borderColor = 'rgba(185,28,28,0.15)';
-                          }}
+                          className="flex-1 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-[var(--pl-radius-sm)] bg-[rgba(185,28,28,0.03)] border border-[rgba(185,28,28,0.15)] text-[rgba(185,28,28,0.5)] cursor-pointer hover:bg-[rgba(185,28,28,0.06)] hover:text-[rgb(185,28,28)] hover:border-[rgba(185,28,28,0.3)] transition-all duration-150 disabled:opacity-50"
                         >
                           {isDeleting
-                            ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
-                            : <Trash2 size={13} />
+                            ? <Loader2 size={12} className="animate-spin" />
+                            : <Trash2 size={12} />
                           }
                         </button>
                       </div>
@@ -788,68 +438,27 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               })}
             </AnimatePresence>
 
-            {/* Create new site card */}
+            {/* ── Create new card ── */}
             <motion.button
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-40px' }}
               transition={{ duration: 0.55, delay: sites.length * 0.07, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ backgroundColor: 'rgba(163,177,138,0.09)', y: -4 }}
               onClick={onStartNew}
-              style={{
-                background: 'rgba(163,177,138,0.04)',
-                borderRadius: card.radius,
-                overflow: 'hidden',
-                border: '2px dashed rgba(163,177,138,0.3)',
-                cursor: 'pointer', minHeight: '320px',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                gap: '1rem',
-                fontFamily: 'var(--eg-font-body)',
-                transition: 'all 0.3s ease',
-              }}
-              whileHover={{
-                backgroundColor: 'rgba(163,177,138,0.09)',
-                y: -4,
-              }}
+              className="min-h-[300px] flex flex-col items-center justify-center gap-4 rounded-[var(--pl-radius-md)] border-2 border-dashed border-[rgba(163,177,138,0.3)] bg-transparent cursor-pointer overflow-hidden font-[family-name:var(--pl-font-body)] transition-all duration-300"
             >
-              <div style={{
-                width: '52px', height: '52px', borderRadius: '50%',
-                background: 'rgba(163,177,138,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'background 0.3s',
-              }}>
-                <Plus size={22} color="var(--eg-accent)" />
+              <div className="w-12 h-12 rounded-full bg-[var(--pl-olive-mist)] flex items-center justify-center">
+                <Plus size={20} className="text-[var(--pl-olive)]" />
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontWeight: 700, color: 'var(--eg-accent)', fontSize: text.md, marginBottom: '0.35rem' }}>
-                  Start a new site
-                </div>
-                <div style={{ fontSize: text.base, color: 'var(--eg-muted)', maxWidth: '150px', lineHeight: 1.55 }}>
+              <div className="text-center">
+                <div className="font-bold text-[var(--pl-olive)] text-[1rem] mb-1">Start a new site</div>
+                <div className="text-[0.85rem] text-[var(--pl-muted)] max-w-[150px] leading-snug">
                   Build a new love story in 90 seconds
                 </div>
               </div>
             </motion.button>
           </div>
-
-          {/* Responsive grid styles */}
-          <style>{`
-            @media (max-width: 479px) {
-              .site-card-grid { grid-template-columns: 1fr !important; }
-            }
-            @keyframes spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
-            }
-            @keyframes pulse {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.5; }
-            }
-            @keyframes livePulse {
-              0% { box-shadow: 0 0 6px rgba(34,197,94,0.6), 0 0 0 0 rgba(34,197,94,0.4); }
-              70% { box-shadow: 0 0 6px rgba(34,197,94,0.6), 0 0 0 7px rgba(34,197,94,0); }
-              100% { box-shadow: 0 0 6px rgba(34,197,94,0.6), 0 0 0 0 rgba(34,197,94,0); }
-            }
-          `}</style>
         </>
       )}
 
@@ -860,101 +469,59 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 200,
-              background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
-            }}
+            className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-[12px] flex items-center justify-center p-8"
             onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
-              style={{
-                background: '#fff', borderRadius: '1.75rem',
-                padding: '3rem', maxWidth: '420px', width: '100%',
-                boxShadow: '0 40px 100px rgba(0,0,0,0.22)', textAlign: 'center',
-                position: 'relative',
-              }}
+              className="bg-white rounded-[var(--pl-radius-xl)] p-12 max-w-[400px] w-full shadow-[0_40px_100px_rgba(0,0,0,0.22)] text-center relative"
             >
               <button
                 onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
-                style={{
-                  position: 'absolute', top: '1.25rem', right: '1.25rem',
-                  background: '#f5f5f5', border: 'none', borderRadius: '50%',
-                  width: '32px', height: '32px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--eg-muted)',
-                }}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[rgba(0,0,0,0.05)] flex items-center justify-center text-[var(--pl-muted)] border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.09)] transition-colors"
               >
-                <X size={16} />
+                <X size={15} />
               </button>
-              <div style={{
-                width: '60px', height: '60px', borderRadius: '50%',
-                background: 'rgba(109,89,122,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 2rem',
-                boxShadow: '0 8px 24px rgba(109,89,122,0.1)',
-              }}>
-                <AlertTriangle size={26} color="var(--eg-plum, #6D597A)" />
+
+              <div className="w-14 h-14 rounded-full bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6 shadow-[0_8px_24px_rgba(109,89,122,0.1)]">
+                <AlertTriangle size={24} className="text-[var(--pl-plum)]" />
               </div>
-              <h3 style={{
-                fontFamily: 'var(--eg-font-heading)', fontSize: '1.9rem',
-                fontWeight: 400, marginBottom: '0.875rem', color: 'var(--eg-fg)',
-                letterSpacing: '-0.015em',
-              }}>
+
+              <h3 className="font-[family-name:var(--pl-font-heading)] text-[1.75rem] font-normal mb-3 text-[var(--pl-ink-soft)] tracking-tight">
                 Delete this site?
               </h3>
-              <p style={{ color: 'var(--eg-muted)', lineHeight: 1.65, marginBottom: deleteError ? '1rem' : '2.25rem', fontSize: '0.925rem' }}>
-                <strong style={{ color: 'var(--eg-fg)' }}>{confirmDelete.domain}.pearloom.com</strong> will be
+              <p className="text-[var(--pl-muted)] leading-relaxed mb-5 text-[0.9rem]">
+                <strong className="text-[var(--pl-ink)]">{confirmDelete.domain}.pearloom.com</strong> will be
                 permanently removed. Guests will no longer be able to access it.
               </p>
+
               {deleteError && (
-                <p style={{
-                  fontSize: '0.85rem', color: '#c0392b', background: 'rgba(192,57,43,0.07)',
-                  border: '1px solid rgba(192,57,43,0.18)', borderRadius: '0.6rem',
-                  padding: '0.65rem 0.875rem', marginBottom: '1.5rem', lineHeight: 1.5,
-                }}>
+                <p className="text-[0.82rem] text-red-700 bg-red-50 border border-red-200 rounded-[var(--pl-radius-sm)] px-3.5 py-2.5 mb-4 leading-snug text-left">
                   {deleteError}
                 </p>
               )}
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button
+
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="flex-1"
                   onClick={() => { setConfirmDelete(null); setDeleteError(null); }}
-                  style={{
-                    flex: 1, padding: '0.9rem', borderRadius: '0.875rem',
-                    border: '1px solid rgba(0,0,0,0.1)', background: 'none',
-                    cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
-                    color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)',
-                    transition: 'background 0.2s',
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = '#f8f8f8'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = 'none'; }}
                 >
                   Keep Site
-                </button>
+                </Button>
                 <button
                   onClick={() => handleDelete(confirmDelete)}
                   disabled={deletingDomain === confirmDelete.domain}
-                  style={{
-                    flex: 1, padding: '0.9rem', borderRadius: '0.875rem',
-                    background: deletingDomain === confirmDelete.domain
-                      ? 'rgba(109,89,122,0.4)'
-                      : 'linear-gradient(135deg, #6D597A, #5a4a66)',
-                    color: '#fff', border: 'none',
-                    cursor: deletingDomain === confirmDelete.domain ? 'wait' : 'pointer',
-                    fontWeight: 600, fontSize: '0.9rem',
-                    boxShadow: deletingDomain === confirmDelete.domain ? 'none' : '0 8px 24px rgba(109,89,122,0.28)',
-                    fontFamily: 'var(--eg-font-body)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                    transition: 'all 0.2s',
-                  }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-[var(--pl-radius-sm)] border-0 text-white text-[0.92rem] font-semibold cursor-pointer transition-all disabled:opacity-50 disabled:cursor-wait font-[family-name:var(--pl-font-body)]"
+                  style={{ background: 'linear-gradient(135deg, #6D597A, #5a4a66)', boxShadow: '0 8px 24px rgba(109,89,122,0.28)' }}
                 >
                   {deletingDomain === confirmDelete.domain
-                    ? <><Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> Deleting…</>
+                    ? <><Loader2 size={13} className="animate-spin" /> Deleting…</>
                     : 'Delete Forever'
                   }
                 </button>
