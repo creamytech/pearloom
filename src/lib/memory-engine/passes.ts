@@ -216,6 +216,14 @@ export async function generatePoetryPass(
   const welcomeVoice = welcomeVoiceGuide[occ] || welcomeVoiceGuide.wedding;
   const occCap = occ.charAt(0).toUpperCase() + occ.slice(1);
 
+  const heroTaglineExamples: Record<string, string> = {
+    wedding:     '"Where the mountains remembered everything", "Two people who chose the long way home", "Still the same room, still the same light"',
+    birthday:    '"Forty years of showing up beautifully", "She arrived and everything got louder", "Still becoming, still magnificent", "The one who made ordinary sacred"',
+    anniversary: '"Every year the same choice, every year the right one", "Still choosing each other through everything", "The room where time stopped making sense"',
+    engagement:  '"The beginning of everything we said yes to", "Here is where the story changes", "Two people who finally stopped pretending"',
+    story:       '"The moments that made everything make sense", "Here, the ordinary becomes permanent", "All the things that led us here"',
+  };
+
   const poetryPrompt = `You are a gifted copywriter and poet writing for ${namesCtx}'s ${occCap} website on Pearloom.
 Their vibe: "${vibeForPoetry}"
 Story chapters: ${chapterTitles || 'the beginning of their love'}
@@ -228,8 +236,9 @@ Use section labels appropriate for a ${occCap}: ${sectionLabels}
 
 Write ${needsMilestones ? '5' : '4'} pieces of text — each must be deeply specific, not generic:
 
-1. heroTagline: A 5-8 word poetic subtitle for their hero section. Should feel like a line from a literary novel or indie film. NOT clichés like "A love story written in stars". Must reference their actual vibe.
-   Strong examples: "Where the mountains remembered everything", "Two people who chose the long way home", "Still the same room, still the same light"
+1. heroTagline: A 5-8 word poetic subtitle for their ${occCap} hero section. Should feel like a line from a literary novel or indie film. Must reference their actual vibe.
+   BANNED phrases (do NOT use any of these): "Today is the Day", "Happy Birthday", "Celebrating", "The Big Day", "A love story written in stars", "Happily Ever After", "Special Day", "Time to Celebrate".
+   Strong examples for a ${occCap}: ${heroTaglineExamples[occ] || heroTaglineExamples.story}
 
 2. closingLine: A 10-15 word closing line for their site footer. Warm, intimate, final. References their specific story or vibe — not a generic platitude.
    Strong examples: "Two threads, one loom, forever woven in light", "Here is where we began. Here is where we stay.", "See you on the other side of forever."
@@ -291,9 +300,17 @@ Return ONLY valid JSON (no markdown, no backticks):
   const isShortEnough = (s: string, maxWords: number) =>
     typeof s === 'string' && s.length > 0 && s.split(/\s+/).length <= maxWords;
 
+  const heroTaglineFallbacks: Record<string, string> = {
+    wedding:     'A love story worth every page',
+    birthday:    'Still becoming, still magnificent',
+    anniversary: 'Every year the same choice',
+    engagement:  'The beginning of everything',
+    story:       'The moments that made us',
+  };
+
   return {
     heroTagline: isShortEnough(result.heroTagline ?? '', 12)
-      ? result.heroTagline! : 'A love story worth every page',
+      ? result.heroTagline! : (heroTaglineFallbacks[occ] ?? heroTaglineFallbacks.wedding),
     closingLine: isShortEnough(result.closingLine ?? '', 20)
       ? result.closingLine! : 'Thank you for being part of our story.',
     rsvpIntro: typeof result.rsvpIntro === 'string' && result.rsvpIntro.length > 0
