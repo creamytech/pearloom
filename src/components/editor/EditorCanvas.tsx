@@ -94,15 +94,16 @@ export function EditorCanvas() {
   // ── Listen for edit messages from the iframe ──────────────
   useEffect(() => {
     const handler = (event: MessageEvent) => {
+      // Text field edits
       if (event.data?.type === 'pearloom-edit-commit') {
         const { chapterId, field, value } = event.data;
         if (chapterId && field !== undefined && field !== null) {
           const chapter = chapters.find(c => c.id === chapterId);
-          if (chapter) {
-            actions.updateChapter(chapterId, { [field]: value });
-          }
+          if (chapter) actions.updateChapter(chapterId, { [field]: value });
         }
       }
+
+      // Section click → open sidebar panel
       if (event.data?.type === 'pearloom-section-click') {
         const { chapterId, sectionId } = event.data;
         if (chapterId) {
@@ -117,6 +118,39 @@ export function EditorCanvas() {
         } else {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         }
+      }
+
+      // Photo replace — new URL uploaded from within the iframe
+      if (event.data?.type === 'pearloom-photo-replace') {
+        const { chapterId, photoIndex, newUrl, newAlt } = event.data;
+        if (!chapterId || !newUrl) return;
+        const chapter = chapters.find(c => c.id === chapterId);
+        if (!chapter) return;
+        const imgs = [...(chapter.images || [])];
+        const newImage = { id: `img-${Date.now()}`, url: newUrl, alt: newAlt || '', width: 0, height: 0 };
+        if (photoIndex >= 0 && photoIndex < imgs.length) {
+          imgs[photoIndex] = newImage;
+        } else {
+          imgs.push(newImage);
+        }
+        actions.updateChapter(chapterId, { images: imgs });
+        dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+      }
+
+      // Photo remove
+      if (event.data?.type === 'pearloom-photo-remove') {
+        const { chapterId, photoIndex } = event.data;
+        if (!chapterId) return;
+        const chapter = chapters.find(c => c.id === chapterId);
+        if (!chapter) return;
+        const imgs = (chapter.images || []).filter((_, i) => i !== photoIndex);
+        actions.updateChapter(chapterId, { images: imgs });
+      }
+
+      // AI regen → open design panel
+      if (event.data?.type === 'pearloom-photo-ai-regen') {
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
       }
     };
     window.addEventListener('message', handler);
