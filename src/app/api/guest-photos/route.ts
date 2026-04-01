@@ -7,12 +7,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { addGuestPhoto, getGuestPhotos } from '@/lib/db';
+import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 
 export const dynamic = 'force-dynamic';
 
 const MAX_SIZE_MB = 10;
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
-const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'];
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif']);
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif']);
 
 function getR2Client() {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -66,7 +67,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'uploaderName is required' }, { status: 400 });
     }
 
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    // iOS can report HEIC with empty or generic MIME — accept by extension fallback
+    const rawExt = file.name.split('.').pop()?.toLowerCase() ?? '';
+    if (!ALLOWED_MIME_TYPES.has(file.type) && !ALLOWED_EXTENSIONS.has(rawExt)) {
       return NextResponse.json({ error: 'Only jpeg, png, webp, gif, and heic images are allowed' }, { status: 400 });
     }
 
@@ -74,34 +77,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `File too large (max ${MAX_SIZE_MB}MB)` }, { status: 413 });
     }
 
-    let ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    let ext = rawExt || 'jpg';
     if (ext === 'heic' || ext === 'heif') ext = 'jpg';
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      return NextResponse.json({ error: 'Invalid file extension' }, { status: 400 });
-    }
 
     const uuid = Math.random().toString(36).substring(2, 15);
     const filename = `guest-photos/${Date.now()}_${uuid}.${ext}`;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const plaintext = Buffer.from(await file.arrayBuffer());
+    const body = isEncryptionEnabled() ? encryptBuffer(plaintext) : plaintext;
 
     const r2 = getR2Client();
     const bucket = process.env.R2_BUCKET_NAME || 'pearloom-photos';
-    const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace(/\/$/, '');
 
     let publicUrl: string;
 
-    if (r2 && publicBase) {
-      // Primary: Cloudflare R2
+    if (r2) {
+      // Primary: Cloudflare R2 — encrypted, served via /api/img proxy
       await r2.send(new PutObjectCommand({
         Bucket: bucket,
         Key: filename,
-        Body: buffer,
-        ContentType: file.type,
+        Body: body,
+        ContentType: 'application/octet-stream',
         CacheControl: 'public, max-age=31536000, immutable',
       }));
-      publicUrl = `${publicBase}/${filename}`;
+      publicUrl = `/api/img/${filename}`;
     } else {
       // Fallback: Supabase Storage
       if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -116,7 +115,7 @@ export async function POST(req: NextRequest) {
 
       const { error: uploadError } = await supabase.storage
         .from('photos')
-        .upload(filename, buffer, {
+        .upload(filename, plaintext, {
           contentType: file.type,
           cacheControl: '31536000',
           upsert: false,

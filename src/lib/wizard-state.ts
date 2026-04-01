@@ -60,7 +60,8 @@ export type WizardAction =
   | { type: 'SET_GENERATION_STEP'; step: number }
   | { type: 'RESET' }
   | { type: 'RESTORE_DRAFT'; draft: WizardDraft }
-  | { type: 'EDIT_SITE'; manifest: StoryManifest; subdomain: string; names: [string, string] };
+  | { type: 'EDIT_SITE'; manifest: StoryManifest; subdomain: string; names: [string, string] }
+  | { type: 'PATCH_VIBE_ART'; heroArtUrl?: string; ambientArtUrl?: string; artStripUrl?: string };
 
 export interface WizardDraft {
   savedAt: number;
@@ -154,6 +155,21 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
         subdomain: action.subdomain,
         coupleNames: action.names,
         step: 'edit',
+      };
+
+    case 'PATCH_VIBE_ART':
+      if (!state.manifest?.vibeSkin) return state;
+      return {
+        ...state,
+        manifest: {
+          ...state.manifest,
+          vibeSkin: {
+            ...state.manifest.vibeSkin,
+            ...(action.heroArtUrl ? { heroArtDataUrl: action.heroArtUrl } : {}),
+            ...(action.ambientArtUrl ? { ambientArtDataUrl: action.ambientArtUrl } : {}),
+            ...(action.artStripUrl ? { artStripDataUrl: action.artStripUrl } : {}),
+          },
+        },
       };
 
     default:

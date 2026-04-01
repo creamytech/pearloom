@@ -134,6 +134,46 @@ export default function DashboardClient() {
       dispatch({ type: 'SET_MANIFEST', manifest: result.manifest, subdomain: autoSlug });
       clearDraft();
 
+      // Fire async art generation — doesn't block the editor from opening.
+      // When it resolves, patch the vibeSkin art URLs into the existing state
+      // without overwriting any edits the user may have already made.
+      if (result.manifest.vibeSkin?.palette) {
+        const artController = new AbortController();
+        const artTimeout = setTimeout(() => artController.abort(), 120_000);
+        fetch('/api/generate/art', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vibeString: data.vibeString,
+            palette: result.manifest.vibeSkin.palette,
+            occasion: data.occasion,
+            coupleNames: data.names,
+            chapters: result.manifest.chapters.map((c: { title: string; description?: string; mood?: string }) => ({
+              title: c.title,
+              description: c.description,
+              mood: c.mood,
+            })),
+          }),
+          signal: artController.signal,
+        }).then(async (artRes) => {
+          clearTimeout(artTimeout);
+          if (!artRes.ok) return;
+          const artData = await artRes.json();
+          if (artData.heroArtUrl || artData.ambientArtUrl || artData.artStripUrl) {
+            dispatch({
+              type: 'PATCH_VIBE_ART',
+              heroArtUrl: artData.heroArtUrl ?? undefined,
+              ambientArtUrl: artData.ambientArtUrl ?? undefined,
+              artStripUrl: artData.artStripUrl ?? undefined,
+            });
+            log('[Generate] Async art loaded and applied to vibeSkin');
+          }
+        }).catch(() => {
+          clearTimeout(artTimeout);
+          // Silent failure — art is optional, site looks fine with SVG art from Pass 2
+        });
+      }
+
       // Auto-save draft to database so the user can return to it
       fetch('/api/sites', {
         method: 'POST',

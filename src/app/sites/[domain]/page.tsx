@@ -232,7 +232,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       ? { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',       enabled: true,  order: 2 } : null,
     (!hidden.has('registry') && (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl))
       ? { id: 'registry', slug: 'registry', label: 'Registry',   enabled: true,  order: 3 } : null,
-    (!hidden.has('travel') && manifest.travelInfo)
+    (!hidden.has('travel') && (manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length))
       ? { id: 'travel',   slug: 'travel',   label: 'Travel',     enabled: true,  order: 4 } : null,
     (!hidden.has('faq') && manifest.faqs?.length)
       ? { id: 'faq',      slug: 'faq',      label: 'FAQ',        enabled: true,  order: 5 } : null,

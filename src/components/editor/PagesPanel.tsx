@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, MonitorPlay } from 'lucide-react';
 import { lbl, inp } from './editor-utils';
 import type { StoryManifest } from '@/types';
 
@@ -28,7 +28,13 @@ export const ALL_SITE_PAGES: PresetPage[] = [
   { id: 'live',      slug: 'live',      label: 'Day-Of Updates', icon: '', alwaysOn: false, occasions: ['wedding'] },
 ];
 
-export function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryManifest; subdomain: string; onChange: (m: StoryManifest) => void }) {
+export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previewPage }: {
+  manifest: StoryManifest;
+  subdomain: string;
+  onChange: (m: StoryManifest) => void;
+  onPreviewPage?: (slug: string | null) => void;
+  previewPage?: string | null;
+}) {
   const [showAddPage, setShowAddPage] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState('');
 
@@ -161,6 +167,20 @@ export function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryM
               background: isActive && !isHidden ? 'rgba(163,177,138,0.15)' : 'rgba(255,255,255,0.05)',
               padding: '3px 8px', borderRadius: '100px',
             }}>{isActive && !isHidden ? 'Live' : 'Inactive'}</span>
+            {onPreviewPage && isActive && !isHidden && (
+              <button
+                onClick={() => onPreviewPage(previewPage === page.slug ? null : page.slug)}
+                title={previewPage === page.slug ? 'Back to homepage preview' : `Preview ${page.label} page`}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '2px', flexShrink: 0,
+                  color: previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)',
+                }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)'; }}
+              >
+                <MonitorPlay size={13} />
+              </button>
+            )}
             {!page.alwaysOn && (
               <button
                 onClick={() => togglePageVisibility(page.id)}
@@ -193,11 +213,25 @@ export function PagesPanel({ manifest, subdomain, onChange }: { manifest: StoryM
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
                 <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>{baseUrl}/{page.slug}</div>
               </div>
-              <div style={{ display: 'flex', gap: '4px' }}>
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 <span style={{
                   fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
                   color: 'var(--eg-accent, #A3B18A)', background: 'rgba(163,177,138,0.15)', padding: '3px 8px', borderRadius: '100px',
                 }}>Live</span>
+                {onPreviewPage && (
+                  <button
+                    onClick={() => onPreviewPage(previewPage === page.slug ? null : page.slug)}
+                    title={previewPage === page.slug ? 'Back to homepage preview' : `Preview ${page.title} page`}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '2px',
+                      color: previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)',
+                    }}
+                    onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
+                    onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)'; }}
+                  >
+                    <MonitorPlay size={13} />
+                  </button>
+                )}
                 <button
                   onClick={() => deleteCustomPage(page.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}

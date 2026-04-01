@@ -17,6 +17,7 @@ import { generateStoryManifest } from '@/lib/memory-engine';
 import type { GooglePhotoMetadata, PhotoCluster, WeddingEvent, LogoIconId } from '@/types';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import pLimit from 'p-limit';
+import { encryptBuffer, isEncryptionEnabled } from '@/lib/crypto';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 // ── R2 upload helper — fetches a URL and stores it permanently ─
@@ -49,54 +50,27 @@ async function uploadPhotoUrl(rawUrl: string): Promise<string> {
     const res = await fetch(fetchUrl, { signal: AbortSignal.timeout(12000) });
     if (!res.ok) return rawUrl;
 
-    const buffer = Buffer.from(await res.arrayBuffer());
+    const plaintext = Buffer.from(await res.arrayBuffer());
     const contentType = res.headers.get('content-type') || 'image/jpeg';
     const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
     const key = `chapters/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+    const body = isEncryptionEnabled() ? encryptBuffer(plaintext) : plaintext;
 
     await r2.client.send(new PutObjectCommand({
       Bucket: r2.bucket,
       Key: key,
-      Body: buffer,
-      ContentType: contentType,
+      Body: body,
+      ContentType: 'application/octet-stream',
       CacheControl: 'public, max-age=31536000, immutable',
     }));
 
-    return `${r2.publicBase}/${key}`;
+    return `/api/img/${key}`;
   } catch (err) {
     console.warn('[R2 Upload] Failed to upload photo to R2 — site will use ephemeral Google Photos URL:', err instanceof Error ? err.message : err);
     return rawUrl; // on any failure, fall back gracefully
   }
 }
 
-/** Upload a base64 data URL to R2, return a permanent URL */
-async function uploadBase64Art(dataUrl: string, label: string): Promise<string> {
-  const r2 = getR2Client();
-  if (!r2 || !r2.publicBase) return dataUrl;
-
-  try {
-    const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
-    if (!match) return dataUrl;
-
-    const contentType = match[1];
-    const buffer = Buffer.from(match[2], 'base64');
-    const ext = contentType.includes('png') ? 'png' : 'jpg';
-    const key = `art/${label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-
-    await r2.client.send(new PutObjectCommand({
-      Bucket: r2.bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-      CacheControl: 'public, max-age=31536000, immutable',
-    }));
-
-    return `${r2.publicBase}/${key}`;
-  } catch (err) {
-    console.warn(`[R2 Upload] Failed to upload ${label} art:`, err instanceof Error ? err.message : err);
-    return dataUrl;
-  }
-}
 
 function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean) {
   const base = [
@@ -452,6 +426,9 @@ export async function POST(req: NextRequest) {
     // Never let AI-hallucinated hotel names reach the published site.
     manifest.travelInfo = { airports: [], hotels: [] };
 
+    // Clear AI-hallucinated FAQs — users add real FAQs in the Details tab.
+    manifest.faqs = [];
+
     // ── Initialize blocks: occasion-aware defaults.
     // Hero + Story are always shown. Remaining blocks are shown/hidden based on occasion.
     {
@@ -475,60 +452,47 @@ export async function POST(req: NextRequest) {
       manifest.chapters = manifest.chapters.slice(0, enrichedClusters.length);
     }
     const uploadLimit = pLimit(8); // max 8 concurrent R2 uploads
-    manifest.chapters = await Promise.all(manifest.chapters.map(async (chapter, i) => {
-      const cluster = enrichedClusters[i];
-      if (cluster) {
-        // Upload all chapter photos to R2 with concurrency control
-        const photosToUpload = cluster.photos.slice(0, 3);
-        const uploadedUrls = await Promise.all(
-          photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
-        );
 
-        chapter.images = photosToUpload.map((p, pi) => ({
-          id: p.id,
-          url: uploadedUrls[pi],
-          alt: p.description || chapter.title,
-          width: p.width,
-          height: p.height,
-        }));
+    // Run chapter photo uploads and logo generation in parallel
+    const [updatedChapters, logoResult] = await Promise.all([
+      // 1. Upload chapter photos to R2 + resolve locations
+      Promise.all(manifest.chapters.map(async (chapter, i) => {
+        const cluster = enrichedClusters[i];
+        if (cluster) {
+          const photosToUpload = cluster.photos.slice(0, 3);
+          const uploadedUrls = await Promise.all(
+            photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
+          );
 
-        // ALWAYS use cluster location — never trust AI-generated ones
-        if (cluster.location) {
-          // If we have GPS coords but label is missing, try reverse geocoding one more time
-          if (!cluster.location.label && (cluster.location.lat || cluster.location.lng)) {
-            const label = await reverseGeocode(cluster.location.lat, cluster.location.lng);
-            cluster.location.label = label || `${cluster.location.lat.toFixed(2)}, ${cluster.location.lng.toFixed(2)}`;
+          chapter.images = photosToUpload.map((p, pi) => ({
+            id: p.id,
+            url: uploadedUrls[pi],
+            alt: p.description || chapter.title,
+            width: p.width,
+            height: p.height,
+          }));
+
+          // ALWAYS use cluster location — never trust AI-generated ones
+          if (cluster.location) {
+            if (!cluster.location.label && (cluster.location.lat || cluster.location.lng)) {
+              const label = await reverseGeocode(cluster.location.lat, cluster.location.lng);
+              cluster.location.label = label || `${cluster.location.lat.toFixed(2)}, ${cluster.location.lng.toFixed(2)}`;
+            }
+            chapter.location = cluster.location.label ? cluster.location : null;
+          } else {
+            chapter.location = null;
           }
-          chapter.location = cluster.location.label ? cluster.location : null;
-        } else {
-          chapter.location = null;
         }
-      }
-      return chapter;
-    }));
+        return chapter;
+      })),
 
-    // Generate a custom AI logo icon based on occasion + vibe + interests
-    const logoResult = await generateLogoIcon(occasion, vibeString, names, apiKey);
+      // 2. Generate custom AI logo icon
+      generateLogoIcon(occasion, vibeString, names, apiKey),
+    ]);
+
+    manifest.chapters = updatedChapters;
     manifest.logoIcon = logoResult.logoIcon;
     if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
-
-    // Upload AI-generated raster art to R2 for permanent URLs (base64 DataURLs are too large for sessionStorage)
-    if (manifest.vibeSkin) {
-      const artUploads = await Promise.all([
-        manifest.vibeSkin.heroArtDataUrl?.startsWith('data:')
-          ? uploadBase64Art(manifest.vibeSkin.heroArtDataUrl, 'hero')
-          : Promise.resolve(manifest.vibeSkin.heroArtDataUrl),
-        manifest.vibeSkin.ambientArtDataUrl?.startsWith('data:')
-          ? uploadBase64Art(manifest.vibeSkin.ambientArtDataUrl, 'ambient')
-          : Promise.resolve(manifest.vibeSkin.ambientArtDataUrl),
-        manifest.vibeSkin.artStripDataUrl?.startsWith('data:')
-          ? uploadBase64Art(manifest.vibeSkin.artStripDataUrl, 'strip')
-          : Promise.resolve(manifest.vibeSkin.artStripDataUrl),
-      ]);
-      if (artUploads[0]) manifest.vibeSkin.heroArtDataUrl = artUploads[0];
-      if (artUploads[1]) manifest.vibeSkin.ambientArtDataUrl = artUploads[1];
-      if (artUploads[2]) manifest.vibeSkin.artStripDataUrl = artUploads[2];
-    }
 
     return NextResponse.json({ manifest });
   } catch (error) {

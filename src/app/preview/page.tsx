@@ -7,6 +7,7 @@
 // Listens for postMessage from the editor for live updates.
 // ─────────────────────────────────────────────────────────────
 
+import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState, useEffect, useCallback } from 'react';
 import { Hero } from '@/components/hero';
@@ -54,6 +55,77 @@ function getVideoEmbedUrl(url?: string): string | null {
 }
 
 // ── Main Preview ──────────────────────────────────────────────
+
+// ── Subpage preview (mirrors [domain]/[page] route) ──────────
+function SubpagePreview({ page, manifest, names }: { page: string; manifest: StoryManifest; names: [string, string] }) {
+  const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
+  const pal = vibeSkin.palette;
+  const bgColor = pal.background;
+  const cardBg = pal.card;
+  const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
+  const sitePages: SitePage[] = [
+    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    ...(manifest.events?.length ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
+    ...(manifest.events?.length ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
+    ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
+    ...((manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length) ? [{ id: 'travel', slug: 'travel', label: 'Travel', enabled: true, order: 4 }] : []),
+    ...(manifest.faqs?.length ? [{ id: 'faq', slug: 'faq', label: 'FAQ', enabled: true, order: 5 }] : []),
+  ];
+  const dynamicTheme = {
+    name: 'pearloom-ai',
+    fonts: { heading: vibeSkin.fonts.heading, body: vibeSkin.fonts.body },
+    colors: { background: pal.background, foreground: pal.foreground, accent: pal.accent, accentLight: pal.accent2, muted: pal.muted, cardBg: pal.card },
+    borderRadius: '1rem',
+  };
+
+  const PageHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
+    <div style={{ padding: '5rem 2rem 3rem', background: bgColor, textAlign: 'center', borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', fontWeight: 400, letterSpacing: '-0.025em', color: pal.foreground, marginBottom: '0.75rem' }}>
+          {title}
+        </div>
+        {subtitle && <p style={{ color: pal.muted, fontSize: '1rem', fontStyle: 'italic' }}>{subtitle}</p>}
+      </div>
+    </div>
+  );
+
+  let content: React.ReactNode = null;
+  if (page === 'schedule' && manifest.events?.length) {
+    content = <><PageHeader title="The Schedule" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></>;
+  } else if (page === 'rsvp' && manifest.events?.length) {
+    content = <><PageHeader title="RSVP" subtitle={manifest.logistics?.rsvpDeadline ? `Please respond by ${new Date(manifest.logistics.rsvpDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : 'Let us know if you can make it.'} /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={60} /><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></>;
+  } else if (page === 'registry' && (manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)) {
+    content = <><PageHeader title="Registry" /><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={pal.accent2} height={60} /><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></>;
+  } else if (page === 'travel' && (manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length)) {
+    content = <><PageHeader title="Travel & Hotels" subtitle="Everything you need to plan your trip." /><TravelSection info={manifest.travelInfo!} /></>;
+  } else if (page === 'faq' && manifest.faqs?.length) {
+    content = <><PageHeader title="FAQ" /><FaqSection faqs={manifest.faqs} /></>;
+  } else {
+    // Custom page or page with no content yet
+    const customPage = manifest.customPages?.find(p => p.slug === page);
+    content = (
+      <div style={{ padding: '8rem 2rem', textAlign: 'center' }}>
+        <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '2rem', color: pal.foreground, marginBottom: '1rem' }}>
+          {customPage?.title || page}
+        </div>
+        <p style={{ color: pal.muted, fontStyle: 'italic' }}>
+          {customPage ? 'Custom page — add content in the Canvas tab.' : 'No content yet for this page.'}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ThemeProvider theme={manifest.theme || dynamicTheme}>
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link rel="stylesheet" href={fontUrl} />
+      <SiteNav names={names} pages={sitePages} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} />
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
+        {content}
+      </main>
+    </ThemeProvider>
+  );
+}
 
 function PreviewContent() {
   const searchParams = useSearchParams();
@@ -126,6 +198,12 @@ function PreviewContent() {
     );
   }
 
+  // Per-page preview — renders the subpage view when ?page= is set
+  const previewPageSlug = searchParams.get('page');
+  if (previewPageSlug && previewPageSlug !== 'our-story') {
+    return <SubpagePreview page={previewPageSlug} manifest={manifest} names={names} />;
+  }
+
   // Derive visual skin
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
@@ -154,13 +232,13 @@ function PreviewContent() {
   const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url;
   const proxiedCover = coverPhoto ? proxyUrl(coverPhoto, 1920, 1080) : undefined;
 
-  // Build nav pages
+  // Build nav pages — only show pages that have real content
   const sitePages: SitePage[] = [
     { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
     ...(manifest.events?.length ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
     ...(manifest.events?.length ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
     ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
-    ...(manifest.travelInfo ? [{ id: 'travel', slug: 'travel', label: 'Travel', enabled: true, order: 4 }] : []),
+    ...((manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length) ? [{ id: 'travel', slug: 'travel', label: 'Travel', enabled: true, order: 4 }] : []),
     ...(manifest.faqs?.length ? [{ id: 'faq', slug: 'faq', label: 'FAQ', enabled: true, order: 5 }] : []),
   ];
 

@@ -3,12 +3,12 @@
 // ─────────────────────────────────────────────────────────────────
 
 import type { PhotoCluster, StoryManifest, Chapter, ChapterImage, ThemeSchema } from '@/types';
-import { generateVibeSkin, extractCoupleProfile, generateSiteArt, WAVE_PATHS } from '@/lib/vibe-engine';
+import { generateVibeSkin, extractCoupleProfile } from '@/lib/vibe-engine';
 import type { VibeSkin, CoupleProfile } from '@/lib/vibe-engine';
 import { GEMINI_PRO, GEMINI_API_BASE, log, logWarn, logError, geminiRetryFetch } from './gemini-client';
 import { fetchClusterImages } from './image-fetcher';
 import { buildPrompt } from './prompts';
-import { critiqueAndRefineChapters, generatePoetryPass, critiqueAndRefineDesign } from './passes';
+import { critiqueAndRefineChapters, generatePoetryPass } from './passes';
 
 export async function generateStoryManifest(
   clusters: PhotoCluster[],
@@ -324,52 +324,22 @@ export async function generateStoryManifest(
     logWarn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
   }
 
-  // ── Passes 2.5 and 3: Run in parallel after Pass 2 ───────────────────
-  // Both depend only on manifest.vibeSkin from Pass 2.
-  // Pass 2.5: Raster art (hero panel + ambient bg + art strip)
-  // Pass 3: Design critique & iterative refinement
-  if (manifest.vibeSkin) {
-    const vibeSkinForParallel = manifest.vibeSkin;
-
-    const [artResult, critiqueResult] = await Promise.allSettled([
-      generateSiteArt(manifest.vibeString, vibeSkinForParallel.palette, apiKey, occasion, coupleNames, coupleProfile),
-      critiqueAndRefineDesign(vibeSkinForParallel, manifest.vibeString, coupleNames, apiKey),
-    ]);
-
-    // Apply design critique first (replaces base vibeSkin with improved version)
-    if (critiqueResult.status === 'fulfilled') {
-      manifest.vibeSkin = critiqueResult.value;
-      log('[Memory Engine] Pass 3: Design critique complete');
-    } else {
-      logWarn('[Memory Engine] Design critique pass failed (non-fatal):', critiqueResult.reason);
-    }
-
-    // Reconcile theme.colors with vibeSkin.palette — single source of truth
-    if (manifest.vibeSkin?.palette) {
-      const p = manifest.vibeSkin.palette;
-      manifest.theme = {
-        ...manifest.theme,
-        colors: {
-          background: p.background || manifest.theme.colors.background,
-          foreground: p.foreground || manifest.theme.colors.foreground,
-          accent: p.accent || manifest.theme.colors.accent,
-          accentLight: p.highlight || manifest.theme.colors.accentLight,
-          muted: p.muted || manifest.theme.colors.muted,
-          cardBg: p.card || manifest.theme.colors.cardBg,
-        },
-      };
-    }
-
-    // Apply raster art on top (additive — sets art DataURLs on the (possibly critiqued) skin)
-    if (artResult.status === 'fulfilled') {
-      const siteArt = artResult.value;
-      if (siteArt.heroArtDataUrl) manifest.vibeSkin.heroArtDataUrl = siteArt.heroArtDataUrl;
-      if (siteArt.ambientArtDataUrl) manifest.vibeSkin.ambientArtDataUrl = siteArt.ambientArtDataUrl;
-      if (siteArt.artStripDataUrl) manifest.vibeSkin.artStripDataUrl = siteArt.artStripDataUrl;
-      log('[Memory Engine] Pass 2.5: Raster art generation complete');
-    } else {
-      logWarn('[Memory Engine] Raster art generation failed (non-fatal):', artResult.reason);
-    }
+  // ── Reconcile theme.colors with vibeSkin.palette — single source of truth ──
+  // Raster art (Pass 2.5) is generated separately via /api/generate/art after
+  // the manifest is returned to the client, so it doesn't block the response.
+  if (manifest.vibeSkin?.palette) {
+    const p = manifest.vibeSkin.palette;
+    manifest.theme = {
+      ...manifest.theme,
+      colors: {
+        background: p.background || manifest.theme.colors.background,
+        foreground: p.foreground || manifest.theme.colors.foreground,
+        accent: p.accent || manifest.theme.colors.accent,
+        accentLight: p.highlight || manifest.theme.colors.accentLight,
+        muted: p.muted || manifest.theme.colors.muted,
+        cardBg: p.card || manifest.theme.colors.cardBg,
+      },
+    };
   }
 
   // Enforce emotional arc: last chapter should be the emotional peak
