@@ -1,7 +1,8 @@
 'use client';
 
 import { UserSites } from '@/components/dashboard/user-sites';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import type { StoryManifest } from '@/types';
 
 interface DashboardStepProps {
@@ -24,9 +25,13 @@ export function DashboardStep({
   return (
     <>
       {draftBanner && (
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-8 px-6 py-4 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] border-l-[3px] border-l-[var(--pl-olive)] shadow-[0_1px_2px_rgba(43,30,20,0.06)]">
+        <Card
+          variant="outlined"
+          padding="none"
+          className="flex items-center justify-between gap-4 flex-wrap mb-8 px-6 py-4 border-l-[3px] border-l-[var(--pl-olive)]"
+        >
           <div className="flex-1 min-w-0">
-            <p className="text-[0.92rem] font-medium text-[var(--pl-ink)]">
+            <p className="text-[0.92rem] font-semibold text-[var(--pl-ink)]">
               You have an unsaved draft
             </p>
             <p className="text-[0.82rem] text-[var(--pl-muted)] mt-0.5">
@@ -41,7 +46,7 @@ export function DashboardStep({
               variant="ghost"
               size="sm"
               onClick={onResumeDraft}
-              className="min-h-[44px] text-[var(--pl-olive)] font-medium"
+              className="min-h-[44px] text-[var(--pl-olive)] font-semibold"
             >
               Continue where you left off
             </Button>
@@ -55,7 +60,7 @@ export function DashboardStep({
               Start fresh
             </Button>
           </div>
-        </div>
+        </Card>
       )}
       <UserSites
         onStartNew={onStartNew}

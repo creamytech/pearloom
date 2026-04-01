@@ -15,9 +15,11 @@ import { PricingPreview } from './marketing/PricingPreview';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
-import { Pill } from '@/components/ui/Pill';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
-import { text, card, sectionPadding, layout } from '@/lib/design-tokens';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/cn';
 
 interface LandingPageProps {
   handleSignIn: () => void;
@@ -40,85 +42,48 @@ const OCCASIONS = [
     tagline: 'From first look to forever',
     desc: 'A full wedding site with your love story, events, RSVP, registry, and travel \u2014 all in one breathtaking place.',
     accent: C.plum,
-    bg: 'rgba(109,89,122,0.07)',
   },
   {
     label: 'Engagements',
     tagline: 'They said yes. Now tell the world.',
     desc: 'Share the proposal story, the ring, and save-the-date details with everyone you love.',
     accent: C.olive,
-    bg: 'rgba(163,177,138,0.08)',
   },
   {
     label: 'Anniversaries',
     tagline: 'Years together, still writing chapters',
     desc: 'Celebrate milestones with a timeline of your journey, favorite memories, and a message to each other.',
     accent: C.gold,
-    bg: 'rgba(214,198,168,0.12)',
   },
   {
     label: 'Birthdays',
     tagline: 'Every year a new story',
     desc: 'A personalised birthday site with your story, photos, guest wishes, and all the event details.',
     accent: C.plum,
-    bg: 'rgba(109,89,122,0.07)',
   },
   {
     label: 'Any Celebration',
     tagline: 'If it matters, it deserves a site',
     desc: 'Reunions, retirements, quincea\u00f1eras, graduations \u2014 any moment worth remembering gets a home.',
     accent: C.olive,
-    bg: 'rgba(163,177,138,0.08)',
   },
 ];
 
 // ── Occasion SVG icons ────────────────────────────────────────
 function OccasionIcon({ type, accent }: { type: string; accent: string }) {
   const s = {
-    width: 24,
-    height: 24,
-    fill: 'none',
-    stroke: accent,
-    strokeWidth: 1.6,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
+    width: 24, height: 24, fill: 'none', stroke: accent, strokeWidth: 1.6,
+    strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const,
   };
   if (type === 'Weddings')
-    return (
-      <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="8.5" cy="12" r="4.5" />
-        <circle cx="15.5" cy="12" r="4.5" />
-      </svg>
-    );
+    return (<svg {...s} viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.5" cy="12" r="4.5" /><circle cx="15.5" cy="12" r="4.5" /></svg>);
   if (type === 'Engagements')
-    return (
-      <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 21L3 9l2.5-4h9L17 9l-5 12z" />
-        <path d="M3 9h18M8 9l4 12M16 9l-4 12" />
-      </svg>
-    );
+    return (<svg {...s} viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21L3 9l2.5-4h9L17 9l-5 12z" /><path d="M3 9h18M8 9l4 12M16 9l-4 12" /></svg>);
   if (type === 'Anniversaries')
-    return (
-      <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 21C12 21 3 14 3 8a4 4 0 0 1 7.5-2A4 4 0 0 1 21 8c0 6-9 13-9 13z" />
-      </svg>
-    );
+    return (<svg {...s} viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C12 21 3 14 3 8a4 4 0 0 1 7.5-2A4 4 0 0 1 21 8c0 6-9 13-9 13z" /></svg>);
   if (type === 'Birthdays')
-    return (
-      <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="3" y="13" width="18" height="8" rx="2" />
-        <path d="M8 13v-2M12 13v-2M16 13v-2" />
-        <path d="M8 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3} />
-        <path d="M12 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3} />
-        <path d="M16 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3} />
-      </svg>
-    );
-  return (
-    <svg {...s} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.64 5.64l1.42 1.42M16.95 16.95l1.41 1.41M5.64 18.36l1.42-1.42M16.95 7.05l1.41-1.41" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
+    return (<svg {...s} viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="13" width="18" height="8" rx="2" /><path d="M8 13v-2M12 13v-2M16 13v-2" /><path d="M8 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3} /><path d="M12 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3} /><path d="M16 9a1 1 0 0 0 0-2c0-1 1-2 1-2s1 1 1 2a1 1 0 0 0 0 2" strokeWidth={1.3} /></svg>);
+  return (<svg {...s} viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.64 5.64l1.42 1.42M16.95 16.95l1.41 1.41M5.64 18.36l1.42-1.42M16.95 7.05l1.41-1.41" /><circle cx="12" cy="12" r="3" /></svg>);
 }
 
 // ── Ornament ──────────────────────────────────────────────────
@@ -137,32 +102,27 @@ function Ornament() {
 
 const TESTIMONIALS = [
   {
-    quote:
-      'The Loom described our relationship better than we ever could. Our guests said it felt like a design studio built it just for us.',
+    quote: 'The Loom described our relationship better than we ever could. Our guests said it felt like a design studio built it just for us.',
     name: 'Emma & James',
     event: 'Wedding \u00b7 June 2025',
   },
   {
-    quote:
-      'I made an anniversary site in 20 minutes and my husband cried reading the story it wove about us. Completely magical.',
+    quote: 'I made an anniversary site in 20 minutes and my husband cried reading the story it wove about us. Completely magical.',
     name: 'Priya',
     event: 'Anniversary \u00b7 10 years',
   },
   {
-    quote:
-      "Everyone at my mum's 70th asked who designed the site. I said \"Pearloom and me in half an hour.\" Jaws dropped.",
+    quote: "Everyone at my mum\u2019s 70th asked who designed the site. I said \u201cPearloom and me in half an hour.\u201d Jaws dropped.",
     name: 'Liam T.',
     event: 'Birthday \u00b7 July 2025',
   },
   {
-    quote:
-      'We used it to announce our engagement and the proposal story The Loom crafted had our families in tears. Absolutely stunning.',
+    quote: 'We used it to announce our engagement and the proposal story The Loom crafted had our families in tears. Absolutely stunning.',
     name: 'Sofia & Marco',
     event: 'Engagement \u00b7 March 2026',
   },
   {
-    quote:
-      "Made a site for my dad's retirement party. His colleagues kept asking for the \"design agency\" behind it. It was just me and Pearloom.",
+    quote: "Made a site for my dad\u2019s retirement party. His colleagues kept asking for the \u201cdesign agency\u201d behind it. It was just me and Pearloom.",
     name: 'Kezia O.',
     event: 'Celebration \u00b7 February 2026',
   },
@@ -182,109 +142,40 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
   const NAV_LINKS = ['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'];
 
   return (
-    <div
-      style={{
-        background: C.cream,
-        minHeight: '100dvh',
-        fontFamily: 'var(--eg-font-body)',
-        color: C.ink,
-        overflowX: 'hidden',
-      }}
-    >
+    <div className="bg-[var(--pl-cream)] min-h-dvh font-[family-name:var(--pl-font-body)] text-[var(--pl-ink)] overflow-x-hidden">
+
       {/* ══════════════ NAV ══════════════ */}
-      <nav
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 clamp(1.25rem,5vw,4rem)',
-          height: '64px',
-          background: `${C.cream}EB`,
-          backdropFilter: 'blur(12px)',
-          borderBottom: `1px solid ${C.divider}`,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--eg-font-heading)',
-            fontSize: text.lg,
-            fontWeight: 700,
-            fontStyle: 'italic',
-            color: C.ink,
-            letterSpacing: '-0.01em',
-          }}
-        >
+      <nav className="sticky top-0 z-[100] flex items-center justify-between px-[clamp(1.25rem,5vw,4rem)] h-16 bg-[color-mix(in_srgb,var(--pl-cream)_92%,transparent)] backdrop-blur-[12px] border-b border-[var(--pl-divider)]">
+        <span className="font-[family-name:var(--pl-font-heading)] text-lg font-bold italic text-[var(--pl-ink)] tracking-[-0.01em]">
           Pearloom
         </span>
 
-        {/* Desktop nav links */}
-        <div
-          className="hidden md:flex"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            gap: '2.5rem',
-          }}
-        >
+        {/* Desktop links */}
+        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-10">
           {NAV_LINKS.map(label => (
             <a
               key={label}
               href={`#${label.toLowerCase().replace(/ /g, '-')}`}
-              style={{
-                fontSize: text.base,
-                fontWeight: 500,
-                color: C.muted,
-                textDecoration: 'none',
-                letterSpacing: '0.02em',
-                transition: 'color 0.2s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = C.ink)}
-              onMouseLeave={e => (e.currentTarget.style.color = C.muted)}
+              className="text-[0.88rem] font-medium text-[var(--pl-muted)] no-underline tracking-[0.02em] transition-colors duration-200 hover:text-[var(--pl-ink)]"
             >
               {label}
             </a>
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <motion.button
+        <div className="flex items-center gap-3">
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleSignIn}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
             className="hidden sm:inline-flex"
-            style={{
-              padding: '0.5rem 1.25rem',
-              background: C.ink,
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '0.6rem',
-              fontSize: text.base,
-              fontWeight: 600,
-              fontFamily: 'var(--eg-font-body)',
-              cursor: 'pointer',
-            }}
           >
             Get Started
-          </motion.button>
+          </Button>
 
-          {/* Mobile hamburger */}
           <button
-            className="md:hidden"
+            className="md:hidden bg-transparent border-0 cursor-pointer p-1.5 text-[var(--pl-ink)] flex items-center justify-center"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.4rem',
-              color: C.ink,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -296,80 +187,35 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
-            {/* Dark overlay / backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="md:hidden"
+              className="md:hidden fixed inset-0 z-[998] bg-black/45 backdrop-blur-[4px]"
               onClick={() => setMobileMenuOpen(false)}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 998,
-                background: `${C.ink}73`,
-                backdropFilter: 'blur(4px)',
-              }}
             />
-            {/* Slide-in drawer from right */}
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden"
-              style={{
-                position: 'fixed',
-                top: 0,
-                right: 0,
-                bottom: 0,
-                width: 'min(85vw, 360px)',
-                zIndex: 999,
-                background: `${C.cream}F8`,
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                boxShadow: `-8px 0 40px ${C.ink}1F`,
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-              }}
+              className="md:hidden fixed top-0 right-0 bottom-0 w-[min(85vw,360px)] z-[999] bg-[var(--pl-cream)] backdrop-blur-[20px] shadow-[-8px_0_40px_rgba(26,26,26,0.12)] flex flex-col overflow-hidden"
             >
-              {/* Drawer header with logo and close */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '1.25rem 1.5rem',
-                borderBottom: `1px solid ${C.divider}`,
-              }}>
-                <span style={{
-                  fontFamily: 'var(--eg-font-heading)',
-                  fontSize: text.lg,
-                  fontWeight: 700,
-                  fontStyle: 'italic',
-                  color: C.ink,
-                  letterSpacing: '-0.01em',
-                }}>
+              <div className="flex items-center justify-between px-6 py-5 border-b border-[var(--pl-divider)]">
+                <span className="font-[family-name:var(--pl-font-heading)] text-lg font-bold italic text-[var(--pl-ink)] tracking-[-0.01em]">
                   Pearloom
                 </span>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    padding: '0.35rem', color: C.muted, display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
-                    borderRadius: '0.5rem', transition: 'color 0.2s',
-                  }}
+                  className="bg-transparent border-0 cursor-pointer p-1.5 text-[var(--pl-muted)] flex items-center justify-center rounded-lg hover:text-[var(--pl-ink)] transition-colors duration-200"
                   aria-label="Close menu"
                 >
                   <X size={22} />
                 </button>
               </div>
 
-              {/* Nav links */}
-              <div style={{
-                flex: 1, padding: '1.25rem 1rem', display: 'flex',
-                flexDirection: 'column', gap: '0.2rem', overflowY: 'auto',
-              }}>
+              <div className="flex-1 p-5 flex flex-col gap-1 overflow-y-auto">
                 {NAV_LINKS.map((label, i) => (
                   <motion.a
                     key={label}
@@ -378,76 +224,36 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
-                    style={{
-                      fontSize: 'clamp(1.05rem, 2.5vw, 1.15rem)',
-                      fontWeight: 600,
-                      color: C.dark,
-                      textDecoration: 'none',
-                      padding: '0.9rem 1rem',
-                      borderRadius: '0.75rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      transition: 'background 0.2s, color 0.2s',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = `${C.olive}1A`;
-                      e.currentTarget.style.color = C.ink;
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = C.dark;
-                    }}
+                    className="text-[clamp(1.05rem,2.5vw,1.15rem)] font-semibold text-[var(--pl-ink-soft)] no-underline px-4 py-3.5 rounded-xl flex items-center justify-between transition-all duration-200 hover:bg-[var(--pl-olive-mist)] hover:text-[var(--pl-ink)]"
                   >
                     {label}
-                    <ChevronRight size={16} style={{ opacity: 0.35 }} />
+                    <ChevronRight size={16} className="opacity-35" />
                   </motion.a>
                 ))}
               </div>
 
-              {/* Separator */}
-              <div style={{
-                margin: '0 1.5rem',
-                height: '1px',
-                background: C.divider,
-              }} />
+              <Separator />
 
-              {/* Bottom CTA */}
-              <div style={{ padding: '1.5rem' }}>
-                <motion.button
+              <div className="p-6">
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.35 }}
-                  onClick={() => { setMobileMenuOpen(false); handleSignIn(); }}
-                  style={{
-                    width: '100%',
-                    padding: '1rem',
-                    background: C.olive,
-                    color: C.cream,
-                    border: 'none',
-                    borderRadius: '0.85rem',
-                    fontSize: text.md,
-                    fontWeight: 700,
-                    fontFamily: 'var(--eg-font-body)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    boxShadow: `0 8px 30px ${C.olive}33`,
-                    letterSpacing: '0.01em',
-                  }}
                 >
-                  <Sparkles size={16} />
-                  Get Started Free
-                  <ArrowRight size={16} />
-                </motion.button>
-                <p style={{
-                  textAlign: 'center', marginTop: '0.75rem',
-                  fontSize: text.xs, color: C.muted, letterSpacing: '0.03em',
-                }}>
-                  No credit card required
-                </p>
+                  <Button
+                    variant="accent"
+                    size="lg"
+                    className="w-full justify-center"
+                    onClick={() => { setMobileMenuOpen(false); handleSignIn(); }}
+                    icon={<Sparkles size={16} />}
+                  >
+                    Get Started Free
+                    <ArrowRight size={16} />
+                  </Button>
+                  <p className="text-center mt-3 text-[0.78rem] text-[var(--pl-muted)] tracking-[0.03em]">
+                    No credit card required
+                  </p>
+                </motion.div>
               </div>
             </motion.div>
           </>
@@ -479,20 +285,15 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       <section
         id="occasions"
         ref={occasionRef}
-        style={{
-          background: C.deep,
-          padding: sectionPadding.y + ' ' + sectionPadding.x,
-          borderTop: `1px solid ${C.divider}`,
-          borderBottom: `1px solid ${C.divider}`,
-        }}
+        className="bg-[var(--pl-cream-deep)] py-[clamp(3.5rem,7vw,7rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-b border-[var(--pl-divider)]"
       >
-        <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-16">
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8 }}
-              style={{ marginBottom: '1.1rem', display: 'flex', justifyContent: 'center' }}
+              className="mb-4 flex justify-center"
             >
               <Ornament />
             </motion.div>
@@ -500,23 +301,13 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               initial={{ opacity: 0, y: 18 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: 0.1 }}
-              style={{
-                fontFamily: 'var(--eg-font-heading)',
-                fontSize: 'clamp(1.9rem,4vw,2.9rem)',
-                fontWeight: 700,
-                color: C.ink,
-                letterSpacing: '-0.03em',
-                lineHeight: 1.15,
-              }}
+              className="font-[family-name:var(--pl-font-heading)] text-[clamp(1.9rem,4vw,2.9rem)] font-bold text-[var(--pl-ink)] tracking-[-0.03em] leading-[1.15]"
             >
               Whatever you&rsquo;re celebrating
             </motion.h2>
           </div>
 
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            style={{ gap: '1.25rem' }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {OCCASIONS.map((o, i) => (
               <motion.div
                 key={o.label}
@@ -524,45 +315,31 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 variants={up}
                 initial="hidden"
                 animate={occasionInView ? 'show' : 'hidden'}
-                whileHover={{ y: -4, boxShadow: card.shadowHover }}
-                style={{
-                  padding: '2rem 1.5rem 2rem 1.75rem',
-                  background: card.bg,
-                  border: card.border,
-                  borderLeft: `3px solid ${o.accent}`,
-                  borderRadius: card.radius,
-                  boxShadow: card.shadow,
-                  transition: 'box-shadow 0.25s ease, transform 0.25s ease',
-                }}
+                whileHover={{ y: -4 }}
+                className="h-full"
               >
-                <div
-                  style={{
-                    fontSize: text.xs,
-                    fontWeight: 700,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    color: o.accent,
-                    marginBottom: '0.6rem',
-                  }}
+                <Card
+                  variant="elevated"
+                  padding="none"
+                  className="p-8 h-full border-l-[3px] transition-all duration-300 hover:shadow-[0_6px_24px_rgba(43,30,20,0.12),0_2px_8px_rgba(43,30,20,0.07)]"
+                  style={{ borderLeftColor: o.accent }}
                 >
-                  {o.label}
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--eg-font-heading)',
-                    fontSize: text.lg,
-                    fontWeight: 700,
-                    fontStyle: 'italic',
-                    color: C.ink,
-                    marginBottom: '0.75rem',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {o.tagline}
-                </div>
-                <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.8, margin: 0 }}>
-                  {o.desc}
-                </p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <OccasionIcon type={o.label} accent={o.accent} />
+                    <span
+                      className="text-[0.72rem] font-bold tracking-[0.14em] uppercase"
+                      style={{ color: o.accent }}
+                    >
+                      {o.label}
+                    </span>
+                  </div>
+                  <h3 className="font-[family-name:var(--pl-font-heading)] text-lg font-bold italic text-[var(--pl-ink)] mb-3 leading-[1.3]">
+                    {o.tagline}
+                  </h3>
+                  <p className="text-[0.9rem] text-[var(--pl-muted)] leading-[1.8] m-0">
+                    {o.desc}
+                  </p>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -572,22 +349,15 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ TESTIMONIALS ══════════════ */}
       <section
         ref={testRef}
-        style={{
-          background: C.cream,
-          padding: 'clamp(3.5rem,7vw,7rem) 1.25rem',
-          borderTop: `1px solid ${C.divider}`,
-        }}
+        className="bg-[var(--pl-cream)] py-[clamp(3.5rem,7vw,7rem)] px-5 border-t border-[var(--pl-divider)]"
       >
-        <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
+        <div className="max-w-[1200px] mx-auto">
           <SectionHeader
             eyebrow="Loved by real people"
             title="Stories from our community"
             inView={testInView}
           />
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2"
-            style={{ gap: '1.25rem' }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {TESTIMONIALS.map((t, i) => (
               <motion.div
                 key={t.name}
@@ -595,53 +365,20 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 variants={up}
                 initial="hidden"
                 animate={testInView ? 'show' : 'hidden'}
-                className={i === 0 ? 'sm:col-span-2' : ''}
-                style={{
-                  padding: i === 0 ? '2.5rem' : '2rem',
-                  background: card.bg,
-                  border: card.border,
-                  borderRadius: card.radius,
-                  boxShadow: card.shadow,
-                }}
+                className={cn('h-full', i === 0 && 'sm:col-span-2')}
               >
-                <div
-                  style={{
-                    fontFamily: 'var(--eg-font-heading)',
-                    fontSize: '4rem',
-                    lineHeight: 0.7,
-                    color: C.gold,
-                    opacity: 0.7,
-                    marginBottom: '1rem',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  &ldquo;
-                </div>
-                <blockquote
-                  style={{
-                    fontFamily: 'var(--eg-font-heading)',
-                    fontSize: 'clamp(1rem,1.6vw,1.12rem)',
-                    fontStyle: 'italic',
-                    fontWeight: 500,
-                    color: C.dark,
-                    lineHeight: 1.55,
-                    margin: '0 0 1.25rem',
-                  }}
-                >
-                  {t.quote}
-                </blockquote>
-                <p
-                  style={{
-                    marginTop: '1rem',
-                    fontSize: text.sm,
-                    fontWeight: 700,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    color: C.muted,
-                  }}
-                >
-                  {t.name} &middot; {t.event}
-                </p>
+                <Card variant="flat" padding="none" className={cn('h-full', i === 0 ? 'p-10' : 'p-8')}>
+                  <div className="font-[family-name:var(--pl-font-heading)] text-[4rem] leading-[0.7] text-[var(--pl-gold)] opacity-70 mb-4 italic">
+                    &ldquo;
+                  </div>
+                  <blockquote className="font-[family-name:var(--pl-font-heading)] text-[clamp(1rem,1.6vw,1.12rem)] italic font-medium text-[var(--pl-ink-soft)] leading-[1.55] m-0 mb-5">
+                    {t.quote}
+                  </blockquote>
+                  <Separator className="mb-4" />
+                  <p className="text-[0.78rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)]">
+                    {t.name} &middot; {t.event}
+                  </p>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -657,48 +394,24 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ FINAL CTA ══════════════ */}
       <section
         ref={ctaRef}
-        style={{
-          background: C.ink,
-          padding: 'clamp(4rem,8vw,9rem) 1.5rem clamp(4.5rem,9vw,10rem)',
-          textAlign: 'center',
-        }}
+        className="bg-[var(--pl-ink)] py-[clamp(4rem,8vw,9rem)] px-6 pb-[clamp(4.5rem,9vw,10rem)] text-center"
       >
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <div className="max-w-[600px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
           >
-            {/* Gold ornamental rule */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
-              <div style={{ width: '80px', height: '1px', background: C.gold, opacity: 0.5 }} />
+            <div className="flex justify-center mb-8">
+              <div className="w-20 h-px bg-[var(--pl-gold)] opacity-50" />
             </div>
-            <h2
-              style={{
-                fontFamily: 'var(--eg-font-heading)',
-                fontSize: 'clamp(2rem,5vw,3.25rem)',
-                fontWeight: 700,
-                fontStyle: 'italic',
-                color: C.cream,
-                letterSpacing: '-0.035em',
-                lineHeight: 1.1,
-                margin: '0 0 1.25rem',
-              }}
-            >
+            <h2 className="font-[family-name:var(--pl-font-heading)] text-[clamp(2rem,5vw,3.25rem)] font-bold italic text-[var(--pl-cream)] tracking-[-0.035em] leading-[1.1] mb-5">
               Your moment is already beautiful.
               <br />
-              <span style={{ color: C.gold }}>Let&rsquo;s give it a home.</span>
+              <span className="text-[var(--pl-gold)]">Let&rsquo;s give it a home.</span>
             </h2>
-            <p
-              style={{
-                fontSize: 'clamp(0.95rem,1.8vw,1.1rem)',
-                color: C.darkText,
-                lineHeight: 1.8,
-                maxWidth: '480px',
-                margin: '0 auto 3rem',
-              }}
-            >
-              Weddings, birthdays, anniversaries, reunions — whatever you&rsquo;re celebrating,
+            <p className="text-[clamp(0.95rem,1.8vw,1.1rem)] text-[var(--pl-dark-text)] leading-[1.8] max-w-[480px] mx-auto mb-12">
+              Weddings, birthdays, anniversaries, reunions &mdash; whatever you&rsquo;re celebrating,
               Pearloom and The Loom make it unforgettable.
             </p>
           </motion.div>
@@ -707,31 +420,16 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.25 }}
           >
-            <motion.button
+            <Button
+              variant="gold"
+              size="xl"
               onClick={handleSignIn}
               disabled={status === 'loading'}
-              whileHover={{ scale: 1.05, boxShadow: `0 14px 50px ${C.gold}80` }}
-              whileTap={{ scale: 0.97 }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.65rem',
-                padding: '1.1rem 2.8rem',
-                background: C.gold,
-                color: C.ink,
-                border: 'none',
-                borderRadius: '0.875rem',
-                fontSize: text.lg,
-                fontWeight: 700,
-                fontFamily: 'var(--eg-font-body)',
-                cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-                opacity: status === 'loading' ? 0.65 : 1,
-                boxShadow: `0 4px 24px ${C.gold}66`,
-              }}
+              className="bg-[var(--pl-gold)] text-[var(--pl-ink)] hover:bg-[#d4b87a] shadow-[0_4px_24px_rgba(196,169,106,0.4)] hover:shadow-[0_14px_50px_rgba(196,169,106,0.5)]"
             >
               Begin Your Story <ArrowRight size={17} strokeWidth={2.2} />
-            </motion.button>
-            <p style={{ marginTop: '1.1rem', fontSize: text.sm, color: C.darkText, letterSpacing: '0.04em' }}>
+            </Button>
+            <p className="mt-4 text-[0.82rem] text-[var(--pl-dark-text)] tracking-[0.04em]">
               Free to start &middot; No credit card &middot; Live in minutes
             </p>
           </motion.div>
