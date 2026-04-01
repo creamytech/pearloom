@@ -198,6 +198,8 @@ export function EditorCanvas() {
     <div style={{
       flex: 1,
       background: '#1a1916',
+      backgroundImage: 'radial-gradient(circle, rgba(214,198,168,0.055) 1px, transparent 0)',
+      backgroundSize: '22px 22px',
       display: 'flex', flexDirection: 'column',
       overflow: 'auto',
       paddingBottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',

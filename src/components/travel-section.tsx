@@ -107,10 +107,11 @@ function HotelCard({
           <h4
             style={{
               fontFamily: 'var(--eg-font-heading)',
-              fontSize: '1.15rem',
-              fontWeight: 400,
+              fontSize: '1.1rem',
+              fontWeight: 500,
+              fontStyle: 'italic',
               color: 'var(--eg-fg)',
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.015em',
               lineHeight: 1.2,
               marginBottom: '0.4rem',
             }}
@@ -323,9 +324,10 @@ export function TravelSection({
             <h2
               style={{
                 fontFamily: 'var(--eg-font-heading)',
-                fontSize: 'clamp(2.75rem, 5.5vw, 4.25rem)',
-                fontWeight: 400,
-                letterSpacing: '-0.025em',
+                fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
+                fontWeight: 600,
+                fontStyle: 'italic',
+                letterSpacing: '-0.03em',
                 color: 'var(--eg-fg)',
                 lineHeight: 1.05,
                 marginBottom: '1.5rem',

@@ -128,24 +128,37 @@ export function GuestbookSection({ subdomain, vibeSkin, manifest }: GuestbookSec
       }}
     >
       {/* Section header */}
-      <div style={{ textAlign: 'center', marginBottom: '3rem', maxWidth: '700px', margin: '0 auto 3rem' }}>
-        <div style={{ fontSize: '1.5rem', color: accent, marginBottom: '1rem', opacity: 0.6 }}>
-          {vibeSkin?.accentSymbol || '✦'}
+      <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 4rem' }}>
+        {/* Eyebrow with accent lines */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <div style={{ width: '48px', height: '1px', background: accent, opacity: 0.3 }} />
+          <span style={{ fontSize: '0.62rem', letterSpacing: '0.32em', textTransform: 'uppercase' as const, color: accent, fontWeight: 700, opacity: 0.85 }}>
+            {vibeSkin?.accentSymbol || '✦'}
+          </span>
+          <div style={{ width: '48px', height: '1px', background: accent, opacity: 0.3 }} />
         </div>
         <h2
           style={{
             fontFamily: `"${headingFont}", serif`,
-            fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+            fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
             fontWeight: 600,
+            fontStyle: 'italic',
             color: 'var(--eg-fg, #2B2B2B)',
-            margin: '0 0 1rem',
-            letterSpacing: '-0.02em',
+            margin: '0 0 1.5rem',
+            letterSpacing: '-0.03em',
+            lineHeight: 1.05,
           }}
         >
           {sectionHeading}
         </h2>
-        <p style={{ color: 'var(--eg-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0 }}>
-          Leave a note for {manifest.chapters?.[0]?.title ? `the couple` : 'the happy couple'} — your words will mean the world to them.
+        {/* Ornamental rule */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+          <div style={{ width: '24px', height: '1px', background: accent, opacity: 0.35 }} />
+          <div style={{ width: '4px', height: '4px', background: accent, transform: 'rotate(45deg)', opacity: 0.5 }} />
+          <div style={{ width: '24px', height: '1px', background: accent, opacity: 0.35 }} />
+        </div>
+        <p style={{ color: 'var(--eg-muted, #9A9488)', fontSize: '1rem', lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>
+          Leave a note — your words will mean the world to them.
         </p>
       </div>
 

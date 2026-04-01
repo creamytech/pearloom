@@ -180,7 +180,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <div className="w-16 h-16 rounded-2xl bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6">
             <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
           </div>
-          <h3 className="font-heading text-2xl font-normal mb-2 text-[var(--pl-ink-soft)]">
+          <h3 className="font-heading text-2xl font-semibold italic mb-2 text-[var(--pl-ink-soft)]">
             Could not load sites
           </h3>
           <p className="text-[var(--pl-muted)] text-[0.88rem] mb-8 leading-relaxed">
@@ -285,8 +285,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     {/* Names — big and centered at bottom */}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
                       <div
-                        className="font-heading text-[1.55rem] font-normal italic text-white leading-tight mb-1"
-                        style={{ textShadow: '0 2px 24px rgba(0,0,0,0.5)' }}
+                        className="font-heading text-[1.55rem] font-semibold italic text-white leading-tight mb-1"
+                        style={{ textShadow: '0 2px 24px rgba(0,0,0,0.5), 0 1px 6px rgba(0,0,0,0.3)' }}
                       >
                         {displayNames}
                       </div>
@@ -447,7 +447,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <div className="w-16 h-16 rounded-2xl bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6">
             <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
           </div>
-          <h3 className="font-heading text-2xl font-normal mb-3 text-[var(--pl-ink-soft)]">
+          <h3 className="font-heading text-2xl font-semibold italic mb-3 text-[var(--pl-ink-soft)]">
             Delete this site?
           </h3>
           <p className="text-[var(--pl-muted)] leading-relaxed mb-6 text-[0.88rem]">
