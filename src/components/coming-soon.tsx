@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, Check, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 import type { ComingSoonConfig } from '@/types';
+import { parseLocalDate } from '@/lib/date';
 
 interface ComingSoonProps {
   config: ComingSoonConfig;
@@ -363,7 +364,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             border: '1px solid rgba(163,177,138,0.2)',
           }}>
             <CalendarHeartIcon size={12} color="var(--eg-accent)" />
-            {new Date(config.revealDate).toLocaleDateString('en-US', {
+            {parseLocalDate(config.revealDate).toLocaleDateString('en-US', {
               month: 'long', day: 'numeric', year: 'numeric',
             })}
           </div>

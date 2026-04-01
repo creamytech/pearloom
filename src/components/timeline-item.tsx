@@ -13,6 +13,7 @@ import type { Chapter } from '@/types';
 import { MoodDecorator } from '@/components/mood-decorator';
 import { LocationPinIcon, PearlDividerIcon } from '@/components/icons/PearloomIcons';
 import { VideoChapterPlayer } from '@/components/site/VideoChapterPlayer';
+import { parseLocalDate } from '@/lib/date';
 
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 
@@ -96,13 +97,13 @@ function proxyUrl(rawUrl: string, w: number, h: number): string {
 
 function formatDate(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return parseLocalDate(dateStr).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   } catch { return dateStr; }
 }
 
 function formatDateFull(dateStr: string): string {
   try {
-    const d = new Date(dateStr);
+    const d = parseLocalDate(dateStr);
     const day = d.getDate().toString().padStart(2, '0');
     const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
     const year = d.getFullYear();

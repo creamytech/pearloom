@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { StoryManifest } from '@/types';
+import { parseLocalDate } from '@/lib/date';
 
 interface TimeCapsulePanelProps {
   manifest: StoryManifest;
@@ -29,7 +30,7 @@ function addYears(date: Date, years: number): Date {
 
 function formatDate(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return parseLocalDate(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -74,7 +75,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
 
   const computeUnlockDate = useCallback(
     (years: UnlockYears): Date => {
-      const base = weddingDate ? new Date(weddingDate) : new Date();
+      const base = weddingDate ? parseLocalDate(weddingDate) : new Date();
       return addYears(base, years);
     },
     [weddingDate]

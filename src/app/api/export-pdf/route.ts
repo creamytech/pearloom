@@ -8,6 +8,7 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
+import { parseLocalDate } from '@/lib/date';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ function getSupabase() {
 
 function formatDate(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return parseLocalDate(dateStr).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',

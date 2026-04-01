@@ -12,6 +12,7 @@ import { CountdownWidget } from '@/components/countdown-widget';
 import { VibeParticles } from '@/components/vibe/VibeParticles';
 
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { parseLocalDate } from '@/lib/date';
 
 interface HeroProps {
   names: [string, string];
@@ -71,7 +72,7 @@ function FilmGrain() {
 // Format date for the badge: "June 14, 2025"
 function formatDateBadge(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return parseLocalDate(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   } catch { return dateStr; }
 }
 

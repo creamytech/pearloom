@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui';
 import type { StoryManifest, Chapter } from '@/types';
+import { parseLocalDate } from '@/lib/date';
 
 interface AnniversaryUpgradeProps {
   manifest: StoryManifest;
@@ -12,7 +13,7 @@ interface AnniversaryUpgradeProps {
 
 function getYearsAndMonths(dateStr?: string): { years: number; months: number } | null {
   if (!dateStr) return null;
-  const weddingDate = new Date(dateStr);
+  const weddingDate = parseLocalDate(dateStr);
   if (isNaN(weddingDate.getTime())) return null;
   const now = new Date();
   let months = (now.getFullYear() - weddingDate.getFullYear()) * 12 + (now.getMonth() - weddingDate.getMonth());

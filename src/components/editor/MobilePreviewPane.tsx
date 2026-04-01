@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { StoryManifest, Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { parseLocalDate } from '@/lib/date';
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
@@ -103,7 +104,7 @@ function MobileHero({
             border: `1px solid ${coverPhoto ? 'rgba(255,255,255,0.18)' : `${accent}30`}`,
             fontSize: '11px', fontWeight: 600, color: coverPhoto ? '#fff' : accent, fontFamily: bodyFont,
           }}>
-            {new Date(manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            {parseLocalDate(manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
         )}
         {/* Tap hint */}

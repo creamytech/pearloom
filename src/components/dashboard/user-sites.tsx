@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/cn';
 
 import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
+import { parseLocalDate } from '@/lib/date';
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -293,7 +294,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       {weddingDate && (
                         <div className="flex items-center gap-1.5 text-white/65 text-[0.65rem] tracking-[0.1em] uppercase font-semibold">
                           <Calendar size={9} />
-                          {new Date(weddingDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                          {parseLocalDate(weddingDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </div>
                       )}
                     </div>

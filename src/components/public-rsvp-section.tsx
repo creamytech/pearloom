@@ -12,6 +12,7 @@ import { EnvelopeIcon } from '@/components/icons/PearloomIcons';
 import { SectionDivider } from '@/components/site/SectionDivider';
 import { RsvpForm } from '@/components/rsvp-form';
 import type { WeddingEvent } from '@/types';
+import { parseLocalDate } from '@/lib/date';
 
 interface PublicRsvpSectionProps {
   siteId: string;
@@ -35,7 +36,7 @@ export function PublicRsvpSection({
   const deadlineFormatted = deadline
     ? (() => {
         try {
-          return new Date(deadline).toLocaleDateString('en-US', {
+          return parseLocalDate(deadline).toLocaleDateString('en-US', {
             month: 'long',
             day: 'numeric',
             year: 'numeric',

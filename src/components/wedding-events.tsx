@@ -16,6 +16,7 @@ import {
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import type { WeddingEvent } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { parseLocalDate } from '@/lib/date';
 
 function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--eg-accent)', size = 18) {
   const style = { color: accentColor, width: size, height: size };
@@ -42,7 +43,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
   const bodyFont = vibeSkin?.fonts.body ?? 'var(--eg-font-body)';
   const dateObj = (() => {
     try {
-      return new Date(event.date);
+      return parseLocalDate(event.date);
     } catch {
       return null;
     }

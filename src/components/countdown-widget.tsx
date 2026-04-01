@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
+import { parseLocalDate } from '@/lib/date';
 
 interface CountdownWidgetProps {
   targetDate: string; // ISO date string
@@ -24,7 +25,7 @@ interface TimeLeft {
 
 function getTimeLeft(target: string): TimeLeft | null {
   const now = new Date().getTime();
-  const then = new Date(target).getTime();
+  const then = parseLocalDate(target).getTime();
   const diff = then - now;
   if (diff <= 0) return null;
 
