@@ -1,8 +1,8 @@
 'use client';
 
 import { UserSites } from '@/components/dashboard/user-sites';
-import { Button } from '@/components/ui';
-import { colors, text, card } from '@/lib/design-tokens';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import type { StoryManifest } from '@/types';
 
 interface DashboardStepProps {
@@ -25,25 +25,20 @@ export function DashboardStep({
   return (
     <>
       {draftBanner && (
-        <div
-          className="flex items-center justify-between gap-4 flex-wrap mb-8 px-6 py-5"
-          style={{
-            background: card.bg,
-            borderRadius: card.radius,
-            boxShadow: card.shadow,
-            border: card.border,
-            borderLeft: `3px solid ${colors.olive}`,
-          }}
+        <Card
+          variant="outlined"
+          padding="none"
+          className="flex items-center justify-between gap-4 flex-wrap mb-8 px-6 py-4 border-l-[3px] border-l-[var(--pl-olive)]"
         >
           <div className="flex-1 min-w-0">
-            <p style={{ fontSize: text.base, color: colors.ink, fontWeight: 500 }}>
+            <p className="text-[0.92rem] font-semibold text-[var(--pl-ink)]">
               You have an unsaved draft
             </p>
-            <p style={{ fontSize: text.sm, color: colors.muted }}>
+            <p className="text-[0.82rem] text-[var(--pl-muted)] mt-0.5">
               {draftBanner.coupleNames[0] && draftBanner.coupleNames[1]
                 ? `${draftBanner.coupleNames[0]} & ${draftBanner.coupleNames[1]}`
                 : 'Untitled draft'}
-              {draftBanner.vibeString ? ` \u2014 ${draftBanner.vibeString}` : ''}
+              {draftBanner.vibeString ? ` — ${draftBanner.vibeString}` : ''}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 items-center flex-shrink-0">
@@ -51,23 +46,21 @@ export function DashboardStep({
               variant="ghost"
               size="sm"
               onClick={onResumeDraft}
-              className="min-h-[44px]"
-              style={{ color: colors.olive, fontWeight: 500 }}
+              className="min-h-[44px] text-[var(--pl-olive)] font-semibold"
             >
               Continue where you left off
             </Button>
-            <span style={{ color: colors.muted, fontSize: text.sm }}>or</span>
+            <span className="text-[var(--pl-muted)] text-[0.82rem]">or</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={onDismissDraft}
-              className="min-h-[44px]"
-              style={{ color: colors.muted }}
+              className="min-h-[44px] text-[var(--pl-muted)]"
             >
               Start fresh
             </Button>
           </div>
-        </div>
+        </Card>
       )}
       <UserSites
         onStartNew={onStartNew}

@@ -2,7 +2,6 @@
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ClusterReview } from '@/components/dashboard/cluster-review';
-import { card } from '@/lib/design-tokens';
 import type { GooglePhotoMetadata, PhotoCluster } from '@/types';
 
 interface ClustersStepProps {
@@ -14,15 +13,7 @@ interface ClustersStepProps {
 export function ClustersStep({ photos, onConfirm, onBack }: ClustersStepProps) {
   return (
     <ErrorBoundary>
-      <div
-        className="p-6 sm:p-8"
-        style={{
-          background: card.bg,
-          borderRadius: card.radius,
-          border: card.border,
-          boxShadow: card.shadow,
-        }}
-      >
+      <div className="p-6 sm:p-8 bg-white rounded-[var(--pl-radius-md)] border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]">
         <ClusterReview
           photos={photos}
           onConfirm={onConfirm}

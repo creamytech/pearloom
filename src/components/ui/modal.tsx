@@ -5,12 +5,12 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
-/* ── Raw shadcn Dialog primitives (re-exported for advanced use) ── */
+// ── Radix Dialog primitives ────────────────────────────────────
 
-const Dialog = DialogPrimitive.Root;
-const DialogTrigger = DialogPrimitive.Trigger;
-const DialogPortal = DialogPrimitive.Portal;
-const DialogClose = DialogPrimitive.Close;
+const Dialog         = DialogPrimitive.Root;
+const DialogTrigger  = DialogPrimitive.Trigger;
+const DialogPortal   = DialogPrimitive.Portal;
+const DialogClose    = DialogPrimitive.Close;
 
 const DialogOverlay = forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Overlay>,
@@ -19,10 +19,12 @@ const DialogOverlay = forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'fixed inset-0 z-[200] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      'fixed inset-0 z-[200]',
+      'bg-[rgba(250,247,242,0.88)] backdrop-blur-md',
+      'data-[state=open]:animate-in   data-[state=open]:fade-in-0',
+      'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
       className,
     )}
-    style={{ background: 'rgba(250, 249, 246, 0.92)', backdropFilter: 'blur(12px)' }}
     {...props}
   />
 ));
@@ -37,14 +39,13 @@ const DialogContent = forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-1/2 top-1/2 z-[200] w-full -translate-x-1/2 -translate-y-1/2',
-        'rounded-[1.5rem] bg-white p-8',
-        'shadow-[0_24px_80px_rgba(43,43,43,0.14)] border border-[var(--eg-divider)]',
-        'data-[state=open]:animate-in data-[state=closed]:animate-out',
-        'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
-        'data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]',
-        'data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
+        'fixed left-1/2 top-1/2 z-[200] w-full',
+        '-translate-x-1/2 -translate-y-1/2',
+        'bg-white rounded-[var(--pl-radius-lg)] p-8',
+        'border border-[var(--pl-divider)]',
+        'shadow-[0_24px_60px_rgba(43,30,20,0.15),0_40px_80px_rgba(43,30,20,0.09)]',
+        'data-[state=open]:animate-in   data-[state=open]:fade-in-0   data-[state=open]:zoom-in-95   data-[state=open]:slide-in-from-left-1/2   data-[state=open]:slide-in-from-top-[48%]',
+        'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]',
         'duration-200',
         className,
       )}
@@ -57,7 +58,7 @@ const DialogContent = forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex items-start justify-between mb-5', className)} {...props} />
+  <div className={cn('flex items-start justify-between mb-5 gap-4', className)} {...props} />
 );
 DialogHeader.displayName = 'DialogHeader';
 
@@ -68,7 +69,7 @@ const DialogTitle = forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      'font-[family-name:var(--eg-font-heading)] text-[2rem] font-normal tracking-tight text-[var(--eg-fg)]',
+      'font-heading text-2xl font-normal tracking-tight text-[var(--pl-ink-soft)]',
       className,
     )}
     {...props}
@@ -82,13 +83,13 @@ const DialogDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn('text-sm text-muted-foreground', className)}
+    className={cn('text-[0.85rem] text-[var(--pl-muted)] leading-relaxed', className)}
     {...props}
   />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
-/* ── Pearloom Modal wrapper (preserves existing ModalProps API) ── */
+// ── Pearloom Modal wrapper ─────────────────────────────────────
 
 export interface ModalProps {
   open: boolean;
@@ -117,25 +118,32 @@ export function Modal({
         className={cn(maxWidth, className)}
         onPointerDownOutside={closeOnBackdrop ? undefined : (e) => e.preventDefault()}
       >
-        {/* Visually hidden description for accessibility */}
         <DialogDescription className="sr-only">
           {title || 'Dialog'}
         </DialogDescription>
+
         {(title || showClose) && (
           <DialogHeader>
             {title && <DialogTitle>{title}</DialogTitle>}
             {showClose && (
               <DialogClose asChild>
                 <button
-                  className="flex items-center justify-center w-8 h-8 rounded-full text-[var(--eg-muted)] hover:text-[var(--eg-fg)] hover:bg-[rgba(0,0,0,0.04)] transition-all cursor-pointer ml-auto"
+                  className={cn(
+                    'flex items-center justify-center w-8 h-8 ml-auto flex-shrink-0',
+                    'rounded-full cursor-pointer',
+                    'text-[var(--pl-muted)] hover:text-[var(--pl-ink)]',
+                    'bg-transparent hover:bg-[rgba(0,0,0,0.05)]',
+                    'border-0 transition-all duration-150',
+                  )}
                   aria-label="Close"
                 >
-                  <X size={18} />
+                  <X size={17} />
                 </button>
               </DialogClose>
             )}
           </DialogHeader>
         )}
+
         {children}
       </DialogContent>
     </Dialog>

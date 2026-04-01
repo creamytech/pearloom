@@ -3,7 +3,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { VibeInput } from '@/components/dashboard/vibe-input';
 import { Button } from '@/components/ui';
-import { colors, text } from '@/lib/design-tokens';
 import type { VibeFormData } from '@/lib/wizard-state';
 
 interface VibeStepProps {
@@ -38,10 +37,7 @@ export function VibeStep({ coupleNames, vibeString, onSubmit, onBack }: VibeStep
         />
       </div>
 
-      <p
-        className="text-center mt-6"
-        style={{ color: colors.muted, fontSize: text.sm }}
-      >
+      <p className="text-center mt-6 text-[var(--pl-muted)] text-[0.82rem]">
         Describe your wedding aesthetic in a few words -- we will handle the rest.
       </p>
     </div>

@@ -100,13 +100,13 @@ export function PricingPreview() {
                     {tier.name}
                   </div>
                   {tier.highlighted && (
-                    <Badge variant="warning">Best Value</Badge>
+                    <Badge variant="gold">Best Value</Badge>
                   )}
                 </div>
 
                 <div className="flex items-baseline gap-1 mb-2">
                   <span
-                    className="font-[family-name:var(--eg-font-heading)] font-bold leading-none"
+                    className="font-heading font-bold leading-none"
                     style={{ fontSize: '3rem', color: C.ink }}
                   >
                     {tier.price}

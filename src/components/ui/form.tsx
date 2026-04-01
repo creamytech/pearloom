@@ -116,7 +116,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             ref={ref}
             className={cn(
               'flex items-center justify-between w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
-              'text-[max(16px,1rem)] text-foreground font-[family-name:var(--eg-font-body)]',
+              'text-[max(16px,1rem)] text-foreground font-body',
               'outline-none cursor-pointer transition-all duration-200',
               'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',
               'data-[placeholder]:text-muted-foreground data-[placeholder]:opacity-60',
@@ -134,7 +134,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
               className={cn(
                 'relative z-50 min-w-[8rem] overflow-hidden',
                 'bg-white rounded-xl border border-[rgba(0,0,0,0.08)]',
-                'shadow-[var(--eg-shadow-md)]',
+                'shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
                 'data-[state=open]:animate-in data-[state=closed]:animate-out',
                 'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
                 'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -194,7 +194,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           type="date"
           className={cn(
             'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
-            'text-[max(16px,1rem)] text-foreground font-[family-name:var(--eg-font-body)]',
+            'text-[max(16px,1rem)] text-foreground font-body',
             'outline-none cursor-pointer transition-all duration-200',
             'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',
             error ? 'border-destructive' : 'border-input',
@@ -231,7 +231,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
           type="time"
           className={cn(
             'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
-            'text-[max(16px,1rem)] text-foreground font-[family-name:var(--eg-font-body)]',
+            'text-[max(16px,1rem)] text-foreground font-body',
             'outline-none cursor-pointer transition-all duration-200',
             'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',
             error ? 'border-destructive' : 'border-input',

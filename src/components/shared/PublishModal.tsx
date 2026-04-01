@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Globe, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { Globe, ArrowRight, Check } from 'lucide-react';
 import { Modal, Button, Input } from '@/components/ui';
 import type { StoryManifest } from '@/types';
 
@@ -15,21 +15,11 @@ function CopyUrlButton({ url }: { url: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }}
-      style={{
-        padding: '0.75rem 1rem',
-        background: copied ? 'rgba(163,177,138,0.15)' : 'transparent',
-        border: 'none',
-        borderLeft: '1.5px solid var(--eg-gold)',
-        color: copied ? 'var(--eg-accent)' : 'var(--eg-muted)',
-        cursor: 'pointer',
-        fontSize: '0.75rem',
-        fontWeight: 700,
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase' as const,
-        transition: 'all 0.2s',
-        whiteSpace: 'nowrap' as const,
-        flexShrink: 0,
-      }}
+      className={`px-4 py-3 border-l border-l-[var(--pl-gold)] border-0 flex-shrink-0 cursor-pointer text-[0.75rem] font-bold tracking-[0.06em] uppercase whitespace-nowrap transition-all duration-200 ${
+        copied
+          ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive)]'
+          : 'bg-transparent text-[var(--pl-muted)] hover:text-[var(--pl-ink)]'
+      }`}
     >
       {copied ? '✓ Copied' : 'Copy'}
     </button>
@@ -111,18 +101,14 @@ export function PublishModal({
                 initial={{ scale: 0.6, opacity: 0.6 }}
                 animate={{ scale: 1 + i * 0.45, opacity: 0 }}
                 transition={{ duration: 1.8, delay: i * 0.25, repeat: Infinity, ease: 'easeOut' }}
-                className="absolute inset-0 rounded-full border-2 border-[var(--eg-accent)] pointer-events-none"
+                className="absolute inset-0 rounded-full border-2 border-[var(--pl-olive)] pointer-events-none"
               />
             ))}
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white relative z-[1]"
-              style={{
-                background: 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
-                boxShadow: '0 12px 40px rgba(163,177,138,0.45)',
-              }}
+              className="w-20 h-20 rounded-full flex items-center justify-center text-white relative z-[1] bg-[var(--pl-olive)] shadow-[0_12px_40px_rgba(163,177,138,0.45)]"
             >
               <Check size={28} strokeWidth={2.5} />
             </motion.div>
@@ -132,8 +118,7 @@ export function PublishModal({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-[2.25rem] font-normal tracking-tight leading-tight"
-            style={{ fontFamily: 'var(--eg-font-heading)' }}
+            className="text-[2.25rem] font-normal tracking-tight leading-tight font-heading"
           >
             Your Story is Live
           </motion.h2>
@@ -142,7 +127,7 @@ export function PublishModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.45 }}
-            className="text-[var(--eg-muted)] text-[0.95rem]"
+            className="text-[var(--pl-muted)] text-[0.95rem]"
           >
             Share this link with your guests
           </motion.p>
@@ -152,11 +137,10 @@ export function PublishModal({
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="w-full flex items-center rounded-[0.875rem] overflow-hidden"
-            style={{ background: 'var(--eg-bg)', border: '1.5px solid var(--eg-gold)' }}
+            className="w-full flex items-center rounded-[var(--pl-radius-md)] overflow-hidden bg-[var(--pl-cream)] border border-[var(--pl-gold)]"
           >
-            <Globe size={15} className="ml-4 flex-shrink-0" style={{ color: 'var(--eg-accent)' }} />
-            <span className="flex-1 py-3.5 px-3 text-[0.9rem] text-[var(--eg-fg)] font-medium tracking-tight break-all">
+            <Globe size={15} className="ml-4 flex-shrink-0 text-[var(--pl-olive)]" />
+            <span className="flex-1 py-3.5 px-3 text-[0.9rem] text-[var(--pl-ink)] font-medium tracking-tight break-all">
               {publishedUrl.replace(/^https?:\/\//, '')}
             </span>
             <CopyUrlButton url={publishedUrl} />
@@ -169,11 +153,7 @@ export function PublishModal({
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65 }}
-            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-[0.875rem] text-white no-underline font-semibold text-[1rem]"
-            style={{
-              background: 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
-              boxShadow: '0 8px 30px rgba(163,177,138,0.4)',
-            }}
+            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-[var(--pl-radius-md)] text-white no-underline font-semibold text-[1rem] bg-[var(--pl-olive)] shadow-[0_8px_30px_rgba(163,177,138,0.4)] hover:bg-[var(--pl-olive-hover)] transition-colors"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -183,15 +163,13 @@ export function PublishModal({
           <div className="flex gap-3 w-full">
             <a
               href={`/rsvps?domain=${subdomain}`}
-              className="flex-1 flex items-center justify-center py-3.5 rounded-[0.875rem] no-underline font-medium text-[0.9rem] text-[var(--eg-fg)] transition-colors"
-              style={{ border: '1.5px solid var(--eg-divider)' }}
+              className="flex-1 flex items-center justify-center py-3.5 rounded-[var(--pl-radius-md)] no-underline font-medium text-[0.9rem] text-[var(--pl-ink)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] transition-colors"
             >
               Manage RSVPs
             </a>
             <button
               onClick={handleClose}
-              className="flex-1 bg-transparent cursor-pointer font-medium text-[0.9rem] text-[var(--eg-muted)] rounded-[0.875rem] transition-colors"
-              style={{ border: '1.5px solid var(--eg-divider)' }}
+              className="flex-1 bg-transparent cursor-pointer font-medium text-[0.9rem] text-[var(--pl-muted)] rounded-[var(--pl-radius-md)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] hover:text-[var(--pl-ink)] transition-colors"
             >
               Dashboard
             </button>
@@ -200,21 +178,18 @@ export function PublishModal({
       ) : (
         /* ── URL input state ── */
         <>
-          <h2
-            className="text-[2rem] mb-2"
-            style={{ fontFamily: 'var(--eg-font-heading)' }}
-          >
+          <h2 className="text-[2rem] mb-2 font-heading font-normal">
             Choose your URL
           </h2>
-          <p className="text-[var(--eg-muted)] mb-1">
+          <p className="text-[var(--pl-muted)] mb-1">
             We&apos;ve pre-filled a unique URL — customize it below.
           </p>
-          <p className="text-[var(--eg-muted)] text-[0.78rem] mb-8 opacity-70">
+          <p className="text-[var(--pl-muted)] text-[0.78rem] mb-8 opacity-70">
             You can upgrade to a full custom domain later.
           </p>
 
           {error && (
-            <div className="text-[#ef4444] bg-[#fef2f2] p-3 rounded-lg mb-6 text-[0.9rem]">
+            <div className="text-red-600 bg-red-50 p-3 rounded-lg mb-6 text-[0.9rem]">
               {error}
             </div>
           )}
@@ -232,7 +207,7 @@ export function PublishModal({
               Cancel
             </Button>
             <Button
-              variant="primary"
+              variant="accent"
               size="lg"
               onClick={handlePublish}
               disabled={isPublishing || !subdomain}
