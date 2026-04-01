@@ -206,9 +206,10 @@ export function FaqSection({
           <h2
             style={{
               fontFamily: 'var(--eg-font-heading)',
-              fontSize: 'clamp(2.75rem, 5.5vw, 4.25rem)',
-              fontWeight: 400,
-              letterSpacing: '-0.025em',
+              fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
+              fontWeight: 600,
+              fontStyle: 'italic',
+              letterSpacing: '-0.03em',
               color: 'var(--eg-fg)',
               lineHeight: 1.05,
               marginBottom: '1.5rem',

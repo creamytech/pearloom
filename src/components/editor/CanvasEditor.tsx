@@ -383,15 +383,15 @@ function BlockRow({
       onHoverEnd={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '12px 10px 12px 8px',
-        minHeight: '64px',
+        padding: '13px 10px 13px 8px',
+        minHeight: '68px',
         borderRadius: '10px',
-        background: isActive ? `${color}18` : hovered ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${isActive ? `${color}50` : hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}`,
-        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)'}`,
+        background: isActive ? `${color}18` : hovered ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+        border: `1px solid ${isActive ? `${color}45` : hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
         cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s', position: 'relative',
         userSelect: 'none',
-        boxShadow: isActive ? `0 0 0 3px ${color}10` : 'none',
+        boxShadow: isActive ? `0 2px 16px ${color}14, 0 0 0 1px ${color}08` : 'none',
       }}
     >
       {/* Drag handle — only initiates drag, does not trigger card click */}
@@ -424,10 +424,10 @@ function BlockRow({
 
       {/* Label */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: block.visible ? '#fff' : 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>
+        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: block.visible ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
           {def?.label || block.type}
         </div>
-        <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {def?.description}
         </div>
       </div>
@@ -800,13 +800,19 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
       <button
         onClick={() => setOpen(o => !o)}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-          padding: '10px', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.3)',
-          background: 'rgba(163,177,138,0.05)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer',
-          fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em', transition: 'all 0.15s',
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+          padding: '11px 14px', borderRadius: '8px',
+          border: '1px solid rgba(163,177,138,0.22)',
+          background: open ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.06)',
+          color: 'rgba(163,177,138,0.95)', cursor: 'pointer',
+          fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em',
+          transition: 'all 0.15s',
+          boxShadow: open ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'none',
         }}
       >
-        <Plus size={13} /> Add Block {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        <Sparkles size={13} />
+        <span>Add Section</span>
+        {open ? <ChevronDown size={12} style={{ opacity: 0.6 }} /> : <ChevronRight size={12} style={{ opacity: 0.6 }} />}
       </button>
 
       <AnimatePresence>
@@ -834,36 +840,48 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
               />
             </div>
 
-            {/* Block grid — 2 columns */}
-            <div style={{ maxHeight: '320px', overflowY: 'auto', padding: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            {/* Block list */}
+            <div style={{ maxHeight: '340px', overflowY: 'auto', padding: '6px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {filtered.map(b => (
                 <button
                   key={b.type}
                   onClick={() => { onAdd(b.type); setOpen(false); setSearch(''); }}
                   style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px',
-                    padding: '10px', borderRadius: '10px', border: `1px solid ${existingTypes.has(b.type) ? `${b.color}30` : 'rgba(255,255,255,0.07)'}`,
-                    background: existingTypes.has(b.type) ? `${b.color}08` : 'rgba(255,255,255,0.04)',
-                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '9px 10px', borderRadius: '8px',
+                    border: `1px solid ${existingTypes.has(b.type) ? `${b.color}28` : 'transparent'}`,
+                    background: existingTypes.has(b.type) ? `${b.color}08` : 'transparent',
+                    borderLeft: `2px solid ${existingTypes.has(b.type) ? b.color : 'transparent'}`,
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.12s',
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = `${b.color}15`; (e.currentTarget as HTMLElement).style.borderColor = `${b.color}50`; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = existingTypes.has(b.type) ? `${b.color}08` : 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = existingTypes.has(b.type) ? `${b.color}30` : 'rgba(255,255,255,0.07)'; }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background = `${b.color}12`;
+                    el.style.borderColor = `${b.color}35`;
+                    el.style.borderLeftColor = b.color;
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background = existingTypes.has(b.type) ? `${b.color}08` : 'transparent';
+                    el.style.borderColor = existingTypes.has(b.type) ? `${b.color}28` : 'transparent';
+                    el.style.borderLeftColor = existingTypes.has(b.type) ? b.color : 'transparent';
+                  }}
                 >
                   <div style={{
-                    width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-                    background: `${b.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `1px solid ${b.color}30`,
+                    width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+                    background: `${b.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${b.color}28`,
                   }}>
-                    <b.icon size={14} color={b.color} />
+                    <b.icon size={15} color={b.color} />
                   </div>
-                  <div style={{ width: '100%' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {b.label}
                       {existingTypes.has(b.type) && (
-                        <span style={{ fontSize: '0.62rem', color: b.color, background: `${b.color}15`, padding: '1px 5px', borderRadius: '4px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>added</span>
+                        <span style={{ fontSize: '0.58rem', color: b.color, padding: '1px 5px', borderRadius: '4px', background: `${b.color}18`, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>added</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)', marginTop: '2px', lineHeight: 1.35 }}>{b.description}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: '1px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{b.description}</div>
                   </div>
                 </button>
               ))}

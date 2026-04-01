@@ -45,7 +45,7 @@ function SectionHeader({ title, subtitle, eyebrowLabel }: { title: string; subti
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-60px' }}
         transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(2.75rem, 6vw, 4.5rem)', fontWeight: 400, color: 'var(--eg-fg)', letterSpacing: '-0.025em', margin: '0 0 2rem 0', lineHeight: 1.05 }}
+        style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(2.25rem, 5.5vw, 3.75rem)', fontWeight: 600, fontStyle: 'italic', color: 'var(--eg-fg)', letterSpacing: '-0.03em', margin: '0 0 2rem 0', lineHeight: 1.05 }}
       >
         {title}
       </motion.h2>

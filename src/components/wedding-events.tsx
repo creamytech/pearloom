@@ -505,9 +505,10 @@ export function WeddingEvents({
             <h2
               style={{
                 fontFamily: headingFont,
-                fontSize: 'clamp(2.75rem, 5.5vw, 4.25rem)',
-                fontWeight: 400,
-                letterSpacing: '-0.025em',
+                fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
+                fontWeight: 600,
+                fontStyle: 'italic',
+                letterSpacing: '-0.03em',
                 color: 'var(--eg-fg)',
                 marginBottom: '1.5rem',
                 lineHeight: 1.05,
