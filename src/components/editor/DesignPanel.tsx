@@ -10,7 +10,8 @@ import { AssetPicker } from '@/components/asset-library/AssetPicker';
 import { ArtManager } from './ArtManager';
 import { SidebarSection } from './EditorSidebar';
 import { DesignIcon } from '@/components/icons/EditorIcons';
-import type { StoryManifest } from '@/types';
+import { VisualEffectsPanel } from './VisualEffectsPanel';
+import type { StoryManifest, ThemeSchema } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
 export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -172,6 +173,20 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
           onChange={(heading, body) => { updateFont('heading', heading); updateFont('body', body); }}
+        />
+      </SidebarSection>
+
+      {/* ── Visual Effects ── */}
+      <SidebarSection title="Visual Effects" defaultOpen={false}>
+        <VisualEffectsPanel
+          effects={manifest.theme?.effects ?? {}}
+          accentColor={manifest.theme?.colors?.accent}
+          onChange={(effects: NonNullable<ThemeSchema['effects']>) => {
+            onChange({
+              ...manifest,
+              theme: { ...manifest.theme, effects },
+            });
+          }}
         />
       </SidebarSection>
 

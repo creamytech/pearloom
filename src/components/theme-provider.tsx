@@ -2,12 +2,20 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/theme-provider.tsx
-// Injects dynamic CSS variables + background patterns from ThemeSchema
+// Injects dynamic CSS variables + all visual atmosphere effects
+// from ThemeSchema into visitor-facing site pages.
 // ─────────────────────────────────────────────────────────────
 
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import type { ThemeSchema } from '@/types';
 import { defaultTheme, themeToCssVars, googleFontsUrl } from '@/lib/theme';
+import { GrainOverlay } from '@/components/effects/GrainOverlay';
+import { VignetteOverlay } from '@/components/effects/VignetteOverlay';
+import { GradientMesh } from '@/components/effects/GradientMesh';
+import { CustomCursor } from '@/components/effects/CustomCursor';
+import { TextureOverlay } from '@/components/effects/TextureOverlay';
+import { ScrollRevealInjector } from '@/components/effects/ScrollReveal';
+import { ColorTemperature } from '@/components/effects/ColorTemperature';
 
 interface ThemeContextValue {
   theme: ThemeSchema;
@@ -46,7 +54,9 @@ function getPatternStyle(pattern: string, accentLight: string): string {
 
 export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderProps) {
   const cssVars = useMemo(() => themeToCssVars(theme), [theme]);
+  const fx = theme.effects ?? {};
 
+  // ── Inject CSS custom properties into :root ──────────────────
   useEffect(() => {
     const root = document.documentElement;
     for (const [key, value] of Object.entries(cssVars)) {
@@ -59,6 +69,7 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
     };
   }, [cssVars]);
 
+  // ── Google Fonts ─────────────────────────────────────────────
   useEffect(() => {
     const id = 'everglow-google-fonts';
     let link = document.getElementById(id) as HTMLLinkElement | null;
@@ -77,10 +88,40 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
 
   return (
     <ThemeContext.Provider value={{ theme }}>
-      {patternStyle && (
-        <style>{`body { ${patternStyle} }`}</style>
+      {/* ── Background pattern ── */}
+      {patternStyle && <style>{`body { ${patternStyle} }`}</style>}
+
+      {/* ── Color temperature CSS filter ── */}
+      <ColorTemperature value={fx.colorTemp ?? 0} />
+
+      {/* ── Scroll reveal animation injector ── */}
+      <ScrollRevealInjector animation={fx.scrollReveal ?? 'none'} />
+
+      {/* ── Animated gradient mesh — behind all content, z=0 ── */}
+      {fx.gradientMesh && fx.gradientMesh.preset !== 'none' && (
+        <GradientMesh
+          preset={fx.gradientMesh.preset}
+          speed={fx.gradientMesh.speed}
+          opacity={fx.gradientMesh.opacity}
+          accentColor={theme.colors.accent}
+        />
       )}
-      {children}
+
+      {/* ── Page content root — color temp filter target ── */}
+      <div data-pl-site-root style={{ position: 'relative', zIndex: 1, minHeight: '100%' }}>
+        {children}
+      </div>
+
+      {/* ── Fixed-position overlays (render above content) ── */}
+      <TextureOverlay texture={fx.textureOverlay ?? 'none'} intensity={60} />
+      <GrainOverlay intensity={fx.grain ?? 0} />
+      <VignetteOverlay intensity={fx.vignette ?? 0} />
+
+      {/* ── Custom cursor (portal-like, always on top) ── */}
+      <CustomCursor
+        shape={fx.customCursor ?? 'none'}
+        accentColor={theme.colors.accent}
+      />
     </ThemeContext.Provider>
   );
 }
