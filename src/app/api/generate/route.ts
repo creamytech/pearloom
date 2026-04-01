@@ -72,74 +72,80 @@ async function uploadPhotoUrl(rawUrl: string): Promise<string> {
 }
 
 
-function getDefaultBlocks(occasion: string, hasEvents: boolean, hasDate: boolean) {
+function getDefaultBlocks(occasion: string, _hasEvents: boolean, _hasDate: boolean) {
+  // All blocks start hidden except hero + story.
+  // Users enable sections they want via the editor — this prevents empty/broken
+  // sections (schedule with no events, travel with no hotels, etc.) from appearing
+  // on freshly generated sites. Block ORDER is occasion-aware so the editor shows
+  // a sensible default sequence when blocks are toggled on.
+
   const base = [
-    { id: 'hero', type: 'hero', visible: true, order: 0 },
-    { id: 'story', type: 'story', visible: true, order: 1 },
+    { id: 'hero',  type: 'hero',  visible: true,  order: 0 },
+    { id: 'story', type: 'story', visible: true,  order: 1 },
   ];
 
   if (occasion === 'wedding') {
     return [...base,
-      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
-      { id: 'countdown', type: 'countdown', visible: hasDate && hasEvents, order: 3 },
-      { id: 'rsvp', type: 'rsvp', visible: true, order: 4 },
-      { id: 'travel', type: 'travel', visible: hasEvents, order: 5 },
-      { id: 'registry', type: 'registry', visible: false, order: 6 },
-      { id: 'faq', type: 'faq', visible: hasEvents, order: 7 },
-      { id: 'photos', type: 'photos', visible: false, order: 8 },
+      { id: 'event',     type: 'event',     visible: false, order: 2 },
+      { id: 'countdown', type: 'countdown', visible: false, order: 3 },
+      { id: 'rsvp',      type: 'rsvp',      visible: false, order: 4 },
+      { id: 'travel',    type: 'travel',    visible: false, order: 5 },
+      { id: 'registry',  type: 'registry',  visible: false, order: 6 },
+      { id: 'faq',       type: 'faq',       visible: false, order: 7 },
+      { id: 'photos',    type: 'photos',    visible: false, order: 8 },
       { id: 'guestbook', type: 'guestbook', visible: false, order: 9 },
     ];
   }
 
   if (occasion === 'anniversary') {
     return [...base,
-      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
-      { id: 'photos', type: 'photos', visible: true, order: 3 },
-      { id: 'guestbook', type: 'guestbook', visible: true, order: 4 },
-      { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
-      { id: 'countdown', type: 'countdown', visible: hasDate, order: 6 },
-      { id: 'registry', type: 'registry', visible: false, order: 7 },
-      { id: 'travel', type: 'travel', visible: false, order: 8 },
-      { id: 'faq', type: 'faq', visible: false, order: 9 },
+      { id: 'event',     type: 'event',     visible: false, order: 2 },
+      { id: 'photos',    type: 'photos',    visible: false, order: 3 },
+      { id: 'guestbook', type: 'guestbook', visible: false, order: 4 },
+      { id: 'rsvp',      type: 'rsvp',      visible: false, order: 5 },
+      { id: 'countdown', type: 'countdown', visible: false, order: 6 },
+      { id: 'registry',  type: 'registry',  visible: false, order: 7 },
+      { id: 'travel',    type: 'travel',    visible: false, order: 8 },
+      { id: 'faq',       type: 'faq',       visible: false, order: 9 },
     ];
   }
 
   if (occasion === 'birthday') {
     return [...base,
-      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
-      { id: 'guestbook', type: 'guestbook', visible: true, order: 3 },
-      { id: 'photos', type: 'photos', visible: true, order: 4 },
-      { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
-      { id: 'countdown', type: 'countdown', visible: hasDate, order: 6 },
-      { id: 'registry', type: 'registry', visible: false, order: 7 },
-      { id: 'travel', type: 'travel', visible: false, order: 8 },
-      { id: 'faq', type: 'faq', visible: false, order: 9 },
+      { id: 'event',     type: 'event',     visible: false, order: 2 },
+      { id: 'guestbook', type: 'guestbook', visible: false, order: 3 },
+      { id: 'photos',    type: 'photos',    visible: false, order: 4 },
+      { id: 'rsvp',      type: 'rsvp',      visible: false, order: 5 },
+      { id: 'countdown', type: 'countdown', visible: false, order: 6 },
+      { id: 'registry',  type: 'registry',  visible: false, order: 7 },
+      { id: 'travel',    type: 'travel',    visible: false, order: 8 },
+      { id: 'faq',       type: 'faq',       visible: false, order: 9 },
     ];
   }
 
   if (occasion === 'engagement') {
     return [...base,
-      { id: 'event', type: 'event', visible: hasEvents, order: 2 },
-      { id: 'countdown', type: 'countdown', visible: hasDate, order: 3 },
-      { id: 'photos', type: 'photos', visible: true, order: 4 },
-      { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
+      { id: 'event',     type: 'event',     visible: false, order: 2 },
+      { id: 'countdown', type: 'countdown', visible: false, order: 3 },
+      { id: 'photos',    type: 'photos',    visible: false, order: 4 },
+      { id: 'rsvp',      type: 'rsvp',      visible: false, order: 5 },
       { id: 'guestbook', type: 'guestbook', visible: false, order: 6 },
-      { id: 'registry', type: 'registry', visible: false, order: 7 },
-      { id: 'travel', type: 'travel', visible: false, order: 8 },
-      { id: 'faq', type: 'faq', visible: false, order: 9 },
+      { id: 'registry',  type: 'registry',  visible: false, order: 7 },
+      { id: 'travel',    type: 'travel',    visible: false, order: 8 },
+      { id: 'faq',       type: 'faq',       visible: false, order: 9 },
     ];
   }
 
   // story / just-because
   return [...base,
-    { id: 'photos', type: 'photos', visible: true, order: 2 },
-    { id: 'guestbook', type: 'guestbook', visible: true, order: 3 },
-    { id: 'event', type: 'event', visible: hasEvents, order: 4 },
-    { id: 'rsvp', type: 'rsvp', visible: hasEvents, order: 5 },
+    { id: 'photos',    type: 'photos',    visible: false, order: 2 },
+    { id: 'guestbook', type: 'guestbook', visible: false, order: 3 },
+    { id: 'event',     type: 'event',     visible: false, order: 4 },
+    { id: 'rsvp',      type: 'rsvp',      visible: false, order: 5 },
     { id: 'countdown', type: 'countdown', visible: false, order: 6 },
-    { id: 'registry', type: 'registry', visible: false, order: 7 },
-    { id: 'travel', type: 'travel', visible: false, order: 8 },
-    { id: 'faq', type: 'faq', visible: false, order: 9 },
+    { id: 'registry',  type: 'registry',  visible: false, order: 7 },
+    { id: 'travel',    type: 'travel',    visible: false, order: 8 },
+    { id: 'faq',       type: 'faq',       visible: false, order: 9 },
   ];
 }
 
@@ -435,6 +441,11 @@ export async function POST(req: NextRequest) {
       const blocks = getDefaultBlocks(occasion ?? 'story', events.length > 0, !!eventDate);
       manifest.blocks = blocks as typeof manifest.blocks;
     }
+
+    // Hide all sub-pages from nav by default — users enable them in the editor.
+    // This prevents nav links to empty schedule/rsvp/travel/faq pages appearing
+    // on freshly generated sites before the user has filled in that content.
+    manifest.hiddenPages = ['schedule', 'rsvp', 'travel', 'faq', 'registry'];
 
     // Set top-level logistics fields from user-supplied details
     if (dresscode) {
