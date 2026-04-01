@@ -121,6 +121,8 @@ interface DetailsData {
   celebrationVenue?: string;
   celebrationTime?: string;
   guestNotes?: string;
+  // Venue visual aesthetic — auto-populated when a venue is selected via VenueSearch
+  venueAesthetic?: string;
   // Anniversary
   anniversaryYears?: string;
   anniversaryMilestone?: string;
@@ -620,6 +622,29 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       if (detailsData.ringDetails) occasionContext += `\nTHE RING: ${detailsData.ringDetails}`;
       if (detailsData.weddingTimeline) occasionContext += `\nWEDDING TIMELINE: ${detailsData.weddingTimeline}`;
     }
+    if (occasion === 'wedding') {
+      // Ceremony venue — name + address both help the AI understand the space
+      if (detailsData.ceremonyVenue) {
+        occasionContext += `\nCEREMONY VENUE: ${detailsData.ceremonyVenue}`;
+        if (detailsData.ceremonyAddress) occasionContext += ` (${detailsData.ceremonyAddress})`;
+        if (detailsData.ceremonyTime) occasionContext += ` at ${detailsData.ceremonyTime}`;
+        occasionContext += '.';
+      }
+      // Reception venue (often different from ceremony)
+      if (detailsData.receptionVenue && detailsData.receptionVenue !== detailsData.ceremonyVenue) {
+        occasionContext += `\nRECEPTION VENUE: ${detailsData.receptionVenue}`;
+        if (detailsData.receptionAddress) occasionContext += ` (${detailsData.receptionAddress})`;
+        if (detailsData.receptionTime) occasionContext += ` at ${detailsData.receptionTime}`;
+        occasionContext += '.';
+      }
+      if (detailsData.dresscode) occasionContext += `\nDRESS CODE: ${detailsData.dresscode}.`;
+      if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
+      // Venue aesthetic — AI-inferred visual character of the venue
+      // This drives color palette, motif, and art direction to echo the actual space
+      if (detailsData.venueAesthetic) {
+        occasionContext += `\nVENUE AESTHETIC — use this to shape the site's visual identity, color palette, and art direction: ${detailsData.venueAesthetic}`;
+      }
+    }
 
     const birthdayCreator = name2.trim() ? `Created as a gift by ${name2.trim()}.` : '';
 
@@ -830,6 +855,17 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                         onSelect={(venue: VenuePartial) => {
                           setDetail('ceremonyVenue', venue.name ?? '');
                           setDetail('ceremonyAddress', venue.address ?? '');
+                          // Silently fetch venue aesthetic to inform AI generation
+                          if (venue.name) {
+                            fetch('/api/venue/aesthetic', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ venueName: venue.name, address: venue.address }),
+                            })
+                              .then(r => r.json())
+                              .then(d => { if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection); })
+                              .catch(() => {});
+                          }
                         }}
                         onAddManually={() => {
                           const name = prompt('Enter venue name:');
@@ -874,6 +910,17 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                         onSelect={(venue: VenuePartial) => {
                           setDetail('receptionVenue', venue.name ?? '');
                           setDetail('receptionAddress', venue.address ?? '');
+                          // Only fetch aesthetic from reception if ceremony venue didn't already set it
+                          if (venue.name && !detailsData.venueAesthetic) {
+                            fetch('/api/venue/aesthetic', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ venueName: venue.name, address: venue.address }),
+                            })
+                              .then(r => r.json())
+                              .then(d => { if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection); })
+                              .catch(() => {});
+                          }
                         }}
                         onAddManually={() => {
                           const name = prompt('Enter venue name:');
