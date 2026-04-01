@@ -23,6 +23,7 @@ import { SitePasswordWrapper } from '@/components/site/SitePasswordWrapper';
 import { WeddingDayBanner } from '@/components/site/WeddingDayBanner';
 import { WeddingDayPhotoFeed } from '@/components/site/WeddingDayPhotoFeed';
 import { GuestbookSection } from '@/components/site/GuestbookSection';
+import { GuestPhotoWall } from '@/components/site/GuestPhotoWall';
 import { LiveUpdatesFeed } from '@/components/site/LiveUpdatesFeed';
 import { SpotifySection } from '@/components/site/SpotifySection';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';

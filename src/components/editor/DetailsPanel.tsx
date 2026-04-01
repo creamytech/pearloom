@@ -358,6 +358,34 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               }} />
             </button>
           </div>
+
+          {/* Photo Wall toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Photo Wall</div>
+              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests upload photos from the celebration</div>
+            </div>
+            <button
+              onClick={() => onChange({
+                ...manifest,
+                features: { ...manifest.features, photoWall: !(manifest.features?.photoWall ?? false) }
+              })}
+              style={{
+                width: '40px', height: '22px', borderRadius: '11px',
+                background: (manifest.features?.photoWall ?? false) ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
+                border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: '3px',
+                left: (manifest.features?.photoWall ?? false) ? '21px' : '3px',
+                width: '16px', height: '16px', borderRadius: '50%',
+                background: '#fff', transition: 'left 0.2s',
+                display: 'block',
+              }} />
+            </button>
+          </div>
         </div>
       </Section>
 
@@ -371,6 +399,37 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
           </div>
         </Section>
+      )}
+
+      {/* Export Program — shown when there are events or a wedding date */}
+      {(manifest.events && manifest.events.length > 0 || manifest.logistics?.date) && subdomain && (
+        <div style={{ padding: '12px 4px 4px' }}>
+          {sectionHead('Export')}
+          <button
+            onClick={() => window.open(`/api/export-program?subdomain=${encodeURIComponent(subdomain)}`, '_blank')}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '9px 14px',
+              borderRadius: '8px',
+              border: '1px solid rgba(163,177,138,0.35)',
+              background: 'rgba(163,177,138,0.1)',
+              color: 'var(--eg-accent, #A3B18A)',
+              cursor: 'pointer',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              transition: 'background 0.18s',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
+          >
+            Export Program
+          </button>
+        </div>
       )}
     </div>
   );

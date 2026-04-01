@@ -35,6 +35,7 @@ import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
 import { AIEditorChat } from './AIEditorChat';
+import { MessagingPanel } from '@/components/dashboard/MessagingPanel';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -631,6 +632,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
             {state.activeTab === 'canvas' && (
               <CanvasEditor manifest={manifest} onChange={(m) => { onChange(m); }} pushToPreview={pushToPreview} />
+            )}
+
+            {state.activeTab === 'messaging' && (
+              <MessagingPanel
+                manifest={manifest}
+                siteId={state.subdomain}
+                subdomain={state.subdomain}
+              />
             )}
           </EditorSidebar>
         )}

@@ -103,6 +103,8 @@ export interface StoryManifest {
   features?: {
     guestbook?: boolean;
     liveUpdates?: boolean;
+    photoWall?: boolean;
+    postWedding?: boolean;
   };
 }
 
@@ -403,6 +405,17 @@ export interface GalleryPhoto {
   width: number;
   height: number;
   uploadedAt: string; // ISO 8601
+}
+
+export interface GuestPhoto {
+  id: string;
+  siteId: string;
+  uploaderName: string;
+  url: string;
+  thumbnailUrl?: string;
+  caption?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
 }
 
 // ─────────────────────────────────────────────────────────────

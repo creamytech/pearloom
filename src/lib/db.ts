@@ -14,6 +14,7 @@ import type {
   SeatingConstraint,
   RegistrySource,
   RegistryItem,
+  GuestPhoto,
 } from '@/types';
 
 // Lazy-initialised client: only runs at request time, never at build time
@@ -625,4 +626,140 @@ export async function upsertRegistryItem(data: Omit<RegistryItem, 'id'>): Promis
     .single();
   if (error || !row) throw new Error(`upsertRegistryItem failed: ${error?.message}`);
   return toRegistryItem(row as Record<string, unknown>);
+}
+
+// ─── Guest Photos ────────────────────────────────────────────
+
+function toGuestPhoto(row: Record<string, unknown>): GuestPhoto {
+  return {
+    id: row.id as string,
+    siteId: row.site_id as string,
+    uploaderName: row.uploader_name as string,
+    url: row.url as string,
+    thumbnailUrl: row.thumbnail_url as string | undefined,
+    caption: row.caption as string | undefined,
+    status: row.status as GuestPhoto['status'],
+    createdAt: row.created_at as string,
+  };
+}
+
+export async function addGuestPhoto(data: Omit<GuestPhoto, 'id' | 'createdAt'>): Promise<GuestPhoto | null> {
+  const supabase = getSupabase();
+  const { data: row, error } = await supabase
+    .from('guest_photos')
+    .insert({
+      site_id: data.siteId,
+      uploader_name: data.uploaderName,
+      url: data.url,
+      thumbnail_url: data.thumbnailUrl ?? null,
+      caption: data.caption ?? null,
+      status: 'pending',
+    })
+    .select()
+    .single();
+  if (error || !row) return null;
+  return toGuestPhoto(row as Record<string, unknown>);
+}
+
+export async function getGuestPhotos(siteId: string, status?: GuestPhoto['status']): Promise<GuestPhoto[]> {
+  const supabase = getSupabase();
+  let query = supabase
+    .from('guest_photos')
+    .select('*')
+    .eq('site_id', siteId)
+    .order('created_at', { ascending: false });
+  if (status) {
+    query = query.eq('status', status);
+  }
+  const { data, error } = await query;
+  if (error) return [];
+  return (data as Record<string, unknown>[]).map(toGuestPhoto);
+}
+
+export async function moderateGuestPhoto(id: string, status: 'approved' | 'rejected'): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('guest_photos')
+    .update({ status })
+    .eq('id', id);
+  if (error) throw new Error(`moderateGuestPhoto failed: ${error.message}`);
+}
+
+// ─── Site Invites (Coordinator Access) ──────────────────────
+
+export async function createSiteInvite(data: {
+  siteId: string;
+  email: string;
+  role: 'coordinator' | 'viewer';
+  invitedBy: string;
+}): Promise<{ token: string }> {
+  const supabase = getSupabase();
+  const token = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+  const { error } = await supabase.from('site_invites').insert({
+    site_id: data.siteId,
+    email: data.email,
+    role: data.role,
+    token,
+    invited_by: data.invitedBy,
+    expires_at: expiresAt,
+  });
+  if (error) throw new Error(`createSiteInvite failed: ${error.message}`);
+  return { token };
+}
+
+export async function getSiteInvites(siteId: string): Promise<Array<{
+  id: string; email: string; role: string; token: string;
+  expiresAt: string; acceptedAt: string | null; createdAt: string;
+}>> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('site_invites')
+    .select('id, email, role, token, expires_at, accepted_at, created_at')
+    .eq('site_id', siteId)
+    .order('created_at', { ascending: false });
+  if (error) return [];
+  return (data ?? []).map((r: Record<string, unknown>) => ({
+    id: r.id as string,
+    email: r.email as string,
+    role: r.role as string,
+    token: r.token as string,
+    expiresAt: r.expires_at as string,
+    acceptedAt: r.accepted_at as string | null,
+    createdAt: r.created_at as string,
+  }));
+}
+
+export async function acceptSiteInvite(token: string, acceptorEmail: string): Promise<{
+  siteId: string; role: string; subdomain: string;
+} | null> {
+  const supabase = getSupabase();
+  const { data: invite, error } = await supabase
+    .from('site_invites')
+    .select('*')
+    .eq('token', token)
+    .gt('expires_at', new Date().toISOString())
+    .is('accepted_at', null)
+    .maybeSingle();
+  if (error || !invite) return null;
+  // Mark as accepted
+  await supabase.from('site_invites')
+    .update({ accepted_at: new Date().toISOString() })
+    .eq('token', token);
+  // Get the subdomain from sites
+  const { data: site } = await supabase
+    .from('sites')
+    .select('subdomain')
+    .eq('id', invite.site_id)
+    .maybeSingle();
+  return {
+    siteId: invite.site_id as string,
+    role: invite.role as string,
+    subdomain: (site as Record<string, unknown>)?.subdomain as string || '',
+  };
+}
+
+export async function deleteSiteInvite(id: string): Promise<void> {
+  const supabase = getSupabase();
+  await supabase.from('site_invites').delete().eq('id', id);
 }

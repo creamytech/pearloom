@@ -3,13 +3,14 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon,
 } from '@/components/icons/EditorIcons';
 
 // ── Types ──────────────────────────────────────────────────────
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging';
 
 interface EditorSidebarProps {
   activeTab: EditorTab;
@@ -36,13 +37,14 @@ const TAB_CONFIG: Array<{
   { tab: 'design',  icon: DesignIcon,   label: 'Design',    group: 'top' },
   { tab: 'details', icon: DetailsIcon,  label: 'Details',   group: 'bottom' },
   { tab: 'blocks',  icon: AIBlocksIcon, label: 'AI Blocks', group: 'bottom' },
-  { tab: 'voice',   icon: VoiceIcon,    label: 'Voice',     group: 'bottom' },
+  { tab: 'voice',      icon: VoiceIcon,    label: 'Voice',      group: 'bottom' },
+  { tab: 'messaging',  icon: Mail,         label: 'Messaging',  group: 'bottom' },
 ];
 
 const TAB_LABELS: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story Chapters', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
-  blocks: 'AI Blocks', voice: 'Voice',
+  blocks: 'AI Blocks', voice: 'Voice', messaging: 'Message Guests',
 };
 
 const MIN_WIDTH = 260;
