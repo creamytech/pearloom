@@ -221,8 +221,16 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Google Fonts URL for the AI-selected pairing
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
 
-  // Determine cover photo
-  const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || '';
+  // Determine cover photo — fall back to AI-generated typographic hero art
+  const rawCoverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || '';
+  const heroArtParams = new URLSearchParams({
+    n1: safeNames[0],
+    n2: safeNames[1],
+    occasion,
+    accent: pal.accent,
+    bg: pal.background,
+  });
+  const coverPhoto = rawCoverPhoto || `/api/hero-art?${heroArtParams.toString()}`;
 
 
   // Build real nav pages from manifest content
