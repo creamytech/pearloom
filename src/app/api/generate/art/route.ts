@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       palette: VibeSkin['palette'];
       occasion?: string;
       coupleNames: [string, string];
-      chapters: Array<{ title: string; description?: string; mood?: string }>;
+      chapters: Array<{ title: string; description?: string | null; mood?: string | null }>;
       clusterNotes?: Array<{ chapterIndex: number; note: string; location: string | null }>;
     } = body;
 
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     // profile-aware art generation (pets, motifs, interests → illustration prompt)
     const coupleProfile = await extractCoupleProfile(
       vibeString,
-      chapters ?? [],
+      (chapters ?? []).map(c => ({ title: c.title, description: c.description ?? '', mood: c.mood ?? '' })),
       apiKey,
       occasion,
       clusterNotes,
