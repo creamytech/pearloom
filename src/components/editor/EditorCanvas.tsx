@@ -135,7 +135,7 @@ export function EditorCanvas() {
   }, [iframeReady, iframeRef, isMobile]);
 
   // ── Mobile Visual Edit Mode ─────────────────────────────────
-  if (isMobile && state.mobileVisualEdit) {
+  if (isMobile) {
     const actionChapter = state.mobileActionChapterId
       ? chapters.find(c => c.id === state.mobileActionChapterId) || null
       : null;
@@ -157,7 +157,6 @@ export function EditorCanvas() {
             // Open story tab for hero editing
             dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
             dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-            dispatch({ type: 'SET_MOBILE_VISUAL_EDIT', enabled: false });
           }}
         />
         <MobileChapterActionSheet
@@ -193,7 +192,7 @@ export function EditorCanvas() {
     );
   }
 
-  // ── Fallback: mobile non-visual-edit shows iframe ───────────
+  // ── Desktop: iframe live preview ────────────────────────────
   return (
     <div style={{
       flex: 1,

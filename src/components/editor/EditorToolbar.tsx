@@ -315,23 +315,47 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           </select>
         )}
 
-        {/* Preview button — mobile: icon only */}
+        {/* Preview + Publish — mobile */}
         {isMobile && (
-          <motion.button
-            onClick={actions.storePreviewForOpen}
-            title="Preview" aria-label="Preview site"
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-            style={{
-              padding: '5px 7px', borderRadius: '6px', border: 'none',
-              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)',
-              cursor: 'pointer', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', minHeight: '44px', minWidth: '44px',
-            }}
-          >
-            <PreviewIcon size={13} />
-          </motion.button>
+          <>
+            <motion.button
+              onClick={actions.storePreviewForOpen}
+              title="Open preview in browser" aria-label="Open preview in browser"
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '6px 11px', borderRadius: '6px',
+                border: '1px solid rgba(214,198,168,0.15)',
+                background: 'transparent', color: 'rgba(255,255,255,0.7)',
+                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+                minHeight: '36px',
+              }}
+            >
+              <PreviewIcon size={13} />
+              <span>Preview</span>
+            </motion.button>
+            <motion.button
+              onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
+              title="Publish your site" aria-label="Publish"
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '6px 13px', borderRadius: '6px', border: 'none',
+                background: 'linear-gradient(135deg, #A3B18A 0%, #7A917A 50%, #6D597A 100%)',
+                color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer',
+                fontSize: '0.78rem', fontWeight: 700,
+                boxShadow: '0 2px 10px rgba(109,89,122,0.3)',
+                minHeight: '36px',
+              }}
+            >
+              <PublishIcon size={13} />
+              <span>Publish</span>
+            </motion.button>
+          </>
         )}
 
         {/* Split + Preview + Publish — desktop only */}
