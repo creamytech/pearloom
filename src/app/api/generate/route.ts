@@ -481,46 +481,45 @@ export async function POST(req: NextRequest) {
       manifest.chapters = manifest.chapters.slice(0, enrichedClusters.length);
     }
     const uploadLimit = pLimit(8); // max 8 concurrent R2 uploads
-    manifest.chapters = await Promise.all(manifest.chapters.map(async (chapter, i) => {
-      const cluster = enrichedClusters[i];
-      if (cluster) {
-        // Upload all chapter photos to R2 with concurrency control
-        const photosToUpload = cluster.photos.slice(0, 3);
-        const uploadedUrls = await Promise.all(
-          photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
-        );
 
-        chapter.images = photosToUpload.map((p, pi) => ({
-          id: p.id,
-          url: uploadedUrls[pi],
-          alt: p.description || chapter.title,
-          width: p.width,
-          height: p.height,
-        }));
+    // Run chapter uploads, logo generation, and art uploads all in parallel
+    const [updatedChapters, logoResult, artUrls] = await Promise.all([
+      // 1. Upload chapter photos to R2 + resolve locations
+      Promise.all(manifest.chapters.map(async (chapter, i) => {
+        const cluster = enrichedClusters[i];
+        if (cluster) {
+          const photosToUpload = cluster.photos.slice(0, 3);
+          const uploadedUrls = await Promise.all(
+            photosToUpload.map(p => uploadLimit(() => uploadPhotoUrl(p.baseUrl)))
+          );
 
-        // ALWAYS use cluster location — never trust AI-generated ones
-        if (cluster.location) {
-          // If we have GPS coords but label is missing, try reverse geocoding one more time
-          if (!cluster.location.label && (cluster.location.lat || cluster.location.lng)) {
-            const label = await reverseGeocode(cluster.location.lat, cluster.location.lng);
-            cluster.location.label = label || `${cluster.location.lat.toFixed(2)}, ${cluster.location.lng.toFixed(2)}`;
+          chapter.images = photosToUpload.map((p, pi) => ({
+            id: p.id,
+            url: uploadedUrls[pi],
+            alt: p.description || chapter.title,
+            width: p.width,
+            height: p.height,
+          }));
+
+          // ALWAYS use cluster location — never trust AI-generated ones
+          if (cluster.location) {
+            if (!cluster.location.label && (cluster.location.lat || cluster.location.lng)) {
+              const label = await reverseGeocode(cluster.location.lat, cluster.location.lng);
+              cluster.location.label = label || `${cluster.location.lat.toFixed(2)}, ${cluster.location.lng.toFixed(2)}`;
+            }
+            chapter.location = cluster.location.label ? cluster.location : null;
+          } else {
+            chapter.location = null;
           }
-          chapter.location = cluster.location.label ? cluster.location : null;
-        } else {
-          chapter.location = null;
         }
-      }
-      return chapter;
-    }));
+        return chapter;
+      })),
 
-    // Generate a custom AI logo icon based on occasion + vibe + interests
-    const logoResult = await generateLogoIcon(occasion, vibeString, names, apiKey);
-    manifest.logoIcon = logoResult.logoIcon;
-    if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
+      // 2. Generate custom AI logo icon
+      generateLogoIcon(occasion, vibeString, names, apiKey),
 
-    // Upload AI-generated raster art to R2 for permanent URLs (base64 DataURLs are too large for sessionStorage)
-    if (manifest.vibeSkin) {
-      const artUploads = await Promise.all([
+      // 3. Upload AI-generated raster art to R2 for permanent URLs
+      manifest.vibeSkin ? Promise.all([
         manifest.vibeSkin.heroArtDataUrl?.startsWith('data:')
           ? uploadBase64Art(manifest.vibeSkin.heroArtDataUrl, 'hero')
           : Promise.resolve(manifest.vibeSkin.heroArtDataUrl),
@@ -530,10 +529,16 @@ export async function POST(req: NextRequest) {
         manifest.vibeSkin.artStripDataUrl?.startsWith('data:')
           ? uploadBase64Art(manifest.vibeSkin.artStripDataUrl, 'strip')
           : Promise.resolve(manifest.vibeSkin.artStripDataUrl),
-      ]);
-      if (artUploads[0]) manifest.vibeSkin.heroArtDataUrl = artUploads[0];
-      if (artUploads[1]) manifest.vibeSkin.ambientArtDataUrl = artUploads[1];
-      if (artUploads[2]) manifest.vibeSkin.artStripDataUrl = artUploads[2];
+      ]) : Promise.resolve(null),
+    ]);
+
+    manifest.chapters = updatedChapters;
+    manifest.logoIcon = logoResult.logoIcon;
+    if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
+    if (manifest.vibeSkin && artUrls) {
+      if (artUrls[0]) manifest.vibeSkin.heroArtDataUrl = artUrls[0];
+      if (artUrls[1]) manifest.vibeSkin.ambientArtDataUrl = artUrls[1];
+      if (artUrls[2]) manifest.vibeSkin.artStripDataUrl = artUrls[2];
     }
 
     return NextResponse.json({ manifest });
