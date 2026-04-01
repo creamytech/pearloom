@@ -146,7 +146,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
 
   return (
     <div style={{
-      height: '56px', flexShrink: 0,
+      height: '44px', flexShrink: 0,
       display: 'flex', alignItems: 'center',
       borderBottom: '1px solid rgba(255,255,255,0.07)',
       background: 'rgba(36,30,26,0.98)',

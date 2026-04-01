@@ -6,22 +6,25 @@
 // All UI extracted to focused components. State in editor-state.ts.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback, useEffect, useRef, useReducer } from 'react';
+import { useState, useCallback, useEffect, useRef, useReducer, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
-import { Globe, Eye } from 'lucide-react';
-import { PublishIcon } from '@/components/icons/EditorIcons';
+import { Globe, Mail, Copy, Check, Phone, MessageCircle } from 'lucide-react';
+import {
+  PublishIcon, SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
+  DetailsIcon, AIBlocksIcon, VoiceIcon,
+} from '@/components/icons/EditorIcons';
 import type { StoryManifest, Chapter } from '@/types';
 import type { CommandAction } from './CommandPalette';
 
 // ── Extracted components ──────────────────────────────────────
 import { EditorToolbar } from './EditorToolbar';
 import { EditorCanvas } from './EditorCanvas';
-import { EditorSidebar } from './EditorSidebar';
+import { EditorWing } from './EditorWing';
 import { StoryPanel } from './StoryPanel';
 import { MobileEditorSheet } from './MobileEditorSheet';
 import { WelcomeOverlay } from './WelcomeOverlay';
@@ -58,8 +61,11 @@ interface FullscreenEditorProps {
 export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubdomain, onChange, onPublish, onExit }: FullscreenEditorProps) {
   const [state, dispatch] = useReducer(editorReducer, undefined, () => createInitialEditorState(manifest, initialSubdomain));
   const [previewKey] = useState(() => `${PREVIEW_KEY_PREFIX}-${Date.now()}`);
+  const [leftWingOpen, setLeftWingOpen] = useState(true);
+  const [rightWingOpen, setRightWingOpen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const contentPanelRef = useRef<HTMLDivElement>(null);
+  const rightContentPanelRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tabScrollPositions = useRef<Record<string, number>>({});
@@ -84,6 +90,35 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // ── Wing tab groups ──────────────────────────────────────────
+  const LEFT_TABS: EditorTab[] = useMemo(() => ['story', 'events', 'canvas', 'pages', 'messaging'], []);
+  const RIGHT_TABS: EditorTab[] = useMemo(() => ['design', 'details', 'blocks', 'voice'], []);
+
+  const LEFT_WING_TABS = useMemo(() => [
+    { tab: 'story' as const,     icon: StoryIcon,    label: 'Story' },
+    { tab: 'events' as const,    icon: EventsIcon,   label: 'Events' },
+    { tab: 'canvas' as const,    icon: SectionsIcon, label: 'Sections' },
+    { tab: 'pages' as const,     icon: SectionsIcon, label: 'Pages' },
+    { tab: 'messaging' as const, icon: Mail,         label: 'Msgs' },
+  ], []);
+
+  const RIGHT_WING_TABS = useMemo(() => [
+    { tab: 'design' as const,  icon: DesignIcon,   label: 'Design' },
+    { tab: 'details' as const, icon: DetailsIcon,  label: 'Details' },
+    { tab: 'blocks' as const,  icon: AIBlocksIcon, label: 'AI' },
+    { tab: 'voice' as const,   icon: VoiceIcon,    label: 'Voice' },
+  ], []);
+
+  // ── Auto-open correct wing on tab change ─────────────────────
+  useEffect(() => {
+    if (state.isMobile) return;
+    if (LEFT_TABS.includes(state.activeTab)) {
+      setLeftWingOpen(true);
+    } else if (RIGHT_TABS.includes(state.activeTab)) {
+      setRightWingOpen(true);
+    }
+  }, [state.activeTab, state.isMobile, LEFT_TABS, RIGHT_TABS]);
 
   // ── Sync chapters when manifest.chapters changes from parent ─
   useEffect(() => {
@@ -386,7 +421,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
       if (mod && e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); return; }
       if (mod && e.key === 'y') { e.preventDefault(); redo(); return; }
-      if (mod && e.key === '\\') { e.preventDefault(); dispatch({ type: 'TOGGLE_SIDEBAR_COLLAPSED' }); return; }
+      if (mod && e.key === '\\') { e.preventDefault(); setLeftWingOpen(prev => !prev); return; }
       // Cmd+P — preview in new tab
       if (mod && e.key === 'p') { e.preventDefault(); storePreviewForOpen(); return; }
       // Cmd+S — mark as saved
@@ -535,71 +570,38 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       <EditorToolbar onExit={onExit} />
 
       {/* Body */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Desktop Sidebar */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+        {/* Canvas fills everything */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {!state.isMobile && (
+            <PostWeddingBanner
+              manifest={manifest}
+              subdomain={state.subdomain}
+              onUpdate={(m) => { onChange(m); pushToPreview(m); }}
+            />
+          )}
+          <EditorCanvas />
+        </div>
+
+        {/* Left Wing (desktop only) */}
         {!state.isMobile && (
-          <EditorSidebar
+          <EditorWing
+            side="left"
+            open={leftWingOpen}
+            onToggle={() => setLeftWingOpen(v => !v)}
+            tabs={LEFT_WING_TABS}
             activeTab={state.activeTab}
             onTabChange={handleTabChange}
-            width={state.sidebarWidth}
-            onWidthChange={(w) => dispatch({ type: 'SET_SIDEBAR_WIDTH', width: w })}
-            collapsed={state.sidebarCollapsed}
-            onCollapsedChange={(c) => dispatch({ type: 'SET_SIDEBAR_COLLAPSED', collapsed: c })}
             contentRef={contentPanelRef}
-            footer={
-              <div style={{ padding: '10px 12px', display: 'flex', gap: '8px' }}>
-                <motion.button
-                  onClick={storePreviewForOpen}
-                  whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.1)', color: '#fff' }}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                  style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    padding: '9px 10px', borderRadius: '8px',
-                    border: '1px solid rgba(163,177,138,0.4)',
-                    background: 'transparent', color: 'rgba(255,255,255,0.75)',
-                    cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-                    whiteSpace: 'nowrap', minHeight: '38px',
-                  }}
-                >
-                  <Eye size={12} /> Preview
-                </motion.button>
-                <motion.button
-                  onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
-                  whileHover={{ scale: 1.06, boxShadow: '0 6px 20px rgba(163,177,138,0.55)', y: -1 }}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 20 }}
-                  style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    padding: '9px 10px', borderRadius: '8px', border: 'none',
-                    background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
-                    color: '#F5F1E8', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-                    boxShadow: '0 2px 8px rgba(163,177,138,0.35)',
-                    whiteSpace: 'nowrap', minHeight: '38px',
-                  }}
-                >
-                  <Globe size={12} /> Publish
-                </motion.button>
-              </div>
-            }
+            toolbarHeight={44}
           >
-            {/* Tab content */}
+            {/* Left tab content */}
             {state.activeTab === 'story' && <StoryPanel />}
 
             <AnimatePresence mode="wait">
-              {state.activeTab === 'design' && (
-                <motion.div key="design" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <DesignPanel manifest={manifest} onChange={handleDesignChange} />
-                </motion.div>
-              )}
               {state.activeTab === 'events' && (
                 <motion.div key="events" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
                   <EventsPanel manifest={manifest} onChange={handleDesignChange} />
-                </motion.div>
-              )}
-              {state.activeTab === 'details' && (
-                <motion.div key="details" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={state.subdomain} />
                 </motion.div>
               )}
               {state.activeTab === 'pages' && (
@@ -611,6 +613,45 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                     previewPage={state.previewPage}
                     onPreviewPage={(slug) => dispatch({ type: 'SET_PREVIEW_PAGE', page: slug })}
                   />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {state.activeTab === 'canvas' && (
+              <CanvasEditor manifest={manifest} onChange={(m) => { onChange(m); }} pushToPreview={pushToPreview} />
+            )}
+
+            {state.activeTab === 'messaging' && (
+              <MessagingPanel
+                manifest={manifest}
+                siteId={state.subdomain}
+                subdomain={state.subdomain}
+              />
+            )}
+          </EditorWing>
+        )}
+
+        {/* Right Wing (desktop only) */}
+        {!state.isMobile && (
+          <EditorWing
+            side="right"
+            open={rightWingOpen}
+            onToggle={() => setRightWingOpen(v => !v)}
+            tabs={RIGHT_WING_TABS}
+            activeTab={state.activeTab}
+            onTabChange={handleTabChange}
+            contentRef={rightContentPanelRef}
+            toolbarHeight={44}
+          >
+            <AnimatePresence mode="wait">
+              {state.activeTab === 'design' && (
+                <motion.div key="design" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <DesignPanel manifest={manifest} onChange={handleDesignChange} />
+                </motion.div>
+              )}
+              {state.activeTab === 'details' && (
+                <motion.div key="details" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
+                  <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={state.subdomain} />
                 </motion.div>
               )}
               {state.activeTab === 'blocks' && (
@@ -636,32 +677,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 </div>
               </motion.div>
             )}
-
-            {state.activeTab === 'canvas' && (
-              <CanvasEditor manifest={manifest} onChange={(m) => { onChange(m); }} pushToPreview={pushToPreview} />
-            )}
-
-            {state.activeTab === 'messaging' && (
-              <MessagingPanel
-                manifest={manifest}
-                siteId={state.subdomain}
-                subdomain={state.subdomain}
-              />
-            )}
-          </EditorSidebar>
+          </EditorWing>
         )}
-
-        {/* Center Canvas + Post-Wedding Banner */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {!state.isMobile && (
-            <PostWeddingBanner
-              manifest={manifest}
-              subdomain={state.subdomain}
-              onUpdate={(m) => { onChange(m); pushToPreview(m); }}
-            />
-          )}
-          <EditorCanvas />
-        </div>
       </div>
 
       {/* Mobile */}
@@ -727,6 +744,21 @@ import { Loader2 } from 'lucide-react';
 function PublishModalInline() {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
   const { showPublish, publishedUrl, publishError, isPublishing, subdomain } = state;
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const accent = manifest?.theme?.colors?.accent || '#A3B18A';
+  const displayNames = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'Our Site';
+  const shareMsg = publishedUrl
+    ? `You're invited! View ${displayNames}'s site: ${publishedUrl}`
+    : '';
+  const rsvpUrl = publishedUrl ? `${publishedUrl}#rsvp` : '';
+
+  const handleCopyLink = () => {
+    if (!publishedUrl) return;
+    navigator.clipboard?.writeText(publishedUrl).catch(() => {});
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
 
   if (!showPublish) return null;
 
@@ -791,14 +823,59 @@ function PublishModalInline() {
                   style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                   <motion.a href={publishedUrl!} target="_blank" rel="noreferrer"
                     whileHover={{ scale: 1.04, boxShadow: '0 6px 22px rgba(163,177,138,0.45)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px rgba(163,177,138,0.35)' }}>
+                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px rgba(163,177,138,0.35)' }}>
                     Open Site →
                   </motion.a>
                   <motion.button onClick={() => { dispatch({ type: 'SET_SHOW_PUBLISH', show: false }); }}
                     whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.1)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
                     Dashboard
                   </motion.button>
+                </motion.div>
+
+                {/* ── Share with guests ── */}
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.34 }}
+                  style={{ width: '100%', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '1rem' }}>
+                  <div style={{ fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.28)', marginBottom: '0.75rem', textAlign: 'left' }}>
+                    Share with guests
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {/* iMessage / SMS */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={() => { if (shareMsg) window.location.href = `sms:?body=${encodeURIComponent(shareMsg)}`; }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.25)', color: 'rgba(255,255,255,0.85)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <Phone size={13} /> iMessage
+                    </motion.button>
+                    {/* WhatsApp */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={() => { if (shareMsg) window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank'); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <MessageCircle size={13} /> WhatsApp
+                    </motion.button>
+                    {/* Email */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={() => { if (publishedUrl) window.open(`mailto:?subject=${encodeURIComponent(`You're invited — ${displayNames}`)}&body=${encodeURIComponent(`View our site:\n${publishedUrl}`)}`); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <Mail size={13} /> Email
+                    </motion.button>
+                    {/* Copy link */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={handleCopyLink}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: shareCopied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: shareCopied ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(255,255,255,0.1)', color: shareCopied ? '#4ade80' : 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, transition: 'all 0.2s' }}>
+                      {shareCopied ? <Check size={13} /> : <Copy size={13} />}
+                      {shareCopied ? 'Copied!' : 'Copy Link'}
+                    </motion.button>
+                  </div>
+                  {/* RSVP link hint */}
+                  {rsvpUrl && (
+                    <div style={{ marginTop: '0.75rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.28)', textAlign: 'left' }}>
+                      RSVP link: <span style={{ color: 'rgba(163,177,138,0.7)', fontFamily: 'ui-monospace, monospace' }}>{rsvpUrl}</span>
+                    </div>
+                  )}
                 </motion.div>
               </motion.div>
             ) : (

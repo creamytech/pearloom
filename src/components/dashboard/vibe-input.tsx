@@ -47,6 +47,48 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
+// ── Venue aesthetic chip — shows AI-detected style under venue card ──
+function VenueAestheticChip({ loading, style, mood }: { loading: boolean; style: string; mood: string }) {
+  if (!loading && !style) return null;
+  return (
+    <div
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+        padding: '0.35rem 0.75rem', borderRadius: '100px',
+        background: loading ? 'rgba(163,177,138,0.07)' : 'rgba(163,177,138,0.12)',
+        border: '1px solid rgba(163,177,138,0.22)',
+        fontSize: '0.72rem', color: 'var(--eg-accent)',
+        fontWeight: 600, lineHeight: 1.3,
+        transition: 'all 0.3s',
+        maxWidth: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      {loading ? (
+        <>
+          <span style={{
+            display: 'inline-block', width: '10px', height: '10px',
+            border: '1.5px solid rgba(163,177,138,0.35)',
+            borderTopColor: 'var(--eg-accent)',
+            borderRadius: '50%',
+            animation: 'spin 0.75s linear infinite',
+            flexShrink: 0,
+          }} />
+          <span style={{ color: 'var(--eg-muted)' }}>Reading venue style…</span>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </>
+      ) : (
+        <>
+          <span style={{ flexShrink: 0 }}>✦</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {style}{mood ? ` · ${mood}` : ''}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Collapsible accordion for Phase 2 details ──────────────────
 function AccordionSection({ title, icon, children, defaultOpen = true }: {
   title: string;
@@ -121,6 +163,8 @@ interface DetailsData {
   celebrationVenue?: string;
   celebrationTime?: string;
   guestNotes?: string;
+  // Venue visual aesthetic — auto-populated when a venue is selected via VenueSearch
+  venueAesthetic?: string;
   // Anniversary
   anniversaryYears?: string;
   anniversaryMilestone?: string;
@@ -463,8 +507,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   }, []);
 
   const [step, setStep] = useState(1);
-  // 'main' = steps 1-7/8 of the wizard, 'details' = optional details sub-step
-  const [wizardPhase, setWizardPhase] = useState<'main' | 'details'>('main');
+  // 'main' = steps 1-7/8, 'details' = optional details, 'confirm' = pre-generation review
+  const [wizardPhase, setWizardPhase] = useState<'main' | 'details' | 'confirm'>('main');
   const [detailsData, setDetailsData] = useState<DetailsData>({});
   const [inspirationUrls, setInspirationUrls] = useState<string[]>([]);
   const [inspoKeywords, setInspoKeywords] = useState<string[]>([]);
@@ -499,6 +543,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [eventVenue, setEventVenue] = useState('');
   const [rsvpDeadline, setRsvpDeadline] = useState('');
   const [cashFundUrl, setCashFundUrl] = useState('');
+  // Venue aesthetic — display state (the full injection goes into detailsData)
+  const [venueAestheticLoading, setVenueAestheticLoading] = useState(false);
+  const [venueStyleLabel, setVenueStyleLabel] = useState('');
+  const [venueStyleMood, setVenueStyleMood] = useState('');
 
   // For birthday only name1 (the birthday person) is required; name2 is optional gift-giver
   const canProceedStep1 = isBirthday ? !!name1.trim() : !!(name1.trim() && name2.trim());
@@ -620,6 +668,29 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       if (detailsData.ringDetails) occasionContext += `\nTHE RING: ${detailsData.ringDetails}`;
       if (detailsData.weddingTimeline) occasionContext += `\nWEDDING TIMELINE: ${detailsData.weddingTimeline}`;
     }
+    if (occasion === 'wedding') {
+      // Ceremony venue — name + address both help the AI understand the space
+      if (detailsData.ceremonyVenue) {
+        occasionContext += `\nCEREMONY VENUE: ${detailsData.ceremonyVenue}`;
+        if (detailsData.ceremonyAddress) occasionContext += ` (${detailsData.ceremonyAddress})`;
+        if (detailsData.ceremonyTime) occasionContext += ` at ${detailsData.ceremonyTime}`;
+        occasionContext += '.';
+      }
+      // Reception venue (often different from ceremony)
+      if (detailsData.receptionVenue && detailsData.receptionVenue !== detailsData.ceremonyVenue) {
+        occasionContext += `\nRECEPTION VENUE: ${detailsData.receptionVenue}`;
+        if (detailsData.receptionAddress) occasionContext += ` (${detailsData.receptionAddress})`;
+        if (detailsData.receptionTime) occasionContext += ` at ${detailsData.receptionTime}`;
+        occasionContext += '.';
+      }
+      if (detailsData.dresscode) occasionContext += `\nDRESS CODE: ${detailsData.dresscode}.`;
+      if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
+      // Venue aesthetic — AI-inferred visual character of the venue
+      // This drives color palette, motif, and art direction to echo the actual space
+      if (detailsData.venueAesthetic) {
+        occasionContext += `\nVENUE AESTHETIC — use this to shape the site's visual identity, color palette, and art direction: ${detailsData.venueAesthetic}`;
+      }
+    }
 
     const birthdayCreator = name2.trim() ? `Created as a gift by ${name2.trim()}.` : '';
 
@@ -658,10 +729,14 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     setWizardPhase('details');
   };
 
-  // Called when the user clicks "Build my site" or "Skip all" from the details phase
-  const handleFinalSubmit = (skipDetails = false) => {
+  // From details → show confirm review screen
+  const handleShowConfirm = () => {
+    setWizardPhase('confirm');
+  };
+
+  // The actual generation — called only from the confirm screen
+  const handleFinalSubmit = () => {
     const synthesizedVibe = buildVibeString();
-    const details = skipDetails ? {} : detailsData;
     const n1 = name1.trim();
     const n2 = name2.trim();
     const autoSlug = isBirthday
@@ -680,7 +755,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       rsvpDeadline: rsvpDeadline || undefined,
       cashFundUrl: cashFundUrl || undefined,
       eventVenue: eventVenue || undefined,
-      ...details,
+      ...detailsData,
     });
   };
 
@@ -791,7 +866,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           </button>
           <span style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', fontWeight: 500 }}>Step 2 of 2</span>
           <button
-            onClick={() => handleFinalSubmit(true)}
+            onClick={handleShowConfirm}
             style={{ fontSize: '0.88rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '2px' }}
           >
             Skip — add later
@@ -814,15 +889,19 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
                     {detailsData.ceremonyVenue ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.ceremonyVenue}</div>
-                          {detailsData.ceremonyAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.ceremonyAddress}</div>}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.ceremonyVenue}</div>
+                            {detailsData.ceremonyAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.ceremonyAddress}</div>}
+                          </div>
+                          <button
+                            onClick={() => { setDetail('ceremonyVenue', ''); setDetail('ceremonyAddress', ''); setDetail('venueAesthetic', ''); setVenueStyleLabel(''); setVenueStyleMood(''); }}
+                            style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                          >Change</button>
                         </div>
-                        <button
-                          onClick={() => { setDetail('ceremonyVenue', ''); setDetail('ceremonyAddress', ''); }}
-                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
-                        >Change</button>
+                        {/* Venue aesthetic chip */}
+                        <VenueAestheticChip loading={venueAestheticLoading} style={venueStyleLabel} mood={venueStyleMood} />
                       </div>
                     ) : (
                       <VenueSearch
@@ -830,6 +909,25 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                         onSelect={(venue: VenuePartial) => {
                           setDetail('ceremonyVenue', venue.name ?? '');
                           setDetail('ceremonyAddress', venue.address ?? '');
+                          // Fetch venue aesthetic to inform AI generation + show style chip
+                          if (venue.name) {
+                            setVenueAestheticLoading(true);
+                            setVenueStyleLabel('');
+                            setVenueStyleMood('');
+                            fetch('/api/venue/aesthetic', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ venueName: venue.name, address: venue.address }),
+                            })
+                              .then(r => r.json())
+                              .then(d => {
+                                if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection);
+                                if (d.style) setVenueStyleLabel(d.style);
+                                if (d.moodWords) setVenueStyleMood(d.moodWords);
+                                setVenueAestheticLoading(false);
+                              })
+                              .catch(() => { setVenueAestheticLoading(false); });
+                          }
                         }}
                         onAddManually={() => {
                           const name = prompt('Enter venue name:');
@@ -858,15 +956,19 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
                     {detailsData.receptionVenue ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.receptionVenue}</div>
-                          {detailsData.receptionAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.receptionAddress}</div>}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', border: '1.5px solid var(--eg-accent)', borderRadius: '0.75rem', background: 'rgba(163,177,138,0.06)' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{detailsData.receptionVenue}</div>
+                            {detailsData.receptionAddress && <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{detailsData.receptionAddress}</div>}
+                          </div>
+                          <button
+                            onClick={() => { setDetail('receptionVenue', ''); setDetail('receptionAddress', ''); if (!detailsData.ceremonyVenue) { setDetail('venueAesthetic', ''); setVenueStyleLabel(''); setVenueStyleMood(''); } }}
+                            style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
+                          >Change</button>
                         </div>
-                        <button
-                          onClick={() => { setDetail('receptionVenue', ''); setDetail('receptionAddress', ''); }}
-                          style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}
-                        >Change</button>
+                        {/* Show chip only if ceremony didn't already show it */}
+                        {!detailsData.ceremonyVenue && <VenueAestheticChip loading={venueAestheticLoading} style={venueStyleLabel} mood={venueStyleMood} />}
                       </div>
                     ) : (
                       <VenueSearch
@@ -874,6 +976,25 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                         onSelect={(venue: VenuePartial) => {
                           setDetail('receptionVenue', venue.name ?? '');
                           setDetail('receptionAddress', venue.address ?? '');
+                          // Only fetch aesthetic from reception if ceremony venue didn't already set it
+                          if (venue.name && !detailsData.venueAesthetic) {
+                            setVenueAestheticLoading(true);
+                            setVenueStyleLabel('');
+                            setVenueStyleMood('');
+                            fetch('/api/venue/aesthetic', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ venueName: venue.name, address: venue.address }),
+                            })
+                              .then(r => r.json())
+                              .then(d => {
+                                if (d.vibeInjection) setDetail('venueAesthetic', d.vibeInjection);
+                                if (d.style) setVenueStyleLabel(d.style);
+                                if (d.moodWords) setVenueStyleMood(d.moodWords);
+                                setVenueAestheticLoading(false);
+                              })
+                              .catch(() => { setVenueAestheticLoading(false); });
+                          }
                         }}
                         onAddManually={() => {
                           const name = prompt('Enter venue name:');
@@ -1338,8 +1459,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* Build my site button */}
         <div style={{ marginTop: '2.5rem' }}>
-          <Button variant="accent" size="lg" className="w-full" onClick={() => handleFinalSubmit(false)} disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}>
-            Build my site <LoomThreadIcon size={18} />
+          <Button variant="accent" size="lg" className="w-full" onClick={handleShowConfirm} disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}>
+            Review &amp; Generate <LoomThreadIcon size={18} />
           </Button>
           {subdomainStatus === 'taken' && (
             <p style={{ color: '#b91c1c', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
@@ -1353,6 +1474,282 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
           )}
         </div>
       </div>
+    );
+  }
+
+  // ── Confirm phase ─────────────────────────────────────────────
+  if (wizardPhase === 'confirm') {
+    const selectedMood    = getMoodsForOccasion(occasion).find(m => m.id === mood);
+    const selectedPalette = COLOR_PALETTES.find(p => p.id === palette);
+    const selectedOccasion = OCCASIONS.find(o => o.id === occasion);
+    const autoSlug = isBirthday
+      ? `${name1.trim().toLowerCase().replace(/[^a-z0-9]/g, '') || 'birthday'}-birthday`
+      : slugFromNames(name1.trim(), name2.trim());
+    const finalSlug = subdomain.trim() || autoSlug;
+
+    const editLink = (label: string, onClick: () => void) => (
+      <button
+        onClick={onClick}
+        style={{
+          fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.06em',
+          textTransform: 'uppercase', color: 'var(--eg-accent)',
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: '0.2rem 0', textDecoration: 'none', flexShrink: 0,
+          opacity: 0.8,
+        }}
+        onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
+        onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.8'; }}
+      >
+        {label} →
+      </button>
+    );
+
+    const reviewCard = (
+      children: React.ReactNode,
+      onEdit: () => void,
+      fullWidth = false
+    ) => (
+      <div style={{
+        background: '#fff',
+        borderRadius: '16px 16px 28px 28px',
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
+        padding: '1.1rem 1.25rem',
+        display: 'flex', flexDirection: 'column', gap: '0.5rem',
+        gridColumn: fullWidth ? '1 / -1' : undefined,
+        position: 'relative',
+      }}>
+        {children}
+        <div style={{ marginTop: '0.15rem' }}>
+          {editLink('Edit', onEdit)}
+        </div>
+      </div>
+    );
+
+    const cardLabel = (text: string) => (
+      <div style={{
+        fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.14em',
+        textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.1rem',
+      }}>
+        {text}
+      </div>
+    );
+
+    return (
+      <motion.div
+        key="confirm"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{ maxWidth: '640px', margin: '0 auto', paddingBottom: '3rem' }}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: '2rem' }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+            style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.2rem', color: 'var(--eg-fg)', margin: '0 0 0.4rem', letterSpacing: '-0.02em' }}
+          >
+            One last look.
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', margin: 0 }}
+          >
+            Here&apos;s everything Pearloom will build from. Edit anything before generating.
+          </motion.p>
+        </div>
+
+        {/* Review grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '0.75rem',
+            marginBottom: '1.25rem',
+          }}
+        >
+          {/* Names + Occasion */}
+          {reviewCard(
+            <>
+              {cardLabel('Couple')}
+              <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.55rem', color: 'var(--eg-fg)', lineHeight: 1.1, letterSpacing: '-0.01em' }}>
+                {isBirthday ? name1.trim() : `${name1.trim()}${name2.trim() ? ` & ${name2.trim()}` : ''}`}
+              </div>
+              {selectedOccasion && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                  fontSize: '0.72rem', color: 'var(--eg-accent)', fontWeight: 600,
+                  marginTop: '0.1rem',
+                }}>
+                  {selectedOccasion.icon && <selectedOccasion.icon size={12} />}
+                  {selectedOccasion.label}
+                </div>
+              )}
+            </>,
+            () => { setWizardPhase('main'); setStep(2); }
+          )}
+
+          {/* Mood + Keywords */}
+          {reviewCard(
+            <>
+              {cardLabel('Vibe')}
+              {selectedMood && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                    padding: '0.3rem 0.75rem', borderRadius: '100px',
+                    background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.2)',
+                    fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-fg)',
+                  }}>
+                    <selectedMood.icon size={13} />
+                    {selectedMood.label}
+                  </span>
+                </div>
+              )}
+              {inspoKeywords.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                  {inspoKeywords.slice(0, 4).map(kw => (
+                    <span key={kw} style={{
+                      fontSize: '0.68rem', color: 'var(--eg-muted)', fontWeight: 500,
+                      background: 'rgba(0,0,0,0.04)', padding: '0.2rem 0.55rem',
+                      borderRadius: '100px', border: '1px solid rgba(0,0,0,0.07)',
+                    }}>
+                      {kw}
+                    </span>
+                  ))}
+                  {inspoKeywords.length > 4 && (
+                    <span style={{ fontSize: '0.68rem', color: 'var(--eg-muted)' }}>+{inspoKeywords.length - 4} more</span>
+                  )}
+                </div>
+              )}
+              {!selectedMood && !inspoKeywords.length && (
+                <div style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', fontStyle: 'italic' }}>Not set</div>
+              )}
+            </>,
+            () => { setWizardPhase('main'); setStep(3); }
+          )}
+
+          {/* Palette */}
+          {reviewCard(
+            <>
+              {cardLabel('Palette')}
+              {selectedPalette ? (
+                <>
+                  <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.15rem' }}>
+                    {selectedPalette.colors.map(c => (
+                      <div key={c} style={{
+                        width: '22px', height: '22px', borderRadius: '50%',
+                        background: c, border: '2px solid rgba(255,255,255,0.8)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                        flexShrink: 0,
+                      }} />
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--eg-fg)', fontWeight: 600 }}>
+                    {selectedPalette.name}
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', fontStyle: 'italic' }}>AI will choose</div>
+              )}
+            </>,
+            () => { setWizardPhase('main'); setStep(4); }
+          )}
+
+          {/* Story */}
+          {reviewCard(
+            <>
+              {cardLabel(isBirthday ? 'About them' : 'How you met')}
+              <div style={{
+                fontSize: '0.82rem', color: 'var(--eg-fg)', lineHeight: 1.55,
+                overflow: 'hidden', display: '-webkit-box',
+                WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+              }}>
+                {meetCute.trim() || <span style={{ fontStyle: 'italic', color: 'var(--eg-muted)' }}>Not added yet</span>}
+              </div>
+            </>,
+            () => { setWizardPhase('main'); setStep(5); }
+          )}
+
+          {/* Date + URL — full width */}
+          {reviewCard(
+            <>
+              {cardLabel('Date & Site URL')}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'baseline' }}>
+                {eventDate ? (
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--eg-fg)' }}>
+                    {new Date(eventDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', fontStyle: 'italic' }}>No date set</div>
+                )}
+                <div style={{ fontSize: '0.78rem', color: 'var(--eg-accent)', fontFamily: 'ui-monospace, monospace', fontWeight: 600 }}>
+                  {finalSlug}.pearloom.com
+                </div>
+              </div>
+            </>,
+            () => { setWizardPhase('main'); setStep(isEvent ? 7 : 6); },
+            true
+          )}
+
+          {/* Venue + aesthetic — full width, only if set */}
+          {(detailsData.ceremonyVenue || detailsData.receptionVenue) && reviewCard(
+            <>
+              {cardLabel('Venue')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {detailsData.ceremonyVenue && (
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--eg-fg)' }}>
+                    {detailsData.ceremonyVenue}
+                    {detailsData.ceremonyAddress && (
+                      <span style={{ fontWeight: 400, color: 'var(--eg-muted)', fontSize: '0.78rem' }}> · {detailsData.ceremonyAddress}</span>
+                    )}
+                  </div>
+                )}
+                {detailsData.receptionVenue && detailsData.receptionVenue !== detailsData.ceremonyVenue && (
+                  <div style={{ fontSize: '0.82rem', color: 'var(--eg-muted)' }}>
+                    Reception: {detailsData.receptionVenue}
+                  </div>
+                )}
+                {(venueStyleLabel || venueAestheticLoading) && (
+                  <div style={{ marginTop: '0.15rem' }}>
+                    <VenueAestheticChip loading={venueAestheticLoading} style={venueStyleLabel} mood={venueStyleMood} />
+                  </div>
+                )}
+              </div>
+            </>,
+            () => setWizardPhase('details'),
+            true
+          )}
+        </motion.div>
+
+        {/* Generate CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}
+        >
+          <Button
+            variant="accent"
+            size="lg"
+            className="w-full"
+            onClick={handleFinalSubmit}
+          >
+            Generate My Site <LoomThreadIcon size={18} />
+          </Button>
+          <p style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', margin: 0, textAlign: 'center' }}>
+            Takes about 20–30 seconds. You can keep editing after generation.
+          </p>
+          <button
+            onClick={() => setWizardPhase('details')}
+            style={{
+              fontSize: '0.82rem', color: 'var(--eg-muted)', background: 'none',
+              border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem',
+            }}
+          >
+            <ArrowLeft size={13} /> Back to details
+          </button>
+        </motion.div>
+      </motion.div>
     );
   }
 

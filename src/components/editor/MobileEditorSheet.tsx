@@ -5,13 +5,14 @@
 // Redesigned: 4 tabs + More overflow, FAB publish, 55vh sheet, keyboard avoidance
 // ─────────────────────────────────────────────────────────────
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Image, MoreHorizontal, X } from 'lucide-react';
+import { Plus, Image, X } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon,
 } from '@/components/icons/EditorIcons';
+import { PearlIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import dynamic from 'next/dynamic';
 
@@ -24,18 +25,22 @@ const VoiceTrainerPanel = dynamic(() => import('./VoiceTrainerPanel').then(m => 
 const CanvasEditor = dynamic(() => import('./CanvasEditor').then(m => ({ default: m.CanvasEditor })), { ssr: false });
 const ChapterPanel = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
 
-// ── Tab Configuration ─────────────────────────────────────────
-const PRIMARY_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
-  { tab: 'story',  icon: StoryIcon,    label: 'Story' },
-  { tab: 'events', icon: EventsIcon,   label: 'Events' },
-  { tab: 'design', icon: DesignIcon,   label: 'Design' },
-  { tab: 'canvas', icon: SectionsIcon, label: 'Sections' },
-];
+// ── Arc items for the radial FAB ─────────────────────────────
+const RADIUS = 80;
 
-const OVERFLOW_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
-  { tab: 'details', icon: DetailsIcon,  label: 'Details' },
-  { tab: 'blocks',  icon: AIBlocksIcon, label: 'AI Blocks' },
-  { tab: 'voice',   icon: VoiceIcon,    label: 'Voice' },
+interface ArcItem {
+  tab: EditorTab;
+  icon: React.ElementType;
+  label: string;
+  angle: number; // degrees from positive x-axis (90 = up, 0 = right)
+}
+
+const ARC_ITEMS: ArcItem[] = [
+  { tab: 'story',   icon: StoryIcon,    label: 'Story',    angle: 90 },
+  { tab: 'events',  icon: EventsIcon,   label: 'Events',   angle: 68 },
+  { tab: 'design',  icon: DesignIcon,   label: 'Design',   angle: 46 },
+  { tab: 'details', icon: DetailsIcon,  label: 'Details',  angle: 24 },
+  { tab: 'canvas',  icon: SectionsIcon, label: 'Sections', angle: 2  },
 ];
 
 const TAB_LABELS: Record<string, string> = {
@@ -43,7 +48,117 @@ const TAB_LABELS: Record<string, string> = {
   details: 'Details', blocks: 'AI Blocks', voice: 'Voice',
 };
 
-function getThumb(ch: { images?: Array<{ url?: string }> }) {
+// ── Radial FAB ────────────────────────────────────────────────
+function RadialFab({ activeTab, onTabChange, sheetOpen, onToggleSheet }: {
+  activeTab: string;
+  onTabChange: (tab: EditorTab) => void;
+  sheetOpen: boolean;
+  onToggleSheet: () => void;
+}) {
+  const [arcOpen, setArcOpen] = useState(false);
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        left: 20,
+        zIndex: 1100,
+        width: 52,
+        height: 52,
+      }}
+    >
+      {/* Arc items */}
+      <AnimatePresence>
+        {arcOpen && ARC_ITEMS.map((item, index) => {
+          const rad = item.angle * Math.PI / 180;
+          const x = Math.cos(rad) * RADIUS;
+          const y = -Math.sin(rad) * RADIUS;
+          const Icon = item.icon;
+          const isActive = activeTab === item.tab;
+
+          return (
+            <motion.button
+              key={item.tab}
+              onClick={() => {
+                setArcOpen(false);
+                onTabChange(item.tab);
+                if (!sheetOpen) onToggleSheet();
+              }}
+              initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+              animate={{ x, y, scale: 1, opacity: 1 }}
+              exit={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+              transition={{ delay: index * 0.04, type: 'spring', stiffness: 340, damping: 24 }}
+              aria-label={item.label}
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                width: 42,
+                height: 42,
+                borderRadius: '50%',
+                border: `1px solid ${isActive ? 'rgba(163,177,138,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                background: isActive
+                  ? 'rgba(163,177,138,0.2)'
+                  : 'rgba(22, 18, 14, 0.92)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+                transform: 'translate(-50%, -50%)',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+              } as React.CSSProperties}
+            >
+              <Icon size={16} color="rgba(214,198,168,0.8)" />
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(214,198,168,0.6)', textTransform: 'uppercase', lineHeight: 1 }}>
+                {item.label}
+              </span>
+            </motion.button>
+          );
+        })}
+      </AnimatePresence>
+
+      {/* FAB button */}
+      <motion.button
+        onClick={() => {
+          if (sheetOpen) {
+            onToggleSheet();
+          } else {
+            setArcOpen(v => !v);
+          }
+        }}
+        animate={{ rotate: arcOpen ? 45 : 0 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+        aria-label={sheetOpen ? 'Close panel' : (arcOpen ? 'Close menu' : 'Open menu')}
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: '50%',
+          background: (arcOpen || sheetOpen) ? '#A3B18A' : '#F5F1E8',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.15)',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        {(arcOpen || sheetOpen)
+          ? <X size={22} color="#fff" />
+          : <PearlIcon size={24} color="#2B2520" />
+        }
+      </motion.button>
+    </div>
+  );
+}
+
+function getThumb(ch: { images?: Array<{ url?: string }> }): string | null {
   const raw = ch.images?.[0]?.url || null;
   if (!raw) return null;
   // Google Photos baseUrls require OAuth — route through server-side proxy
@@ -53,53 +168,6 @@ function getThumb(ch: { images?: Array<{ url?: string }> }) {
   return raw;
 }
 
-// ── More Menu Grid ────────────────────────────────────────────
-function MoreMenuGrid({
-  onSelect,
-  onClose,
-}: {
-  onSelect: (tab: EditorTab) => void;
-  onClose: () => void;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 12 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      style={{
-        position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px) + 8px)',
-        right: '8px', width: '180px',
-        background: 'rgba(36,30,26,0.98)',
-        border: '1px solid rgba(214,198,168,0.12)',
-        borderRadius: '12px', padding: '8px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-        backdropFilter: 'blur(20px)',
-        zIndex: 1200,
-        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px',
-      }}
-    >
-      {OVERFLOW_TABS.map(({ tab, icon: Icon, label }) => (
-        <motion.button
-          key={tab}
-          aria-label={label}
-          onClick={() => { onSelect(tab); onClose(); }}
-          whileHover={{ backgroundColor: 'rgba(214,198,168,0.1)' }}
-          whileTap={{ scale: 0.9 }}
-          style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-            padding: '10px 4px', borderRadius: '8px', border: 'none',
-            background: 'transparent', color: 'rgba(255,255,255,0.6)',
-            cursor: 'pointer', minHeight: '44px',
-          }}
-        >
-          <Icon size={20} color="rgba(255,255,255,0.5)" />
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.04em' }}>{label}</span>
-        </motion.button>
-      ))}
-    </motion.div>
-  );
-}
 
 // ── Main Component ────────────────────────────────────────────
 export function MobileEditorSheet() {
@@ -109,10 +177,6 @@ export function MobileEditorSheet() {
   const touchStartTime = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
   const activeChapter = chapters.find(c => c.id === activeId) || null;
-  const [moreOpen, setMoreOpen] = useState(false);
-
-  // Check if active tab is in overflow
-  const isOverflowTab = OVERFLOW_TABS.some(t => t.tab === activeTab);
 
   // ── Keyboard avoidance ──────────────────────────────────────
   useEffect(() => {
@@ -135,99 +199,13 @@ export function MobileEditorSheet() {
 
   return (
     <>
-      {/* ── Bottom Tab Bar ──────────────────────────────────── */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        zIndex: 1100,
-        background: 'var(--eg-dark-2, #3D3530)',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', alignItems: 'stretch',
-      } as React.CSSProperties}>
-        {/* Primary tabs — equal distribution */}
-        {PRIMARY_TABS.map(({ tab, icon: Icon, label }) => {
-          const isActive = activeTab === tab && mobileSheetOpen;
-          return (
-            <motion.button
-              key={tab}
-              aria-label={label}
-              onClick={() => {
-                setMoreOpen(false);
-                if (activeTab === tab && mobileSheetOpen) {
-                  dispatch({ type: 'SET_MOBILE_SHEET', open: false });
-                } else {
-                  dispatch({ type: 'SET_ACTIVE_TAB', tab });
-                  dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-                }
-              }}
-              whileTap={{ scale: 0.82 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 20 }}
-              style={{
-                flex: 1,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                gap: '3px', padding: '6px 8px',
-                border: 'none', cursor: 'pointer',
-                background: isActive ? 'rgba(109,89,122,0.3)' : 'transparent',
-                color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
-                borderTop: isActive ? '2px solid var(--eg-plum, #6D597A)' : '2px solid transparent',
-                minHeight: '48px',
-              }}
-            >
-              <Icon size={22} color={isActive ? '#fff' : 'rgba(255,255,255,0.35)'} />
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
-                {label}
-              </span>
-            </motion.button>
-          );
-        })}
-
-        {/* More tab */}
-        <motion.button
-          aria-label="More options"
-          onClick={() => setMoreOpen(!moreOpen)}
-          whileTap={{ scale: 0.82 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 20 }}
-          style={{
-            flex: 1,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: '3px', padding: '6px 8px',
-            border: 'none', cursor: 'pointer',
-            background: (moreOpen || isOverflowTab) ? 'rgba(109,89,122,0.3)' : 'transparent',
-            color: (moreOpen || isOverflowTab) ? '#fff' : 'rgba(255,255,255,0.4)',
-            borderTop: (moreOpen || isOverflowTab) ? '2px solid var(--eg-plum, #6D597A)' : '2px solid transparent',
-            minHeight: '48px',
-          }}
-        >
-          <MoreHorizontal size={22} color={(moreOpen || isOverflowTab) ? '#fff' : 'rgba(255,255,255,0.35)'} />
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1.1 }}>
-            More
-          </span>
-        </motion.button>
-      </div>
-
-      {/* ── More Menu Overlay ──────────────────────────────── */}
-      <AnimatePresence>
-        {moreOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMoreOpen(false)}
-              style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1150 }}
-            />
-            <MoreMenuGrid
-              onSelect={(tab) => {
-                dispatch({ type: 'SET_ACTIVE_TAB', tab });
-                dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-              }}
-              onClose={() => setMoreOpen(false)}
-            />
-          </>
-        )}
-      </AnimatePresence>
+      {/* ── Radial FAB ─────────────────────────────────────── */}
+      <RadialFab
+        activeTab={activeTab}
+        onTabChange={(tab) => dispatch({ type: 'SET_ACTIVE_TAB', tab })}
+        sheetOpen={mobileSheetOpen}
+        onToggleSheet={() => dispatch({ type: 'SET_MOBILE_SHEET', open: !mobileSheetOpen })}
+      />
 
       {/* ── Bottom Sheet Panel ─────────────────────────────── */}
       <AnimatePresence>
@@ -249,7 +227,7 @@ export function MobileEditorSheet() {
               }
             }}
             style={{
-              position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+              position: 'fixed', bottom: 'env(safe-area-inset-bottom, 0px)',
               left: 0, right: 0,
               height: '55vh',
               zIndex: 1050,
@@ -299,7 +277,7 @@ export function MobileEditorSheet() {
 
             {/* Scrollable content */}
             <div style={{
-              flex: 1, overflowY: 'auto', padding: '8px 12px 16px',
+              flex: 1, overflowY: 'auto', padding: '8px 12px 80px',
               WebkitOverflowScrolling: 'touch',
             } as React.CSSProperties}>
               {activeTab === 'story' && (
