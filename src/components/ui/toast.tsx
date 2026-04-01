@@ -74,7 +74,7 @@ function ToastItem({
       className={cn(
         'flex items-center gap-2.5 pointer-events-auto',
         'rounded-xl px-3.5 py-2.5',
-        'text-white text-[0.85rem] font-[family-name:var(--pl-font-body)] leading-snug',
+        'text-white text-[0.85rem] font-body leading-snug',
         'min-w-[220px] max-w-[360px]',
         'shadow-[0_4px_20px_rgba(0,0,0,0.18)]',
         'backdrop-blur-md',

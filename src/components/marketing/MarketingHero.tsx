@@ -105,7 +105,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
-          className="font-[family-name:var(--pl-font-heading)] leading-[1.05] mb-5 text-[var(--pl-ink-soft)]"
+          className="font-heading leading-[1.05] mb-5 text-[var(--pl-ink-soft)]"
           style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 700, letterSpacing: '-0.04em' }}
         >
           Every moment worth celebrating
@@ -128,7 +128,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.52 }}
-          className="mx-auto mb-10 text-[var(--pl-muted)] font-[family-name:var(--pl-font-body)]"
+          className="mx-auto mb-10 text-[var(--pl-muted)] font-body"
           style={{ fontSize: 'clamp(1.05rem, 1.8vw, 1.2rem)', maxWidth: 480, lineHeight: 1.9 }}
         >
           Upload your photos. Share your vibe. Watch{' '}

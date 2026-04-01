@@ -54,7 +54,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
         {/* Step header */}
         {title && step !== 'dashboard' && step !== 'generating' && (
           <div className="mb-12 text-center">
-            <h2 className="font-[family-name:var(--pl-font-heading)] text-[clamp(1.9rem,4vw,2.8rem)] font-bold tracking-[-0.03em] text-[var(--pl-ink-soft)] mb-3">
+            <h2 className="font-heading text-[clamp(1.9rem,4vw,2.8rem)] font-bold tracking-[-0.03em] text-[var(--pl-ink-soft)] mb-3">
               {title}
             </h2>
             {subtitle && (

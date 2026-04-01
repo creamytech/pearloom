@@ -58,7 +58,7 @@ export function MarketingFooter() {
           <div className="md:w-[260px] flex-shrink-0">
             <div className="flex items-center gap-2.5 mb-4">
               <PearIcon size={28} color="var(--pl-olive)" />
-              <span className="font-[family-name:var(--pl-font-heading)] text-[1.35rem] font-bold italic tracking-[0.03em] text-[var(--pl-dark-heading)]">
+              <span className="font-heading text-[1.35rem] font-bold italic tracking-[0.03em] text-[var(--pl-dark-heading)]">
                 Pearloom
               </span>
             </div>

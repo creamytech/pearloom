@@ -69,7 +69,7 @@ const DialogTitle = forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      'font-[family-name:var(--pl-font-heading)] text-2xl font-normal tracking-tight text-[var(--pl-ink-soft)]',
+      'font-heading text-2xl font-normal tracking-tight text-[var(--pl-ink-soft)]',
       className,
     )}
     {...props}

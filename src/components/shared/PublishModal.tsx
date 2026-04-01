@@ -118,7 +118,7 @@ export function PublishModal({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-[2.25rem] font-normal tracking-tight leading-tight font-[family-name:var(--pl-font-heading)]"
+            className="text-[2.25rem] font-normal tracking-tight leading-tight font-heading"
           >
             Your Story is Live
           </motion.h2>
@@ -178,7 +178,7 @@ export function PublishModal({
       ) : (
         /* ── URL input state ── */
         <>
-          <h2 className="text-[2rem] mb-2 font-[family-name:var(--pl-font-heading)] font-normal">
+          <h2 className="text-[2rem] mb-2 font-heading font-normal">
             Choose your URL
           </h2>
           <p className="text-[var(--pl-muted)] mb-1">

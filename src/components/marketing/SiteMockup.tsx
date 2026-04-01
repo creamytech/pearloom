@@ -86,7 +86,7 @@ export function SiteMockup() {
                 {rind.label}
               </div>
               <h3
-                className="font-[family-name:var(--eg-font-heading)] text-[1.6rem] font-light italic leading-tight mb-1.5"
+                className="font-heading text-[1.6rem] font-light italic leading-tight mb-1.5"
                 style={{ color: C.ink }}
               >
                 {rind.heading}

@@ -117,7 +117,7 @@ function EditorMockup() {
               Chapter 1
             </div>
             <div
-              className="font-[family-name:var(--eg-font-heading)] text-[1.1rem] font-bold italic mb-2"
+              className="font-heading text-[1.1rem] font-bold italic mb-2"
               style={{ color: C.ink }}
             >
               Our Beginning

@@ -121,11 +121,11 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
   const NAV_LINKS = ['How it works', 'The Loom', 'Features', 'Pricing', 'FAQ'];
 
   return (
-    <div className="bg-[var(--pl-cream)] min-h-dvh font-[family-name:var(--pl-font-body)] text-[var(--pl-ink)] overflow-x-hidden">
+    <div className="bg-[var(--pl-cream)] min-h-dvh font-body text-[var(--pl-ink)] overflow-x-hidden">
 
       {/* ══════════════ NAV — dark band ══════════════ */}
       <nav className="sticky top-0 z-[100] bg-[var(--pl-ink)] flex items-center justify-between px-[clamp(1.25rem,5vw,3.5rem)] h-[68px]">
-        <span className="font-[family-name:var(--pl-font-heading)] text-xl font-bold italic text-white tracking-[-0.01em]">
+        <span className="font-heading text-xl font-bold italic text-white tracking-[-0.01em]">
           Pearloom
         </span>
 
@@ -175,7 +175,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               className="md:hidden fixed top-0 right-0 bottom-0 w-[min(82vw,340px)] z-[999] bg-[var(--pl-ink)] flex flex-col shadow-[-12px_0_50px_rgba(0,0,0,0.3)]"
             >
               <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
-                <span className="font-[family-name:var(--pl-font-heading)] text-xl font-bold italic text-white">
+                <span className="font-heading text-xl font-bold italic text-white">
                   Pearloom
                 </span>
                 <button
@@ -262,7 +262,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={occasionInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.75, delay: 0.08 }}
-              className="font-[family-name:var(--pl-font-heading)] text-[clamp(2rem,5vw,3.5rem)] font-bold italic text-white leading-[1.1] tracking-[-0.03em] max-w-[600px]"
+              className="font-heading text-[clamp(2rem,5vw,3.5rem)] font-bold italic text-white leading-[1.1] tracking-[-0.03em] max-w-[600px]"
             >
               Whatever you&rsquo;re celebrating, it deserves a beautiful home.
             </motion.h2>
@@ -281,7 +281,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               >
                 {/* Number */}
                 <span
-                  className="font-[family-name:var(--pl-font-heading)] text-[3.5rem] font-bold italic leading-none flex-shrink-0 w-24 text-right hidden sm:block transition-colors duration-300"
+                  className="font-heading text-[3.5rem] font-bold italic leading-none flex-shrink-0 w-24 text-right hidden sm:block transition-colors duration-300"
                   style={{ color: `${o.accent}35`, WebkitTextStroke: `1px ${o.accent}30` }}
                 >
                   {o.num}
@@ -301,7 +301,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   >
                     {o.label}
                   </div>
-                  <div className="font-[family-name:var(--pl-font-heading)] text-[1.3rem] font-semibold italic text-white mb-2 leading-snug">
+                  <div className="font-heading text-[1.3rem] font-semibold italic text-white mb-2 leading-snug">
                     {o.tagline}
                   </div>
                   <p className="text-[0.88rem] text-white/45 leading-[1.75] max-w-[520px]">
@@ -353,12 +353,12 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   style={{ background: `linear-gradient(180deg, ${C.gold}, ${C.plum})` }}
                 />
                 <div
-                  className="font-[family-name:var(--pl-font-heading)] text-[6rem] leading-[0.6] text-[var(--pl-gold)] opacity-20 select-none absolute top-6 left-10"
+                  className="font-heading text-[6rem] leading-[0.6] text-[var(--pl-gold)] opacity-20 select-none absolute top-6 left-10"
                   aria-hidden
                 >
                   &ldquo;
                 </div>
-                <blockquote className="font-[family-name:var(--pl-font-heading)] text-[clamp(1.2rem,2.2vw,1.5rem)] italic font-medium text-[var(--pl-ink-soft)] leading-[1.5] mb-6 relative z-10 max-w-[760px]">
+                <blockquote className="font-heading text-[clamp(1.2rem,2.2vw,1.5rem)] italic font-medium text-[var(--pl-ink-soft)] leading-[1.5] mb-6 relative z-10 max-w-[760px]">
                   {t.quote}
                 </blockquote>
                 <Separator className="mb-5 max-w-[80px]" />
@@ -381,10 +381,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 className="h-full"
               >
                 <Card variant="flat" padding="none" className="p-7 h-full flex flex-col">
-                  <div className="font-[family-name:var(--pl-font-heading)] text-[3rem] leading-[0.7] text-[var(--pl-gold)] opacity-50 mb-4 italic" aria-hidden>
+                  <div className="font-heading text-[3rem] leading-[0.7] text-[var(--pl-gold)] opacity-50 mb-4 italic" aria-hidden>
                     &ldquo;
                   </div>
-                  <blockquote className="font-[family-name:var(--pl-font-heading)] text-[1rem] italic font-medium text-[var(--pl-ink-soft)] leading-[1.6] flex-1 mb-5">
+                  <blockquote className="font-heading text-[1rem] italic font-medium text-[var(--pl-ink-soft)] leading-[1.6] flex-1 mb-5">
                     {t.quote}
                   </blockquote>
                   <p className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)]">
@@ -424,7 +424,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             <p className="text-[0.72rem] font-bold tracking-[0.2em] uppercase text-[var(--pl-gold)] mb-5">
               Start free today
             </p>
-            <h2 className="font-[family-name:var(--pl-font-heading)] text-[clamp(2.2rem,5vw,3.75rem)] font-bold italic text-white tracking-[-0.035em] leading-[1.08] mb-6">
+            <h2 className="font-heading text-[clamp(2.2rem,5vw,3.75rem)] font-bold italic text-white tracking-[-0.035em] leading-[1.08] mb-6">
               Your moment is already beautiful.
               <br />
               <span style={{ color: C.gold }}>Let&rsquo;s give it a home.</span>
@@ -450,7 +450,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: `${C.gold}22`, border: `1px solid ${C.gold}30` }}>
                 <Sparkles size={24} style={{ color: C.gold }} />
               </div>
-              <h3 className="font-[family-name:var(--pl-font-heading)] text-[1.5rem] font-semibold italic text-white mb-2 leading-tight">
+              <h3 className="font-heading text-[1.5rem] font-semibold italic text-white mb-2 leading-tight">
                 Create your first site
               </h3>
               <p className="text-[0.85rem] text-white/45 leading-relaxed mb-8">

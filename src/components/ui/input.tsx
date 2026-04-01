@@ -63,7 +63,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               'flex-1 min-w-0 bg-transparent outline-none',
               'text-[max(16px,0.92rem)] leading-none text-[var(--pl-ink)]',
-              'font-[family-name:var(--pl-font-body)]',
+              'font-body',
               'placeholder:text-[var(--pl-muted)] placeholder:opacity-55',
               prefix ? 'py-2.5 pr-3' : 'px-3.5 py-2.5',
               suffix && 'pr-0',

@@ -40,7 +40,7 @@ function LoomEngine() {
     <div ref={ref} className="mb-20">
       <div className="text-center mb-14">
         <h3
-          className="font-[family-name:var(--eg-font-heading)] font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
+          className="font-heading font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
           style={{ color: C.darkHeading }}
         >
           Your photos tell a story. The Loom reads it.
@@ -138,7 +138,7 @@ function RindShowcase() {
     <div ref={ref} className="mb-20">
       <div className="text-center mb-12">
         <h3
-          className="font-[family-name:var(--eg-font-heading)] font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
+          className="font-heading font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
           style={{ color: C.darkHeading }}
         >
           Every pear has a unique skin. So does every celebration.
@@ -248,7 +248,7 @@ function EventDNA() {
       >
         <Dna size={32} style={{ color: C.plum, margin: '0 auto 1rem', opacity: 0.8 }} />
         <h3
-          className="font-[family-name:var(--eg-font-heading)] font-extrabold text-[1.5rem] md:text-[1.75rem] mb-3 tracking-tight"
+          className="font-heading font-extrabold text-[1.5rem] md:text-[1.75rem] mb-3 tracking-tight"
           style={{ color: C.darkHeading }}
         >
           Event DNA Illustrations

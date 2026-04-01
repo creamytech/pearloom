@@ -111,7 +111,7 @@ export function HowItWorks() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: i * 0.15 + 0.3 }}
-                className="w-10 h-10 rounded-full flex items-center justify-center font-[family-name:var(--eg-font-heading)]"
+                className="w-10 h-10 rounded-full flex items-center justify-center font-heading"
                 style={{
                   fontSize: text.sm,
                   fontWeight: 700,
@@ -150,13 +150,13 @@ export function HowItWorks() {
                     <IconCircle icon={Icon} accent={s.accent} size={48} iconSize={22} />
                   </div>
                   <h3
-                    className="font-[family-name:var(--eg-font-heading)] mb-3"
+                    className="font-heading mb-3"
                     style={{ fontSize: text.xl, fontWeight: 600, color: C.ink }}
                   >
                     {s.title}
                   </h3>
                   <p
-                    className="font-[family-name:var(--eg-font-body)] max-w-[400px] mx-auto md:mx-0"
+                    className="font-body max-w-[400px] mx-auto md:mx-0"
                     style={{ fontSize: text.md, color: C.muted, lineHeight: 1.8 }}
                   >
                     {s.body}

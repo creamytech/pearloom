@@ -106,7 +106,7 @@ export function PricingPreview() {
 
                 <div className="flex items-baseline gap-1 mb-2">
                   <span
-                    className="font-[family-name:var(--eg-font-heading)] font-bold leading-none"
+                    className="font-heading font-bold leading-none"
                     style={{ fontSize: '3rem', color: C.ink }}
                   >
                     {tier.price}

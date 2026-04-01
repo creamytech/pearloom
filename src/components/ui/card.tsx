@@ -90,7 +90,7 @@ const CardTitle = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement
     <div
       ref={ref}
       className={cn(
-        'font-[family-name:var(--pl-font-heading)] text-xl font-semibold leading-tight tracking-tight text-[var(--pl-ink-soft)]',
+        'font-heading text-xl font-semibold leading-tight tracking-tight text-[var(--pl-ink-soft)]',
         className,
       )}
       {...props}

@@ -190,7 +190,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
                         placeholder="Your name"
-                        className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.9rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] focus:shadow-[0_0_0_3px_rgba(163,177,138,0.22)] transition-all font-[family-name:var(--pl-font-body)]"
+                        className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.9rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] focus:shadow-[0_0_0_3px_rgba(163,177,138,0.22)] transition-all font-body"
                       />
                     </div>
                     <div>

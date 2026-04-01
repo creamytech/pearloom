@@ -201,7 +201,7 @@ export function SiteNav({
                 ) : (
                   <LogoIcon iconId={logoIcon} size={18} color="var(--pl-olive)" />
                 )}
-                <span className="font-[family-name:var(--pl-font-heading)] font-semibold text-[1rem] text-[var(--pl-ink-soft)] tracking-[-0.01em] whitespace-nowrap">
+                <span className="font-heading font-semibold text-[1rem] text-[var(--pl-ink-soft)] tracking-[-0.01em] whitespace-nowrap">
                   {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
                 </span>
               </>
@@ -219,7 +219,7 @@ export function SiteNav({
                     href={getHref(page.slug)}
                     className={cn(
                       'px-3.5 py-1.5 rounded-[var(--pl-radius-full)]',
-                      'text-[0.875rem] font-[family-name:var(--pl-font-body)] no-underline',
+                      'text-[0.875rem] font-body no-underline',
                       'border transition-all duration-150 whitespace-nowrap',
                       active
                         ? 'font-semibold text-[var(--pl-ink)] bg-[var(--pl-olive-mist)] border-[rgba(163,177,138,0.22)]'
@@ -289,7 +289,7 @@ export function SiteNav({
             >
               {/* Drawer header */}
               <div className="flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
-                <span className="font-[family-name:var(--pl-font-heading)] text-[1.3rem] font-normal text-[var(--pl-ink-soft)] tracking-tight leading-tight">
+                <span className="font-heading text-[1.3rem] font-normal text-[var(--pl-ink-soft)] tracking-tight leading-tight">
                   {isStudio ? 'Pearloom' : (names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0])}
                 </span>
                 <button
@@ -310,7 +310,7 @@ export function SiteNav({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.05 }}
                       onClick={() => { onGoToDashboard(); setDrawer(false); }}
-                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-[family-name:var(--pl-font-body)] bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
+                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
                     >
                       <LayoutDashboard size={17} className="text-[var(--pl-olive)]" />
                       My Sites
@@ -322,7 +322,7 @@ export function SiteNav({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.08 }}
                       onClick={() => { onStartNew(); setDrawer(false); }}
-                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-[family-name:var(--pl-font-body)] bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
+                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
                     >
                       <Plus size={17} className="text-[var(--pl-olive)]" />
                       New Site
@@ -347,7 +347,7 @@ export function SiteNav({
                         onClick={() => setDrawer(false)}
                         className={cn(
                           'flex items-center gap-3.5 min-h-[52px] px-5',
-                          'text-[0.92rem] font-[family-name:var(--pl-font-body)] no-underline',
+                          'text-[0.92rem] font-body no-underline',
                           'border-l-[3px] transition-all duration-150',
                           active
                             ? 'font-semibold text-[var(--pl-ink)] bg-[rgba(163,177,138,0.07)] border-l-[var(--pl-olive)]'

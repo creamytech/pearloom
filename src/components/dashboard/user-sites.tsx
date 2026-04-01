@@ -148,7 +148,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <p className="text-[0.72rem] font-bold tracking-[0.18em] uppercase text-[var(--pl-gold)] mb-2">
             Dashboard
           </p>
-          <h1 className="font-[family-name:var(--pl-font-heading)] text-[clamp(1.6rem,3vw,2.2rem)] font-semibold italic text-white leading-tight">
+          <h1 className="font-heading text-[clamp(1.6rem,3vw,2.2rem)] font-semibold italic text-white leading-tight">
             {getGreeting()}{userName ? `, ${userName}` : ''}
           </h1>
           <p className="text-[var(--pl-dark-text)] text-[0.88rem] mt-1">
@@ -180,7 +180,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <div className="w-16 h-16 rounded-2xl bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6">
             <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
           </div>
-          <h3 className="font-[family-name:var(--pl-font-heading)] text-2xl font-normal mb-2 text-[var(--pl-ink-soft)]">
+          <h3 className="font-heading text-2xl font-normal mb-2 text-[var(--pl-ink-soft)]">
             Could not load sites
           </h3>
           <p className="text-[var(--pl-muted)] text-[0.88rem] mb-8 leading-relaxed">
@@ -201,7 +201,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <div className="w-20 h-20 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mb-8">
             <PearIcon size={48} color="var(--pl-olive)" />
           </div>
-          <h3 className="font-[family-name:var(--pl-font-heading)] text-[clamp(1.8rem,4vw,2.5rem)] font-semibold italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
+          <h3 className="font-heading text-[clamp(1.8rem,4vw,2.5rem)] font-semibold italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
             Start your story
           </h3>
           <div className="w-12 h-[2px] bg-[var(--pl-gold)] mx-auto mb-5 rounded-full" />
@@ -285,7 +285,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     {/* Names — big and centered at bottom */}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
                       <div
-                        className="font-[family-name:var(--pl-font-heading)] text-[1.55rem] font-normal italic text-white leading-tight mb-1"
+                        className="font-heading text-[1.55rem] font-normal italic text-white leading-tight mb-1"
                         style={{ textShadow: '0 2px 24px rgba(0,0,0,0.5)' }}
                       >
                         {displayNames}
@@ -426,7 +426,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               <Plus size={22} className="text-[var(--pl-olive)]" />
             </div>
             <div className="text-center px-6">
-              <div className="font-[family-name:var(--pl-font-heading)] text-[1.1rem] font-semibold italic text-[var(--pl-olive)] mb-1.5">
+              <div className="font-heading text-[1.1rem] font-semibold italic text-[var(--pl-olive)] mb-1.5">
                 New celebration site
               </div>
               <div className="text-[0.82rem] text-[var(--pl-muted)] leading-snug">
@@ -447,7 +447,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <div className="w-16 h-16 rounded-2xl bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6">
             <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
           </div>
-          <h3 className="font-[family-name:var(--pl-font-heading)] text-2xl font-normal mb-3 text-[var(--pl-ink-soft)]">
+          <h3 className="font-heading text-2xl font-normal mb-3 text-[var(--pl-ink-soft)]">
             Delete this site?
           </h3>
           <p className="text-[var(--pl-muted)] leading-relaxed mb-6 text-[0.88rem]">

@@ -43,7 +43,7 @@ export function SectionHeader({
           aria-hidden="true"
           className={cn(
             'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-            'font-[family-name:var(--pl-font-heading)] font-bold',
+            'font-heading font-bold',
             'select-none pointer-events-none leading-none',
             'text-[clamp(5rem,12vw,10rem)]',
             dark ? 'text-white/[0.03]' : 'text-[var(--pl-ink)]/[0.04]',
@@ -92,7 +92,7 @@ export function SectionHeader({
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7, delay: 0.1 }}
         className={cn(
-          'font-[family-name:var(--pl-font-heading)] font-bold',
+          'font-heading font-bold',
           'tracking-[-0.03em] leading-tight mb-3',
           'text-[clamp(2rem,4vw,2.8rem)]',
           dark ? 'text-[var(--pl-dark-heading)]' : 'text-[var(--pl-ink-soft)]',

@@ -1,9 +1,11 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
    PEARLOOM — DESIGN SYSTEM v3
    Heirloom Luxury — warm parchment, pressed botanicals, antique gold
-   Single source of truth: CSS vars → Tailwind @theme → components
+   Single source of truth: CSS vars → Tailwind config → components
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Design Tokens ─── */
@@ -119,35 +121,28 @@
   --eg-shadow-md:    var(--pl-shadow-md);
   --eg-shadow-lg:    var(--pl-shadow-lg);
   --eg-shadow-xl:    var(--pl-shadow-xl);
-}
 
-/* ── Tailwind theme mapping ── */
-@theme inline {
-  --color-background:          var(--pl-cream);
-  --color-foreground:          var(--pl-ink);
-  --color-card:                var(--pl-cream-card);
-  --color-card-foreground:     var(--pl-ink);
-  --color-accent:              var(--pl-olive);
-  --color-accent-light:        var(--pl-olive-mist);
-  --color-accent-foreground:   var(--pl-ink);
-  --color-muted:               var(--pl-cream-deep);
-  --color-muted-foreground:    var(--pl-muted);
-  --color-border:              var(--pl-divider);
-  --color-input:               var(--pl-divider);
-  --color-ring:                var(--pl-olive);
-  --color-primary:             var(--pl-olive);
-  --color-primary-foreground:  #FFFFFF;
-  --color-secondary:           var(--pl-olive-mist);
-  --color-secondary-foreground: var(--pl-ink);
-  --color-destructive:         #DC2626;
-  --color-destructive-foreground: #FFFFFF;
-  --color-popover:             var(--pl-cream-card);
-  --color-popover-foreground:  var(--pl-ink);
-  --radius:                    var(--pl-radius-md);
-
-  /* ── Accordion animations ── */
-  --animate-accordion-down: accordion-down 0.22s cubic-bezier(0.16,1,0.3,1);
-  --animate-accordion-up:   accordion-up 0.22s cubic-bezier(0.16,1,0.3,1);
+  /* ── shadcn/ui standard CSS variables (mapped to --pl-* tokens) ── */
+  --background:              var(--pl-cream);
+  --foreground:              var(--pl-ink);
+  --card:                    #ffffff;
+  --card-foreground:         var(--pl-ink);
+  --popover:                 #ffffff;
+  --popover-foreground:      var(--pl-ink);
+  --primary:                 var(--pl-olive);
+  --primary-foreground:      #ffffff;
+  --secondary:               var(--pl-olive-mist);
+  --secondary-foreground:    var(--pl-ink);
+  --muted:                   var(--pl-cream-deep);
+  --muted-foreground:        var(--pl-muted);
+  --accent:                  var(--pl-olive-mist);
+  --accent-foreground:       var(--pl-ink);
+  --destructive:             #DC2626;
+  --destructive-foreground:  #ffffff;
+  --border:                  var(--pl-divider);
+  --input:                   var(--pl-divider);
+  --ring:                    var(--pl-olive);
+  --radius:                  var(--pl-radius-md);
 }
 
 /* ─── Keyframes ─── */

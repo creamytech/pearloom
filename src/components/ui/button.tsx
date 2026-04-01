@@ -17,7 +17,7 @@ const buttonVariants = cva(
   [
     'inline-flex items-center justify-center font-semibold leading-none',
     'transition-all duration-200 cursor-pointer select-none',
-    'font-[family-name:var(--pl-font-body)]',
+    'font-body',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pl-olive)] focus-visible:ring-offset-2',
   ].join(' '),

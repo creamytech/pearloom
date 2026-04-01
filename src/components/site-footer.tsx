@@ -64,7 +64,7 @@ export function SiteFooter({
         >
           {/* Col 1: Couple + Pearloom brand */}
           <div>
-            <h3 className="font-[family-name:var(--eg-font-heading)] text-2xl font-normal text-[rgba(245,241,232,0.95)] tracking-[-0.015em] leading-tight mb-3">
+            <h3 className="font-heading text-2xl font-normal text-[rgba(245,241,232,0.95)] tracking-[-0.015em] leading-tight mb-3">
               {displayNames}
             </h3>
             {closingLine && (
@@ -80,7 +80,7 @@ export function SiteFooter({
                   href="https://pearloom.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[rgba(245,241,232,0.55)] no-underline font-semibold font-[family-name:var(--eg-font-heading)] hover:text-[var(--eg-accent)] transition-colors duration-200"
+                  className="text-[rgba(245,241,232,0.55)] no-underline font-semibold font-heading hover:text-[var(--eg-accent)] transition-colors duration-200"
                 >
                   Pearloom
                 </a>
@@ -98,7 +98,7 @@ export function SiteFooter({
                 <Link
                   key={pg.id}
                   href={pg.slug === '' ? basePath : `${basePath}/${pg.slug}`}
-                  className="text-[0.875rem] text-[rgba(245,241,232,0.55)] no-underline font-[family-name:var(--eg-font-body)] hover:text-[rgba(245,241,232,0.9)] transition-colors duration-200"
+                  className="text-[0.875rem] text-[rgba(245,241,232,0.55)] no-underline font-body hover:text-[rgba(245,241,232,0.9)] transition-colors duration-200"
                 >
                   {pg.label}
                 </Link>
@@ -118,7 +118,7 @@ export function SiteFooter({
                 </p>
                 <Link
                   href={`${basePath}/${rsvpSlug}`}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[rgba(163,177,138,0.15)] text-[var(--eg-accent)] border border-[rgba(163,177,138,0.25)] no-underline text-[0.85rem] font-semibold font-[family-name:var(--eg-font-body)] hover:bg-[rgba(163,177,138,0.25)] hover:border-[rgba(163,177,138,0.4)] transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[rgba(163,177,138,0.15)] text-[var(--eg-accent)] border border-[rgba(163,177,138,0.25)] no-underline text-[0.85rem] font-semibold font-body hover:bg-[rgba(163,177,138,0.25)] hover:border-[rgba(163,177,138,0.4)] transition-all duration-200"
                 >
                   RSVP Now
                 </Link>
@@ -142,7 +142,7 @@ export function SiteFooter({
             onClick={scrollToTop}
             whileHover={{ scale: 1.04, y: -1 }}
             whileTap={{ scale: 0.96 }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[rgba(245,241,232,0.12)] bg-transparent text-[rgba(245,241,232,0.5)] cursor-pointer text-[0.72rem] font-semibold font-[family-name:var(--eg-font-body)] tracking-[0.06em] hover:bg-[rgba(245,241,232,0.06)] hover:text-[rgba(245,241,232,0.8)] hover:border-[rgba(245,241,232,0.2)] transition-all duration-200"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[rgba(245,241,232,0.12)] bg-transparent text-[rgba(245,241,232,0.5)] cursor-pointer text-[0.72rem] font-semibold font-body tracking-[0.06em] hover:bg-[rgba(245,241,232,0.06)] hover:text-[rgba(245,241,232,0.8)] hover:border-[rgba(245,241,232,0.2)] transition-all duration-200"
           >
             <ArrowUp size={13} />
             Back to top

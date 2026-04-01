@@ -89,7 +89,7 @@ export function SocialProofBar() {
                   <StatIcon icon={s.icon} />
                 </div>
 
-                <div className="font-[family-name:var(--pl-font-heading)] font-bold leading-none text-[var(--pl-ink-soft)] text-[clamp(2rem,4vw,3rem)]">
+                <div className="font-heading font-bold leading-none text-[var(--pl-ink-soft)] text-[clamp(2rem,4vw,3rem)]">
                   <AnimatedStat stat={s} inView={inView} />
                 </div>
 
