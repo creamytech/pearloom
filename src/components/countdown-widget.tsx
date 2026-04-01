@@ -123,9 +123,9 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
               alignItems: 'center',
               background: cardBg,
               border: `1px solid ${cardBorder}`,
-              borderRadius: '1rem',
-              padding: '1rem 1.5rem',
-              minWidth: '64px',
+              borderRadius: '1.25rem',
+              padding: '1.1rem 1.6rem',
+              minWidth: '68px',
               boxShadow: cardShadow,
               backdropFilter: onPhoto ? 'blur(12px)' : 'none',
             }}>
@@ -135,11 +135,11 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.3 }}
                 style={{
-                  fontSize: '2rem',
-                  fontWeight: 700,
+                  fontSize: '2.25rem',
+                  fontWeight: 600,
                   color: textColor,
                   lineHeight: 1,
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--eg-font-heading)',
                   fontVariantNumeric: 'tabular-nums',
                   // CSS tick animation on seconds
                   ...(seg.isTick ? {

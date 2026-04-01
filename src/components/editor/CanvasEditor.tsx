@@ -1137,25 +1137,29 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
         {blocks.length === 0 && (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: '12px', padding: '2.5rem 1rem', borderRadius: '12px',
-            border: '1px dashed rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)',
+            gap: '10px', padding: '3rem 1.5rem', borderRadius: '16px',
+            border: '1px solid rgba(214,198,168,0.08)',
+            background: 'linear-gradient(135deg, rgba(214,198,168,0.04) 0%, rgba(214,198,168,0.02) 100%)',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}>Your canvas is empty</div>
-            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.2)', lineHeight: 1.5 }}>Add your first section to get started</div>
+            <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginBottom: '4px' }} />
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'rgba(214,198,168,0.65)', letterSpacing: '-0.01em' }}>Canvas is empty</div>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(214,198,168,0.28)', lineHeight: 1.6 }}>Add your first section below</div>
+            <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginTop: '4px' }} />
             <button
               onClick={() => addBlock('hero')}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: '44px', height: '44px', borderRadius: '50%',
-                border: 'none', background: '#5c6b3a', color: '#fff',
-                cursor: 'pointer', fontSize: '1.4rem', fontWeight: 300,
-                boxShadow: '0 4px 16px rgba(92,107,58,0.4)', transition: 'all 0.2s',
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                marginTop: '4px', padding: '0.5rem 1.25rem', borderRadius: '100px',
+                border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.1)',
+                color: 'rgba(163,177,138,0.85)', cursor: 'pointer',
+                fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                transition: 'all 0.2s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.1)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.18)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.45)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)'; }}
             >
-              +
+              + Add Hero
             </button>
           </div>
         )}
