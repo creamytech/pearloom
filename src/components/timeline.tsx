@@ -13,6 +13,7 @@ import { useTheme } from '@/components/theme-provider';
 import { getPatternStyle } from '@/lib/patterns';
 import type { Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { parseLocalDate } from '@/lib/date';
 
 interface TimelineProps {
   chapters: Chapter[];
@@ -251,7 +252,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                   <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '0.85rem', fontStyle: 'italic', color: '#1a1713', lineHeight: 1.4 }}>{chapter.title}</div>
                   {chapter.date && (
                     <div style={{ fontSize: '0.65rem', color: '#888', marginTop: '4px', fontFamily: 'Georgia, serif' }}>
-                      {new Date(chapter.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      {parseLocalDate(chapter.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </div>
                   )}
                 </div>

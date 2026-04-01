@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { parseLocalDate } from '@/lib/date';
 
 interface LiveUpdate {
   id: string;
@@ -54,7 +55,7 @@ function isTodayWeddingDate(weddingDate?: string): boolean {
   if (!weddingDate) return false;
   try {
     const today = new Date();
-    const wedding = new Date(weddingDate);
+    const wedding = parseLocalDate(weddingDate);
     return (
       today.getFullYear() === wedding.getFullYear() &&
       today.getMonth() === wedding.getMonth() &&
