@@ -91,7 +91,7 @@ function DeviceBezel() {
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
-  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom } = state;
+  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom, previewPage } = state;
 
   // ── Listen for edit messages from the iframe ──────────────
   useEffect(() => {
@@ -211,7 +211,7 @@ export function EditorCanvas() {
         {!iframeReady && <SkeletonLoading slow={previewSlow} />}
         <iframe
           ref={iframeRef}
-          src={`/preview?key=${previewKey}`}
+          src={`/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`}
           style={{ flex: 1, border: 'none', width: '100%', minHeight: '100%' }}
           title="Live Preview"
           onLoad={() => {

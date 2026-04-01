@@ -67,6 +67,9 @@ export interface EditorState {
   // Preview zoom
   previewZoom: number;
 
+  // Per-page preview (null = homepage)
+  previewPage: string | null;
+
   // Mobile
   isMobile: boolean;
   mobileVisualEdit: boolean;
@@ -108,6 +111,7 @@ export type EditorAction =
   | { type: 'SET_MOBILE_VISUAL_EDIT'; enabled: boolean }
   | { type: 'SET_MOBILE_ACTION_SHEET'; chapterId: string | null }
   | { type: 'SET_PREVIEW_ZOOM'; zoom: number }
+  | { type: 'SET_PREVIEW_PAGE'; page: string | null }
   | { type: 'MARK_PUBLISHED'; url: string }
   | { type: 'OPEN_PUBLISH' };
 
@@ -181,6 +185,8 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, mobileActionChapterId: action.chapterId };
     case 'SET_PREVIEW_ZOOM':
       return { ...state, previewZoom: action.zoom };
+    case 'SET_PREVIEW_PAGE':
+      return { ...state, previewPage: action.page, iframeReady: false };
     case 'MARK_PUBLISHED':
       return { ...state, publishedUrl: action.url, saveState: 'saved', isDirty: false };
     case 'OPEN_PUBLISH':
@@ -286,6 +292,7 @@ export function createInitialEditorState(
     draftBanner: null,
     sectionOverridesMap: {},
     previewZoom: 1,
+    previewPage: null,
     isMobile: false,
     mobileVisualEdit: true,
     mobileActionChapterId: null,

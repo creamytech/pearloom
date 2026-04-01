@@ -604,7 +604,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               )}
               {state.activeTab === 'pages' && (
                 <motion.div key="pages" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <PagesPanel manifest={manifest} subdomain={state.subdomain} onChange={handleDesignChange} />
+                  <PagesPanel
+                    manifest={manifest}
+                    subdomain={state.subdomain}
+                    onChange={handleDesignChange}
+                    previewPage={state.previewPage}
+                    onPreviewPage={(slug) => dispatch({ type: 'SET_PREVIEW_PAGE', page: slug })}
+                  />
                 </motion.div>
               )}
               {state.activeTab === 'blocks' && (

@@ -452,6 +452,9 @@ export async function POST(req: NextRequest) {
     // Never let AI-hallucinated hotel names reach the published site.
     manifest.travelInfo = { airports: [], hotels: [] };
 
+    // Clear AI-hallucinated FAQs — users add real FAQs in the Details tab.
+    manifest.faqs = [];
+
     // ── Initialize blocks: occasion-aware defaults.
     // Hero + Story are always shown. Remaining blocks are shown/hidden based on occasion.
     {

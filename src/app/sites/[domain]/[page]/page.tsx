@@ -125,7 +125,7 @@ export default async function SiteSubPage(
     { id: 'home',     slug: '',         label: 'Home',     enabled: true, order: 0 },
     { id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: !!(manifest.events?.length) && !hiddenPages.has('schedule'),            order: 1 },
     { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     enabled: !!(manifest.events?.length) && !hiddenPages.has('rsvp'),            order: 2 },
-    { id: 'travel',   slug: 'travel',   label: 'Travel',   enabled: !!(manifest.travelInfo) && !hiddenPages.has('travel'),                order: 3 },
+    { id: 'travel',   slug: 'travel',   label: 'Travel',   enabled: !!(manifest.travelInfo?.hotels?.length || manifest.travelInfo?.airports?.length) && !hiddenPages.has('travel'),                order: 3 },
     { id: 'venue',    slug: 'venue',    label: 'Venue',    enabled: !!(manifest.logistics?.venue) && !hiddenPages.has('venue'),          order: 4 },
     { id: 'registry', slug: 'registry', label: 'Registry', enabled: !!(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) && !hiddenPages.has('registry'), order: 5 },
     { id: 'faq',      slug: 'faq',      label: 'FAQ',      enabled: !!(manifest.faqs?.length) && !hiddenPages.has('faq'),              order: 6 },
