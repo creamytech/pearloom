@@ -8,8 +8,6 @@
 
 import { useEffect } from 'react';
 import { PreviewPane } from './PreviewPane';
-import { MobilePreviewPane } from './MobilePreviewPane';
-import { MobileChapterActionSheet } from './MobileChapterActionSheet';
 import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
 
 // ── Skeleton Loading Screen ──────────────────────────────────
@@ -119,89 +117,39 @@ export function EditorCanvas() {
         } else {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         }
+        // On mobile, open the editor sheet whenever a section is tapped
+        if (isMobile) {
+          dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+        }
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [chapters, actions, dispatch]);
+  }, [chapters, actions, dispatch, isMobile]);
 
   // ── Send edit-mode activation to iframe after load ────────
   useEffect(() => {
-    if (iframeReady && iframeRef.current && !isMobile) {
+    if (iframeReady && iframeRef.current) {
       try {
         iframeRef.current.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
       } catch {}
     }
-  }, [iframeReady, iframeRef, isMobile]);
+  }, [iframeReady, iframeRef]);
 
-  // ── Mobile Visual Edit Mode ─────────────────────────────────
-  if (isMobile) {
-    const actionChapter = state.mobileActionChapterId
-      ? chapters.find(c => c.id === state.mobileActionChapterId) || null
-      : null;
-    const actionIndex = actionChapter
-      ? chapters.findIndex(c => c.id === actionChapter.id)
-      : -1;
+  // ── Iframe preview (desktop + mobile) ──────────────────────
+  // Mobile: full-bleed iframe, bottom padding reserves space for tab bar
+  // Desktop: dot-grid chrome, device bezel framing
+  const mobileBottomBar = 'calc(56px + env(safe-area-inset-bottom, 0px))';
 
-    return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <MobilePreviewPane
-          manifest={{ ...manifest, chapters: chapters.map((ch, i) => ({ ...ch, order: i })) }}
-          coupleNames={coupleNames}
-          vibeSkin={manifest.vibeSkin}
-          selectedChapterId={state.mobileActionChapterId}
-          onChapterTap={(id) => {
-            dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: id });
-          }}
-          onHeroTap={() => {
-            // Open story tab for hero editing
-            dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-            dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-          }}
-        />
-        <MobileChapterActionSheet
-          chapter={actionChapter}
-          chapterIndex={actionIndex}
-          chapterCount={chapters.length}
-          isRewriting={state.rewritingId === actionChapter?.id}
-          onClose={() => dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: null })}
-          onUpdate={actions.updateChapter}
-          onDelete={(id) => { actions.deleteChapter(id); dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: null }); }}
-          onDuplicate={(id) => {
-            const original = chapters.find(c => c.id === id);
-            if (!original) return;
-            const copyId = `ch-${Date.now()}`;
-            const copy = { ...original, id: copyId, title: `${original.title} (copy)`, order: chapters.length };
-            const next = [...chapters, copy];
-            dispatch({ type: 'SET_CHAPTERS', chapters: next });
-            actions.syncManifest(next);
-            dispatch({ type: 'SET_MOBILE_ACTION_SHEET', chapterId: copyId });
-          }}
-          onMove={(id, direction) => {
-            const idx = chapters.findIndex(c => c.id === id);
-            if (idx < 0) return;
-            const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-            if (targetIdx < 0 || targetIdx >= chapters.length) return;
-            const next = [...chapters];
-            [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
-            actions.handleReorder(next);
-          }}
-          onAIRewrite={actions.handleAIRewrite}
-        />
-      </div>
-    );
-  }
-
-  // ── Desktop: iframe live preview ────────────────────────────
   return (
     <div style={{
       flex: 1,
-      background: '#1a1916',
-      backgroundImage: 'radial-gradient(circle, rgba(214,198,168,0.055) 1px, transparent 0)',
+      background: isMobile ? 'transparent' : '#1a1916',
+      backgroundImage: isMobile ? undefined : 'radial-gradient(circle, rgba(214,198,168,0.055) 1px, transparent 0)',
       backgroundSize: '22px 22px',
       display: 'flex', flexDirection: 'column',
-      overflow: 'auto',
-      paddingBottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+      overflow: isMobile ? 'hidden' : 'auto',
+      paddingBottom: isMobile ? mobileBottomBar : undefined,
     }}>
       <div style={{
         width: '100%', height: '100%',
@@ -224,7 +172,6 @@ export function EditorCanvas() {
                 names: coupleNames,
               }, '*');
             } catch {}
-            // Re-activate edit mode on iframe reload
             iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
           }}
         />
