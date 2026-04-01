@@ -70,7 +70,10 @@ export async function generateMetadata(
   // OG image: prefer the AI-generated OG route, fall back to first chapter photo
   const accent = manifest?.theme?.colors?.accent || '#A3B18A';
   const bg = manifest?.theme?.colors?.background || '#2B2B2B';
-  const coverPhoto = manifest?.chapters?.[0]?.images?.[0]?.url || '';
+  const rawCoverPhoto = manifest?.chapters?.[0]?.images?.[0]?.url || '';
+  // Make /api/img/ proxy URLs absolute — external crawlers (iMessage, Twitter) can't
+  // resolve relative paths, so the OG image renderer needs the full URL.
+  const coverPhoto = rawCoverPhoto.startsWith('/') ? `https://pearloom.com${rawCoverPhoto}` : rawCoverPhoto;
   const weddingDate = eventDate || '';
   const tagline = siteConfig.tagline || vibeString || 'A love story beautifully told.';
   const [n1, n2] = names;

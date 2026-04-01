@@ -13,7 +13,7 @@ import {
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
-import { Globe, Eye } from 'lucide-react';
+import { Globe, Eye, Phone, MessageCircle, Mail, Copy, Check } from 'lucide-react';
 import { PublishIcon } from '@/components/icons/EditorIcons';
 import type { StoryManifest, Chapter } from '@/types';
 import type { CommandAction } from './CommandPalette';
@@ -727,6 +727,21 @@ import { Loader2 } from 'lucide-react';
 function PublishModalInline() {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
   const { showPublish, publishedUrl, publishError, isPublishing, subdomain } = state;
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const accent = manifest?.theme?.colors?.accent || '#A3B18A';
+  const displayNames = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'Our Site';
+  const shareMsg = publishedUrl
+    ? `You're invited! View ${displayNames}'s site: ${publishedUrl}`
+    : '';
+  const rsvpUrl = publishedUrl ? `${publishedUrl}#rsvp` : '';
+
+  const handleCopyLink = () => {
+    if (!publishedUrl) return;
+    navigator.clipboard?.writeText(publishedUrl).catch(() => {});
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
 
   if (!showPublish) return null;
 
@@ -791,14 +806,59 @@ function PublishModalInline() {
                   style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                   <motion.a href={publishedUrl!} target="_blank" rel="noreferrer"
                     whileHover={{ scale: 1.04, boxShadow: '0 6px 22px rgba(163,177,138,0.45)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px rgba(163,177,138,0.35)' }}>
+                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px rgba(163,177,138,0.35)' }}>
                     Open Site →
                   </motion.a>
                   <motion.button onClick={() => { dispatch({ type: 'SET_SHOW_PUBLISH', show: false }); }}
                     whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.1)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
                     Dashboard
                   </motion.button>
+                </motion.div>
+
+                {/* ── Share with guests ── */}
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.34 }}
+                  style={{ width: '100%', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '1rem' }}>
+                  <div style={{ fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.28)', marginBottom: '0.75rem', textAlign: 'left' }}>
+                    Share with guests
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {/* iMessage / SMS */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={() => { if (shareMsg) window.location.href = `sms:?body=${encodeURIComponent(shareMsg)}`; }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.25)', color: 'rgba(255,255,255,0.85)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <Phone size={13} /> iMessage
+                    </motion.button>
+                    {/* WhatsApp */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={() => { if (shareMsg) window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank'); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <MessageCircle size={13} /> WhatsApp
+                    </motion.button>
+                    {/* Email */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={() => { if (publishedUrl) window.open(`mailto:?subject=${encodeURIComponent(`You're invited — ${displayNames}`)}&body=${encodeURIComponent(`View our site:\n${publishedUrl}`)}`); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      <Mail size={13} /> Email
+                    </motion.button>
+                    {/* Copy link */}
+                    <motion.button
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
+                      onClick={handleCopyLink}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: shareCopied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: shareCopied ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(255,255,255,0.1)', color: shareCopied ? '#4ade80' : 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, transition: 'all 0.2s' }}>
+                      {shareCopied ? <Check size={13} /> : <Copy size={13} />}
+                      {shareCopied ? 'Copied!' : 'Copy Link'}
+                    </motion.button>
+                  </div>
+                  {/* RSVP link hint */}
+                  {rsvpUrl && (
+                    <div style={{ marginTop: '0.75rem', fontSize: '0.72rem', color: 'rgba(255,255,255,0.28)', textAlign: 'left' }}>
+                      RSVP link: <span style={{ color: 'rgba(163,177,138,0.7)', fontFamily: 'ui-monospace, monospace' }}>{rsvpUrl}</span>
+                    </div>
+                  )}
                 </motion.div>
               </motion.div>
             ) : (

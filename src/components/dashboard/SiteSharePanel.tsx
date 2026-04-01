@@ -2,114 +2,179 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/dashboard/SiteSharePanel.tsx
-// Premium share panel — link copy, QR, share options, password gate.
+// Premium share panel — real OG preview, iMessage/SMS/WhatsApp,
+// RSVP direct link, themed QR codes (site + RSVP), download.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Copy, Check, Download, QrCode, ExternalLink, Globe,
-  Mail, MessageCircle, Eye, EyeOff, Lock, Key,
+  Copy, Check, Download, QrCode, ExternalLink,
+  Mail, MessageCircle, Phone,
 } from 'lucide-react';
 
 interface SiteSharePanelProps {
   siteUrl: string;
   siteId: string;
   siteName?: string;
-  siteDescription?: string;
-  /** Whether the site has a password gate enabled */
-  passwordProtected?: boolean;
-  /** The current site password, if protected */
-  password?: string;
-  onChangePassword?: () => void;
+  coupleNames?: [string, string];
+  /** Theme accent hex — used for QR dot colour and button accents */
+  accentColor?: string;
+  /** Theme background hex — used for QR background colour */
+  bgColor?: string;
+  /** Hero tagline for OG preview */
+  tagline?: string;
+  /** Formatted date string for OG preview */
+  dateStr?: string;
+  /** Cover photo URL (relative /api/img/ paths are handled automatically) */
+  coverPhoto?: string;
+  /** RSVP section URL, e.g. https://x.pearloom.com#rsvp */
+  rsvpUrl?: string;
 }
 
 export function SiteSharePanel({
   siteUrl,
   siteId,
   siteName,
-  siteDescription,
-  passwordProtected = false,
-  password,
-  onChangePassword,
+  coupleNames,
+  accentColor = '#A3B18A',
+  bgColor = '#2B2B2B',
+  tagline = '',
+  dateStr = '',
+  coverPhoto = '',
+  rsvpUrl,
 }: SiteSharePanelProps) {
-  const [copied, setCopied] = useState(false);
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [copied, setCopied]       = useState<'link' | 'rsvp' | null>(null);
+  const [qrSvg, setQrSvg]         = useState<string | null>(null);
+  const [qrRsvpSvg, setQrRsvpSvg] = useState<string | null>(null);
+  const [qrTab, setQrTab]         = useState<'site' | 'rsvp'>('site');
+
+  const [n1 = '', n2 = ''] = coupleNames || [];
+  const displayNames = coupleNames ? `${n1} & ${n2}` : (siteName || 'Our Site');
+  const shareMsg     = `You're invited! View ${displayNames}'s site: ${siteUrl}`;
+  const rsvpMsg      = rsvpUrl ? `RSVP for ${displayNames}: ${rsvpUrl}` : '';
+
+  const ogPreviewUrl =
+    `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}` +
+    `&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accentColor)}` +
+    `&bg=${encodeURIComponent(bgColor)}&date=${encodeURIComponent(dateStr)}` +
+    `&photo=${encodeURIComponent(coverPhoto)}`;
 
   useEffect(() => {
     if (!siteUrl) return;
-    fetch(`/api/qr?url=${encodeURIComponent(siteUrl)}`)
-      .then((r) => r.text())
-      .then((svg) => setQrSvg(svg))
-      .catch(() => {});
-  }, [siteUrl]);
+    fetch(
+      `/api/qr?url=${encodeURIComponent(siteUrl)}&color=${encodeURIComponent(accentColor)}&bg=${encodeURIComponent(bgColor)}`
+    )
+      .then(r => r.text()).then(setQrSvg).catch(() => {});
+  }, [siteUrl, accentColor, bgColor]);
 
-  const copyLink = async () => {
-    await navigator.clipboard.writeText(siteUrl).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+  useEffect(() => {
+    if (!rsvpUrl) return;
+    fetch(
+      `/api/qr?url=${encodeURIComponent(rsvpUrl)}&color=${encodeURIComponent(accentColor)}&bg=${encodeURIComponent(bgColor)}`
+    )
+      .then(r => r.text()).then(setQrRsvpSvg).catch(() => {});
+  }, [rsvpUrl, accentColor, bgColor]);
+
+  const copyLink = async (url: string, type: 'link' | 'rsvp') => {
+    await navigator.clipboard.writeText(url).catch(() => {});
+    setCopied(type);
+    setTimeout(() => setCopied(null), 2500);
   };
 
-  const downloadQr = () => {
-    if (!qrSvg) return;
-    const blob = new Blob([qrSvg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${siteId}-qr-code.svg`;
+  const downloadQr = (svg: string | null, label: string) => {
+    if (!svg) return;
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${siteId}-${label}-qr.svg`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const shareWhatsApp = () => {
-    const msg = `You're invited! View our wedding site: ${siteUrl}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
-  const shareEmail = () => {
-    const subject = siteName ? `You're invited — ${siteName}` : "You're invited!";
-    const body = `View our wedding website:\n${siteUrl}`;
+  const shareSMS      = (msg: string) => { window.location.href = `sms:?body=${encodeURIComponent(msg)}`; };
+  const shareWhatsApp = (msg: string) => { window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); };
+  const shareEmail    = (subject: string, body: string) => {
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
-  const shareInstagram = () => {
-    // Instagram doesn't allow direct share; copy link with context
-    copyLink();
-  };
+  // ── Shared sub-components ──────────────────────────────────
+  const sectionLabel = (text: string) => (
+    <div style={{
+      fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.14em',
+      textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '1rem',
+    }}>
+      {text}
+    </div>
+  );
 
-  const pillBtn = (
+  const card = (children: React.ReactNode, extraStyle?: React.CSSProperties) => (
+    <div style={{
+      background: 'var(--eg-bg)', borderRadius: '1.25rem',
+      border: '1px solid rgba(0,0,0,0.06)',
+      padding: '1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+      ...extraStyle,
+    }}>
+      {children}
+    </div>
+  );
+
+  const urlRow = (url: string, type: 'link' | 'rsvp') => (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '0.6rem',
+      background: 'rgba(0,0,0,0.025)', borderRadius: '0.65rem',
+      padding: '0.7rem 0.9rem', border: '1px solid rgba(0,0,0,0.06)',
+    }}>
+      <code style={{
+        flex: 1, fontSize: '0.8rem', color: 'var(--eg-fg)',
+        fontFamily: 'ui-monospace, monospace',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {url}
+      </code>
+      <AnimatePresence mode="wait">
+        <motion.button
+          key={copied === type ? 'ok' : 'copy'}
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.85, opacity: 0 }}
+          transition={{ duration: 0.12 }}
+          onClick={() => copyLink(url, type)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.4rem 0.8rem', borderRadius: '0.4rem', flexShrink: 0,
+            background: copied === type ? 'rgba(34,197,94,0.1)' : 'var(--eg-fg)',
+            color:      copied === type ? '#16a34a'             : '#fff',
+            border:     copied === type ? '1px solid rgba(34,197,94,0.2)' : 'none',
+            cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+            fontFamily: 'var(--eg-font-body)',
+          }}
+        >
+          {copied === type ? <Check size={12} /> : <Copy size={12} />}
+          {copied === type ? 'Copied!' : 'Copy'}
+        </motion.button>
+      </AnimatePresence>
+    </div>
+  );
+
+  const shareButton = (
     label: string,
     icon: React.ReactNode,
     onClick: () => void,
     primary = false
   ) => (
     <button
+      key={label}
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'center', gap: '0.5rem',
-        padding: '0.6rem 1.1rem', borderRadius: '100px',
+        display: 'flex', alignItems: 'center', gap: '0.4rem',
+        padding: '0.55rem 1rem', borderRadius: '100px',
         background: primary ? 'var(--eg-fg)' : 'rgba(0,0,0,0.04)',
-        color: primary ? '#fff' : 'var(--eg-fg)',
-        border: primary ? 'none' : '1px solid rgba(0,0,0,0.08)',
-        cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-        fontFamily: 'var(--eg-font-body)',
-        transition: 'all 0.2s',
-        whiteSpace: 'nowrap',
-      }}
-      onMouseOver={(e) => {
-        if (primary) {
-          e.currentTarget.style.opacity = '0.88';
-        } else {
-          e.currentTarget.style.background = 'rgba(0,0,0,0.07)';
-        }
-      }}
-      onMouseOut={(e) => {
-        if (primary) {
-          e.currentTarget.style.opacity = '1';
-        } else {
-          e.currentTarget.style.background = 'rgba(0,0,0,0.04)';
-        }
+        color:      primary ? '#fff'         : 'var(--eg-fg)',
+        border:     primary ? 'none'         : '1px solid rgba(0,0,0,0.08)',
+        cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
+        fontFamily: 'var(--eg-font-body)', whiteSpace: 'nowrap',
       }}
     >
       {icon}
@@ -117,236 +182,175 @@ export function SiteSharePanel({
     </button>
   );
 
+  const activeSvg = qrTab === 'rsvp' ? qrRsvpSvg : qrSvg;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.4 }}
       style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
     >
-      {/* ── URL display ── */}
-      <div style={{
-        background: 'var(--eg-bg)',
-        borderRadius: '1.25rem',
-        border: '1px solid rgba(0,0,0,0.06)',
-        padding: '1.5rem',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
-          <Globe size={13} color="var(--eg-accent)" />
-          <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-accent)' }}>
-            Your Wedding Site
-          </span>
-        </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.75rem',
-          background: 'rgba(0,0,0,0.025)', borderRadius: '0.75rem',
-          padding: '0.875rem 1rem',
-          border: '1px solid rgba(0,0,0,0.06)',
-          marginBottom: '1.25rem',
-        }}>
-          <code style={{
-            flex: 1, fontSize: '0.875rem', color: 'var(--eg-fg)',
-            fontFamily: 'ui-monospace, monospace',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {siteUrl}
-          </code>
-          <AnimatePresence mode="wait">
-            <motion.button
-              key={copied ? 'copied' : 'copy'}
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.85, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={copyLink}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.35rem',
-                padding: '0.45rem 0.85rem', borderRadius: '0.5rem',
-                background: copied ? 'rgba(34,197,94,0.1)' : 'var(--eg-fg)',
-                color: copied ? '#16a34a' : '#fff',
-                border: copied ? '1px solid rgba(34,197,94,0.2)' : 'none',
-                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-                fontFamily: 'var(--eg-font-body)',
-                transition: 'all 0.2s', flexShrink: 0,
-              }}
-            >
-              {copied ? <Check size={13} /> : <Copy size={13} />}
-              {copied ? 'Copied!' : 'Copy Link'}
-            </motion.button>
-          </AnimatePresence>
-        </div>
-
-        {/* Share pill buttons */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {pillBtn('Copy Link', <Copy size={14} />, copyLink, true)}
-          {pillBtn('WhatsApp', <MessageCircle size={14} />, shareWhatsApp)}
-          {pillBtn('Instagram Story', <Copy size={14} />, shareInstagram)}
-          {pillBtn('Email', <Mail size={14} />, shareEmail)}
-          <a
-            href={siteUrl}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              padding: '0.6rem 1.1rem', borderRadius: '100px',
-              background: 'rgba(163,177,138,0.08)',
-              color: 'var(--eg-accent)',
-              border: '1px solid rgba(163,177,138,0.2)',
-              cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-              fontFamily: 'var(--eg-font-body)', textDecoration: 'none',
-              transition: 'background 0.2s', whiteSpace: 'nowrap',
-            }}
-            onMouseOver={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(163,177,138,0.14)'; }}
-            onMouseOut={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(163,177,138,0.08)'; }}
-          >
-            <ExternalLink size={14} />
-            Preview Site
-          </a>
-        </div>
-      </div>
-
-      {/* ── QR Code + Social preview row ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '1.25rem', alignItems: 'start' }}>
-
-        {/* QR Code */}
-        <div style={{
-          background: 'var(--eg-bg)', borderRadius: '1.25rem',
-          border: '1px solid rgba(0,0,0,0.06)',
-          padding: '1.25rem', boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
-        }}>
+      {/* ── OG Link Preview ─────────────────────────────────── */}
+      {card(
+        <>
+          {sectionLabel('Link Preview')}
           <div style={{
-            width: '120px', height: '120px', borderRadius: '0.75rem',
-            overflow: 'hidden', background: 'rgba(0,0,0,0.02)',
-            border: '1px solid rgba(0,0,0,0.06)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: '0.75rem', overflow: 'hidden',
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
           }}>
-            {qrSvg ? (
-              <div
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-                style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              />
-            ) : (
-              <QrCode size={40} color="rgba(0,0,0,0.12)" />
-            )}
-          </div>
-          <button
-            onClick={downloadQr}
-            disabled={!qrSvg}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.35rem',
-              padding: '0.45rem 0.85rem', borderRadius: '0.5rem',
-              border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
-              cursor: qrSvg ? 'pointer' : 'not-allowed',
-              fontSize: '0.72rem', fontWeight: 600, opacity: qrSvg ? 1 : 0.4,
-              color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)',
-              transition: 'background 0.2s',
-            }}
-            onMouseOver={(e) => { if (qrSvg) e.currentTarget.style.background = '#f5f5f5'; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            <Download size={12} />
-            Download QR
-          </button>
-        </div>
-
-        {/* Social preview mock */}
-        <div style={{
-          background: 'var(--eg-bg)', borderRadius: '1.25rem',
-          border: '1px solid rgba(0,0,0,0.06)',
-          padding: '1.25rem', boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-          flex: 1,
-        }}>
-          <span style={{
-            display: 'block', marginBottom: '0.85rem',
-            fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
-            textTransform: 'uppercase', color: 'var(--eg-muted)',
-          }}>
-            Link Preview
-          </span>
-          {/* Mock iMessage / WhatsApp card */}
-          <div style={{
-            border: '1px solid rgba(0,0,0,0.08)', borderRadius: '0.75rem',
-            overflow: 'hidden', background: 'rgba(0,0,0,0.02)',
-          }}>
+            {/* Real OG image rendered by /api/og */}
+            <img
+              src={ogPreviewUrl}
+              alt={`${displayNames} site preview`}
+              style={{ width: '100%', aspectRatio: '1200/630', display: 'block', objectFit: 'cover' }}
+            />
+            {/* iMessage-style bottom row */}
             <div style={{
-              height: '80px', background: 'linear-gradient(135deg, var(--eg-accent-light), var(--eg-accent))',
+              background: '#f9f9f9', borderTop: '1px solid rgba(0,0,0,0.07)',
+              padding: '0.65rem 0.875rem',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontSize: '0.78rem', fontWeight: 700, color: '#1a1816', marginBottom: '0.1rem',
+                  fontFamily: '-apple-system, sans-serif',
+                }}>
+                  {siteName || displayNames}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'rgba(0,0,0,0.4)', fontFamily: '-apple-system, sans-serif' }}>
+                  pearloom.com
+                </div>
+              </div>
+              <a
+                href={siteUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  fontSize: '0.7rem', fontWeight: 600, color: accentColor,
+                  textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                }}
+              >
+                Open <ExternalLink size={11} />
+              </a>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Site URL + Share buttons ─────────────────────────── */}
+      {card(
+        <>
+          {sectionLabel('Your Site URL')}
+          <div style={{ marginBottom: '1rem' }}>
+            {urlRow(siteUrl, 'link')}
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {shareButton('iMessage', <Phone size={14} />, () => shareSMS(shareMsg), true)}
+            {shareButton('WhatsApp', <MessageCircle size={14} />, () => shareWhatsApp(shareMsg))}
+            {shareButton('Email',    <Mail size={14} />, () => shareEmail(
+              siteName ? `You're invited — ${siteName}` : "You're invited!",
+              `View our website:\n${siteUrl}`
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ── RSVP direct link ─────────────────────────────────── */}
+      {rsvpUrl && card(
+        <>
+          {sectionLabel('RSVP Link')}
+          <p style={{
+            fontSize: '0.8rem', color: 'var(--eg-muted)', margin: '0 0 0.875rem 0', lineHeight: 1.5,
+          }}>
+            Send this directly so guests can RSVP without scrolling through the whole site.
+          </p>
+          <div style={{ marginBottom: '1rem' }}>
+            {urlRow(rsvpUrl, 'rsvp')}
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {shareButton('Text RSVP Link', <Phone size={14} />, () => shareSMS(rsvpMsg), true)}
+            {shareButton('WhatsApp', <MessageCircle size={14} />, () => shareWhatsApp(rsvpMsg))}
+          </div>
+        </>
+      )}
+
+      {/* ── QR Codes ─────────────────────────────────────────── */}
+      {card(
+        <>
+          {sectionLabel(rsvpUrl ? 'QR Codes' : 'QR Code')}
+
+          {/* Tab switcher (only shown when RSVP URL exists) */}
+          {rsvpUrl && (
+            <div style={{
+              display: 'flex', gap: '0.25rem', marginBottom: '1.25rem',
+              background: 'rgba(0,0,0,0.04)', borderRadius: '0.6rem', padding: '0.2rem',
+            }}>
+              {(['site', 'rsvp'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setQrTab(tab)}
+                  style={{
+                    flex: 1, padding: '0.45rem', borderRadius: '0.45rem',
+                    background: qrTab === tab ? '#fff' : 'transparent',
+                    border: 'none', cursor: 'pointer',
+                    fontSize: '0.72rem', fontWeight: 600,
+                    color: qrTab === tab ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                    boxShadow: qrTab === tab ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'all 0.15s',
+                    fontFamily: 'var(--eg-font-body)',
+                  }}
+                >
+                  {tab === 'site' ? 'Site Link' : 'RSVP Link'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem' }}>
+            {/* QR display */}
+            <div style={{
+              width: '120px', height: '120px', borderRadius: '0.75rem',
+              overflow: 'hidden', flexShrink: 0,
+              background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.06)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Globe size={28} color="rgba(255,255,255,0.6)" />
+              {activeSvg ? (
+                <div
+                  dangerouslySetInnerHTML={{ __html: activeSvg }}
+                  style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                />
+              ) : (
+                <QrCode size={36} color="rgba(0,0,0,0.12)" />
+              )}
             </div>
-            <div style={{ padding: '0.75rem 0.875rem' }}>
-              <div style={{
-                fontSize: '0.8rem', fontWeight: 700, color: 'var(--eg-fg)',
-                marginBottom: '0.2rem',
-                fontFamily: 'var(--eg-font-heading)',
-              }}>
-                {siteName || 'Our Wedding Website'}
-              </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--eg-muted)', marginBottom: '0.35rem', lineHeight: 1.4 }}>
-                {siteDescription || 'Join us to celebrate our special day.'}
-              </div>
-              <div style={{ fontSize: '0.65rem', color: 'rgba(0,0,0,0.3)' }}>
-                pearloom.com
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ── Password gate section ── */}
-      {passwordProtected && (
-        <div style={{
-          background: 'var(--eg-bg)', borderRadius: '1.25rem',
-          border: '1px solid rgba(0,0,0,0.06)',
-          padding: '1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <Lock size={14} color="var(--eg-muted)" />
-            <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
-              Password Protection
-            </span>
-          </div>
-          {password && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{
-                flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem',
-                padding: '0.7rem 1rem', borderRadius: '0.75rem',
-                border: '1.5px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.02)',
-              }}>
-                <Key size={14} color="var(--eg-muted)" />
-                <code style={{ flex: 1, fontSize: '0.875rem', fontFamily: 'ui-monospace, monospace', color: 'var(--eg-fg)', letterSpacing: '0.08em' }}>
-                  {showPassword ? password : '••••••••'}
-                </code>
-                <button
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', display: 'flex', padding: '2px' }}
-                >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', paddingTop: '0.25rem' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', margin: 0, lineHeight: 1.5 }}>
+                {qrTab === 'rsvp'
+                  ? 'Display at your venue — guests scan to RSVP instantly.'
+                  : 'Add to save-the-dates, invitations, or venue displays.'}
+              </p>
+              <button
+                onClick={() => downloadQr(activeSvg, qrTab)}
+                disabled={!activeSvg}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                  padding: '0.45rem 0.85rem', borderRadius: '0.5rem',
+                  border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
+                  cursor: activeSvg ? 'pointer' : 'not-allowed',
+                  fontSize: '0.72rem', fontWeight: 600,
+                  opacity: activeSvg ? 1 : 0.4,
+                  color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)',
+                  width: 'fit-content',
+                }}
+              >
+                <Download size={12} /> Download SVG
+              </button>
             </div>
-          )}
-          {onChangePassword && (
-            <button
-              onClick={onChangePassword}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.4rem',
-                padding: '0.6rem 1.1rem', borderRadius: '0.6rem',
-                border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
-                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
-                color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)',
-                transition: 'background 0.2s',
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              <Key size={13} />
-              Change password
-            </button>
-          )}
-        </div>
+          </div>
+        </>
       )}
     </motion.div>
   );
