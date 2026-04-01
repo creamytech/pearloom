@@ -700,6 +700,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       prevExitColor = bgColor;
     }
 
+    // Photo Wall section
+    if (manifest.features?.photoWall) {
+      result.push(
+        <GuestPhotoWall key="photo-wall" siteId={domain} vibeSkin={vibeSkin} enabled />
+      );
+    }
+
     // Hashtags section
     if (manifest.hashtags && manifest.hashtags.length > 0) {
       result.push(
@@ -889,6 +896,9 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   <GuestbookSection subdomain={domain} vibeSkin={vibeSkin} manifest={manifest} />
                   <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
                 </>
+              )}
+              {manifest.features?.photoWall && (
+                <GuestPhotoWall siteId={domain} vibeSkin={vibeSkin} enabled />
               )}
               {manifest.spotifyUrl && (
                 <SpotifySection spotifyUrl={manifest.spotifyUrl} playlistName={manifest.spotifyPlaylistName} vibeSkin={vibeSkin} />
