@@ -2,109 +2,19 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import {
-  Eye,
-  Mountain,
-  Heart,
-  GitBranch,
-  Star,
-  Dna,
-  Layers,
-  Palette,
-  Type,
-  Brush,
-  ImageIcon,
-  Wind,
-} from 'lucide-react';
-import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
-import { SectionHeader } from '@/components/marketing/SectionHeader';
-import { IconCircle } from '@/components/ui/IconCircle';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { colors as C, text, sectionPadding, layout } from '@/lib/design-tokens';
 
-/* ── 7-Pass Engine Visualization ── */
 const PASSES = [
-  { icon: Eye, label: 'Face Detection', desc: 'Finds the people who matter in every frame' },
-  { icon: Mountain, label: 'Scene Understanding', desc: 'Beach sunset, backyard party, candlelit dinner' },
-  { icon: Heart, label: 'Emotional Mapping', desc: 'The laughter, the tears, the quiet moments' },
-  { icon: GitBranch, label: 'Narrative Threading', desc: 'Weaves moments into a coherent story' },
-  { icon: Star, label: 'Moment Ranking', desc: 'Knows which photos matter most' },
-  { icon: Dna, label: 'Event DNA', desc: 'Extracts what makes this celebration yours' },
-  { icon: Layers, label: 'Timeline Weaving', desc: 'Orders everything into a beautiful flow' },
+  'Face Detection',
+  'Scene Understanding',
+  'Emotional Mapping',
+  'Narrative Threading',
+  'Moment Ranking',
+  'Event DNA',
+  'Timeline Weaving',
 ];
 
-function LoomEngine() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.15 });
-
-  return (
-    <div ref={ref} className="mb-20">
-      <div className="text-center mb-14">
-        <h3
-          className="font-heading font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
-          style={{ color: C.darkHeading }}
-        >
-          Your photos tell a story. The Loom reads it.
-        </h3>
-        <p className="max-w-[480px] mx-auto" style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.8 }}>
-          Seven passes. Every photo analyzed for faces, scenes, emotions, and narrative connections.
-          The result: a story only you could tell.
-        </p>
-      </div>
-
-      {/* 7-pass list */}
-      <div className="max-w-[560px] mx-auto relative">
-        {/* Vertical thread line */}
-        <motion.div
-          initial={{ scaleY: 0 }}
-          animate={inView ? { scaleY: 1 } : {}}
-          transition={{ duration: 1.4, ease: 'easeOut' }}
-          className="absolute left-[27px] top-0 bottom-0 origin-top"
-          style={{
-            width: 2,
-            background: C.darkBorder,
-            borderRadius: 2,
-          }}
-        />
-
-        <div className="flex flex-col gap-5">
-          {PASSES.map((pass, i) => {
-            const Icon = pass.icon;
-            return (
-              <motion.div
-                key={pass.label}
-                initial={{ opacity: 0, x: -24 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ delay: i * 0.12 + 0.2, duration: 0.5 }}
-                className="flex items-start gap-5 pl-1 relative"
-              >
-                {/* Node */}
-                <div style={{ marginLeft: 4 }}>
-                  <IconCircle icon={Icon} accent={C.olive} size={46} iconSize={18} />
-                </div>
-
-                {/* Content */}
-                <div className="pt-1.5">
-                  <div
-                    className="font-bold tracking-[0.14em] uppercase mb-1"
-                    style={{ fontSize: text.xs, color: C.olive }}
-                  >
-                    Pass {i + 1} · {pass.label}
-                  </div>
-                  <p style={{ fontSize: text.base, color: C.darkText, lineHeight: 1.6 }}>
-                    {pass.desc}
-                  </p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Rind™ Showcase ── */
-const RIND_EXAMPLES = [
+const RINDS = [
   {
     name: 'Garden Party',
     palette: [C.plum, C.gold, C.olive, C.cream, C.muted],
@@ -122,174 +32,9 @@ const RIND_EXAMPLES = [
   },
 ];
 
-const RIND_FEATURES = [
-  { icon: Palette, label: 'Color palette', desc: 'Custom 5-color palette from your vibe' },
-  { icon: Type, label: 'Typography', desc: 'Perfectly paired heading & body fonts' },
-  { icon: Brush, label: 'Textures & elements', desc: 'Decorative motifs woven from your story' },
-  { icon: ImageIcon, label: 'Hero artwork', desc: 'AI-generated visuals unique to you' },
-  { icon: Wind, label: 'Ambient particles', desc: 'Floating elements that match your mood' },
-];
-
-function RindShowcase() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.15 });
-
-  return (
-    <div ref={ref} className="mb-20">
-      <div className="text-center mb-12">
-        <h3
-          className="font-heading font-extrabold text-[1.75rem] md:text-[2rem] mb-4 tracking-tight"
-          style={{ color: C.darkHeading }}
-        >
-          Every pear has a unique skin. So does every celebration.
-        </h3>
-        <p className="max-w-[500px] mx-auto" style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.8 }}>
-          Your <strong style={{ color: C.darkHeading }}>Rind</strong> is the visual layer that wraps your
-          entire site — colors, typography, artwork, and atmosphere — all woven by The Loom from
-          your personality and vibe keywords.
-        </p>
-      </div>
-
-      {/* 3 Rind examples — tabbed */}
-      <Tabs defaultValue="garden" className="max-w-[680px] mx-auto mb-10">
-        <div className="flex justify-center mb-4">
-          <TabsList className="bg-[rgba(255,255,255,0.08)]">
-            <TabsTrigger value="garden" className="text-[rgba(245,241,232,0.5)] data-[state=active]:bg-[rgba(255,255,255,0.12)] data-[state=active]:text-[#F5F1E8]">Garden Party</TabsTrigger>
-            <TabsTrigger value="modern" className="text-[rgba(245,241,232,0.5)] data-[state=active]:bg-[rgba(255,255,255,0.12)] data-[state=active]:text-[#F5F1E8]">Modern Minimalist</TabsTrigger>
-            <TabsTrigger value="coastal" className="text-[rgba(245,241,232,0.5)] data-[state=active]:bg-[rgba(255,255,255,0.12)] data-[state=active]:text-[#F5F1E8]">Coastal Breeze</TabsTrigger>
-          </TabsList>
-        </div>
-        {RIND_EXAMPLES.map((r, i) => {
-          const val = ['garden', 'modern', 'coastal'][i];
-          return (
-            <TabsContent key={r.name} value={val}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="p-4 text-center"
-                style={{
-                  borderRadius: card.radius,
-                  background: C.darkCard,
-                  border: `1px solid ${C.darkBorder}`,
-                }}
-              >
-                <div className="font-bold tracking-[0.14em] uppercase mb-3" style={{ fontSize: text.xs, color: C.darkText }}>
-                  {r.name}
-                </div>
-                {/* Color swatches */}
-                <div className="flex justify-center gap-1.5 mb-3">
-                  {r.palette.map((c, j) => (
-                    <div
-                      key={j}
-                      className="w-9 h-9 rounded-full"
-                      style={{ background: c, border: `1px solid ${C.darkBorder}` }}
-                    />
-                  ))}
-                </div>
-                <div className="italic" style={{ fontSize: text.sm, color: C.darkText, fontFamily: r.font }}>
-                  {r.font}
-                </div>
-              </motion.div>
-            </TabsContent>
-          );
-        })}
-      </Tabs>
-
-      {/* Rind features */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-[700px] mx-auto">
-        {RIND_FEATURES.map((f, i) => {
-          const Icon = f.icon;
-          return (
-            <motion.div
-              key={f.label}
-              initial={{ opacity: 0, y: 14 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.08 + 0.5, duration: 0.4 }}
-              className="text-center"
-            >
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2"
-                style={{ background: `${C.plum}33` }}
-              >
-                <Icon size={16} style={{ color: C.plum }} />
-              </div>
-              <div className="font-semibold" style={{ fontSize: text.xs, color: C.darkHeading }}>
-                {f.label}
-              </div>
-              <div style={{ fontSize: text.xs, color: C.darkText, lineHeight: 1.5 }}>
-                {f.desc}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ── Event DNA ── */
-function EventDNA() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.2 });
-
-  return (
-    <div ref={ref}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.6 }}
-        className="max-w-[600px] mx-auto p-8 text-center"
-        style={{
-          borderRadius: card.radius,
-          background: C.darkCard,
-          border: `1px solid ${C.darkBorder}`,
-        }}
-      >
-        <Dna size={32} style={{ color: C.plum, margin: '0 auto 1rem', opacity: 0.8 }} />
-        <h3
-          className="font-heading font-extrabold text-[1.5rem] md:text-[1.75rem] mb-3 tracking-tight"
-          style={{ color: C.darkHeading }}
-        >
-          Event DNA Illustrations
-        </h3>
-        <p className="mb-6" style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.75 }}>
-          Mention cats, mountains, or your favourite song — and your site&rsquo;s artwork will
-          reference them. The Loom extracts the details that make your celebration yours and weaves
-          them into bespoke illustrations.
-        </p>
-
-        {/* Example DNA tags */}
-        <div className="flex flex-wrap justify-center gap-2">
-          {['loves hiking', 'two cats', 'met in Paris', 'jazz music', 'autumn vibes', 'beach lovers'].map(
-            tag => (
-              <span
-                key={tag}
-                className="px-3 py-1 rounded-full font-medium"
-                style={{
-                  fontSize: text.xs,
-                  background: `${C.olive}26`,
-                  color: C.olive,
-                  border: `1px solid ${C.olive}4D`,
-                }}
-              >
-                {tag}
-              </span>
-            ),
-          )}
-        </div>
-        <p className="mt-4 italic" style={{ fontSize: text.sm, color: C.darkText }}>
-          Each tag becomes a thread in your site&rsquo;s visual tapestry.
-        </p>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── Main Export ── */
 export function TheLoomShowcase() {
   const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.05 });
+  const inView = useInView(ref, { once: true, amount: 0.08 });
 
   return (
     <section
@@ -301,19 +46,132 @@ export function TheLoomShowcase() {
         padding: `${sectionPadding.y} ${sectionPadding.x}`,
       }}
     >
-      <div className="relative" style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
-        {/* Section header */}
-        <SectionHeader
-          dark
-          pill={{ label: 'The Loom', sparkle: true, variant: 'plum' }}
-          title="Meet The Loom."
-          subtitle={<>Every Pearloom site is woven — not assembled. The Loom reads your photos, understands your vibe, and threads together a site that&rsquo;s unmistakably yours. Weddings, birthdays, reunions — whatever the occasion.</>}
-          inView={inView}
+      <div
+        className="relative flex flex-col items-center text-center"
+        style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}
+      >
+        {/* Section pill */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="font-body font-bold tracking-[0.18em] uppercase mb-4"
+          style={{ fontSize: '0.72rem', color: C.plum }}
+        >
+          The Loom
+        </motion.p>
+
+        {/* Big headline */}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.75, delay: 0.08 }}
+          className="font-heading font-bold italic tracking-tight leading-[1.05] mb-6"
+          style={{ fontSize: 'clamp(2.2rem,5vw,3.75rem)', color: C.darkHeading }}
+        >
+          Not assembled.{' '}
+          <span style={{ color: C.plum }}>Woven.</span>
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.18 }}
+          className="font-body max-w-[460px] mb-16"
+          style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.75 }}
+        >
+          Seven AI passes read your photos, understand your vibe, and thread together a site that&rsquo;s unmistakably yours.
+        </motion.p>
+
+        {/* 7 passes — pill row */}
+        <motion.div
+          className="flex flex-wrap justify-center gap-2 mb-20"
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          {PASSES.map((p, i) => (
+            <motion.span
+              key={p}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: i * 0.06 + 0.35, duration: 0.35 }}
+              className="font-body font-medium px-4 py-1.5 rounded-full"
+              style={{
+                fontSize: '0.82rem',
+                background: `${C.olive}1A`,
+                color: C.olive,
+                border: `1px solid ${C.olive}33`,
+              }}
+            >
+              Pass {i + 1} · {p}
+            </motion.span>
+          ))}
+        </motion.div>
+
+        {/* Rind divider */}
+        <div
+          className="w-full h-px mb-14"
+          style={{ background: C.darkBorder }}
         />
 
-        <LoomEngine />
-        <RindShowcase />
-        <EventDNA />
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="font-body font-bold tracking-[0.18em] uppercase mb-3"
+          style={{ fontSize: '0.72rem', color: C.plum }}
+        >
+          Rind™ — your visual identity
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.68, duration: 0.6 }}
+          className="font-body max-w-[380px] mb-10"
+          style={{ fontSize: text.sm, color: C.darkText, lineHeight: 1.7 }}
+        >
+          Colors, typography, and atmosphere — generated from your story.
+        </motion.p>
+
+        {/* Rind swatches — 3 columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-[640px]">
+          {RINDS.map((r, i) => (
+            <motion.div
+              key={r.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.7 + i * 0.1, duration: 0.5 }}
+              className="flex flex-col items-center gap-3 p-5 rounded-2xl"
+              style={{
+                background: C.darkCard,
+                border: `1px solid ${C.darkBorder}`,
+              }}
+            >
+              <div className="flex gap-1.5">
+                {r.palette.map((c, j) => (
+                  <div
+                    key={j}
+                    className="w-7 h-7 rounded-full"
+                    style={{ background: c, border: `1px solid ${C.darkBorder}` }}
+                  />
+                ))}
+              </div>
+              <p
+                className="font-body font-semibold"
+                style={{ fontSize: '0.78rem', color: C.darkHeading }}
+              >
+                {r.name}
+              </p>
+              <p
+                className="italic"
+                style={{ fontSize: '0.75rem', color: C.darkText, fontFamily: r.font }}
+              >
+                {r.font}
+              </p>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );

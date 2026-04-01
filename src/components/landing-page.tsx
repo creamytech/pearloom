@@ -8,18 +8,13 @@ import { MarketingHero } from './marketing/MarketingHero';
 import { SocialProofBar } from './marketing/SocialProofBar';
 import { HowItWorks } from './marketing/HowItWorks';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
-import { EditorShowcase } from './marketing/EditorShowcase';
-import { BlockTypesGrid } from './marketing/BlockTypesGrid';
 import { GuestExperience } from './marketing/GuestExperience';
 import { PricingPreview } from './marketing/PricingPreview';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
-import { SectionHeader } from '@/components/marketing/SectionHeader';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/cn';
 
 interface LandingPageProps {
   handleSignIn: () => void;
@@ -37,73 +32,28 @@ const fadeUp: Variants = {
 // ── Data ──────────────────────────────────────────────────────
 
 const OCCASIONS = [
-  {
-    num: '01',
-    label: 'Weddings',
-    tagline: 'From first look to forever',
-    desc: 'A full wedding site with your love story, events, RSVP, registry, and travel \u2014 all in one breathtaking place.',
-    accent: C.plum,
-  },
-  {
-    num: '02',
-    label: 'Engagements',
-    tagline: 'They said yes. Now tell the world.',
-    desc: 'Share the proposal story, the ring, and save-the-date details with everyone you love.',
-    accent: C.olive,
-  },
-  {
-    num: '03',
-    label: 'Anniversaries',
-    tagline: 'Years together, still writing chapters',
-    desc: 'Celebrate milestones with a timeline of your journey, favorite memories, and a message to each other.',
-    accent: C.gold,
-  },
-  {
-    num: '04',
-    label: 'Birthdays',
-    tagline: 'Every year a new story',
-    desc: 'A personalised birthday site with your story, photos, guest wishes, and all the event details.',
-    accent: C.plum,
-  },
-  {
-    num: '05',
-    label: 'Any Celebration',
-    tagline: 'If it matters, it deserves a site',
-    desc: 'Reunions, retirements, quincea\u00f1eras, graduations \u2014 any moment worth remembering gets a home.',
-    accent: C.olive,
-  },
+  { num: '01', label: 'Weddings', tagline: 'From first look to forever', accent: C.plum },
+  { num: '02', label: 'Engagements', tagline: 'They said yes. Now tell the world.', accent: C.olive },
+  { num: '03', label: 'Anniversaries', tagline: 'Years together, still writing chapters', accent: C.gold },
+  { num: '04', label: 'Birthdays', tagline: 'Every year a new story', accent: C.plum },
+  { num: '05', label: 'Any Celebration', tagline: 'If it matters, it deserves a site', accent: C.olive },
 ];
 
 const TESTIMONIALS = [
   {
-    quote: 'The Loom described our relationship better than we ever could. Our guests said it felt like a design studio built it just for us.',
+    quote: 'The Loom described our relationship better than we ever could.',
     name: 'Emma & James',
-    event: 'Wedding \u00b7 June 2025',
-    featured: true,
+    event: 'Wedding',
   },
   {
-    quote: 'I made an anniversary site in 20 minutes and my husband cried reading the story it wove about us.',
+    quote: 'I made an anniversary site in 20 minutes and my husband cried.',
     name: 'Priya S.',
-    event: 'Anniversary \u00b7 10 years',
-    featured: false,
+    event: 'Anniversary',
   },
   {
-    quote: "Everyone at my mum\u2019s 70th asked who designed the site. I said \u201cPearloom and me in half an hour.\u201d Jaws dropped.",
+    quote: "Everyone asked who designed the site. I said \u201cPearloom and me in half an hour.\u201d",
     name: 'Liam T.',
-    event: 'Birthday \u00b7 July 2025',
-    featured: false,
-  },
-  {
-    quote: 'The proposal story The Loom crafted had our families in tears. Absolutely stunning.',
-    name: 'Sofia & Marco',
-    event: 'Engagement \u00b7 March 2026',
-    featured: false,
-  },
-  {
-    quote: "His colleagues kept asking for the \u201cdesign agency\u201d behind it. It was just me and Pearloom.",
-    name: 'Kezia O.',
-    event: 'Celebration \u00b7 February 2026',
-    featured: false,
+    event: 'Birthday',
   },
 ];
 
@@ -232,12 +182,6 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ THE LOOM ══════════════ */}
       <TheLoomShowcase />
 
-      {/* ══════════════ EDITOR ══════════════ */}
-      <EditorShowcase />
-
-      {/* ══════════════ BLOCKS ══════════════ */}
-      <BlockTypesGrid />
-
       {/* ══════════════ GUEST EXPERIENCE ══════════════ */}
       <GuestExperience />
 
@@ -301,12 +245,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   >
                     {o.label}
                   </div>
-                  <div className="font-heading text-[1.3rem] font-semibold italic text-white mb-2 leading-snug">
+                  <div className="font-heading text-[1.3rem] font-semibold italic text-white leading-snug">
                     {o.tagline}
                   </div>
-                  <p className="text-[0.88rem] text-white/45 leading-[1.75] max-w-[520px]">
-                    {o.desc}
-                  </p>
                 </div>
 
                 {/* Arrow */}
@@ -321,79 +262,39 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         </div>
       </section>
 
-      {/* ══════════════ TESTIMONIALS — cream cards on deep bg ══════════════ */}
+      {/* ══════════════ TESTIMONIALS — floating pull quotes ══════════════ */}
       <section
         ref={testRef}
-        className="bg-[var(--pl-cream-deep)] py-[clamp(4rem,8vw,8rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-[var(--pl-divider)]"
+        className="bg-[var(--pl-cream)] py-[clamp(4rem,8vw,8rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-[var(--pl-divider)]"
       >
-        <div className="max-w-[1100px] mx-auto">
-          <SectionHeader
-            eyebrow="Loved by real people"
-            title="Stories from our community"
-            inView={testInView}
-          />
-
-          {/* Featured first — full width */}
-          {TESTIMONIALS.filter(t => t.featured).map((t, i) => (
+        <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+          {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={t.name}
               custom={i}
               variants={fadeUp}
               initial="hidden"
               animate={testInView ? 'show' : 'hidden'}
-              className="mb-5"
+              className="flex flex-col"
             >
-              <Card
-                variant="elevated"
-                padding="none"
-                className="p-10 sm:p-14 relative overflow-hidden"
+              <div
+                className="font-heading text-[5rem] leading-[0.7] mb-5 select-none italic"
+                style={{ color: C.gold, opacity: 0.35 }}
+                aria-hidden
               >
-                <div
-                  className="absolute top-0 left-0 w-1 h-full rounded-l-[var(--pl-radius-md)]"
-                  style={{ background: `linear-gradient(180deg, ${C.gold}, ${C.plum})` }}
-                />
-                <div
-                  className="font-heading text-[6rem] leading-[0.6] text-[var(--pl-gold)] opacity-20 select-none absolute top-6 left-10"
-                  aria-hidden
-                >
-                  &ldquo;
-                </div>
-                <blockquote className="font-heading text-[clamp(1.2rem,2.2vw,1.5rem)] italic font-medium text-[var(--pl-ink-soft)] leading-[1.5] mb-6 relative z-10 max-w-[760px]">
-                  {t.quote}
-                </blockquote>
-                <Separator className="mb-5 max-w-[80px]" />
-                <p className="text-[0.78rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
-                  — {t.name} &nbsp;&middot;&nbsp; {t.event}
-                </p>
-              </Card>
+                &ldquo;
+              </div>
+              <blockquote
+                className="font-heading italic font-medium leading-[1.55] flex-1 mb-5"
+                style={{ fontSize: 'clamp(1.05rem,1.6vw,1.2rem)', color: C.ink }}
+              >
+                {t.quote}
+              </blockquote>
+              <p className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)]">
+                — {t.name} &nbsp;&middot;&nbsp; {t.event}
+              </p>
             </motion.div>
           ))}
-
-          {/* Rest — 2-column grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {TESTIMONIALS.filter(t => !t.featured).map((t, i) => (
-              <motion.div
-                key={t.name}
-                custom={i + 1}
-                variants={fadeUp}
-                initial="hidden"
-                animate={testInView ? 'show' : 'hidden'}
-                className="h-full"
-              >
-                <Card variant="flat" padding="none" className="p-7 h-full flex flex-col">
-                  <div className="font-heading text-[3rem] leading-[0.7] text-[var(--pl-gold)] opacity-50 mb-4 italic" aria-hidden>
-                    &ldquo;
-                  </div>
-                  <blockquote className="font-heading text-[1rem] italic font-medium text-[var(--pl-ink-soft)] leading-[1.6] flex-1 mb-5">
-                    {t.quote}
-                  </blockquote>
-                  <p className="text-[0.72rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)]">
-                    — {t.name} &nbsp;&middot;&nbsp; {t.event}
-                  </p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 

@@ -10,48 +10,15 @@ import {
   Bot,
   MessageSquare,
 } from 'lucide-react';
-import { colors as C, text, sectionPadding, layout } from '@/lib/design-tokens';
-import { SectionHeader } from '@/components/marketing/SectionHeader';
-import { IconCircle } from '@/components/ui/IconCircle';
-import { Card } from '@/components/ui';
+import { colors as C, sectionPadding, layout } from '@/lib/design-tokens';
 
 const FEATURES = [
-  {
-    icon: Mail,
-    title: 'RSVP with details',
-    desc: 'Dietary preferences, plus-ones, song requests — all captured in one beautiful form.',
-    accent: C.olive,
-  },
-  {
-    icon: LayoutGrid,
-    title: 'Interactive seating chart',
-    desc: 'Drag-and-drop table assignments. Guests can find their seat before they arrive.',
-    accent: C.plum,
-  },
-  {
-    icon: Plane,
-    title: 'Travel & accommodations',
-    desc: 'Maps, hotel blocks, flight details — everything guests need to plan their trip.',
-    accent: C.gold,
-  },
-  {
-    icon: TimerReset,
-    title: 'Time capsule',
-    desc: 'Guests leave messages sealed until your anniversary, birthday, or any date you choose.',
-    accent: C.olive,
-  },
-  {
-    icon: Bot,
-    title: 'AI concierge',
-    desc: 'Guests can ask questions about the event and get instant answers — powered by The Loom.',
-    accent: C.plum,
-  },
-  {
-    icon: MessageSquare,
-    title: 'Guestbook & photos',
-    desc: 'Wishes, notes, and shared photos collected in a living, breathing guestbook.',
-    accent: C.gold,
-  },
+  { icon: Mail, title: 'RSVP', accent: C.olive },
+  { icon: LayoutGrid, title: 'Seating chart', accent: C.plum },
+  { icon: Plane, title: 'Travel info', accent: C.gold },
+  { icon: TimerReset, title: 'Time capsule', accent: C.olive },
+  { icon: Bot, title: 'AI concierge', accent: C.plum },
+  { icon: MessageSquare, title: 'Guestbook', accent: C.gold },
 ];
 
 export function GuestExperience() {
@@ -64,39 +31,56 @@ export function GuestExperience() {
       id="features"
       style={{ background: C.cream, padding: `${sectionPadding.y} ${sectionPadding.x}` }}
     >
-      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
-        <SectionHeader
-          eyebrow="Guest Experience"
-          title={<>Everything your guests need.<br /><span style={{ color: C.plum }}>Nothing they don&rsquo;t.</span></>}
-          inView={inView}
-        />
+      <div
+        className="flex flex-col lg:flex-row items-start gap-16"
+        style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}
+      >
+        {/* Left — headline */}
+        <motion.div
+          className="lg:w-[38%] lg:pt-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={inView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.7 }}
+        >
+          <p
+            className="font-body font-bold tracking-[0.18em] uppercase mb-4"
+            style={{ fontSize: '0.72rem', color: C.olive }}
+          >
+            Guest Experience
+          </p>
+          <h2
+            className="font-heading font-bold italic tracking-tight leading-[1.1]"
+            style={{ fontSize: 'clamp(2rem,3.5vw,2.75rem)', color: C.ink }}
+          >
+            Everything they need.{' '}
+            <span style={{ color: C.plum }}>Nothing they don&rsquo;t.</span>
+          </h2>
+        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Right — 2×3 icon grid */}
+        <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-8">
           {FEATURES.map((f, i) => {
             const Icon = f.icon;
             return (
               <motion.div
                 key={f.title}
-                initial={{ opacity: 0, y: 20 }}
+                className="flex items-center gap-3"
+                initial={{ opacity: 0, y: 16 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: i * 0.08 + 0.2, duration: 0.5 }}
+                transition={{ delay: i * 0.07 + 0.25, duration: 0.5 }}
               >
-                <Card
-                  variant="elevated"
-                  interactive
-                  padding="md"
-                  style={{ borderLeft: `3px solid ${f.accent}` }}
+                <div
+                  className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: `${f.accent}18` }}
                 >
-                  <div className="mb-3.5">
-                    <IconCircle icon={Icon} accent={f.accent} size={48} iconSize={22} />
-                  </div>
-                  <h3 className="font-semibold mb-1.5" style={{ fontSize: text.md, color: C.ink }}>
-                    {f.title}
-                  </h3>
-                  <p className="leading-relaxed" style={{ fontSize: text.sm, color: C.muted, lineHeight: 1.7 }}>
-                    {f.desc}
-                  </p>
-                </Card>
+                  <Icon size={16} style={{ color: f.accent }} />
+                </div>
+                <span
+                  className="font-body font-semibold"
+                  style={{ fontSize: '0.92rem', color: C.ink }}
+                >
+                  {f.title}
+                </span>
               </motion.div>
             );
           })}
