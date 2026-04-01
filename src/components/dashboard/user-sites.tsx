@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Globe, Pencil, ExternalLink, Calendar, Loader2,
@@ -70,6 +71,8 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 // ─────────────────────────────────────────────────────────────
 
 export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: UserSitesProps) {
+  const router = useRouter();
+  const goToEditor = (site: UserSite) => router.push(`/editor/${site.domain}`);
   const [sites, setSites]                   = useState<UserSite[]>([]);
   const [loading, setLoading]               = useState(true);
   const [fetchError, setFetchError]         = useState(false);
@@ -241,7 +244,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 >
                   {/* Cover — taller, more editorial */}
                   <div
-                    onClick={() => onEditSite(site)}
+                    onClick={() => goToEditor(site)}
                     className="h-56 relative overflow-hidden cursor-pointer flex-shrink-0"
                     style={{ background: `linear-gradient(150deg, ${accentColor} 0%, ${accentDark} 100%)` }}
                   >
