@@ -379,8 +379,79 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
   const imgY2 = useTransform(scrollYProgress, [0, 1], ['-8%', '18%']);
   const textY = useTransform(scrollYProgress, [0, 1], ['8%', '-4%']);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mq.matches);
+    const h = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+
   const mainImage = heroImage(chapter);
   const secondImage = chapter.images[1]?.url || '';
+
+  // ── Mobile layout — proper single-column stack ────────────────
+  if (isMobile) {
+    return (
+      <>
+        <ChapterDivider />
+        <motion.article
+          style={{ padding: '2rem 1.25rem 2.5rem', maxWidth: '600px', margin: '0 auto', width: '100%' }}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          {/* Cover image — full width, 4:3 */}
+          {mainImage && (
+            <div style={{ borderRadius: '10px', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
+              <img
+                src={proxyUrl(mainImage, 900, 675)}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+              {/* Second image tucked corner */}
+              {secondImage && (
+                <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.28)', border: '2px solid rgba(255,255,255,0.5)' }}>
+                  <img src={proxyUrl(secondImage, 160, 160)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Text */}
+          <div>
+            <MoodBadge mood={chapter.mood} />
+            <div style={{ marginBottom: '0.6rem' }}>
+              <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700 }}>
+                {formatDateFull(chapter.date)}
+              </span>
+            </div>
+            <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.85rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--eg-fg)', lineHeight: 1.1, margin: '0 0 0.6rem', letterSpacing: '-0.02em' }}>
+              <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
+            </h3>
+            {chapter.subtitle && (
+              <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+                <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
+              </p>
+            )}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={false} />
+            </div>
+            <div data-pe-editable="true" data-pe-field="description">
+              <EnhancedDescription text={chapter.description} />
+            </div>
+            {chapter.location && (
+              <div style={{ marginTop: '1.5rem' }}>
+                <LocationPill label={chapter.location.label} />
+              </div>
+            )}
+          </div>
+        </motion.article>
+      </>
+    );
+  }
 
   return (
     <>
