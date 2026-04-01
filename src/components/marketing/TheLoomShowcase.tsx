@@ -153,10 +153,10 @@ function RindShowcase() {
       {/* 3 Rind examples — tabbed */}
       <Tabs defaultValue="garden" className="max-w-[680px] mx-auto mb-10">
         <div className="flex justify-center mb-4">
-          <TabsList>
-            <TabsTrigger value="garden">Garden Party</TabsTrigger>
-            <TabsTrigger value="modern">Modern Minimalist</TabsTrigger>
-            <TabsTrigger value="coastal">Coastal Breeze</TabsTrigger>
+          <TabsList className="bg-[rgba(255,255,255,0.08)]">
+            <TabsTrigger value="garden" className="text-[rgba(245,241,232,0.5)] data-[state=active]:bg-[rgba(255,255,255,0.12)] data-[state=active]:text-[#F5F1E8]">Garden Party</TabsTrigger>
+            <TabsTrigger value="modern" className="text-[rgba(245,241,232,0.5)] data-[state=active]:bg-[rgba(255,255,255,0.12)] data-[state=active]:text-[#F5F1E8]">Modern Minimalist</TabsTrigger>
+            <TabsTrigger value="coastal" className="text-[rgba(245,241,232,0.5)] data-[state=active]:bg-[rgba(255,255,255,0.12)] data-[state=active]:text-[#F5F1E8]">Coastal Breeze</TabsTrigger>
           </TabsList>
         </div>
         {RIND_EXAMPLES.map((r, i) => {

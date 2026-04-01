@@ -40,7 +40,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick }: W
           <div
             className="max-w-[800px] mx-auto mb-16 px-8 py-5"
             style={{
-              background: '#FFFFFF',
+              background: card.bg,
               borderRadius: card.radius,
               boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
               border: `1px solid ${colors.divider}`,

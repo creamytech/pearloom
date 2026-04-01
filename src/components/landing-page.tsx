@@ -258,8 +258,8 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             className="hidden sm:inline-flex"
             style={{
               padding: '0.5rem 1.25rem',
-              background: C.olive,
-              color: C.cream,
+              background: C.ink,
+              color: '#FFFFFF',
               border: 'none',
               borderRadius: '0.6rem',
               fontSize: text.base,

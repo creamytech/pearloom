@@ -64,10 +64,10 @@
   --space-4xl: 64px;
 
   /* Typography scale */
-  --text-xs: 0.65rem;
-  --text-sm: 0.78rem;
-  --text-base: 0.88rem;
-  --text-md: 0.95rem;
+  --text-xs: 0.72rem;
+  --text-sm: 0.85rem;
+  --text-base: 0.95rem;
+  --text-md: 1.05rem;
   --text-lg: 1.1rem;
   --text-xl: 1.3rem;
 

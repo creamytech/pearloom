@@ -3,7 +3,6 @@
 import { useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useRef, useEffect } from 'react';
 import { colors as C, text, layout } from '@/lib/design-tokens';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Marquee } from '@/components/ui/marquee';
 
 const STATS = [
@@ -118,23 +117,9 @@ export function SocialProofBar() {
       }}
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
-        {/* Avatar pile */}
-        <div className="flex justify-center mb-6">
-          <div className="flex -space-x-2">
-            {['J&M', 'S&K', 'A&R', 'L&D', 'P&C'].map((initials, i) => (
-              <Avatar key={i} className="h-8 w-8 border-2 border-[var(--eg-bg)]">
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-            ))}
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--eg-accent)] text-white text-[0.6rem] font-bold border-2 border-[var(--eg-bg)]">
-              2k+
-            </div>
-          </div>
-        </div>
-
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'rgba(255,255,255,0.85)',
             borderRadius: '1rem',
             boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
             border: `1px solid ${C.divider}`,
@@ -162,7 +147,7 @@ export function SocialProofBar() {
                   />
                 )}
 
-                <div className="flex justify-center mb-3" style={{ opacity: 0.55 }}>
+                <div className="flex justify-center mb-3" style={{ opacity: 0.75 }}>
                   <StatIcon icon={s.icon} color={C.olive} />
                 </div>
 

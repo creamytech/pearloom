@@ -62,11 +62,6 @@ export function PricingPreview() {
       }}
     >
       <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
-        {/* Decorative gold rule */}
-        <div className="flex justify-center mb-6">
-          <div style={{ width: 60, height: 1, background: C.gold }} />
-        </div>
-
         <SectionHeader
           eyebrow="Pricing"
           eyebrowColor={C.gold}
@@ -84,18 +79,19 @@ export function PricingPreview() {
               transition={{ delay: i * 0.12 + 0.3, duration: 0.5 }}
               style={{ position: 'relative' }}
             >
-              {/* RECOMMENDED label for premium */}
-              {tier.highlighted && (
-                <div className="text-center mb-2">
-                  <Badge variant="success">Recommended</Badge>
-                </div>
-              )}
-
               <Card
                 variant={tier.highlighted ? 'elevated' : 'outlined'}
                 padding="lg"
                 className={tier.highlighted ? 'border-2 border-[var(--eg-accent)]' : ''}
               >
+                {/* Spacer / Recommended badge to align card tops */}
+                {tier.highlighted ? (
+                  <div className="text-center mb-2">
+                    <Badge variant="success">Recommended</Badge>
+                  </div>
+                ) : (
+                  <div style={{ height: '28px' }} />
+                )}
                 <div className="flex items-center gap-2 mb-2">
                   <div
                     className="font-bold tracking-[0.14em] uppercase"

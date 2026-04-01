@@ -15,6 +15,7 @@ import {
 } from '@/components/icons/PearloomIcons';
 import { PearBackground } from '@/components/icons/PearShapes';
 import { VenueSearch, type VenuePartial } from '@/components/venue/VenueSearch';
+import { Button } from '@/components/ui';
 
 // Small tooltip component for Phase 2 field hints
 function Tooltip({ text }: { text: string }) {
@@ -157,6 +158,9 @@ interface VibeInputProps {
     guestNotes?: string;
     inspirationUrls?: string[];
     layoutFormat?: string;
+    rsvpDeadline?: string;
+    cashFundUrl?: string;
+    eventVenue?: string;
   }) => void;
   initialNames?: [string, string];
   initialVibe?: string;
@@ -299,7 +303,7 @@ const COLOR_PALETTES = [
   { id: 'dark-romance',  name: 'Dark Romance',      colors: ['#6A0F2A', '#A83050', '#D4A0A0', '#F8F0F2', '#1A0408'] },
   { id: 'celestial',     name: 'Celestial Night',   colors: ['#0D1B2A', '#1B3A6B', '#C8A0E8', '#F0EAFF', '#E8D8FF'] },
   { id: 'modern-luxe',   name: 'Modern Luxe',       colors: ['#1A1A1A', '#B8962A', '#DFC870', '#F5F2ED', '#0A0A0A'] },
-  { id: 'custom',        name: 'Let AI decide',     colors: ['#888', '#aaa', '#ccc', '#eee', '#333'] },
+  { id: 'custom',        name: 'Let AI decide',     colors: ['#E8A0BF', '#A8D8EA', '#D4E09B', '#F6D365', '#B8A9C4'] },
 ];
 
 const TIMELINE_FORMATS = [
@@ -376,16 +380,6 @@ const getBlurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement
   e.target.style.transform = 'none';
 };
 
-const btnPrimaryStyle: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: '0.5rem',
-  padding: '1rem 2.25rem', borderRadius: '100px',
-  background: 'linear-gradient(135deg, var(--eg-accent, #A3B18A) 0%, var(--eg-accent-hover, #8FA876) 100%)',
-  color: '#fff', border: 'none',
-  fontSize: '0.95rem', fontWeight: 600, fontFamily: 'var(--eg-font-body)',
-  cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-  boxShadow: '0 8px 28px rgba(163,177,138,0.35)',
-  letterSpacing: '0.01em',
-};
 
 function FormatMiniPreview({ id }: { id: string }) {
   const base: React.CSSProperties = {
@@ -520,8 +514,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
   const INSPO_SUGGESTIONS = [
     { label: 'NYC Energy', emoji: '🗽' },
-    { label: 'Knicks', emoji: '🏀' },
-    { label: 'Lakers', emoji: '💜' },
+    { label: 'Film Noir', emoji: '🎬' },
+    { label: 'Mediterranean', emoji: '🫒' },
     { label: 'Coco (Pixar)', emoji: '🌼' },
     { label: 'Moana', emoji: '🌊' },
     { label: 'La La Land', emoji: '🎷' },
@@ -537,6 +531,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     { label: 'Golden Hour', emoji: '🌇' },
     { label: 'Boho', emoji: '🪬' },
     { label: 'Minimal', emoji: '◻' },
+    { label: 'Scandinavian', emoji: '🏔' },
+    { label: 'Kinfolk', emoji: '🍂' },
   ];
 
   // Ambient orb color for background — shifts with mood/palette selection
@@ -596,18 +592,21 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     // Occasion-specific context
     let occasionContext = '';
     if (occasion === 'anniversary') {
-      if (detailsData.anniversaryYears) {
-        occasionContext += `\nANNIVERSARY: ${detailsData.anniversaryYears} years together${detailsData.anniversaryMilestone ? `, celebrating their ${detailsData.anniversaryMilestone} anniversary` : ''}. Original date: ${detailsData.originalDate || 'cherished'}.`;
-      }
+      const annParts: string[] = [];
+      if (detailsData.anniversaryYears) annParts.push(`${detailsData.anniversaryYears} years together`);
+      if (detailsData.anniversaryMilestone) annParts.push(`celebrating their ${detailsData.anniversaryMilestone} anniversary`);
+      if (detailsData.originalDate) annParts.push(`original date: ${detailsData.originalDate}`);
+      if (annParts.length > 0) occasionContext += `\nANNIVERSARY: ${annParts.join(', ')}.`;
       if (detailsData.coupleEvolution) occasionContext += `\nHOW THEY'VE GROWN: ${detailsData.coupleEvolution}`;
       if (detailsData.celebrationVenue) occasionContext += `\nCELEBRATION VENUE: ${detailsData.celebrationVenue}.`;
       if (detailsData.celebrationTime) occasionContext += ` Time: ${detailsData.celebrationTime}.`;
       if (detailsData.guestNotes) occasionContext += `\nNOTES FOR GUESTS: ${detailsData.guestNotes}`;
     }
     if (occasion === 'birthday') {
-      if (detailsData.birthdayAge) {
-        occasionContext += `\nBIRTHDAY: ${detailsData.birthdayAge}th birthday${isMilestoneBirthday(detailsData.birthdayAge) ? ' — MILESTONE YEAR' : ''}${detailsData.isSurprise ? ' — SECRET SURPRISE PARTY' : ''}.`;
-      }
+      const bdayParts: string[] = [];
+      if (detailsData.birthdayAge) bdayParts.push(`${detailsData.birthdayAge}th birthday${isMilestoneBirthday(detailsData.birthdayAge) ? ' — MILESTONE YEAR' : ''}`);
+      if (detailsData.isSurprise) bdayParts.push('SECRET SURPRISE PARTY');
+      if (bdayParts.length > 0) occasionContext += `\nBIRTHDAY: ${bdayParts.join(' — ')}.`;
       if (detailsData.birthdayPassions) occasionContext += `\nTHEY LOVE: ${detailsData.birthdayPassions}`;
       if (detailsData.birthdayTribute) occasionContext += `\nWHO THEY ARE: ${detailsData.birthdayTribute}`;
       // Party logistics — inject so memory engine sees the event details
@@ -625,7 +624,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
     const birthdayCreator = name2.trim() ? `Created as a gift by ${name2.trim()}.` : '';
 
     const keywordDirective = inspoKeywords.length > 0
-      ? `AESTHETIC REFERENCES (treat these as strong visual and cultural cues for color palette, motifs, and art direction): ${inspoKeywords.join(', ')}. For example, if "Knicks" → orange and blue with NYC energy; if "Coco" → marigolds, papel picado, warm golds and purples; if "Art Deco" → gold geometry, black, cream; if "Coastal" → sea glass greens, sandy neutrals. Translate each reference into its visual DNA.`
+      ? `AESTHETIC REFERENCES (treat these as strong visual and cultural cues for color palette, motifs, and art direction): ${inspoKeywords.join(', ')}. For example, if "Film Noir" → moody blacks, silver, dramatic shadows; if "Coco" → marigolds, papel picado, warm golds and purples; if "Art Deco" → gold geometry, black, cream; if "Coastal" → sea glass greens, sandy neutrals. Translate each reference into its visual DNA.`
       : '';
 
     return [
@@ -678,6 +677,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
       eventDate: eventDate || undefined,
       inspirationUrls: validUrls.length > 0 ? validUrls : undefined,
       layoutFormat: layoutFormat || 'cascade',
+      rsvpDeadline: rsvpDeadline || undefined,
+      cashFundUrl: cashFundUrl || undefined,
+      eventVenue: eventVenue || undefined,
       ...details,
     });
   };
@@ -1336,25 +1338,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
 
         {/* Build my site button */}
         <div style={{ marginTop: '2.5rem' }}>
-          <button
-            onClick={() => handleFinalSubmit(false)}
-            disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}
-            style={{
-              ...btnPrimaryStyle,
-              width: '100%',
-              justifyContent: 'center',
-              background: (subdomainStatus === 'taken' || subdomainStatus === 'checking')
-                ? 'rgba(0,0,0,0.12)'
-                : 'linear-gradient(135deg, #A3B18A, #8FA876)',
-              boxShadow: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'none' : '0 12px 36px rgba(163,177,138,0.4)',
-              fontSize: '1rem',
-              padding: '1.1rem 2rem',
-              cursor: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'not-allowed' : 'pointer',
-              color: (subdomainStatus === 'taken' || subdomainStatus === 'checking') ? 'var(--eg-muted)' : '#fff',
-            }}
-          >
+          <Button variant="accent" size="lg" className="w-full" onClick={() => handleFinalSubmit(false)} disabled={subdomainStatus === 'taken' || subdomainStatus === 'checking'}>
             Build my site <LoomThreadIcon size={18} />
-          </button>
+          </Button>
           {subdomainStatus === 'taken' && (
             <p style={{ color: '#b91c1c', fontSize: '0.78rem', textAlign: 'center', marginTop: '0.5rem' }}>
               This URL is taken — please choose a different name above.
@@ -1516,10 +1502,10 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </p>
             )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ ...btnPrimaryStyle, background: 'transparent', color: 'var(--eg-muted)', boxShadow: 'none' }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} style={{ ...btnPrimaryStyle, opacity: canProceedStep1 ? 1 : 0.5 }}>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep1}>
                 Continue <ArrowRight size={18} />
-              </button>
+              </Button>
             </div>
           </motion.div>
         )}
@@ -1594,9 +1580,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '3rem' }}>
-              <button onClick={handleNext} disabled={!canProceedStep2} style={{ ...btnPrimaryStyle, opacity: canProceedStep2 ? 1 : 0.5, pointerEvents: canProceedStep2 ? 'auto' : 'none' }}>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep2}>
                 Continue <ArrowRight size={18} />
-              </button>
+              </Button>
             </div>
           </motion.div>
         )}
@@ -1699,7 +1685,7 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                   <input
                     type="text"
                     value={inspoKeywordInput}
-                    placeholder="e.g. Knicks, Coco, Art Deco, Paris..."
+                    placeholder="e.g. Film Noir, Coco, Art Deco, Paris..."
                     onChange={e => setInspoKeywordInput(e.target.value)}
                     onKeyDown={e => {
                       if ((e.key === 'Enter' || e.key === ',') && inspoKeywordInput.trim()) {
@@ -1721,15 +1707,15 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
                     }}
                   />
                   {inspoKeywordInput.trim() && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="accent"
+                      size="sm"
                       onClick={() => {
                         const val = inspoKeywordInput.trim();
                         if (!inspoKeywords.includes(val)) setInspoKeywords(prev => [...prev, val]);
                         setInspoKeywordInput('');
                       }}
-                      style={{ ...btnPrimaryStyle, padding: '0.65rem 1.25rem', fontSize: '0.875rem' }}
-                    >Add</button>
+                    >Add</Button>
                   )}
                 </div>
               </div>
@@ -1814,8 +1800,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep3} style={{ ...btnPrimaryStyle, opacity: canProceedStep3 ? 1 : 0.5, pointerEvents: canProceedStep3 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep3}>Continue <ArrowRight size={18} /></Button>
             </div>
           </motion.div>
         )}
@@ -2045,8 +2031,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext}>Continue <ArrowRight size={18} /></Button>
             </div>
           </motion.div>
         )}
@@ -2102,8 +2088,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleNext} disabled={!canProceedStep8} style={{ ...btnPrimaryStyle, opacity: canProceedStep8 ? 1 : 0.5, pointerEvents: canProceedStep8 ? 'auto' : 'none' }}>Continue <ArrowRight size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep8}>Continue <ArrowRight size={18} /></Button>
             </div>
           </motion.div>
         )}
@@ -2151,11 +2137,11 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
               {isEvent ? (
-                <button onClick={handleNext} style={{ ...btnPrimaryStyle }}>Continue <ArrowRight size={18} /></button>
+                <Button variant="accent" size="lg" onClick={handleNext}>Continue <ArrowRight size={18} /></Button>
               ) : (
-                <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <LoomThreadIcon size={18} /></button>
+                <Button variant="accent" size="lg" onClick={handleSubmit}>Generate My Site <LoomThreadIcon size={18} /></Button>
               )}
             </div>
           </motion.div>
@@ -2190,8 +2176,8 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
-              <button onClick={handleBack} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--eg-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}><ArrowLeft size={18} /> Back</button>
-              <button onClick={handleSubmit} style={{ ...btnPrimaryStyle, boxShadow: '0 12px 36px rgba(163,177,138,0.45)' }}>Generate My Site <LoomThreadIcon size={18} /></button>
+              <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
+              <Button variant="accent" size="lg" onClick={handleSubmit}>Generate My Site <LoomThreadIcon size={18} /></Button>
             </div>
           </motion.div>
         )}

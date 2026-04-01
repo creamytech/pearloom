@@ -63,7 +63,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
       style={{
         minHeight: 'min(100dvh, 900px)',
         padding: 'clamp(3.5rem,8vw,7rem) 1.25rem clamp(4rem,8vw,8rem)',
-        background: C.cream,
+        background: `radial-gradient(ellipse at 50% 0%, ${C.deep} 0%, ${C.cream} 50%, ${C.cream} 100%)`,
       }}
     >
       <div className="relative z-10 w-full text-center" style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
