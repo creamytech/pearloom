@@ -117,10 +117,6 @@ export function EditorCanvas() {
         } else {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         }
-        // On mobile, open the editor sheet whenever a section is tapped
-        if (isMobile) {
-          dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-        }
       }
     };
     window.addEventListener('message', handler);
