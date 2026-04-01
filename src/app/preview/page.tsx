@@ -229,8 +229,16 @@ function PreviewContent() {
   // Google Fonts URL
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
 
-  const coverPhoto = manifest.chapters?.[0]?.images?.[0]?.url;
-  const proxiedCover = coverPhoto ? proxyUrl(coverPhoto, 1920, 1080) : undefined;
+  const rawCoverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || '';
+  const occasion = manifest.occasion || 'wedding';
+  const safeNames = [names[0] || 'Celebrating', names[1] || ''];
+  const heroArtParams = new URLSearchParams({
+    n1: safeNames[0], n2: safeNames[1],
+    occasion, accent: pal.accent, bg: pal.background,
+  });
+  const proxiedCover = rawCoverPhoto
+    ? proxyUrl(rawCoverPhoto, 1920, 1080)
+    : `/api/hero-art?${heroArtParams.toString()}`;
 
   // Build nav pages — only show pages that have real content
   const sitePages: SitePage[] = [

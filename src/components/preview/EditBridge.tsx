@@ -117,7 +117,32 @@ export function EditBridge({ enabled }: EditBridgeProps) {
         htmlEl.spellcheck = false;
         htmlEl.style.outline = 'none';
 
+        // On focus: temporarily remove overflow:hidden on ancestor containers
+        // so text isn't clipped inside fixed-height chapter layouts
+        htmlEl.addEventListener('focus', () => {
+          let parent = htmlEl.parentElement;
+          while (parent && parent !== document.body) {
+            const cs = getComputedStyle(parent);
+            if (cs.overflow === 'hidden' || cs.overflowY === 'hidden') {
+              (parent as HTMLElement & { __peOverflow?: string }).__peOverflow = parent.style.overflow;
+              parent.style.overflow = 'visible';
+            }
+            parent = parent.parentElement;
+          }
+        });
+
         htmlEl.addEventListener('blur', () => {
+          // Restore overflow on ancestor containers
+          let parent = htmlEl.parentElement;
+          while (parent && parent !== document.body) {
+            const p = parent as HTMLElement & { __peOverflow?: string };
+            if ('__peOverflow' in p) {
+              p.style.overflow = p.__peOverflow ?? '';
+              delete p.__peOverflow;
+            }
+            parent = parent.parentElement;
+          }
+
           const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter');
           const field = htmlEl.getAttribute('data-pe-field');
           const value = htmlEl.innerText.trim();
@@ -137,6 +162,73 @@ export function EditBridge({ enabled }: EditBridgeProps) {
     const observer = new MutationObserver(makeEditable);
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
+  }, [enabled]);
+
+  // ── Inject "Edit Cover Photo" button into the hero section ───
+  // The hero img sits under z-index:10 text overlay — can't be clicked directly.
+  // We inject a DOM button into the hero at z-index:20 instead.
+  useEffect(() => {
+    if (!enabled) return;
+
+    const ATTR = 'data-pe-hero-photo-btn';
+    let rafId: number;
+
+    const inject = () => {
+      if (document.querySelector(`[${ATTR}]`)) return; // already injected
+
+      const heroSection = document.querySelector('[data-pe-section="hero"]') as HTMLElement | null;
+      if (!heroSection) return;
+
+      const heroImg = heroSection.querySelector('img') as HTMLImageElement | null;
+      if (!heroImg) return; // no cover photo in hero
+
+      const btn = document.createElement('button');
+      btn.setAttribute(ATTR, 'true');
+      btn.textContent = '↑ Edit Cover Photo';
+      btn.style.cssText = [
+        'position:absolute', 'bottom:24px', 'left:24px',
+        'z-index:20', 'cursor:pointer',
+        'background:rgba(22,18,14,0.88)', 'backdrop-filter:blur(16px)',
+        '-webkit-backdrop-filter:blur(16px)',
+        'border:1px solid rgba(255,255,255,0.15)',
+        'border-radius:100px',
+        'color:rgba(255,255,255,0.9)',
+        'font-family:system-ui,-apple-system,sans-serif',
+        'font-size:13px', 'font-weight:700',
+        'padding:10px 18px', 'min-height:44px',
+        'display:flex', 'align-items:center', 'gap:8px',
+        'box-shadow:0 4px 16px rgba(0,0,0,0.5)',
+        '-webkit-tap-highlight-color:transparent',
+        'white-space:nowrap',
+      ].join(';');
+
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const rect = heroImg.getBoundingClientRect();
+        setOverlay({
+          rect,
+          chapterId: null,
+          photoIndex: 0,
+          src: heroImg.src,
+          isHero: true,
+          isHeroArt: heroImg.src.includes('/api/hero-art'),
+        });
+      };
+
+      heroSection.style.position = 'relative';
+      heroSection.appendChild(btn);
+    };
+
+    // Try immediately, then retry after images load (hero may render async)
+    inject();
+    rafId = requestAnimationFrame(() => inject());
+    const t = setTimeout(inject, 1500);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(t);
+      document.querySelector(`[${ATTR}]`)?.remove();
+    };
   }, [enabled]);
 
   // ── Section click → open sidebar panel ───────────────────────
