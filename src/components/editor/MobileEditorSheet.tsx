@@ -101,12 +101,14 @@ function ChapterReorderRow({
 }) {
   const controls = useDragControls();
   const thumb = getThumb(chapter);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const rowX = useMotionValue(0);
 
   return (
     <Reorder.Item
       value={chapter}
       id={chapter.id}
-      dragListener={false}
+      dragListener={!isSwiping}
       dragControls={controls}
       as="div"
       whileDrag={{ scale: 1.02, zIndex: 50, boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
@@ -117,94 +119,104 @@ function ChapterReorderRow({
       transition={{ duration: 0.18 }}
       style={{ marginBottom: 6 }}
     >
-      <motion.div
-        whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}
-        transition={{ duration: 0.13 }}
-        style={{
-          borderRadius: 12,
-          background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(255,255,255,0.04)',
-          borderLeft: isActive ? '3px solid rgba(163,177,138,0.75)' : '3px solid rgba(163,177,138,0.12)',
-          border: '1px solid transparent',
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 10px 10px 6px', cursor: 'pointer', minHeight: 56,
-        }}
-        onClick={() => onSelect(chapter.id)}
-      >
-        <motion.div
-          role="button"
-          aria-label="Drag to reorder"
-          onPointerDown={e => { e.preventDefault(); e.stopPropagation(); controls.start(e); }}
-          whileHover={{ color: 'rgba(163,177,138,0.8)' }}
-          style={{
-            cursor: 'grab', padding: '0 8px', display: 'flex', alignItems: 'center',
-            color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
-          }}
-        >
-          <GripIcon size={13} />
-        </motion.div>
-
+      {/* Swipe-to-delete container */}
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 12 }}>
+        {/* Delete zone revealed on swipe-left */}
         <div style={{
-          flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
-          background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(255,255,255,0.07)',
-          border: isActive ? '1px solid rgba(163,177,138,0.45)' : '1px solid rgba(255,255,255,0.09)',
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: 80,
+          background: 'rgba(220,53,69,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.63rem', fontWeight: 800,
-          color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+          borderRadius: '0 12px 12px 0',
         }}>
-          {index + 1}
+          <Trash2 size={16} color="rgba(255,255,255,0.9)" />
         </div>
 
-        <div style={{
-          width: 40, height: 40, borderRadius: 7, flexShrink: 0,
-          background: thumb ? 'transparent' : 'rgba(255,255,255,0.07)',
-          overflow: 'hidden', border: '1px solid rgba(255,255,255,0.09)',
-        }}>
-          {thumb
-            ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image size={13} color="rgba(255,255,255,0.22)" />
-              </div>}
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: '0.88rem', fontWeight: 700,
-            fontFamily: 'var(--eg-font-heading, "Playfair Display", Georgia, serif)',
-            color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.9)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3,
-          }}>
-            {chapter.title || 'Untitled'}
-          </div>
-          {chapter.date && (
-            <div style={{
-              fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)',
-              marginTop: 2, display: 'flex', alignItems: 'center', gap: 4,
-            }}>
-              <Clock size={9} style={{ flexShrink: 0, opacity: 0.65 }} />
-              <span>{chapter.date?.slice(0, 10)}</span>
-            </div>
-          )}
-        </div>
-
-        <ChevronRight size={14} color="rgba(255,255,255,0.22)" style={{ flexShrink: 0 }} />
-
-        <motion.button
-          onClick={e => {
-            e.stopPropagation();
-            if (window.confirm(`Delete "${chapter.title || 'this chapter'}"?`)) onDelete(chapter.id);
-          }}
-          whileHover={{ scale: 1.15, color: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)' }}
-          whileTap={{ scale: 0.88 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+        {/* Row content — draggable on x-axis for swipe-to-delete */}
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: -80, right: 0 }}
+          dragElastic={{ left: 0.08, right: 0 }}
           style={{
-            padding: 5, borderRadius: 5, border: 'none',
-            background: 'none', color: 'rgba(255,255,255,0.28)', cursor: 'pointer',
-            display: 'flex', flexShrink: 0,
+            x: rowX,
+            borderRadius: 12,
+            background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(255,255,255,0.04)',
+            borderLeft: isActive ? '3px solid rgba(163,177,138,0.75)' : '3px solid rgba(163,177,138,0.12)',
+            border: '1px solid transparent',
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 10px 10px 6px', cursor: 'pointer', minHeight: 56,
           }}
+          onDragStart={() => setIsSwiping(true)}
+          onDragEnd={(_, info) => {
+            setIsSwiping(false);
+            if (info.offset.x < -60) {
+              onDelete(chapter.id);
+            } else {
+              animate(rowX, 0, { type: 'spring', stiffness: 500, damping: 38 });
+            }
+          }}
+          whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}
+          transition={{ duration: 0.13 }}
+          onClick={() => onSelect(chapter.id)}
         >
-          <Trash2 size={12} />
-        </motion.button>
-      </motion.div>
+          <motion.div
+            role="button"
+            aria-label="Drag to reorder"
+            onPointerDown={e => { e.preventDefault(); e.stopPropagation(); controls.start(e); }}
+            whileHover={{ color: 'rgba(163,177,138,0.8)' }}
+            style={{
+              cursor: 'grab', padding: '0 8px', display: 'flex', alignItems: 'center',
+              color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
+            }}
+          >
+            <GripIcon size={13} />
+          </motion.div>
+
+          <div style={{
+            flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
+            background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(255,255,255,0.07)',
+            border: isActive ? '1px solid rgba(163,177,138,0.45)' : '1px solid rgba(255,255,255,0.09)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.63rem', fontWeight: 800,
+            color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+          }}>
+            {index + 1}
+          </div>
+
+          <div style={{
+            width: 40, height: 40, borderRadius: 7, flexShrink: 0,
+            background: thumb ? 'transparent' : 'rgba(255,255,255,0.07)',
+            overflow: 'hidden', border: '1px solid rgba(255,255,255,0.09)',
+          }}>
+            {thumb
+              ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Image size={13} color="rgba(255,255,255,0.22)" />
+                </div>}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: '0.88rem', fontWeight: 700,
+              fontFamily: 'var(--eg-font-heading, "Playfair Display", Georgia, serif)',
+              color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.9)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3,
+            }}>
+              {chapter.title || 'Untitled'}
+            </div>
+            {chapter.date && (
+              <div style={{
+                fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)',
+                marginTop: 2, display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <Clock size={9} style={{ flexShrink: 0, opacity: 0.65 }} />
+                <span>{chapter.date?.slice(0, 10)}</span>
+              </div>
+            )}
+          </div>
+
+          <ChevronRight size={14} color="rgba(255,255,255,0.22)" style={{ flexShrink: 0 }} />
+        </motion.div>
+      </div>
     </Reorder.Item>
   );
 }
@@ -254,6 +266,8 @@ export function MobileEditorSheet() {
 
   // More drawer
   const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
+  // Locked while an inner block drag is active (prevents sheet from snapping)
+  const [innerDragging, setInnerDragging] = useState(false);
 
   // Snap helpers
   const snapTo = useCallback((target: number) => {
@@ -415,6 +429,7 @@ export function MobileEditorSheet() {
           manifest={manifest}
           onChange={actions.handleDesignChange}
           pushToPreview={actions.pushToPreview}
+          onDragStateChange={setInnerDragging}
         />
       );
     }
@@ -500,7 +515,7 @@ export function MobileEditorSheet() {
       >
         {/* Handle pill */}
         <div
-          onPointerDown={e => { e.preventDefault(); sheetDragControls.start(e); }}
+          onPointerDown={e => { if (innerDragging) return; e.preventDefault(); sheetDragControls.start(e); }}
           style={{
             flexShrink: 0, paddingTop: 14, paddingBottom: 6,
             display: 'flex', justifyContent: 'center',

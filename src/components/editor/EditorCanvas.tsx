@@ -6,7 +6,9 @@
 // Redesigned: dot-grid bg, device chrome bezels, increased split scale
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, X } from 'lucide-react';
 import { PreviewPane } from './PreviewPane';
 import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
 import { StickerOverlay } from './StickerOverlay';
@@ -88,10 +90,22 @@ function DeviceBezel() {
   );
 }
 
+// Common blocks for the quick-add tray
+const QUICK_BLOCKS = [
+  { type: 'story',    label: 'Story'    },
+  { type: 'event',    label: 'Event'    },
+  { type: 'photos',   label: 'Photos'   },
+  { type: 'registry', label: 'Registry' },
+] as const;
+
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
-  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom, previewPage } = state;
+  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom, previewPage, mobileSheetOpen } = state;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
+
+  // Long-press quick-add (mobile only, when sheet is closed)
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Listen for edit messages from the iframe ──────────────
   useEffect(() => {
@@ -230,6 +244,121 @@ export function EditorCanvas() {
             containerRef={canvasContainerRef}
           />
         )}
+
+        {/* ── Mobile long-press overlay (captures pointer over iframe) ── */}
+        {isMobile && !mobileSheetOpen && !showQuickAdd && (
+          <div
+            onPointerDown={() => {
+              longPressTimer.current = setTimeout(() => setShowQuickAdd(true), 350);
+            }}
+            onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+            onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
+            style={{
+              position: 'absolute', inset: 0, zIndex: 2,
+              background: 'transparent', pointerEvents: 'auto',
+            }}
+          />
+        )}
+
+        {/* ── Quick-add tray (appears after long-press) ── */}
+        <AnimatePresence>
+          {showQuickAdd && (
+            <>
+              <motion.div
+                key="quickadd-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                onClick={() => setShowQuickAdd(false)}
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 1100,
+                  background: 'rgba(0,0,0,0.35)',
+                }}
+              />
+              <motion.div
+                key="quickadd-tray"
+                initial={{ y: '100%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 36 }}
+                style={{
+                  position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+                  left: 0, right: 0, zIndex: 1101,
+                  background: 'rgba(22,17,13,0.98)',
+                  backdropFilter: 'blur(32px)',
+                  WebkitBackdropFilter: 'blur(32px)',
+                  borderRadius: '20px 20px 0 0',
+                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                  padding: '16px 16px 20px',
+                } as React.CSSProperties}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)' }}>
+                    Add Section
+                  </span>
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => setShowQuickAdd(false)}
+                    style={{
+                      background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
+                      width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', color: 'rgba(214,198,168,0.5)',
+                    }}
+                  >
+                    <X size={12} />
+                  </motion.button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  {QUICK_BLOCKS.map(({ type, label }) => (
+                    <motion.button
+                      key={type}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        setShowQuickAdd(false);
+                        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+                        dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+                      }}
+                      style={{
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: 10, cursor: 'pointer',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        justifyContent: 'center', gap: 6, padding: '12px 6px',
+                        color: 'rgba(214,198,168,0.75)',
+                      }}
+                    >
+                      <Plus size={16} color="rgba(163,177,138,0.8)" />
+                      <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1 }}>
+                        {label}
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+                <div style={{ marginTop: 12, textAlign: 'center' }}>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setShowQuickAdd(false);
+                      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+                      dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+                    }}
+                    style={{
+                      border: '1px solid rgba(163,177,138,0.25)',
+                      background: 'rgba(163,177,138,0.08)',
+                      borderRadius: 100, cursor: 'pointer',
+                      padding: '8px 20px',
+                      color: 'rgba(163,177,138,0.8)',
+                      fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                    }}
+                  >
+                    Browse all sections
+                  </motion.button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
