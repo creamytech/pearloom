@@ -157,21 +157,21 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
             <div
               key={name}
               style={{ ...cellStyle(isSelected), position: 'relative' }}
-              onClick={(e) => {
-                onSelect({ id: name, type: 'accents', name });
-                const svgEl = (e.currentTarget as HTMLElement).querySelector('svg');
-                if (svgEl) {
-                  navigator.clipboard.writeText(svgEl.outerHTML).catch(() => {});
-                  setCopiedId(name);
-                  setTimeout(() => setCopiedId(null), 2000);
+              onClick={() => {
+                const asset = { id: name, type: 'accents' as AssetCategory, name };
+                onSelect(asset);
+                if (onAddSticker) {
+                  onAddSticker(asset);
+                  setAddedId(name);
+                  setTimeout(() => setAddedId(null), 2000);
                 }
               }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'accents', name })}
             >
-              {copiedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Copied ✓</span>
+              {addedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
               <Comp size={32} color="rgba(255,255,255,0.75)" />
               <span style={labelStyle}>{name.replace('Accent', '')}</span>
@@ -193,21 +193,21 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
             <div
               key={name}
               style={{ ...dividerRowStyle(isSelected), position: 'relative' }}
-              onClick={(e) => {
-                onSelect({ id: name, type: 'dividers', name });
-                const svgEl = (e.currentTarget as HTMLElement).querySelector('svg');
-                if (svgEl) {
-                  navigator.clipboard.writeText(svgEl.outerHTML).catch(() => {});
-                  setCopiedId(name);
-                  setTimeout(() => setCopiedId(null), 2000);
+              onClick={() => {
+                const asset = { id: name, type: 'dividers' as AssetCategory, name };
+                onSelect(asset);
+                if (onAddSticker) {
+                  onAddSticker(asset);
+                  setAddedId(name);
+                  setTimeout(() => setAddedId(null), 2000);
                 }
               }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'dividers', name })}
             >
-              {copiedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Copied ✓</span>
+              {addedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
               <div style={{ flex: 1, height: '32px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                 <Comp width="100%" height={32} color="rgba(255,255,255,0.75)" />
@@ -233,6 +233,11 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
           </button>
         ))}
       </div>
+      {onAddSticker && (
+        <p style={{ fontSize: '0.7rem', color: 'rgba(163,177,138,0.7)', margin: '8px 12px 0', lineHeight: 1.4 }}>
+          Click to add sticker &bull; Drag to position
+        </p>
+      )}
       <div style={scrollAreaStyle}>
         {activeCategory === 'illustrations' && renderIllustrations()}
         {activeCategory === 'accents' && renderAccents()}
