@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { ArrowRight, Check, Zap, Crown, Repeat2 } from 'lucide-react';
+import { ArrowRight, Check, Sprout, Heart, Leaf } from 'lucide-react';
 import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
 
@@ -22,14 +22,14 @@ type Tier = {
 
 const TIERS: Tier[] = [
   {
-    name: 'Free',
+    name: 'Seed',
     price: '$0',
     period: 'forever',
-    tagline: 'Start your story today',
+    tagline: 'Plant your story',
     desc: 'Create a beautiful site and go live — no credit card, no catch.',
     features: [
-      'The Loom AI site generation',
-      'Custom Rind™ visual identity',
+      'Pearloom AI site generation',
+      'Custom visual identity',
       '7 core block types',
       'Pearloom subdomain',
       'Up to 75 guest RSVPs',
@@ -39,16 +39,16 @@ const TIERS: Tier[] = [
     cta: 'Start Free',
     accent: C.olive,
     highlighted: false,
-    Icon: Zap,
+    Icon: Sprout,
   },
   {
-    name: 'Pearl',
+    name: 'Pair',
     price: '$19',
     period: '/celebration',
     tagline: 'Everything for your big day',
-    desc: 'The full Pearloom experience for one celebration. One price, forever.',
+    desc: 'The full Pearloom experience for one celebration. One price, no subscriptions.',
     features: [
-      'Everything in Free, plus:',
+      'Everything in Seed, plus:',
       'Custom domain',
       'All 19 block types',
       'Unlimited guests & photos',
@@ -64,20 +64,20 @@ const TIERS: Tier[] = [
       'Guest photo guestbook',
       'Priority support',
     ],
-    cta: 'Get Pearl',
+    cta: 'Get Pair',
     accent: C.plum,
     highlighted: true,
     badge: 'Most Popular',
-    Icon: Crown,
+    Icon: Heart,
   },
   {
-    name: 'Loom+',
+    name: 'Perennial',
     price: '$12',
     period: '/month',
     tagline: 'A lifetime of celebrations',
-    desc: 'Pearl features for every occasion, every year — weddings, anniversaries, birthdays, and beyond.',
+    desc: 'Pair features for every occasion, every year — weddings, anniversaries, birthdays, and beyond.',
     features: [
-      'Everything in Pearl, plus:',
+      'Everything in Pair, plus:',
       'Unlimited celebrations',
       'Post-wedding anniversary mode',
       'Community photo moderation',
@@ -86,11 +86,11 @@ const TIERS: Tier[] = [
       'PDF export & print-ready',
       'Early AI feature access',
     ],
-    cta: 'Start Loom+',
+    cta: 'Go Perennial',
     accent: C.gold,
     highlighted: false,
     badge: 'Best for recurring events',
-    Icon: Repeat2,
+    Icon: Leaf,
   },
 ];
 
