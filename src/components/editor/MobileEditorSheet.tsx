@@ -1,510 +1,587 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / MobileEditorSheet.tsx — Mobile bottom tab bar + sheet panel
-// Redesigned: 4 tabs + More overflow, FAB publish, 55vh sheet, keyboard avoidance
+// Pearloom / editor/MobileEditorSheet.tsx
+//
+// iOS-quality bottom sheet for the mobile editor.
+// Features:
+//   • Draggable snap sheet (peek / mid / full)
+//   • Arc FAB that fans out tab icons
+//   • Arc backdrop — tap outside to dismiss
+//   • Push navigation for Story (list → chapter editor)
+//   • Keyboard avoidance via visualViewport paddingBottom
+//   • Frosted glass surface
 // ─────────────────────────────────────────────────────────────
 
-import { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
-import { Plus, Image, X } from 'lucide-react';
+import { useRef, useEffect, useCallback, useState } from 'react';
+import {
+  motion, AnimatePresence,
+  useMotionValue, animate, useDragControls,
+} from 'framer-motion';
+import { X, Mail, ChevronLeft } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
-  DetailsIcon, AIBlocksIcon, VoiceIcon,
+  DetailsIcon, AIBlocksIcon, VoiceIcon, PublishIcon,
 } from '@/components/icons/EditorIcons';
-import { PearlIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
-import type { Chapter } from '@/types';
-import dynamic from 'next/dynamic';
+import { StoryPanel } from './StoryPanel';
+import { CanvasEditor } from './CanvasEditor';
+import { EventsPanel } from './EventsPanel';
+import { DesignPanel } from './DesignPanel';
+import { DetailsPanel } from './DetailsPanel';
+import { AIBlocksPanel } from './AIBlocksPanel';
+import { GuestSearchPanel } from './GuestSearchPanel';
+import { TranslationPanel } from './TranslationPanel';
+import { SaveTheDatePanel } from './SaveTheDatePanel';
 
-const DesignPanel = dynamic(() => import('./DesignPanel').then(m => ({ default: m.DesignPanel })), { ssr: false });
-const EventsPanel = dynamic(() => import('./EventsPanel').then(m => ({ default: m.EventsPanel })), { ssr: false });
-const DetailsPanel = dynamic(() => import('./DetailsPanel').then(m => ({ default: m.DetailsPanel })), { ssr: false });
-const PagesPanel = dynamic(() => import('./PagesPanel').then(m => ({ default: m.PagesPanel })), { ssr: false });
-const AIBlocksPanel = dynamic(() => import('./AIBlocksPanel').then(m => ({ default: m.AIBlocksPanel })), { ssr: false });
-const VoiceTrainerPanel = dynamic(() => import('./VoiceTrainerPanel').then(m => ({ default: m.VoiceTrainerPanel })), { ssr: false });
-const CanvasEditor = dynamic(() => import('./CanvasEditor').then(m => ({ default: m.CanvasEditor })), { ssr: false });
-const ChapterPanel = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
+// ── Constants ──────────────────────────────────────────────────
+const TOOLBAR_H = 56;
+const SPRING = { type: 'spring', stiffness: 520, damping: 42 } as const;
+const PEEK_RATIO = 0.72;   // y as fraction of sheetH → barely visible handle
+const MID_RATIO  = 0.38;   // y as fraction of sheetH → half open
+const FULL_Y     = 0;      // fully open
 
-// ── Arc items for the radial FAB ─────────────────────────────
-// Radius 130px, 5 items spread 100°→0° = 25° apart = arc length ~56px between
-// centers at that radius. With 52px buttons there is a comfortable 4px gap.
-const RADIUS = 130;
+// ── Arc tabs ───────────────────────────────────────────────────
+type ArcTab = { tab: EditorTab; Icon: React.ElementType; label: string };
 
-interface ArcItem {
-  tab: EditorTab;
-  icon: React.ElementType;
-  label: string;
-  angle: number; // degrees from positive x-axis (90 = up, 0 = right)
-}
-
-const ARC_ITEMS: ArcItem[] = [
-  { tab: 'story',   icon: StoryIcon,    label: 'Story',    angle: 100 },
-  { tab: 'events',  icon: EventsIcon,   label: 'Events',   angle: 75  },
-  { tab: 'design',  icon: DesignIcon,   label: 'Design',   angle: 50  },
-  { tab: 'details', icon: DetailsIcon,  label: 'Details',  angle: 25  },
-  { tab: 'canvas',  icon: SectionsIcon, label: 'Sections', angle: 0   },
+const ARC_TABS: ArcTab[] = [
+  { tab: 'canvas',  Icon: SectionsIcon, label: 'Sections' },
+  { tab: 'story',   Icon: StoryIcon,    label: 'Story'    },
+  { tab: 'events',  Icon: EventsIcon,   label: 'Events'   },
+  { tab: 'design',  Icon: DesignIcon,   label: 'Design'   },
+  { tab: 'details', Icon: DetailsIcon,  label: 'Details'  },
+  { tab: 'blocks',  Icon: AIBlocksIcon, label: 'Blocks'   },
 ];
 
-const TAB_LABELS: Record<string, string> = {
-  story: 'Story', canvas: 'Sections', events: 'Events', design: 'Design',
-  details: 'Details', blocks: 'AI Blocks', voice: 'Voice',
-};
-
-// ── Radial FAB ────────────────────────────────────────────────
-function RadialFab({ activeTab, onTabChange, sheetOpen, onToggleSheet }: {
-  activeTab: string;
-  onTabChange: (tab: EditorTab) => void;
-  sheetOpen: boolean;
-  onToggleSheet: () => void;
+// ── TabStrip ───────────────────────────────────────────────────
+function TabStrip({
+  activeTab,
+  onSelect,
+}: {
+  activeTab: EditorTab;
+  onSelect: (t: EditorTab) => void;
 }) {
-  const [arcOpen, setArcOpen] = useState(false);
+  return (
+    <div style={{
+      display: 'flex', gap: '4px', padding: '0 14px 10px',
+      overflowX: 'auto', flexShrink: 0,
+      scrollbarWidth: 'none',
+      WebkitOverflowScrolling: 'touch',
+    } as React.CSSProperties}>
+      {ARC_TABS.map(({ tab, Icon, label }) => {
+        const active = activeTab === tab;
+        return (
+          <button
+            key={tab}
+            onClick={() => onSelect(tab)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '6px 12px', borderRadius: '20px', flexShrink: 0,
+              border: active
+                ? '1px solid rgba(163,177,138,0.45)'
+                : '1px solid rgba(255,255,255,0.07)',
+              background: active ? 'rgba(163,177,138,0.14)' : 'transparent',
+              color: active ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+              fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+              letterSpacing: '0.02em',
+              transition: 'color 0.15s, border-color 0.15s, background 0.15s',
+            }}
+          >
+            <Icon size={13} />
+            {label}
+          </button>
+        );
+      })}
+      {/* Messaging */}
+      <button
+        onClick={() => onSelect('messaging')}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '5px',
+          padding: '6px 12px', borderRadius: '20px', flexShrink: 0,
+          border: activeTab === 'messaging'
+            ? '1px solid rgba(163,177,138,0.45)'
+            : '1px solid rgba(255,255,255,0.07)',
+          background: activeTab === 'messaging' ? 'rgba(163,177,138,0.14)' : 'transparent',
+          color: activeTab === 'messaging' ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+          fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+          letterSpacing: '0.02em',
+          transition: 'color 0.15s, border-color 0.15s, background 0.15s',
+        }}
+      >
+        <Mail size={13} />
+        Guests
+      </button>
+    </div>
+  );
+}
+
+// ── MobileSheetContent ─────────────────────────────────────────
+function MobileSheetContent({
+  padBottom,
+  onExpandFull,
+}: {
+  padBottom: number;
+  onExpandFull: () => void;
+}) {
+  const { state, dispatch, manifest, coupleNames, actions } = useEditor();
 
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
-        left: 20,
-        zIndex: 1100,
-        width: 58,
-        height: 58,
-      }}
+        flex: 1,
+        overflowY: 'auto',
+        padding: '0 14px',
+        paddingBottom: `${20 + padBottom}px`,
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch',
+      } as React.CSSProperties}
     >
-      {/* Arc items */}
+      <AnimatePresence mode="wait">
+        {state.activeTab === 'story' && (
+          <motion.div
+            key="story"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <StoryPanel />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'canvas' && (
+          <motion.div
+            key="canvas"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <CanvasEditor
+              manifest={manifest}
+              onChange={actions.handleDesignChange}
+              pushToPreview={actions.pushToPreview}
+            />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'events' && (
+          <motion.div
+            key="events"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <EventsPanel manifest={manifest} onChange={actions.handleDesignChange} />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'design' && (
+          <motion.div
+            key="design"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'details' && (
+          <motion.div
+            key="details"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <DetailsPanel
+              manifest={manifest}
+              onChange={actions.handleDesignChange}
+              subdomain={state.subdomain}
+            />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'blocks' && (
+          <motion.div
+            key="blocks"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <AIBlocksPanel
+              manifest={manifest}
+              coupleNames={coupleNames}
+              onChange={(m) => { actions.handleDesignChange(m); actions.pushToPreview(m); }}
+            />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'messaging' && (
+          <motion.div
+            key="messaging"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <GuestSearchPanel siteId={state.subdomain} />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'translate' && (
+          <motion.div
+            key="translate"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <TranslationPanel manifest={manifest} onChange={actions.handleDesignChange} />
+          </motion.div>
+        )}
+
+        {state.activeTab === 'savethedate' && (
+          <motion.div
+            key="savethedate"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────
+export function MobileEditorSheet() {
+  const { state, dispatch, actions } = useEditor();
+
+  const dragControls = useDragControls();
+  const y = useMotionValue(600); // start off-screen
+
+  const [arcOpen, setArcOpen]     = useState(false);
+  const [sheetH, setSheetH]       = useState(0);
+  const [padBottom, setPadBottom] = useState(0);
+
+  const sheetHRef = useRef(0);
+
+  // ── Compute sheet height ─────────────────────────────────────
+  useEffect(() => {
+    const update = () => {
+      const h = window.innerHeight - TOOLBAR_H;
+      setSheetH(h);
+      sheetHRef.current = h;
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  // ── Keyboard avoidance ───────────────────────────────────────
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const kb = window.innerHeight - vv.height - vv.offsetTop;
+      setPadBottom(Math.max(0, kb));
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
+
+  // ── Snap helpers ─────────────────────────────────────────────
+  const snapFull = useCallback(() => {
+    animate(y, FULL_Y, SPRING);
+  }, [y]);
+
+  const snapMid = useCallback(() => {
+    animate(y, sheetHRef.current * MID_RATIO, SPRING);
+  }, [y]);
+
+  const snapPeek = useCallback(() => {
+    animate(y, sheetHRef.current * PEEK_RATIO, SPRING);
+  }, [y]);
+
+  const snapClose = useCallback(() => {
+    animate(y, sheetHRef.current, SPRING);
+    dispatch({ type: 'SET_MOBILE_SHEET', open: false });
+  }, [y, dispatch]);
+
+  // ── React to sheet open/close state ─────────────────────────
+  useEffect(() => {
+    if (!sheetH) return;
+    if (state.mobileSheetOpen) {
+      animate(y, sheetH * MID_RATIO, SPRING);
+    } else {
+      animate(y, sheetH, SPRING);
+    }
+  }, [state.mobileSheetOpen, sheetH, y]);
+
+  // ── Drag end — snap to nearest ───────────────────────────────
+  const handleDragEnd = useCallback(() => {
+    const h = sheetHRef.current;
+    const curr = y.get();
+    const snaps = [FULL_Y, h * MID_RATIO, h * PEEK_RATIO, h];
+    const closest = snaps.reduce((a, b) =>
+      Math.abs(curr - a) < Math.abs(curr - b) ? a : b
+    );
+    if (closest >= h * 0.92) {
+      snapClose();
+    } else {
+      animate(y, closest, SPRING);
+      if (!state.mobileSheetOpen) {
+        dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+      }
+    }
+  }, [y, snapClose, state.mobileSheetOpen, dispatch]);
+
+  // ── Arc tab selection ────────────────────────────────────────
+  const handleArcTabSelect = useCallback((tab: EditorTab) => {
+    dispatch({ type: 'SET_ACTIVE_TAB', tab });
+    dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+    setArcOpen(false);
+    animate(y, sheetHRef.current * MID_RATIO, SPRING);
+  }, [y, dispatch]);
+
+  // ── FAB tab select (from sheet tab strip) ────────────────────
+  const handleTabSelect = useCallback((tab: EditorTab) => {
+    dispatch({ type: 'SET_ACTIVE_TAB', tab });
+    snapFull();
+  }, [dispatch, snapFull]);
+
+  if (!sheetH) return null;
+
+  const CurrentTabIcon = ARC_TABS.find(t => t.tab === state.activeTab)?.Icon ?? SectionsIcon;
+
+  return (
+    <>
+      {/* ── Arc backdrop ──────────────────────────────────────── */}
       <AnimatePresence>
-        {arcOpen && ARC_ITEMS.map((item, index) => {
-          const rad = item.angle * Math.PI / 180;
-          const x = Math.cos(rad) * RADIUS;
-          const y = -Math.sin(rad) * RADIUS;
-          const Icon = item.icon;
-          const isActive = activeTab === item.tab;
+        {arcOpen && (
+          <motion.div
+            key="arc-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            onClick={() => setArcOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 1090,
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
+            } as React.CSSProperties}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Arc tab buttons ───────────────────────────────────── */}
+      <AnimatePresence>
+        {arcOpen && ARC_TABS.map(({ tab, Icon, label }, i) => {
+          const total = ARC_TABS.length;
+          const angleStart = -165;
+          const angleEnd   = -15;
+          const angle = angleStart + (i / (total - 1)) * (angleEnd - angleStart);
+          const rad = (angle * Math.PI) / 180;
+          const r = 96;
+          const tx = Math.cos(rad) * r;
+          const ty = Math.sin(rad) * r;
+          const isActive = state.activeTab === tab;
 
           return (
             <motion.button
-              key={item.tab}
-              onClick={() => {
-                setArcOpen(false);
-                onTabChange(item.tab);
-                if (!sheetOpen) onToggleSheet();
-              }}
-              initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
-              animate={{ x, y, scale: 1, opacity: 1 }}
-              exit={{ x: 0, y: 0, scale: 0, opacity: 0 }}
-              transition={{ delay: index * 0.045, type: 'spring', stiffness: 360, damping: 26 }}
-              aria-label={item.label}
+              key={tab}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ ...SPRING, delay: i * 0.025 }}
+              onClick={() => handleArcTabSelect(tab)}
               style={{
-                position: 'absolute',
-                left: '50%',
-                top: '50%',
-                // Pill shape — wider than tall to give text room
-                width: 72,
-                height: 52,
-                borderRadius: '14px',
-                border: `1.5px solid ${isActive ? 'rgba(163,177,138,0.65)' : 'rgba(255,255,255,0.13)'}`,
+                position: 'fixed',
+                bottom: '20px', right: '20px',
+                width: '46px', height: '46px',
+                borderRadius: '50%',
+                border: isActive
+                  ? '1.5px solid rgba(163,177,138,0.7)'
+                  : '1px solid rgba(255,255,255,0.14)',
                 background: isActive
                   ? 'rgba(163,177,138,0.22)'
-                  : 'rgba(18, 15, 12, 0.88)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
+                  : 'rgba(18,14,11,0.94)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.72)',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: '2px',
                 cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 5,
-                transform: 'translate(-50%, -50%)',
-                boxShadow: isActive
-                  ? '0 4px 18px rgba(163,177,138,0.25), 0 2px 8px rgba(0,0,0,0.5)'
-                  : '0 4px 18px rgba(0,0,0,0.55)',
+                zIndex: 1100,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.45)',
+                transform: `translate(${tx}px, ${ty}px)`,
+                pointerEvents: 'auto',
+                fontSize: '0.48rem', fontWeight: 800,
+                letterSpacing: '0.05em', textTransform: 'uppercase',
               } as React.CSSProperties}
             >
-              <Icon size={19} color={isActive ? 'rgba(163,177,138,1)' : 'rgba(214,198,168,0.75)'} />
-              <span style={{
-                fontSize: '0.62rem',
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                color: isActive ? 'rgba(163,177,138,1)' : 'rgba(214,198,168,0.6)',
-                lineHeight: 1,
-                whiteSpace: 'nowrap',
-              }}>
-                {item.label}
-              </span>
+              <Icon size={17} />
+              <span style={{ marginTop: '1px', lineHeight: 1 }}>{label}</span>
             </motion.button>
           );
         })}
       </AnimatePresence>
 
-      {/* FAB button */}
+      {/* ── FAB ───────────────────────────────────────────────── */}
       <motion.button
-        onClick={() => {
-          if (sheetOpen) {
-            onToggleSheet();
-          } else {
-            setArcOpen(v => !v);
-          }
-        }}
-        animate={{ rotate: arcOpen ? 45 : 0 }}
-        transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-        aria-label={sheetOpen ? 'Close panel' : (arcOpen ? 'Close menu' : 'Open menu')}
+        onClick={() => setArcOpen(a => !a)}
+        whileTap={{ scale: 0.9 }}
         style={{
-          width: 58,
-          height: 58,
+          position: 'fixed', bottom: '20px', right: '20px',
+          width: '54px', height: '54px',
           borderRadius: '50%',
-          background: (arcOpen || sheetOpen) ? '#A3B18A' : '#F5F1E8',
-          border: 'none',
+          background: arcOpen
+            ? 'rgba(30,22,16,0.96)'
+            : 'linear-gradient(135deg, #A3B18A 0%, #6E8B5A 100%)',
+          border: arcOpen
+            ? '1px solid rgba(255,255,255,0.12)'
+            : 'none',
+          color: arcOpen ? 'rgba(255,255,255,0.75)' : '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 6px 24px rgba(0,0,0,0.45), inset 0 0 0 1.5px rgba(255,255,255,0.18)',
-          position: 'relative',
-          zIndex: 1,
-        }}
+          zIndex: 1110,
+          boxShadow: arcOpen
+            ? 'none'
+            : '0 4px 22px rgba(100,140,80,0.55), 0 1px 4px rgba(0,0,0,0.3)',
+        } as React.CSSProperties}
       >
-        {(arcOpen || sheetOpen)
-          ? <X size={24} color="#fff" />
-          : <PearlIcon size={26} color="#2B2520" />
-        }
+        <AnimatePresence mode="wait">
+          {arcOpen ? (
+            <motion.span
+              key="x"
+              initial={{ rotate: -45, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 45, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              style={{ display: 'flex' }}
+            >
+              <X size={20} />
+            </motion.span>
+          ) : (
+            <motion.span
+              key="icon"
+              initial={{ rotate: 45, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -45, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              style={{ display: 'flex' }}
+            >
+              <CurrentTabIcon size={20} />
+            </motion.span>
+          )}
+        </AnimatePresence>
       </motion.button>
-    </div>
-  );
-}
 
-function getThumb(ch: { images?: Array<{ url?: string }> }): string | null {
-  const raw = ch.images?.[0]?.url || null;
-  if (!raw) return null;
-  // Google Photos baseUrls require OAuth — route through server-side proxy
-  if (raw.includes('googleusercontent.com')) {
-    return `/api/photos/proxy?url=${encodeURIComponent(raw)}&w=200&h=200`;
-  }
-  return raw;
-}
-
-// ── Mobile chapter row with drag handle ──────────────────────
-function ChapterReorderRow({
-  chapter, index, isActive, onSelect, onDelete, canDelete,
-}: {
-  chapter: Chapter;
-  index: number;
-  isActive: boolean;
-  onSelect: (id: string) => void;
-  onDelete: (id: string) => void;
-  canDelete: boolean;
-}) {
-  const controls = useDragControls();
-  const thumb = getThumb(chapter);
-
-  return (
-    <Reorder.Item
-      value={chapter}
-      id={chapter.id}
-      dragListener={false}
-      dragControls={controls}
-      style={{ listStyle: 'none' }}
-      whileDrag={{ scale: 1.02, boxShadow: '0 8px 32px rgba(0,0,0,0.45)', zIndex: 10, opacity: 0.97 }}
-    >
-      <div
-        onClick={() => onSelect(chapter.id)}
+      {/* ── Bottom sheet ──────────────────────────────────────── */}
+      <motion.div
         style={{
-          display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '10px 10px 10px 4px',
-          borderRadius: '10px',
-          background: isActive ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.03)',
-          border: `1px solid ${isActive ? 'rgba(163,177,138,0.4)' : 'rgba(255,255,255,0.07)'}`,
-          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '1px solid rgba(255,255,255,0.07)',
-          cursor: 'pointer', marginBottom: '5px', touchAction: 'none',
-          userSelect: 'none',
+          position: 'fixed',
+          left: 0, right: 0, bottom: 0,
+          height: sheetH,
+          y,
+          borderRadius: '24px 24px 0 0',
+          background: 'rgba(18,14,11,0.97)',
+          backdropFilter: 'blur(40px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+          border: '1px solid rgba(255,255,255,0.07)',
+          borderBottom: 'none',
+          zIndex: 1050,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          willChange: 'transform',
         }}
+        drag="y"
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ top: 0, bottom: sheetH }}
+        dragElastic={{ top: 0.04, bottom: 0.06 }}
+        onDragEnd={handleDragEnd}
       >
-        {/* Drag handle — wide touch target */}
-        <motion.div
-          onPointerDown={e => { e.preventDefault(); controls.start(e); }}
-          whileHover={{ color: 'rgba(163,177,138,0.8)' }}
+        {/* Handle pill */}
+        <div
+          onPointerDown={e => { dragControls.start(e); }}
           style={{
-            cursor: 'grab', padding: '8px 10px', flexShrink: 0,
-            color: 'rgba(255,255,255,0.22)', touchAction: 'none',
-            display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'center',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            paddingTop: '10px', paddingBottom: '6px',
+            cursor: 'grab', flexShrink: 0, touchAction: 'none',
+            userSelect: 'none',
           }}
         >
-          {[0, 1, 2].map(i => (
-            <div key={i} style={{ width: '14px', height: '2px', borderRadius: '1px', background: 'currentColor' }} />
-          ))}
-        </motion.div>
-
-        {/* Thumbnail */}
-        <div style={{
-          width: '44px', height: '44px', borderRadius: '8px', flexShrink: 0,
-          overflow: 'hidden', background: 'rgba(255,255,255,0.06)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {thumb
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <Image size={16} color="rgba(255,255,255,0.2)" />}
-        </div>
-
-        {/* Title + number */}
-        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontSize: '0.88rem', fontWeight: 700,
-            color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.85)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            width: '36px', height: '4px', borderRadius: '2px',
+            background: 'rgba(255,255,255,0.16)',
+          }} />
+        </div>
+
+        {/* Header row */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '2px 14px 8px',
+          flexShrink: 0,
+        }}>
+          <span style={{
+            fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)',
           }}>
-            {chapter.title || 'Untitled'}
-          </div>
-          <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
-            Chapter {index + 1}
+            Editor
+          </span>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <motion.button
+              onClick={() => actions.handlePublishSubmit()}
+              whileTap={{ scale: 0.94 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '6px 14px', borderRadius: '100px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #A3B18A 0%, #6E8B5A 100%)',
+                color: '#fff', fontSize: '0.72rem', fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(100,140,80,0.35)',
+                letterSpacing: '0.04em',
+              } as React.CSSProperties}
+            >
+              <PublishIcon size={12} />
+              Publish
+            </motion.button>
           </div>
         </div>
 
-        {/* Delete */}
-        {canDelete && (
-          <button
-            onPointerDown={e => e.stopPropagation()}
-            onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', padding: '8px', borderRadius: '6px',
-              minWidth: '36px', minHeight: '36px', flexShrink: 0,
-            }}
-          >
-            <X size={14} />
-          </button>
-        )}
-      </div>
-    </Reorder.Item>
-  );
-}
+        {/* Tab strip */}
+        <TabStrip activeTab={state.activeTab} onSelect={handleTabSelect} />
 
+        {/* Divider */}
+        <div style={{
+          height: '1px',
+          background: 'rgba(255,255,255,0.05)',
+          flexShrink: 0, marginBottom: '2px',
+        }} />
 
-// ── Main Component ────────────────────────────────────────────
-export function MobileEditorSheet() {
-  const { state, dispatch, actions, manifest, coupleNames } = useEditor();
-  const { activeTab, mobileSheetOpen, chapters, activeId, rewritingId, sectionOverridesMap } = state;
-  const swipeStartY = useRef<number | null>(null);
-  const touchStartTime = useRef(0);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const activeChapter = chapters.find(c => c.id === activeId) || null;
-
-  // ── Keyboard avoidance ──────────────────────────────────────
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv || !sheetRef.current) return;
-
-    const handler = () => {
-      if (!sheetRef.current) return;
-      const keyboardHeight = window.innerHeight - vv.height;
-      if (keyboardHeight > 100) {
-        sheetRef.current.style.transform = `translateY(-${keyboardHeight}px)`;
-      } else {
-        sheetRef.current.style.transform = '';
-      }
-    };
-
-    vv.addEventListener('resize', handler);
-    return () => vv.removeEventListener('resize', handler);
-  }, [mobileSheetOpen]);
-
-  return (
-    <>
-      {/* ── Radial FAB ─────────────────────────────────────── */}
-      <RadialFab
-        activeTab={activeTab}
-        onTabChange={(tab) => dispatch({ type: 'SET_ACTIVE_TAB', tab })}
-        sheetOpen={mobileSheetOpen}
-        onToggleSheet={() => dispatch({ type: 'SET_MOBILE_SHEET', open: !mobileSheetOpen })}
-      />
-
-      {/* ── Bottom Sheet Panel ─────────────────────────────── */}
-      <AnimatePresence>
-        {mobileSheetOpen && (
-          <motion.div
-            ref={sheetRef}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            onTouchStart={e => { swipeStartY.current = e.touches[0].clientY; touchStartTime.current = Date.now(); }}
-            onTouchEnd={e => {
-              if (swipeStartY.current !== null) {
-                const delta = e.changedTouches[0].clientY - swipeStartY.current;
-                const elapsed = Math.max(Date.now() - touchStartTime.current, 1);
-                const velocity = delta / elapsed;
-                if (delta > 80 || velocity > 0.5) dispatch({ type: 'SET_MOBILE_SHEET', open: false });
-                swipeStartY.current = null;
-              }
-            }}
-            style={{
-              position: 'fixed', bottom: 'env(safe-area-inset-bottom, 0px)',
-              left: 0, right: 0,
-              height: '62vh',
-              zIndex: 1050,
-              background: 'var(--eg-dark-2, #2E2A26)',
-              borderRadius: '20px 20px 0 0',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
-              display: 'flex', flexDirection: 'column',
-              boxShadow: '0 -12px 48px rgba(0,0,0,0.6)',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Drag handle + header */}
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '10px 18px 10px', flexShrink: 0,
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-            }}>
-              {/* Pill handle */}
-              <div style={{
-                width: 40, height: 4, borderRadius: '100px',
-                background: 'rgba(214,198,168,0.30)',
-                marginBottom: '12px',
-              }} />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <span style={{
-                  fontSize: '1.05rem', fontWeight: 600,
-                  fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
-                  fontStyle: 'italic',
-                  color: 'rgba(214,198,168,0.9)',
-                  letterSpacing: '0.01em',
-                }}>
-                  {TAB_LABELS[activeTab] || activeTab}
-                </span>
-                <button
-                  onClick={() => dispatch({ type: 'SET_MOBILE_SHEET', open: false })}
-                  style={{
-                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '8px', color: 'rgba(255,255,255,0.55)',
-                    cursor: 'pointer', padding: '7px 16px',
-                    fontSize: '0.78rem', fontWeight: 700, minHeight: '36px',
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-
-            {/* Scrollable content */}
-            <div style={{
-              flex: 1, overflowY: 'auto', padding: '12px 16px 96px',
-              WebkitOverflowScrolling: 'touch',
-            } as React.CSSProperties}>
-              {activeTab === 'story' && (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
-                      Story Chapters
-                    </span>
-                    <motion.button
-                      onClick={actions.addChapter}
-                      whileHover={{ scale: 1.06, backgroundColor: 'rgba(163,177,138,0.26)' }}
-                      whileTap={{ scale: 0.9 }}
-                      transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '4px',
-                        padding: '8px 14px', borderRadius: '5px', border: 'none',
-                        background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)',
-                        cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-                        minHeight: '44px',
-                      }}
-                    >
-                      <Plus size={13} /> Add
-                    </motion.button>
-                  </div>
-                  {/* Draggable chapter list */}
-                  <Reorder.Group
-                    axis="y"
-                    values={chapters}
-                    onReorder={actions.handleReorder}
-                    style={{ listStyle: 'none', margin: 0, padding: 0, marginBottom: '12px' }}
-                  >
-                    {chapters.map((ch, i) => (
-                      <ChapterReorderRow
-                        key={ch.id}
-                        chapter={ch}
-                        index={i}
-                        isActive={activeId === ch.id}
-                        onSelect={id => dispatch({ type: 'SET_ACTIVE_ID', id })}
-                        onDelete={actions.deleteChapter}
-                        canDelete={chapters.length > 1}
-                      />
-                    ))}
-                  </Reorder.Group>
-                  {/* Inline chapter editor */}
-                  <AnimatePresence mode="wait">
-                    {activeChapter && (
-                      <motion.div
-                        key={activeChapter.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ChapterPanel
-                          chapter={activeChapter}
-                          onUpdate={actions.updateChapter}
-                          onAIRewrite={actions.handleAIRewrite}
-                          isRewriting={rewritingId === activeChapter.id}
-                          vibeSkin={manifest.vibeSkin}
-                          vibeString={manifest.vibeString}
-                          sectionOverrides={sectionOverridesMap[activeChapter.id]}
-                          onOverridesChange={(id, overrides) => {
-                            dispatch({ type: 'SET_SECTION_OVERRIDES', id, overrides });
-                            actions.updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });
-                          }}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </>
-              )}
-              {activeTab === 'design' && (
-                <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} />
-              )}
-              {activeTab === 'events' && (
-                <EventsPanel manifest={manifest} onChange={actions.handleDesignChange} />
-              )}
-              {activeTab === 'details' && (
-                <DetailsPanel manifest={manifest} onChange={actions.handleDesignChange} subdomain={state.subdomain} />
-              )}
-              {activeTab === 'pages' && (
-                <PagesPanel manifest={manifest} subdomain={state.subdomain} onChange={actions.handleDesignChange} />
-              )}
-              {activeTab === 'blocks' && (
-                <AIBlocksPanel
-                  manifest={manifest}
-                  coupleNames={coupleNames}
-                  onChange={(m) => { actions.handleDesignChange(m); }}
-                />
-              )}
-              {activeTab === 'voice' && (
-                <div style={{ padding: '4px 0' }}>
-                  <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginBottom: '12px', lineHeight: 1.5 }}>
-                    Teach the chatbot to speak like you.
-                  </p>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
-                    <VoiceTrainerPanel
-                      voiceSamples={manifest.voiceSamples || []}
-                      onChange={(samples) => {
-                        actions.handleDesignChange({ ...manifest, voiceSamples: samples });
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-              {activeTab === 'canvas' && (
-                <CanvasEditor
-                  manifest={manifest}
-                  onChange={actions.handleDesignChange}
-                  pushToPreview={actions.pushToPreview}
-                />
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Panel content */}
+        <MobileSheetContent
+          padBottom={padBottom}
+          onExpandFull={snapFull}
+        />
+      </motion.div>
     </>
   );
 }

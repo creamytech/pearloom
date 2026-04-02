@@ -178,29 +178,31 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           <ExitIcon size={14} /> Exit
         </motion.button>
 
-        {/* Site name — editorial italic */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          {manifest.occasion !== 'birthday' && (
-            <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
-          )}
-          <span style={{
-            fontSize: '1rem', fontWeight: 400, color: '#fff',
-            letterSpacing: '-0.02em',
-            fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
-            fontStyle: 'italic',
-          }}>
-            {manifest.occasion === 'birthday'
-              ? `${coupleNames[0]}'s Birthday`
-              : `${coupleNames[0]} & ${coupleNames[1]}`}
-          </span>
-        </div>
+        {/* Site name — editorial italic (truncated on mobile) */}
+        {!isMobile && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            {manifest.occasion !== 'birthday' && (
+              <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
+            )}
+            <span style={{
+              fontSize: '1rem', fontWeight: 400, color: '#fff',
+              letterSpacing: '-0.02em',
+              fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+              fontStyle: 'italic',
+            }}>
+              {manifest.occasion === 'birthday'
+                ? `${coupleNames[0]}'s Birthday`
+                : `${coupleNames[0]} & ${coupleNames[1]}`}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* ═══ ZONE DIVIDER ═══ */}
-      <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)', margin: '0 12px', flexShrink: 0 }} />
+      {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
+      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)', margin: '0 12px', flexShrink: 0 }} />}
 
-      {/* ═══ CENTER ZONE: Breadcrumb + Cmd Palette ═══ */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
+      {/* ═══ CENTER ZONE: Breadcrumb + Cmd Palette (desktop only) ═══ */}
+      <div style={{ flex: 1, display: isMobile ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
         <EditorBreadcrumb />
         <motion.button
           onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}
@@ -222,14 +224,14 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         </motion.button>
       </div>
 
-      {/* ═══ ZONE DIVIDER ═══ */}
-      <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)', margin: '0 12px', flexShrink: 0 }} />
+      {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
+      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)', margin: '0 12px', flexShrink: 0 }} />}
 
       {/* ═══ RIGHT ZONE ═══ */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
 
-        {/* Undo/Redo — desktop + compact mobile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
+        {/* Undo/Redo — desktop only */}
+        <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
           <motion.button
             onClick={actions.undo} disabled={!canUndo} title="Undo (Cmd+Z)" aria-label="Undo"
             whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
@@ -318,47 +320,27 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           </select>
         )}
 
-        {/* Preview + Publish — mobile */}
+        {/* Publish — mobile only, pill style */}
         {isMobile && (
-          <>
-            <motion.button
-              onClick={actions.storePreviewForOpen}
-              title="Open preview in browser" aria-label="Open preview in browser"
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 11px', borderRadius: '6px',
-                border: '1px solid rgba(214,198,168,0.15)',
-                background: 'transparent', color: 'rgba(255,255,255,0.7)',
-                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
-                minHeight: '36px',
-              }}
-            >
-              <PreviewIcon size={13} />
-              <span>Preview</span>
-            </motion.button>
-            <motion.button
-              onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
-              title="Publish your site" aria-label="Publish"
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 20 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 13px', borderRadius: '6px', border: 'none',
-                background: 'linear-gradient(135deg, #A3B18A 0%, #7A917A 50%, #6D597A 100%)',
-                color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer',
-                fontSize: '0.78rem', fontWeight: 700,
-                boxShadow: '0 2px 10px rgba(109,89,122,0.3)',
-                minHeight: '36px',
-              }}
-            >
-              <PublishIcon size={13} />
-              <span>Publish</span>
-            </motion.button>
-          </>
+          <motion.button
+            onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
+            title="Publish your site" aria-label="Publish"
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 18px', borderRadius: '100px', border: 'none',
+              background: 'linear-gradient(135deg, #A3B18A 0%, #7A8F6E 100%)',
+              color: '#fff', cursor: 'pointer',
+              fontSize: '0.82rem', fontWeight: 700,
+              letterSpacing: '0.02em',
+              boxShadow: '0 2px 12px rgba(100,140,90,0.35)',
+              minHeight: '38px',
+            }}
+          >
+            <PublishIcon size={13} />
+            Publish
+          </motion.button>
         )}
 
         {/* Split + Preview + Publish — desktop only */}
