@@ -192,7 +192,9 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             }}>
               {manifest.occasion === 'birthday'
                 ? `${coupleNames[0]}'s Birthday`
-                : `${coupleNames[0]} & ${coupleNames[1]}`}
+                : coupleNames[1]?.trim()
+                  ? `${coupleNames[0]} & ${coupleNames[1]}`
+                  : coupleNames[0]}
             </span>
           </div>
         )}
