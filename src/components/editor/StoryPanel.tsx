@@ -264,24 +264,22 @@ export function StoryPanel() {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
-          Story Chapters ({chapters.length})
+      {/* Sticky section header */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 5,
+        background: 'var(--pl-dark-bg)',
+        padding: '8px 16px 6px',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: '4px',
+      }}>
+        <span style={{
+          fontSize: '0.58rem', fontWeight: 800,
+          letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.25)',
+        }}>
+          Chapters · {chapters.length}
         </span>
-        <motion.button
-          onClick={actions.addChapter}
-          whileHover={{ scale: 1.08, backgroundColor: 'rgba(163,177,138,0.26)' }}
-          whileTap={{ scale: 0.92 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '5px 10px', borderRadius: '5px', border: 'none',
-            background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)',
-            cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-          }}
-        >
-          <Plus size={11} /> Add
-        </motion.button>
       </div>
 
       {/* Timeline format switcher */}
@@ -340,10 +338,36 @@ export function StoryPanel() {
         </AnimatePresence>
       </Reorder.Group>
 
+      {/* Dashed "Add Chapter" card */}
+      <motion.button
+        onClick={actions.addChapter}
+        whileHover={{ borderColor: 'rgba(163,177,138,0.5)', backgroundColor: 'rgba(163,177,138,0.06)', y: -1 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+        style={{
+          width: '100%', padding: '14px 16px', marginTop: '8px', marginBottom: '4px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+          border: '1.5px dashed rgba(163,177,138,0.25)', borderRadius: '10px',
+          background: 'transparent', cursor: 'pointer',
+          color: 'rgba(163,177,138,0.65)', fontSize: '0.8rem', fontWeight: 700,
+          letterSpacing: '0.04em',
+        }}
+      >
+        <Plus size={14} />
+        Add Chapter
+      </motion.button>
+
       {/* Blocks palette */}
       <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-olive, #A3B18A)', marginBottom: '10px' }}>
-          Add Sections — Drag to Canvas
+        {/* Sticky palette header */}
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 4,
+          background: 'var(--pl-dark-bg)',
+          padding: '4px 0 8px',
+          fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: 'rgba(163,177,138,0.7)', marginBottom: '4px',
+        }}>
+          Drag Sections to Canvas
         </div>
         {CANVAS_BLOCK_TYPES.map(b => (
           <BlockTypeCard
@@ -355,6 +379,7 @@ export function StoryPanel() {
           />
         ))}
       </div>
+
 
       {/* Inline chapter editor */}
       <AnimatePresence mode="wait">

@@ -36,6 +36,7 @@ import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
 import { AIEditorChat } from './AIEditorChat';
+import { AIContextBar } from './AIContextBar';
 import { MessagingPanel } from '@/components/dashboard/MessagingPanel';
 import { PostWeddingBanner } from './PostWeddingBanner';
 import { AnalyticsDashboardPanel } from './AnalyticsDashboardPanel';
@@ -559,6 +560,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
       {/* Top Bar */}
       <EditorToolbar onExit={onExit} />
+
+      {/* AI Context Bar — slides in when chapter selected */}
+      <AIContextBar />
 
       {/* Body: Rail + Panel + Canvas */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>

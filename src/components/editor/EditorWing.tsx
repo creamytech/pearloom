@@ -3,21 +3,27 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/EditorWing.tsx
 //
-// Push panel — an inline flex child (NOT position:fixed) that
-// shrinks to 0 when closed and springs to PANEL_W when open.
-// Canvas is always to the right; the panel pushes it, never
-// covers it.
+// Push panel — inline flex child (NOT position:fixed) that
+// shrinks to 0 when closed and springs to width when open.
+// Canvas always sits to the right; the panel pushes it.
 //
-// Tab switching is handled by EditorRail. This component just
-// shows/hides and renders its children.
+// Improvements:
+//   • AnimatePresence cross-fade on tab switch
+//   • Animated panel title change
+//   • Gradient top accent line
+//   • Drag-resize handle (260–520px range)
+//   • Resizing state cursor management
 // ─────────────────────────────────────────────────────────────
 
-import { motion } from 'framer-motion';
+import { useRef, useCallback, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PanelLeftClose } from 'lucide-react';
-import type { EditorTab } from '@/lib/editor-state';
+import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
-const PANEL_W = 320;
+const MIN_W = 260;
+const MAX_W = 520;
+const DEFAULT_W = 320;
 
 const TAB_LABEL: Partial<Record<EditorTab, string>> = {
   story:       'Story',
@@ -52,13 +58,65 @@ export function EditorWing({
   children,
   contentRef,
 }: EditorWingProps) {
+  const { dispatch } = useEditor();
+  const [panelW, setPanelW] = useState(DEFAULT_W);
+  const [resizing, setResizing] = useState(false);
+  const [handleHovered, setHandleHovered] = useState(false);
+  const dragStartX = useRef(0);
+  const dragStartW = useRef(DEFAULT_W);
+
   const title = TAB_LABEL[activeTab] ?? String(activeTab);
   const tier  = TAB_TIER[activeTab];
   const meta  = tier ? TIER_META[tier] : null;
 
+  // ── Resize handle ──────────────────────────────────────────
+  const startResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragStartX.current = e.clientX;
+    dragStartW.current = panelW;
+    setResizing(true);
+  }, [panelW]);
+
+  useEffect(() => {
+    if (!resizing) return;
+
+    const onMove = (e: MouseEvent) => {
+      const delta = e.clientX - dragStartX.current;
+      const next = Math.min(MAX_W, Math.max(MIN_W, dragStartW.current + delta));
+      setPanelW(next);
+      dispatch({ type: 'SET_SIDEBAR_WIDTH', width: next });
+    };
+
+    const onUp = () => {
+      setResizing(false);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [resizing, dispatch]);
+
+  // Cursor override while resizing
+  useEffect(() => {
+    if (resizing) {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+    return () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [resizing]);
+
   return (
     <motion.div
-      animate={{ width: open ? PANEL_W : 0 }}
+      animate={{ width: open ? panelW : 0 }}
       transition={{ type: 'spring', stiffness: 320, damping: 34 }}
       style={{
         flexShrink: 0,
@@ -68,17 +126,25 @@ export function EditorWing({
         zIndex: 50,
       }}
     >
-      {/* Inner panel — always full PANEL_W, clipped by outer overflow:hidden */}
+      {/* Inner panel — always full panelW, clipped by outer overflow:hidden */}
       <div style={{
-        width: PANEL_W,
+        width: panelW,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--pl-cream-card)',
-        borderRight: '1px solid var(--pl-divider)',
+        background: 'var(--pl-dark-bg)',
+        borderRight: '1px solid rgba(255,255,255,0.07)',
         boxShadow: open ? 'var(--pl-shadow-md)' : 'none',
         transition: 'box-shadow 0.3s',
+        position: 'relative',
       } as React.CSSProperties}>
+
+        {/* Top gradient accent line */}
+        <div style={{
+          height: '2px',
+          flexShrink: 0,
+          background: 'linear-gradient(90deg, var(--pl-olive) 0%, rgba(163,177,138,0.3) 50%, transparent 100%)',
+        }} />
 
         {/* Panel header */}
         <div style={{
@@ -86,21 +152,31 @@ export function EditorWing({
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 14px 0 16px',
-          borderBottom: '1px solid var(--pl-divider)',
-          background: 'var(--pl-cream)',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(255,255,255,0.03)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <span style={{
-              fontSize: '0.7rem', fontWeight: 800,
-              letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
-            }}>
-              {title}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden' }}>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={title}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  fontSize: '0.7rem', fontWeight: 800,
+                  letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+                  color: 'rgba(255,255,255,0.35)',
+                  whiteSpace: 'nowrap' as const,
+                }}
+              >
+                {title}
+              </motion.span>
+            </AnimatePresence>
             {meta && (
               <span style={{
                 fontSize: '0.58rem', fontWeight: 700,
-                letterSpacing: '0.07em', textTransform: 'uppercase',
+                letterSpacing: '0.07em', textTransform: 'uppercase' as const,
                 color: meta.color,
                 background: meta.bg,
                 border: `1px solid ${meta.color}30`,
@@ -116,22 +192,23 @@ export function EditorWing({
           <motion.button
             onClick={onToggle}
             title="Collapse panel"
-            whileHover={{ backgroundColor: 'rgba(163,177,138,0.1)', color: 'var(--pl-ink)' }}
+            whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)', color: '#A3B18A' }}
             whileTap={{ scale: 0.88 }}
             style={{
               width: '26px', height: '26px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: '6px', border: 'none',
               background: 'transparent',
-              color: 'var(--pl-muted)',
+              color: 'rgba(255,255,255,0.3)',
               cursor: 'pointer',
+              flexShrink: 0,
             }}
           >
             <PanelLeftClose size={14} />
           </motion.button>
         </div>
 
-        {/* Scrollable content */}
+        {/* Scrollable content area */}
         <div
           ref={contentRef}
           style={{
@@ -139,9 +216,33 @@ export function EditorWing({
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
             paddingTop: '6px',
+            position: 'relative',
           } as React.CSSProperties}
         >
           {children}
+        </div>
+
+        {/* Resize handle */}
+        <div
+          onMouseDown={startResize}
+          onMouseEnter={() => setHandleHovered(true)}
+          onMouseLeave={() => setHandleHovered(false)}
+          style={{
+            position: 'absolute', right: -3, top: 0, bottom: 0,
+            width: 6, cursor: 'col-resize', zIndex: 10,
+          }}
+        >
+          {/* Visual indicator line */}
+          <div style={{
+            position: 'absolute', left: '50%', top: '20%', bottom: '20%',
+            width: '2px', transform: 'translateX(-50%)',
+            background: (resizing || handleHovered)
+              ? 'rgba(163,177,138,0.6)'
+              : 'transparent',
+            borderRadius: '2px',
+            transition: 'background 0.15s',
+            boxShadow: resizing ? '0 0 6px rgba(163,177,138,0.4)' : 'none',
+          }} />
         </div>
       </div>
     </motion.div>

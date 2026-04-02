@@ -176,6 +176,27 @@
   50%       { box-shadow: 0 0 0 8px rgba(163,177,138,0); }
 }
 
+@keyframes pl-heartbeat {
+  0%, 100% { transform: scale(1); }
+  14%       { transform: scale(1.32); }
+  28%       { transform: scale(1); }
+  42%       { transform: scale(1.18); }
+  70%       { transform: scale(1); }
+}
+
+@keyframes pl-shimmer-sweep {
+  0%   { transform: translateX(-110%) skewX(-12deg); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(210%) skewX(-12deg); opacity: 0; }
+}
+
+@keyframes pl-save-pop {
+  0%   { transform: scale(0.75); opacity: 0; }
+  55%  { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 @keyframes orb-drift {
   0%, 100% { transform: translate(0, 0); }
   33%       { transform: translate(2%, -3%); }

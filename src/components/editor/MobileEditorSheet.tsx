@@ -271,9 +271,14 @@ export function MobileEditorSheet() {
 
   // Snap helpers
   const snapTo = useCallback((target: number) => {
-    animate(sheetY, target, { type: 'spring', stiffness: 520, damping: 42 });
-    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([3]);
-  }, [sheetY]);
+    animate(sheetY, target, { type: 'spring', stiffness: 400, damping: 34, bounce: 0.06 });
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      // Tactile differentiation: full-open = double pulse, mid = single, peek = soft
+      if (target === 0) navigator.vibrate([4, 50, 4]);
+      else if (target < sheetH * 0.4) navigator.vibrate([3]);
+      else navigator.vibrate([2]);
+    }
+  }, [sheetY, sheetH]);
 
   const expandToFull = useCallback(() => snapTo(snaps.full), [snapTo, snaps.full]);
   const expandToMid  = useCallback(() => snapTo(snaps.mid),  [snapTo, snaps.mid]);
@@ -523,8 +528,9 @@ export function MobileEditorSheet() {
           }}
         >
           <div style={{
-            width: 34, height: 4, borderRadius: 100,
-            background: 'rgba(255,255,255,0.2)',
+            width: 42, height: 5, borderRadius: 100,
+            background: 'rgba(255,255,255,0.22)',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
           }} />
         </div>
 
@@ -634,18 +640,19 @@ export function MobileEditorSheet() {
         )}
       </motion.div>
 
-      {/* ── Permanent Bottom Nav ── */}
+      {/* ── Permanent Bottom Nav — glass morphism with animated pill ── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         zIndex: 1050,
         height: `calc(${BOTTOM_NAV_H}px + env(safe-area-inset-bottom, 0px))`,
-        background: 'rgba(18,14,11,0.97)',
-        backdropFilter: 'blur(40px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(160%)',
-        borderTop: '1px solid rgba(255,255,255,0.09)',
+        background: 'rgba(14,11,9,0.92)',
+        backdropFilter: 'blur(28px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
         display: 'flex',
         alignItems: 'stretch',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        padding: '0 8px',
       } as React.CSSProperties}>
         {PRIMARY_TABS.map(({ tab, icon: Icon, label }) => {
           const isAct = activeTab === tab;
@@ -661,30 +668,33 @@ export function MobileEditorSheet() {
                   dispatch({ type: 'SET_MOBILE_SHEET', open: true });
                 }
               }}
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.82 }}
               style={{
                 flex: 1, border: 'none', background: 'transparent', cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', gap: 3,
-                color: showActive ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
+                justifyContent: 'center', gap: 4,
+                color: showActive ? 'rgba(163,177,138,0.95)' : 'rgba(214,198,168,0.28)',
                 position: 'relative', paddingTop: 8,
               }}
             >
-              <Icon size={19} color="currentColor" />
-              <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
-                {label}
-              </span>
+              {/* Animated active background pill */}
               {showActive && (
                 <motion.div
-                  layoutId="bottom-nav-dot"
+                  layoutId="mobile-tab-pill"
                   style={{
-                    position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
-                    width: 4, height: 4, borderRadius: '50%',
-                    background: 'rgba(163,177,138,0.9)',
+                    position: 'absolute', inset: '6px 4px',
+                    borderRadius: 12,
+                    background: 'rgba(163,177,138,0.12)',
+                    border: '1px solid rgba(163,177,138,0.18)',
+                    zIndex: -1,
                   }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 32 }}
                 />
               )}
+              <Icon size={18} color="currentColor" />
+              <span style={{ fontSize: '0.54rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
+                {label}
+              </span>
             </motion.button>
           );
         })}

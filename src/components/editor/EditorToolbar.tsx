@@ -269,29 +269,38 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             key={saveState}
             initial={{ opacity: 0, scale: 0.75, y: 4 }}
             animate={saveState === 'saved'
-              ? { opacity: 1, scale: [0.75, 1.12, 1], y: 0 }
+              ? { opacity: 1, scale: [0.75, 1.14, 1], y: 0 }
               : { opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: -3 }}
             transition={saveState === 'saved'
-              ? { duration: 0.45, times: [0, 0.55, 1], ease: 'easeOut' }
+              ? { duration: 0.5, times: [0, 0.5, 1], ease: 'easeOut' }
               : { type: 'spring', stiffness: 380, damping: 24 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: isMobile ? '4px 6px' : '4px 9px', borderRadius: '100px',
               background: saveState === 'saved' ? 'rgba(163,177,138,0.14)' : 'rgba(251,146,60,0.12)',
+              position: 'relative', overflow: 'hidden',
             }}
           >
+            {/* Shimmer sweep on save */}
+            {saveState === 'saved' && !isMobile && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(163,177,138,0.3) 50%, transparent 100%)',
+                animation: 'pl-shimmer-sweep 0.7s ease-out forwards',
+                borderRadius: 'inherit',
+              }} />
+            )}
             {isMobile ? (
-              /* Mobile: status dot only */
               <div style={{
                 width: '7px', height: '7px', borderRadius: '50%',
                 background: saveState === 'saved' ? '#A3B18A' : '#fb923c',
+                animation: saveState === 'unsaved' ? 'pl-heartbeat 1.2s ease-in-out infinite' : 'none',
               }} />
             ) : (
-              /* Desktop: icon + text */
               saveState === 'saved'
                 ? <><SavedIcon size={10} color="#A3B18A" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#A3B18A', letterSpacing: '0.04em' }}>Saved</span></>
-                : <><UnsavedIcon size={10} color="#fb923c" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved</span></>
+                : <><UnsavedIcon size={10} color="#fb923c" style={{ animation: 'pl-heartbeat 1.2s ease-in-out infinite' }} /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved</span></>
             )}
           </motion.div>
         </AnimatePresence>

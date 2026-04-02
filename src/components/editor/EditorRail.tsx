@@ -3,14 +3,12 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/EditorRail.tsx
 //
-// 56px always-visible icon navigation rail. Replaces the old
-// EditorWing toggle handles and EditorSidebar tab strip.
-// Clicking a tab fires handleTabChange (which auto-opens the
-// push panel). Active state is indicated by a left-edge accent
-// bar + highlight, not overlays.
+// 56px dark-glass always-visible icon navigation rail.
+// Dark editor surface with glowing olive active accent,
+// visible group labels, and frosted glass borders.
 // ─────────────────────────────────────────────────────────────
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart2, Users, LayoutGrid, Globe2, Send, Calendar, Mail,
 } from 'lucide-react';
@@ -46,6 +44,25 @@ const TOOLS: RailItem[] = [
   { tab: 'savethedate', Icon: Calendar,  label: 'STD'      },
 ];
 
+// ── Group Label ────────────────────────────────────────────────
+function GroupLabel({ label }: { label: string }) {
+  return (
+    <div style={{
+      padding: '8px 0 4px',
+      display: 'flex', justifyContent: 'center',
+    }}>
+      <span style={{
+        fontSize: '0.42rem', fontWeight: 800,
+        letterSpacing: '0.14em', textTransform: 'uppercase',
+        color: 'rgba(255,255,255,0.22)',
+        userSelect: 'none',
+      }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
 // ── RailBtn ────────────────────────────────────────────────────
 function RailBtn({ item, active, onClick }: {
   item: RailItem; active: boolean; onClick: () => void;
@@ -58,66 +75,61 @@ function RailBtn({ item, active, onClick }: {
     <motion.button
       onClick={onClick}
       title={meta ? `${label} — ${meta.label} plan` : label}
-      whileHover={{ backgroundColor: 'rgba(163,177,138,0.08)' }}
-      whileTap={{ scale: 0.9 }}
+      whileHover={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+      whileTap={{ scale: 0.88 }}
       transition={{ duration: 0.12 }}
       style={{
-        width: '100%', height: '46px',
+        width: '100%', height: '52px',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: '3px',
-        border: 'none', background: active ? 'var(--pl-olive-mist)' : 'transparent',
+        alignItems: 'center', justifyContent: 'center', gap: '4px',
+        border: 'none',
+        background: active ? 'rgba(163,177,138,0.13)' : 'transparent',
         cursor: 'pointer', position: 'relative',
-        color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+        color: active ? '#A3B18A' : 'rgba(255,255,255,0.38)',
         transition: 'color 0.15s, background 0.15s',
       }}
     >
-      {/* Active accent bar */}
-      {active && (
-        <motion.div
-          layoutId="rail-accent"
-          initial={{ scaleY: 0, opacity: 0 }}
-          animate={{ scaleY: 1, opacity: 1 }}
-          style={{
-            position: 'absolute', left: 0, top: '18%', bottom: '18%',
-            width: '2px',
-            background: 'linear-gradient(180deg, #A3B18A 0%, #6E8B5A 100%)',
-            borderRadius: '0 2px 2px 0',
-            transformOrigin: 'center',
-          }}
-          transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-        />
-      )}
+      {/* Active glow accent bar */}
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            layoutId="rail-accent"
+            initial={{ scaleY: 0, opacity: 0 }}
+            animate={{ scaleY: 1, opacity: 1 }}
+            exit={{ scaleY: 0, opacity: 0 }}
+            style={{
+              position: 'absolute', left: 0, top: '16%', bottom: '16%',
+              width: '3px',
+              background: 'linear-gradient(180deg, #A3B18A 0%, #8FC87A 100%)',
+              borderRadius: '0 3px 3px 0',
+              transformOrigin: 'center',
+              boxShadow: '0 0 10px rgba(163,177,138,0.55), 0 0 20px rgba(163,177,138,0.2)',
+            }}
+            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Plan tier dot — top-right of the icon area */}
       {meta && (
         <div style={{
-          position: 'absolute', top: '7px', right: '9px',
+          position: 'absolute', top: '8px', right: '8px',
           width: '5px', height: '5px', borderRadius: '50%',
           background: meta.color,
-          opacity: 0.7,
+          opacity: 0.75,
           flexShrink: 0,
         }} />
       )}
 
-      <Icon size={15} color="currentColor" />
+      <Icon size={17} color="currentColor" />
       <span style={{
-        fontSize: '0.49rem', fontWeight: 800, letterSpacing: '0.06em',
+        fontSize: '0.52rem', fontWeight: 800, letterSpacing: '0.06em',
         textTransform: 'uppercase', lineHeight: 1, color: 'inherit',
         userSelect: 'none',
       }}>
         {label}
       </span>
     </motion.button>
-  );
-}
-
-// ── Separator ──────────────────────────────────────────────────
-function Sep() {
-  return (
-    <div style={{
-      height: '1px', margin: '5px 14px',
-      background: 'rgba(163,177,138,0.18)',
-    }} />
   );
 }
 
@@ -128,14 +140,14 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
 
   const handleClick = (tab: typeof active) => {
     actions.handleTabChange(tab);
-    onOpen?.(); // always re-open panel, even if same tab
+    onOpen?.();
   };
 
   return (
     <div style={{
       width: '56px', flexShrink: 0,
-      background: 'var(--pl-cream)',
-      borderRight: '1px solid var(--pl-divider)',
+      background: '#252230',
+      borderRight: '1px solid rgba(255,255,255,0.07)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
       overflowY: 'auto', overflowX: 'hidden',
@@ -146,13 +158,14 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
       <div style={{
         height: '44px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderBottom: '1px solid var(--pl-divider)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
       }}>
-        <ElegantHeartIcon size={14} color="var(--pl-olive)" />
+        <ElegantHeartIcon size={14} color="#A3B18A" />
       </div>
 
       {/* Narrative group */}
-      <div style={{ paddingTop: '6px' }}>
+      <div style={{ paddingTop: '2px' }}>
+        <GroupLabel label="Content" />
         {NARRATIVE.map(item => (
           <RailBtn
             key={item.tab}
@@ -163,10 +176,12 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         ))}
       </div>
 
-      <Sep />
+      {/* Divider */}
+      <div style={{ height: '1px', margin: '4px 12px', background: 'rgba(255,255,255,0.06)' }} />
 
       {/* Aesthetic group */}
       <div>
+        <GroupLabel label="Style" />
         {AESTHETIC.map(item => (
           <RailBtn
             key={item.tab}
@@ -177,10 +192,12 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         ))}
       </div>
 
-      <Sep />
+      {/* Divider */}
+      <div style={{ height: '1px', margin: '4px 12px', background: 'rgba(255,255,255,0.06)' }} />
 
       {/* Tools group */}
       <div>
+        <GroupLabel label="Tools" />
         {TOOLS.map(item => (
           <RailBtn
             key={item.tab}
