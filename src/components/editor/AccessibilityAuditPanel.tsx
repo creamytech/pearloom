@@ -18,6 +18,7 @@
 
 import { useMemo, useState } from 'react';
 import type { StoryManifest } from '@/types';
+import { IconError, IconWarn, IconTip, IconClose, IconAccessibility } from './EditorIcons';
 
 interface A11yIssue {
   code: string;
@@ -116,10 +117,10 @@ function auditManifest(manifest: StoryManifest): A11yIssue[] {
   return issues;
 }
 
-const SEV_STYLE: Record<string, { bg: string; border: string; icon: string; color: string }> = {
-  error: { bg: 'rgba(248,81,73,0.10)', border: 'rgba(248,81,73,0.35)', icon: '🔴', color: '#f87171' },
-  warn:  { bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.30)',  icon: '♿', color: '#fbbf24' },
-  tip:   { bg: 'rgba(163,177,138,0.10)',border: 'rgba(163,177,138,0.3)', icon: '💡', color: '#A3B18A' },
+const SEV_STYLE: Record<string, { bg: string; border: string; icon: React.ReactNode; color: string }> = {
+  error: { bg: 'rgba(248,81,73,0.10)', border: 'rgba(248,81,73,0.35)', icon: <IconError size={14} />,  color: '#f87171' },
+  warn:  { bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.30)',  icon: <IconWarn size={14} />,  color: '#fbbf24' },
+  tip:   { bg: 'rgba(163,177,138,0.10)',border: 'rgba(163,177,138,0.3)', icon: <IconTip size={14} />,   color: '#A3B18A' },
 };
 
 interface AccessibilityAuditPanelProps {
@@ -142,7 +143,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
         textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)',
         marginBottom: '2px',
       }}>
-        <span>♿</span> Accessibility
+        <IconAccessibility size={12} /> Accessibility
       </div>
 
       {visible.map(issue => {
@@ -156,7 +157,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
               border: `1px solid ${s.border}`, position: 'relative',
             }}
           >
-            <span style={{ fontSize: '0.9rem', flexShrink: 0, lineHeight: 1.4 }}>{s.icon}</span>
+            <span style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '1px', color: s.color, flexShrink: 0 }}>{s.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 800, color: s.color, marginBottom: '2px' }}>{issue.title}</div>
               <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.55 }}>{issue.detail}</div>
@@ -170,7 +171,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
                 lineHeight: 1,
               }}
               aria-label="Dismiss"
-            >✕</button>
+            ><IconClose size={10} /></button>
           </div>
         );
       })}

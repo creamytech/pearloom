@@ -10,7 +10,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Sparkles, Check, X, ChevronDown } from 'lucide-react';
+import { Globe, Sparkles, Check, X, ChevronDown, Loader2 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { SidebarSection } from './EditorSidebar';
 
@@ -172,7 +172,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 </span>
                 {generating === locale.code ? (
                   <span style={{ fontSize: '0.7rem', color: '#A3B18A', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ animation: 'pl-spin 0.8s linear infinite', display: 'inline-block' }}>✦</span>
+                    <Loader2 size={11} style={{ animation: 'pl-spin 0.8s linear infinite' }} />
                     Translating…
                   </span>
                 ) : (
@@ -195,7 +195,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
           fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)',
         }}>
-          ⚠️ Add story chapters before generating translations.
+          Add story chapters before generating translations.
         </div>
       )}
 

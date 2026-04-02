@@ -17,6 +17,7 @@ import {
   ChevronDown, Mail, Trash2,
 } from 'lucide-react';
 import { SidebarSection } from './EditorSidebar';
+import { IconMeal } from './EditorIcons';
 import type { Guest } from '@/types';
 
 const STATUS_COLOR: Record<string, string> = {
@@ -25,8 +26,8 @@ const STATUS_COLOR: Record<string, string> = {
   pending:   '#D6C6A8',
 };
 const STATUS_ICON: Record<string, string> = {
-  attending: '✓',
-  declined:  '✕',
+  attending: 'Y',
+  declined:  'N',
   pending:   '?',
 };
 
@@ -230,7 +231,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
                 )}
               </div>
               {guest.mealPreference && (
-                <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>🍽️</div>
+                <div style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}><IconMeal size={11} /></div>
               )}
               <button
                 onClick={() => handleDelete(guest.id)}
