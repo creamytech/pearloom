@@ -52,7 +52,14 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
   };
 
   const updateFont = (key: 'heading' | 'body', val: string) => {
-    onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } } });
+    onChange({
+      ...manifest,
+      theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } },
+      vibeSkin: manifest.vibeSkin ? {
+        ...manifest.vibeSkin,
+        fonts: { ...manifest.vibeSkin.fonts, [key]: val },
+      } : manifest.vibeSkin,
+    });
   };
 
   const handleThemeApply = (newSkin: VibeSkin) => {
@@ -181,6 +188,22 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
           onSelect={(asset) => {
             // Store last-selected asset on manifest for canvas insertion
             onChange({ ...manifest, lastAsset: asset as StoryManifest['lastAsset'] });
+          }}
+          onAddSticker={(asset) => {
+            const newSticker: import('@/types').StickerItem = {
+              id: `sticker-${Date.now()}`,
+              name: asset.name,
+              type: asset.type as 'illustrations' | 'accents' | 'dividers',
+              x: 20 + Math.random() * 60,
+              y: 20 + Math.random() * 60,
+              size: 80,
+              rotation: (Math.random() * 30) - 15,
+              opacity: 0.85,
+            };
+            onChange({
+              ...manifest,
+              stickers: [...(manifest.stickers || []), newSticker],
+            });
           }}
         />
       </SidebarSection>

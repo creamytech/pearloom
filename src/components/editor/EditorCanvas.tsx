@@ -6,9 +6,10 @@
 // Redesigned: dot-grid bg, device chrome bezels, increased split scale
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { PreviewPane } from './PreviewPane';
 import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
+import { StickerOverlay } from './StickerOverlay';
 
 // ── Skeleton Loading Screen ──────────────────────────────────
 const skeletonBg = 'var(--pl-cream-deep)';
@@ -90,6 +91,7 @@ function DeviceBezel() {
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
   const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom, previewPage } = state;
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Listen for edit messages from the iframe ──────────────
   useEffect(() => {
@@ -190,12 +192,15 @@ export function EditorCanvas() {
           pointerEvents: 'none', zIndex: 0,
         }} />
       )}
-      <div style={{
-        width: '100%', height: '100%',
-        position: 'relative',
-        display: 'flex', flexDirection: 'column',
-        zIndex: 1,
-      }}>
+      <div
+        ref={canvasContainerRef}
+        style={{
+          width: '100%', height: '100%',
+          position: 'relative',
+          display: 'flex', flexDirection: 'column',
+          zIndex: 1,
+        }}
+      >
         {!iframeReady && <SkeletonLoading slow={previewSlow} />}
         <iframe
           ref={iframeRef}
@@ -215,6 +220,16 @@ export function EditorCanvas() {
             iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
           }}
         />
+        {manifest && manifest.stickers && manifest.stickers.length > 0 && (
+          <StickerOverlay
+            stickers={manifest.stickers}
+            onChange={(stickers) => {
+              const updated = { ...manifest, stickers };
+              actions.handleDesignChange(updated);
+            }}
+            containerRef={canvasContainerRef}
+          />
+        )}
       </div>
     </div>
   );

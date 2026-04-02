@@ -31,6 +31,7 @@ import { SpotifySection } from '@/components/site/SpotifySection';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
+import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 
 export const dynamic = 'force-dynamic';
 
@@ -264,16 +265,18 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     switch (type) {
       case 'hero':
         return (
-          <Hero
-            key={key}
-            names={safeNames}
-            subtitle={siteConfig.tagline || 'A love story beautifully told.'}
-            coverPhoto={coverPhoto}
-            weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
-            vibeSkin={vibeSkin}
-            heroTagline={manifest.poetry?.heroTagline}
-            photos={filmPhotos.length > 0 ? filmPhotos : undefined}
-          />
+          <div key={key} style={{ position: 'relative' }}>
+            <Hero
+              names={safeNames}
+              subtitle={siteConfig.tagline || 'A love story beautifully told.'}
+              coverPhoto={coverPhoto}
+              weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
+              vibeSkin={vibeSkin}
+              heroTagline={manifest.poetry?.heroTagline}
+              photos={filmPhotos.length > 0 ? filmPhotos : undefined}
+            />
+            <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
+          </div>
         );
       case 'story':
         return (

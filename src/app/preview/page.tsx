@@ -26,6 +26,7 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import type { StoryManifest, SitePage } from '@/types';
+import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -267,15 +268,17 @@ function PreviewContent() {
     switch (type) {
       case 'hero':
         return (
-          <Hero
-            key={key}
-            names={names}
-            subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
-            coverPhoto={proxiedCover}
-            weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
-            vibeSkin={vibeSkin}
-            heroTagline={manifest.poetry?.heroTagline}
-          />
+          <div key={key} style={{ position: 'relative' }}>
+            <Hero
+              names={names}
+              subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
+              coverPhoto={proxiedCover}
+              weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
+              vibeSkin={vibeSkin}
+              heroTagline={manifest.poetry?.heroTagline}
+            />
+            <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
+          </div>
         );
       case 'story':
         return <section key={key} id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>;

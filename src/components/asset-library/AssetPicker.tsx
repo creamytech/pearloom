@@ -9,6 +9,7 @@ type AssetCategory = 'dividers' | 'illustrations' | 'accents';
 
 interface AssetPickerProps {
   onSelect: (asset: { id: string; type: AssetCategory; name: string }) => void;
+  onAddSticker?: (asset: { id: string; type: AssetCategory; name: string }) => void;
   selectedId?: string;
 }
 
@@ -18,9 +19,9 @@ const TAB_LABELS: { key: AssetCategory; label: string }[] = [
   { key: 'accents', label: 'Accents' },
 ];
 
-export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
+export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerProps) {
   const [activeCategory, setActiveCategory] = useState<AssetCategory>('illustrations');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   const containerStyle: React.CSSProperties = {
     background: '#1E1B16',
@@ -120,21 +121,21 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
             <div
               key={name}
               style={{ ...cellStyle(isSelected), position: 'relative' }}
-              onClick={(e) => {
-                onSelect({ id: name, type: 'illustrations', name });
-                const svgEl = (e.currentTarget as HTMLElement).querySelector('svg');
-                if (svgEl) {
-                  navigator.clipboard.writeText(svgEl.outerHTML).catch(() => {});
-                  setCopiedId(name);
-                  setTimeout(() => setCopiedId(null), 2000);
+              onClick={() => {
+                const asset = { id: name, type: 'illustrations' as AssetCategory, name };
+                onSelect(asset);
+                if (onAddSticker) {
+                  onAddSticker(asset);
+                  setAddedId(name);
+                  setTimeout(() => setAddedId(null), 2000);
                 }
               }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'illustrations', name })}
             >
-              {copiedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Copied ✓</span>
+              {addedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
               <Comp size={32} color="rgba(255,255,255,0.75)" />
               <span style={labelStyle}>{name.replace('Illustration', '')}</span>
