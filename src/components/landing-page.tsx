@@ -8,7 +8,9 @@ import { MarketingHero } from './marketing/MarketingHero';
 import { SocialProofBar } from './marketing/SocialProofBar';
 import { HowItWorks } from './marketing/HowItWorks';
 import { TheLoomShowcase } from './marketing/TheLoomShowcase';
+import { BlockTypesGrid } from './marketing/BlockTypesGrid';
 import { GuestExperience } from './marketing/GuestExperience';
+import { EditorShowcase } from './marketing/EditorShowcase';
 import { PricingPreview } from './marketing/PricingPreview';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
@@ -182,8 +184,14 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ THE LOOM ══════════════ */}
       <TheLoomShowcase />
 
-      {/* ══════════════ GUEST EXPERIENCE ══════════════ */}
+      {/* ══════════════ BLOCK TYPES ══════════════ */}
+      <BlockTypesGrid />
+
+      {/* ══════════════ PLATFORM FEATURES ══════════════ */}
       <GuestExperience />
+
+      {/* ══════════════ EDITOR ══════════════ */}
+      <EditorShowcase />
 
       {/* ══════════════ OCCASIONS — numbered list on dark bg ══════════════ */}
       <section

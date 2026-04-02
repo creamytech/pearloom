@@ -40,22 +40,21 @@ export function EditorStatusBar() {
     return sum + words + titleWords;
   }, 0);
 
-  const dim = 'rgba(214,198,168,0.3)';
-  const sep = <span style={{ color: dim, opacity: 0.4 }}>·</span>;
+  const sep = <span style={{ color: 'var(--pl-divider)' }}>·</span>;
 
   return (
     <div style={{
       height: '28px', flexShrink: 0,
       display: 'flex', alignItems: 'center',
       padding: '0 14px', gap: '10px',
-      background: 'rgba(11,8,6,0.99)',
-      borderTop: '1px solid rgba(255,255,255,0.045)',
+      background: 'var(--pl-cream)',
+      borderTop: '1px solid var(--pl-divider)',
       fontSize: '0.65rem', fontWeight: 600,
-      color: dim, letterSpacing: '0.03em',
+      color: 'var(--pl-muted)', letterSpacing: '0.03em',
       userSelect: 'none',
     }}>
       {/* Panel label */}
-      <span style={{ color: 'rgba(214,198,168,0.5)', fontWeight: 700 }}>
+      <span style={{ color: 'var(--pl-ink-soft)', fontWeight: 700 }}>
         {TAB_LABEL[activeTab] ?? activeTab}
       </span>
 
@@ -88,16 +87,16 @@ export function EditorStatusBar() {
         <div style={{
           width: '6px', height: '6px', borderRadius: '50%',
           flexShrink: 0,
-          background: saveState === 'saved' ? '#A3B18A' : '#E8B86D',
+          background: saveState === 'saved' ? '#A3B18A' : 'var(--pl-gold)',
           boxShadow: saveState === 'saved'
             ? '0 0 6px rgba(163,177,138,0.55)'
-            : '0 0 6px rgba(232,184,109,0.55)',
+            : '0 0 6px rgba(196,169,106,0.55)',
           transition: 'background 0.3s, box-shadow 0.3s',
         }} />
         <span style={{
           color: saveState === 'saved'
-            ? 'rgba(163,177,138,0.55)'
-            : 'rgba(232,184,109,0.6)',
+            ? 'var(--pl-olive)'
+            : 'var(--pl-gold)',
           transition: 'color 0.3s',
         }}>
           {saveState === 'saved' ? 'Saved' : 'Unsaved'}

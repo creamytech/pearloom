@@ -20,6 +20,57 @@ import { cn } from '@/lib/cn';
 import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 import { parseLocalDate } from '@/lib/date';
 
+// ── Living Portrait ───────────────────────────────────────────
+
+function LivingPortrait({ photos, coverPhoto, vibeSkin }: {
+  photos: string[];
+  coverPhoto?: string;
+  vibeSkin?: { accent?: string; bg?: string };
+}) {
+  const allPhotos = [coverPhoto, ...photos].filter(Boolean) as string[];
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    if (allPhotos.length <= 1) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % allPhotos.length), 4000);
+    return () => clearInterval(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allPhotos.length]);
+
+  if (allPhotos.length === 0) return null;
+
+  // proxy Google URLs
+  const src = allPhotos[idx]?.includes('googleusercontent.com')
+    ? `/api/photos/proxy?url=${encodeURIComponent(allPhotos[idx])}&w=600&h=400`
+    : allPhotos[idx];
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      <AnimatePresence>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <motion.img
+          key={idx}
+          src={src}
+          alt=""
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </AnimatePresence>
+      {/* Gradient overlay for text readability */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.65) 100%)',
+        pointerEvents: 'none',
+      }} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+
 function getGreeting(): string {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
@@ -319,6 +370,12 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               const accentColor   = vibeSkin?.palette?.accent || site.manifest?.theme?.colors?.accent || '#A3B18A';
               const accentDark    = vibeSkin?.palette?.highlight || site.manifest?.theme?.colors?.muted || '#8FA876';
               const coverPhotoUrl = site.manifest?.chapters?.[0]?.images?.[0]?.url;
+              const chapterPhotos = (site.manifest?.chapters ?? [])
+                .flatMap(c => (c.images ?? []).slice(0, 1).map(img => img.url))
+                .filter(Boolean)
+                .slice(0, 5) as string[];
+              const heroTagline   = site.manifest?.poetry?.heroTagline;
+              const daysTogether  = Math.floor((Date.now() - new Date(site.created_at).getTime()) / 86400000);
               const isDeleting    = deletingDomain === site.domain;
               const isCopied      = copiedId === site.id;
               const rawNames = (site.names || ['', '']).map((n) => n.charAt(0).toUpperCase() + n.slice(1));
@@ -337,22 +394,21 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                   exit={{ opacity: 0, scale: 0.93 }}
                   className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)] bg-white group transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.14),0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-1.5 flex flex-col"
                 >
-                  {/* Cover — taller, more editorial */}
-                  <div
+                  {/* Cover — living portrait */}
+                  <motion.div
                     onClick={() => goToEditor(site)}
                     className="h-56 relative overflow-hidden cursor-pointer flex-shrink-0"
                     style={{ background: `linear-gradient(150deg, ${accentColor} 0%, ${accentDark} 100%)` }}
+                    whileHover={{ scale: 1.03 }}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    {coverPhotoUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={coverPhotoUrl}
-                        alt=""
-                        role="presentation"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+                    {/* Living portrait or fallback decoration */}
+                    {chapterPhotos.length > 0 || coverPhotoUrl ? (
+                      <LivingPortrait
+                        photos={chapterPhotos}
+                        coverPhoto={coverPhotoUrl}
                       />
-                    )}
-                    {!coverPhotoUrl && (
+                    ) : (
                       <div
                         className="absolute inset-0 opacity-30"
                         style={{
@@ -360,10 +416,14 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         }}
                       />
                     )}
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.65) 100%)' }} />
+
+                    {/* Dark gradient overlay when no portrait (portrait has its own) */}
+                    {(chapterPhotos.length === 0 && !coverPhotoUrl) && (
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.65) 100%)' }} />
+                    )}
 
                     {/* Top row */}
-                    <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
+                    <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between" style={{ zIndex: 10 }}>
                       {isLive ? (
                         <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-sm text-[0.6rem] font-bold text-white tracking-widest uppercase border border-white/15">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_rgba(74,222,128,0.8)]" />
@@ -382,7 +442,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                     </div>
 
                     {/* Names — big and centered at bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <div className="absolute bottom-0 left-0 right-0 p-5" style={{ zIndex: 10 }}>
                       <div
                         className="font-heading text-[1.55rem] font-semibold italic text-white leading-tight mb-1"
                         style={{ textShadow: '0 2px 24px rgba(0,0,0,0.5), 0 1px 6px rgba(0,0,0,0.3)' }}
@@ -396,7 +456,30 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         </div>
                       )}
                     </div>
-                  </div>
+
+                    {/* AI tagline */}
+                    {heroTagline && (
+                      <motion.p
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5, duration: 0.7 }}
+                        style={{
+                          position: 'absolute', bottom: '4.5rem', left: '1.25rem', right: '1.25rem',
+                          fontFamily: 'Georgia, serif',
+                          fontStyle: 'italic',
+                          fontSize: '0.8rem',
+                          color: 'rgba(255,255,255,0.75)',
+                          lineHeight: 1.4,
+                          textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+                          zIndex: 10,
+                          margin: 0,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {heroTagline}
+                      </motion.p>
+                    )}
+                  </motion.div>
 
                   {/* Body */}
                   <div className="flex-1 flex flex-col p-5 gap-4">
@@ -423,6 +506,13 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                         </div>
                       )}
                       <RsvpChip siteId={site.domain} />
+                      {daysTogether > 0 && (
+                        <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
+                          <span>•</span>
+                          <span className="font-semibold text-[var(--pl-ink-soft)]">{daysTogether}</span>
+                          <span>days together</span>
+                        </div>
+                      )}
                       {(() => {
                         const days = weddingDate ? daysUntil(weddingDate) : null;
                         if (days === null) return null;

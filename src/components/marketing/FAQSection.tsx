@@ -9,33 +9,49 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 const FAQS = [
   {
     q: 'Is it really free to start?',
-    a: 'Yes! Create your site with The Loom, get your custom Rind\u2122 visual identity, and share it with a Pearloom link \u2014 all completely free. Upgrade to Premium only when you want extras like a custom domain, all 15 block types, and full guest management.',
+    a: 'Yes. Create your site, get your custom visual identity, and share it on a Pearloom link — completely free, forever. Upgrade to Pair ($19 one-time) when you want extras like a custom domain, all 19 block types, seating charts, and full guest management.',
+  },
+  {
+    q: "What's the difference between Seed, Pair, and Perennial?",
+    a: 'Seed (free) gives you everything to launch a beautiful site: AI generation, your visual identity, 7 block types, and up to 75 guest RSVPs. Pair ($19 one-time per celebration) unlocks the full platform for a single event — all 19 blocks, unlimited guests, seating charts, bulk messaging, AI concierge, 9-language translations, analytics, Save the Date cards, hashtag generator, time capsule, and guestbook. Perennial ($12/month) gives you Pair for every celebration, forever, plus anniversary mode, coordinator collaboration, and early AI features.',
+  },
+  {
+    q: 'Do I need a subscription?',
+    a: 'No. Pair is a one-time payment per celebration — pay once and that site is yours with no recurring charges. Perennial is a monthly subscription for couples who want to use Pearloom for multiple occasions (anniversaries, birthdays, future celebrations) without paying per event.',
   },
   {
     q: 'How long does it take to create a site?',
-    a: 'Most people go from zero to a live site in under 5 minutes. Upload your photos, describe your vibe, and The Loom handles the rest. You can then fine-tune in the editor for as long as you like.',
+    a: 'Most people go from zero to a live site in under 5 minutes. Upload your photos, describe your vibe, and The Loom handles the rest — seven AI passes, one extraordinary site. You can then fine-tune in the editor for as long as you like.',
   },
   {
     q: 'Can I use my own domain?',
-    a: 'Absolutely. Premium sites can connect a custom domain (like emma-and-james.com). We handle the SSL certificate and DNS setup for you.',
+    a: 'Absolutely. Pair and Perennial sites can connect a custom domain (like emma-and-james.com). We handle SSL and DNS setup for you. Seed sites use a yourname.pearloom.com subdomain.',
   },
   {
-    q: 'Is my data secure?',
-    a: 'Your photos and data are encrypted at rest and in transit. We never share your personal information. You can delete your site and all associated data at any time.',
+    q: 'What languages are supported?',
+    a: 'Pair and Perennial include AI translation into 9 languages: Spanish, French, Italian, Portuguese, German, Japanese, Chinese (Simplified), Hebrew, and Arabic. Translations are generated per chapter and stored independently so your guests can read the site in their preferred language.',
+  },
+  {
+    q: 'What happens after the wedding?',
+    a: 'Your site stays live forever on your plan. With Perennial, it automatically transitions into anniversary mode after your wedding date — preserving your story, unlocking time capsule messages on anniversaries, and letting you add new chapters as your life together continues.',
   },
   {
     q: 'What types of events does Pearloom support?',
-    a: 'Weddings, engagements, anniversaries, birthdays, reunions, graduations, retirements, quincea\u00f1eras \u2014 any celebration worth remembering. The Loom adapts its narrative style and visual identity to match your occasion.',
+    a: 'Weddings, engagements, anniversaries, birthdays, reunions, graduations, retirements, quinceañeras — any celebration worth remembering. The Loom adapts its narrative style and visual identity to match your occasion.',
   },
   {
     q: 'Can I edit my site after publishing?',
-    a: 'Of course! Your site is a living document. Edit the narrative, add new chapters, update photos, swap blocks \u2014 all changes go live instantly. No need to republish.',
+    a: "Of course. Your site is a living document. Edit the narrative, add chapters, update photos, swap blocks, invite new guests — changes go live instantly. No need to republish.",
+  },
+  {
+    q: 'Is my data secure?',
+    a: 'Your photos and data are encrypted at rest and in transit. We never share your personal information with third parties. You can delete your site and all associated data at any time.',
   },
 ];
 
 export function FAQSection() {
   const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.15 });
+  const inView = useInView(ref, { once: true, amount: 0.12 });
 
   return (
     <section

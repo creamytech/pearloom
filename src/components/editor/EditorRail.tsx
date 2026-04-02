@@ -20,6 +20,7 @@ import {
 } from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
+import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
 // ── Tab groups ─────────────────────────────────────────────────
 type RailItem = { tab: EditorTab; Icon: React.ElementType; label: string };
@@ -49,21 +50,24 @@ const TOOLS: RailItem[] = [
 function RailBtn({ item, active, onClick }: {
   item: RailItem; active: boolean; onClick: () => void;
 }) {
-  const { Icon, label } = item;
+  const { Icon, label, tab } = item;
+  const tier = TAB_TIER[tab];
+  const meta = tier ? TIER_META[tier] : null;
+
   return (
     <motion.button
       onClick={onClick}
-      title={label}
-      whileHover={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+      title={meta ? `${label} — ${meta.label} plan` : label}
+      whileHover={{ backgroundColor: 'rgba(163,177,138,0.08)' }}
       whileTap={{ scale: 0.9 }}
       transition={{ duration: 0.12 }}
       style={{
         width: '100%', height: '46px',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', gap: '3px',
-        border: 'none', background: active ? 'rgba(163,177,138,0.09)' : 'transparent',
+        border: 'none', background: active ? 'var(--pl-olive-mist)' : 'transparent',
         cursor: 'pointer', position: 'relative',
-        color: active ? '#A3B18A' : 'rgba(214,198,168,0.38)',
+        color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
         transition: 'color 0.15s, background 0.15s',
       }}
     >
@@ -83,6 +87,18 @@ function RailBtn({ item, active, onClick }: {
           transition={{ type: 'spring', stiffness: 420, damping: 30 }}
         />
       )}
+
+      {/* Plan tier dot — top-right of the icon area */}
+      {meta && (
+        <div style={{
+          position: 'absolute', top: '7px', right: '9px',
+          width: '5px', height: '5px', borderRadius: '50%',
+          background: meta.color,
+          opacity: 0.7,
+          flexShrink: 0,
+        }} />
+      )}
+
       <Icon size={15} color="currentColor" />
       <span style={{
         fontSize: '0.49rem', fontWeight: 800, letterSpacing: '0.06em',
@@ -100,7 +116,7 @@ function Sep() {
   return (
     <div style={{
       height: '1px', margin: '5px 14px',
-      background: 'rgba(255,255,255,0.05)',
+      background: 'rgba(163,177,138,0.18)',
     }} />
   );
 }
@@ -118,8 +134,8 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
   return (
     <div style={{
       width: '56px', flexShrink: 0,
-      background: 'rgba(12,9,7,0.99)',
-      borderRight: '1px solid rgba(255,255,255,0.07)',
+      background: 'var(--pl-cream)',
+      borderRight: '1px solid var(--pl-divider)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
       overflowY: 'auto', overflowX: 'hidden',
@@ -130,9 +146,9 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
       <div style={{
         height: '44px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.055)',
+        borderBottom: '1px solid var(--pl-divider)',
       }}>
-        <ElegantHeartIcon size={14} color="rgba(214,198,168,0.45)" />
+        <ElegantHeartIcon size={14} color="var(--pl-olive)" />
       </div>
 
       {/* Narrative group */}

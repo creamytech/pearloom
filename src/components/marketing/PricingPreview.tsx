@@ -2,54 +2,101 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check, Sprout, Heart, Leaf } from 'lucide-react';
 import { colors as C, text, card, sectionPadding, layout } from '@/lib/design-tokens';
 import { SectionHeader } from '@/components/marketing/SectionHeader';
-import { Card, Button, Badge } from '@/components/ui';
 
-const TIERS = [
+type Tier = {
+  name: string;
+  price: string;
+  period: string;
+  tagline: string;
+  desc: string;
+  features: string[];
+  cta: string;
+  accent: string;
+  highlighted: boolean;
+  badge?: string;
+  Icon: React.ElementType;
+};
+
+const TIERS: Tier[] = [
   {
-    name: 'Free',
+    name: 'Seed',
     price: '$0',
     period: 'forever',
-    desc: 'Perfect for getting started. Create your site, share your story.',
+    tagline: 'Plant your story',
+    desc: 'Create a beautiful site and go live — no credit card, no catch.',
     features: [
-      'The Loom AI site generation',
-      'Custom Rind\u2122 visual identity',
-      '5 core block types',
-      'Shareable link',
+      'Pearloom AI site generation',
+      'Custom visual identity',
+      '7 core block types',
+      'Pearloom subdomain',
+      'Up to 75 guest RSVPs',
+      'Up to 100 photos',
       'Mobile-responsive site',
-      'Basic guest RSVP',
     ],
     cta: 'Start Free',
     accent: C.olive,
     highlighted: false,
+    Icon: Sprout,
   },
   {
-    name: 'Premium',
+    name: 'Pair',
     price: '$19',
     period: '/celebration',
-    desc: 'Everything you need for the full experience. One price, no subscriptions.',
+    tagline: 'Everything for your big day',
+    desc: 'The full Pearloom experience for one celebration. One price, no subscriptions.',
     features: [
-      'Everything in Free, plus:',
+      'Everything in Seed, plus:',
       'Custom domain',
-      'All 15 block types',
-      'Full guest management',
+      'All 19 block types',
+      'Unlimited guests & photos',
+      'Full guest management + CSV import',
       'Interactive seating chart',
-      'AI concierge for guests',
-      'Time capsule',
-      'Guestbook with photos',
+      'Bulk messaging & email invitations',
+      'AI guest concierge (voice-trained)',
+      '9-language translations',
+      'Analytics & RSVP insights',
+      'Save the Date card designer',
+      'Wedding hashtag generator',
+      'Time capsule messages',
+      'Guest photo guestbook',
       'Priority support',
     ],
-    cta: 'Go Premium',
+    cta: 'Get Pair',
     accent: C.plum,
     highlighted: true,
+    badge: 'Most Popular',
+    Icon: Heart,
+  },
+  {
+    name: 'Perennial',
+    price: '$12',
+    period: '/month',
+    tagline: 'A lifetime of celebrations',
+    desc: 'Pair features for every occasion, every year — weddings, anniversaries, birthdays, and beyond.',
+    features: [
+      'Everything in Pair, plus:',
+      'Unlimited celebrations',
+      'Post-wedding anniversary mode',
+      'Community photo moderation',
+      'Coordinator collaboration access',
+      'Advanced visual effects & custom CSS',
+      'PDF export & print-ready',
+      'Early AI feature access',
+    ],
+    cta: 'Go Perennial',
+    accent: C.gold,
+    highlighted: false,
+    badge: 'Best for recurring events',
+    Icon: Leaf,
   },
 ];
 
 export function PricingPreview() {
   const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.15 });
+  const inView = useInView(ref, { once: true, amount: 0.08 });
 
   return (
     <section
@@ -61,95 +108,201 @@ export function PricingPreview() {
         borderTop: `1px solid ${C.divider}`,
       }}
     >
-      <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
+      <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="Pricing"
           eyebrowColor={C.gold}
           title={<>Start free. Upgrade when you&rsquo;re ready.</>}
-          subtitle="No subscriptions. One price per celebration."
+          subtitle="No surprise fees. No subscriptions unless you want them."
           inView={inView}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {TIERS.map((tier, i) => (
-            <motion.div
-              key={tier.name}
-              initial={{ opacity: 0, y: 24 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.12 + 0.3, duration: 0.5 }}
-              style={{ position: 'relative' }}
-            >
-              <Card
-                variant={tier.highlighted ? 'elevated' : 'outlined'}
-                padding="lg"
-                className={tier.highlighted ? 'border-2 border-[var(--eg-accent)]' : ''}
+        {/* Tier cards */}
+        <div
+          className="grid grid-cols-1 md:grid-cols-3 gap-5"
+          style={{ alignItems: 'start' }}
+        >
+          {TIERS.map((tier, i) => {
+            const Icon = tier.Icon;
+            const isHighlighted = tier.highlighted;
+            return (
+              <motion.div
+                key={tier.name}
+                initial={{ opacity: 0, y: 28 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: i * 0.1 + 0.25, duration: 0.55 }}
               >
-                {/* Spacer / Recommended badge to align card tops */}
-                {tier.highlighted ? (
-                  <div className="text-center mb-2">
-                    <Badge variant="success">Recommended</Badge>
-                  </div>
-                ) : (
-                  <div style={{ height: '28px' }} />
-                )}
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className="font-bold tracking-[0.14em] uppercase"
-                    style={{ fontSize: text.xs, color: tier.accent }}
-                  >
-                    {tier.name}
-                  </div>
-                  {tier.highlighted && (
-                    <Badge variant="gold">Best Value</Badge>
-                  )}
-                </div>
-
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span
-                    className="font-heading font-bold leading-none"
-                    style={{ fontSize: '3rem', color: C.ink }}
-                  >
-                    {tier.price}
-                  </span>
-                  <span style={{ fontSize: text.sm, color: C.muted }}>
-                    {tier.period}
-                  </span>
-                </div>
-
-                <p className="mb-5" style={{ fontSize: text.base, color: C.muted, lineHeight: 1.6 }}>
-                  {tier.desc}
-                </p>
-
-                <div className="flex flex-col gap-3.5 mb-7">
-                  {tier.features.map(f => (
-                    <div key={f} className="flex items-start gap-3">
-                      {/* Olive dot bullet */}
-                      <div
-                        className="flex-shrink-0 mt-1.5 rounded-full"
-                        style={{
-                          width: 6,
-                          height: 6,
-                          background: C.olive,
-                        }}
-                      />
-                      <span style={{ fontSize: text.sm, color: C.dark }}>
-                        {f}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  variant={tier.highlighted ? 'accent' : 'secondary'}
-                  size="lg"
-                  className="w-full uppercase tracking-[0.04em]"
+                <div
+                  style={{
+                    borderRadius: '14px',
+                    background: '#FFFFFF',
+                    border: isHighlighted
+                      ? `2px solid ${tier.accent}`
+                      : card.border,
+                    boxShadow: isHighlighted
+                      ? `0 8px 32px ${tier.accent}26, 0 2px 8px ${tier.accent}14`
+                      : card.shadow,
+                    padding: '1.75rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
                 >
-                  {tier.cta} <ArrowRight size={14} />
-                </Button>
-              </Card>
-            </motion.div>
-          ))}
+                  {/* Badge row */}
+                  <div style={{ height: '26px', marginBottom: '1.1rem', display: 'flex', alignItems: 'center' }}>
+                    {tier.badge && (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center',
+                        padding: '2px 10px',
+                        borderRadius: '100px',
+                        fontSize: '0.66rem', fontWeight: 700,
+                        letterSpacing: '0.06em', textTransform: 'uppercase',
+                        background: `${tier.accent}16`,
+                        color: tier.accent,
+                        border: `1px solid ${tier.accent}28`,
+                      }}>
+                        {tier.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Icon + tier name */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+                    <div style={{
+                      width: '34px', height: '34px', borderRadius: '9px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: `${tier.accent}18`,
+                      flexShrink: 0,
+                    }}>
+                      <Icon size={15} color={tier.accent} />
+                    </div>
+                    <span style={{
+                      fontSize: '0.68rem', fontWeight: 800,
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                      color: tier.accent,
+                    }}>
+                      {tier.name}
+                    </span>
+                  </div>
+
+                  {/* Price */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '0.35rem' }}>
+                    <span style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '2.8rem', fontWeight: 700, lineHeight: 1,
+                      color: C.ink,
+                      letterSpacing: '-0.02em',
+                    }}>
+                      {tier.price}
+                    </span>
+                    <span style={{ fontSize: text.sm, color: C.muted, paddingBottom: '2px' }}>
+                      {tier.period}
+                    </span>
+                  </div>
+
+                  {/* Tagline */}
+                  <p style={{
+                    fontSize: '0.68rem', fontWeight: 700,
+                    letterSpacing: '0.06em', textTransform: 'uppercase',
+                    color: tier.accent, marginBottom: '0.6rem',
+                  }}>
+                    {tier.tagline}
+                  </p>
+
+                  {/* Description */}
+                  <p style={{
+                    fontSize: text.sm, color: C.muted,
+                    lineHeight: 1.65, marginBottom: '1.5rem',
+                  }}>
+                    {tier.desc}
+                  </p>
+
+                  {/* CTA */}
+                  <button
+                    style={{
+                      width: '100%',
+                      padding: '11px 16px',
+                      borderRadius: '8px',
+                      border: isHighlighted ? 'none' : `1px solid ${tier.accent}38`,
+                      background: isHighlighted ? tier.accent : `${tier.accent}12`,
+                      color: isHighlighted ? '#fff' : tier.accent,
+                      fontSize: text.sm,
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '7px',
+                      marginBottom: '1.75rem',
+                      transition: 'filter 0.15s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(0.92)')}
+                    onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+                  >
+                    {tier.cta}
+                    <ArrowRight size={14} strokeWidth={2.2} />
+                  </button>
+
+                  {/* Divider */}
+                  <div style={{ height: '1px', background: C.divider, marginBottom: '1.5rem' }} />
+
+                  {/* Feature list */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {tier.features.map(f => {
+                      const isContinuity = f.endsWith(':');
+                      return (
+                        <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
+                          {isContinuity ? (
+                            <span style={{
+                              fontSize: '0.66rem', fontWeight: 700,
+                              letterSpacing: '0.07em', textTransform: 'uppercase',
+                              color: C.muted,
+                            }}>
+                              {f}
+                            </span>
+                          ) : (
+                            <>
+                              <div style={{
+                                width: '16px', height: '16px',
+                                borderRadius: '50%',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                flexShrink: 0, marginTop: '1px',
+                                background: `${tier.accent}16`,
+                              }}>
+                                <Check size={9} color={tier.accent} strokeWidth={3} />
+                              </div>
+                              <span style={{ fontSize: text.sm, color: C.dark, lineHeight: 1.5 }}>
+                                {f}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
+
+        {/* Footer note */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.75, duration: 0.55 }}
+          style={{
+            textAlign: 'center',
+            fontSize: '0.75rem',
+            color: C.muted,
+            marginTop: '2rem',
+            letterSpacing: '0.01em',
+            lineHeight: 1.6,
+          }}
+        >
+          All plans include SSL, automatic mobile optimization, and instant publishing.&nbsp;
+          No credit card required to start free.
+        </motion.p>
       </div>
     </section>
   );

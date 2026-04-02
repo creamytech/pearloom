@@ -74,6 +74,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const preDragSplitView = useRef(false);
   const hintShownRef = useRef(false);
 
+  // ── Canvas resize when panel opens/closes ────────────────────
+  // Framer Motion spring (stiffness:320, damping:34) settles in ~380ms.
+  // Dispatch a synthetic resize event into the iframe so the preview
+  // re-lays out after the animation completes.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        iframeRef.current?.contentWindow?.dispatchEvent(new Event('resize'));
+      } catch {}
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [panelOpen]);
+
   // ── History ──────────────────────────────────────────────────
   const historyRef = useRef<StoryManifest[]>([manifest]);
   const historyIndexRef = useRef(0);

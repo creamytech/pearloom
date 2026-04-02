@@ -11,8 +11,8 @@ import { PreviewPane } from './PreviewPane';
 import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
 
 // ── Skeleton Loading Screen ──────────────────────────────────
-const skeletonBg = 'rgba(214,198,168,0.08)';
-const skeletonShimmer = 'linear-gradient(90deg, rgba(214,198,168,0.08) 0%, rgba(214,198,168,0.15) 50%, rgba(214,198,168,0.08) 100%)';
+const skeletonBg = 'var(--pl-cream-deep)';
+const skeletonShimmer = 'linear-gradient(90deg, var(--pl-cream-deep) 0%, var(--pl-cream) 50%, var(--pl-cream-deep) 100%)';
 const skeletonBarStyle = (width: string, height: string, delay: number): React.CSSProperties => ({
   width, height, borderRadius: '6px',
   background: skeletonShimmer,
@@ -24,7 +24,7 @@ function SkeletonLoading({ slow }: { slow: boolean }) {
   return (
     <div style={{
       position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-      background: '#1a1916', pointerEvents: 'none', zIndex: 1, padding: '2rem',
+      background: 'var(--pl-cream)', pointerEvents: 'none', zIndex: 1, padding: '2rem',
       gap: '1.25rem',
     }}>
       {/* Header bar skeleton */}
@@ -47,7 +47,7 @@ function SkeletonLoading({ slow }: { slow: boolean }) {
       {/* Status text */}
       <div style={{
         marginTop: 'auto', textAlign: 'center',
-        color: 'rgba(214,198,168,0.35)', fontSize: '0.8rem',
+        color: 'var(--pl-muted)', fontSize: '0.8rem',
       }}>
         {slow ? 'Taking longer than usual\u2026 still loading' : 'Loading preview\u2026'}
       </div>
@@ -67,15 +67,15 @@ function DeviceBezel() {
   return (
     <div style={{
       height: '12px', flexShrink: 0,
-      background: 'linear-gradient(180deg, #2a2622, #242018)',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
+      background: 'linear-gradient(180deg, var(--pl-cream-deep), var(--pl-cream))',
+      borderBottom: '1px solid var(--pl-divider)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       position: 'relative',
     }}>
       {/* Center notch pill */}
       <div style={{
         width: '36px', height: '4px', borderRadius: '100px',
-        background: 'rgba(255,255,255,0.08)',
+        background: 'var(--pl-divider)',
       }} />
       {/* Reflective sheen */}
       <div style={{
@@ -174,8 +174,8 @@ export function EditorCanvas() {
   return (
     <div style={{
       flex: 1,
-      background: isMobile ? 'transparent' : '#161310',
-      backgroundImage: isMobile ? undefined : 'radial-gradient(circle, rgba(214,198,168,0.042) 1px, transparent 0)',
+      background: isMobile ? 'transparent' : 'var(--pl-cream)',
+      backgroundImage: isMobile ? undefined : 'radial-gradient(circle, rgba(163,177,138,0.12) 1px, transparent 0)',
       backgroundSize: '24px 24px',
       display: 'flex', flexDirection: 'column',
       overflow: isMobile ? 'hidden' : 'auto',
@@ -186,7 +186,7 @@ export function EditorCanvas() {
       {!isMobile && (
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse 55% 60% at 50% 44%, rgba(163,177,138,0.032) 0%, rgba(214,198,168,0.016) 50%, transparent 75%)',
+          background: 'radial-gradient(ellipse 55% 60% at 50% 44%, rgba(163,177,138,0.06) 0%, rgba(163,177,138,0.02) 50%, transparent 75%)',
           pointerEvents: 'none', zIndex: 0,
         }} />
       )}

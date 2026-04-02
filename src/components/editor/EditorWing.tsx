@@ -13,8 +13,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
-import { ChevronLeft, PanelLeftClose } from 'lucide-react';
+import { PanelLeftClose } from 'lucide-react';
 import type { EditorTab } from '@/lib/editor-state';
+import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
 const PANEL_W = 320;
 
@@ -52,6 +53,8 @@ export function EditorWing({
   contentRef,
 }: EditorWingProps) {
   const title = TAB_LABEL[activeTab] ?? String(activeTab);
+  const tier  = TAB_TIER[activeTab];
+  const meta  = tier ? TIER_META[tier] : null;
 
   return (
     <motion.div
@@ -71,11 +74,9 @@ export function EditorWing({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: 'rgba(16, 12, 9, 0.98)',
-        backdropFilter: 'blur(32px)',
-        WebkitBackdropFilter: 'blur(32px)',
-        borderRight: '1px solid rgba(255,255,255,0.065)',
-        boxShadow: open ? '4px 0 32px rgba(0,0,0,0.45)' : 'none',
+        background: 'var(--pl-cream-card)',
+        borderRight: '1px solid var(--pl-divider)',
+        boxShadow: open ? 'var(--pl-shadow-md)' : 'none',
         transition: 'box-shadow 0.3s',
       } as React.CSSProperties}>
 
@@ -85,26 +86,44 @@ export function EditorWing({
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 14px 0 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.055)',
+          borderBottom: '1px solid var(--pl-divider)',
+          background: 'var(--pl-cream)',
         }}>
-          <span style={{
-            fontSize: '0.7rem', fontWeight: 800,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: 'rgba(214,198,168,0.55)',
-          }}>
-            {title}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <span style={{
+              fontSize: '0.7rem', fontWeight: 800,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: 'var(--pl-muted)',
+            }}>
+              {title}
+            </span>
+            {meta && (
+              <span style={{
+                fontSize: '0.58rem', fontWeight: 700,
+                letterSpacing: '0.07em', textTransform: 'uppercase',
+                color: meta.color,
+                background: meta.bg,
+                border: `1px solid ${meta.color}30`,
+                padding: '1px 6px',
+                borderRadius: '100px',
+                lineHeight: '16px',
+                flexShrink: 0,
+              }}>
+                {meta.label}
+              </span>
+            )}
+          </div>
           <motion.button
             onClick={onToggle}
             title="Collapse panel"
-            whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' }}
+            whileHover={{ backgroundColor: 'rgba(163,177,138,0.1)', color: 'var(--pl-ink)' }}
             whileTap={{ scale: 0.88 }}
             style={{
               width: '26px', height: '26px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: '6px', border: 'none',
               background: 'transparent',
-              color: 'rgba(255,255,255,0.28)',
+              color: 'var(--pl-muted)',
               cursor: 'pointer',
             }}
           >
