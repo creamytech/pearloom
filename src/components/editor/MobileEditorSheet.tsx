@@ -9,12 +9,11 @@ import {
   motion, AnimatePresence, useMotionValue, animate,
   useDragControls, Reorder,
 } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight, Mail, Users, Send, X, Eye } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight, Mail, Users, Send, X, Eye, MoreHorizontal } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon, GripIcon,
 } from '@/components/icons/EditorIcons';
-import { PearlIcon } from '@/components/icons/PearloomIcons';
 import { useEditor } from '@/lib/editor-state';
 import type { Chapter } from '@/types';
 
@@ -32,9 +31,7 @@ const GuestSearchPanelLazy  = dynamic(() => import('./GuestSearchPanel').then(m 
 const BulkInvitePanelLazy   = dynamic(() => import('./BulkInvitePanel').then(m => ({ default: m.BulkInvitePanel })), { ssr: false });
 
 // Constants
-const RADIUS    = 126;
-const FAB_ANGLES = [90, 68, 46, 24, 2] as const;
-const FAB_LEFT  = 26;
+const BOTTOM_NAV_H = 56;
 
 type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'guests' | 'invite';
 type StorySubview = 'list' | 'editor';
@@ -53,13 +50,22 @@ const TAB_SHORT: Record<EditorTab, string> = {
   messaging: 'Messages', guests: 'Guests', invite: 'Invites',
 };
 
-const ARC_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
-  { tab: 'story',   icon: StoryIcon,    label: 'Story' },
-  { tab: 'events',  icon: EventsIcon,   label: 'Events' },
-  { tab: 'design',  icon: DesignIcon,   label: 'Design' },
-  { tab: 'details', icon: DetailsIcon,  label: 'Details' },
-  { tab: 'canvas',  icon: SectionsIcon, label: 'Sections' },
-];
+const PRIMARY_TABS = [
+  { tab: 'story'   as EditorTab, icon: StoryIcon,    label: 'Story'    },
+  { tab: 'events'  as EditorTab, icon: EventsIcon,   label: 'Events'   },
+  { tab: 'canvas'  as EditorTab, icon: SectionsIcon, label: 'Sections' },
+  { tab: 'design'  as EditorTab, icon: DesignIcon,   label: 'Design'   },
+  { tab: 'details' as EditorTab, icon: DetailsIcon,  label: 'Details'  },
+] as const;
+
+const SECONDARY_TABS = [
+  { tab: 'blocks'    as EditorTab, icon: AIBlocksIcon, label: 'AI Blocks'      },
+  { tab: 'voice'     as EditorTab, icon: VoiceIcon,    label: 'Voice Training' },
+  { tab: 'pages'     as EditorTab, icon: DetailsIcon,  label: 'Pages'          },
+  { tab: 'messaging' as EditorTab, icon: Mail,         label: 'Message Guests' },
+  { tab: 'guests'    as EditorTab, icon: Users,        label: 'Guest List'     },
+  { tab: 'invite'    as EditorTab, icon: Send,         label: 'Send Invites'   },
+] as const;
 
 const SHEET_TABS: EditorTab[] = ['story', 'events', 'canvas', 'design', 'details', 'pages', 'blocks', 'voice', 'messaging', 'guests', 'invite'];
 
@@ -246,8 +252,8 @@ export function MobileEditorSheet() {
     return () => { vv.removeEventListener('resize', handler); vv.removeEventListener('scroll', handler); };
   }, []);
 
-  // FAB + arc
-  const [arcOpen, setArcOpen] = useState(false);
+  // More drawer
+  const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
 
   // Snap helpers
   const snapTo = useCallback((target: number) => {
@@ -469,106 +475,6 @@ export function MobileEditorSheet() {
 
   return (
     <>
-      {/* Arc backdrop */}
-      <AnimatePresence>
-        {arcOpen && (
-          <motion.div
-            key="arc-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={() => setArcOpen(false)}
-            style={{
-              position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.28)',
-              zIndex: 1090,
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Radial FAB + arc items */}
-      <div style={{
-        position: 'fixed',
-        bottom: 72,
-        left: FAB_LEFT,
-        zIndex: 1100,
-        pointerEvents: mobileSheetOpen ? 'none' : 'all',
-      }}>
-        <AnimatePresence>
-          {arcOpen && ARC_TABS.map((item, i) => {
-            const angleRad = (FAB_ANGLES[i] * Math.PI) / 180;
-            const x = Math.cos(angleRad) * RADIUS;
-            const y = -Math.sin(angleRad) * RADIUS;
-            const Icon = item.icon;
-            const isAct = activeTab === item.tab;
-            return (
-              <motion.button
-                key={item.tab}
-                initial={{ opacity: 0, x: 0, y: 0, scale: 0.5 }}
-                animate={{ opacity: 1, x, y, scale: 1 }}
-                exit={{ opacity: 0, x: 0, y: 0, scale: 0.5 }}
-                transition={{ type: 'spring', stiffness: 440, damping: 28, delay: i * 0.035 }}
-                onClick={() => {
-                  dispatch({ type: 'SET_ACTIVE_TAB', tab: item.tab });
-                  dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-                  setArcOpen(false);
-                }}
-                aria-label={item.label}
-                style={{
-                  position: 'absolute', bottom: 0, left: 0,
-                  width: 70, height: 50, borderRadius: 12,
-                  border: isAct ? '1.5px solid rgba(163,177,138,0.55)' : '1px solid rgba(255,255,255,0.12)',
-                  background: isAct ? 'rgba(163,177,138,0.22)' : 'rgba(18,14,11,0.92)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  color: isAct ? '#A3B18A' : 'rgba(214,198,168,0.75)',
-                  cursor: 'pointer',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.55)',
-                  zIndex: 1100,
-                  transform: `translate(${x}px, ${y}px)`,
-                }}
-              >
-                <Icon size={15} color="currentColor" />
-                <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
-                  {item.label}
-                </span>
-              </motion.button>
-            );
-          })}
-        </AnimatePresence>
-
-        {/* Main FAB */}
-        <motion.button
-          onTap={() => {
-            if (mobileSheetOpen) {
-              dispatch({ type: 'SET_MOBILE_SHEET', open: false });
-            } else {
-              setArcOpen(prev => !prev);
-            }
-          }}
-          whileTap={{ scale: 0.88 }}
-          animate={arcOpen ? { rotate: 45 } : { rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-          aria-label={arcOpen ? 'Close menu' : 'Open editor menu'}
-          style={{
-            position: 'relative', zIndex: 1101,
-            width: 52, height: 52, borderRadius: 16,
-            border: '1px solid rgba(255,255,255,0.12)',
-            background: 'rgba(18,14,11,0.95)',
-            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            color: 'rgba(214,198,168,0.88)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.06)',
-            pointerEvents: 'all',
-          }}
-        >
-          <PearlIcon size={22} color="rgba(214,198,168,0.88)" />
-        </motion.button>
-      </div>
-
       {/* Sheet */}
       <motion.div
         drag="y"
@@ -579,7 +485,7 @@ export function MobileEditorSheet() {
         onDragEnd={handleDragEnd}
         style={{
           y: sheetY,
-          position: 'fixed', bottom: 0, left: 0, right: 0,
+          position: 'fixed', bottom: BOTTOM_NAV_H, left: 0, right: 0,
           height: sheetH, zIndex: 1200,
           background: 'rgba(18,14,11,0.97)',
           backdropFilter: 'blur(40px) saturate(160%)',
@@ -661,56 +567,12 @@ export function MobileEditorSheet() {
           </motion.button>
         </div>
 
-        {/* Tab bar */}
-        <div style={{
-          flexShrink: 0, display: 'flex', alignItems: 'stretch',
-          overflowX: 'auto', borderBottom: '1px solid rgba(255,255,255,0.05)',
-          WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
-        } as React.CSSProperties}>
-          {SHEET_TABS.map(tab => {
-            const Icon = TAB_ICONS[tab];
-            const isAct = activeTab === tab;
-            return (
-              <button
-                key={tab}
-                onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab })}
-                aria-label={TAB_SHORT[tab]}
-                style={{
-                  flex: '1 0 auto', minWidth: 44,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: 3, padding: '10px 4px', border: 'none', cursor: 'pointer',
-                  background: 'transparent',
-                  color: isAct ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
-                  position: 'relative', transition: 'color 0.15s',
-                }}
-              >
-                {isAct && (
-                  <motion.div
-                    layoutId="mobile-tab-accent"
-                    style={{
-                      position: 'absolute', inset: '4px 6px',
-                      background: 'rgba(214,198,168,0.1)', borderRadius: 10,
-                    }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <Icon size={18} color="currentColor" />
-                {isAct && (
-                  <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1, marginTop: 1 }}>
-                    {TAB_SHORT[tab]}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Scrollable content */}
         <div
           style={{
             flex: 1, overflowY: 'auto', overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',
-            paddingBottom: 96 + keyboardPad,
+            paddingBottom: 24 + keyboardPad,
           } as React.CSSProperties}
         >
           <AnimatePresence mode="wait">
@@ -756,6 +618,177 @@ export function MobileEditorSheet() {
           </div>
         )}
       </motion.div>
+
+      {/* ── Permanent Bottom Nav ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        zIndex: 1050,
+        height: `calc(${BOTTOM_NAV_H}px + env(safe-area-inset-bottom, 0px))`,
+        background: 'rgba(18,14,11,0.97)',
+        backdropFilter: 'blur(40px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+        borderTop: '1px solid rgba(255,255,255,0.09)',
+        display: 'flex',
+        alignItems: 'stretch',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      } as React.CSSProperties}>
+        {PRIMARY_TABS.map(({ tab, icon: Icon, label }) => {
+          const isAct = activeTab === tab;
+          const showActive = isAct && mobileSheetOpen;
+          return (
+            <motion.button
+              key={tab}
+              onClick={() => {
+                if (isAct && mobileSheetOpen) {
+                  dispatch({ type: 'SET_MOBILE_SHEET', open: false });
+                } else {
+                  dispatch({ type: 'SET_ACTIVE_TAB', tab });
+                  dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+                }
+              }}
+              whileTap={{ scale: 0.85 }}
+              style={{
+                flex: 1, border: 'none', background: 'transparent', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 3,
+                color: showActive ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
+                position: 'relative', paddingTop: 8,
+              }}
+            >
+              <Icon size={19} color="currentColor" />
+              <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
+                {label}
+              </span>
+              {showActive && (
+                <motion.div
+                  layoutId="bottom-nav-dot"
+                  style={{
+                    position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
+                    width: 4, height: 4, borderRadius: '50%',
+                    background: 'rgba(163,177,138,0.9)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
+
+        {/* More button */}
+        {(() => {
+          const isSecondaryActive = SECONDARY_TABS.some(t => t.tab === activeTab) && mobileSheetOpen;
+          return (
+            <motion.button
+              onClick={() => setMoreDrawerOpen(true)}
+              whileTap={{ scale: 0.85 }}
+              style={{
+                flex: 1, border: 'none', background: 'transparent', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 3, paddingTop: 8,
+                color: isSecondaryActive ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
+                position: 'relative',
+              }}
+            >
+              <MoreHorizontal size={19} color="currentColor" />
+              <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
+                More
+              </span>
+              {isSecondaryActive && (
+                <motion.div
+                  layoutId="bottom-nav-dot"
+                  style={{
+                    position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
+                    width: 4, height: 4, borderRadius: '50%',
+                    background: 'rgba(163,177,138,0.9)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })()}
+      </div>
+
+      {/* ── More Drawer ── */}
+      <AnimatePresence>
+        {moreDrawerOpen && (
+          <>
+            <motion.div
+              key="more-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => setMoreDrawerOpen(false)}
+              style={{
+                position: 'fixed', inset: 0,
+                background: 'rgba(0,0,0,0.45)',
+                zIndex: 1290,
+              }}
+            />
+            <motion.div
+              key="more-drawer"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 380, damping: 38 }}
+              style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                zIndex: 1300,
+                background: 'rgba(22,17,13,0.99)',
+                backdropFilter: 'blur(40px)',
+                WebkitBackdropFilter: 'blur(40px)',
+                borderRadius: '20px 20px 0 0',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+              } as React.CSSProperties}
+            >
+              <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)' }}>
+                  More Tools
+                </span>
+                <motion.button
+                  onClick={() => setMoreDrawerOpen(false)}
+                  whileTap={{ scale: 0.88 }}
+                  style={{
+                    background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
+                    width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'rgba(214,198,168,0.5)',
+                  }}
+                >
+                  <X size={13} />
+                </motion.button>
+              </div>
+              {SECONDARY_TABS.map(({ tab, icon: Icon, label }) => {
+                const isAct = activeTab === tab && mobileSheetOpen;
+                return (
+                  <motion.button
+                    key={tab}
+                    whileTap={{ backgroundColor: 'rgba(163,177,138,0.1)' }}
+                    onClick={() => {
+                      dispatch({ type: 'SET_ACTIVE_TAB', tab });
+                      dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+                      setMoreDrawerOpen(false);
+                    }}
+                    style={{
+                      width: '100%', border: 'none',
+                      background: isAct ? 'rgba(163,177,138,0.08)' : 'transparent',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '13px 20px',
+                      color: isAct ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.65)',
+                      borderLeft: `2px solid ${isAct ? 'rgba(163,177,138,0.6)' : 'transparent'}`,
+                    }}
+                  >
+                    <Icon size={17} color="currentColor" />
+                    <span style={{ flex: 1, textAlign: 'left', fontSize: '0.88rem', fontWeight: isAct ? 700 : 500 }}>{label}</span>
+                    <ChevronRight size={14} color="rgba(214,198,168,0.25)" />
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
