@@ -89,21 +89,17 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-      {/* ── Theme Switcher ── */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
+      {/* ── Theme — full aesthetic preset + AI regenerate ── */}
+      <SidebarSection title="Theme" defaultOpen={true}>
         <ThemeSwitcher
           currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
           manifest={manifest}
           onApply={handleThemeApply}
         />
-      </div>
-
-      {/* Regenerate + tone badge */}
-      <div id="design-customization" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {vibeSkin?.tone && (
             <span style={{
-              display: 'inline-block', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em',
+              fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em',
               textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)',
               background: 'rgba(163,177,138,0.12)', padding: '4px 12px', borderRadius: '100px',
               border: '1px solid rgba(163,177,138,0.2)',
@@ -125,16 +121,18 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
             }}
           >
             <DesignIcon size={13} />
-            {isRegenerating ? 'Generating…' : 'Regenerate design'}
+            {isRegenerating ? 'Generating…' : 'Regenerate with AI'}
           </button>
         </div>
         {regenError && (
           <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '6px' }}>{regenError}</p>
         )}
-      </div>
+      </SidebarSection>
 
-      {/* AI palette + pattern picker */}
-      <ColorPalettePanel manifest={manifest} onChange={onChange} />
+      {/* ── Colors — tweak individual colors or generate AI background art ── */}
+      <SidebarSection title="Colors" defaultOpen={true}>
+        <ColorPalettePanel manifest={manifest} onChange={onChange} />
+      </SidebarSection>
 
       {/* ── Visual Effects (shaders, mesh, grain, etc.) — open by default ── */}
       <SidebarSection title="Visual Effects" defaultOpen>
