@@ -10,7 +10,7 @@ import {
 } from '@/components/icons/EditorIcons';
 
 // ── Types ──────────────────────────────────────────────────────
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate';
 
 interface EditorSidebarProps {
   activeTab: EditorTab;
@@ -45,6 +45,8 @@ const TAB_LABELS: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story Chapters', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
   blocks: 'AI Blocks', voice: 'Voice', messaging: 'Message Guests',
+  analytics: 'Analytics', guests: 'Guest List', seating: 'Seating Chart',
+  translate: 'Translations', invite: 'Send Invitations', savethedate: 'Save the Date',
 };
 
 const MIN_WIDTH = 260;

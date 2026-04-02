@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Tablet, Smartphone, Settings2, Activity } from 'lucide-react';
 import {
@@ -16,6 +17,7 @@ import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type DeviceMode, DEVICE_DIMS } from '@/lib/editor-state';
 import { EditorBreadcrumb } from './EditorBreadcrumb';
 import { ZoomControls } from './ZoomControls';
+import { CollabPresence } from './CollabPresence';
 import type { Chapter } from '@/types';
 
 const DEVICE_ICONS: Record<DeviceMode, React.ElementType> = {
@@ -139,6 +141,7 @@ interface EditorToolbarProps {
 
 export function EditorToolbar({ onExit }: EditorToolbarProps) {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
+  const { data: session } = useSession();
   const {
     isMobile, device, canUndo, canRedo, saveState, splitView,
     activeId, cmdPaletteOpen, previewZoom,
@@ -396,6 +399,18 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             >
               <PreviewIcon size={13} /> Preview
             </motion.button>
+            {/* Collab presence avatars */}
+            {session?.user && state.subdomain && (
+              <CollabPresence
+                siteId={state.subdomain}
+                currentUser={{
+                  id: session.user.email || 'anon',
+                  name: session.user.name || session.user.email || 'Editor',
+                }}
+                cursor={state.activeTab}
+              />
+            )}
+
             {/* Publish — gradient with plum shadow */}
             <motion.button
               onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}

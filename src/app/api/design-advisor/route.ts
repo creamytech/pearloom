@@ -93,7 +93,8 @@ Give 1–3 design suggestions. Output only a JSON array.
       const parsed = JSON.parse(cleaned);
       if (Array.isArray(parsed)) {
         suggestions = parsed.slice(0, 3).filter(
-          (s: unknown) => typeof s === 'object' && s !== null && 'title' in s && 'detail' in s
+          (s: unknown): s is AISuggestion =>
+            typeof s === 'object' && s !== null && 'title' in s && 'detail' in s && 'severity' in s
         );
       }
     } catch {

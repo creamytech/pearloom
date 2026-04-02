@@ -11,6 +11,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDragSort } from './useDragSort';
 import type { DragHandleProps } from './useDragSort';
+import { BlockPresetsPanel } from './BlockPresetsPanel';
+import { SidebarSection } from './EditorSidebar';
 import {
   Plus, Eye, EyeOff, Trash2,
   ChevronDown, ChevronRight, X,
@@ -836,11 +838,34 @@ function BlockConfigPanel({
     }
   };
 
+  const handleApplyPreset = (config: Record<string, unknown>, blockEffects?: PageBlock['blockEffects']) => {
+    if (typeof blocksKey === 'string') {
+      onChange({
+        ...manifest,
+        blocks: (manifest.blocks || []).map(b =>
+          b.id === block.id ? { ...b, config: { ...b.config, ...config }, ...(blockEffects !== undefined ? { blockEffects } : {}) } : b
+        ),
+      });
+    } else {
+      onChange({
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === (blocksKey as { customPageId: string }).customPageId
+            ? { ...p, blocks: (p.blocks || []).map(b => b.id === block.id ? { ...b, config: { ...b.config, ...config }, ...(blockEffects !== undefined ? { blockEffects } : {}) } : b) }
+            : p
+        ),
+      });
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {blockContent}
       <SectionStylePanel block={block} blocksKey={blocksKey} manifest={manifest} onChange={onChange} />
       <BlockEffectsEditor blockEffects={block.blockEffects ?? {}} onUpdate={updateBlockEffects} />
+      <SidebarSection title="Block Presets" defaultOpen={false}>
+        <BlockPresetsPanel block={block} onApply={handleApplyPreset} />
+      </SidebarSection>
     </div>
   );
 }

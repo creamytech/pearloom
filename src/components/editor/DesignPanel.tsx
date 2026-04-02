@@ -12,6 +12,7 @@ import { SidebarSection } from './EditorSidebar';
 import { DesignIcon } from '@/components/icons/EditorIcons';
 import { VisualEffectsPanel } from './VisualEffectsPanel';
 import { DesignAdvisor } from './DesignAdvisor';
+import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import type { StoryManifest, ThemeSchema } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
@@ -82,6 +83,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* ── Design Advisor ── */}
       <DesignAdvisor manifest={manifest} />
+      <AccessibilityAuditPanel manifest={manifest} />
 
       {/* ── Theme Switcher ── */}
       <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
