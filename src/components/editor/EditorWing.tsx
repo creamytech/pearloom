@@ -1,171 +1,118 @@
 'use client';
 
-// Two-sided overlay wing panel for the editor
-// Left wing: narrative (story, events, canvas, pages, messaging)
-// Right wing: aesthetic (design, details, blocks, voice)
-// When closed: only a 44px handle pill is visible at the screen edge
-// When open: a 360px glass panel slides in over the canvas
+// ─────────────────────────────────────────────────────────────
+// Pearloom / editor/EditorWing.tsx
+//
+// Push panel — an inline flex child (NOT position:fixed) that
+// shrinks to 0 when closed and springs to PANEL_W when open.
+// Canvas is always to the right; the panel pushes it, never
+// covers it.
+//
+// Tab switching is handled by EditorRail. This component just
+// shows/hides and renders its children.
+// ─────────────────────────────────────────────────────────────
 
-import { useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ChevronLeft, PanelLeftClose } from 'lucide-react';
+import type { EditorTab } from '@/lib/editor-state';
 
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate';
+const PANEL_W = 320;
 
-interface WingTab {
-  tab: EditorTab;
-  icon: React.ElementType;
-  label: string;
-}
+const TAB_LABEL: Partial<Record<EditorTab, string>> = {
+  story:       'Story',
+  canvas:      'Sections',
+  events:      'Events',
+  design:      'Design',
+  details:     'Details',
+  pages:       'Pages',
+  blocks:      'AI Blocks',
+  voice:       'Voice',
+  messaging:   'Messages',
+  analytics:   'Analytics',
+  guests:      'Guests',
+  seating:     'Seating',
+  translate:   'Translations',
+  invite:      'Invitations',
+  savethedate: 'Save the Date',
+};
 
 interface EditorWingProps {
-  side: 'left' | 'right';
   open: boolean;
   onToggle: () => void;
-  tabs: WingTab[];
   activeTab: EditorTab;
-  onTabChange: (tab: EditorTab) => void;
   children: React.ReactNode;
   contentRef?: React.RefObject<HTMLDivElement | null>;
-  toolbarHeight?: number;
 }
 
-const PANEL_W = 348;
-const HANDLE_W = 44;
-const TOTAL_W = PANEL_W + HANDLE_W;
-
 export function EditorWing({
-  side,
   open,
   onToggle,
-  tabs,
   activeTab,
-  onTabChange,
   children,
   contentRef,
-  toolbarHeight = 44,
 }: EditorWingProps) {
-  const isLeft = side === 'left';
-
-  // Which chevron to show based on side and open state
-  const ChevronIcon = isLeft
-    ? (open ? ChevronLeft : ChevronRight)
-    : (open ? ChevronRight : ChevronLeft);
-
-  // Active tab icon for the handle
-  const activeTabConfig = tabs.find(t => t.tab === activeTab);
-  const ActiveTabIcon = activeTabConfig?.icon ?? tabs[0]?.icon;
-
-  // Animation: closed means panel is hidden off screen
-  // Left: closed x = -PANEL_W (only handle visible), open x = 0
-  // Right: closed x = PANEL_W (only handle visible), open x = 0
-  const xClosed = isLeft ? -PANEL_W : PANEL_W;
+  const title = TAB_LABEL[activeTab] ?? String(activeTab);
 
   return (
     <motion.div
+      animate={{ width: open ? PANEL_W : 0 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 34 }}
       style={{
-        position: 'fixed',
-        top: toolbarHeight,
-        bottom: 0,
-        [isLeft ? 'left' : 'right']: 0,
-        width: TOTAL_W,
-        display: 'flex',
-        flexDirection: isLeft ? 'row' : 'row-reverse',
-        zIndex: 200,
-        pointerEvents: 'none',
+        flexShrink: 0,
+        overflow: 'hidden',
+        height: '100%',
+        position: 'relative',
+        zIndex: 50,
       }}
-      initial={false}
-      animate={{ x: open ? 0 : xClosed }}
-      transition={{ type: 'spring', stiffness: 300, damping: 32 }}
     >
-      {/* Panel (348px) */}
-      <div
-        style={{
-          width: PANEL_W,
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          background: 'rgba(16, 13, 10, 0.97)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
-          borderRight: isLeft ? '1px solid rgba(255,255,255,0.07)' : undefined,
-          borderLeft: !isLeft ? '1px solid rgba(255,255,255,0.07)' : undefined,
-          boxShadow: open
-            ? (isLeft ? '24px 0 60px rgba(0,0,0,0.65)' : '-24px 0 60px rgba(0,0,0,0.65)')
-            : 'none',
-          pointerEvents: open ? 'all' : 'none',
-          flexShrink: 0,
-        }}
-      >
-        {/* Tab strip (48px) */}
-        <div
-          style={{
-            height: 48,
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'stretch',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            position: 'relative',
-          }}
-        >
-          {tabs.map(({ tab, icon: Icon, label }) => {
-            const isActive = activeTab === tab;
-            return (
-              <button
-                key={tab}
-                onClick={() => onTabChange(tab)}
-                aria-label={label}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '2px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: isActive ? 'rgba(214,198,168,0.1)' : 'transparent',
-                  color: isActive ? 'rgba(214,198,168,0.9)' : 'rgba(214,198,168,0.32)',
-                  padding: '0 2px',
-                  position: 'relative',
-                  transition: 'color 0.15s ease, background 0.15s ease',
-                }}
-              >
-                <Icon size={16} color="currentColor" />
-                <span style={{
-                  fontSize: '0.56rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  maxWidth: '36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {label.slice(0, 6)}
-                </span>
-                {isActive && (
-                  <motion.div
-                    layoutId={`wing-tab-accent-${side}`}
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '10%',
-                      right: '10%',
-                      height: 2,
-                      background: 'rgba(214,198,168,0.6)',
-                      borderRadius: '2px 2px 0 0',
-                    }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </button>
-            );
-          })}
+      {/* Inner panel — always full PANEL_W, clipped by outer overflow:hidden */}
+      <div style={{
+        width: PANEL_W,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'rgba(16, 12, 9, 0.98)',
+        backdropFilter: 'blur(32px)',
+        WebkitBackdropFilter: 'blur(32px)',
+        borderRight: '1px solid rgba(255,255,255,0.065)',
+        boxShadow: open ? '4px 0 32px rgba(0,0,0,0.45)' : 'none',
+        transition: 'box-shadow 0.3s',
+      } as React.CSSProperties}>
+
+        {/* Panel header */}
+        <div style={{
+          height: '42px', flexShrink: 0,
+          display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 14px 0 16px',
+          borderBottom: '1px solid rgba(255,255,255,0.055)',
+        }}>
+          <span style={{
+            fontSize: '0.7rem', fontWeight: 800,
+            letterSpacing: '0.1em', textTransform: 'uppercase',
+            color: 'rgba(214,198,168,0.55)',
+          }}>
+            {title}
+          </span>
+          <motion.button
+            onClick={onToggle}
+            title="Collapse panel"
+            whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' }}
+            whileTap={{ scale: 0.88 }}
+            style={{
+              width: '26px', height: '26px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: '6px', border: 'none',
+              background: 'transparent',
+              color: 'rgba(255,255,255,0.28)',
+              cursor: 'pointer',
+            }}
+          >
+            <PanelLeftClose size={14} />
+          </motion.button>
         </div>
 
-        {/* Content area */}
+        {/* Scrollable content */}
         <div
           ref={contentRef}
           style={{
@@ -177,73 +124,6 @@ export function EditorWing({
           {children}
         </div>
       </div>
-
-      {/* Handle (44px) */}
-      <button
-        onClick={onToggle}
-        aria-label={open ? `Close ${side} panel` : `Open ${side} panel`}
-        style={{
-          width: HANDLE_W,
-          height: '100%',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          pointerEvents: 'all',
-          flexShrink: 0,
-        }}
-      >
-        {/* Pill bar with sheen */}
-        <div
-          style={{
-            width: 4,
-            height: 60,
-            background: 'rgba(214,198,168,0.12)',
-            borderRadius: 4,
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <motion.div
-            animate={{ y: ['0%', '100%', '0%'] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '40%',
-              background: 'linear-gradient(to bottom, transparent, rgba(214,198,168,0.4), transparent)',
-              borderRadius: 4,
-            }}
-          />
-        </div>
-
-        {/* Active tab icon */}
-        {ActiveTabIcon && (
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              background: 'rgba(214,198,168,0.07)',
-              border: '1px solid rgba(214,198,168,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ActiveTabIcon size={14} color="rgba(214,198,168,0.6)" />
-          </div>
-        )}
-
-        {/* Chevron */}
-        <ChevronIcon size={12} color="rgba(214,198,168,0.4)" />
-      </button>
     </motion.div>
   );
 }

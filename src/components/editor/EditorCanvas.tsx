@@ -174,17 +174,27 @@ export function EditorCanvas() {
   return (
     <div style={{
       flex: 1,
-      background: isMobile ? 'transparent' : '#1a1916',
-      backgroundImage: isMobile ? undefined : 'radial-gradient(circle, rgba(214,198,168,0.055) 1px, transparent 0)',
-      backgroundSize: '22px 22px',
+      background: isMobile ? 'transparent' : '#161310',
+      backgroundImage: isMobile ? undefined : 'radial-gradient(circle, rgba(214,198,168,0.042) 1px, transparent 0)',
+      backgroundSize: '24px 24px',
       display: 'flex', flexDirection: 'column',
       overflow: isMobile ? 'hidden' : 'auto',
       paddingBottom: isMobile ? mobileBottomBar : undefined,
+      position: 'relative',
     }}>
+      {/* Ambient center glow */}
+      {!isMobile && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 55% 60% at 50% 44%, rgba(163,177,138,0.032) 0%, rgba(214,198,168,0.016) 50%, transparent 75%)',
+          pointerEvents: 'none', zIndex: 0,
+        }} />
+      )}
       <div style={{
         width: '100%', height: '100%',
         position: 'relative',
         display: 'flex', flexDirection: 'column',
+        zIndex: 1,
       }}>
         {!iframeReady && <SkeletonLoading slow={previewSlow} />}
         <iframe

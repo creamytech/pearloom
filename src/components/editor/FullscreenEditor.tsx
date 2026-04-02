@@ -6,18 +6,14 @@
 // All UI extracted to focused components. State in editor-state.ts.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback, useEffect, useRef, useReducer, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef, useReducer } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
-import { Globe, Mail, Copy, Check, Phone, MessageCircle, BarChart2, Users, LayoutGrid, Globe2, Send, Calendar } from 'lucide-react';
-import {
-  PublishIcon, SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
-  DetailsIcon, AIBlocksIcon, VoiceIcon,
-} from '@/components/icons/EditorIcons';
+import { Globe, Mail, Copy, Check, Phone, MessageCircle } from 'lucide-react';
 import type { StoryManifest, Chapter } from '@/types';
 import type { CommandAction } from './CommandPalette';
 
@@ -25,6 +21,8 @@ import type { CommandAction } from './CommandPalette';
 import { EditorToolbar } from './EditorToolbar';
 import { EditorCanvas } from './EditorCanvas';
 import { EditorWing } from './EditorWing';
+import { EditorRail } from './EditorRail';
+import { EditorStatusBar } from './EditorStatusBar';
 import { StoryPanel } from './StoryPanel';
 import { MobileEditorSheet } from './MobileEditorSheet';
 import { WelcomeOverlay } from './WelcomeOverlay';
@@ -67,11 +65,9 @@ interface FullscreenEditorProps {
 export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubdomain, onChange, onPublish, onExit }: FullscreenEditorProps) {
   const [state, dispatch] = useReducer(editorReducer, undefined, () => createInitialEditorState(manifest, initialSubdomain));
   const [previewKey] = useState(() => `${PREVIEW_KEY_PREFIX}-${Date.now()}`);
-  const [leftWingOpen, setLeftWingOpen] = useState(true);
-  const [rightWingOpen, setRightWingOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const contentPanelRef = useRef<HTMLDivElement>(null);
-  const rightContentPanelRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tabScrollPositions = useRef<Record<string, number>>({});
@@ -97,40 +93,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // ── Wing tab groups ──────────────────────────────────────────
-  const LEFT_TABS: EditorTab[] = useMemo(() => ['story', 'events', 'canvas', 'pages', 'messaging', 'guests', 'invite', 'seating'], []);
-  const RIGHT_TABS: EditorTab[] = useMemo(() => ['design', 'details', 'blocks', 'voice', 'analytics', 'translate', 'savethedate'], []);
-
-  const LEFT_WING_TABS = useMemo(() => [
-    { tab: 'story' as const,     icon: StoryIcon,    label: 'Story' },
-    { tab: 'events' as const,    icon: EventsIcon,   label: 'Events' },
-    { tab: 'canvas' as const,    icon: SectionsIcon, label: 'Sections' },
-    { tab: 'pages' as const,     icon: SectionsIcon, label: 'Pages' },
-    { tab: 'messaging' as const, icon: Mail,         label: 'Msgs' },
-    { tab: 'guests' as const,    icon: Users,        label: 'Guests' },
-    { tab: 'invite' as const,    icon: Send,         label: 'Invite' },
-    { tab: 'seating' as const,   icon: LayoutGrid,   label: 'Seating' },
-  ], []);
-
-  const RIGHT_WING_TABS = useMemo(() => [
-    { tab: 'design' as const,      icon: DesignIcon,   label: 'Design' },
-    { tab: 'details' as const,     icon: DetailsIcon,  label: 'Details' },
-    { tab: 'blocks' as const,      icon: AIBlocksIcon, label: 'AI' },
-    { tab: 'voice' as const,       icon: VoiceIcon,    label: 'Voice' },
-    { tab: 'analytics' as const,   icon: BarChart2,    label: 'Stats' },
-    { tab: 'translate' as const,   icon: Globe2,       label: 'Lang' },
-    { tab: 'savethedate' as const, icon: Calendar,     label: 'STD' },
-  ], []);
-
-  // ── Auto-open correct wing on tab change ─────────────────────
+  // ── Auto-open panel on tab change ───────────────────────────
   useEffect(() => {
-    if (state.isMobile) return;
-    if (LEFT_TABS.includes(state.activeTab)) {
-      setLeftWingOpen(true);
-    } else if (RIGHT_TABS.includes(state.activeTab)) {
-      setRightWingOpen(true);
-    }
-  }, [state.activeTab, state.isMobile, LEFT_TABS, RIGHT_TABS]);
+    if (!state.isMobile) setPanelOpen(true);
+  }, [state.activeTab, state.isMobile]);
 
   // ── Sync chapters when manifest.chapters changes from parent ─
   useEffect(() => {
@@ -433,7 +399,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
       if (mod && e.key === 'z' && e.shiftKey) { e.preventDefault(); redo(); return; }
       if (mod && e.key === 'y') { e.preventDefault(); redo(); return; }
-      if (mod && e.key === '\\') { e.preventDefault(); setLeftWingOpen(prev => !prev); return; }
+      if (mod && e.key === '\\') { e.preventDefault(); setPanelOpen((prev: boolean) => !prev); return; }
       // Cmd+P — preview in new tab
       if (mod && e.key === 'p') { e.preventDefault(); storePreviewForOpen(); return; }
       // Cmd+S — mark as saved
@@ -581,10 +547,121 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Top Bar */}
       <EditorToolbar onExit={onExit} />
 
-      {/* Body */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
-        {/* Canvas fills everything */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Body: Rail + Panel + Canvas */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+        {/* Navigation Rail (desktop only) */}
+        {!state.isMobile && <EditorRail />}
+
+        {/* Push Panel (desktop only) */}
+        {!state.isMobile && (
+          <EditorWing
+            open={panelOpen}
+            onToggle={() => setPanelOpen(v => !v)}
+            activeTab={state.activeTab}
+            contentRef={contentPanelRef}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={state.activeTab}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -12 }}
+                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {state.activeTab === 'story' && <StoryPanel />}
+
+                {state.activeTab === 'canvas' && (
+                  <CanvasEditor manifest={manifest} onChange={(m) => { onChange(m); }} pushToPreview={pushToPreview} />
+                )}
+
+                {state.activeTab === 'events' && (
+                  <EventsPanel manifest={manifest} onChange={handleDesignChange} />
+                )}
+
+                {state.activeTab === 'pages' && (
+                  <PagesPanel
+                    manifest={manifest}
+                    subdomain={state.subdomain}
+                    onChange={handleDesignChange}
+                    previewPage={state.previewPage}
+                    onPreviewPage={(slug) => dispatch({ type: 'SET_PREVIEW_PAGE', page: slug })}
+                  />
+                )}
+
+                {state.activeTab === 'design' && (
+                  <DesignPanel manifest={manifest} onChange={handleDesignChange} />
+                )}
+
+                {state.activeTab === 'details' && (
+                  <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={state.subdomain} />
+                )}
+
+                {state.activeTab === 'blocks' && (
+                  <AIBlocksPanel manifest={manifest} coupleNames={coupleNames} onChange={(m) => { onChange(m); pushToPreview(m); }} />
+                )}
+
+                {state.activeTab === 'voice' && (
+                  <div style={{ padding: '4px 0' }}>
+                    <div style={{ marginBottom: '12px', padding: '0 16px' }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>AI Voice Training</span>
+                      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>Teach the chatbot to speak like you.</p>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px', margin: '0 16px' }}>
+                      <VoiceTrainerPanel
+                        voiceSamples={manifest.voiceSamples || []}
+                        onChange={(samples) => { const updated = { ...manifest, voiceSamples: samples }; onChange(updated); pushToPreview(updated); }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {state.activeTab === 'messaging' && (
+                  <MessagingPanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
+                )}
+
+                {state.activeTab === 'guests' && (
+                  <div style={{ padding: '8px 0' }}>
+                    <GuestSearchPanel siteId={state.subdomain} />
+                  </div>
+                )}
+
+                {state.activeTab === 'invite' && (
+                  <div style={{ padding: '8px 0' }}>
+                    <BulkInvitePanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
+                  </div>
+                )}
+
+                {state.activeTab === 'seating' && (
+                  <div style={{ padding: '8px 0' }}>
+                    <SeatingEditorPanel siteId={state.subdomain} />
+                  </div>
+                )}
+
+                {state.activeTab === 'analytics' && (
+                  <div style={{ padding: '4px 0' }}>
+                    <AnalyticsDashboardPanel siteId={state.subdomain} />
+                  </div>
+                )}
+
+                {state.activeTab === 'translate' && (
+                  <div style={{ padding: '4px 0' }}>
+                    <TranslationPanel manifest={manifest} onChange={handleDesignChange} />
+                  </div>
+                )}
+
+                {state.activeTab === 'savethedate' && (
+                  <div style={{ padding: '4px 0' }}>
+                    <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </EditorWing>
+        )}
+
+        {/* Canvas area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
           {!state.isMobile && (
             <PostWeddingBanner
               manifest={manifest}
@@ -594,140 +671,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           )}
           <EditorCanvas />
         </div>
-
-        {/* Left Wing (desktop only) */}
-        {!state.isMobile && (
-          <EditorWing
-            side="left"
-            open={leftWingOpen}
-            onToggle={() => setLeftWingOpen(v => !v)}
-            tabs={LEFT_WING_TABS}
-            activeTab={state.activeTab}
-            onTabChange={handleTabChange}
-            contentRef={contentPanelRef}
-            toolbarHeight={44}
-          >
-            {/* Left tab content */}
-            {state.activeTab === 'story' && <StoryPanel />}
-
-            <AnimatePresence mode="wait">
-              {state.activeTab === 'events' && (
-                <motion.div key="events" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <EventsPanel manifest={manifest} onChange={handleDesignChange} />
-                </motion.div>
-              )}
-              {state.activeTab === 'pages' && (
-                <motion.div key="pages" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <PagesPanel
-                    manifest={manifest}
-                    subdomain={state.subdomain}
-                    onChange={handleDesignChange}
-                    previewPage={state.previewPage}
-                    onPreviewPage={(slug) => dispatch({ type: 'SET_PREVIEW_PAGE', page: slug })}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {state.activeTab === 'canvas' && (
-              <CanvasEditor manifest={manifest} onChange={(m) => { onChange(m); }} pushToPreview={pushToPreview} />
-            )}
-
-            {state.activeTab === 'messaging' && (
-              <MessagingPanel
-                manifest={manifest}
-                siteId={state.subdomain}
-                subdomain={state.subdomain}
-              />
-            )}
-
-            {state.activeTab === 'guests' && (
-              <div style={{ padding: '8px 0' }}>
-                <GuestSearchPanel siteId={state.subdomain} />
-              </div>
-            )}
-
-            {state.activeTab === 'invite' && (
-              <div style={{ padding: '8px 0' }}>
-                <BulkInvitePanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
-              </div>
-            )}
-
-            {state.activeTab === 'seating' && (
-              <div style={{ padding: '8px 0' }}>
-                <SeatingEditorPanel siteId={state.subdomain} />
-              </div>
-            )}
-          </EditorWing>
-        )}
-
-        {/* Right Wing (desktop only) */}
-        {!state.isMobile && (
-          <EditorWing
-            side="right"
-            open={rightWingOpen}
-            onToggle={() => setRightWingOpen(v => !v)}
-            tabs={RIGHT_WING_TABS}
-            activeTab={state.activeTab}
-            onTabChange={handleTabChange}
-            contentRef={rightContentPanelRef}
-            toolbarHeight={44}
-          >
-            <AnimatePresence mode="wait">
-              {state.activeTab === 'design' && (
-                <motion.div key="design" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <DesignPanel manifest={manifest} onChange={handleDesignChange} />
-                </motion.div>
-              )}
-              {state.activeTab === 'details' && (
-                <motion.div key="details" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <DetailsPanel manifest={manifest} onChange={handleDesignChange} subdomain={state.subdomain} />
-                </motion.div>
-              )}
-              {state.activeTab === 'blocks' && (
-                <motion.div key="blocks" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                  <AIBlocksPanel manifest={manifest} coupleNames={coupleNames} onChange={(m) => { onChange(m); pushToPreview(m); }} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {state.activeTab === 'voice' && (
-              <motion.div key="voice" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}>
-                <div style={{ padding: '4px 0' }}>
-                  <div style={{ marginBottom: '12px' }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>AI Voice Training</span>
-                    <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>Teach the chatbot to speak like you.</p>
-                  </div>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px' }}>
-                    <VoiceTrainerPanel
-                      voiceSamples={manifest.voiceSamples || []}
-                      onChange={(samples) => { const updated = { ...manifest, voiceSamples: samples }; onChange(updated); pushToPreview(updated); }}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {state.activeTab === 'analytics' && (
-              <div style={{ padding: '4px 0' }}>
-                <AnalyticsDashboardPanel siteId={state.subdomain} />
-              </div>
-            )}
-
-            {state.activeTab === 'translate' && (
-              <div style={{ padding: '4px 0' }}>
-                <TranslationPanel manifest={manifest} onChange={handleDesignChange} />
-              </div>
-            )}
-
-            {state.activeTab === 'savethedate' && (
-              <div style={{ padding: '4px 0' }}>
-                <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
-              </div>
-            )}
-          </EditorWing>
-        )}
       </div>
+
+      {/* Status Bar (desktop only) */}
+      {!state.isMobile && <EditorStatusBar />}
 
       {/* Mobile */}
       {state.isMobile && <MobileEditorSheet />}
