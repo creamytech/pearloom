@@ -56,11 +56,23 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
       </div>
 
       {events.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.2)', borderRadius: '10px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-          <CalendarHeartIcon size={24} style={{ marginBottom: '8px', opacity: 0.4 }} />
-          <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>No events yet</div>
-          <div style={{ fontSize: '0.82rem', marginTop: '4px' }}>Add your ceremony, reception, and more</div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          style={{ textAlign: 'center', padding: '2rem 1rem', color: 'rgba(255,255,255,0.2)', borderRadius: '10px', border: '1px dashed rgba(255,255,255,0.1)' }}
+        >
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 0.5 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
+            style={{ marginBottom: '10px' }}
+          >
+            <CalendarHeartIcon size={28} />
+          </motion.div>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, fontStyle: 'italic', fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)', color: 'rgba(255,255,255,0.35)' }}>No events yet</div>
+          <div style={{ fontSize: '0.78rem', marginTop: '5px', color: 'rgba(255,255,255,0.2)' }}>Add your ceremony, reception, and more</div>
+        </motion.div>
       ) : (
         events.map((evt) => {
           const evtTypeOpt = EVENT_TYPE_OPTS.find(o => o.type === (evt.type || 'other')) || EVENT_TYPE_OPTS[EVENT_TYPE_OPTS.length - 1];

@@ -618,7 +618,7 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
   );
 
   const title = sectionTitle || (coupleNames
-    ? `${coupleNames[0]} & ${coupleNames[1]}`
+    ? (coupleNames[1]?.trim() ? `${coupleNames[0]} & ${coupleNames[1]}` : coupleNames[0])
     : 'Our Story');
 
   const subtitle = sectionSubtitle || 'The moments that made us, us.';

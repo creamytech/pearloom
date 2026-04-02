@@ -245,6 +245,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
               cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
               justifyContent: 'center', minHeight: '36px', minWidth: '36px',
+              filter: canUndo ? 'none' : 'grayscale(1)',
+              transition: 'color 0.15s, filter 0.15s',
             }}
           ><UndoIcon size={isMobile ? 11 : 13} /></motion.button>
           <motion.button
@@ -258,6 +260,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
               cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
               justifyContent: 'center', minHeight: '36px', minWidth: '36px',
+              filter: canRedo ? 'none' : 'grayscale(1)',
+              transition: 'color 0.15s, filter 0.15s',
             }}
           ><RedoIcon size={isMobile ? 11 : 13} /></motion.button>
         </div>
@@ -266,10 +270,14 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <AnimatePresence mode="wait">
           <motion.div
             key={saveState}
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+            initial={{ opacity: 0, scale: 0.75, y: 4 }}
+            animate={saveState === 'saved'
+              ? { opacity: 1, scale: [0.75, 1.12, 1], y: 0 }
+              : { opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.85, y: -3 }}
+            transition={saveState === 'saved'
+              ? { duration: 0.45, times: [0, 0.55, 1], ease: 'easeOut' }
+              : { type: 'spring', stiffness: 380, damping: 24 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: isMobile ? '4px 6px' : '4px 9px', borderRadius: '100px',

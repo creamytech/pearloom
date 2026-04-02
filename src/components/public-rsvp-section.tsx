@@ -93,23 +93,38 @@ export function PublicRsvpSection({
               marginBottom: '2rem',
             }}
           >
-            <div
+            <motion.div
+              initial={{ scaleX: 0, opacity: 0 }}
+              whileInView={{ scaleX: 1, opacity: 0.2 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 flex: 1,
                 maxWidth: '120px',
                 height: '1px',
                 background: 'var(--eg-accent)',
-                opacity: 0.2,
+                transformOrigin: 'right',
               }}
             />
-            <EnvelopeIcon size={22} color="var(--eg-accent)" style={{ opacity: 0.75 }} />
-            <div
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 0.75 }}
+              viewport={{ once: true }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.2 }}
+            >
+              <EnvelopeIcon size={22} color="var(--eg-accent)" />
+            </motion.div>
+            <motion.div
+              initial={{ scaleX: 0, opacity: 0 }}
+              whileInView={{ scaleX: 1, opacity: 0.2 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 flex: 1,
                 maxWidth: '120px',
                 height: '1px',
                 background: 'var(--eg-accent)',
-                opacity: 0.2,
+                transformOrigin: 'left',
               }}
             />
           </div>

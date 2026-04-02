@@ -71,11 +71,14 @@ function RailBtn({ item, active, onClick }: {
       {active && (
         <motion.div
           layoutId="rail-accent"
+          initial={{ scaleY: 0, opacity: 0 }}
+          animate={{ scaleY: 1, opacity: 1 }}
           style={{
             position: 'absolute', left: 0, top: '18%', bottom: '18%',
             width: '2px',
             background: 'linear-gradient(180deg, #A3B18A 0%, #6E8B5A 100%)',
             borderRadius: '0 2px 2px 0',
+            transformOrigin: 'center',
           }}
           transition={{ type: 'spring', stiffness: 420, damping: 30 }}
         />
