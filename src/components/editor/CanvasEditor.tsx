@@ -25,6 +25,11 @@ import {
   BlockPhotosIcon, BlockGuestbookIcon, BlockMapIcon, BlockQuoteIcon,
   BlockTextIcon, BlockVideoIcon, BlockDividerIcon, GripIcon,
 } from '@/components/icons/EditorIcons';
+import {
+  IconReveal, IconChevronDown,
+  IconRevealNone, IconRevealFade, IconRevealSlideUp,
+  IconRevealSlideLeft, IconRevealZoom, IconRevealBlur,
+} from './EditorIcons';
 import type { StoryManifest, PageBlock, BlockType, WeddingEvent } from '@/types';
 
 // ── Block Catalogue ────────────────────────────────────────────
@@ -871,25 +876,25 @@ function BlockConfigPanel({
 }
 
 // ── BlockEffectsEditor — per-block FX controls ────────────────
-const REVEAL_OPTIONS = [
-  { value: 'none',       label: 'None',     emoji: '⛔' },
-  { value: 'fade',       label: 'Fade',     emoji: '🌫️' },
-  { value: 'slide-up',   label: 'Slide Up', emoji: '⬆️' },
-  { value: 'slide-left', label: 'Slide In', emoji: '↪️' },
-  { value: 'zoom',       label: 'Zoom',     emoji: '🔍' },
-  { value: 'blur-in',    label: 'Blur',     emoji: '✨' },
-] as const;
+const REVEAL_OPTIONS: Array<{ value: string; label: string; icon: React.ReactNode }> = [
+  { value: 'none',       label: 'None',     icon: <IconRevealNone size={12} /> },
+  { value: 'fade',       label: 'Fade',     icon: <IconRevealFade size={12} /> },
+  { value: 'slide-up',   label: 'Slide Up', icon: <IconRevealSlideUp size={12} /> },
+  { value: 'slide-left', label: 'Slide In', icon: <IconRevealSlideLeft size={12} /> },
+  { value: 'zoom',       label: 'Zoom',     icon: <IconRevealZoom size={12} /> },
+  { value: 'blur-in',    label: 'Blur',     icon: <IconRevealBlur size={12} /> },
+];
 
-const DIVIDER_OPTIONS = [
-  { value: null,       label: 'Default', emoji: '〰️' },
-  { value: 'wave',     label: 'Wave',    emoji: '∿' },
-  { value: 'wave2',    label: 'Wave 2',  emoji: '〜' },
-  { value: 'diagonal', label: 'Diagonal',emoji: '╱' },
-  { value: 'zigzag',   label: 'Zigzag',  emoji: '/\\' },
-  { value: 'torn',     label: 'Torn',    emoji: 'ᵥ' },
-  { value: 'chevron',  label: 'Chevron', emoji: '⌃' },
-  { value: 'arc',      label: 'Arc',     emoji: '⌢' },
-] as const;
+const DIVIDER_OPTIONS: Array<{ value: string | null; label: string; preview: string }> = [
+  { value: null,       label: 'Default', preview: '─' },
+  { value: 'wave',     label: 'Wave',    preview: '∿' },
+  { value: 'wave2',    label: 'Wave 2',  preview: '∿∿' },
+  { value: 'diagonal', label: 'Diagonal',preview: '╱' },
+  { value: 'zigzag',   label: 'Zigzag',  preview: '/\\' },
+  { value: 'torn',     label: 'Torn',    preview: 'ᵥᵥ' },
+  { value: 'chevron',  label: 'Chevron', preview: '∧' },
+  { value: 'arc',      label: 'Arc',     preview: '⌢' },
+];
 
 function BlockEffectsEditor({
   blockEffects,
@@ -915,7 +920,9 @@ function BlockEffectsEditor({
           cursor: 'pointer', textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: '0.88rem' }}>✨</span>
+        <span style={{ display: 'flex', alignItems: 'center', color: hasEffects ? 'rgba(214,198,168,0.9)' : 'rgba(255,255,255,0.35)' }}>
+          <IconReveal size={14} />
+        </span>
         <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 700, color: hasEffects ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.5)' }}>
           Block Effects
         </span>
@@ -926,7 +933,9 @@ function BlockEffectsEditor({
             padding: '2px 6px', borderRadius: '100px', border: '1px solid rgba(163,177,138,0.25)',
           }}>ON</span>
         )}
-        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▾</span>
+        <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.25)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <IconChevronDown size={14} />
+        </span>
       </button>
 
       {open && (
@@ -941,7 +950,7 @@ function BlockEffectsEditor({
               {REVEAL_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
-                  onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : opt.value })}
+                  onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : (opt.value as 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in') })}
                   style={{
                     padding: '5px 9px', borderRadius: '7px',
                     border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
@@ -952,7 +961,7 @@ function BlockEffectsEditor({
                     transition: 'all 0.12s',
                   }}
                 >
-                  <span style={{ fontSize: '0.8rem' }}>{opt.emoji}</span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>{opt.icon}</span>
                   {opt.label}
                 </button>
               ))}
@@ -972,7 +981,7 @@ function BlockEffectsEditor({
                     if (opt.value === null) {
                       onUpdate({ dividerAbove: undefined });
                     } else {
-                      onUpdate({ dividerAbove: { style: opt.value, height: divHeight } });
+                      onUpdate({ dividerAbove: { style: opt.value as 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc', height: divHeight } });
                     }
                   }}
                   style={{
@@ -985,7 +994,7 @@ function BlockEffectsEditor({
                     transition: 'all 0.12s',
                   }}
                 >
-                  <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{opt.emoji}</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', opacity: 0.7 }}>{opt.preview}</span>
                   {opt.label}
                 </button>
               ))}

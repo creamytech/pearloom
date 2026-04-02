@@ -2,21 +2,23 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/VisualEffectsPanel.tsx
-// Editor UI for all visual atmosphere effects:
-//   • Film grain
-//   • Vignette
-//   • Color temperature
-//   • Animated gradient mesh
-//   • Custom cursor
-//   • Section dividers
-//   • Scroll reveal animations
-//   • Texture overlay
+// Editor UI for all visual atmosphere effects.
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
 import type { ThemeSchema } from '@/types';
+import {
+  IconFilmGrain, IconVignette, IconColorTemp, IconMesh,
+  IconCursor, IconDivider, IconReveal, IconTexture,
+  IconCursorNone, IconCursorPearl, IconCursorHeart,
+  IconCursorRing, IconCursorPetal, IconCursorStar,
+  IconRevealNone, IconRevealFade, IconRevealSlideUp,
+  IconRevealSlideLeft, IconRevealZoom, IconRevealBlur,
+  IconTexturePaper, IconTextureLinen, IconTextureConcrete,
+  IconTextureVelvet, IconTextureBokeh, IconChevronDown, IconChevronUp,
+} from './EditorIcons';
 
-// ── Types (mirrors ThemeSchema effects) ───────────────────────
+// ── Types ──────────────────────────────────────────────────────
 type Effects = NonNullable<ThemeSchema['effects']>;
 type MeshPreset = NonNullable<NonNullable<Effects['gradientMesh']>['preset']>;
 type MeshSpeed  = NonNullable<NonNullable<Effects['gradientMesh']>['speed']>;
@@ -73,9 +75,9 @@ function SliderRow({
 }
 
 function ToggleChip({
-  active, label, emoji, onClick, color,
+  active, label, icon, onClick, color,
 }: {
-  active: boolean; label: string; emoji?: string; onClick: () => void; color?: string;
+  active: boolean; label: string; icon?: React.ReactNode; onClick: () => void; color?: string;
 }) {
   return (
     <button
@@ -85,11 +87,11 @@ function ToggleChip({
         background: active ? `${color ?? 'rgba(163,177,138,1)'}22` : 'rgba(255,255,255,0.04)',
         color: active ? (color ?? 'rgba(163,177,138,1)') : 'rgba(255,255,255,0.55)',
         cursor: 'pointer', fontSize: '0.75rem', fontWeight: active ? 700 : 500,
-        display: 'flex', alignItems: 'center', gap: '4px',
+        display: 'flex', alignItems: 'center', gap: '5px',
         transition: 'all 0.15s',
       }}
     >
-      {emoji && <span style={{ fontSize: '0.85rem' }}>{emoji}</span>}
+      {icon && <span style={{ display: 'flex', alignItems: 'center', opacity: active ? 1 : 0.6 }}>{icon}</span>}
       {label}
     </button>
   );
@@ -143,45 +145,45 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
 }
 
 // ── Cursor shape picker ────────────────────────────────────────
-const CURSOR_SHAPES: Array<{ id: CursorShape; emoji: string; label: string }> = [
-  { id: 'none',  emoji: '🚫', label: 'Default' },
-  { id: 'pearl', emoji: '⚪', label: 'Pearl' },
-  { id: 'heart', emoji: '❤️', label: 'Heart' },
-  { id: 'ring',  emoji: '💍', label: 'Ring' },
-  { id: 'petal', emoji: '🌸', label: 'Petal' },
-  { id: 'star',  emoji: '⭐', label: 'Star' },
+const CURSOR_SHAPES: Array<{ id: CursorShape; icon: React.ReactNode; label: string }> = [
+  { id: 'none',  icon: <IconCursorNone size={13} />,  label: 'Default' },
+  { id: 'pearl', icon: <IconCursorPearl size={13} />, label: 'Pearl' },
+  { id: 'heart', icon: <IconCursorHeart size={13} />, label: 'Heart' },
+  { id: 'ring',  icon: <IconCursorRing size={13} />,  label: 'Ring' },
+  { id: 'petal', icon: <IconCursorPetal size={13} />, label: 'Petal' },
+  { id: 'star',  icon: <IconCursorStar size={13} />,  label: 'Star' },
 ];
 
 // ── Section divider style picker ───────────────────────────────
 const DIVIDER_STYLES: Array<{ id: DividerStyle; label: string; preview: string }> = [
   { id: 'none',     label: 'None',     preview: '─────' },
   { id: 'wave',     label: 'Wave',     preview: '∿∿∿∿∿' },
-  { id: 'wave2',    label: 'Wave 2',   preview: '〜〜〜' },
+  { id: 'wave2',    label: 'Wave 2',   preview: '∿∿∿∿∿' },
   { id: 'diagonal', label: 'Diagonal', preview: '╱╱╱╱╱' },
-  { id: 'zigzag',   label: 'Zigzag',   preview: '/\\/\\/\\' },
+  { id: 'zigzag',   label: 'Zigzag',   preview: '/\\/\\/' },
   { id: 'torn',     label: 'Torn',     preview: 'ᵥᵥᵥᵥᵥ' },
-  { id: 'chevron',  label: 'Chevron',  preview: '⌃⌃⌃⌃⌃' },
+  { id: 'chevron',  label: 'Chevron',  preview: '∧∧∧∧∧' },
   { id: 'arc',      label: 'Arc',      preview: '⌢⌢⌢⌢⌢' },
 ];
 
 // ── Scroll reveal picker ───────────────────────────────────────
-const REVEAL_ANIMS: Array<{ id: RevealAnim; label: string; emoji: string }> = [
-  { id: 'none',      label: 'None',     emoji: '⛔' },
-  { id: 'fade',      label: 'Fade',     emoji: '🌫️' },
-  { id: 'slide-up',  label: 'Slide Up', emoji: '⬆️' },
-  { id: 'slide-left',label: 'Slide In', emoji: '➡️' },
-  { id: 'zoom',      label: 'Zoom',     emoji: '🔍' },
-  { id: 'blur-in',   label: 'Blur In',  emoji: '✨' },
+const REVEAL_ANIMS: Array<{ id: RevealAnim; label: string; icon: React.ReactNode }> = [
+  { id: 'none',       label: 'None',     icon: <IconRevealNone size={13} /> },
+  { id: 'fade',       label: 'Fade',     icon: <IconRevealFade size={13} /> },
+  { id: 'slide-up',   label: 'Slide Up', icon: <IconRevealSlideUp size={13} /> },
+  { id: 'slide-left', label: 'Slide In', icon: <IconRevealSlideLeft size={13} /> },
+  { id: 'zoom',       label: 'Zoom',     icon: <IconRevealZoom size={13} /> },
+  { id: 'blur-in',    label: 'Blur In',  icon: <IconRevealBlur size={13} /> },
 ];
 
 // ── Texture overlay picker ─────────────────────────────────────
-const TEXTURES: Array<{ id: TextureType; label: string; emoji: string }> = [
-  { id: 'none',     label: 'None',     emoji: '⛔' },
-  { id: 'paper',    label: 'Paper',    emoji: '📄' },
-  { id: 'linen',    label: 'Linen',    emoji: '🧵' },
-  { id: 'concrete', label: 'Concrete', emoji: '🧱' },
-  { id: 'velvet',   label: 'Velvet',   emoji: '🎭' },
-  { id: 'bokeh',    label: 'Bokeh',    emoji: '🌟' },
+const TEXTURES: Array<{ id: TextureType; label: string; icon: React.ReactNode }> = [
+  { id: 'none',     label: 'None',     icon: <IconRevealNone size={13} /> },
+  { id: 'paper',    label: 'Paper',    icon: <IconTexturePaper size={13} /> },
+  { id: 'linen',    label: 'Linen',    icon: <IconTextureLinen size={13} /> },
+  { id: 'concrete', label: 'Concrete', icon: <IconTextureConcrete size={13} /> },
+  { id: 'velvet',   label: 'Velvet',   icon: <IconTextureVelvet size={13} /> },
+  { id: 'bokeh',    label: 'Bokeh',    icon: <IconTextureBokeh size={13} /> },
 ];
 
 // ── Main panel ────────────────────────────────────────────────
@@ -199,7 +201,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
 
       {/* ── Film Grain ── */}
-      <EffectBlock title="Film Grain" emoji="📽️" active={(effects.grain ?? 0) > 0}>
+      <EffectBlock title="Film Grain" icon={<IconFilmGrain />} active={(effects.grain ?? 0) > 0}>
         <SliderRow
           label="Intensity"
           value={effects.grain ?? 0}
@@ -210,7 +212,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       </EffectBlock>
 
       {/* ── Vignette ── */}
-      <EffectBlock title="Vignette" emoji="🎬" active={(effects.vignette ?? 0) > 0}>
+      <EffectBlock title="Vignette" icon={<IconVignette />} active={(effects.vignette ?? 0) > 0}>
         <SliderRow
           label="Darkness"
           value={effects.vignette ?? 0}
@@ -221,9 +223,9 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       </EffectBlock>
 
       {/* ── Color Temperature ── */}
-      <EffectBlock title="Color Temperature" emoji="🌡️" active={(effects.colorTemp ?? 0) !== 0}>
+      <EffectBlock title="Color Temperature" icon={<IconColorTemp />} active={(effects.colorTemp ?? 0) !== 0}>
         <SliderRow
-          label="Warm ↔ Cool"
+          label="Warm / Cool"
           value={effects.colorTemp ?? 0}
           min={-50} max={50} unit="temp"
           onChange={v => set('colorTemp', v)}
@@ -234,7 +236,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       {/* ── Gradient Mesh ── */}
       <EffectBlock
         title="Gradient Mesh"
-        emoji="🎨"
+        icon={<IconMesh />}
         active={mesh.preset !== 'none'}
         onToggleExpand={() => setMeshOpen(v => !v)}
         expanded={meshOpen}
@@ -269,14 +271,14 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       </EffectBlock>
 
       {/* ── Custom Cursor ── */}
-      <EffectBlock title="Custom Cursor" emoji="🖱️" active={(effects.customCursor ?? 'none') !== 'none'}>
+      <EffectBlock title="Custom Cursor" icon={<IconCursor />} active={(effects.customCursor ?? 'none') !== 'none'}>
         <SectionLabel>Shape</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {CURSOR_SHAPES.map(c => (
             <ToggleChip
               key={c.id}
               active={effects.customCursor === c.id}
-              emoji={c.emoji}
+              icon={c.icon}
               label={c.label}
               onClick={() => set('customCursor', c.id)}
             />
@@ -290,7 +292,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       {/* ── Section Dividers ── */}
       <EffectBlock
         title="Section Dividers"
-        emoji="〰️"
+        icon={<IconDivider />}
         active={divider.style !== 'none'}
         onToggleExpand={() => setDividerOpen(v => !v)}
         expanded={dividerOpen}
@@ -329,7 +331,6 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
               <ToggleChip
                 active={divider.flip}
                 label="Alternate flip"
-                emoji={divider.flip ? '🔄' : '➡️'}
                 onClick={() => set('sectionDivider', { ...divider, flip: !divider.flip })}
               />
             </div>
@@ -338,14 +339,14 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       </EffectBlock>
 
       {/* ── Scroll Reveal ── */}
-      <EffectBlock title="Scroll Reveal" emoji="✨" active={(effects.scrollReveal ?? 'none') !== 'none'}>
+      <EffectBlock title="Scroll Reveal" icon={<IconReveal />} active={(effects.scrollReveal ?? 'none') !== 'none'}>
         <SectionLabel>Animation style</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {REVEAL_ANIMS.map(a => (
             <ToggleChip
               key={a.id}
               active={effects.scrollReveal === a.id}
-              emoji={a.emoji}
+              icon={a.icon}
               label={a.label}
               onClick={() => set('scrollReveal', a.id)}
             />
@@ -357,14 +358,14 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
       </EffectBlock>
 
       {/* ── Texture Overlay ── */}
-      <EffectBlock title="Surface Texture" emoji="🧱" active={(effects.textureOverlay ?? 'none') !== 'none'}>
+      <EffectBlock title="Surface Texture" icon={<IconTexture />} active={(effects.textureOverlay ?? 'none') !== 'none'}>
         <SectionLabel>Material</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {TEXTURES.map(t => (
             <ToggleChip
               key={t.id}
               active={effects.textureOverlay === t.id}
-              emoji={t.emoji}
+              icon={t.icon}
               label={t.label}
               onClick={() => set('textureOverlay', t.id)}
             />
@@ -380,9 +381,9 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
 
 // ── Collapsible effect block ───────────────────────────────────
 function EffectBlock({
-  title, emoji, active, children, onToggleExpand, expanded,
+  title, icon, active, children, onToggleExpand, expanded,
 }: {
-  title: string; emoji: string; active: boolean; children: React.ReactNode;
+  title: string; icon: React.ReactNode; active: boolean; children: React.ReactNode;
   onToggleExpand?: () => void; expanded?: boolean;
 }) {
   const [open, setOpen] = useState(active);
@@ -391,9 +392,7 @@ function EffectBlock({
   const toggle = onToggleExpand ?? (() => setOpen(v => !v));
 
   return (
-    <div style={{
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
-    }}>
+    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
       <button
         onClick={toggle}
         style={{
@@ -402,7 +401,12 @@ function EffectBlock({
           cursor: 'pointer', textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: '1rem' }}>{emoji}</span>
+        <span style={{
+          display: 'flex', alignItems: 'center',
+          color: active ? 'rgba(214,198,168,0.9)' : 'rgba(255,255,255,0.4)',
+        }}>
+          {icon}
+        </span>
         <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 700, color: active ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.65)' }}>
           {title}
         </span>
@@ -415,8 +419,8 @@ function EffectBlock({
             ON
           </span>
         )}
-        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-          ▾
+        <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <IconChevronDown size={14} />
         </span>
       </button>
 

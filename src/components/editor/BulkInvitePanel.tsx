@@ -116,7 +116,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
           fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)',
         }}>
-          ⚠️ No guests with email addresses yet. Add guests with emails in the Guest List tab.
+          No guests with email addresses yet. Add guests with emails in the Guest List tab.
         </div>
       ) : (
         <>
@@ -254,8 +254,8 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               color: result.failed === 0 ? '#A3B18A' : '#f87171',
             }}>
               {result.failed === 0
-                ? `✓ ${result.sent} invitation${result.sent !== 1 ? 's' : ''} sent successfully`
-                : `⚠ ${result.sent} sent, ${result.failed} failed`}
+                ? `${result.sent} invitation${result.sent !== 1 ? 's' : ''} sent successfully`
+                : `${result.sent} sent, ${result.failed} failed`}
             </div>
           )}
 

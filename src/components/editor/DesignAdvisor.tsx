@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 import { detectPaletteIssues, type DesignIssue } from '@/lib/color-utils';
 import type { AISuggestion } from '@/app/api/design-advisor/route';
 import type { ThemeSchema, StoryManifest } from '@/types';
+import { IconError, IconWarn, IconTip, IconCheck, IconClose, IconPalette, IconSparkle } from './EditorIcons';
 
 interface DesignAdvisorProps {
   manifest: StoryManifest;
@@ -24,10 +25,10 @@ interface DesignAdvisorProps {
 
 // ── Severity styling ──────────────────────────────────────────
 const SEV = {
-  error: { bg: 'rgba(248,81,73,0.10)', border: 'rgba(248,81,73,0.35)', icon: '🔴', label: 'Accessibility issue', color: '#f87171' },
-  warn:  { bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.30)',  icon: '⚠️', label: 'Design tip',         color: '#fbbf24' },
-  tip:   { bg: 'rgba(163,177,138,0.10)',border: 'rgba(163,177,138,0.3)', icon: '💡', label: 'Suggestion',         color: '#A3B18A' },
-  ok:    { bg: 'rgba(163,177,138,0.08)',border: 'rgba(163,177,138,0.2)', icon: '✅', label: 'Looks great',        color: '#A3B18A' },
+  error: { bg: 'rgba(248,81,73,0.10)', border: 'rgba(248,81,73,0.35)', icon: <IconError size={14} />, label: 'Accessibility issue', color: '#f87171' },
+  warn:  { bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.30)',  icon: <IconWarn size={14} />,  label: 'Design tip',         color: '#fbbf24' },
+  tip:   { bg: 'rgba(163,177,138,0.10)',border: 'rgba(163,177,138,0.3)', icon: <IconTip size={14} />,   label: 'Suggestion',         color: '#A3B18A' },
+  ok:    { bg: 'rgba(163,177,138,0.08)',border: 'rgba(163,177,138,0.2)', icon: <IconCheck size={14} />, label: 'Looks great',        color: '#A3B18A' },
 };
 
 function IssueCard({ severity, title, detail, onDismiss }: {
@@ -41,7 +42,7 @@ function IssueCard({ severity, title, detail, onDismiss }: {
       border: `1px solid ${s.border}`,
       position: 'relative',
     }}>
-      <span style={{ fontSize: '1rem', flexShrink: 0, lineHeight: 1.4 }}>{s.icon}</span>
+      <span style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '1px', color: s.color, flexShrink: 0 }}>{s.icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: s.color, marginBottom: '2px' }}>{title}</div>
         <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.55 }}>{detail}</div>
@@ -52,11 +53,11 @@ function IssueCard({ severity, title, detail, onDismiss }: {
           style={{
             position: 'absolute', top: '6px', right: '6px',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(255,255,255,0.2)', fontSize: '0.7rem', padding: '2px',
-            lineHeight: 1,
+            color: 'rgba(255,255,255,0.2)', padding: '2px',
+            display: 'flex', alignItems: 'center',
           }}
           aria-label="Dismiss"
-        >✕</button>
+        ><IconClose size={10} /></button>
       )}
     </div>
   );
@@ -148,7 +149,7 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
         textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)',
         marginBottom: '2px',
       }}>
-        <span>🎨</span> Design Advisor
+        <IconPalette size={12} /> Design Advisor
       </div>
 
       {/* Rule-based issues */}
@@ -181,7 +182,7 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
           background: 'rgba(163,177,138,0.05)',
           border: '1px solid rgba(163,177,138,0.12)',
         }}>
-          <span style={{ fontSize: '0.75rem', animation: 'pl-spin 1s linear infinite', display: 'inline-block' }}>✦</span>
+          <span style={{ animation: 'pl-spin 1s linear infinite', display: 'flex', alignItems: 'center', color: 'rgba(163,177,138,0.7)' }}><IconSparkle size={13} /></span>
           <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>Analysing your palette…</span>
           <style>{`@keyframes pl-spin { to { transform: rotate(360deg); } }`}</style>
         </div>

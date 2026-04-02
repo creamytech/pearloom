@@ -95,14 +95,14 @@ const PRESET_PALETTES: PresetPalette[] = [
 
 // ── Art Style options for the prompt ──────────────────────────
 const ART_STYLES = [
-  { id: 'botanical',    label: 'Botanical',      emoji: '🌿', hint: 'Botanical illustration, pressed flowers, vines' },
-  { id: 'cultural',    label: 'Cultural',        emoji: '🏛️', hint: 'Cultural motifs from your favorite place' },
-  { id: 'celestial',   label: 'Celestial',       emoji: '✨', hint: 'Stars, constellations, moons, night sky' },
-  { id: 'abstract',    label: 'Abstract',        emoji: '〰️', hint: 'Flowing curves, organic shapes, abstract art' },
-  { id: 'geometric',   label: 'Geometric',       emoji: '◆', hint: 'Precise geometry, art deco, tessellation' },
-  { id: 'landscape',   label: 'Landscape',       emoji: '🌄', hint: 'Horizon lines, mountains, water, countryside' },
-  { id: 'typographic', label: 'Typographic',     emoji: '✍️', hint: 'Elegant script flourishes, monograms, letters' },
-  { id: 'romantic',    label: 'Romantic',        emoji: '💫', hint: 'Roses, ribbons, swirls, romantic motifs' },
+  { id: 'botanical',    label: 'Botanical',   hint: 'Botanical illustration, pressed flowers, vines' },
+  { id: 'cultural',    label: 'Cultural',     hint: 'Cultural motifs from your favorite place' },
+  { id: 'celestial',   label: 'Celestial',   hint: 'Stars, constellations, moons, night sky' },
+  { id: 'abstract',    label: 'Abstract',    hint: 'Flowing curves, organic shapes, abstract art' },
+  { id: 'geometric',   label: 'Geometric',   hint: 'Precise geometry, art deco, tessellation' },
+  { id: 'landscape',   label: 'Landscape',   hint: 'Horizon lines, mountains, water, countryside' },
+  { id: 'typographic', label: 'Typographic', hint: 'Elegant script flourishes, monograms, letters' },
+  { id: 'romantic',    label: 'Romantic',    hint: 'Roses, ribbons, swirls, romantic motifs' },
 ];
 
 // ── Swatch picker ──────────────────────────────────────────────
@@ -278,9 +278,9 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
   };
 
   const tabs = [
-    { id: 'presets',  label: '🎨 Presets' },
-    { id: 'custom',   label: '✏️ Custom' },
-    { id: 'ai-art',   label: '✦ AI Art' },
+    { id: 'presets',  label: 'Presets' },
+    { id: 'custom',   label: 'Custom' },
+    { id: 'ai-art',   label: 'AI Art' },
   ] as const;
 
   return (
@@ -333,7 +333,6 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                   ))}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '0.75rem' }}>{preset.emoji}</span>
                   <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#fff' }}>{preset.name}</span>
                   {isCurrent && <Check size={9} color={preset.colors.accent} style={{ marginLeft: 'auto' }} />}
                 </div>
@@ -440,8 +439,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                       textAlign: 'center', transition: 'all 0.15s', lineHeight: 1.3,
                     }}
                   >
-                    <div style={{ fontSize: '0.85rem' }}>{s.emoji}</div>
-                    <div>{s.label}</div>
+                    {s.label}
                   </button>
                 ))}
               </div>

@@ -53,16 +53,22 @@ const SPEED_DURATION: Record<MeshSpeed, number> = {
   fast: 6,
 };
 
-// Keyframe positions for each of the 4 blobs — deliberately asymmetric
-const BLOB_PATHS = [
-  // blob 0: top-left → center → bottom-right
-  ['10% 15%', '55% 45%', '80% 75%', '25% 85%', '10% 15%'],
-  // blob 1: top-right → left → bottom
-  ['85% 10%', '15% 40%', '60% 90%', '85% 55%', '85% 10%'],
-  // blob 2: center → corners
-  ['50% 50%', '90% 20%', '10% 80%', '70% 60%', '50% 50%'],
-  // blob 3: bottom-left drifter
-  ['20% 80%', '75% 65%', '40% 20%', '10% 35%', '20% 80%'],
+// Each blob drifts between translate offsets (as % of viewport).
+// Using transform: translate() so the motion is actually visible.
+// [x0,y0, x1,y1, x2,y2, x3,y3, x4,y4] — 5 keyframe stops that loop.
+const BLOB_DRIFT: Array<[number, number, number, number, number, number, number, number, number, number]> = [
+  [  0,   0,  18, -12,  -8,  20, 14,  6,   0,   0],
+  [  0,   0, -16,  14,  10, -18, -6, 12,   0,   0],
+  [  0,   0,  12,  18, -14,  -8,  8,-16,   0,   0],
+  [  0,   0, -10, -16,  16,  10,-12,  8,   0,   0],
+];
+
+// Blob starting positions (top/left as % of container)
+const BLOB_ORIGINS = [
+  { top: -10, left: -10 },
+  { top:  20, left:  55 },
+  { top:  40, left:  10 },
+  { top: -5,  left:  65 },
 ];
 
 export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMeshProps) {
@@ -76,16 +82,23 @@ export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMe
   }, [preset, accentColor]);
 
   const duration = SPEED_DURATION[speed];
-  const finalOpacity = (opacity / 100) * 0.65; // cap at 0.65 so text stays readable
+  const finalOpacity = (opacity / 100) * 0.7;
 
-  const keyframes = colors.map((color, i) => {
-    const path = BLOB_PATHS[i] ?? BLOB_PATHS[0];
+  // Build @keyframes that animate transform translate — actually moves the blob
+  const keyframes = colors.map((_, i) => {
+    const drift = BLOB_DRIFT[i] ?? BLOB_DRIFT[0];
     const name = `pl-mesh-${i}`;
-    return `
-      @keyframes ${name} {
-        ${path.map((pos, step) => `${Math.round((step / (path.length - 1)) * 100)}% { background-position: ${pos}; }`).join('\n        ')}
-      }
-    `;
+    const stops = [0, 25, 50, 75, 100];
+    const pairs: Array<[number, number]> = [
+      [drift[0], drift[1]],
+      [drift[2], drift[3]],
+      [drift[4], drift[5]],
+      [drift[6], drift[7]],
+      [drift[8], drift[9]],
+    ];
+    return `@keyframes ${name} {
+      ${stops.map((pct, s) => `${pct}% { transform: translate(${pairs[s][0]}%, ${pairs[s][1]}%); }`).join('\n      ')}
+    }`;
   }).join('\n');
 
   return (
@@ -96,7 +109,7 @@ export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMe
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 0, // behind all page content but above the html background
+          zIndex: 0,
           pointerEvents: 'none',
           opacity: finalOpacity,
           overflow: 'hidden',
@@ -104,7 +117,8 @@ export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMe
       >
         {colors.map((color, i) => {
           const name = `pl-mesh-${i}`;
-          const size = 60 + i * 15; // each blob slightly different size
+          const size = 65 + i * 12;
+          const origin = BLOB_ORIGINS[i] ?? BLOB_ORIGINS[0];
           return (
             <div
               key={i}
@@ -113,17 +127,14 @@ export function GradientMesh({ preset, speed, opacity, accentColor }: GradientMe
                 width: `${size}%`,
                 height: `${size}%`,
                 borderRadius: '50%',
-                background: `radial-gradient(circle at center, ${color}cc 0%, ${color}55 40%, transparent 70%)`,
-                filter: 'blur(80px)',
-                backgroundSize: '200% 200%',
-                backgroundPosition: BLOB_PATHS[i]?.[0] ?? '50% 50%',
+                background: `radial-gradient(circle at 40% 40%, ${color}dd 0%, ${color}66 35%, transparent 70%)`,
+                filter: 'blur(90px)',
+                top: `${origin.top}%`,
+                left: `${origin.left}%`,
                 animation: duration > 0
-                  ? `${name} ${duration + i * 3}s ease-in-out infinite`
+                  ? `${name} ${duration + i * 4}s ease-in-out infinite`
                   : undefined,
-                willChange: duration > 0 ? 'background-position' : undefined,
-                // Offset each blob to different quadrant
-                top: `${[-20, 20, 10, 40][i]}%`,
-                left: `${[-10, 40, 60, 5][i]}%`,
+                willChange: duration > 0 ? 'transform' : undefined,
               }}
             />
           );

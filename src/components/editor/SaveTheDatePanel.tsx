@@ -254,7 +254,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
           fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)',
         }}>
-          ⚠️ Add a ceremony or event with a date to see it on the card.
+          Add a ceremony or event with a date to see it on the card.
         </div>
       )}
     </div>

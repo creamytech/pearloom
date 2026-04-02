@@ -27,7 +27,9 @@ const CanvasEditor = dynamic(() => import('./CanvasEditor').then(m => ({ default
 const ChapterPanel = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
 
 // ── Arc items for the radial FAB ─────────────────────────────
-const RADIUS = 80;
+// Radius 130px, 5 items spread 100°→0° = 25° apart = arc length ~56px between
+// centers at that radius. With 52px buttons there is a comfortable 4px gap.
+const RADIUS = 130;
 
 interface ArcItem {
   tab: EditorTab;
@@ -37,11 +39,11 @@ interface ArcItem {
 }
 
 const ARC_ITEMS: ArcItem[] = [
-  { tab: 'story',   icon: StoryIcon,    label: 'Story',    angle: 90 },
-  { tab: 'events',  icon: EventsIcon,   label: 'Events',   angle: 68 },
-  { tab: 'design',  icon: DesignIcon,   label: 'Design',   angle: 46 },
-  { tab: 'details', icon: DetailsIcon,  label: 'Details',  angle: 24 },
-  { tab: 'canvas',  icon: SectionsIcon, label: 'Sections', angle: 2  },
+  { tab: 'story',   icon: StoryIcon,    label: 'Story',    angle: 100 },
+  { tab: 'events',  icon: EventsIcon,   label: 'Events',   angle: 75  },
+  { tab: 'design',  icon: DesignIcon,   label: 'Design',   angle: 50  },
+  { tab: 'details', icon: DetailsIcon,  label: 'Details',  angle: 25  },
+  { tab: 'canvas',  icon: SectionsIcon, label: 'Sections', angle: 0   },
 ];
 
 const TAB_LABELS: Record<string, string> = {
@@ -62,11 +64,11 @@ function RadialFab({ activeTab, onTabChange, sheetOpen, onToggleSheet }: {
     <div
       style={{
         position: 'fixed',
-        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
         left: 20,
         zIndex: 1100,
-        width: 52,
-        height: 52,
+        width: 58,
+        height: 58,
       }}
     >
       {/* Arc items */}
@@ -89,33 +91,43 @@ function RadialFab({ activeTab, onTabChange, sheetOpen, onToggleSheet }: {
               initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
               animate={{ x, y, scale: 1, opacity: 1 }}
               exit={{ x: 0, y: 0, scale: 0, opacity: 0 }}
-              transition={{ delay: index * 0.04, type: 'spring', stiffness: 340, damping: 24 }}
+              transition={{ delay: index * 0.045, type: 'spring', stiffness: 360, damping: 26 }}
               aria-label={item.label}
               style={{
                 position: 'absolute',
                 left: '50%',
                 top: '50%',
-                width: 42,
-                height: 42,
-                borderRadius: '50%',
-                border: `1px solid ${isActive ? 'rgba(163,177,138,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                // Pill shape — wider than tall to give text room
+                width: 72,
+                height: 52,
+                borderRadius: '14px',
+                border: `1.5px solid ${isActive ? 'rgba(163,177,138,0.65)' : 'rgba(255,255,255,0.13)'}`,
                 background: isActive
-                  ? 'rgba(163,177,138,0.2)'
-                  : 'rgba(22, 18, 14, 0.92)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
+                  ? 'rgba(163,177,138,0.22)'
+                  : 'rgba(18, 15, 12, 0.88)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 2,
+                gap: 5,
                 transform: 'translate(-50%, -50%)',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
+                boxShadow: isActive
+                  ? '0 4px 18px rgba(163,177,138,0.25), 0 2px 8px rgba(0,0,0,0.5)'
+                  : '0 4px 18px rgba(0,0,0,0.55)',
               } as React.CSSProperties}
             >
-              <Icon size={16} color="rgba(214,198,168,0.8)" />
-              <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(214,198,168,0.6)', textTransform: 'uppercase', lineHeight: 1 }}>
+              <Icon size={19} color={isActive ? 'rgba(163,177,138,1)' : 'rgba(214,198,168,0.75)'} />
+              <span style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                color: isActive ? 'rgba(163,177,138,1)' : 'rgba(214,198,168,0.6)',
+                lineHeight: 1,
+                whiteSpace: 'nowrap',
+              }}>
                 {item.label}
               </span>
             </motion.button>
@@ -136,8 +148,8 @@ function RadialFab({ activeTab, onTabChange, sheetOpen, onToggleSheet }: {
         transition={{ type: 'spring', stiffness: 320, damping: 28 }}
         aria-label={sheetOpen ? 'Close panel' : (arcOpen ? 'Close menu' : 'Open menu')}
         style={{
-          width: 52,
-          height: 52,
+          width: 58,
+          height: 58,
           borderRadius: '50%',
           background: (arcOpen || sheetOpen) ? '#A3B18A' : '#F5F1E8',
           border: 'none',
@@ -145,14 +157,14 @@ function RadialFab({ activeTab, onTabChange, sheetOpen, onToggleSheet }: {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.15)',
+          boxShadow: '0 6px 24px rgba(0,0,0,0.45), inset 0 0 0 1.5px rgba(255,255,255,0.18)',
           position: 'relative',
           zIndex: 1,
         }}
       >
         {(arcOpen || sheetOpen)
-          ? <X size={22} color="#fff" />
-          : <PearlIcon size={24} color="#2B2520" />
+          ? <X size={24} color="#fff" />
+          : <PearlIcon size={26} color="#2B2520" />
         }
       </motion.button>
     </div>
@@ -327,45 +339,46 @@ export function MobileEditorSheet() {
             style={{
               position: 'fixed', bottom: 'env(safe-area-inset-bottom, 0px)',
               left: 0, right: 0,
-              height: '55vh',
+              height: '62vh',
               zIndex: 1050,
-              background: 'var(--eg-dark-2, #3D3530)',
-              borderRadius: '16px 16px 0 0',
-              borderTop: '1px solid rgba(255,255,255,0.12)',
+              background: 'var(--eg-dark-2, #2E2A26)',
+              borderRadius: '20px 20px 0 0',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
               display: 'flex', flexDirection: 'column',
-              boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
+              boxShadow: '0 -12px 48px rgba(0,0,0,0.6)',
               overflow: 'hidden',
             }}
           >
-            {/* Drag handle */}
+            {/* Drag handle + header */}
             <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-              padding: '10px 16px 6px', flexShrink: 0,
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              padding: '10px 18px 10px', flexShrink: 0,
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
-              <motion.div
-                initial={{ width: 48 }}
-                animate={{ width: 52 }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-                style={{
-                  height: '4px', borderRadius: '100px',
-                  background: 'rgba(214,198,168,0.40)',
-                }}
-              />
+              {/* Pill handle */}
+              <div style={{
+                width: 40, height: 4, borderRadius: '100px',
+                background: 'rgba(214,198,168,0.30)',
+                marginBottom: '12px',
+              }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                 <span style={{
-                  fontSize: '0.82rem', fontWeight: 400,
+                  fontSize: '1.05rem', fontWeight: 600,
                   fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
                   fontStyle: 'italic',
-                  color: 'var(--eg-muted, #9A9488)',
+                  color: 'rgba(214,198,168,0.9)',
+                  letterSpacing: '0.01em',
                 }}>
                   {TAB_LABELS[activeTab] || activeTab}
                 </span>
                 <button
                   onClick={() => dispatch({ type: 'SET_MOBILE_SHEET', open: false })}
                   style={{
-                    background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '6px',
-                    color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: '5px 12px',
-                    fontSize: '0.72rem', fontWeight: 700, minHeight: '32px',
+                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '8px', color: 'rgba(255,255,255,0.55)',
+                    cursor: 'pointer', padding: '7px 16px',
+                    fontSize: '0.78rem', fontWeight: 700, minHeight: '36px',
+                    letterSpacing: '0.02em',
                   }}
                 >
                   Done
@@ -375,7 +388,7 @@ export function MobileEditorSheet() {
 
             {/* Scrollable content */}
             <div style={{
-              flex: 1, overflowY: 'auto', padding: '8px 12px 80px',
+              flex: 1, overflowY: 'auto', padding: '12px 16px 96px',
               WebkitOverflowScrolling: 'touch',
             } as React.CSSProperties}>
               {activeTab === 'story' && (
