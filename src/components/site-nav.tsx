@@ -238,10 +238,34 @@ export function SiteNav({
             <div />
           )}
 
-          {/* ── Right: user avatar + hamburger ── */}
+          {/* ── Right: desktop studio actions + user avatar + hamburger ── */}
           <div className="flex items-center gap-2.5">
+            {/* Desktop studio quick actions — replaces hamburger on ≥1024px */}
+            {isDesktop && isStudio && (
+              <div className="flex items-center gap-1.5">
+                {onGoToDashboard && (
+                  <button
+                    onClick={onGoToDashboard}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--pl-radius-sm)] text-[0.78rem] font-[500] text-[var(--pl-muted)] bg-transparent border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.05)] hover:text-[var(--pl-ink)] transition-colors duration-150 whitespace-nowrap"
+                  >
+                    <LayoutDashboard size={13} />
+                    My Sites
+                  </button>
+                )}
+                {onStartNew && (
+                  <button
+                    onClick={onStartNew}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--pl-radius-sm)] text-[0.78rem] font-semibold text-[var(--pl-olive)] bg-[rgba(163,177,138,0.1)] border border-[rgba(163,177,138,0.2)] cursor-pointer hover:bg-[rgba(163,177,138,0.18)] transition-colors duration-150 whitespace-nowrap"
+                  >
+                    <Plus size={13} />
+                    New Site
+                  </button>
+                )}
+              </div>
+            )}
             {user && <UserNav user={user} onDashboard={onGoToDashboard} />}
-            {(!isDesktop || isStudio) && (
+            {/* Hamburger: mobile only */}
+            {!isDesktop && (
               <button
                 onClick={() => setDrawer(!drawerOpen)}
                 aria-label="Open navigation menu"
