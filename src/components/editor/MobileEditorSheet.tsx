@@ -9,12 +9,11 @@ import {
   motion, AnimatePresence, useMotionValue, animate,
   useDragControls, Reorder,
 } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight, Mail, Users, Send, X, Eye } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight, Mail, Users, Send, X, Eye, MoreHorizontal } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon, GripIcon,
 } from '@/components/icons/EditorIcons';
-import { PearlIcon } from '@/components/icons/PearloomIcons';
 import { useEditor } from '@/lib/editor-state';
 import type { Chapter } from '@/types';
 
@@ -32,9 +31,7 @@ const GuestSearchPanelLazy  = dynamic(() => import('./GuestSearchPanel').then(m 
 const BulkInvitePanelLazy   = dynamic(() => import('./BulkInvitePanel').then(m => ({ default: m.BulkInvitePanel })), { ssr: false });
 
 // Constants
-const RADIUS    = 126;
-const FAB_ANGLES = [90, 68, 46, 24, 2] as const;
-const FAB_LEFT  = 26;
+const BOTTOM_NAV_H = 56;
 
 type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'guests' | 'invite';
 type StorySubview = 'list' | 'editor';
@@ -53,13 +50,22 @@ const TAB_SHORT: Record<EditorTab, string> = {
   messaging: 'Messages', guests: 'Guests', invite: 'Invites',
 };
 
-const ARC_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
-  { tab: 'story',   icon: StoryIcon,    label: 'Story' },
-  { tab: 'events',  icon: EventsIcon,   label: 'Events' },
-  { tab: 'design',  icon: DesignIcon,   label: 'Design' },
-  { tab: 'details', icon: DetailsIcon,  label: 'Details' },
-  { tab: 'canvas',  icon: SectionsIcon, label: 'Sections' },
-];
+const PRIMARY_TABS = [
+  { tab: 'story'   as EditorTab, icon: StoryIcon,    label: 'Story'    },
+  { tab: 'events'  as EditorTab, icon: EventsIcon,   label: 'Events'   },
+  { tab: 'canvas'  as EditorTab, icon: SectionsIcon, label: 'Sections' },
+  { tab: 'design'  as EditorTab, icon: DesignIcon,   label: 'Design'   },
+  { tab: 'details' as EditorTab, icon: DetailsIcon,  label: 'Details'  },
+] as const;
+
+const SECONDARY_TABS = [
+  { tab: 'blocks'    as EditorTab, icon: AIBlocksIcon, label: 'AI Blocks'      },
+  { tab: 'voice'     as EditorTab, icon: VoiceIcon,    label: 'Voice Training' },
+  { tab: 'pages'     as EditorTab, icon: DetailsIcon,  label: 'Pages'          },
+  { tab: 'messaging' as EditorTab, icon: Mail,         label: 'Message Guests' },
+  { tab: 'guests'    as EditorTab, icon: Users,        label: 'Guest List'     },
+  { tab: 'invite'    as EditorTab, icon: Send,         label: 'Send Invites'   },
+] as const;
 
 const SHEET_TABS: EditorTab[] = ['story', 'events', 'canvas', 'design', 'details', 'pages', 'blocks', 'voice', 'messaging', 'guests', 'invite'];
 
@@ -95,12 +101,14 @@ function ChapterReorderRow({
 }) {
   const controls = useDragControls();
   const thumb = getThumb(chapter);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const rowX = useMotionValue(0);
 
   return (
     <Reorder.Item
       value={chapter}
       id={chapter.id}
-      dragListener={false}
+      dragListener={!isSwiping}
       dragControls={controls}
       as="div"
       whileDrag={{ scale: 1.02, zIndex: 50, boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
@@ -111,94 +119,104 @@ function ChapterReorderRow({
       transition={{ duration: 0.18 }}
       style={{ marginBottom: 6 }}
     >
-      <motion.div
-        whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}
-        transition={{ duration: 0.13 }}
-        style={{
-          borderRadius: 12,
-          background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(255,255,255,0.04)',
-          borderLeft: isActive ? '3px solid rgba(163,177,138,0.75)' : '3px solid rgba(163,177,138,0.12)',
-          border: '1px solid transparent',
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 10px 10px 6px', cursor: 'pointer', minHeight: 56,
-        }}
-        onClick={() => onSelect(chapter.id)}
-      >
-        <motion.div
-          role="button"
-          aria-label="Drag to reorder"
-          onPointerDown={e => { e.preventDefault(); e.stopPropagation(); controls.start(e); }}
-          whileHover={{ color: 'rgba(163,177,138,0.8)' }}
-          style={{
-            cursor: 'grab', padding: '0 8px', display: 'flex', alignItems: 'center',
-            color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
-          }}
-        >
-          <GripIcon size={13} />
-        </motion.div>
-
+      {/* Swipe-to-delete container */}
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 12 }}>
+        {/* Delete zone revealed on swipe-left */}
         <div style={{
-          flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
-          background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(255,255,255,0.07)',
-          border: isActive ? '1px solid rgba(163,177,138,0.45)' : '1px solid rgba(255,255,255,0.09)',
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: 80,
+          background: 'rgba(220,53,69,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.63rem', fontWeight: 800,
-          color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+          borderRadius: '0 12px 12px 0',
         }}>
-          {index + 1}
+          <Trash2 size={16} color="rgba(255,255,255,0.9)" />
         </div>
 
-        <div style={{
-          width: 40, height: 40, borderRadius: 7, flexShrink: 0,
-          background: thumb ? 'transparent' : 'rgba(255,255,255,0.07)',
-          overflow: 'hidden', border: '1px solid rgba(255,255,255,0.09)',
-        }}>
-          {thumb
-            ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image size={13} color="rgba(255,255,255,0.22)" />
-              </div>}
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: '0.88rem', fontWeight: 700,
-            fontFamily: 'var(--eg-font-heading, "Playfair Display", Georgia, serif)',
-            color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.9)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3,
-          }}>
-            {chapter.title || 'Untitled'}
-          </div>
-          {chapter.date && (
-            <div style={{
-              fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)',
-              marginTop: 2, display: 'flex', alignItems: 'center', gap: 4,
-            }}>
-              <Clock size={9} style={{ flexShrink: 0, opacity: 0.65 }} />
-              <span>{chapter.date?.slice(0, 10)}</span>
-            </div>
-          )}
-        </div>
-
-        <ChevronRight size={14} color="rgba(255,255,255,0.22)" style={{ flexShrink: 0 }} />
-
-        <motion.button
-          onClick={e => {
-            e.stopPropagation();
-            if (window.confirm(`Delete "${chapter.title || 'this chapter'}"?`)) onDelete(chapter.id);
-          }}
-          whileHover={{ scale: 1.15, color: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)' }}
-          whileTap={{ scale: 0.88 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+        {/* Row content — draggable on x-axis for swipe-to-delete */}
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: -80, right: 0 }}
+          dragElastic={{ left: 0.08, right: 0 }}
           style={{
-            padding: 5, borderRadius: 5, border: 'none',
-            background: 'none', color: 'rgba(255,255,255,0.28)', cursor: 'pointer',
-            display: 'flex', flexShrink: 0,
+            x: rowX,
+            borderRadius: 12,
+            background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(255,255,255,0.04)',
+            borderLeft: isActive ? '3px solid rgba(163,177,138,0.75)' : '3px solid rgba(163,177,138,0.12)',
+            border: '1px solid transparent',
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 10px 10px 6px', cursor: 'pointer', minHeight: 56,
           }}
+          onDragStart={() => setIsSwiping(true)}
+          onDragEnd={(_, info) => {
+            setIsSwiping(false);
+            if (info.offset.x < -60) {
+              onDelete(chapter.id);
+            } else {
+              animate(rowX, 0, { type: 'spring', stiffness: 500, damping: 38 });
+            }
+          }}
+          whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}
+          transition={{ duration: 0.13 }}
+          onClick={() => onSelect(chapter.id)}
         >
-          <Trash2 size={12} />
-        </motion.button>
-      </motion.div>
+          <motion.div
+            role="button"
+            aria-label="Drag to reorder"
+            onPointerDown={e => { e.preventDefault(); e.stopPropagation(); controls.start(e); }}
+            whileHover={{ color: 'rgba(163,177,138,0.8)' }}
+            style={{
+              cursor: 'grab', padding: '0 8px', display: 'flex', alignItems: 'center',
+              color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
+            }}
+          >
+            <GripIcon size={13} />
+          </motion.div>
+
+          <div style={{
+            flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
+            background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(255,255,255,0.07)',
+            border: isActive ? '1px solid rgba(163,177,138,0.45)' : '1px solid rgba(255,255,255,0.09)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.63rem', fontWeight: 800,
+            color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+          }}>
+            {index + 1}
+          </div>
+
+          <div style={{
+            width: 40, height: 40, borderRadius: 7, flexShrink: 0,
+            background: thumb ? 'transparent' : 'rgba(255,255,255,0.07)',
+            overflow: 'hidden', border: '1px solid rgba(255,255,255,0.09)',
+          }}>
+            {thumb
+              ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Image size={13} color="rgba(255,255,255,0.22)" />
+                </div>}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: '0.88rem', fontWeight: 700,
+              fontFamily: 'var(--eg-font-heading, "Playfair Display", Georgia, serif)',
+              color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.9)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3,
+            }}>
+              {chapter.title || 'Untitled'}
+            </div>
+            {chapter.date && (
+              <div style={{
+                fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)',
+                marginTop: 2, display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <Clock size={9} style={{ flexShrink: 0, opacity: 0.65 }} />
+                <span>{chapter.date?.slice(0, 10)}</span>
+              </div>
+            )}
+          </div>
+
+          <ChevronRight size={14} color="rgba(255,255,255,0.22)" style={{ flexShrink: 0 }} />
+        </motion.div>
+      </div>
     </Reorder.Item>
   );
 }
@@ -246,8 +264,10 @@ export function MobileEditorSheet() {
     return () => { vv.removeEventListener('resize', handler); vv.removeEventListener('scroll', handler); };
   }, []);
 
-  // FAB + arc
-  const [arcOpen, setArcOpen] = useState(false);
+  // More drawer
+  const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
+  // Locked while an inner block drag is active (prevents sheet from snapping)
+  const [innerDragging, setInnerDragging] = useState(false);
 
   // Snap helpers
   const snapTo = useCallback((target: number) => {
@@ -409,6 +429,7 @@ export function MobileEditorSheet() {
           manifest={manifest}
           onChange={actions.handleDesignChange}
           pushToPreview={actions.pushToPreview}
+          onDragStateChange={setInnerDragging}
         />
       );
     }
@@ -469,106 +490,6 @@ export function MobileEditorSheet() {
 
   return (
     <>
-      {/* Arc backdrop */}
-      <AnimatePresence>
-        {arcOpen && (
-          <motion.div
-            key="arc-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={() => setArcOpen(false)}
-            style={{
-              position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.28)',
-              zIndex: 1090,
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Radial FAB + arc items */}
-      <div style={{
-        position: 'fixed',
-        bottom: 72,
-        left: FAB_LEFT,
-        zIndex: 1100,
-        pointerEvents: mobileSheetOpen ? 'none' : 'all',
-      }}>
-        <AnimatePresence>
-          {arcOpen && ARC_TABS.map((item, i) => {
-            const angleRad = (FAB_ANGLES[i] * Math.PI) / 180;
-            const x = Math.cos(angleRad) * RADIUS;
-            const y = -Math.sin(angleRad) * RADIUS;
-            const Icon = item.icon;
-            const isAct = activeTab === item.tab;
-            return (
-              <motion.button
-                key={item.tab}
-                initial={{ opacity: 0, x: 0, y: 0, scale: 0.5 }}
-                animate={{ opacity: 1, x, y, scale: 1 }}
-                exit={{ opacity: 0, x: 0, y: 0, scale: 0.5 }}
-                transition={{ type: 'spring', stiffness: 440, damping: 28, delay: i * 0.035 }}
-                onClick={() => {
-                  dispatch({ type: 'SET_ACTIVE_TAB', tab: item.tab });
-                  dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-                  setArcOpen(false);
-                }}
-                aria-label={item.label}
-                style={{
-                  position: 'absolute', bottom: 0, left: 0,
-                  width: 70, height: 50, borderRadius: 12,
-                  border: isAct ? '1.5px solid rgba(163,177,138,0.55)' : '1px solid rgba(255,255,255,0.12)',
-                  background: isAct ? 'rgba(163,177,138,0.22)' : 'rgba(18,14,11,0.92)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  color: isAct ? '#A3B18A' : 'rgba(214,198,168,0.75)',
-                  cursor: 'pointer',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.55)',
-                  zIndex: 1100,
-                  transform: `translate(${x}px, ${y}px)`,
-                }}
-              >
-                <Icon size={15} color="currentColor" />
-                <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
-                  {item.label}
-                </span>
-              </motion.button>
-            );
-          })}
-        </AnimatePresence>
-
-        {/* Main FAB */}
-        <motion.button
-          onTap={() => {
-            if (mobileSheetOpen) {
-              dispatch({ type: 'SET_MOBILE_SHEET', open: false });
-            } else {
-              setArcOpen(prev => !prev);
-            }
-          }}
-          whileTap={{ scale: 0.88 }}
-          animate={arcOpen ? { rotate: 45 } : { rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-          aria-label={arcOpen ? 'Close menu' : 'Open editor menu'}
-          style={{
-            position: 'relative', zIndex: 1101,
-            width: 52, height: 52, borderRadius: 16,
-            border: '1px solid rgba(255,255,255,0.12)',
-            background: 'rgba(18,14,11,0.95)',
-            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            color: 'rgba(214,198,168,0.88)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.06)',
-            pointerEvents: 'all',
-          }}
-        >
-          <PearlIcon size={22} color="rgba(214,198,168,0.88)" />
-        </motion.button>
-      </div>
-
       {/* Sheet */}
       <motion.div
         drag="y"
@@ -579,7 +500,7 @@ export function MobileEditorSheet() {
         onDragEnd={handleDragEnd}
         style={{
           y: sheetY,
-          position: 'fixed', bottom: 0, left: 0, right: 0,
+          position: 'fixed', bottom: BOTTOM_NAV_H, left: 0, right: 0,
           height: sheetH, zIndex: 1200,
           background: 'rgba(18,14,11,0.97)',
           backdropFilter: 'blur(40px) saturate(160%)',
@@ -594,7 +515,7 @@ export function MobileEditorSheet() {
       >
         {/* Handle pill */}
         <div
-          onPointerDown={e => { e.preventDefault(); sheetDragControls.start(e); }}
+          onPointerDown={e => { if (innerDragging) return; e.preventDefault(); sheetDragControls.start(e); }}
           style={{
             flexShrink: 0, paddingTop: 14, paddingBottom: 6,
             display: 'flex', justifyContent: 'center',
@@ -661,56 +582,12 @@ export function MobileEditorSheet() {
           </motion.button>
         </div>
 
-        {/* Tab bar */}
-        <div style={{
-          flexShrink: 0, display: 'flex', alignItems: 'stretch',
-          overflowX: 'auto', borderBottom: '1px solid rgba(255,255,255,0.05)',
-          WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none',
-        } as React.CSSProperties}>
-          {SHEET_TABS.map(tab => {
-            const Icon = TAB_ICONS[tab];
-            const isAct = activeTab === tab;
-            return (
-              <button
-                key={tab}
-                onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab })}
-                aria-label={TAB_SHORT[tab]}
-                style={{
-                  flex: '1 0 auto', minWidth: 44,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: 3, padding: '10px 4px', border: 'none', cursor: 'pointer',
-                  background: 'transparent',
-                  color: isAct ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
-                  position: 'relative', transition: 'color 0.15s',
-                }}
-              >
-                {isAct && (
-                  <motion.div
-                    layoutId="mobile-tab-accent"
-                    style={{
-                      position: 'absolute', inset: '4px 6px',
-                      background: 'rgba(214,198,168,0.1)', borderRadius: 10,
-                    }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <Icon size={18} color="currentColor" />
-                {isAct && (
-                  <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1, marginTop: 1 }}>
-                    {TAB_SHORT[tab]}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Scrollable content */}
         <div
           style={{
             flex: 1, overflowY: 'auto', overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',
-            paddingBottom: 96 + keyboardPad,
+            paddingBottom: 24 + keyboardPad,
           } as React.CSSProperties}
         >
           <AnimatePresence mode="wait">
@@ -756,6 +633,177 @@ export function MobileEditorSheet() {
           </div>
         )}
       </motion.div>
+
+      {/* ── Permanent Bottom Nav ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        zIndex: 1050,
+        height: `calc(${BOTTOM_NAV_H}px + env(safe-area-inset-bottom, 0px))`,
+        background: 'rgba(18,14,11,0.97)',
+        backdropFilter: 'blur(40px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(40px) saturate(160%)',
+        borderTop: '1px solid rgba(255,255,255,0.09)',
+        display: 'flex',
+        alignItems: 'stretch',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      } as React.CSSProperties}>
+        {PRIMARY_TABS.map(({ tab, icon: Icon, label }) => {
+          const isAct = activeTab === tab;
+          const showActive = isAct && mobileSheetOpen;
+          return (
+            <motion.button
+              key={tab}
+              onClick={() => {
+                if (isAct && mobileSheetOpen) {
+                  dispatch({ type: 'SET_MOBILE_SHEET', open: false });
+                } else {
+                  dispatch({ type: 'SET_ACTIVE_TAB', tab });
+                  dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+                }
+              }}
+              whileTap={{ scale: 0.85 }}
+              style={{
+                flex: 1, border: 'none', background: 'transparent', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 3,
+                color: showActive ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
+                position: 'relative', paddingTop: 8,
+              }}
+            >
+              <Icon size={19} color="currentColor" />
+              <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
+                {label}
+              </span>
+              {showActive && (
+                <motion.div
+                  layoutId="bottom-nav-dot"
+                  style={{
+                    position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
+                    width: 4, height: 4, borderRadius: '50%',
+                    background: 'rgba(163,177,138,0.9)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
+
+        {/* More button */}
+        {(() => {
+          const isSecondaryActive = SECONDARY_TABS.some(t => t.tab === activeTab) && mobileSheetOpen;
+          return (
+            <motion.button
+              onClick={() => setMoreDrawerOpen(true)}
+              whileTap={{ scale: 0.85 }}
+              style={{
+                flex: 1, border: 'none', background: 'transparent', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 3, paddingTop: 8,
+                color: isSecondaryActive ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
+                position: 'relative',
+              }}
+            >
+              <MoreHorizontal size={19} color="currentColor" />
+              <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
+                More
+              </span>
+              {isSecondaryActive && (
+                <motion.div
+                  layoutId="bottom-nav-dot"
+                  style={{
+                    position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
+                    width: 4, height: 4, borderRadius: '50%',
+                    background: 'rgba(163,177,138,0.9)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })()}
+      </div>
+
+      {/* ── More Drawer ── */}
+      <AnimatePresence>
+        {moreDrawerOpen && (
+          <>
+            <motion.div
+              key="more-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => setMoreDrawerOpen(false)}
+              style={{
+                position: 'fixed', inset: 0,
+                background: 'rgba(0,0,0,0.45)',
+                zIndex: 1290,
+              }}
+            />
+            <motion.div
+              key="more-drawer"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 380, damping: 38 }}
+              style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                zIndex: 1300,
+                background: 'rgba(22,17,13,0.99)',
+                backdropFilter: 'blur(40px)',
+                WebkitBackdropFilter: 'blur(40px)',
+                borderRadius: '20px 20px 0 0',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))',
+              } as React.CSSProperties}
+            >
+              <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)' }}>
+                  More Tools
+                </span>
+                <motion.button
+                  onClick={() => setMoreDrawerOpen(false)}
+                  whileTap={{ scale: 0.88 }}
+                  style={{
+                    background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
+                    width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'rgba(214,198,168,0.5)',
+                  }}
+                >
+                  <X size={13} />
+                </motion.button>
+              </div>
+              {SECONDARY_TABS.map(({ tab, icon: Icon, label }) => {
+                const isAct = activeTab === tab && mobileSheetOpen;
+                return (
+                  <motion.button
+                    key={tab}
+                    whileTap={{ backgroundColor: 'rgba(163,177,138,0.1)' }}
+                    onClick={() => {
+                      dispatch({ type: 'SET_ACTIVE_TAB', tab });
+                      dispatch({ type: 'SET_MOBILE_SHEET', open: true });
+                      setMoreDrawerOpen(false);
+                    }}
+                    style={{
+                      width: '100%', border: 'none',
+                      background: isAct ? 'rgba(163,177,138,0.08)' : 'transparent',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '13px 20px',
+                      color: isAct ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.65)',
+                      borderLeft: `2px solid ${isAct ? 'rgba(163,177,138,0.6)' : 'transparent'}`,
+                    }}
+                  >
+                    <Icon size={17} color="currentColor" />
+                    <span style={{ flex: 1, textAlign: 'left', fontSize: '0.88rem', fontWeight: isAct ? 700 : 500 }}>{label}</span>
+                    <ChevronRight size={14} color="rgba(214,198,168,0.25)" />
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

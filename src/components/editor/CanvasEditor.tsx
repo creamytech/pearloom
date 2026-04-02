@@ -17,7 +17,6 @@ import {
   Plus, Eye, EyeOff, Trash2,
   ChevronDown, ChevronRight, X,
   Sparkles, LayoutTemplate,
-  ChevronUp,
 } from 'lucide-react';
 import {
   BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,
@@ -365,7 +364,7 @@ function EventBlockConfig({ events, onChange }: {
 // ── Block Row ──────────────────────────────────────────────────
 function BlockRow({
   block, def, isActive, onSelect, onToggle, onDelete, dragHandleProps,
-  isMobile, onMoveUp, onMoveDown, canMoveUp, canMoveDown,
+  isMobile,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
@@ -375,10 +374,6 @@ function BlockRow({
   onDelete: (id: string) => void;
   dragHandleProps: DragHandleProps;
   isMobile?: boolean;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
-  canMoveUp?: boolean;
-  canMoveDown?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const Icon = def?.icon || LayoutTemplate;
@@ -408,56 +403,26 @@ function BlockRow({
         boxShadow: isActive ? `0 2px 16px ${color}14, 0 0 0 1px ${color}08` : 'none',
       }}
     >
-      {/* Mobile: up/down reorder buttons — no scroll conflict */}
-      {isMobile ? (
-        <div onClick={e => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
-          <button
-            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); onMoveUp?.(); }}
-            disabled={!canMoveUp}
-            style={{
-              background: 'none', border: 'none', cursor: canMoveUp ? 'pointer' : 'default',
-              color: canMoveUp ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '28px', height: '26px', borderRadius: '5px',
-              transition: 'color 0.12s, background 0.12s',
-            }}
-          >
-            <ChevronUp size={16} />
-          </button>
-          <button
-            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); onMoveDown?.(); }}
-            disabled={!canMoveDown}
-            style={{
-              background: 'none', border: 'none', cursor: canMoveDown ? 'pointer' : 'default',
-              color: canMoveDown ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '28px', height: '26px', borderRadius: '5px',
-              transition: 'color 0.12s, background 0.12s',
-            }}
-          >
-            <ChevronDown size={16} />
-          </button>
-        </div>
-      ) : (
-        /* Desktop: drag handle */
-        <div
-          {...dragHandleProps}
-          onClick={e => e.stopPropagation()}
-          style={{
-            ...dragHandleProps.style,
-            color: 'rgba(255,255,255,0.25)',
-            display: 'flex',
-            flexShrink: 0,
-            padding: '4px',
-            borderRadius: '4px',
-            transition: 'color 0.15s',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
-        >
-          <GripIcon size={14} />
-        </div>
-      )}
+      {/* Drag handle — unified for mobile and desktop */}
+      <div
+        {...dragHandleProps}
+        onClick={e => e.stopPropagation()}
+        onTouchStart={e => e.stopPropagation()}
+        aria-label="Hold and drag to reorder"
+        style={{
+          ...dragHandleProps.style,
+          color: 'rgba(255,255,255,0.25)',
+          display: 'flex',
+          flexShrink: 0,
+          padding: isMobile ? '8px 10px' : '4px',
+          borderRadius: '4px',
+          transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+      >
+        <GripIcon size={isMobile ? 16 : 14} />
+      </div>
 
       {/* Icon */}
       <div style={{
@@ -1135,9 +1100,10 @@ interface CanvasEditorProps {
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
   pushToPreview: (m: StoryManifest) => void;
+  onDragStateChange?: (dragging: boolean) => void;
 }
 
-export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditorProps) {
+export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateChange }: CanvasEditorProps) {
   // 'main' = main page, otherwise a custom page ID
   const [activePage, setActivePage] = useState<string>('main');
   const [showAddPage, setShowAddPage] = useState(false);
@@ -1215,6 +1181,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
     ghostOffsetRef,
   });
 
+  // Notify parent when drag state changes (used to lock sheet dragging)
+  useEffect(() => {
+    onDragStateChange?.(isDragging);
+  }, [isDragging, onDragStateChange]);
+
   const toggleVisible = useCallback((id: string) => {
     commit(blocks.map(b => b.id === id ? { ...b, visible: !b.visible } : b));
   }, [blocks, commit]);
@@ -1223,16 +1194,6 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
     commit(blocks.filter(b => b.id !== id));
     if (activeBlockId === id) setActiveBlockId(null);
   }, [blocks, commit, activeBlockId]);
-
-  // Mobile: swap a block up or down by one slot
-  const moveBlock = useCallback((id: string, dir: 1 | -1) => {
-    const list = [...(dragOrderedBlocks.length ? dragOrderedBlocks : blocks)];
-    const from = list.findIndex(b => b.id === id);
-    const to = from + dir;
-    if (to < 0 || to >= list.length) return;
-    [list[from], list[to]] = [list[to], list[from]];
-    commit(list);
-  }, [dragOrderedBlocks, blocks, commit]);
 
   const addBlock = useCallback((type: BlockType) => {
     const id = `block-${type}-${Date.now()}`;
@@ -1390,7 +1351,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
             {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Page Sections'}
           </span>
           <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.2)' }}>
-            click to edit · drag to reorder
+            {isMobile ? 'tap to edit · hold to drag' : 'click to edit · drag to reorder'}
           </span>
         </div>
 
@@ -1484,10 +1445,6 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                   onDelete={deleteBlock}
                   dragHandleProps={handleProps}
                   isMobile={isMobile}
-                  onMoveUp={() => moveBlock(block.id, -1)}
-                  onMoveDown={() => moveBlock(block.id, 1)}
-                  canMoveUp={idx > 0}
-                  canMoveDown={idx < N - 1}
                 />
                 {/* Drop indicator line — after the last item */}
                 {showDropLineAfter && (
