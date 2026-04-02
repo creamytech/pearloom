@@ -206,10 +206,13 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
 
   const handleDeviceFileSelect = useCallback((files: FileList | null) => {
     if (!files) return;
-    const valid = Array.from(files).filter(f => f.type.startsWith('image/') && f.size < 30 * 1024 * 1024);
+    const valid = Array.from(files).filter(f => {
+      // iOS reports HEIC files with type='' — accept those too rather than silently dropping
+      const typeOk = f.type.startsWith('image/') || f.type === '' || f.type === 'image/heic' || f.type === 'image/heif';
+      return typeOk && f.size < 50 * 1024 * 1024; // 50 MB cap
+    });
     const capped = valid.slice(0, maxSelection);
     setDeviceFiles(capped);
-    // Create local preview URLs
     const previews = capped.map(f => URL.createObjectURL(f));
     setDevicePreviews(previews);
     if (capped.length > 0) setState('device-selecting');
@@ -220,60 +223,81 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
     setState('device-uploading');
     setUploadProgress({ done: 0, total: deviceFiles.length });
 
-    const results: GooglePhotoMetadata[] = [];
+    const results: (GooglePhotoMetadata | null)[] = new Array(deviceFiles.length).fill(null);
+    let doneCount = 0;
 
-    for (let i = 0; i < deviceFiles.length; i++) {
-      const file = deviceFiles[i];
-      try {
-        // Get image dimensions
-        const dims = await new Promise<{ w: number; h: number }>((res) => {
-          const img = new Image();
-          const url = URL.createObjectURL(file);
-          img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
-          img.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
-          img.src = url;
-        });
-
-        // Upload to R2
-        const formData = new FormData();
-        formData.append('file', file);
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!uploadRes.ok) {
-          const errData = await uploadRes.json().catch(() => ({ error: `HTTP ${uploadRes.status}` }));
-          console.error(`[PhotoBrowser] Upload failed for ${file.name}:`, errData.error);
-          continue;
-        }
-        const uploadData = await uploadRes.json();
-
-        if (uploadData.publicUrl) {
-          results.push({
-            id: `device-${Date.now()}-${i}`,
-            filename: file.name,
-            mimeType: file.type,
-            creationTime: new Date(file.lastModified || Date.now()).toISOString(),
-            width: dims.w,
-            height: dims.h,
-            baseUrl: uploadData.publicUrl,
-            location: undefined,
+    // Upload one file with up to 2 retries
+    const uploadOne = async (file: File, index: number) => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const dims = await new Promise<{ w: number; h: number }>((res) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(url); };
+            img.onerror = () => { res({ w: 0, h: 0 }); URL.revokeObjectURL(url); };
+            img.src = url;
           });
+
+          const formData = new FormData();
+          formData.append('file', file);
+          const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+          if (!uploadRes.ok) {
+            const errData = await uploadRes.json().catch(() => ({ error: `HTTP ${uploadRes.status}` }));
+            throw new Error(errData.error || `HTTP ${uploadRes.status}`);
+          }
+          const uploadData = await uploadRes.json();
+          if (uploadData.publicUrl) {
+            results[index] = {
+              id: `device-${Date.now()}-${index}`,
+              filename: file.name,
+              mimeType: file.type || 'image/jpeg',
+              creationTime: new Date(file.lastModified || Date.now()).toISOString(),
+              width: dims.w,
+              height: dims.h,
+              baseUrl: uploadData.publicUrl,
+              location: undefined,
+            };
+            break; // success — stop retrying
+          }
+        } catch (err) {
+          if (attempt < 2) {
+            // Brief back-off before retry (0.8s, 1.6s)
+            await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+          } else {
+            console.error(`[PhotoBrowser] ${file.name} failed after 3 attempts:`, err);
+          }
         }
-      } catch {
-        // Skip failed uploads silently
       }
-      setUploadProgress({ done: i + 1, total: deviceFiles.length });
+      doneCount++;
+      setUploadProgress({ done: doneCount, total: deviceFiles.length });
+    };
+
+    // Upload in batches of 3 concurrent to stay fast but not overwhelm mobile network
+    const CONCURRENCY = 3;
+    for (let i = 0; i < deviceFiles.length; i += CONCURRENCY) {
+      await Promise.all(
+        deviceFiles.slice(i, i + CONCURRENCY).map((f, j) => uploadOne(f, i + j))
+      );
     }
 
     // Clean up preview URLs
     devicePreviews.forEach(url => URL.revokeObjectURL(url));
 
-    if (results.length > 0) {
-      setPhotos(results);
-      setSelected(new Set(results.map(p => p.id)));
-      onSelectionChange(results);
+    const successful = results.filter((r): r is GooglePhotoMetadata => r !== null);
+    const failCount = deviceFiles.length - successful.length;
+
+    if (successful.length > 0) {
+      setPhotos(successful);
+      setSelected(new Set(successful.map(p => p.id)));
+      onSelectionChange(successful);
+      if (failCount > 0) {
+        // Partial success — show the grid so they can continue, but surface the failure count
+        setError(`${failCount} photo${failCount > 1 ? 's' : ''} failed to upload and were skipped.`);
+      }
       setState('done');
     } else {
       setState('error');
-      setError('No photos could be uploaded. Please try again.');
+      setError('No photos could be uploaded. Check your connection and try again.');
     }
   }, [deviceFiles, devicePreviews, onSelectionChange]);
 
@@ -595,6 +619,21 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
   // ── GRID GALLERY ──
   return (
     <div style={{ padding: '0 0.5rem' }}>
+      {/* Partial-upload failure banner */}
+      {error && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.5rem',
+          padding: '0.75rem 1rem', marginBottom: '1rem',
+          background: '#fff7ed', border: '1px solid #fed7aa',
+          borderRadius: card.radius, fontSize: text.sm, color: '#92400e',
+        }}>
+          <AlertCircle size={15} style={{ flexShrink: 0 }} />
+          <span>{error}</span>
+          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', padding: 0 }}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
