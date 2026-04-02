@@ -52,7 +52,14 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
   };
 
   const updateFont = (key: 'heading' | 'body', val: string) => {
-    onChange({ ...manifest, theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } } });
+    onChange({
+      ...manifest,
+      theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } },
+      vibeSkin: manifest.vibeSkin ? {
+        ...manifest.vibeSkin,
+        fonts: { ...manifest.vibeSkin.fonts, [key]: val },
+      } : manifest.vibeSkin,
+    });
   };
 
   const handleThemeApply = (newSkin: VibeSkin) => {
@@ -82,21 +89,17 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-      {/* ── Theme Switcher ── */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
+      {/* ── Theme — full aesthetic preset + AI regenerate ── */}
+      <SidebarSection title="Theme" defaultOpen={true}>
         <ThemeSwitcher
           currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
           manifest={manifest}
           onApply={handleThemeApply}
         />
-      </div>
-
-      {/* Regenerate + tone badge */}
-      <div id="design-customization" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {vibeSkin?.tone && (
             <span style={{
-              display: 'inline-block', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em',
+              fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em',
               textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)',
               background: 'rgba(163,177,138,0.12)', padding: '4px 12px', borderRadius: '100px',
               border: '1px solid rgba(163,177,138,0.2)',
@@ -118,16 +121,18 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
             }}
           >
             <DesignIcon size={13} />
-            {isRegenerating ? 'Generating…' : 'Regenerate design'}
+            {isRegenerating ? 'Generating…' : 'Regenerate with AI'}
           </button>
         </div>
         {regenError && (
           <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '6px' }}>{regenError}</p>
         )}
-      </div>
+      </SidebarSection>
 
-      {/* AI palette + pattern picker */}
-      <ColorPalettePanel manifest={manifest} onChange={onChange} />
+      {/* ── Colors — tweak individual colors or generate AI background art ── */}
+      <SidebarSection title="Colors" defaultOpen={true}>
+        <ColorPalettePanel manifest={manifest} onChange={onChange} />
+      </SidebarSection>
 
       {/* ── Visual Effects (shaders, mesh, grain, etc.) — open by default ── */}
       <SidebarSection title="Visual Effects" defaultOpen>
@@ -144,7 +149,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       </SidebarSection>
 
       {/* Typography — full font pair picker */}
-      <SidebarSection title="Typography" defaultOpen={false}>
+      <SidebarSection title="Typography" defaultOpen={true}>
         <FontPicker
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
@@ -153,7 +158,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       </SidebarSection>
 
       {/* AI Art Manager — hero, ambient, art strip */}
-      <SidebarSection title="AI Art" defaultOpen={false}>
+      <SidebarSection title="AI Art" defaultOpen={true}>
         {manifest.vibeSkin ? (
           <ArtManager manifest={manifest} onUpdate={(updates) => onChange({ ...manifest, ...updates })} />
         ) : (
@@ -173,7 +178,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       </SidebarSection>
 
       {/* Asset Library */}
-      <SidebarSection title="Asset Library" defaultOpen={false}>
+      <SidebarSection title="Asset Library" defaultOpen={true}>
         <p style={{ fontSize: '0.82rem', color: 'rgba(214,198,168,0.5)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
@@ -181,6 +186,22 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
           onSelect={(asset) => {
             // Store last-selected asset on manifest for canvas insertion
             onChange({ ...manifest, lastAsset: asset as StoryManifest['lastAsset'] });
+          }}
+          onAddSticker={(asset) => {
+            const newSticker: import('@/types').StickerItem = {
+              id: `sticker-${Date.now()}`,
+              name: asset.name,
+              type: asset.type as 'illustrations' | 'accents' | 'dividers',
+              x: 20 + Math.random() * 60,
+              y: 20 + Math.random() * 60,
+              size: 80,
+              rotation: (Math.random() * 30) - 15,
+              opacity: 0.85,
+            };
+            onChange({
+              ...manifest,
+              stickers: [...(manifest.stickers || []), newSticker],
+            });
           }}
         />
       </SidebarSection>

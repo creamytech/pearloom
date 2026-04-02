@@ -9,6 +9,7 @@ type AssetCategory = 'dividers' | 'illustrations' | 'accents';
 
 interface AssetPickerProps {
   onSelect: (asset: { id: string; type: AssetCategory; name: string }) => void;
+  onAddSticker?: (asset: { id: string; type: AssetCategory; name: string }) => void;
   selectedId?: string;
 }
 
@@ -18,8 +19,9 @@ const TAB_LABELS: { key: AssetCategory; label: string }[] = [
   { key: 'accents', label: 'Accents' },
 ];
 
-export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
+export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerProps) {
   const [activeCategory, setActiveCategory] = useState<AssetCategory>('illustrations');
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   const containerStyle: React.CSSProperties = {
     background: '#1E1B16',
@@ -118,12 +120,23 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
           return (
             <div
               key={name}
-              style={cellStyle(isSelected)}
-              onClick={() => onSelect({ id: name, type: 'illustrations', name })}
+              style={{ ...cellStyle(isSelected), position: 'relative' }}
+              onClick={() => {
+                const asset = { id: name, type: 'illustrations' as AssetCategory, name };
+                onSelect(asset);
+                if (onAddSticker) {
+                  onAddSticker(asset);
+                  setAddedId(name);
+                  setTimeout(() => setAddedId(null), 2000);
+                }
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'illustrations', name })}
             >
+              {addedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+              )}
               <Comp size={32} color="rgba(255,255,255,0.75)" />
               <span style={labelStyle}>{name.replace('Illustration', '')}</span>
             </div>
@@ -143,12 +156,23 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
           return (
             <div
               key={name}
-              style={cellStyle(isSelected)}
-              onClick={() => onSelect({ id: name, type: 'accents', name })}
+              style={{ ...cellStyle(isSelected), position: 'relative' }}
+              onClick={() => {
+                const asset = { id: name, type: 'accents' as AssetCategory, name };
+                onSelect(asset);
+                if (onAddSticker) {
+                  onAddSticker(asset);
+                  setAddedId(name);
+                  setTimeout(() => setAddedId(null), 2000);
+                }
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'accents', name })}
             >
+              {addedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+              )}
               <Comp size={32} color="rgba(255,255,255,0.75)" />
               <span style={labelStyle}>{name.replace('Accent', '')}</span>
             </div>
@@ -168,12 +192,23 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
           return (
             <div
               key={name}
-              style={dividerRowStyle(isSelected)}
-              onClick={() => onSelect({ id: name, type: 'dividers', name })}
+              style={{ ...dividerRowStyle(isSelected), position: 'relative' }}
+              onClick={() => {
+                const asset = { id: name, type: 'dividers' as AssetCategory, name };
+                onSelect(asset);
+                if (onAddSticker) {
+                  onAddSticker(asset);
+                  setAddedId(name);
+                  setTimeout(() => setAddedId(null), 2000);
+                }
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'dividers', name })}
             >
+              {addedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+              )}
               <div style={{ flex: 1, height: '32px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                 <Comp width="100%" height={32} color="rgba(255,255,255,0.75)" />
               </div>
@@ -198,6 +233,11 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
           </button>
         ))}
       </div>
+      {onAddSticker && (
+        <p style={{ fontSize: '0.7rem', color: 'rgba(163,177,138,0.7)', margin: '8px 12px 0', lineHeight: 1.4 }}>
+          Click to add sticker &bull; Drag to position
+        </p>
+      )}
       <div style={scrollAreaStyle}>
         {activeCategory === 'illustrations' && renderIllustrations()}
         {activeCategory === 'accents' && renderAccents()}

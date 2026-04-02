@@ -5,7 +5,7 @@
 // One-click preset theme switching with live preview
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { WAVE_PATHS } from '@/lib/vibe-engine';
@@ -478,10 +478,17 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
         <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
       </div>
 
-      {/* 3-column grid */}
+      {/* Horizontal scroll row */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px',
-      }}>
+        display: 'flex',
+        gap: '8px',
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        paddingBottom: '4px',
+        margin: '0 -4px',
+        padding: '0 4px 4px',
+      } as React.CSSProperties}>
         {PRESET_THEMES.map((theme) => {
           const isActive = theme.name === (activePresetName);
           const isSelected = theme.name === pendingName;
@@ -497,6 +504,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
               whileHover={{ scale: 1.04, y: -1 }}
               whileTap={{ scale: 0.97 }}
               style={{
+                flex: '0 0 auto', width: '120px',
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                 padding: 0, borderRadius: '8px', border: 'none', cursor: 'pointer',
                 background: 'rgba(255,255,255,0.04)',
@@ -511,7 +519,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
             >
               {/* Color swatch strip */}
               <div style={{
-                display: 'flex', height: '28px',
+                display: 'flex', height: '40px',
               }}>
                 <div style={{ flex: 3, background: theme.palette.background }} />
                 <div style={{ flex: 1, background: theme.palette.accent }} />
@@ -524,7 +532,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                 background: isSelected ? 'rgba(107,124,63,0.15)' : 'transparent',
               }}>
                 <div style={{
-                  fontSize: '0.62rem', fontWeight: 700,
+                  fontSize: '0.7rem', fontWeight: 700,
                   color: isSelected ? '#b4c87a' : 'rgba(255,255,255,0.75)',
                   lineHeight: 1.3, marginBottom: '1px',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -532,7 +540,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                   {theme.name}
                 </div>
                 <div style={{
-                  fontSize: '0.62rem', color: 'rgba(255,255,255,0.25)',
+                  fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)',
                   lineHeight: 1.3,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
@@ -576,22 +584,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
         Apply Theme
       </motion.button>
 
-      {/* Customize link */}
-      <div style={{ textAlign: 'center' }}>
-        <button
-          onClick={() => {
-            const el = document.getElementById('design-customization');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: '0.65rem', color: 'rgba(163,177,138,0.7)',
-            textDecoration: 'underline', padding: '2px',
-          }}
-        >
-          Customize colors &amp; fonts below
-        </button>
-      </div>
+
     </div>
   );
 }

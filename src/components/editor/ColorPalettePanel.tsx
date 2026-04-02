@@ -175,7 +175,7 @@ interface ColorPalettePanelProps {
 export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePanelProps) {
   const theme = manifest.theme || PRESET_PALETTES[0];
   const [colors, setColors] = useState<ThemeSchema['colors']>(theme.colors || PRESET_PALETTES[0].colors);
-  const [activeTab, setActiveTab] = useState<'presets' | 'custom' | 'ai-art'>('presets');
+  const [activeTab, setActiveTab] = useState<'custom' | 'ai-art'>('custom');
 
   // AI Art state
   const [place, setPlace] = useState('');
@@ -278,9 +278,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
   };
 
   const tabs = [
-    { id: 'presets',  label: 'Presets' },
-    { id: 'custom',   label: 'Custom' },
-    { id: 'ai-art',   label: 'AI Art' },
+    { id: 'custom',   label: 'Custom Colors' },
+    { id: 'ai-art',   label: 'AI Background' },
   ] as const;
 
   return (
@@ -306,42 +305,6 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           </button>
         ))}
       </div>
-
-      {/* ── Presets tab ── */}
-      {activeTab === 'presets' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-          {PRESET_PALETTES.map(preset => {
-            const isCurrent = preset.colors.accent === colors.accent && preset.colors.background === colors.background;
-            return (
-              <motion.button
-                key={preset.name}
-                onClick={() => applyPreset(preset)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  display: 'flex', flexDirection: 'column', gap: '5px', padding: '8px',
-                  borderRadius: '10px',
-                  border: `1.5px solid ${isCurrent ? preset.colors.accent : 'rgba(255,255,255,0.07)'}`,
-                  background: 'rgba(255,255,255,0.03)', cursor: 'pointer', textAlign: 'left',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {/* Color preview row */}
-                <div style={{ display: 'flex', gap: '3px', height: '18px' }}>
-                  {[preset.colors.background, preset.colors.accent, preset.colors.accentLight, preset.colors.foreground].map((c, i) => (
-                    <div key={i} style={{ flex: 1, borderRadius: '3px', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
-                  ))}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#fff' }}>{preset.name}</span>
-                  {isCurrent && <Check size={9} color={preset.colors.accent} style={{ marginLeft: 'auto' }} />}
-                </div>
-                <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.3 }}>{preset.description}</span>
-              </motion.button>
-            );
-          })}
-        </div>
-      )}
 
       {/* ── Custom tab ── */}
       {activeTab === 'custom' && (

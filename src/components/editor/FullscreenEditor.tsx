@@ -615,18 +615,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 )}
 
                 {state.activeTab === 'voice' && (
-                  <div style={{ padding: '4px 0' }}>
-                    <div style={{ marginBottom: '12px', padding: '0 16px' }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>AI Voice Training</span>
-                      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', lineHeight: 1.5 }}>Teach the chatbot to speak like you.</p>
-                    </div>
-                    <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '12px', margin: '0 16px' }}>
-                      <VoiceTrainerPanel
-                        voiceSamples={manifest.voiceSamples || []}
-                        onChange={(samples) => { const updated = { ...manifest, voiceSamples: samples }; onChange(updated); pushToPreview(updated); }}
-                      />
-                    </div>
-                  </div>
+                  <VoiceTrainerPanel
+                    voiceSamples={manifest.voiceSamples || []}
+                    onChange={(samples) => { const updated = { ...manifest, voiceSamples: samples }; onChange(updated); pushToPreview(updated); }}
+                  />
                 )}
 
                 {state.activeTab === 'messaging' && (
@@ -634,39 +626,27 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 )}
 
                 {state.activeTab === 'guests' && (
-                  <div style={{ padding: '8px 0' }}>
-                    <GuestSearchPanel siteId={state.subdomain} />
-                  </div>
+                  <GuestSearchPanel siteId={state.subdomain} />
                 )}
 
                 {state.activeTab === 'invite' && (
-                  <div style={{ padding: '8px 0' }}>
-                    <BulkInvitePanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
-                  </div>
+                  <BulkInvitePanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
                 )}
 
                 {state.activeTab === 'seating' && (
-                  <div style={{ padding: '8px 0' }}>
-                    <SeatingEditorPanel siteId={state.subdomain} />
-                  </div>
+                  <SeatingEditorPanel siteId={state.subdomain} />
                 )}
 
                 {state.activeTab === 'analytics' && (
-                  <div style={{ padding: '4px 0' }}>
-                    <AnalyticsDashboardPanel siteId={state.subdomain} />
-                  </div>
+                  <AnalyticsDashboardPanel siteId={state.subdomain} />
                 )}
 
                 {state.activeTab === 'translate' && (
-                  <div style={{ padding: '4px 0' }}>
-                    <TranslationPanel manifest={manifest} onChange={handleDesignChange} />
-                  </div>
+                  <TranslationPanel manifest={manifest} onChange={handleDesignChange} />
                 )}
 
                 {state.activeTab === 'savethedate' && (
-                  <div style={{ padding: '4px 0' }}>
-                    <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
-                  </div>
+                  <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
                 )}
               </motion.div>
             </AnimatePresence>

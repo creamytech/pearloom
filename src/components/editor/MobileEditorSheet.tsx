@@ -9,7 +9,7 @@ import {
   motion, AnimatePresence, useMotionValue, animate,
   useDragControls, Reorder,
 } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight, Mail, Users, Send, X, Eye } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon, GripIcon,
@@ -27,25 +27,30 @@ const AIBlocksPanelLazy     = dynamic(() => import('./AIBlocksPanel').then(m => 
 const VoiceTrainerPanelLazy = dynamic(() => import('./VoiceTrainerPanel').then(m => ({ default: m.VoiceTrainerPanel })), { ssr: false });
 const CanvasEditorLazy      = dynamic(() => import('./CanvasEditor').then(m => ({ default: m.CanvasEditor })), { ssr: false });
 const ChapterPanelLazy      = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
+const MessagingPanelLazy    = dynamic(() => import('@/components/dashboard/MessagingPanel').then(m => ({ default: m.MessagingPanel })), { ssr: false });
+const GuestSearchPanelLazy  = dynamic(() => import('./GuestSearchPanel').then(m => ({ default: m.GuestSearchPanel })), { ssr: false });
+const BulkInvitePanelLazy   = dynamic(() => import('./BulkInvitePanel').then(m => ({ default: m.BulkInvitePanel })), { ssr: false });
 
 // Constants
 const RADIUS    = 126;
 const FAB_ANGLES = [90, 68, 46, 24, 2] as const;
 const FAB_LEFT  = 26;
 
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'guests' | 'invite';
 type StorySubview = 'list' | 'editor';
 
 const TAB_LABELS: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story Chapters', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
   blocks: 'AI Blocks', voice: 'Voice',
+  messaging: 'Message Guests', guests: 'Guest List', invite: 'Send Invitations',
 };
 
 const TAB_SHORT: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
   blocks: 'AI', voice: 'Voice',
+  messaging: 'Messages', guests: 'Guests', invite: 'Invites',
 };
 
 const ARC_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
@@ -56,12 +61,13 @@ const ARC_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }
   { tab: 'canvas',  icon: SectionsIcon, label: 'Sections' },
 ];
 
-const SHEET_TABS: EditorTab[] = ['story', 'canvas', 'events', 'design', 'details', 'blocks', 'voice'];
+const SHEET_TABS: EditorTab[] = ['story', 'events', 'canvas', 'design', 'details', 'pages', 'blocks', 'voice', 'messaging', 'guests', 'invite'];
 
 const TAB_ICONS: Record<EditorTab, React.ElementType> = {
   story: StoryIcon, canvas: SectionsIcon, events: EventsIcon,
   design: DesignIcon, details: DetailsIcon, blocks: AIBlocksIcon,
   voice: VoiceIcon, pages: DetailsIcon,
+  messaging: Mail, guests: Users, invite: Send,
 };
 
 // Helper
@@ -443,6 +449,21 @@ export function MobileEditorSheet() {
         />
       );
     }
+    if (activeTab === 'messaging') {
+      return <MessagingPanelLazy manifest={manifest} siteId={subdomain} subdomain={subdomain} />;
+    }
+    if (activeTab === 'guests') {
+      return <GuestSearchPanelLazy siteId={subdomain} />;
+    }
+    if (activeTab === 'invite') {
+      return (
+        <BulkInvitePanelLazy
+          manifest={manifest}
+          siteId={subdomain}
+          subdomain={subdomain}
+        />
+      );
+    }
     return null;
   }
 
@@ -615,9 +636,9 @@ export function MobileEditorSheet() {
           </AnimatePresence>
 
           <span style={{
-            flex: 1, fontSize: '1.1rem',
+            flex: 1, fontSize: '1.2rem',
             fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
-            fontStyle: 'italic', fontWeight: 500, letterSpacing: '-0.01em',
+            fontStyle: 'italic', fontWeight: 600, letterSpacing: '-0.01em',
             color: 'rgba(214,198,168,0.92)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
@@ -626,18 +647,17 @@ export function MobileEditorSheet() {
 
           <motion.button
             onClick={() => dispatch({ type: 'SET_MOBILE_SHEET', open: false })}
-            whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-            whileTap={{ scale: 0.93 }}
-            transition={{ duration: 0.13 }}
+            whileTap={{ scale: 0.88 }}
             style={{
-              padding: '6px 14px', borderRadius: 20,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(214,198,168,0.65)', cursor: 'pointer',
-              fontSize: '0.8rem', fontWeight: 600, flexShrink: 0,
+              width: 32, height: 32, borderRadius: '50%',
+              border: 'none',
+              background: 'rgba(255,255,255,0.08)',
+              color: 'rgba(214,198,168,0.55)',
+              cursor: 'pointer', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            Done
+            <X size={14} />
           </motion.button>
         </div>
 
@@ -656,32 +676,30 @@ export function MobileEditorSheet() {
                 onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab })}
                 aria-label={TAB_SHORT[tab]}
                 style={{
-                  flex: '1 0 auto', minWidth: 54,
+                  flex: '1 0 auto', minWidth: 44,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: 3, padding: '8px 4px', border: 'none', cursor: 'pointer',
-                  background: isAct ? 'rgba(214,198,168,0.08)' : 'transparent',
-                  color: isAct ? 'rgba(214,198,168,0.92)' : 'rgba(214,198,168,0.3)',
-                  position: 'relative', transition: 'color 0.15s, background 0.15s',
+                  gap: 3, padding: '10px 4px', border: 'none', cursor: 'pointer',
+                  background: 'transparent',
+                  color: isAct ? 'rgba(214,198,168,0.95)' : 'rgba(214,198,168,0.28)',
+                  position: 'relative', transition: 'color 0.15s',
                 }}
               >
                 {isAct && (
                   <motion.div
                     layoutId="mobile-tab-accent"
                     style={{
-                      position: 'absolute', bottom: 0, left: '12%', right: '12%',
-                      height: 2, background: 'rgba(214,198,168,0.55)',
-                      borderRadius: '2px 2px 0 0',
+                      position: 'absolute', inset: '4px 6px',
+                      background: 'rgba(214,198,168,0.1)', borderRadius: 10,
                     }}
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
-                <Icon size={15} color="currentColor" />
-                <span style={{
-                  fontSize: '0.58rem', fontWeight: 700,
-                  letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1,
-                }}>
-                  {TAB_SHORT[tab]}
-                </span>
+                <Icon size={18} color="currentColor" />
+                {isAct && (
+                  <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1, marginTop: 1 }}>
+                    {TAB_SHORT[tab]}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -720,19 +738,20 @@ export function MobileEditorSheet() {
           }}>
             <motion.button
               onClick={() => actions.pushToPreview(manifest)}
-              whileHover={{ backgroundColor: 'rgba(163,177,138,0.22)' }}
               whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.13 }}
               style={{
-                width: '100%', padding: '12px', borderRadius: 12,
-                border: '1px solid rgba(163,177,138,0.3)',
-                background: 'rgba(163,177,138,0.12)', color: '#A3B18A',
-                cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
-                letterSpacing: '0.04em',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                width: '100%', padding: '13px 16px', borderRadius: 14,
+                border: '1px solid rgba(163,177,138,0.35)',
+                background: 'linear-gradient(135deg, rgba(163,177,138,0.18) 0%, rgba(163,177,138,0.08) 100%)',
+                color: '#A3B18A',
+                cursor: 'pointer', fontSize: '0.88rem', fontWeight: 700,
+                letterSpacing: '0.03em',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                boxShadow: '0 1px 0 rgba(163,177,138,0.1) inset',
               }}
             >
-              Preview on {subdomain || 'your site'}
+              <Eye size={15} color="#A3B18A" />
+              Preview live site
             </motion.button>
           </div>
         )}

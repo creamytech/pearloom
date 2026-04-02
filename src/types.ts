@@ -106,6 +106,8 @@ export interface StoryManifest {
     photoWall?: boolean;
     postWedding?: boolean;
   };
+  // Decorative SVG stickers placed on the site
+  stickers?: StickerItem[];
 }
 
 export interface Chapter {
@@ -695,4 +697,16 @@ export interface PlaceResult {
   website?: string;
   phone?: string;
   types?: string[];
+}
+
+export interface StickerItem {
+  id: string;
+  name: string;          // SVG component name e.g. 'RoseIllustration'
+  type: 'illustrations' | 'accents' | 'dividers';
+  x: number;             // left % (0-100)
+  y: number;             // top % (0-100)
+  size: number;          // px size
+  rotation: number;      // degrees
+  opacity: number;       // 0-1
+  color?: string;
 }
