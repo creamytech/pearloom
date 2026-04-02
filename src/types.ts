@@ -417,6 +417,16 @@ export interface PageBlock {
   visible: boolean;
   // Optional per-block config overrides
   config?: Record<string, unknown>;
+  /** Per-block visual effects — override or supplement global theme effects */
+  blockEffects?: {
+    /** Entrance animation when this section scrolls into view */
+    scrollReveal?: 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in';
+    /** Custom SVG divider above this block (replaces the auto WaveDivider) */
+    dividerAbove?: {
+      style: 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';
+      height: number;
+    } | null;
+  };
 }
 
 

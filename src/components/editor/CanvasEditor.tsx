@@ -814,10 +814,174 @@ function BlockConfigPanel({
     }
   })();
 
+  // ── updateBlockEffects — writes to block.blockEffects ───────
+  const updateBlockEffects = (patch: Partial<NonNullable<PageBlock['blockEffects']>>) => {
+    const next = { ...block.blockEffects, ...patch };
+    if (typeof blocksKey === 'string') {
+      onChange({
+        ...manifest,
+        blocks: (manifest.blocks || []).map(b =>
+          b.id === block.id ? { ...b, blockEffects: next } : b
+        ),
+      });
+    } else {
+      onChange({
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === blocksKey.customPageId
+            ? { ...p, blocks: p.blocks.map(b => b.id === block.id ? { ...b, blockEffects: next } : b) }
+            : p
+        ),
+      });
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {blockContent}
       <SectionStylePanel block={block} blocksKey={blocksKey} manifest={manifest} onChange={onChange} />
+      <BlockEffectsEditor blockEffects={block.blockEffects ?? {}} onUpdate={updateBlockEffects} />
+    </div>
+  );
+}
+
+// ── BlockEffectsEditor — per-block FX controls ────────────────
+const REVEAL_OPTIONS = [
+  { value: 'none',       label: 'None',     emoji: '⛔' },
+  { value: 'fade',       label: 'Fade',     emoji: '🌫️' },
+  { value: 'slide-up',   label: 'Slide Up', emoji: '⬆️' },
+  { value: 'slide-left', label: 'Slide In', emoji: '↪️' },
+  { value: 'zoom',       label: 'Zoom',     emoji: '🔍' },
+  { value: 'blur-in',    label: 'Blur',     emoji: '✨' },
+] as const;
+
+const DIVIDER_OPTIONS = [
+  { value: null,       label: 'Default', emoji: '〰️' },
+  { value: 'wave',     label: 'Wave',    emoji: '∿' },
+  { value: 'wave2',    label: 'Wave 2',  emoji: '〜' },
+  { value: 'diagonal', label: 'Diagonal',emoji: '╱' },
+  { value: 'zigzag',   label: 'Zigzag',  emoji: '/\\' },
+  { value: 'torn',     label: 'Torn',    emoji: 'ᵥ' },
+  { value: 'chevron',  label: 'Chevron', emoji: '⌃' },
+  { value: 'arc',      label: 'Arc',     emoji: '⌢' },
+] as const;
+
+function BlockEffectsEditor({
+  blockEffects,
+  onUpdate,
+}: {
+  blockEffects: NonNullable<PageBlock['blockEffects']>;
+  onUpdate: (patch: Partial<NonNullable<PageBlock['blockEffects']>>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const reveal = blockEffects.scrollReveal ?? 'none';
+  const divStyle = blockEffects.dividerAbove?.style ?? null;
+  const divHeight = blockEffects.dividerAbove?.height ?? 80;
+  const hasEffects = reveal !== 'none' || divStyle !== null;
+
+  return (
+    <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginTop: '6px', paddingTop: '6px' }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '6px',
+          padding: '7px 0', background: 'none', border: 'none',
+          cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <span style={{ fontSize: '0.88rem' }}>✨</span>
+        <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 700, color: hasEffects ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.5)' }}>
+          Block Effects
+        </span>
+        {hasEffects && (
+          <span style={{
+            fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: 'rgba(163,177,138,0.9)', background: 'rgba(163,177,138,0.12)',
+            padding: '2px 6px', borderRadius: '100px', border: '1px solid rgba(163,177,138,0.25)',
+          }}>ON</span>
+        )}
+        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▾</span>
+      </button>
+
+      {open && (
+        <div style={{ paddingBottom: '10px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+          {/* Scroll reveal */}
+          <div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>
+              Entrance Animation
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              {REVEAL_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : opt.value })}
+                  style={{
+                    padding: '5px 9px', borderRadius: '7px',
+                    border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
+                    background: reveal === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.04)',
+                    color: reveal === opt.value ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.55)',
+                    cursor: 'pointer', fontSize: '0.72rem', fontWeight: reveal === opt.value ? 700 : 400,
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  <span style={{ fontSize: '0.8rem' }}>{opt.emoji}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider above */}
+          <div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>
+              Divider Shape Above
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              {DIVIDER_OPTIONS.map(opt => (
+                <button
+                  key={String(opt.value)}
+                  onClick={() => {
+                    if (opt.value === null) {
+                      onUpdate({ dividerAbove: undefined });
+                    } else {
+                      onUpdate({ dividerAbove: { style: opt.value, height: divHeight } });
+                    }
+                  }}
+                  style={{
+                    padding: '5px 9px', borderRadius: '7px',
+                    border: `1px solid ${divStyle === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
+                    background: divStyle === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.04)',
+                    color: divStyle === opt.value ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.55)',
+                    cursor: 'pointer', fontSize: '0.72rem', fontWeight: divStyle === opt.value ? 700 : 400,
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{opt.emoji}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {/* Height slider — shown only when a custom divider is active */}
+            {divStyle !== null && (
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)' }}>Height</span>
+                  <span style={{ fontSize: '0.72rem', color: 'rgba(214,198,168,0.7)', fontWeight: 700 }}>{divHeight}px</span>
+                </div>
+                <input
+                  type="range" min={30} max={200} value={divHeight}
+                  onChange={e => onUpdate({ dividerAbove: { style: divStyle, height: Number(e.target.value) } })}
+                  style={{ width: '100%', accentColor: 'var(--eg-accent, #A3B18A)', cursor: 'pointer' }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
