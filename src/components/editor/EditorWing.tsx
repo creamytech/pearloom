@@ -119,6 +119,7 @@ export function EditorWing({
             flex: 1,
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
+            paddingTop: '6px',
           } as React.CSSProperties}
         >
           {children}

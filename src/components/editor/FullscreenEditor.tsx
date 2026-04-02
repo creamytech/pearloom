@@ -551,7 +551,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* Navigation Rail (desktop only) */}
-        {!state.isMobile && <EditorRail />}
+        {!state.isMobile && <EditorRail onOpen={() => setPanelOpen(true)} />}
 
         {/* Push Panel (desktop only) */}
         {!state.isMobile && (

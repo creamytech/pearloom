@@ -32,9 +32,9 @@ const CanvasEditor     = dynamic(() => import('./CanvasEditor').then(m => ({ def
 const ChapterPanel     = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
 
 // ── Constants ──────────────────────────────────────────────────
-const RADIUS = 126;
-// Angles in degrees: 90=up, then curving to the right
-const FAB_ANGLES = [90, 68, 46, 24, 2] as const;
+const RADIUS = 130;
+// Angles in degrees: 90=up, then curving to the right (7 items)
+const FAB_ANGLES = [90, 75, 58, 42, 26, 10, -6] as const;
 const FAB_LEFT = 26;
 
 type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas';
@@ -57,6 +57,8 @@ const ARC_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }
   { tab: 'design',  icon: DesignIcon,   label: 'Design' },
   { tab: 'details', icon: DetailsIcon,  label: 'Details' },
   { tab: 'canvas',  icon: SectionsIcon, label: 'Sections' },
+  { tab: 'blocks',  icon: AIBlocksIcon, label: 'AI' },
+  { tab: 'voice',   icon: VoiceIcon,    label: 'Voice' },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────
