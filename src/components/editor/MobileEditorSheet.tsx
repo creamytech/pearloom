@@ -205,8 +205,11 @@ export function MobileEditorSheet() {
     rewritingId, sectionOverridesMap, mobileActionChapterId, subdomain,
   } = state;
 
-  // Sheet geometry
-  const [sheetH, setSheetH] = useState(760);
+  // Sheet geometry — computed synchronously so sheetY starts fully off-screen
+  const initialSheetH = typeof window !== 'undefined'
+    ? Math.min(window.innerHeight * 0.94, window.innerHeight - 56)
+    : 820;
+  const [sheetH, setSheetH] = useState(initialSheetH);
 
   useEffect(() => {
     const h = Math.min(window.innerHeight * 0.94, window.innerHeight - 56);
@@ -215,8 +218,8 @@ export function MobileEditorSheet() {
 
   const snaps = { full: 0, mid: sheetH * 0.31, peek: sheetH * 0.57 };
 
-  // Sheet Y motion value & drag controls
-  const sheetY = useMotionValue(760);
+  // Sheet Y motion value & drag controls — start at sheetH (fully off-screen)
+  const sheetY = useMotionValue(initialSheetH);
   const sheetDragControls = useDragControls();
 
   // Story subview
