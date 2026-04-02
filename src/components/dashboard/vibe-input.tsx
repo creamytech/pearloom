@@ -497,7 +497,7 @@ function FormatMiniPreview({ id }: { id: string }) {
   return <div style={base} />;
 }
 
-export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
+export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProps) {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 480);
@@ -511,7 +511,9 @@ export function VibeInput({ onSubmit, initialNames }: VibeInputProps) {
   const [wizardPhase, setWizardPhase] = useState<'main' | 'details' | 'confirm'>('main');
   const [detailsData, setDetailsData] = useState<DetailsData>({});
   const [inspirationUrls, setInspirationUrls] = useState<string[]>([]);
-  const [inspoKeywords, setInspoKeywords] = useState<string[]>([]);
+  const [inspoKeywords, setInspoKeywords] = useState<string[]>(
+    initialVibe ? initialVibe.split(/[,\s]+/).map(w => w.trim()).filter(Boolean) : []
+  );
   const [inspoKeywordInput, setInspoKeywordInput] = useState('');
   const [subdomain, setSubdomain] = useState('');
   const [subdomainStatus, setSubdomainStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');

@@ -92,9 +92,10 @@ export function SiteNav({
   onGoToDashboard,
   onStartNew,
 }: SiteNavProps) {
-  const [scrollY, setScrollY]     = useState(0);
-  const [drawerOpen, setDrawer]   = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [scrollY, setScrollY]         = useState(0);
+  const [drawerOpen, setDrawer]       = useState(false);
+  const [isDesktop, setIsDesktop]     = useState(false);
+  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -434,6 +435,111 @@ export function SiteNav({
           </>
         )}
       </AnimatePresence>
+
+      {/* ── Feature 1: The Seam ── */}
+      {!isStudio && (
+        <motion.div
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '1.5px',
+            height: '100dvh',
+            background: 'linear-gradient(180deg, transparent 0%, var(--eg-accent) 6%, var(--eg-accent) 94%, transparent 100%)',
+            opacity: 0.28,
+            scaleY: scaleX,
+            transformOrigin: 'top center',
+            zIndex: 40,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {/* ── Feature 2: Thread Navigation ── */}
+      {isDesktop && !isStudio && enabledPages.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            right: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 45,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 0,
+          }}
+        >
+          {/* Vertical thread line */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: 0,
+              bottom: 0,
+              width: '1px',
+              transform: 'translateX(-50%)',
+              background: 'linear-gradient(180deg, transparent, var(--eg-accent) 20%, var(--eg-accent) 80%, transparent)',
+              opacity: 0.18,
+              pointerEvents: 'none',
+            }}
+          />
+
+          {enabledPages.map((page) => {
+            const active = isActive(page.slug);
+            const hovered = hoveredSlug === page.slug;
+            const showLabel = active || hovered;
+
+            return (
+              <Link
+                key={page.id}
+                href={getHref(page.slug)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 0',
+                  textDecoration: 'none',
+                  position: 'relative',
+                }}
+                onMouseEnter={() => setHoveredSlug(page.slug)}
+                onMouseLeave={() => setHoveredSlug(null)}
+              >
+                {/* Label text */}
+                <motion.span
+                  animate={{ opacity: showLabel ? 1 : 0 }}
+                  transition={{ duration: 0.18 }}
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.35)',
+                    whiteSpace: 'nowrap',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {page.label}
+                </motion.span>
+
+                {/* Dot */}
+                <motion.div
+                  animate={{
+                    width: active ? '7px' : '5px',
+                    height: active ? '7px' : '5px',
+                    background: active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.18)',
+                  }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                  }}
+                />
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }

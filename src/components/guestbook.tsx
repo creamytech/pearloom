@@ -6,7 +6,7 @@
 // Innovative: AI curates a "highlight" wish to feature prominently.
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Sparkles, AlertCircle, Send, Mic } from 'lucide-react';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
@@ -168,6 +168,109 @@ function WishCard({ wish, index }: { wish: Wish; index: number }) {
   );
 }
 
+function WallOfLight({ wishes, vibeSkin }: { wishes: Wish[]; vibeSkin?: VibeSkin }) {
+  const accent = vibeSkin?.palette?.accent ?? '#C4A96A';
+
+  // Assign each wish a stable random position and depth
+  // Use wish index as seed so positions don't change on re-render
+  const positioned = useMemo(() => wishes.map((wish, i) => {
+    // Deterministic "random" from index
+    const seed = i * 137.508; // golden angle
+    const x = 5 + ((seed * 47.3) % 70); // 5–75% left
+    const y = i * 280 + 40; // stack vertically with overlap
+    const depth = 0.7 + ((seed * 13.7) % 0.6); // 0.7–1.3 scale
+    const rotate = -3 + ((seed * 7.3) % 6); // -3° to +3°
+    return { wish, x, y, depth, rotate };
+  }), [wishes]);
+
+  const totalHeight = wishes.length * 260 + 200;
+
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      minHeight: Math.max(totalHeight, 400),
+      background: 'radial-gradient(ellipse at 50% 20%, rgba(40,35,30,0.95) 0%, rgba(20,18,15,0.98) 100%)',
+      borderRadius: '1.5rem',
+      overflow: 'hidden',
+      padding: '2rem 0',
+    }}>
+      {/* Ambient star field */}
+      {Array.from({ length: 40 }).map((_, i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          left: `${(i * 73.13) % 100}%`,
+          top: `${(i * 47.17) % 100}%`,
+          width: i % 5 === 0 ? '2px' : '1px',
+          height: i % 5 === 0 ? '2px' : '1px',
+          borderRadius: '50%',
+          background: accent,
+          opacity: 0.08 + (i % 3) * 0.04,
+          pointerEvents: 'none',
+        }} />
+      ))}
+
+      {/* Floating wish cards */}
+      {positioned.map(({ wish, x, y, depth, rotate }, i) => (
+        <motion.div
+          key={wish.id}
+          initial={{ opacity: 0, y: y + 40, scale: depth * 0.8 }}
+          whileInView={{ opacity: 1, y, scale: depth }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.8, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{ scale: depth * 1.05, zIndex: 50 }}
+          style={{
+            position: 'absolute',
+            left: `${x}%`,
+            top: y,
+            width: 'clamp(220px, 30vw, 280px)',
+            transform: `rotate(${rotate}deg)`,
+            zIndex: Math.round(depth * 10),
+          }}
+        >
+          <div style={{
+            background: `rgba(255,255,255,${0.04 + depth * 0.06})`,
+            border: `1px solid rgba(255,255,255,${0.06 + depth * 0.04})`,
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            backdropFilter: 'blur(8px)',
+            boxShadow: `0 ${Math.round(depth * 20)}px ${Math.round(depth * 40)}px rgba(0,0,0,0.4), 0 0 ${Math.round(depth * 20)}px ${accent}18`,
+          }}>
+            <p style={{
+              fontSize: '0.88rem',
+              fontStyle: 'italic',
+              color: `rgba(245,241,232,${0.6 + depth * 0.25})`,
+              lineHeight: 1.65,
+              marginBottom: '0.85rem',
+              fontFamily: 'var(--eg-font-body, Georgia, serif)',
+            }}>
+              &ldquo;{wish.message}&rdquo;
+            </p>
+            <p style={{
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: accent,
+              opacity: 0.7,
+              margin: 0,
+            }}>
+              — {wish.guestName}
+            </p>
+          </div>
+        </motion.div>
+      ))}
+
+      {/* Empty state */}
+      {wishes.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'rgba(245,241,232,0.35)' }}>
+          <p style={{ fontStyle: 'italic', fontSize: '1rem' }}>Be the first to leave a wish...</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [loading, setLoading] = useState(true);
@@ -177,8 +280,6 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [voiceToast, setVoiceToast] = useState(false);
-
-  void vibeSkin; // reserved for future theming
 
   const charsLeft = MAX_CHARS - message.length;
   const isOverLimit = charsLeft < 0;
@@ -802,27 +903,9 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
           )}
         </AnimatePresence>
 
-        {/* Masonry-style 2-column grid of all wishes */}
-        {!loading && rest.length > 0 && (
-          <div
-            style={{
-              columnCount: 2,
-              columnGap: '1rem',
-            }}
-          >
-            <style>{`
-              @media (max-width: 600px) {
-                .guestbook-masonry {
-                  column-count: 1 !important;
-                }
-              }
-            `}</style>
-            <div className="guestbook-masonry" style={{ columnCount: 2, columnGap: '1rem' }}>
-              {rest.map((wish, i) => (
-                <WishCard key={wish.id} wish={wish} index={i} />
-              ))}
-            </div>
-          </div>
+        {/* Wall of Light — floating spatial wish display */}
+        {!loading && (
+          <WallOfLight wishes={rest} vibeSkin={vibeSkin} />
         )}
 
         {/* Loading state */}

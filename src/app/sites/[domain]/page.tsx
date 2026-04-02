@@ -234,6 +234,11 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   });
   const coverPhoto = rawCoverPhoto || `/api/hero-art?${heroArtParams.toString()}`;
 
+  // Memory Film: collect up to 6 chapter images for the cycling hero backdrop
+  const filmPhotos = (manifest.chapters || [])
+    .flatMap((ch: import('@/types').Chapter) => ch.images || [])
+    .slice(0, 6)
+    .map((img: { url: string }) => proxyUrl(img.url, 1800, 1200));
 
   // Build real nav pages from manifest content
   const hidden = new Set(manifest.hiddenPages || []);
@@ -267,6 +272,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
             vibeSkin={vibeSkin}
             heroTagline={manifest.poetry?.heroTagline}
+            photos={filmPhotos.length > 0 ? filmPhotos : undefined}
           />
         );
       case 'story':
@@ -886,7 +892,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           ) : (
             // ── LEGACY: hardcoded order (no blocks yet) ──
             <>
-              <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} />
+              <Hero names={safeNames} subtitle={siteConfig.tagline || 'A love story beautifully told.'} coverPhoto={coverPhoto} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={filmPhotos.length > 0 ? filmPhotos : undefined} />
               {manifest.anniversaryMode && (
                 <div style={{
                   textAlign: 'center', fontSize: '0.85rem',

@@ -6,8 +6,8 @@
 // typography, date/venue badge, poetry tagline
 // ─────────────────────────────────────────────────────────────
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
 import { CountdownWidget } from '@/components/countdown-widget';
 import { VibeParticles } from '@/components/vibe/VibeParticles';
 
@@ -24,6 +24,7 @@ interface HeroProps {
   weddingDate?: string;
   vibeSkin?: VibeSkin;
   heroTagline?: string; // from manifest.poetry?.heroTagline
+  photos?: string[];
 }
 
 // Letter-by-letter staggered name reveal
@@ -76,9 +77,18 @@ function formatDateBadge(dateStr: string): string {
   } catch { return dateStr; }
 }
 
-export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline }: HeroProps) {
+export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
+
+  // Memory Film: multi-photo cycling
+  const [photoIdx, setPhotoIdx] = useState(0);
+  const photoList = photos && photos.length > 1 ? photos : [coverPhoto].filter(Boolean) as string[];
+  useEffect(() => {
+    if (photoList.length <= 1) return;
+    const interval = setInterval(() => setPhotoIdx(i => (i + 1) % photoList.length), 4500);
+    return () => clearInterval(interval);
+  }, [photoList.length]);
 
   // Cover photo parallax: moves at ~0.4x scroll speed
   const yImage = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
@@ -90,6 +100,8 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
 
   const hasBadge = !!(date || weddingDate || venue);
   const badgeDateStr = weddingDate || date;
+  // True when any photo is displayed — drives text/overlay color choices
+  const hasPhoto = !!(coverPhoto || photoList.length > 0);
 
   return (
     <section
@@ -108,7 +120,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
       }}
     >
       {/* ── Visual Backdrop ── */}
-      {coverPhoto ? (
+      {(coverPhoto || photoList.length > 0) ? (
         <>
           {/* Full-bleed parallax cover photo at 0.4x scroll speed */}
           <motion.div
@@ -119,17 +131,18 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               willChange: 'transform',
             }}
           >
-            <img
-              src={coverPhoto}
-              alt=""
-              style={{
-                width: '100%',
-                height: '110%',
-                objectFit: 'cover',
-                objectPosition: 'center top',
-                display: 'block',
-              }}
-            />
+            <AnimatePresence mode="sync">
+              <motion.img
+                key={photoIdx}
+                src={photoList[photoIdx]}
+                alt=""
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2 }}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '110%', objectFit: 'cover', objectPosition: 'center top' }}
+              />
+            </AnimatePresence>
           </motion.div>
 
           {/* Dark gradient: transparent top → rgba(0,0,0,0.35) bottom — text readability */}
@@ -211,7 +224,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           opacity: opacityText,
           y: yText,
           padding: '0 2rem',
-          color: coverPhoto ? '#ffffff' : 'var(--eg-fg)',
+          color: hasPhoto ? '#ffffff' : 'var(--eg-fg)',
           width: '100%',
           maxWidth: '1300px',
         }}
@@ -230,9 +243,9 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               letterSpacing: '0.45em',
               textTransform: 'uppercase',
               marginBottom: '3.5rem',
-              opacity: coverPhoto ? 0.75 : 0.65,
+              opacity: hasPhoto ? 0.75 : 0.65,
               fontWeight: 700,
-              color: coverPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-accent)',
+              color: hasPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-accent)',
             }}
           >
             {anniversaryLabel}
@@ -254,12 +267,12 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            color: coverPhoto ? '#ffffff' : 'var(--eg-fg)',
+            color: hasPhoto ? '#ffffff' : 'var(--eg-fg)',
           }}>
           <AnimatedName
             text={names[0]}
             delay={0.35}
-            color={coverPhoto ? '#ffffff' : undefined}
+            color={hasPhoto ? '#ffffff' : undefined}
           />
 
           {/* "&" and second name — only for two-person occasions (not birthday/solo) */}
@@ -274,7 +287,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
                   fontStyle: 'italic',
                   fontWeight: 300,
                   fontSize: 'clamp(2.2rem, 5.5vw, 5rem)',
-                  color: coverPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
+                  color: hasPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
                   margin: '-1.6rem 0 -1.4rem',
                   display: 'block',
                   letterSpacing: '0.02em',
@@ -286,7 +299,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               <AnimatedName
                 text={names[1]}
                 delay={names[0].length * 0.04 + 0.6}
-                color={coverPhoto ? '#ffffff' : undefined}
+                color={hasPhoto ? '#ffffff' : undefined}
               />
             </>
           )}
@@ -306,14 +319,14 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               gap: '0.5em',
               padding: '0.6rem 1.75rem',
               borderRadius: '100px',
-              background: coverPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(163,177,138,0.12)',
+              background: hasPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(163,177,138,0.12)',
               backdropFilter: 'blur(12px)',
-              border: coverPhoto ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(163,177,138,0.22)',
+              border: hasPhoto ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(163,177,138,0.22)',
               fontSize: '0.7rem',
               fontWeight: 600,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color: coverPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-fg)',
+              color: hasPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-fg)',
               fontFamily: 'var(--eg-font-body)',
             }}>
               {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> {formatDateBadge(badgeDateStr)} </>}
@@ -323,12 +336,12 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           </motion.div>
         )}
 
-        {/* Poetry tagline — AI-generated poetic subtitle */}
+        {/* Poetry tagline — word-by-word stagger reveal */}
         {heroTagline && (
           <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 1.9 }}
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.12, delayChildren: 2.1 } } }}
             style={{
               fontFamily: 'var(--eg-font-body)',
               fontStyle: 'italic',
@@ -338,8 +351,22 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               marginTop: '1.25rem',
               letterSpacing: '0.02em',
             }}
+            data-pe-editable="true"
+            data-pe-field="heroTagline"
+            data-pe-section="hero"
           >
-            <span data-pe-editable="true" data-pe-field="heroTagline" data-pe-section="hero">{heroTagline}</span>
+            {heroTagline.split(' ').map((word, i) => (
+              <motion.span
+                key={i}
+                style={{ display: 'inline-block', marginRight: '0.28em' }}
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+                }}
+              >
+                {word}
+              </motion.span>
+            ))}
           </motion.p>
         )}
 
