@@ -54,16 +54,16 @@ function RailBtn({ item, active, onClick }: {
     <motion.button
       onClick={onClick}
       title={label}
-      whileHover={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+      whileHover={{ backgroundColor: 'rgba(163,177,138,0.08)' }}
       whileTap={{ scale: 0.9 }}
       transition={{ duration: 0.12 }}
       style={{
         width: '100%', height: '46px',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', gap: '3px',
-        border: 'none', background: active ? 'rgba(163,177,138,0.09)' : 'transparent',
+        border: 'none', background: active ? 'var(--pl-olive-mist)' : 'transparent',
         cursor: 'pointer', position: 'relative',
-        color: active ? '#A3B18A' : 'rgba(214,198,168,0.38)',
+        color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
         transition: 'color 0.15s, background 0.15s',
       }}
     >
@@ -100,7 +100,7 @@ function Sep() {
   return (
     <div style={{
       height: '1px', margin: '5px 14px',
-      background: 'rgba(255,255,255,0.05)',
+      background: 'rgba(163,177,138,0.18)',
     }} />
   );
 }
@@ -118,8 +118,8 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
   return (
     <div style={{
       width: '56px', flexShrink: 0,
-      background: 'rgba(12,9,7,0.99)',
-      borderRight: '1px solid rgba(255,255,255,0.07)',
+      background: 'var(--pl-cream)',
+      borderRight: '1px solid var(--pl-divider)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
       overflowY: 'auto', overflowX: 'hidden',
@@ -130,9 +130,9 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
       <div style={{
         height: '44px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.055)',
+        borderBottom: '1px solid var(--pl-divider)',
       }}>
-        <ElegantHeartIcon size={14} color="rgba(214,198,168,0.45)" />
+        <ElegantHeartIcon size={14} color="var(--pl-olive)" />
       </div>
 
       {/* Narrative group */}

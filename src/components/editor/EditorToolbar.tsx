@@ -64,9 +64,9 @@ function ViewportPopover({
         style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           padding: '5px 10px', borderRadius: '6px',
-          border: '1px solid rgba(214,198,168,0.12)',
-          background: open ? 'rgba(109,89,122,0.18)' : 'transparent',
-          color: open ? '#F5F1E8' : 'rgba(255,255,255,0.55)',
+          border: '1px solid var(--pl-divider)',
+          background: open ? 'var(--pl-olive-mist)' : 'transparent',
+          color: open ? 'var(--pl-ink)' : 'var(--pl-muted)',
           cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
         }}
       >
@@ -87,11 +87,10 @@ function ViewportPopover({
             style={{
               position: 'absolute', top: '100%', right: 0, marginTop: '6px',
               width: '200px', padding: '8px',
-              background: 'rgba(36,30,26,0.98)',
-              border: '1px solid rgba(214,198,168,0.12)',
+              background: 'var(--pl-cream-card)',
+              border: '1px solid var(--pl-divider)',
               borderRadius: '10px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(20px)',
+              boxShadow: 'var(--pl-shadow-md)',
               zIndex: 100,
             }}
           >
@@ -105,14 +104,14 @@ function ViewportPopover({
                     key={mode}
                     aria-label={`Switch to ${DEVICE_DIMS[mode].label} view`}
                     onClick={() => onDeviceChange(mode)}
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    whileHover={{ backgroundColor: 'rgba(163,177,138,0.1)' }}
                     whileTap={{ scale: 0.9 }}
                     style={{
                       flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
                       cursor: 'pointer', display: 'flex', flexDirection: 'column',
                       alignItems: 'center', gap: '4px',
-                      background: isActive ? 'rgba(109,89,122,0.22)' : 'transparent',
-                      color: isActive ? '#F5F1E8' : 'rgba(255,255,255,0.4)',
+                      background: isActive ? 'var(--pl-olive-mist)' : 'transparent',
+                      color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
                     }}
                   >
                     <Icon size={14} />
@@ -124,7 +123,7 @@ function ViewportPopover({
               })}
             </div>
             {/* Divider */}
-            <div style={{ height: '1px', background: 'rgba(214,198,168,0.08)', margin: '4px 0 8px' }} />
+            <div style={{ height: '1px', background: 'var(--pl-divider)', margin: '4px 0 8px' }} />
             {/* Zoom */}
             <ZoomControls zoom={zoom} onZoomChange={onZoomChange} />
           </motion.div>
@@ -151,13 +150,11 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
     <div style={{
       height: '44px', flexShrink: 0,
       display: 'flex', alignItems: 'center',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
-      background: 'rgba(36,30,26,0.98)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid var(--pl-divider)',
+      background: 'var(--pl-cream-card)',
       padding: '0 1rem', gap: '0',
       zIndex: 10,
-      boxShadow: 'inset 0 1px 0 rgba(214,198,168,0.08), 0 2px 12px rgba(0,0,0,0.2)',
+      boxShadow: 'var(--pl-shadow-xs)',
     } as React.CSSProperties}>
 
       {/* ═══ LEFT ZONE: Exit + Site Name ═══ */}
@@ -165,13 +162,13 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <motion.button
           onClick={onExit}
           title="Exit editor"
-          whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.11)' }}
+          whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.1)' }}
           whileTap={{ scale: 0.94 }}
           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           style={{
             display: 'flex', alignItems: 'center', gap: '5px',
             padding: '6px 10px', borderRadius: '6px', border: 'none',
-            background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.65)',
+            background: 'var(--pl-cream-deep)', color: 'var(--pl-ink-soft)',
             cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, flexShrink: 0,
           }}
         >
@@ -201,7 +198,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       </div>
 
       {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
-      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)', margin: '0 12px', flexShrink: 0 }} />}
+      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'var(--pl-divider)', margin: '0 12px', flexShrink: 0 }} />}
 
       {/* ═══ CENTER ZONE: Breadcrumb + Cmd Palette (desktop only) ═══ */}
       <div style={{ flex: 1, display: isMobile ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
@@ -209,14 +206,14 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <motion.button
           onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}
           title="Command Palette (Cmd+K)" aria-label="Open command palette"
-          whileHover={{ scale: 1.05, borderColor: 'rgba(214,198,168,0.25)', color: 'rgba(255,255,255,0.75)' }}
+          whileHover={{ scale: 1.05, borderColor: 'var(--pl-olive)', color: 'var(--pl-olive)' }}
           whileTap={{ scale: 0.93 }}
           transition={{ type: 'spring', stiffness: 420, damping: 22 }}
           style={{
             display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px',
             padding: '3px 9px', borderRadius: '6px',
-            border: '1px solid rgba(214,198,168,0.12)',
-            background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.35)',
+            border: '1px solid var(--pl-divider)',
+            background: 'var(--pl-cream-deep)', color: 'var(--pl-muted)',
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
             letterSpacing: '0.04em', minHeight: '32px',
           }}
@@ -227,7 +224,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       </div>
 
       {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
-      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.08)', margin: '0 12px', flexShrink: 0 }} />}
+      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'var(--pl-divider)', margin: '0 12px', flexShrink: 0 }} />}
 
       {/* ═══ RIGHT ZONE ═══ */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
@@ -241,8 +238,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               padding: isMobile ? '4px 6px' : '5px 8px', borderRadius: '6px', border: 'none',
-              background: 'rgba(255,255,255,0.06)',
-              color: canUndo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
+              background: 'var(--pl-cream-deep)',
+              color: canUndo ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
               cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
               justifyContent: 'center', minHeight: '36px', minWidth: '36px',
               filter: canUndo ? 'none' : 'grayscale(1)',
@@ -256,8 +253,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               padding: isMobile ? '4px 6px' : '5px 8px', borderRadius: '6px', border: 'none',
-              background: 'rgba(255,255,255,0.06)',
-              color: canRedo ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)',
+              background: 'var(--pl-cream-deep)',
+              color: canRedo ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
               cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
               justifyContent: 'center', minHeight: '36px', minWidth: '36px',
               filter: canRedo ? 'none' : 'grayscale(1)',
@@ -318,8 +315,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               actions.handleDesignChange(next);
             }}
             style={{
-              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(214,198,168,0.12)',
-              color: '#fff', borderRadius: '0.5rem', padding: '0.3rem 0.5rem',
+              background: 'var(--pl-cream-deep)', border: '1px solid var(--pl-divider)',
+              color: 'var(--pl-ink-soft)', borderRadius: '0.5rem', padding: '0.3rem 0.5rem',
               fontSize: '0.75rem', cursor: 'pointer',
             }}
           >
@@ -407,15 +404,15 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             <motion.button
               onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
               title="Publish your site"
-              whileHover={{ scale: 1.06, boxShadow: '0 6px 24px rgba(109,89,122,0.45)' }}
+              whileHover={{ scale: 1.06, boxShadow: '0 8px 28px rgba(163,177,138,0.45)' }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 380, damping: 20 }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '6px 16px', borderRadius: '7px', border: 'none',
-                background: 'linear-gradient(135deg, #A3B18A 0%, #7A917A 50%, #6D597A 100%)',
-                color: 'var(--eg-bg, #F5F1E8)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
-                boxShadow: '0 2px 12px rgba(109,89,122,0.35)',
+                background: 'linear-gradient(135deg, #A3B18A 0%, #8FA876 100%)',
+                color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
+                boxShadow: '0 4px 16px rgba(163,177,138,0.35)',
               }}
             >
               <PublishIcon size={13} /> Publish
