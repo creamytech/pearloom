@@ -20,6 +20,7 @@ import {
 } from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
+import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
 // ── Tab groups ─────────────────────────────────────────────────
 type RailItem = { tab: EditorTab; Icon: React.ElementType; label: string };
@@ -49,11 +50,14 @@ const TOOLS: RailItem[] = [
 function RailBtn({ item, active, onClick }: {
   item: RailItem; active: boolean; onClick: () => void;
 }) {
-  const { Icon, label } = item;
+  const { Icon, label, tab } = item;
+  const tier = TAB_TIER[tab];
+  const meta = tier ? TIER_META[tier] : null;
+
   return (
     <motion.button
       onClick={onClick}
-      title={label}
+      title={meta ? `${label} — ${meta.label} plan` : label}
       whileHover={{ backgroundColor: 'rgba(163,177,138,0.08)' }}
       whileTap={{ scale: 0.9 }}
       transition={{ duration: 0.12 }}
@@ -83,6 +87,18 @@ function RailBtn({ item, active, onClick }: {
           transition={{ type: 'spring', stiffness: 420, damping: 30 }}
         />
       )}
+
+      {/* Plan tier dot — top-right of the icon area */}
+      {meta && (
+        <div style={{
+          position: 'absolute', top: '7px', right: '9px',
+          width: '5px', height: '5px', borderRadius: '50%',
+          background: meta.color,
+          opacity: 0.7,
+          flexShrink: 0,
+        }} />
+      )}
+
       <Icon size={15} color="currentColor" />
       <span style={{
         fontSize: '0.49rem', fontWeight: 800, letterSpacing: '0.06em',

@@ -15,6 +15,7 @@
 import { motion } from 'framer-motion';
 import { PanelLeftClose } from 'lucide-react';
 import type { EditorTab } from '@/lib/editor-state';
+import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
 const PANEL_W = 320;
 
@@ -52,6 +53,8 @@ export function EditorWing({
   contentRef,
 }: EditorWingProps) {
   const title = TAB_LABEL[activeTab] ?? String(activeTab);
+  const tier  = TAB_TIER[activeTab];
+  const meta  = tier ? TIER_META[tier] : null;
 
   return (
     <motion.div
@@ -86,13 +89,30 @@ export function EditorWing({
           borderBottom: '1px solid var(--pl-divider)',
           background: 'var(--pl-cream)',
         }}>
-          <span style={{
-            fontSize: '0.7rem', fontWeight: 800,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: 'var(--pl-muted)',
-          }}>
-            {title}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <span style={{
+              fontSize: '0.7rem', fontWeight: 800,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: 'var(--pl-muted)',
+            }}>
+              {title}
+            </span>
+            {meta && (
+              <span style={{
+                fontSize: '0.58rem', fontWeight: 700,
+                letterSpacing: '0.07em', textTransform: 'uppercase',
+                color: meta.color,
+                background: meta.bg,
+                border: `1px solid ${meta.color}30`,
+                padding: '1px 6px',
+                borderRadius: '100px',
+                lineHeight: '16px',
+                flexShrink: 0,
+              }}>
+                {meta.label}
+              </span>
+            )}
+          </div>
           <motion.button
             onClick={onToggle}
             title="Collapse panel"
