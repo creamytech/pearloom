@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Globe, Pencil, ExternalLink, Calendar, Loader2,
   Trash2, AlertTriangle, Users, Check, Share2, RefreshCw, Sparkles,
+  TrendingUp, Clock, BarChart2,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
@@ -23,6 +25,91 @@ function getGreeting(): string {
   if (h < 12) return 'Good morning';
   if (h < 18) return 'Good afternoon';
   return 'Good evening';
+}
+
+function daysUntil(dateStr: string): number | null {
+  try {
+    const event = parseLocalDate(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((event.getTime() - today.getTime()) / 86400000);
+    return diff;
+  } catch { return null; }
+}
+
+// ── Aggregate stats bar ────────────────────────────────────────
+
+interface AggregateStats {
+  totalViews: number;
+  totalAttending: number;
+  upcomingEvents: number;
+}
+
+function useAggregateStats(sites: UserSite[]): AggregateStats {
+  const totalViews = sites.reduce((sum, s) => sum + (s.manifest?.analytics?.views ?? 0), 0);
+  const upcomingEvents = sites.filter(s => {
+    const d = s.manifest?.logistics?.date || s.manifest?.events?.[0]?.date;
+    if (!d) return false;
+    const days = daysUntil(d);
+    return days !== null && days >= 0;
+  }).length;
+  // attendingCount stored in manifest if available
+  const totalAttending = sites.reduce((sum, s) => {
+    const count = (s.manifest as unknown as { attendingCount?: number }).attendingCount;
+    return sum + (count ?? 0);
+  }, 0);
+  return { totalViews, totalAttending, upcomingEvents };
+}
+
+function StatsBar({ stats }: { stats: AggregateStats }) {
+  if (stats.totalViews === 0 && stats.totalAttending === 0 && stats.upcomingEvents === 0) return null;
+  return (
+    <div className="flex items-center gap-3 flex-wrap mb-8">
+      {stats.totalViews > 0 && (
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+          <BarChart2 size={13} className="text-[var(--pl-olive)]" />
+          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{stats.totalViews.toLocaleString()}</span>
+          <span className="text-[0.72rem] text-[var(--pl-muted)]">total views</span>
+        </div>
+      )}
+      {stats.totalAttending > 0 && (
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+          <Users size={13} className="text-[var(--pl-olive)]" />
+          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{stats.totalAttending}</span>
+          <span className="text-[0.72rem] text-[var(--pl-muted)]">attending</span>
+        </div>
+      )}
+      {stats.upcomingEvents > 0 && (
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+          <Calendar size={13} className="text-[var(--pl-olive)]" />
+          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{stats.upcomingEvents}</span>
+          <span className="text-[0.72rem] text-[var(--pl-muted)]">upcoming</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Per-card RSVP count (lazy-loaded) ─────────────────────────
+
+function RsvpChip({ siteId }: { siteId: string }) {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    fetch(`/api/guests?siteId=${encodeURIComponent(siteId)}`)
+      .then(r => r.ok ? r.json() : { guests: [] })
+      .then(({ guests = [] }) => {
+        setCount((guests as { status: string }[]).filter(g => g.status === 'attending').length);
+      })
+      .catch(() => null);
+  }, [siteId]);
+  if (count === null || count === 0) return null;
+  return (
+    <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
+      <Users size={9} />
+      <span className="font-semibold text-[var(--pl-ink-soft)]">{count}</span>
+      <span>attending</span>
+    </div>
+  );
 }
 
 // ── Skeleton ──────────────────────────────────────────────────
@@ -70,6 +157,8 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 // ─────────────────────────────────────────────────────────────
 
 export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: UserSitesProps) {
+  const router = useRouter();
+  const goToEditor = (site: UserSite) => router.push(`/editor/${site.domain}`);
   const [sites, setSites]                   = useState<UserSite[]>([]);
   const [loading, setLoading]               = useState(true);
   const [fetchError, setFetchError]         = useState(false);
@@ -131,6 +220,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
   const getFormattedDate = (d: string) =>
     new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
+  const aggStats = useAggregateStats(sites);
+
   return (
     <div className="w-full max-w-[1280px] mx-auto">
 
@@ -169,6 +260,9 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           New Site
         </Button>
       </motion.div>
+
+      {/* ── Aggregate stats bar ── */}
+      {!loading && !fetchError && sites.length > 0 && <StatsBar stats={aggStats} />}
 
       {/* ── Loading ── */}
       {loading ? (
@@ -241,7 +335,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                 >
                   {/* Cover — taller, more editorial */}
                   <div
-                    onClick={() => onEditSite(site)}
+                    onClick={() => goToEditor(site)}
                     className="h-56 relative overflow-hidden cursor-pointer flex-shrink-0"
                     style={{ background: `linear-gradient(150deg, ${accentColor} 0%, ${accentDark} 100%)` }}
                   >
@@ -315,16 +409,42 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       </span>
                     </div>
 
-                    {/* Analytics */}
-                    {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
-                      <div className="flex items-center gap-1.5 text-[0.7rem] text-[var(--pl-muted)]">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-                        </svg>
-                        <span className="font-medium">{site.manifest.analytics.views.toLocaleString()}</span>
-                        <span>view{site.manifest.analytics.views !== 1 ? 's' : ''}</span>
-                      </div>
-                    )}
+                    {/* Stats row: views + RSVP + countdown */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
+                        <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
+                          <TrendingUp size={9} />
+                          <span className="font-semibold text-[var(--pl-ink-soft)]">{site.manifest.analytics.views.toLocaleString()}</span>
+                          <span>views</span>
+                        </div>
+                      )}
+                      <RsvpChip siteId={site.domain} />
+                      {(() => {
+                        const days = weddingDate ? daysUntil(weddingDate) : null;
+                        if (days === null) return null;
+                        if (days < 0) return (
+                          <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
+                            <Clock size={9} />
+                            <span>{Math.abs(days)}d ago</span>
+                          </div>
+                        );
+                        if (days === 0) return (
+                          <div className="flex items-center gap-1 text-[0.68rem] font-bold text-[var(--pl-olive)]">
+                            <Calendar size={9} />
+                            <span>Today!</span>
+                          </div>
+                        );
+                        return (
+                          <div className={cn(
+                            'flex items-center gap-1 text-[0.68rem]',
+                            days <= 30 ? 'text-[var(--pl-olive)] font-semibold' : 'text-[var(--pl-muted)]',
+                          )}>
+                            <Calendar size={9} />
+                            <span>{days}d to go</span>
+                          </div>
+                        );
+                      })()}
+                    </div>
 
                     {/* Completeness */}
                     {site.manifest && (

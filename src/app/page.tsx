@@ -1,10 +1,14 @@
-// Server Component wrapper — forces dynamic rendering so useSession()
-// inside the client component always has a live SessionProvider context.
-// `export const dynamic` only works in Server Components, not 'use client' files.
 export const dynamic = 'force-dynamic';
 
-import DashboardClient from './DashboardClient';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import LandingPageWrapper from './LandingPageWrapper';
 
-export default function Page() {
-  return <DashboardClient />;
+export default async function RootPage() {
+  const session = await getServerSession(authOptions);
+  if (session) {
+    redirect('/dashboard');
+  }
+  return <LandingPageWrapper />;
 }

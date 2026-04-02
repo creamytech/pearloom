@@ -16,6 +16,8 @@ import { PublicRsvpSection } from '@/components/public-rsvp-section';
 import type { Chapter } from '@/types';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
+import { SectionDivider } from '@/components/effects/SectionDivider';
+import { PerBlockRevealCSS } from '@/components/effects/ScrollReveal';
 import { SiteClientSections, SiteGallerySection } from '@/components/site/SiteClientSections';
 import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
 import { CountdownBlock } from '@/components/site/CountdownBlock';
@@ -653,18 +655,41 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
       // Skip divider before hero (it's the first thing on the page)
       if (block.type !== 'hero') {
-        result.push(
-          <WaveDivider
-            key={`divider-before-${block.id}`}
-            skin={vibeSkin}
-            fromColor={prevExitColor}
-            toColor={thisEntryColor}
-            height={80}
-          />
-        );
+        const divAbove = block.blockEffects?.dividerAbove;
+        if (divAbove) {
+          // Custom SVG shape divider chosen in the editor
+          result.push(
+            <SectionDivider
+              key={`divider-before-${block.id}`}
+              style={divAbove.style}
+              color={thisEntryColor}
+              height={divAbove.height}
+            />
+          );
+        } else {
+          result.push(
+            <WaveDivider
+              key={`divider-before-${block.id}`}
+              skin={vibeSkin}
+              fromColor={prevExitColor}
+              toColor={thisEntryColor}
+              height={80}
+            />
+          );
+        }
       }
 
-      result.push(rendered);
+      // Wrap in scroll-reveal container if this block has a per-block entrance animation
+      const blockReveal = block.blockEffects?.scrollReveal;
+      if (blockReveal && blockReveal !== 'none') {
+        result.push(
+          <div key={block.id} data-pl-reveal={blockReveal}>
+            {rendered}
+          </div>
+        );
+      } else {
+        result.push(rendered);
+      }
 
       // After hero, inject the vibe quote + welcome statement
       if (block.type === 'hero') {
@@ -852,6 +877,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   />
                 );
               })()}
+              {/* Mount per-block scroll reveal CSS + observer when any block has it */}
+              {visibleBlocks?.some(b => b.blockEffects?.scrollReveal && b.blockEffects.scrollReveal !== 'none') && (
+                <PerBlockRevealCSS />
+              )}
               {renderBlockSequence()}
             </>
           ) : (

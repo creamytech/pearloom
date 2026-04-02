@@ -11,10 +11,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDragSort } from './useDragSort';
 import type { DragHandleProps } from './useDragSort';
+import { BlockPresetsPanel } from './BlockPresetsPanel';
+import { SidebarSection } from './EditorSidebar';
 import {
   Plus, Eye, EyeOff, Trash2,
   ChevronDown, ChevronRight, X,
   Sparkles, LayoutTemplate,
+  ChevronUp,
 } from 'lucide-react';
 import {
   BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,
@@ -357,6 +360,7 @@ function EventBlockConfig({ events, onChange }: {
 // ── Block Row ──────────────────────────────────────────────────
 function BlockRow({
   block, def, isActive, onSelect, onToggle, onDelete, dragHandleProps,
+  isMobile, onMoveUp, onMoveDown, canMoveUp, canMoveDown,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
@@ -365,6 +369,11 @@ function BlockRow({
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   dragHandleProps: DragHandleProps;
+  isMobile?: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const Icon = def?.icon || LayoutTemplate;
@@ -394,24 +403,56 @@ function BlockRow({
         boxShadow: isActive ? `0 2px 16px ${color}14, 0 0 0 1px ${color}08` : 'none',
       }}
     >
-      {/* Drag handle — only initiates drag, does not trigger card click */}
-      <div
-        {...dragHandleProps}
-        onClick={e => e.stopPropagation()}
-        style={{
-          ...dragHandleProps.style,
-          color: 'rgba(255,255,255,0.25)',
-          display: 'flex',
-          flexShrink: 0,
-          padding: '4px',
-          borderRadius: '4px',
-          transition: 'color 0.15s',
-        }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
-      >
-        <GripIcon size={14} />
-      </div>
+      {/* Mobile: up/down reorder buttons — no scroll conflict */}
+      {isMobile ? (
+        <div onClick={e => e.stopPropagation()} style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
+          <button
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); onMoveUp?.(); }}
+            disabled={!canMoveUp}
+            style={{
+              background: 'none', border: 'none', cursor: canMoveUp ? 'pointer' : 'default',
+              color: canMoveUp ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '28px', height: '26px', borderRadius: '5px',
+              transition: 'color 0.12s, background 0.12s',
+            }}
+          >
+            <ChevronUp size={16} />
+          </button>
+          <button
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); onMoveDown?.(); }}
+            disabled={!canMoveDown}
+            style={{
+              background: 'none', border: 'none', cursor: canMoveDown ? 'pointer' : 'default',
+              color: canMoveDown ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '28px', height: '26px', borderRadius: '5px',
+              transition: 'color 0.12s, background 0.12s',
+            }}
+          >
+            <ChevronDown size={16} />
+          </button>
+        </div>
+      ) : (
+        /* Desktop: drag handle */
+        <div
+          {...dragHandleProps}
+          onClick={e => e.stopPropagation()}
+          style={{
+            ...dragHandleProps.style,
+            color: 'rgba(255,255,255,0.25)',
+            display: 'flex',
+            flexShrink: 0,
+            padding: '4px',
+            borderRadius: '4px',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+        >
+          <GripIcon size={14} />
+        </div>
+      )}
 
       {/* Icon */}
       <div style={{
@@ -775,10 +816,197 @@ function BlockConfigPanel({
     }
   })();
 
+  // ── updateBlockEffects — writes to block.blockEffects ───────
+  const updateBlockEffects = (patch: Partial<NonNullable<PageBlock['blockEffects']>>) => {
+    const next = { ...block.blockEffects, ...patch };
+    if (typeof blocksKey === 'string') {
+      onChange({
+        ...manifest,
+        blocks: (manifest.blocks || []).map(b =>
+          b.id === block.id ? { ...b, blockEffects: next } : b
+        ),
+      });
+    } else {
+      onChange({
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === blocksKey.customPageId
+            ? { ...p, blocks: p.blocks.map(b => b.id === block.id ? { ...b, blockEffects: next } : b) }
+            : p
+        ),
+      });
+    }
+  };
+
+  const handleApplyPreset = (config: Record<string, unknown>, blockEffects?: PageBlock['blockEffects']) => {
+    if (typeof blocksKey === 'string') {
+      onChange({
+        ...manifest,
+        blocks: (manifest.blocks || []).map(b =>
+          b.id === block.id ? { ...b, config: { ...b.config, ...config }, ...(blockEffects !== undefined ? { blockEffects } : {}) } : b
+        ),
+      });
+    } else {
+      onChange({
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === (blocksKey as { customPageId: string }).customPageId
+            ? { ...p, blocks: (p.blocks || []).map(b => b.id === block.id ? { ...b, config: { ...b.config, ...config }, ...(blockEffects !== undefined ? { blockEffects } : {}) } : b) }
+            : p
+        ),
+      });
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {blockContent}
       <SectionStylePanel block={block} blocksKey={blocksKey} manifest={manifest} onChange={onChange} />
+      <BlockEffectsEditor blockEffects={block.blockEffects ?? {}} onUpdate={updateBlockEffects} />
+      <SidebarSection title="Block Presets" defaultOpen={false}>
+        <BlockPresetsPanel block={block} onApply={handleApplyPreset} />
+      </SidebarSection>
+    </div>
+  );
+}
+
+// ── BlockEffectsEditor — per-block FX controls ────────────────
+const REVEAL_OPTIONS = [
+  { value: 'none',       label: 'None',     emoji: '⛔' },
+  { value: 'fade',       label: 'Fade',     emoji: '🌫️' },
+  { value: 'slide-up',   label: 'Slide Up', emoji: '⬆️' },
+  { value: 'slide-left', label: 'Slide In', emoji: '↪️' },
+  { value: 'zoom',       label: 'Zoom',     emoji: '🔍' },
+  { value: 'blur-in',    label: 'Blur',     emoji: '✨' },
+] as const;
+
+const DIVIDER_OPTIONS = [
+  { value: null,       label: 'Default', emoji: '〰️' },
+  { value: 'wave',     label: 'Wave',    emoji: '∿' },
+  { value: 'wave2',    label: 'Wave 2',  emoji: '〜' },
+  { value: 'diagonal', label: 'Diagonal',emoji: '╱' },
+  { value: 'zigzag',   label: 'Zigzag',  emoji: '/\\' },
+  { value: 'torn',     label: 'Torn',    emoji: 'ᵥ' },
+  { value: 'chevron',  label: 'Chevron', emoji: '⌃' },
+  { value: 'arc',      label: 'Arc',     emoji: '⌢' },
+] as const;
+
+function BlockEffectsEditor({
+  blockEffects,
+  onUpdate,
+}: {
+  blockEffects: NonNullable<PageBlock['blockEffects']>;
+  onUpdate: (patch: Partial<NonNullable<PageBlock['blockEffects']>>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const reveal = blockEffects.scrollReveal ?? 'none';
+  const divStyle = blockEffects.dividerAbove?.style ?? null;
+  const divHeight = blockEffects.dividerAbove?.height ?? 80;
+  const hasEffects = reveal !== 'none' || divStyle !== null;
+
+  return (
+    <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginTop: '6px', paddingTop: '6px' }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '6px',
+          padding: '7px 0', background: 'none', border: 'none',
+          cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <span style={{ fontSize: '0.88rem' }}>✨</span>
+        <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 700, color: hasEffects ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.5)' }}>
+          Block Effects
+        </span>
+        {hasEffects && (
+          <span style={{
+            fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: 'rgba(163,177,138,0.9)', background: 'rgba(163,177,138,0.12)',
+            padding: '2px 6px', borderRadius: '100px', border: '1px solid rgba(163,177,138,0.25)',
+          }}>ON</span>
+        )}
+        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▾</span>
+      </button>
+
+      {open && (
+        <div style={{ paddingBottom: '10px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+          {/* Scroll reveal */}
+          <div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>
+              Entrance Animation
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              {REVEAL_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : opt.value })}
+                  style={{
+                    padding: '5px 9px', borderRadius: '7px',
+                    border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
+                    background: reveal === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.04)',
+                    color: reveal === opt.value ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.55)',
+                    cursor: 'pointer', fontSize: '0.72rem', fontWeight: reveal === opt.value ? 700 : 400,
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  <span style={{ fontSize: '0.8rem' }}>{opt.emoji}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider above */}
+          <div>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>
+              Divider Shape Above
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              {DIVIDER_OPTIONS.map(opt => (
+                <button
+                  key={String(opt.value)}
+                  onClick={() => {
+                    if (opt.value === null) {
+                      onUpdate({ dividerAbove: undefined });
+                    } else {
+                      onUpdate({ dividerAbove: { style: opt.value, height: divHeight } });
+                    }
+                  }}
+                  style={{
+                    padding: '5px 9px', borderRadius: '7px',
+                    border: `1px solid ${divStyle === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
+                    background: divStyle === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.04)',
+                    color: divStyle === opt.value ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.55)',
+                    cursor: 'pointer', fontSize: '0.72rem', fontWeight: divStyle === opt.value ? 700 : 400,
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{opt.emoji}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {/* Height slider — shown only when a custom divider is active */}
+            {divStyle !== null && (
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)' }}>Height</span>
+                  <span style={{ fontSize: '0.72rem', color: 'rgba(214,198,168,0.7)', fontWeight: 700 }}>{divHeight}px</span>
+                </div>
+                <input
+                  type="range" min={30} max={200} value={divHeight}
+                  onChange={e => onUpdate({ dividerAbove: { style: divStyle, height: Number(e.target.value) } })}
+                  style={{ width: '100%', accentColor: 'var(--eg-accent, #A3B18A)', cursor: 'pointer' }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -917,6 +1145,14 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
 
   const [blocks, setBlocks] = useState<PageBlock[]>(currentBlocks);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Sync blocks when page changes
   useEffect(() => {
@@ -952,16 +1188,22 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
   }, [manifest, onChange, pushToPreview, isCustomPage, currentCustomPage, activePage]);
 
   // ── Drag-and-drop reordering via useDragSort ──────────────────
+  const ghostRef = useRef<HTMLDivElement>(null);
+  const ghostOffsetRef = useRef({ x: 0, y: 0 });
+
   const {
     orderedItems: dragOrderedBlocks,
     getDragProps,
     getHandleProps,
     isDragging,
     dropIndex,
+    dragId,
   } = useDragSort<PageBlock>({
     items: blocks,
     getKey: (b) => b.id,
     onReorder: (newBlocks) => commit(newBlocks),
+    ghostRef: ghostRef as unknown as { current: HTMLElement | null },
+    ghostOffsetRef,
   });
 
   const toggleVisible = useCallback((id: string) => {
@@ -972,6 +1214,16 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
     commit(blocks.filter(b => b.id !== id));
     if (activeBlockId === id) setActiveBlockId(null);
   }, [blocks, commit, activeBlockId]);
+
+  // Mobile: swap a block up or down by one slot
+  const moveBlock = useCallback((id: string, dir: 1 | -1) => {
+    const list = [...(dragOrderedBlocks.length ? dragOrderedBlocks : blocks)];
+    const from = list.findIndex(b => b.id === id);
+    const to = from + dir;
+    if (to < 0 || to >= list.length) return;
+    [list[from], list[to]] = [list[to], list[from]];
+    commit(list);
+  }, [dragOrderedBlocks, blocks, commit]);
 
   const addBlock = useCallback((type: BlockType) => {
     const id = `block-${type}-${Date.now()}`;
@@ -1166,12 +1418,36 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
 
         {/* ── Drag-sortable block list ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', position: 'relative' }}>
-          {dragOrderedBlocks.map((block, idx) => {
+          {(() => {
+            // Convert the hook's final-array dropIndex to the visual list position
+            // where the indicator line should appear.
+            //
+            // dropIndex = where item will land after removing it from the list (0..N-1).
+            // draggedIdx = current visual position of the dragged item (0..N-1).
+            //
+            // When dragging an item BEFORE itself (dropIndex < draggedIdx): the visual
+            //   slot to highlight is exactly dropIndex (no offset needed).
+            // When dragging an item AFTER itself (dropIndex >= draggedIdx): every item
+            //   above the drop target visually shifts up by 1 because the ghost is still
+            //   occupying draggedIdx, so visualIdx = dropIndex + 1.
+            // When dropIndex === N-1 (end of list): show line AFTER the last item.
+            // When dropIndex === draggedIdx: no-op, suppress the indicator.
+            const N = dragOrderedBlocks.length;
+            const draggedIdx = dragId ? dragOrderedBlocks.findIndex(b => b.id === dragId) : -1;
+            type VisualLine = 'none' | 'after-last' | number;
+            const visualDropLine: VisualLine = (() => {
+              if (!isDragging || dropIndex === null || draggedIdx === -1) return 'none';
+              if (dropIndex === draggedIdx) return 'none';
+              if (dropIndex === N - 1 && dropIndex !== draggedIdx - 1) return 'after-last';
+              return dropIndex >= draggedIdx ? dropIndex + 1 : dropIndex;
+            })();
+
+            return dragOrderedBlocks.map((block, idx) => {
             const def = BLOCK_CATALOGUE.find(d => d.type === block.type);
             const dragProps = getDragProps(block);
             const handleProps = getHandleProps(block);
-            const showDropLine = isDragging && dropIndex === idx;
-            const showDropLineAfter = isDragging && dropIndex === dragOrderedBlocks.length - 1 && idx === dragOrderedBlocks.length - 1;
+            const showDropLine = typeof visualDropLine === 'number' && visualDropLine === idx;
+            const showDropLineAfter = visualDropLine === 'after-last' && idx === N - 1;
 
             return (
               <div
@@ -1198,6 +1474,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                   onToggle={toggleVisible}
                   onDelete={deleteBlock}
                   dragHandleProps={handleProps}
+                  isMobile={isMobile}
+                  onMoveUp={() => moveBlock(block.id, -1)}
+                  onMoveDown={() => moveBlock(block.id, 1)}
+                  canMoveUp={idx > 0}
+                  canMoveDown={idx < N - 1}
                 />
                 {/* Drop indicator line — after the last item */}
                 {showDropLineAfter && (
@@ -1211,7 +1492,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
                 )}
               </div>
             );
-          })}
+            });
+          })()}
         </div>
 
         <AddBlockPicker onAdd={addBlock} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
@@ -1269,6 +1551,61 @@ export function CanvasEditor({ manifest, onChange, pushToPreview }: CanvasEditor
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Drag ghost — follows pointer via imperative DOM updates in useDragSort ── */}
+      {(() => {
+        const draggedBlock = dragId ? dragOrderedBlocks.find(b => b.id === dragId) : null;
+        const draggedDef = draggedBlock ? BLOCK_CATALOGUE.find(d => d.type === draggedBlock.type) : null;
+        const ghostColor = draggedDef?.color ?? 'rgba(163,177,138,1)';
+        const GhostIcon = draggedDef?.icon ?? LayoutTemplate;
+        return (
+          <div
+            ref={ghostRef}
+            style={{
+              display: isDragging ? 'flex' : 'none',
+              position: 'fixed',
+              pointerEvents: 'none',
+              zIndex: 9999,
+              alignItems: 'center',
+              gap: '10px',
+              padding: '13px 10px',
+              borderRadius: '10px',
+              background: `${ghostColor}18`,
+              border: `1px solid ${ghostColor}55`,
+              borderLeft: `3px solid ${ghostColor}`,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3)',
+              transform: 'rotate(1.5deg) scale(1.03)',
+              opacity: 0.95,
+              backdropFilter: 'blur(8px)',
+              cursor: 'grabbing',
+            }}
+          >
+            <div style={{
+              width: '8px', height: '14px', display: 'flex', flexDirection: 'column',
+              justifyContent: 'center', gap: '3px', flexShrink: 0,
+            }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{ width: '8px', height: '2px', borderRadius: '1px', background: `${ghostColor}80` }} />
+              ))}
+            </div>
+            <div style={{
+              width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+              background: `${ghostColor}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: `1px solid ${ghostColor}40`,
+            }}>
+              <GhostIcon size={15} color={ghostColor} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', lineHeight: 1.3 }}>
+                {draggedDef?.label ?? draggedBlock?.type}
+              </div>
+              <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>
+                Drag to reorder
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

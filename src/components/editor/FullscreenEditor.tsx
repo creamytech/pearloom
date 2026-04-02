@@ -13,7 +13,7 @@ import {
 } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
-import { Globe, Mail, Copy, Check, Phone, MessageCircle } from 'lucide-react';
+import { Globe, Mail, Copy, Check, Phone, MessageCircle, BarChart2, Users, LayoutGrid, Globe2, Send, Calendar } from 'lucide-react';
 import {
   PublishIcon, SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon,
@@ -40,6 +40,12 @@ import { CanvasEditor } from './CanvasEditor';
 import { AIEditorChat } from './AIEditorChat';
 import { MessagingPanel } from '@/components/dashboard/MessagingPanel';
 import { PostWeddingBanner } from './PostWeddingBanner';
+import { AnalyticsDashboardPanel } from './AnalyticsDashboardPanel';
+import { GuestSearchPanel } from './GuestSearchPanel';
+import { BulkInvitePanel } from './BulkInvitePanel';
+import { SeatingEditorPanel } from './SeatingEditorPanel';
+import { TranslationPanel } from './TranslationPanel';
+import { SaveTheDatePanel } from './SaveTheDatePanel';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -92,8 +98,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, []);
 
   // ── Wing tab groups ──────────────────────────────────────────
-  const LEFT_TABS: EditorTab[] = useMemo(() => ['story', 'events', 'canvas', 'pages', 'messaging'], []);
-  const RIGHT_TABS: EditorTab[] = useMemo(() => ['design', 'details', 'blocks', 'voice'], []);
+  const LEFT_TABS: EditorTab[] = useMemo(() => ['story', 'events', 'canvas', 'pages', 'messaging', 'guests', 'invite', 'seating'], []);
+  const RIGHT_TABS: EditorTab[] = useMemo(() => ['design', 'details', 'blocks', 'voice', 'analytics', 'translate', 'savethedate'], []);
 
   const LEFT_WING_TABS = useMemo(() => [
     { tab: 'story' as const,     icon: StoryIcon,    label: 'Story' },
@@ -101,13 +107,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     { tab: 'canvas' as const,    icon: SectionsIcon, label: 'Sections' },
     { tab: 'pages' as const,     icon: SectionsIcon, label: 'Pages' },
     { tab: 'messaging' as const, icon: Mail,         label: 'Msgs' },
+    { tab: 'guests' as const,    icon: Users,        label: 'Guests' },
+    { tab: 'invite' as const,    icon: Send,         label: 'Invite' },
+    { tab: 'seating' as const,   icon: LayoutGrid,   label: 'Seating' },
   ], []);
 
   const RIGHT_WING_TABS = useMemo(() => [
-    { tab: 'design' as const,  icon: DesignIcon,   label: 'Design' },
-    { tab: 'details' as const, icon: DetailsIcon,  label: 'Details' },
-    { tab: 'blocks' as const,  icon: AIBlocksIcon, label: 'AI' },
-    { tab: 'voice' as const,   icon: VoiceIcon,    label: 'Voice' },
+    { tab: 'design' as const,      icon: DesignIcon,   label: 'Design' },
+    { tab: 'details' as const,     icon: DetailsIcon,  label: 'Details' },
+    { tab: 'blocks' as const,      icon: AIBlocksIcon, label: 'AI' },
+    { tab: 'voice' as const,       icon: VoiceIcon,    label: 'Voice' },
+    { tab: 'analytics' as const,   icon: BarChart2,    label: 'Stats' },
+    { tab: 'translate' as const,   icon: Globe2,       label: 'Lang' },
+    { tab: 'savethedate' as const, icon: Calendar,     label: 'STD' },
   ], []);
 
   // ── Auto-open correct wing on tab change ─────────────────────
@@ -628,6 +640,24 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 subdomain={state.subdomain}
               />
             )}
+
+            {state.activeTab === 'guests' && (
+              <div style={{ padding: '8px 0' }}>
+                <GuestSearchPanel siteId={state.subdomain} />
+              </div>
+            )}
+
+            {state.activeTab === 'invite' && (
+              <div style={{ padding: '8px 0' }}>
+                <BulkInvitePanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
+              </div>
+            )}
+
+            {state.activeTab === 'seating' && (
+              <div style={{ padding: '8px 0' }}>
+                <SeatingEditorPanel siteId={state.subdomain} />
+              </div>
+            )}
           </EditorWing>
         )}
 
@@ -676,6 +706,24 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                   </div>
                 </div>
               </motion.div>
+            )}
+
+            {state.activeTab === 'analytics' && (
+              <div style={{ padding: '4px 0' }}>
+                <AnalyticsDashboardPanel siteId={state.subdomain} />
+              </div>
+            )}
+
+            {state.activeTab === 'translate' && (
+              <div style={{ padding: '4px 0' }}>
+                <TranslationPanel manifest={manifest} onChange={handleDesignChange} />
+              </div>
+            )}
+
+            {state.activeTab === 'savethedate' && (
+              <div style={{ padding: '4px 0' }}>
+                <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
+              </div>
             )}
           </EditorWing>
         )}

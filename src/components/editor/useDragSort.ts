@@ -21,6 +21,14 @@ export interface UseDragSortOptions<T> {
   onReorder: (newItems: T[]) => void;
   /** Selector prefix for the data attribute used to find item elements */
   containerSelector?: string;
+  /**
+   * Optional ref to a "ghost" DOM element that follows the pointer during drag.
+   * The hook imperatively updates top/left/width on this element so the parent
+   * component can show a floating preview without triggering per-frame re-renders.
+   */
+  ghostRef?: React.RefObject<HTMLElement | null>;
+  /** Companion ref that receives the pointer offset captured at drag start */
+  ghostOffsetRef?: React.MutableRefObject<{ x: number; y: number }>;
 }
 
 export interface DragSortItemProps {
@@ -54,6 +62,8 @@ export function useDragSort<T>({
   items,
   getKey,
   onReorder,
+  ghostRef,
+  ghostOffsetRef,
 }: UseDragSortOptions<T>): UseDragSortReturn<T> {
   const [orderedItems, setOrderedItems] = useState<T[]>(items);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -127,6 +137,18 @@ export function useDragSort<T>({
       pointerId: e.pointerId,
     };
 
+    // Drive the ghost element imperatively to avoid per-frame re-renders
+    const draggedEl = itemEls.current.get(key);
+    if (ghostRef?.current && draggedEl) {
+      const rect = draggedEl.getBoundingClientRect();
+      const offsetY = e.clientY - rect.top;
+      const offsetX = e.clientX - rect.left;
+      if (ghostOffsetRef) ghostOffsetRef.current = { x: offsetX, y: offsetY };
+      ghostRef.current.style.top = `${e.clientY - offsetY}px`;
+      ghostRef.current.style.left = `${rect.left}px`;
+      ghostRef.current.style.width = `${rect.width}px`;
+    }
+
     isDraggingRef.current = true;
     setDragId(key);
     setDropIndex(startIndex);
@@ -139,6 +161,10 @@ export function useDragSort<T>({
       if (e.pointerId !== dragStateRef.current.pointerId) return;
       const idx = computeDropIndex(e.clientY, dragStateRef.current.dragKey);
       setDropIndex(idx);
+      // Reposition ghost directly on the DOM element — no React re-render needed
+      if (ghostRef?.current && ghostOffsetRef) {
+        ghostRef.current.style.top = `${e.clientY - ghostOffsetRef.current.y}px`;
+      }
     };
 
     const onUp = (e: PointerEvent) => {
@@ -195,10 +221,11 @@ export function useDragSort<T>({
       },
       style: {
         transition: isDraggingRef.current && !isBeingDragged ? 'transform 200ms ease' : 'none',
-        opacity: isBeingDragged ? 0.4 : 1,
-        boxShadow: isBeingDragged ? '0 8px 32px rgba(0,0,0,0.3)' : 'none',
+        opacity: isBeingDragged ? 0 : 1,
         position: 'relative',
         zIndex: isBeingDragged ? 10 : 'auto',
+        // Keep a size-preserving placeholder — no shadow/box since item is invisible
+        pointerEvents: isBeingDragged ? 'none' : 'auto',
       } as React.CSSProperties,
     };
   }, [dragId, getKey]);

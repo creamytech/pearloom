@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import { Plus, Image, X } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
@@ -14,6 +14,7 @@ import {
 } from '@/components/icons/EditorIcons';
 import { PearlIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
+import type { Chapter } from '@/types';
 import dynamic from 'next/dynamic';
 
 const DesignPanel = dynamic(() => import('./DesignPanel').then(m => ({ default: m.DesignPanel })), { ssr: false });
@@ -168,6 +169,103 @@ function getThumb(ch: { images?: Array<{ url?: string }> }): string | null {
   return raw;
 }
 
+// ── Mobile chapter row with drag handle ──────────────────────
+function ChapterReorderRow({
+  chapter, index, isActive, onSelect, onDelete, canDelete,
+}: {
+  chapter: Chapter;
+  index: number;
+  isActive: boolean;
+  onSelect: (id: string) => void;
+  onDelete: (id: string) => void;
+  canDelete: boolean;
+}) {
+  const controls = useDragControls();
+  const thumb = getThumb(chapter);
+
+  return (
+    <Reorder.Item
+      value={chapter}
+      id={chapter.id}
+      dragListener={false}
+      dragControls={controls}
+      style={{ listStyle: 'none' }}
+      whileDrag={{ scale: 1.02, boxShadow: '0 8px 32px rgba(0,0,0,0.45)', zIndex: 10, opacity: 0.97 }}
+    >
+      <div
+        onClick={() => onSelect(chapter.id)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '10px 10px 10px 4px',
+          borderRadius: '10px',
+          background: isActive ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.03)',
+          border: `1px solid ${isActive ? 'rgba(163,177,138,0.4)' : 'rgba(255,255,255,0.07)'}`,
+          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '1px solid rgba(255,255,255,0.07)',
+          cursor: 'pointer', marginBottom: '5px', touchAction: 'none',
+          userSelect: 'none',
+        }}
+      >
+        {/* Drag handle — wide touch target */}
+        <motion.div
+          onPointerDown={e => { e.preventDefault(); controls.start(e); }}
+          whileHover={{ color: 'rgba(163,177,138,0.8)' }}
+          style={{
+            cursor: 'grab', padding: '8px 10px', flexShrink: 0,
+            color: 'rgba(255,255,255,0.22)', touchAction: 'none',
+            display: 'flex', flexDirection: 'column', gap: '3px', alignItems: 'center',
+          }}
+        >
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ width: '14px', height: '2px', borderRadius: '1px', background: 'currentColor' }} />
+          ))}
+        </motion.div>
+
+        {/* Thumbnail */}
+        <div style={{
+          width: '44px', height: '44px', borderRadius: '8px', flexShrink: 0,
+          overflow: 'hidden', background: 'rgba(255,255,255,0.06)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {thumb
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <Image size={16} color="rgba(255,255,255,0.2)" />}
+        </div>
+
+        {/* Title + number */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: '0.88rem', fontWeight: 700,
+            color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.85)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {chapter.title || 'Untitled'}
+          </div>
+          <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+            Chapter {index + 1}
+          </div>
+        </div>
+
+        {/* Delete */}
+        {canDelete && (
+          <button
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onDelete(chapter.id); }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', padding: '8px', borderRadius: '6px',
+              minWidth: '36px', minHeight: '36px', flexShrink: 0,
+            }}
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+    </Reorder.Item>
+  );
+}
+
 
 // ── Main Component ────────────────────────────────────────────
 export function MobileEditorSheet() {
@@ -302,68 +400,25 @@ export function MobileEditorSheet() {
                       <Plus size={13} /> Add
                     </motion.button>
                   </div>
-                  {/* Horizontal chapter cards */}
-                  <div style={{
-                    display: 'flex', gap: '10px', overflowX: 'auto',
-                    WebkitOverflowScrolling: 'touch', paddingBottom: '8px', marginBottom: '12px',
-                  } as React.CSSProperties}>
-                    {chapters.map((ch, i) => {
-                      const thumb = getThumb(ch);
-                      const isActive = activeId === ch.id;
-                      return (
-                        <div
-                          key={ch.id}
-                          style={{ position: 'relative', flexShrink: 0 }}
-                        >
-                          {chapters.length > 1 && (
-                            <button
-                              aria-label={`Delete chapter ${ch.title || 'Untitled'}`}
-                              onClick={(e) => { e.stopPropagation(); actions.deleteChapter(ch.id); }}
-                              style={{
-                                position: 'absolute', top: '4px', right: '4px', zIndex: 2,
-                                width: '22px', height: '22px', borderRadius: '50%',
-                                background: 'rgba(0,0,0,0.6)', border: 'none',
-                                color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '12px', lineHeight: 1, padding: 0,
-                              }}
-                            >
-                              <X size={12} />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => dispatch({ type: 'SET_ACTIVE_ID', id: ch.id })}
-                            style={{
-                              flexShrink: 0, width: '100px', borderRadius: '10px', border: 'none',
-                              background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.05)',
-                              outline: isActive ? '2px solid rgba(163,177,138,0.5)' : 'none',
-                              cursor: 'pointer', padding: 0, overflow: 'hidden',
-                              minHeight: '44px',
-                            }}
-                          >
-                          <div style={{
-                            width: '100%', height: '60px',
-                            background: thumb ? 'transparent' : 'rgba(255,255,255,0.06)',
-                            overflow: 'hidden',
-                          }}>
-                            {thumb
-                              // eslint-disable-next-line @next/next/no-img-element
-                              ? <img src={thumb} alt={ch.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                                  <Image size={16} color="rgba(255,255,255,0.2)" />
-                                </div>}
-                          </div>
-                          <div style={{ padding: '6px 8px', textAlign: 'left' }}>
-                            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isActive ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {ch.title || 'Untitled'}
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>Ch. {i + 1}</div>
-                          </div>
-                        </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {/* Draggable chapter list */}
+                  <Reorder.Group
+                    axis="y"
+                    values={chapters}
+                    onReorder={actions.handleReorder}
+                    style={{ listStyle: 'none', margin: 0, padding: 0, marginBottom: '12px' }}
+                  >
+                    {chapters.map((ch, i) => (
+                      <ChapterReorderRow
+                        key={ch.id}
+                        chapter={ch}
+                        index={i}
+                        isActive={activeId === ch.id}
+                        onSelect={id => dispatch({ type: 'SET_ACTIVE_ID', id })}
+                        onDelete={actions.deleteChapter}
+                        canDelete={chapters.length > 1}
+                      />
+                    ))}
+                  </Reorder.Group>
                   {/* Inline chapter editor */}
                   <AnimatePresence mode="wait">
                     {activeChapter && (

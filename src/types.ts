@@ -183,6 +183,34 @@ export interface ThemeSchema {
   elementShape?: 'square' | 'rounded' | 'arch' | 'pill';
   cardStyle?: 'solid' | 'glass' | 'bordered' | 'shadow-heavy';
   backgroundPattern?: 'none' | 'noise' | 'dots' | 'grid' | 'waves' | 'floral' | 'topography';
+
+  /** Visual atmosphere effects — all optional, default to off */
+  effects?: {
+    /** Film grain overlay intensity 0–100 */
+    grain?: number;
+    /** Edge vignette darkness 0–100 */
+    vignette?: number;
+    /** Color temperature shift −50 (cool/blue) → +50 (warm/amber) */
+    colorTemp?: number;
+    /** Animated gradient mesh behind all content */
+    gradientMesh?: {
+      preset: 'none' | 'aurora' | 'sunset' | 'ocean' | 'forest' | 'rose' | 'champagne' | 'twilight' | 'custom';
+      speed: 'still' | 'slow' | 'medium' | 'fast';
+      opacity: number; // 0–100
+    };
+    /** Custom cursor shape */
+    customCursor?: 'none' | 'pearl' | 'heart' | 'ring' | 'petal' | 'star';
+    /** SVG dividers between page sections */
+    sectionDivider?: {
+      style: 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';
+      height: number; // px 30–200
+      flip: boolean; // alternate direction every other section
+    };
+    /** Scroll-triggered entrance animations for content blocks */
+    scrollReveal?: 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in';
+    /** Tiling texture layered over background */
+    textureOverlay?: 'none' | 'paper' | 'linen' | 'concrete' | 'velvet' | 'bokeh';
+  };
 }
 
 /**
@@ -389,6 +417,16 @@ export interface PageBlock {
   visible: boolean;
   // Optional per-block config overrides
   config?: Record<string, unknown>;
+  /** Per-block visual effects — override or supplement global theme effects */
+  blockEffects?: {
+    /** Entrance animation when this section scrolls into view */
+    scrollReveal?: 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in';
+    /** Custom SVG divider above this block (replaces the auto WaveDivider) */
+    dividerAbove?: {
+      style: 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';
+      height: number;
+    } | null;
+  };
 }
 
 
