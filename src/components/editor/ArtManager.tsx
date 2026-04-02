@@ -68,8 +68,8 @@ function ArtSlotCard({
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
               opacity: 0, transition: 'opacity 0.2s ease',
             }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.opacity = '0'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0'; }}
             >
               <ActionButton icon={<Upload size={14} />} label="Replace" onClick={() => inputRef.current?.click()} />
               <ActionButton icon={isRegenerating ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />} label="AI Regen" onClick={onRegenerate} disabled={isRegenerating} />

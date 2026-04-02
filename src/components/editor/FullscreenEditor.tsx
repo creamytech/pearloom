@@ -551,7 +551,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* Navigation Rail (desktop only) */}
-        {!state.isMobile && <EditorRail />}
+        {!state.isMobile && <EditorRail onOpen={() => setPanelOpen(true)} />}
 
         {/* Push Panel (desktop only) */}
         {!state.isMobile && (
@@ -742,7 +742,9 @@ function PublishModalInline() {
   const [shareCopied, setShareCopied] = useState(false);
 
   const accent = manifest?.theme?.colors?.accent || '#A3B18A';
-  const displayNames = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'Our Site';
+  const displayNames = coupleNames
+    ? (coupleNames[1]?.trim() ? `${coupleNames[0]} & ${coupleNames[1]}` : coupleNames[0])
+    : 'Our Site';
   const shareMsg = publishedUrl
     ? `You're invited! View ${displayNames}'s site: ${publishedUrl}`
     : '';

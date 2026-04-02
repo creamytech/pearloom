@@ -492,7 +492,21 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             {generating ? (
               <>
                 <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                Crafting your artwork…
+                <span>
+                  Crafting
+                  <motion.span
+                    animate={{ opacity: [0, 1, 1, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, times: [0, 0.2, 0.8, 1] }}
+                  >&thinsp;.</motion.span>
+                  <motion.span
+                    animate={{ opacity: [0, 1, 1, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, times: [0, 0.2, 0.8, 1], delay: 0.2 }}
+                  >.</motion.span>
+                  <motion.span
+                    animate={{ opacity: [0, 1, 1, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, times: [0, 0.2, 0.8, 1], delay: 0.4 }}
+                  >.</motion.span>
+                </span>
               </>
             ) : (
               <>

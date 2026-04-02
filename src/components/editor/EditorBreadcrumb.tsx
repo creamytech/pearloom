@@ -26,7 +26,9 @@ export function EditorBreadcrumb() {
   const activeChapter = activeId ? chapters.find(c => c.id === activeId) : null;
   const siteName = manifest.occasion === 'birthday'
     ? `${coupleNames[0]}'s Birthday`
-    : `${coupleNames[0]} & ${coupleNames[1]}`;
+    : coupleNames[1]?.trim()
+      ? `${coupleNames[0]} & ${coupleNames[1]}`
+      : coupleNames[0];
 
   return (
     <motion.div

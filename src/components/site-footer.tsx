@@ -31,7 +31,7 @@ export function SiteFooter({
   closingLine,
 }: SiteFooterProps) {
   const enabledPages = pages.filter((p) => p.enabled).sort((a, b) => a.order - b.order);
-  const displayNames = `${names[0]} & ${names[1]}`;
+  const displayNames = names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0];
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

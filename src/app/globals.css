@@ -360,4 +360,50 @@ a { transition: color 0.18s ease, opacity 0.18s ease; }
 }
 
 /* Tabular numerals */
-.tabular-nums { font-variant-numeric: tabular-nums; }
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ─── Reduced Motion ─── */
+/* Respects prefers-reduced-motion for all CSS animations and transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton {
+    animation: none;
+    background: var(--pl-cream-deep);
+  }
+}
+
+/* ─── Focus ring improvements ─── */
+/* Slightly warmer, more on-brand focus ring */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--pl-olive);
+  outline-offset: 3px;
+  border-radius: var(--pl-radius-xs);
+  box-shadow: 0 0 0 4px rgba(163,177,138,0.18);
+}
+
+/* ─── Interactive card lift ─── */
+/* Applied to cards that should lift on hover — use sparingly */
+.card-hover {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--pl-shadow-lg);
+}

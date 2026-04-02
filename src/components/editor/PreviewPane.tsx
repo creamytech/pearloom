@@ -506,7 +506,7 @@ export function PreviewPane({
                 fontSize: '18px', fontStyle: 'italic',
                 color: `${vibeSkin?.palette?.foreground || '#1a1a1a'}60`,
               }}>
-                {manifest.poetry?.closingLine || `${coupleNames[0]} & ${coupleNames[1]}`}
+                {manifest.poetry?.closingLine || (coupleNames[1] ? `${coupleNames[0]} & ${coupleNames[1]}` : coupleNames[0])}
               </div>
             </div>
           </div>

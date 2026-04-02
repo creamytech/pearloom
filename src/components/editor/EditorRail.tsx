@@ -71,11 +71,14 @@ function RailBtn({ item, active, onClick }: {
       {active && (
         <motion.div
           layoutId="rail-accent"
+          initial={{ scaleY: 0, opacity: 0 }}
+          animate={{ scaleY: 1, opacity: 1 }}
           style={{
             position: 'absolute', left: 0, top: '18%', bottom: '18%',
             width: '2px',
             background: 'linear-gradient(180deg, #A3B18A 0%, #6E8B5A 100%)',
             borderRadius: '0 2px 2px 0',
+            transformOrigin: 'center',
           }}
           transition={{ type: 'spring', stiffness: 420, damping: 30 }}
         />
@@ -103,15 +106,20 @@ function Sep() {
 }
 
 // ── EditorRail ─────────────────────────────────────────────────
-export function EditorRail() {
+export function EditorRail({ onOpen }: { onOpen?: () => void }) {
   const { state, actions } = useEditor();
   const active = state.activeTab;
 
+  const handleClick = (tab: typeof active) => {
+    actions.handleTabChange(tab);
+    onOpen?.(); // always re-open panel, even if same tab
+  };
+
   return (
     <div style={{
-      width: '54px', flexShrink: 0,
-      background: 'rgba(13,10,8,0.99)',
-      borderRight: '1px solid rgba(255,255,255,0.06)',
+      width: '56px', flexShrink: 0,
+      background: 'rgba(12,9,7,0.99)',
+      borderRight: '1px solid rgba(255,255,255,0.07)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
       overflowY: 'auto', overflowX: 'hidden',
@@ -120,11 +128,11 @@ export function EditorRail() {
 
       {/* Logo mark */}
       <div style={{
-        height: '42px', flexShrink: 0,
+        height: '44px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid rgba(255,255,255,0.055)',
       }}>
-        <ElegantHeartIcon size={14} color="rgba(214,198,168,0.4)" />
+        <ElegantHeartIcon size={14} color="rgba(214,198,168,0.45)" />
       </div>
 
       {/* Narrative group */}
@@ -134,7 +142,7 @@ export function EditorRail() {
             key={item.tab}
             item={item}
             active={active === item.tab}
-            onClick={() => actions.handleTabChange(item.tab)}
+            onClick={() => handleClick(item.tab)}
           />
         ))}
       </div>
@@ -148,7 +156,7 @@ export function EditorRail() {
             key={item.tab}
             item={item}
             active={active === item.tab}
-            onClick={() => actions.handleTabChange(item.tab)}
+            onClick={() => handleClick(item.tab)}
           />
         ))}
       </div>
@@ -162,7 +170,7 @@ export function EditorRail() {
             key={item.tab}
             item={item}
             active={active === item.tab}
-            onClick={() => actions.handleTabChange(item.tab)}
+            onClick={() => handleClick(item.tab)}
           />
         ))}
       </div>

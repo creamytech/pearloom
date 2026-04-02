@@ -63,30 +63,33 @@ function useAggregateStats(sites: UserSite[]): AggregateStats {
 
 function StatsBar({ stats }: { stats: AggregateStats }) {
   if (stats.totalViews === 0 && stats.totalAttending === 0 && stats.upcomingEvents === 0) return null;
+  const pills = [
+    stats.totalViews > 0 && { icon: <BarChart2 size={13} />, value: stats.totalViews.toLocaleString(), label: 'total views' },
+    stats.totalAttending > 0 && { icon: <Users size={13} />, value: stats.totalAttending, label: 'attending' },
+    stats.upcomingEvents > 0 && { icon: <Calendar size={13} />, value: stats.upcomingEvents, label: 'upcoming' },
+  ].filter(Boolean) as { icon: React.ReactNode; value: string | number; label: string }[];
+
   return (
-    <div className="flex items-center gap-3 flex-wrap mb-8">
-      {stats.totalViews > 0 && (
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-          <BarChart2 size={13} className="text-[var(--pl-olive)]" />
-          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{stats.totalViews.toLocaleString()}</span>
-          <span className="text-[0.72rem] text-[var(--pl-muted)]">total views</span>
-        </div>
-      )}
-      {stats.totalAttending > 0 && (
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-          <Users size={13} className="text-[var(--pl-olive)]" />
-          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{stats.totalAttending}</span>
-          <span className="text-[0.72rem] text-[var(--pl-muted)]">attending</span>
-        </div>
-      )}
-      {stats.upcomingEvents > 0 && (
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-          <Calendar size={13} className="text-[var(--pl-olive)]" />
-          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{stats.upcomingEvents}</span>
-          <span className="text-[0.72rem] text-[var(--pl-muted)]">upcoming</span>
-        </div>
-      )}
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="flex items-center gap-3 flex-wrap mb-8"
+    >
+      {pills.map((pill, i) => (
+        <motion.div
+          key={pill.label}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+        >
+          <span className="text-[var(--pl-olive)]">{pill.icon}</span>
+          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{pill.value}</span>
+          <span className="text-[0.72rem] text-[var(--pl-muted)]">{pill.label}</span>
+        </motion.div>
+      ))}
+    </motion.div>
   );
 }
 
@@ -318,7 +321,8 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
               const coverPhotoUrl = site.manifest?.chapters?.[0]?.images?.[0]?.url;
               const isDeleting    = deletingDomain === site.domain;
               const isCopied      = copiedId === site.id;
-              const displayNames  = (site.names || ['', '']).map((n) => n.charAt(0).toUpperCase() + n.slice(1)).join(' & ');
+              const rawNames = (site.names || ['', '']).map((n) => n.charAt(0).toUpperCase() + n.slice(1));
+              const displayNames = rawNames[1]?.trim() ? rawNames.join(' & ') : rawNames[0];
               const weddingDate   = site.manifest?.logistics?.date || site.manifest?.events?.[0]?.date;
               const isLive        = !site.manifest?.comingSoon?.enabled;
               const occ           = OCCASION_BADGE[site.manifest?.occasion || ''];

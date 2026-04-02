@@ -81,9 +81,6 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* ── Design Advisor ── */}
-      <DesignAdvisor manifest={manifest} />
-      <AccessibilityAuditPanel manifest={manifest} />
 
       {/* ── Theme Switcher ── */}
       <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
@@ -94,70 +91,66 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         />
       </div>
 
-      {/* VibeSkin palette swatches */}
-      <div id="design-customization" />
-      {paletteColors.length > 0 && (
-        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '8px' }}>
-            Current Palette
-          </div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-            {paletteColors.map((c, i) => (
-              <div
-                key={i}
-                title={String(c)}
-                style={{
-                  width: '28px', height: '28px', borderRadius: '50%',
-                  background: String(c),
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                  flexShrink: 0,
-                }}
-              />
-            ))}
-          </div>
-          {/* Tone badge */}
+      {/* Regenerate + tone badge */}
+      <div id="design-customization" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {vibeSkin?.tone && (
-            <div style={{ marginTop: '8px' }}>
-              <span style={{
-                display: 'inline-block', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
-                textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)',
-                background: 'rgba(163,177,138,0.12)', padding: '4px 12px', borderRadius: '100px',
-                border: '1px solid rgba(163,177,138,0.25)',
-              }}>
-                {vibeSkin.tone}
-              </span>
-            </div>
+            <span style={{
+              display: 'inline-block', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em',
+              textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)',
+              background: 'rgba(163,177,138,0.12)', padding: '4px 12px', borderRadius: '100px',
+              border: '1px solid rgba(163,177,138,0.2)',
+            }}>
+              {vibeSkin.tone}
+            </span>
           )}
-          {/* Regenerate design button */}
           <button
             onClick={handleRegenerateDesign}
             disabled={isRegenerating}
             style={{
-              marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '7px 14px', borderRadius: '7px',
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '6px 12px', borderRadius: '7px',
               border: '1px solid rgba(163,177,138,0.25)',
               background: isRegenerating ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.07)',
               color: 'var(--eg-accent, #A3B18A)', cursor: isRegenerating ? 'not-allowed' : 'pointer',
-              fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s',
+              fontSize: '0.82rem', fontWeight: 700, transition: 'all 0.15s',
               opacity: isRegenerating ? 0.7 : 1,
             }}
-            onMouseOver={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.15)'; }}
-            onMouseOut={e => { if (!isRegenerating) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.07)'; }}
           >
             <DesignIcon size={13} />
-            {isRegenerating ? 'Generating new design…' : 'Regenerate design'}
+            {isRegenerating ? 'Generating…' : 'Regenerate design'}
           </button>
-          {regenError && (
-            <p style={{ fontSize: '0.82rem', color: '#e87a7a', marginTop: '4px', marginLeft: '2px' }}>
-              {regenError}
-            </p>
-          )}
         </div>
-      )}
+        {regenError && (
+          <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '6px' }}>{regenError}</p>
+        )}
+      </div>
 
       {/* AI palette + pattern picker */}
       <ColorPalettePanel manifest={manifest} onChange={onChange} />
+
+      {/* ── Visual Effects (shaders, mesh, grain, etc.) — open by default ── */}
+      <SidebarSection title="Visual Effects" defaultOpen>
+        <VisualEffectsPanel
+          effects={manifest.theme?.effects ?? {}}
+          accentColor={manifest.theme?.colors?.accent}
+          onChange={(effects: NonNullable<ThemeSchema['effects']>) => {
+            onChange({
+              ...manifest,
+              theme: { ...manifest.theme, effects },
+            });
+          }}
+        />
+      </SidebarSection>
+
+      {/* Typography — full font pair picker */}
+      <SidebarSection title="Typography" defaultOpen={false}>
+        <FontPicker
+          currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
+          currentBody={manifest.theme?.fonts?.body || 'Inter'}
+          onChange={(heading, body) => { updateFont('heading', heading); updateFont('body', body); }}
+        />
+      </SidebarSection>
 
       {/* AI Art Manager — hero, ambient, art strip */}
       <SidebarSection title="AI Art" defaultOpen={false}>
@@ -173,27 +166,10 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         )}
       </SidebarSection>
 
-      {/* Typography — full font pair picker */}
-      <SidebarSection title="Typography" defaultOpen={false}>
-        <FontPicker
-          currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
-          currentBody={manifest.theme?.fonts?.body || 'Inter'}
-          onChange={(heading, body) => { updateFont('heading', heading); updateFont('body', body); }}
-        />
-      </SidebarSection>
-
-      {/* ── Visual Effects ── */}
-      <SidebarSection title="Visual Effects" defaultOpen={false}>
-        <VisualEffectsPanel
-          effects={manifest.theme?.effects ?? {}}
-          accentColor={manifest.theme?.colors?.accent}
-          onChange={(effects: NonNullable<ThemeSchema['effects']>) => {
-            onChange({
-              ...manifest,
-              theme: { ...manifest.theme, effects },
-            });
-          }}
-        />
+      {/* Design Health — advisors collapsed at bottom */}
+      <SidebarSection title="Design Health" defaultOpen={false}>
+        <DesignAdvisor manifest={manifest} />
+        <AccessibilityAuditPanel manifest={manifest} />
       </SidebarSection>
 
       {/* Asset Library */}
