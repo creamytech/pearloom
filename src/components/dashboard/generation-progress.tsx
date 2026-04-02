@@ -1,29 +1,41 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / components/dashboard/generation-progress.tsx
-// "The Darkroom" — cinematic film-development loading experience
-// Photos develop like Polaroids; AI thoughts scroll like credits
+// Pearloom / generation-progress.tsx — "The Weave"
+//
+// Photos are sliced into thin horizontal strips that shuttle
+// left ↔ right through vertical warp threads — exactly like a
+// real loom. Each AI pass weaves more photos into the tapestry
+// until the full collage is complete.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GooglePhotoMetadata } from '@/types';
 import { colors as C, text } from '@/lib/design-tokens';
 
 // ── Pass descriptors ──────────────────────────────────────────
 const PASSES = [
-  { headline: 'Developing...', copy: 'Loading your memories into the darkroom.', pct: 5 },
+  { headline: 'Threading the loom\u2026', copy: 'Loading your memories into the weave.', pct: 5 },
   { headline: 'Writing your story', copy: 'Each photo becomes a chapter only you could have lived.', pct: 20 },
   { headline: 'Refining every word', copy: 'Making sure it sounds like you, not anyone else.', pct: 34 },
   { headline: 'Learning your DNA', copy: 'The pets, the places, the inside jokes.', pct: 47 },
-  { headline: 'Designing your world', copy: 'Colors, fonts, and shapes — born from your vibe.', pct: 61 },
+  { headline: 'Designing your world', copy: 'Colors, fonts, and shapes \u2014 born from your vibe.', pct: 61 },
   { headline: 'Painting custom art', copy: 'AI-generated imagery that belongs to no one else.', pct: 74 },
   { headline: 'Critiquing the design', copy: 'A second opinion on every detail.', pct: 86 },
   { headline: 'Final poetry', copy: 'The tagline. The closing line. The welcome in your voice.', pct: 95 },
 ];
 
-// ── Build dynamic thought lines from user inputs ──────────────
+// How many photo cells to activate per pass
+const ACTIVE_COUNTS = [2, 3, 4, 6, 7, 8, 9, 9];
+
+// Warp thread palette — olive, gold, plum cycling
+const WARP_COLORS = [
+  C.olive, C.gold, C.plum, C.olive, C.gold,
+  C.plum, C.olive, C.gold, C.plum, C.olive,
+];
+
+// ── Build dynamic thought lines ───────────────────────────────
 function buildThoughts(
   passIdx: number,
   names: [string, string],
@@ -43,9 +55,9 @@ function buildThoughts(
       vibeWords[0] ? `Feeling something ${vibeWords[0].toLowerCase()}` : 'Reading the quiet details',
     ],
     1: [
-      `A story is forming — uniquely ${who}`,
+      `A story is forming \u2014 uniquely ${who}`,
       'Each chapter is its own small universe',
-      vibeWords[0] ? `"${vibeWords[0]}" woven through every line` : 'Every word chosen with intention',
+      vibeWords[0] ? `\u201c${vibeWords[0]}\u201d woven through every line` : 'Every word chosen with intention',
     ],
     2: [
       'Reading back every line',
@@ -55,10 +67,10 @@ function buildThoughts(
     3: [
       'The habits, the places, the inside moments',
       `Building a portrait of ${who}`,
-      vibeWords[1] ? `"${vibeWords[1]}" keeps surfacing` : 'Details that make this irreplaceable',
+      vibeWords[1] ? `\u201c${vibeWords[1]}\u201d keeps surfacing` : 'Details that make this irreplaceable',
     ],
     4: [
-      vibeWords[0] ? `A palette born from "${vibeWords[0]}"` : 'Designing a visual world from scratch',
+      vibeWords[0] ? `A palette born from \u201c${vibeWords[0]}\u201d` : 'Designing a visual world from scratch',
       'Typography that feels like the story itself',
       'Every colour chosen with intention',
     ],
@@ -75,152 +87,14 @@ function buildThoughts(
     7: [
       `A final line written just for ${who}`,
       'The words that arrive when everything else is ready',
-      "This is the part that can't be rushed",
+      "This is the part that can\u2019t be rushed",
     ],
   };
 
   return lines[passIdx] ?? lines[0];
 }
 
-// ── Polaroid developing photo ─────────────────────────────────
-function DevelopingPhoto({
-  src,
-  isActive,
-  position,
-}: {
-  src: string;
-  isActive: boolean;
-  position: 'current' | 'prev' | 'next' | 'far';
-}) {
-  const transforms: Record<string, { x: number; scale: number; rotateY: number; opacity: number; z: number }> = {
-    far: { x: 0, scale: 0.5, rotateY: 0, opacity: 0, z: -200 },
-    prev: { x: -260, scale: 0.65, rotateY: 12, opacity: 0.3, z: -100 },
-    current: { x: 0, scale: 1, rotateY: 0, opacity: 1, z: 0 },
-    next: { x: 260, scale: 0.65, rotateY: -12, opacity: 0.3, z: -100 },
-  };
-
-  const t = transforms[position];
-
-  return (
-    <motion.div
-      animate={{
-        x: t.x,
-        scale: t.scale,
-        rotateY: t.rotateY,
-        opacity: t.opacity,
-        z: t.z,
-      }}
-      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-      style={{
-        position: 'absolute',
-        width: 'min(420px, 75vw)',
-        aspectRatio: '4/3',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        boxShadow: isActive
-          ? '0 20px 60px rgba(0,0,0,0.6), 0 0 80px rgba(163,177,138,0.08)'
-          : '0 8px 30px rgba(0,0,0,0.4)',
-        border: isActive ? '1px solid rgba(255,255,255,0.08)' : 'none',
-        transformStyle: 'preserve-3d',
-        willChange: 'transform, opacity',
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-        }}
-        loading="lazy"
-      />
-      {/* Film grain overlay */}
-      {isActive && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'repeating-conic-gradient(rgba(255,255,255,0.01) 0% 25%, transparent 0% 50%) 0 0 / 3px 3px',
-          mixBlendMode: 'overlay',
-          pointerEvents: 'none',
-        }} />
-      )}
-      {/* Developing reveal mask — wipes down */}
-      {isActive && (
-        <motion.div
-          initial={{ height: '100%' }}
-          animate={{ height: '0%' }}
-          transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-          style={{
-            position: 'absolute', top: 0, left: 0, right: 0,
-            background: C.darkBg,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
-    </motion.div>
-  );
-}
-
-// ── Film strip progress bar ───────────────────────────────────
-function FilmStrip({
-  photos,
-  activeIndex,
-  progress,
-}: {
-  photos: string[];
-  activeIndex: number;
-  progress: number;
-}) {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', gap: '0.5rem',
-      width: '100%', maxWidth: '600px',
-    }}>
-      {/* Thumbnail strip */}
-      <div style={{
-        display: 'flex', gap: '3px', justifyContent: 'center',
-        padding: '0 1rem', overflow: 'hidden',
-      }}>
-        {photos.slice(0, 12).map((src, i) => (
-          <motion.div
-            key={i}
-            animate={{
-              opacity: i === activeIndex ? 1 : i < activeIndex ? 0.5 : 0.2,
-              scale: i === activeIndex ? 1.1 : 1,
-            }}
-            transition={{ duration: 0.4 }}
-            style={{
-              width: 'clamp(28px, 5vw, 44px)',
-              aspectRatio: '4/3',
-              borderRadius: '2px',
-              overflow: 'hidden',
-              border: i === activeIndex ? `1.5px solid ${C.olive}` : '1px solid rgba(255,255,255,0.06)',
-              flexShrink: 0,
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} loading="lazy" />
-          </motion.div>
-        ))}
-      </div>
-      {/* Progress bar */}
-      <div style={{
-        height: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '1px',
-        overflow: 'hidden', width: '100%',
-      }}>
-        <motion.div
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          style={{ height: '100%', background: C.olive, borderRadius: '1px' }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ── Ambient thought line ──────────────────────────────────────
+// ── TypewriterText ────────────────────────────────────────────
 function TypewriterText({ text: displayText, speed = 18 }: { text: string; speed?: number }) {
   const [displayed, setDisplayed] = useState('');
   const textRef = useRef(displayText);
@@ -234,7 +108,7 @@ function TypewriterText({ text: displayText, speed = 18 }: { text: string; speed
       setDisplayed(textRef.current.slice(0, i));
       if (i >= textRef.current.length) return;
       const ch = textRef.current[i - 1];
-      const delay = /[.,;:!?—–]/.test(ch) ? speed + 70 : speed;
+      const delay = /[.,;:!?\u2014\u2013]/.test(ch) ? speed + 70 : speed;
       setTimeout(advance, delay);
     };
     const t = setTimeout(advance, speed);
@@ -248,14 +122,17 @@ function TypewriterText({ text: displayText, speed = 18 }: { text: string; speed
         <motion.span
           animate={{ opacity: [1, 0, 1] }}
           transition={{ duration: 0.8, repeat: Infinity }}
-          style={{ display: 'inline-block', width: '1px', height: '0.9em', background: `${C.gold}88`, marginLeft: '1px', verticalAlign: 'text-bottom' }}
+          style={{
+            display: 'inline-block', width: '1px', height: '0.9em',
+            background: `${C.gold}88`, marginLeft: '1px', verticalAlign: 'text-bottom',
+          }}
         />
       )}
     </>
   );
 }
 
-// ── Thought stream ────────────────────────────────────────────
+// ── ThoughtStream ─────────────────────────────────────────────
 function ThoughtStream({ lines }: { lines: string[] }) {
   const [visibleCount, setVisibleCount] = useState(1);
   const prevRef = useRef<string[]>([]);
@@ -274,18 +151,20 @@ function ThoughtStream({ lines }: { lines: string[] }) {
   }, [visibleCount, lines.length]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', minHeight: '3.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', minHeight: '3.5rem' }}>
       <AnimatePresence initial={false}>
         {lines.slice(0, visibleCount).map((line, i) => (
           <motion.p
             key={`${line}-${i}`}
             initial={{ opacity: 0, y: 6, filter: 'blur(3px)' }}
-            animate={{ opacity: i === visibleCount - 1 ? 0.65 : 0.25, y: 0, filter: 'blur(0px)' }}
+            animate={{ opacity: i === visibleCount - 1 ? 0.65 : 0.22, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              margin: 0, fontFamily: 'var(--eg-font-heading, Georgia, serif)',
-              fontStyle: 'italic', fontWeight: 400, fontSize: '0.82rem',
-              color: C.darkHeading, letterSpacing: '0.01em', lineHeight: 1.5, textAlign: 'center',
+              margin: 0,
+              fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+              fontStyle: 'italic', fontWeight: 400,
+              fontSize: '0.82rem', color: C.darkHeading,
+              letterSpacing: '0.01em', lineHeight: 1.5, textAlign: 'center',
             }}
           >
             {i === visibleCount - 1 ? <TypewriterText text={line} speed={18} /> : line}
@@ -296,7 +175,201 @@ function ThoughtStream({ lines }: { lines: string[] }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────
+// ── WovenPhoto ────────────────────────────────────────────────
+// Slices the photo into STRIP_COUNT horizontal bands.
+// Each band enters from alternating sides (left ↔ right) with a
+// short stagger — mimicking the weft shuttle on a real loom.
+const STRIP_COUNT = 18;
+
+function WovenPhoto({ src, active }: { src: string; active: boolean }) {
+  const [woven, setWoven] = useState(false);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (!active || started.current) return;
+    started.current = true;
+    // Small delay so consecutive photos don't all fire at once
+    const t = setTimeout(() => setWoven(true), 80);
+    return () => clearTimeout(t);
+  }, [active]);
+
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      aspectRatio: '4/3',
+      borderRadius: '2px',
+      overflow: 'hidden',
+      background: 'rgba(255,255,255,0.025)',
+    }}>
+      {Array.from({ length: STRIP_COUNT }).map((_, i) => {
+        const fromLeft = i % 2 === 0;
+        const topPct    = (i / STRIP_COUNT) * 100;
+        const heightPct = 100 / STRIP_COUNT;
+
+        return (
+          <motion.div
+            key={i}
+            initial={{ x: fromLeft ? '-101%' : '101%' }}
+            animate={{ x: woven ? '0%' : (fromLeft ? '-101%' : '101%') }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: i * 0.038 }}
+            style={{
+              position: 'absolute',
+              top: `${topPct}%`,
+              left: 0, right: 0,
+              height: `${heightPct}%`,
+              overflow: 'hidden',
+            }}
+          >
+            {/* Image offset so each strip shows its correct vertical slice */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={src}
+              alt=""
+              loading="lazy"
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: `${STRIP_COUNT * 100}%`,
+                top: `${-i * 100}%`,
+                left: 0,
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          </motion.div>
+        );
+      })}
+
+      {/* Gold sheen that wipes across right after weaving completes */}
+      <motion.div
+        initial={{ opacity: 0, x: '-100%' }}
+        animate={woven ? { opacity: [0, 0.22, 0], x: ['−100%', '0%', '100%'] } : {}}
+        transition={{ duration: 1.1, delay: STRIP_COUNT * 0.038 + 0.15, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(105deg, transparent 0%, rgba(196,169,106,0.35) 50%, transparent 100%)',
+          pointerEvents: 'none',
+        }}
+      />
+    </div>
+  );
+}
+
+// ── EmptyCell — unactivated loom slot ─────────────────────────
+function EmptyCell() {
+  return (
+    <div style={{
+      width: '100%', aspectRatio: '4/3',
+      borderRadius: '2px',
+      background: 'rgba(255,255,255,0.018)',
+      border: '1px solid rgba(255,255,255,0.04)',
+    }} />
+  );
+}
+
+// ── WarpThreads — vertical threads over the grid ──────────────
+// Threads overlap photos (high z-index, low opacity) to create the
+// over/under illusion that photos are woven into the cloth.
+// On completion they dissolve away to reveal the clean tapestry.
+function WarpThreads({ visible }: { visible: boolean }) {
+  const COUNT = 10;
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      pointerEvents: 'none', zIndex: 20,
+    }}>
+      {Array.from({ length: COUNT }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: visible ? 0.3 : 0 }}
+          transition={{
+            duration: visible ? 0.6 : 1.6,
+            delay: visible ? i * 0.05 : (COUNT - i) * 0.06,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          style={{
+            position: 'absolute',
+            top: 0, bottom: 0,
+            left: `${((i + 0.5) / COUNT) * 100}%`,
+            width: '1.5px',
+            background: `linear-gradient(180deg,
+              transparent 0%,
+              ${WARP_COLORS[i % WARP_COLORS.length]} 6%,
+              ${WARP_COLORS[i % WARP_COLORS.length]} 94%,
+              transparent 100%)`,
+            transform: 'translateX(-50%)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── LoomBed — 3×3 grid + warp threads ────────────────────────
+function LoomBed({
+  photoUrls,
+  activeCount,
+  threadsVisible,
+}: {
+  photoUrls: string[];
+  activeCount: number;
+  threadsVisible: boolean;
+}) {
+  const TOTAL = 9;
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      {/* 3×3 photo grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '3px',
+        borderRadius: '4px',
+        overflow: 'hidden',
+      }}>
+        {Array.from({ length: TOTAL }).map((_, i) => {
+          const isActive = i < activeCount;
+          const src = photoUrls.length > 0
+            ? photoUrls[i % photoUrls.length]
+            : null;
+          return isActive && src
+            ? <WovenPhoto key={i} src={src} active />
+            : <EmptyCell key={i} />;
+        })}
+      </div>
+
+      {/* Warp threads overlay */}
+      <WarpThreads visible={threadsVisible} />
+    </div>
+  );
+}
+
+// ── PassDots ──────────────────────────────────────────────────
+function PassDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{
+            background: i < current
+              ? C.olive
+              : i === current
+                ? C.gold
+                : 'rgba(255,255,255,0.1)',
+            scale: i === current ? 1.4 : 1,
+          }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          style={{ width: '5px', height: '5px', borderRadius: '50%' }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Main export ───────────────────────────────────────────────
 export function GenerationProgress({
   step = 0,
   onCancel,
@@ -316,12 +389,14 @@ export function GenerationProgress({
   isComplete?: boolean;
   onComplete?: () => void;
 }) {
-  const idx = Math.min(step, PASSES.length - 1);
+  const idx  = Math.min(step, PASSES.length - 1);
   const pass = PASSES[idx];
   const [elapsed, setElapsed] = useState(0);
-  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
 
-  // Completion transition
+  // How many cells to show (capped at available photos and 9)
+  const activeCount = Math.min(ACTIVE_COUNTS[idx], photos.length, 9);
+
+  // Completion callback
   useEffect(() => {
     if (!isComplete || !onComplete) return;
     const t = setTimeout(onComplete, 2000);
@@ -334,18 +409,9 @@ export function GenerationProgress({
     return () => clearInterval(t);
   }, []);
 
-  // Cycle featured photo every 4 seconds
-  useEffect(() => {
-    if (photos.length === 0) return;
-    const t = setInterval(() => {
-      setActivePhotoIdx(i => (i + 1) % photos.length);
-    }, 4000);
-    return () => clearInterval(t);
-  }, [photos.length]);
-
-  // Build photo URLs
+  // Photo URLs — proxy Google CDN images, cap at 9
   const photoUrls = useMemo(() => {
-    return photos.slice(0, 20).map(p =>
+    return photos.slice(0, 9).map(p =>
       p.baseUrl.includes('googleusercontent.com')
         ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=600&h=450`
         : p.baseUrl
@@ -357,9 +423,6 @@ export function GenerationProgress({
     [idx, names, vibeString, occasion, photos.length]
   );
 
-  const getPrevIdx = useCallback(() => (activePhotoIdx - 1 + photoUrls.length) % photoUrls.length, [activePhotoIdx, photoUrls.length]);
-  const getNextIdx = useCallback(() => (activePhotoIdx + 1) % photoUrls.length, [activePhotoIdx, photoUrls.length]);
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -368,20 +431,30 @@ export function GenerationProgress({
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
         background: C.darkBg,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
+        padding: '1.5rem',
+        gap: '1.25rem',
       }}
     >
-      {/* Ambient radial glow behind the photo */}
+      {/* Ambient glow behind the loom */}
       <div style={{
-        position: 'absolute', top: '35%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '600px', height: '400px', borderRadius: '50%',
-        background: `radial-gradient(ellipse, ${C.olive}0D 0%, transparent 70%)`,
+        position: 'absolute', top: '45%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '65vw', height: '55vh', borderRadius: '50%',
+        background: `radial-gradient(ellipse, ${C.olive}0B 0%, transparent 70%)`,
+        pointerEvents: 'none', filter: 'blur(80px)',
+      }} />
+      <div style={{
+        position: 'absolute', top: '25%', left: '25%',
+        width: '30vw', height: '30vw', borderRadius: '50%',
+        background: `radial-gradient(circle, ${C.plum}07 0%, transparent 70%)`,
         pointerEvents: 'none', filter: 'blur(60px)',
       }} />
 
-      {/* ── Top: Pass headline + copy ── */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(1.5rem, 4vh, 3rem)', zIndex: 10, padding: '0 1.5rem' }}>
+      {/* ── Headline ── */}
+      <div style={{ textAlign: 'center', zIndex: 10, flexShrink: 0 }}>
         <AnimatePresence mode="wait">
           <motion.h1
             key={isComplete ? 'done' : idx}
@@ -391,10 +464,9 @@ export function GenerationProgress({
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
               fontFamily: 'var(--eg-font-heading, Georgia, serif)',
-              fontSize: 'clamp(1.8rem, 4.5vw, 2.8rem)',
+              fontSize: 'clamp(1.5rem, 3.8vw, 2.4rem)',
               fontWeight: 400, fontStyle: 'italic',
-              color: C.darkHeading,
-              letterSpacing: '-0.02em', margin: 0,
+              color: C.darkHeading, letterSpacing: '-0.02em', margin: 0,
             }}
           >
             {isComplete ? 'Your story is ready.' : pass.headline}
@@ -404,124 +476,90 @@ export function GenerationProgress({
           <motion.p
             key={isComplete ? 'done-copy' : idx}
             initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 0.5, y: 0 }}
+            animate={{ opacity: 0.45, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             style={{
-              color: C.darkText, fontSize: text.base,
-              maxWidth: '380px', margin: '0.75rem auto 0', lineHeight: 1.6,
+              color: C.darkText, fontSize: text.sm,
+              maxWidth: '340px', margin: '0.5rem auto 0', lineHeight: 1.65,
             }}
           >
-            {isComplete ? 'Opening the editor...' : pass.copy}
+            {isComplete ? 'Opening the editor\u2026' : pass.copy}
           </motion.p>
         </AnimatePresence>
       </div>
 
-      {/* ── Center: Cinematic photo carousel ── */}
-      {photoUrls.length > 0 && (
-        <div style={{
-          position: 'relative', width: '100%', height: 'clamp(200px, 35vh, 360px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          perspective: '1200px', zIndex: 5,
-          marginBottom: 'clamp(1rem, 3vh, 2rem)',
-        }}>
-          {photoUrls.length >= 3 && (
-            <DevelopingPhoto
-              key={`prev-${getPrevIdx()}`}
-              src={photoUrls[getPrevIdx()]}
-              isActive={false}
-              position="prev"
-            />
-          )}
-          <AnimatePresence mode="sync">
-            <DevelopingPhoto
-              key={`active-${activePhotoIdx}`}
-              src={photoUrls[activePhotoIdx]}
-              isActive={true}
-              position="current"
-            />
-          </AnimatePresence>
-          {photoUrls.length >= 3 && (
-            <DevelopingPhoto
-              key={`next-${getNextIdx()}`}
-              src={photoUrls[getNextIdx()]}
-              isActive={false}
-              position="next"
-            />
-          )}
-        </div>
-      )}
+      {/* ── The Loom Bed ── */}
+      <div style={{
+        width: '100%',
+        maxWidth: 'min(560px, 94vw)',
+        zIndex: 10, flexShrink: 0,
+      }}>
+        <LoomBed
+          photoUrls={photoUrls}
+          activeCount={activeCount}
+          threadsVisible={!isComplete}
+        />
+      </div>
 
       {/* ── Thought stream ── */}
-      <div style={{ zIndex: 10, marginBottom: 'clamp(1rem, 2vh, 1.5rem)', padding: '0 1.5rem' }}>
+      <div style={{ zIndex: 10, flexShrink: 0, padding: '0 1rem' }}>
         <ThoughtStream lines={thoughts} />
       </div>
 
-      {/* ── Bottom: Film strip progress ── */}
-      <div style={{ zIndex: 10, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', padding: '0 1.5rem' }}>
-        {photoUrls.length > 0 && (
-          <FilmStrip
-            photos={photoUrls}
-            activeIndex={activePhotoIdx}
-            progress={pass.pct}
-          />
-        )}
+      {/* ── Progress ── */}
+      <div style={{
+        zIndex: 10, flexShrink: 0,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.55rem',
+      }}>
+        <PassDots current={idx} total={PASSES.length} />
 
-        {/* Pass label + elapsed */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.75rem',
-          fontSize: '0.68rem', letterSpacing: '0.12em', textTransform: 'uppercase',
+          display: 'flex', alignItems: 'center', gap: '0.6rem',
+          fontSize: '0.65rem', letterSpacing: '0.14em', textTransform: 'uppercase',
           color: C.darkText, fontWeight: 600,
         }}>
           <span>Pass {idx + 1} of {PASSES.length}</span>
-          <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: C.darkBorder }} />
-          <span>{Math.floor(pass.pct)}%</span>
+          <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
+          <span>{pass.pct}%</span>
           {elapsed > 10 && (
             <>
-              <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: C.darkBorder }} />
-              <span style={{ opacity: 0.5 }}>{elapsed}s</span>
+              <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
+              <span style={{ opacity: 0.4 }}>{elapsed}s</span>
             </>
           )}
         </div>
 
-        {/* Time hint on first pass */}
+        {/* Time hints */}
         {idx === 0 && elapsed < 20 && (
           <motion.p
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.35 }}
+            animate={{ opacity: 0.3 }}
             transition={{ delay: 2 }}
-            style={{
-              fontSize: '0.78rem', fontStyle: 'italic',
-              color: C.darkText, margin: 0,
-            }}
+            style={{ fontSize: '0.75rem', fontStyle: 'italic', color: C.darkText, margin: 0 }}
           >
-            This usually takes 2-4 minutes
+            This usually takes 2\u20134 minutes
           </motion.p>
         )}
-
-        {/* Long-running warnings */}
         {elapsed >= 90 && elapsed < 150 && (
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            style={{ fontSize: '0.82rem', fontStyle: 'italic', color: C.darkText, margin: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 0.45 }}
+            style={{ fontSize: '0.8rem', fontStyle: 'italic', color: C.darkText, margin: 0 }}
           >
-            Taking a moment — still weaving your story...
+            Taking a moment \u2014 still weaving your story\u2026
           </motion.p>
         )}
         {elapsed >= 150 && elapsed < 270 && (
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
-            style={{ fontSize: '0.82rem', fontStyle: 'italic', color: `${C.gold}88`, margin: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 0.55 }}
+            style={{ fontSize: '0.8rem', fontStyle: 'italic', color: `${C.gold}88`, margin: 0 }}
           >
-            Almost there — please don't close this tab.
+            Almost there \u2014 please don\u2019t close this tab.
           </motion.p>
         )}
         {elapsed >= 270 && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{ textAlign: 'center' }}
           >
             <p style={{ fontSize: '0.85rem', color: 'rgba(220,120,120,0.8)', margin: '0 0 0.75rem' }}>
@@ -532,8 +570,7 @@ export function GenerationProgress({
               style={{
                 padding: '0.6rem 1.5rem', borderRadius: '100px',
                 border: '1px solid rgba(220,120,120,0.3)', background: 'rgba(220,120,120,0.08)',
-                color: 'rgba(220,120,120,0.9)', fontSize: '0.82rem', fontWeight: 600,
-                cursor: 'pointer',
+                color: 'rgba(220,120,120,0.9)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
               }}
             >
               Stop and try again
@@ -542,7 +579,7 @@ export function GenerationProgress({
         )}
       </div>
 
-      {/* ── Cancel link ── */}
+      {/* ── Cancel ── */}
       {onCancel && elapsed < 270 && (
         <motion.button
           initial={{ opacity: 0 }}
@@ -553,17 +590,18 @@ export function GenerationProgress({
             position: 'absolute',
             bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))',
             left: '50%', transform: 'translateX(-50%)',
-            background: 'none', border: elapsed > 30 ? `1px solid ${C.darkBorder}` : 'none',
+            background: 'none',
+            border: elapsed > 30 ? `1px solid ${C.darkBorder}` : 'none',
             padding: elapsed > 30 ? '0.5rem 1.25rem' : '0.25rem',
             borderRadius: '100px',
-            color: C.darkText, fontSize: '0.78rem', cursor: 'pointer',
+            color: C.darkText, fontSize: '0.76rem', cursor: 'pointer',
             textDecoration: elapsed > 30 ? 'none' : 'underline',
             textUnderlineOffset: '2px',
             transition: 'all 0.3s ease',
             zIndex: 20,
           }}
-          onMouseOver={e => { (e.target as HTMLElement).style.color = C.darkHeading; }}
-          onMouseOut={e => { (e.target as HTMLElement).style.color = C.darkText; }}
+          onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = C.darkHeading; }}
+          onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = C.darkText; }}
         >
           Cancel
         </motion.button>
