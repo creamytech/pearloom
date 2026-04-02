@@ -144,7 +144,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       </SidebarSection>
 
       {/* Typography — full font pair picker */}
-      <SidebarSection title="Typography" defaultOpen={false}>
+      <SidebarSection title="Typography" defaultOpen={true}>
         <FontPicker
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
@@ -153,7 +153,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       </SidebarSection>
 
       {/* AI Art Manager — hero, ambient, art strip */}
-      <SidebarSection title="AI Art" defaultOpen={false}>
+      <SidebarSection title="AI Art" defaultOpen={true}>
         {manifest.vibeSkin ? (
           <ArtManager manifest={manifest} onUpdate={(updates) => onChange({ ...manifest, ...updates })} />
         ) : (
@@ -173,7 +173,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       </SidebarSection>
 
       {/* Asset Library */}
-      <SidebarSection title="Asset Library" defaultOpen={false}>
+      <SidebarSection title="Asset Library" defaultOpen={true}>
         <p style={{ fontSize: '0.82rem', color: 'rgba(214,198,168,0.5)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>

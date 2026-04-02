@@ -9,7 +9,7 @@ import {
   motion, AnimatePresence, useMotionValue, animate,
   useDragControls, Reorder,
 } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image, Clock, ChevronRight, Mail, Users, Send } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
   DetailsIcon, AIBlocksIcon, VoiceIcon, GripIcon,
@@ -27,25 +27,30 @@ const AIBlocksPanelLazy     = dynamic(() => import('./AIBlocksPanel').then(m => 
 const VoiceTrainerPanelLazy = dynamic(() => import('./VoiceTrainerPanel').then(m => ({ default: m.VoiceTrainerPanel })), { ssr: false });
 const CanvasEditorLazy      = dynamic(() => import('./CanvasEditor').then(m => ({ default: m.CanvasEditor })), { ssr: false });
 const ChapterPanelLazy      = dynamic(() => import('./ChapterPanel').then(m => ({ default: m.ChapterPanel })), { ssr: false });
+const MessagingPanelLazy    = dynamic(() => import('@/components/dashboard/MessagingPanel').then(m => ({ default: m.MessagingPanel })), { ssr: false });
+const GuestSearchPanelLazy  = dynamic(() => import('./GuestSearchPanel').then(m => ({ default: m.GuestSearchPanel })), { ssr: false });
+const BulkInvitePanelLazy   = dynamic(() => import('./BulkInvitePanel').then(m => ({ default: m.BulkInvitePanel })), { ssr: false });
 
 // Constants
 const RADIUS    = 126;
 const FAB_ANGLES = [90, 68, 46, 24, 2] as const;
 const FAB_LEFT  = 26;
 
-type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas';
+type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'guests' | 'invite';
 type StorySubview = 'list' | 'editor';
 
 const TAB_LABELS: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story Chapters', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
   blocks: 'AI Blocks', voice: 'Voice',
+  messaging: 'Message Guests', guests: 'Guest List', invite: 'Send Invitations',
 };
 
 const TAB_SHORT: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
   blocks: 'AI', voice: 'Voice',
+  messaging: 'Messages', guests: 'Guests', invite: 'Invites',
 };
 
 const ARC_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }> = [
@@ -56,12 +61,13 @@ const ARC_TABS: Array<{ tab: EditorTab; icon: React.ElementType; label: string }
   { tab: 'canvas',  icon: SectionsIcon, label: 'Sections' },
 ];
 
-const SHEET_TABS: EditorTab[] = ['story', 'canvas', 'events', 'design', 'details', 'blocks', 'voice'];
+const SHEET_TABS: EditorTab[] = ['story', 'events', 'canvas', 'design', 'details', 'pages', 'blocks', 'voice', 'messaging', 'guests', 'invite'];
 
 const TAB_ICONS: Record<EditorTab, React.ElementType> = {
   story: StoryIcon, canvas: SectionsIcon, events: EventsIcon,
   design: DesignIcon, details: DetailsIcon, blocks: AIBlocksIcon,
   voice: VoiceIcon, pages: DetailsIcon,
+  messaging: Mail, guests: Users, invite: Send,
 };
 
 // Helper
@@ -440,6 +446,21 @@ export function MobileEditorSheet() {
         <VoiceTrainerPanelLazy
           voiceSamples={manifest?.voiceSamples || []}
           onChange={samples => actions.handleDesignChange({ ...manifest, voiceSamples: samples })}
+        />
+      );
+    }
+    if (activeTab === 'messaging') {
+      return <MessagingPanelLazy manifest={manifest} siteId={subdomain} subdomain={subdomain} />;
+    }
+    if (activeTab === 'guests') {
+      return <GuestSearchPanelLazy siteId={subdomain} />;
+    }
+    if (activeTab === 'invite') {
+      return (
+        <BulkInvitePanelLazy
+          manifest={manifest}
+          siteId={subdomain}
+          subdomain={subdomain}
         />
       );
     }

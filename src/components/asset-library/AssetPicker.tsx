@@ -20,6 +20,7 @@ const TAB_LABELS: { key: AssetCategory; label: string }[] = [
 
 export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
   const [activeCategory, setActiveCategory] = useState<AssetCategory>('illustrations');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const containerStyle: React.CSSProperties = {
     background: '#1E1B16',
@@ -118,12 +119,23 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
           return (
             <div
               key={name}
-              style={cellStyle(isSelected)}
-              onClick={() => onSelect({ id: name, type: 'illustrations', name })}
+              style={{ ...cellStyle(isSelected), position: 'relative' }}
+              onClick={(e) => {
+                onSelect({ id: name, type: 'illustrations', name });
+                const svgEl = (e.currentTarget as HTMLElement).querySelector('svg');
+                if (svgEl) {
+                  navigator.clipboard.writeText(svgEl.outerHTML).catch(() => {});
+                  setCopiedId(name);
+                  setTimeout(() => setCopiedId(null), 2000);
+                }
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'illustrations', name })}
             >
+              {copiedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Copied ✓</span>
+              )}
               <Comp size={32} color="rgba(255,255,255,0.75)" />
               <span style={labelStyle}>{name.replace('Illustration', '')}</span>
             </div>
@@ -143,12 +155,23 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
           return (
             <div
               key={name}
-              style={cellStyle(isSelected)}
-              onClick={() => onSelect({ id: name, type: 'accents', name })}
+              style={{ ...cellStyle(isSelected), position: 'relative' }}
+              onClick={(e) => {
+                onSelect({ id: name, type: 'accents', name });
+                const svgEl = (e.currentTarget as HTMLElement).querySelector('svg');
+                if (svgEl) {
+                  navigator.clipboard.writeText(svgEl.outerHTML).catch(() => {});
+                  setCopiedId(name);
+                  setTimeout(() => setCopiedId(null), 2000);
+                }
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'accents', name })}
             >
+              {copiedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Copied ✓</span>
+              )}
               <Comp size={32} color="rgba(255,255,255,0.75)" />
               <span style={labelStyle}>{name.replace('Accent', '')}</span>
             </div>
@@ -168,12 +191,23 @@ export function AssetPicker({ onSelect, selectedId }: AssetPickerProps) {
           return (
             <div
               key={name}
-              style={dividerRowStyle(isSelected)}
-              onClick={() => onSelect({ id: name, type: 'dividers', name })}
+              style={{ ...dividerRowStyle(isSelected), position: 'relative' }}
+              onClick={(e) => {
+                onSelect({ id: name, type: 'dividers', name });
+                const svgEl = (e.currentTarget as HTMLElement).querySelector('svg');
+                if (svgEl) {
+                  navigator.clipboard.writeText(svgEl.outerHTML).catch(() => {});
+                  setCopiedId(name);
+                  setTimeout(() => setCopiedId(null), 2000);
+                }
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'dividers', name })}
             >
+              {copiedId === name && (
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Copied ✓</span>
+              )}
               <div style={{ flex: 1, height: '32px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                 <Comp width="100%" height={32} color="rgba(255,255,255,0.75)" />
               </div>
