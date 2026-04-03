@@ -705,11 +705,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         }
       }
 
-      // Wrap in scroll-reveal container if this block has a per-block entrance animation
+      // Wrap in scroll-reveal container — per-block overrides global
       const blockReveal = block.blockEffects?.scrollReveal;
-      if (blockReveal && blockReveal !== 'none') {
+      const globalReveal = manifest.theme?.effects?.scrollReveal;
+      const effectiveReveal = (blockReveal && blockReveal !== 'none') ? blockReveal : globalReveal;
+      if (effectiveReveal && effectiveReveal !== 'none' && block.type !== 'hero') {
         result.push(
-          <div key={block.id} data-pl-reveal={blockReveal}>
+          <div key={block.id} data-pl-reveal={effectiveReveal}>
             {rendered}
           </div>
         );
