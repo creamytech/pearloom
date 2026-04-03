@@ -64,6 +64,7 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
   const cardBg = pal.card;
+  const subMeshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
   const sitePages: SitePage[] = [
     { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
@@ -121,7 +122,8 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
     <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
+      {subMeshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: subMeshActive ? 'transparent' : bgColor }}>
         {content}
       </main>
     </ThemeProvider>
@@ -438,6 +440,10 @@ function PreviewContent() {
   const globalDivider = manifest.theme?.effects?.sectionDivider;
   const useCustomDivider = globalDivider && globalDivider.style !== 'none';
 
+  // When gradient mesh is active, make main background transparent so the mesh shows through
+  const meshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
+  const mainBg = meshActive ? 'transparent' : bgColor;
+
   // Determines the background color a block enters with
   const blockEntryColor = (type: string): string => {
     switch (type) {
@@ -653,7 +659,10 @@ function PreviewContent() {
         accentColor2={pal.accent2 || pal.highlight || pal.accent}
       />
 
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
+      {/* Set body bg so it shows behind the mesh when main is transparent */}
+      {meshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: mainBg, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (
           <>
             {/* Ambient art overlay — very subtle painted page texture */}
