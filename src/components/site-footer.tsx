@@ -38,7 +38,7 @@ export function SiteFooter({
   };
 
   return (
-    <footer className="bg-[var(--eg-fg)] text-[rgba(245,241,232,0.7)] relative overflow-hidden">
+    <footer className="bg-[var(--eg-fg)] text-[rgba(245,241,232,0.7)] relative overflow-hidden pb-[calc(60px+env(safe-area-inset-bottom,0px))] lg:pb-0">
       {/* Subtle noise texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-40"

@@ -267,15 +267,17 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           <h3
             style={{
               fontFamily: 'var(--eg-font-heading)',
-              fontSize: '1.75rem',
+              fontSize: 'clamp(1.5rem, 4vw, 2rem)',
               fontWeight: 400,
+              fontStyle: 'italic',
               marginBottom: '0.75rem',
               letterSpacing: '-0.02em',
+              lineHeight: 1.15,
             }}
           >
             {status === 'attending'
-              ? "We can't wait to celebrate with you!"
-              : "We'll Miss You!"}
+              ? `See you there, ${name.split(' ')[0]}!`
+              : `We'll miss you, ${name.split(' ')[0]}`}
           </h3>
           <p
             style={{
@@ -311,6 +313,23 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             exit={{ opacity: 0, x: -30 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
+            {/* Conversational header */}
+            <h3 style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: 'clamp(1.4rem, 3vw, 1.75rem)',
+              fontWeight: 400, fontStyle: 'italic',
+              color: 'var(--eg-fg)', marginBottom: '0.5rem',
+              letterSpacing: '-0.02em', lineHeight: 1.2,
+            }}>
+              Will you be joining us?
+            </h3>
+            <p style={{
+              fontSize: '0.88rem', color: 'var(--eg-muted)',
+              marginBottom: '1.75rem', lineHeight: 1.6,
+            }}>
+              Let us know if you can make it — we&apos;d love to celebrate with you.
+            </p>
+
             {/* Attending pill toggle */}
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>
               {(['attending', 'declined'] as RsvpStatus[]).map((s) => {
@@ -471,6 +490,23 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             exit={{ opacity: 0, x: -30 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
+            {/* Conversational header */}
+            <h3 style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: 'clamp(1.4rem, 3vw, 1.75rem)',
+              fontWeight: 400, fontStyle: 'italic',
+              color: 'var(--eg-fg)', marginBottom: '0.5rem',
+              letterSpacing: '-0.02em', lineHeight: 1.2,
+            }}>
+              A few more details
+            </h3>
+            <p style={{
+              fontSize: '0.88rem', color: 'var(--eg-muted)',
+              marginBottom: '1.75rem', lineHeight: 1.6,
+            }}>
+              Help us make the day perfect for you, {name.split(' ')[0] || 'friend'}.
+            </p>
+
             {/* Plus one toggle */}
             <div style={{ marginBottom: '1.5rem' }}>
               <button
@@ -674,8 +710,27 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
             exit={{ opacity: 0, x: -30 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
+            {/* Conversational header */}
+            <h3 style={{
+              fontFamily: 'var(--eg-font-heading)',
+              fontSize: 'clamp(1.4rem, 3vw, 1.75rem)',
+              fontWeight: 400, fontStyle: 'italic',
+              color: 'var(--eg-fg)', marginBottom: '0.5rem',
+              letterSpacing: '-0.02em', lineHeight: 1.2,
+            }}>
+              {status === 'attending' ? 'One last thing\u2026' : 'Before you go\u2026'}
+            </h3>
+            <p style={{
+              fontSize: '0.88rem', color: 'var(--eg-muted)',
+              marginBottom: '1.75rem', lineHeight: 1.6,
+            }}>
+              {status === 'attending'
+                ? 'Leave us a note — we\'d love to hear from you.'
+                : 'We\'ll miss you! Feel free to leave a message.'}
+            </p>
+
             <div style={{ marginBottom: '2rem' }}>
-              <label style={labelStyle}>Leave a Note for the Couple</label>
+              <label style={labelStyle}>Your Message</label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}

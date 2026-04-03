@@ -455,6 +455,67 @@ export function SiteNav({
         />
       )}
 
+      {/* ── Mobile bottom tab bar ── */}
+      {!isDesktop && !isStudio && enabledPages.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 0, left: 0, right: 0,
+            zIndex: 99,
+            display: 'flex',
+            alignItems: 'stretch',
+            background: 'rgba(245,241,232,0.96)',
+            backdropFilter: 'blur(16px) saturate(1.6)',
+            WebkitBackdropFilter: 'blur(16px) saturate(1.6)',
+            borderTop: '1px solid rgba(0,0,0,0.06)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            boxShadow: '0 -2px 16px rgba(0,0,0,0.04)',
+          }}
+        >
+          {enabledPages.slice(0, 5).map((page) => {
+            const active = isActive(page.slug);
+            return (
+              <Link
+                key={page.id}
+                href={getHref(page.slug)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '3px',
+                  padding: '8px 4px 6px',
+                  textDecoration: 'none',
+                  color: active ? 'var(--eg-accent, var(--pl-olive))' : 'rgba(0,0,0,0.35)',
+                  transition: 'color 0.15s',
+                  position: 'relative',
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '25%', right: '25%',
+                    height: '2px', borderRadius: '0 0 2px 2px',
+                    background: 'var(--eg-accent, var(--pl-olive))',
+                  }} />
+                )}
+                <PageIcon slug={page.slug} size={18} />
+                <span style={{
+                  fontSize: '0.58rem',
+                  fontWeight: active ? 700 : 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1,
+                  color: 'inherit',
+                }}>
+                  {page.label.length > 8 ? page.label.slice(0, 7) + '…' : page.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
       {/* ── Feature 2: Thread Navigation ── */}
       {isDesktop && !isStudio && enabledPages.length > 0 && (
         <div
