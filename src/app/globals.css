@@ -280,6 +280,12 @@ input, textarea, select {
   border-radius: var(--pl-radius-xs);
 }
 
+/* ─── Performance: content-visibility for below-fold sections ─── */
+.pl-lazy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
 /* ─── iOS Safe Area ─── */
 .safe-top    { padding-top: env(safe-area-inset-top, 0px); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 24px); }
