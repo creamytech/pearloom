@@ -680,6 +680,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               key={`divider-before-${block.id}`}
               style={divAbove.style}
               color={thisEntryColor}
+              bgColor={prevExitColor}
               height={divAbove.height}
             />
           );
@@ -691,6 +692,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               key={`divider-before-${block.id}`}
               style={globalDiv!.style}
               color={thisEntryColor}
+              bgColor={prevExitColor}
               height={globalDiv!.height}
               flip={shouldFlip}
             />

@@ -488,6 +488,7 @@ function PreviewContent() {
               key={`divider-before-${block.id}`}
               style={divAbove.style}
               color={thisEntryColor}
+              bgColor={prevExitColor}
               height={divAbove.height}
             />
           );
@@ -499,6 +500,7 @@ function PreviewContent() {
               key={`divider-before-${block.id}`}
               style={globalDivider!.style}
               color={thisEntryColor}
+              bgColor={prevExitColor}
               height={globalDivider!.height}
               flip={shouldFlip}
             />
