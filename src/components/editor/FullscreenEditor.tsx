@@ -620,11 +620,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         />
       )}
 
-      {/* Top Bar */}
-      <EditorToolbar onExit={onExit} />
+      {/* Top Bar (desktop only — mobile has its own header in MobileEditorSheet) */}
+      {!state.isMobile && <EditorToolbar onExit={onExit} />}
 
-      {/* AI Context Bar — slides in when chapter selected */}
-      <AIContextBar />
+      {/* AI Context Bar (desktop only) */}
+      {!state.isMobile && <AIContextBar />}
 
       {/* Body: Rail + Panel + Canvas */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -732,17 +732,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           </EditorWing>
         )}
 
-        {/* Canvas area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-          {!state.isMobile && (
+        {/* Canvas area (desktop only — mobile uses MobileEditorSheet with MobilePreviewPane) */}
+        {!state.isMobile && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
             <PostWeddingBanner
               manifest={manifest}
               subdomain={state.subdomain}
               onUpdate={(m) => { onChange(m); pushToPreview(m); }}
             />
-          )}
-          <EditorCanvas />
-        </div>
+            <EditorCanvas />
+          </div>
+        )}
       </div>
 
       {/* Status Bar (desktop only) */}
