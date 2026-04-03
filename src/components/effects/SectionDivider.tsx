@@ -13,6 +13,7 @@ type DividerStyle = 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' |
 interface SectionDividerProps {
   style: DividerStyle;
   color: string;    // fill color — should match the NEXT section's background
+  bgColor?: string; // background behind the SVG — should match the PREVIOUS section's background
   height?: number;  // px, 30–200
   flip?: boolean;   // mirror horizontally
   flop?: boolean;   // mirror vertically
@@ -60,7 +61,7 @@ function getPath(style: DividerStyle, w = 1440, h = 80): string {
   }
 }
 
-export function SectionDivider({ style, color, height = 80, flip = false, flop = false }: SectionDividerProps) {
+export function SectionDivider({ style, color, bgColor, height = 80, flip = false, flop = false }: SectionDividerProps) {
   if (style === 'none') return null;
 
   const path = getPath(style, 1440, height);
@@ -73,6 +74,7 @@ export function SectionDivider({ style, color, height = 80, flip = false, flop =
         width: '100%',
         overflow: 'hidden',
         lineHeight: 0,
+        background: bgColor || 'transparent',
         transform: `${flip ? 'scaleX(-1)' : ''} ${flop ? 'scaleY(-1)' : ''}`.trim() || undefined,
       }}
     >

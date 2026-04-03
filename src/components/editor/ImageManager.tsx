@@ -65,8 +65,11 @@ export function ImageManager({
     const results: ChapterImage[] = [];
     for (const file of validFiles) {
       try {
+        // Sanitize filename for iOS Safari — special chars cause "string did not match expected pattern"
+        const safeName = (file.name || 'photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const safeFile = new File([file], safeName, { type: file.type || 'image/jpeg' });
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', safeFile);
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
         if (res.ok && data.publicUrl) {

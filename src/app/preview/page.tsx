@@ -488,6 +488,7 @@ function PreviewContent() {
               key={`divider-before-${block.id}`}
               style={divAbove.style}
               color={thisEntryColor}
+              bgColor={prevExitColor}
               height={divAbove.height}
             />
           );
@@ -499,6 +500,7 @@ function PreviewContent() {
               key={`divider-before-${block.id}`}
               style={globalDivider!.style}
               color={thisEntryColor}
+              bgColor={prevExitColor}
               height={globalDivider!.height}
               flip={shouldFlip}
             />
@@ -661,6 +663,16 @@ function PreviewContent() {
 
       {/* Set body bg so it shows behind the mesh when main is transparent */}
       {meshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+
+      {/* AI-generated bespoke background art from the Design panel */}
+      {manifest.backgroundPatternCss && (
+        <div aria-hidden="true" style={{
+          position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+          backgroundImage: manifest.backgroundPatternCss,
+          backgroundRepeat: 'repeat', backgroundSize: '400px 400px',
+          opacity: 0.12,
+        }} />
+      )}
 
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: mainBg, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (

@@ -18,6 +18,7 @@ type ArtSlot = 'heroArtDataUrl' | 'ambientArtDataUrl' | 'artStripDataUrl';
 
 interface ArtManagerProps {
   manifest: StoryManifest;
+  coupleNames?: [string, string];
   onUpdate: (updates: Partial<StoryManifest>) => void;
 }
 
@@ -143,7 +144,7 @@ function ActionButton({
   );
 }
 
-export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
+export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps) {
   const [regenerating, setRegenerating] = useState<ArtSlot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
@@ -155,8 +156,11 @@ export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
 
   const handleReplace = async (slot: ArtSlot, file: File) => {
     try {
+      // Sanitize filename for iOS Safari — special chars cause "string did not match expected pattern"
+      const safeName = (file.name || 'photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const safeFile = new File([file], safeName, { type: file.type || 'image/jpeg' });
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', safeFile);
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) {
@@ -191,16 +195,29 @@ export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
   const handleRegenerate = async (slot: ArtSlot) => {
     setRegenerating(slot);
     try {
+      const names = coupleNames || (manifest as any).coupleNames || ['', ''];
       const res = await fetch('/api/regenerate-design', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vibeString: manifest.vibeString,
+          coupleNames: names,
+          chapters: manifest.chapters?.map(c => ({
+            title: c.title, subtitle: c.subtitle || '', mood: c.mood || '',
+            location: c.location, description: c.description || '',
+          })),
           occasion: manifest.occasion,
           regenerateArt: slot,
         }),
       });
-      if (!res.ok) { setRegenerating(null); setError('Regeneration failed — try again'); setTimeout(() => setError(null), 3000); return; }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.error || `Regeneration failed (${res.status})`;
+        setRegenerating(null);
+        setError(msg);
+        setTimeout(() => setError(null), 5000);
+        return;
+      }
       const data = await res.json();
 
       if (data.vibeSkin?.[slot]) {

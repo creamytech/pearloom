@@ -28,6 +28,7 @@ export function useGooglePhotosPicker() {
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startRef = useRef(0);
+  const callbackRef = useRef<((photos: PickedPhoto[]) => void) | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -40,6 +41,8 @@ export function useGooglePhotosPicker() {
     stopPolling();
     setState('creating');
     setError(null);
+    // Store callback in ref so the polling interval always has the latest
+    callbackRef.current = onPicked;
 
     try {
       // Create picker session
@@ -49,10 +52,22 @@ export function useGooglePhotosPicker() {
         throw new Error(data.error || 'Failed to create picker session — are you signed in?');
       }
       const session = await res.json();
+
+      if (!session.pickerUri) {
+        throw new Error('No picker URI returned — Google Photos may be unavailable');
+      }
+
       const uri = session.pickerUri + '/autoclose';
 
-      // Open popup
-      window.open(uri, 'google-photos-picker', 'width=900,height=700');
+      // Open popup — must happen synchronously from user gesture on iOS
+      const popup = window.open(uri, 'google-photos-picker', 'width=900,height=700');
+      if (!popup) {
+        // Fallback: redirect in same tab if popup was blocked
+        setState('error');
+        setError('Popup blocked — please allow popups for this site, or try on desktop');
+        return;
+      }
+
       setState('waiting');
       startRef.current = Date.now();
 
@@ -82,22 +97,32 @@ export function useGooglePhotosPicker() {
             if (!fetchRes.ok) throw new Error('Failed to fetch picked photos');
             const fetchData = await fetchRes.json();
 
-            const photos: PickedPhoto[] = (fetchData.mediaItems || []).map((item: any) => ({
+            // API returns { photos: [...] } with GooglePhotoMetadata shape
+            const rawPhotos = fetchData.photos || fetchData.mediaItems || [];
+            const photos: PickedPhoto[] = rawPhotos.map((item: any) => ({
               id: item.id || `gp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
               baseUrl: item.baseUrl || '',
               filename: item.filename || '',
               mimeType: item.mimeType || 'image/jpeg',
-              width: item.mediaMetadata?.width ? Number(item.mediaMetadata.width) : 0,
-              height: item.mediaMetadata?.height ? Number(item.mediaMetadata.height) : 0,
+              width: item.width ?? item.mediaMetadata?.width ?? 0,
+              height: item.height ?? item.mediaMetadata?.height ?? 0,
             }));
 
-            onPicked(photos);
+            if (photos.length === 0) {
+              setState('idle');
+              return;
+            }
+
+            callbackRef.current?.(photos);
             setState('done');
             setTimeout(() => setState('idle'), 2000);
             return;
           }
 
-          // Check if popup was closed without picking
+          // Track popup close — keep polling briefly after close
+          if (popup.closed && !popupClosedAt) {
+            popupClosedAt = Date.now();
+          }
           if (popupClosedAt && Date.now() - popupClosedAt > GRACE_MS) {
             stopPolling();
             setState('idle');

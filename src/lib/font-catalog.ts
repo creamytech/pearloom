@@ -752,3 +752,18 @@ export function buildFontsUrl(pair: Pick<FontPair, 'heading' | 'body' | 'heading
   const bStyle = `wght@${pair.bodyWeight}`;
   return `https://fonts.googleapis.com/css2?family=${encode(pair.heading)}:${hStyle}&family=${encode(pair.body)}:${bStyle}&display=swap`;
 }
+
+/** Build a Google Fonts URL for a single font name */
+export function buildSingleFontUrl(name: string): string {
+  return `https://fonts.googleapis.com/css2?family=${name.replace(/ /g, '+')}:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap`;
+}
+
+/** All unique heading fonts from the catalog, sorted alphabetically */
+export const ALL_HEADING_FONTS: string[] = [
+  ...new Set(FONT_CATALOG.map(p => p.heading)),
+].sort();
+
+/** All unique body fonts from the catalog, sorted alphabetically */
+export const ALL_BODY_FONTS: string[] = [
+  ...new Set(FONT_CATALOG.map(p => p.body)),
+].sort();

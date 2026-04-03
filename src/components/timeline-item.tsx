@@ -344,6 +344,7 @@ function EnhancedDescription({ text, light = false }: { text: string; light?: bo
     <div>
       {first && (
         <p style={{
+          fontFamily: 'var(--eg-font-body)',
           fontSize: '1.15rem',
           fontWeight: 500,
           lineHeight: 1.75,
@@ -356,6 +357,7 @@ function EnhancedDescription({ text, light = false }: { text: string; light?: bo
       )}
       {rest && (
         <p style={{
+          fontFamily: 'var(--eg-font-body)',
           fontSize: '1.05rem',
           fontWeight: 300,
           lineHeight: 1.85,
