@@ -217,12 +217,15 @@ export default function FontPicker({
                 borderRadius: '10px',
                 cursor: 'pointer',
                 background: selected
-                  ? 'rgba(163, 177, 138, 0.12)'
+                  ? 'rgba(163, 177, 138, 0.22)'
                   : 'rgba(255,255,255,0.03)',
                 border: selected
-                  ? '1.5px solid #A3B18A'
-                  : '1.5px solid rgba(255,255,255,0.07)',
-                transition: 'background 0.15s ease, border-color 0.15s ease',
+                  ? '2px solid #A3B18A'
+                  : '2px solid rgba(255,255,255,0.07)',
+                boxShadow: selected
+                  ? '0 0 0 1px rgba(163, 177, 138, 0.3), inset 0 1px 0 rgba(163, 177, 138, 0.15)'
+                  : 'none',
+                transition: 'all 0.15s ease',
                 position: 'relative',
                 textAlign: 'left',
                 boxSizing: 'border-box',
@@ -301,14 +304,14 @@ export default function FontPicker({
                     transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                     style={{
                       flexShrink: 0,
-                      width: '20px',
-                      height: '20px',
+                      width: '24px',
+                      height: '24px',
                       borderRadius: '50%',
                       background: '#A3B18A',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '10px',
+                      fontSize: '12px',
                       color: '#1E1B16',
                       fontWeight: 700,
                       lineHeight: 1,
