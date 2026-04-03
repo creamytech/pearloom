@@ -48,6 +48,7 @@ import { SaveTheDatePanel } from './SaveTheDatePanel';
 import { ThankYouPanel } from './ThankYouPanel';
 import { SpotifyPanel } from './SpotifyPanel';
 import { AnniversaryNudgePanel } from './AnniversaryNudgePanel';
+import { VendorPanel } from './VendorPanel';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -721,6 +722,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
                 {state.activeTab === 'spotify' && (
                   <SpotifyPanel />
+                )}
+
+                {state.activeTab === 'vendors' && (
+                  <VendorPanel />
                 )}
               </motion.div>
             </AnimatePresence>

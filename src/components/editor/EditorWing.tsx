@@ -43,6 +43,7 @@ const TAB_LABEL: Partial<Record<EditorTab, string>> = {
   savethedate: 'Save the Date',
   thankyou:    'Thank You Notes',
   spotify:     'Music',
+  vendors:     'Vendors',
 };
 
 interface EditorWingProps {

@@ -10,7 +10,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BarChart2, Users, LayoutGrid, Globe2, Send, Calendar, Mail, Heart, Music2,
+  BarChart2, Users, LayoutGrid, Globe2, Send, Calendar, Mail, Heart, Music2, Briefcase,
 } from 'lucide-react';
 import {
   SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
@@ -39,6 +39,7 @@ const AESTHETIC: RailItem[] = [
 const TOOLS: RailItem[] = [
   { tab: 'messaging',   Icon: Mail,      label: 'Messages' },
   { tab: 'guests',      Icon: Users,     label: 'Guests'   },
+  { tab: 'vendors',     Icon: Briefcase, label: 'Vendors'  },
   { tab: 'analytics',   Icon: BarChart2, label: 'Stats'    },
   { tab: 'translate',   Icon: Globe2,    label: 'Langs'    },
   { tab: 'savethedate', Icon: Calendar,  label: 'STD'      },
