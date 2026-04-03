@@ -352,11 +352,26 @@ export function MobileEditorSheet() {
           openChapter(chapterId);
         } else if (sectionId === 'hero') {
           setActiveView('story');
-        } else if (sectionId === 'events') {
+        } else if (sectionId === 'events' || sectionId === 'schedule') {
+          setActiveView('events');
+        } else if (sectionId === 'rsvp') {
+          setActiveView('events');
+        } else if (sectionId === 'countdown') {
           setActiveView('events');
         } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
           setActiveView('more');
           setActiveMoreTool('details');
+        } else if (sectionId === 'photos' || sectionId === 'gallery') {
+          setActiveView('story');
+        } else if (sectionId === 'guestbook') {
+          setActiveView('story');
+        } else if (sectionId === 'design' || sectionId === 'theme') {
+          setActiveView('design');
+        } else if (sectionId === 'spotify' || sectionId === 'music') {
+          setActiveView('more');
+          setActiveMoreTool('spotify');
+        } else {
+          setActiveView('story');
         }
       }
 

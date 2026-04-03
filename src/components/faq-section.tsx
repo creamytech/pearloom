@@ -27,6 +27,7 @@ function FaqAccordionItem({
 
   return (
     <motion.div
+      className="pl-scroll-fade-up"
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -36,6 +37,8 @@ function FaqAccordionItem({
         ease: [0.16, 1, 0.3, 1],
       }}
       style={{
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        '--pl-stagger-delay': `${index * 80}ms` as any,
         borderBottom: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
       }}

@@ -137,10 +137,22 @@ export function EditorCanvas() {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
         } else if (sectionId === 'hero') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-        } else if (sectionId === 'events') {
+        } else if (sectionId === 'events' || sectionId === 'schedule') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
+        } else if (sectionId === 'rsvp') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
         } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+        } else if (sectionId === 'photos' || sectionId === 'gallery') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+        } else if (sectionId === 'guestbook') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+        } else if (sectionId === 'design' || sectionId === 'theme') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+        } else if (sectionId === 'countdown') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
+        } else if (sectionId === 'spotify' || sectionId === 'music') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'spotify' });
         } else {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         }
