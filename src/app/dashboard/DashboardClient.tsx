@@ -86,19 +86,13 @@ export default function DashboardClient() {
     dispatch({ type: 'SET_VIBE', data });
     setLastVibeData(data);
 
-    let stepCount = 0;
-    const stepInterval = setInterval(() => {
-      stepCount++;
-      dispatch({ type: 'SET_GENERATION_STEP', step: Math.min(stepCount, 7) });
-    }, 14000);
-
     const controller = new AbortController();
     generationControllerRef.current = controller;
     const timeoutId = setTimeout(() => controller.abort(), 270_000);
 
     try {
       log('[Generate] Starting for:', data.names, '| photos:', state.photos.length);
-      const res = await fetch('/api/generate', {
+      const res = await fetch('/api/generate/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,17 +122,48 @@ export default function DashboardClient() {
         signal: controller.signal,
       });
 
-      clearInterval(stepInterval);
-      clearTimeout(timeoutId);
-
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         logError('[Generate] API error:', res.status, errData);
         throw new Error(errData.error || `Server error (${res.status})`);
       }
 
-      const result = await res.json();
-      if (!result.manifest) throw new Error('AI returned an empty manifest. Please try again.');
+      // Read SSE stream
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let result: { manifest: StoryManifest } | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === 'progress') {
+              dispatch({ type: 'SET_GENERATION_STEP', step: event.pass });
+            } else if (event.type === 'complete') {
+              result = { manifest: event.manifest };
+            } else if (event.type === 'error') {
+              throw new Error(event.message);
+            }
+          } catch (parseErr) {
+            // re-throw real errors, ignore JSON parse failures on individual lines
+            if (parseErr instanceof Error && parseErr.message !== 'Unexpected end of JSON input' && !line.includes('"type"')) {
+              throw parseErr;
+            }
+          }
+        }
+      }
+
+      clearTimeout(timeoutId);
+
+      if (!result?.manifest) throw new Error('AI returned an empty manifest. Please try again.');
       log('[Generate] Manifest received, chapters:', result.manifest.chapters?.length);
 
       result.manifest.occasion = data.occasion || 'wedding';
@@ -202,7 +227,6 @@ export default function DashboardClient() {
         else r.json().then(d => logError('[Generate] Draft save failed:', d.error)).catch(() => {});
       }).catch(e => logError('[Generate] Draft save network error:', e));
     } catch (err) {
-      clearInterval(stepInterval);
       clearTimeout(timeoutId);
       const msg = err instanceof Error
         ? (err.name === 'AbortError'
