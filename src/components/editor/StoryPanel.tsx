@@ -259,7 +259,7 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
 // ── Main StoryPanel ────────────────────────────────────────────
 export function StoryPanel() {
   const { state, dispatch, actions, manifest } = useEditor();
-  const { chapters, activeId, rewritingId, sectionOverridesMap } = state;
+  const { chapters, activeId, rewritingId, sectionOverridesMap, streamingText, streamingChapterId } = state;
   const activeChapter = chapters.find(c => c.id === activeId) || null;
 
   return (
@@ -400,6 +400,7 @@ export function StoryPanel() {
               vibeSkin={manifest.vibeSkin}
               vibeString={manifest.vibeString}
               sectionOverrides={sectionOverridesMap[activeChapter.id]}
+              streamingText={streamingChapterId === activeChapter.id ? streamingText : null}
               onOverridesChange={(id, overrides) => {
                 dispatch({ type: 'SET_SECTION_OVERRIDES', id, overrides });
                 actions.updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });

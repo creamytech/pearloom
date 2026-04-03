@@ -19,8 +19,11 @@ export async function generateStoryManifest(
   occasion?: string,
   eventDate?: string,
   inspirationUrls?: string[],
-  layoutFormat?: string
+  layoutFormat?: string,
+  onProgress?: (pass: number) => void,
 ): Promise<StoryManifest> {
+  onProgress?.(0);
+
   // Cap chapters to number of photos (one chapter per photo cluster)
   const photoCount = clusters.length;
   const prompt = buildPrompt(clusters, vibeString, coupleNames, occasion, eventDate, photoCount, layoutFormat);
@@ -230,6 +233,8 @@ export async function generateStoryManifest(
     manifest.faqs = [];
   }
 
+  onProgress?.(1);
+
   // ── Passes 1.2, 1.5, 4: Run in parallel ─────────────────────────────
   // All three depend only on the chapters from Pass 1 and the vibeString.
   // None depend on each other — run concurrently to save ~40-60s.
@@ -293,6 +298,8 @@ export async function generateStoryManifest(
     };
   }
 
+  onProgress?.(4);
+
   // ── Pass 2: Generate vibeSkin (visual design + custom SVG art) ────────
   // Depends on refined chapters (1.2) and couple profile (1.5) — runs after both.
   try {
@@ -324,6 +331,8 @@ export async function generateStoryManifest(
     logWarn('[Memory Engine] VibeSkin generation failed (non-fatal):', err);
   }
 
+  onProgress?.(5);
+
   // ── Reconcile theme.colors with vibeSkin.palette — single source of truth ──
   // Raster art (Pass 2.5) is generated separately via /api/generate/art after
   // the manifest is returned to the client, so it doesn't block the response.
@@ -341,6 +350,8 @@ export async function generateStoryManifest(
       },
     };
   }
+
+  onProgress?.(6);
 
   // Enforce emotional arc: last chapter should be the emotional peak
   if (manifest.chapters.length > 1) {

@@ -31,11 +31,12 @@ interface ChapterPanelProps {
   sectionOverrides?: SectionStyleOverrides;
   onOverridesChange?: (id: string, overrides: SectionStyleOverrides) => void;
   vibeString?: string;
+  streamingText?: string | null;
 }
 
 export function ChapterPanel({
   chapter, onUpdate, onAIRewrite, isRewriting, vibeSkin,
-  sectionOverrides, onOverridesChange, vibeString,
+  sectionOverrides, onOverridesChange, vibeString, streamingText,
 }: ChapterPanelProps) {
   const upd = useCallback((data: Partial<Chapter>) => onUpdate(chapter.id, data), [chapter.id, onUpdate]);
   const currentLayout = chapter.layout || 'editorial';
@@ -91,12 +92,13 @@ export function ChapterPanel({
       <div>
         <label style={lbl}>Story</label>
         <textarea
-          value={chapter.description || ''}
-          onChange={e => upd({ description: e.target.value })}
+          value={streamingText != null ? streamingText + '▋' : (chapter.description || '')}
+          onChange={streamingText != null ? undefined : e => upd({ description: e.target.value })}
+          readOnly={streamingText != null}
           rows={5}
           placeholder="Write your memory here..."
-          style={{ ...inp, resize: 'vertical', lineHeight: 1.65, minHeight: '120px' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
+          style={{ ...inp, resize: 'vertical', lineHeight: 1.65, minHeight: '120px', ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}) }}
+          onFocus={e => { if (streamingText == null) { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; } }}
           onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>

@@ -71,6 +71,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const contentPanelRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rewriteControllerRef = useRef<AbortController | null>(null);
   const tabScrollPositions = useRef<Record<string, number>>({});
   const preDragSplitView = useRef(false);
   const hintShownRef = useRef(false);
@@ -306,39 +307,96 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [addChapter, handleTabChange, storePreviewForOpen, undo, redo]);
 
   // ── AI Rewrite ───────────────────────────────────────────────
+  const cancelAIRewrite = useCallback(() => {
+    rewriteControllerRef.current?.abort();
+  }, []);
+
   const handleAIRewrite = useCallback(async (id: string) => {
     const ch = state.chapters.find(c => c.id === id);
     if (!ch) return;
+
+    // Cancel any in-flight rewrite
+    rewriteControllerRef.current?.abort();
+    const controller = new AbortController();
+    rewriteControllerRef.current = controller;
+
     dispatch({ type: 'SET_REWRITING', id });
+    dispatch({ type: 'SET_STREAMING_TEXT', text: '', chapterId: id });
+
     try {
-      const res = await fetch('/api/generate-block', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const res = await fetch('/api/rewrite/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `Rewrite this ${manifest.occasion || 'wedding'} chapter with fresh, intimate, specific language. Keep the same emotional theme but use richer storytelling.\n\nCurrent title: "${ch.title}"\nCurrent story: "${ch.description}"\nMood: ${ch.mood || 'romantic'}\nVibe: ${manifest.vibeString || ''}\nOccasion: ${manifest.occasion || 'wedding'}\n\nReturn JSON with: title, subtitle, description, mood`,
-          systemPrompt: `You are a storytelling AI for Pearloom ${manifest.occasion || 'wedding'} websites. Write in a warm, cinematic, intimate voice appropriate for this type of life event. Return ONLY valid JSON with keys: title, subtitle, description, mood.`,
+          title: ch.title,
+          description: ch.description,
+          mood: ch.mood,
+          vibeString: manifest.vibeString,
+          occasion: manifest.occasion,
         }),
+        signal: controller.signal,
       });
-      if (res.ok) {
-        const { block } = await res.json();
-        if (block && (block.title || block.description)) {
-          updateChapter(id, {
-            title: block.title || ch.title, subtitle: block.subtitle || ch.subtitle,
-            description: block.description || ch.description, mood: block.mood || ch.mood,
-          });
-        } else {
-          dispatch({ type: 'SET_REWRITE_ERROR', error: 'Rewrite returned no content — try again' });
-          setTimeout(() => dispatch({ type: 'SET_REWRITE_ERROR', error: null }), 4000);
-        }
-      } else {
+
+      if (!res.ok || !res.body) {
         dispatch({ type: 'SET_REWRITE_ERROR', error: 'Rewrite failed — please try again' });
         setTimeout(() => dispatch({ type: 'SET_REWRITE_ERROR', error: null }), 4000);
+        return;
       }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
+          const jsonStr = trimmed.slice('data: '.length).trim();
+          if (!jsonStr) continue;
+
+          try {
+            const event = JSON.parse(jsonStr);
+            if (event.type === 'chunk' && event.text) {
+              accumulated += event.text;
+              dispatch({ type: 'SET_STREAMING_TEXT', text: accumulated, chapterId: id });
+            } else if (event.type === 'done') {
+              if (accumulated) {
+                updateChapter(id, { description: accumulated });
+              }
+              dispatch({ type: 'SET_STREAMING_TEXT', text: null, chapterId: null });
+            }
+          } catch {
+            // Skip unparseable events
+          }
+        }
+      }
+
+      // Finalize if stream ended without a 'done' event
+      if (accumulated) {
+        updateChapter(id, { description: accumulated });
+      }
+      dispatch({ type: 'SET_STREAMING_TEXT', text: null, chapterId: null });
     } catch (e) {
+      if ((e as Error).name === 'AbortError') {
+        // User cancelled — clear streaming state but keep whatever was written
+        dispatch({ type: 'SET_STREAMING_TEXT', text: null, chapterId: null });
+        return;
+      }
       console.error('AI rewrite failed:', e);
       dispatch({ type: 'SET_REWRITE_ERROR', error: 'Rewrite failed — please try again' });
       setTimeout(() => dispatch({ type: 'SET_REWRITE_ERROR', error: null }), 4000);
+      dispatch({ type: 'SET_STREAMING_TEXT', text: null, chapterId: null });
     } finally {
       dispatch({ type: 'SET_REWRITING', id: null });
+      rewriteControllerRef.current = null;
     }
   }, [state.chapters, manifest, updateChapter]);
 
@@ -515,7 +573,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     syncManifest, handleDesignChange, handleChatManifestUpdate,
     undo, redo, pushHistory, pushToPreview,
     handleTabChange, handleCommandAction,
-    handleAIRewrite, handlePublishSubmit, handleRestoreDraft,
+    handleAIRewrite, cancelAIRewrite, handlePublishSubmit, handleRestoreDraft,
     storePreviewForOpen,
   };
 

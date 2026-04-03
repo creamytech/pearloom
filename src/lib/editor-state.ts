@@ -46,6 +46,8 @@ export interface EditorState {
   // Rewrite
   rewritingId: string | null;
   rewriteError: string | null;
+  streamingText: string | null;
+  streamingChapterId: string | null;
 
   // Publish
   showPublish: boolean;
@@ -99,6 +101,7 @@ export type EditorAction =
   | { type: 'SET_CAN_REDO'; can: boolean }
   | { type: 'SET_REWRITING'; id: string | null }
   | { type: 'SET_REWRITE_ERROR'; error: string | null }
+  | { type: 'SET_STREAMING_TEXT'; text: string | null; chapterId: string | null }
   | { type: 'SET_SHOW_PUBLISH'; show: boolean }
   | { type: 'SET_SUBDOMAIN'; subdomain: string }
   | { type: 'SET_PUBLISHING'; publishing: boolean }
@@ -161,6 +164,8 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, rewritingId: action.id };
     case 'SET_REWRITE_ERROR':
       return { ...state, rewriteError: action.error };
+    case 'SET_STREAMING_TEXT':
+      return { ...state, streamingText: action.text, streamingChapterId: action.chapterId };
     case 'SET_SHOW_PUBLISH':
       return { ...state, showPublish: action.show };
     case 'SET_SUBDOMAIN':
@@ -224,6 +229,7 @@ export interface EditorActions {
 
   // AI
   handleAIRewrite: (id: string) => void;
+  cancelAIRewrite: () => void;
 
   // Publish
   handlePublishSubmit: () => Promise<void>;
@@ -282,6 +288,8 @@ export function createInitialEditorState(
     canRedo: false,
     rewritingId: null,
     rewriteError: null,
+    streamingText: null,
+    streamingChapterId: null,
     showPublish: false,
     subdomain: initialSubdomain || '',
     isPublishing: false,
