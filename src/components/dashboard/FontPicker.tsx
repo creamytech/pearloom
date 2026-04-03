@@ -175,17 +175,16 @@ export default function FontPicker({
         })}
       </div>
 
-      {/* Font grid */}
+      {/* Font grid — single column for readability on mobile editor panels */}
       <div
         ref={scrollRef}
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '16px',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '12px',
-          alignContent: 'start',
+          padding: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
         }}
       >
         {filtered.map((pair, idx) => {
@@ -211,9 +210,10 @@ export default function FontPicker({
               style={{
                 all: 'unset',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
-                padding: '14px',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 14px',
                 borderRadius: '10px',
                 cursor: 'pointer',
                 background: selected
@@ -226,8 +226,71 @@ export default function FontPicker({
                 position: 'relative',
                 textAlign: 'left',
                 boxSizing: 'border-box',
+                width: '100%',
               }}
             >
+              {/* Left: heading font preview */}
+              <span
+                style={{
+                  fontFamily: `'${pair.heading}', serif`,
+                  fontSize: 'clamp(1.1rem, 4vw, 1.35rem)',
+                  fontWeight: pair.headingWeight,
+                  fontStyle: pair.headingStyle ?? 'normal',
+                  color: '#FFFFFF',
+                  lineHeight: 1.2,
+                  flexShrink: 0,
+                  width: '38%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                }}
+              >
+                {pair.preview}
+              </span>
+
+              {/* Right: font names + badges */}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <span
+                  style={{
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    color: 'rgba(255,255,255,0.7)',
+                    letterSpacing: '0.01em',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {pair.heading}
+                </span>
+
+                <span
+                  style={{
+                    fontFamily: `'${pair.body}', sans-serif`,
+                    fontSize: '0.72rem',
+                    fontWeight: pair.bodyWeight,
+                    color: 'rgba(255,255,255,0.4)',
+                    letterSpacing: '0.01em',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {pair.body}
+                </span>
+
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
+                  <span style={badgeStyle('#A3B18A', '#1E1B16')}>
+                    {CATEGORY_LABELS[pair.category]}
+                  </span>
+                  <span style={badgeStyle('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.5)')}>
+                    {pair.mood}
+                  </span>
+                </div>
+              </div>
+
               {/* Selected checkmark */}
               <AnimatePresence>
                 {selected && (
@@ -237,11 +300,9 @@ export default function FontPicker({
                     exit={{ scale: 0, opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                     style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      width: '18px',
-                      height: '18px',
+                      flexShrink: 0,
+                      width: '20px',
+                      height: '20px',
                       borderRadius: '50%',
                       background: '#A3B18A',
                       display: 'flex',
@@ -257,79 +318,6 @@ export default function FontPicker({
                   </motion.span>
                 )}
               </AnimatePresence>
-
-              {/* Sample phrase in heading font */}
-              <span
-                style={{
-                  fontFamily: `'${pair.heading}', serif`,
-                  fontSize: '1.1rem',
-                  fontWeight: pair.headingWeight,
-                  fontStyle: pair.headingStyle ?? 'normal',
-                  color: '#FFFFFF',
-                  lineHeight: 1.2,
-                  display: 'block',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {pair.preview}
-              </span>
-
-              {/* Heading font name */}
-              <span
-                style={{
-                  fontFamily: `'${pair.heading}', serif`,
-                  fontSize: '0.78rem',
-                  fontWeight: pair.headingWeight,
-                  fontStyle: pair.headingStyle ?? 'normal',
-                  color: 'rgba(255,255,255,0.55)',
-                  letterSpacing: '0.01em',
-                  display: 'block',
-                }}
-              >
-                {pair.heading}
-              </span>
-
-              {/* Divider */}
-              <span
-                style={{
-                  display: 'block',
-                  height: '1px',
-                  background: 'rgba(255,255,255,0.08)',
-                }}
-              />
-
-              {/* Body font name */}
-              <span
-                style={{
-                  fontFamily: `'${pair.body}', sans-serif`,
-                  fontSize: '0.78rem',
-                  fontWeight: pair.bodyWeight,
-                  color: 'rgba(255,255,255,0.5)',
-                  letterSpacing: '0.01em',
-                  display: 'block',
-                }}
-              >
-                {pair.body}
-              </span>
-
-              {/* Category + mood badges */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '4px',
-                  flexWrap: 'wrap',
-                  marginTop: '2px',
-                }}
-              >
-                <span style={badgeStyle('#A3B18A', '#1E1B16')}>
-                  {CATEGORY_LABELS[pair.category]}
-                </span>
-                <span style={badgeStyle('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.5)')}>
-                  {pair.mood}
-                </span>
-              </div>
             </motion.button>
           );
         })}
