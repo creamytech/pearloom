@@ -67,8 +67,8 @@ export function LivePhotoWall({ domain, manifest, names }: LivePhotoWallProps) {
     };
   }, [domain]);
 
-  const coupleName1 = names?.[0] ?? manifest.coupleNames?.[0] ?? '';
-  const coupleName2 = names?.[1] ?? manifest.coupleNames?.[1] ?? '';
+  const coupleName1 = names?.[0] ?? '';
+  const coupleName2 = names?.[1] ?? '';
   const displayName = coupleName1 && coupleName2
     ? `${coupleName1} & ${coupleName2}`
     : coupleName1 || coupleName2 || 'Our Celebration';

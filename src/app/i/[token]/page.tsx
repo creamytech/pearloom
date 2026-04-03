@@ -83,12 +83,10 @@ export default async function InvitePage({
   }
 
   // Mark as opened (fire and forget — don't block render)
-  supabase
+  void supabase
     .from('invite_tokens')
     .update({ opened_at: new Date().toISOString() })
-    .eq('token', token)
-    .then(() => {})
-    .catch(() => {});
+    .eq('token', token);
 
   // Fetch site config via the site_id on the token row
   const siteId: string = tokenRow.site_id as string;

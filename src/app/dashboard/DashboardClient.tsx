@@ -165,8 +165,8 @@ export default function DashboardClient() {
       if (!result?.manifest) throw new Error('AI returned an empty manifest. Please try again.');
       log('[Generate] Manifest received, chapters:', result.manifest.chapters?.length);
 
-      result.manifest.occasion = data.occasion || 'wedding';
-      if (data.layoutFormat) result.manifest.layoutFormat = data.layoutFormat;
+      result.manifest.occasion = (data.occasion || 'wedding') as 'anniversary' | 'engagement' | 'wedding' | 'birthday' | 'story';
+      if (data.layoutFormat) result.manifest.layoutFormat = data.layoutFormat as 'cascade' | 'chapters' | 'filmstrip' | 'scrapbook' | 'magazine' | 'starmap';
 
       const autoSlug = data.subdomain || generateSlug(data.names);
       dispatch({ type: 'SET_MANIFEST', manifest: result.manifest, subdomain: autoSlug });
