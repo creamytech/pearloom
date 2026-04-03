@@ -664,7 +664,7 @@ export function MobileEditorSheet() {
       case 'design':
         return (
           <ScrollPanel>
-            <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} />
+            <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} coupleNames={coupleNames} />
           </ScrollPanel>
         );
 
@@ -930,7 +930,7 @@ export function MobileEditorSheet() {
                 <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 16px 80px' } as React.CSSProperties}>
                   {contextPanel === 'story' && <StoryPanel />}
                   {contextPanel === 'events' && <EventsPanel manifest={manifest} onChange={actions.handleDesignChange} />}
-                  {contextPanel === 'design' && <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} />}
+                  {contextPanel === 'design' && <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} coupleNames={coupleNames} />}
                 </div>
               </motion.div>
             )}

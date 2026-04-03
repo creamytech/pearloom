@@ -13,7 +13,8 @@ import {
   ArrowLeft, ChevronLeft, ChevronRight, Sparkles,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
-import type { Chapter } from '@/types';
+import { ImageManager } from './ImageManager';
+import type { Chapter, ChapterImage } from '@/types';
 
 // Layout options matching Chapter['layout']
 const LAYOUTS: Array<{
@@ -419,6 +420,65 @@ export function MobileChapterEditor({
                 WebkitAppearance: 'none',
                 boxSizing: 'border-box',
               } as React.CSSProperties}
+            />
+          </div>
+
+          {/* ── Mood ── */}
+          <div>
+            <label style={labelStyle}>Mood</label>
+            <input
+              key={`mood-${chapter.id}`}
+              defaultValue={chapter.mood || ''}
+              onChange={e => scheduleUpdate({ mood: e.target.value })}
+              placeholder="Romantic, joyful, nostalgic…"
+              style={{
+                width: '100%',
+                padding: '9px 14px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.09)',
+                background: 'rgba(255,255,255,0.03)',
+                color: 'rgba(214,198,168,0.75)',
+                fontSize: 'max(16px, 0.88rem)',
+                outline: 'none',
+                WebkitAppearance: 'none',
+                boxSizing: 'border-box',
+              } as React.CSSProperties}
+            />
+          </div>
+
+          {/* ── Location ── */}
+          <div>
+            <label style={labelStyle}>Location</label>
+            <input
+              key={`location-${chapter.id}`}
+              defaultValue={chapter.location?.label || ''}
+              onChange={e => scheduleUpdate({ location: e.target.value ? { lat: 0, lng: 0, label: e.target.value } : null })}
+              placeholder="Paris, the old café…"
+              style={{
+                width: '100%',
+                padding: '9px 14px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.09)',
+                background: 'rgba(255,255,255,0.03)',
+                color: 'rgba(214,198,168,0.75)',
+                fontSize: 'max(16px, 0.88rem)',
+                outline: 'none',
+                WebkitAppearance: 'none',
+                boxSizing: 'border-box',
+              } as React.CSSProperties}
+            />
+          </div>
+
+          {/* ── Photos ── */}
+          <div>
+            <ImageManager
+              images={chapter.images || []}
+              onUpdate={(imgs: ChapterImage[]) => actions.updateChapter(chapter.id, { images: imgs })}
+              imagePosition={chapter.imagePosition}
+              onPositionChange={(x, y) => actions.updateChapter(chapter.id, { imagePosition: { x, y } })}
+              chapterTitle={chapter.title}
+              chapterMood={chapter.mood}
+              chapterDescription={chapter.description}
             />
           </div>
         </div>

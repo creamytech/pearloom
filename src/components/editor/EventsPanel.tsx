@@ -181,6 +181,8 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                       <Field label="Venue" value={evt.venue} onChange={v => updateEvent(evt.id, { venue: v })} placeholder="The Grand Ballroom" />
                       <Field label="Address" value={evt.address} onChange={v => updateEvent(evt.id, { address: v })} placeholder="123 Main St, New York, NY" />
                       <Field label="Dress Code" value={evt.dressCode || ''} onChange={v => updateEvent(evt.id, { dressCode: v })} placeholder="Black Tie" />
+                      <Field label="End Time" value={evt.endTime || ''} onChange={v => updateEvent(evt.id, { endTime: v })} placeholder="11:00 PM" />
+                      <Field label="Description" value={evt.description || ''} onChange={v => updateEvent(evt.id, { description: v })} placeholder="Brief description of this event…" />
 
                       {/* Ceremony Details sub-section — shown for ceremony-type events */}
                       {evt.type === 'ceremony' && (

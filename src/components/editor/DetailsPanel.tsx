@@ -108,34 +108,32 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="theday" label={occasion === 'birthday' ? 'The Party' : occasion === 'anniversary' ? 'The Celebration' : 'The Day'}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
-          <div>
-            <label style={lbl}>{occasion === 'birthday' ? 'Party Date' : occasion === 'anniversary' ? 'Anniversary Date' : 'Wedding Date'}</label>
-            <input
-              type="date"
-              value={logistics.date || ''}
-              onChange={e => upd({ date: e.target.value })}
-              style={{ ...inp, colorScheme: 'dark' }}
-              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
-            />
-          </div>
-          <Field
-            label={occasion === 'birthday' ? 'Party Time' : 'Ceremony Time'}
-            value={logistics.time || ''}
-            onChange={v => upd({ time: v })}
-            placeholder="5:00 PM"
+        <div>
+          <label style={lbl}>{occasion === 'birthday' ? 'Party Date' : occasion === 'anniversary' ? 'Anniversary Date' : 'Wedding Date'}</label>
+          <input
+            type="date"
+            value={logistics.date || ''}
+            onChange={e => upd({ date: e.target.value })}
+            style={{ ...inp, width: '100%', colorScheme: 'dark' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
           />
         </div>
+        <Field
+          label={occasion === 'birthday' ? 'Party Time' : 'Ceremony Time'}
+          value={logistics.time || ''}
+          onChange={v => upd({ time: v })}
+          placeholder="5:00 PM"
+        />
         {/* Venue search — populates name + address from Google Places */}
-        <div style={{ marginBottom: '6px' }}>
+        <div>
           <label style={lbl}>Venue</label>
           {logistics.venue ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '8px 10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '10px 12px' }}>
               <LocationPinIcon size={13} color="var(--eg-accent, #A3B18A)" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
-                {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>{logistics.venueAddress}</div>}
+                {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>{logistics.venueAddress}</div>}
               </div>
               <button
                 onClick={() => upd({ venue: '', venueAddress: '', venuePlaceId: '' })}
@@ -147,13 +145,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               </button>
             </div>
           ) : (
-            <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '8px' }}>
-              <VenueSearch
-                placeholder="Search for a venue..."
-                onSelect={(venue: VenuePartial) => upd({ venue: venue.name || '', venueAddress: venue.address || '', venuePlaceId: venue.placeId || '' })}
-                onAddManually={() => upd({ venue: 'My Venue' })}
-              />
-            </div>
+            <VenueSearch
+              placeholder="Search for a venue..."
+              onSelect={(venue: VenuePartial) => upd({ venue: venue.name || '', venueAddress: venue.address || '', venuePlaceId: venue.placeId || '' })}
+              onAddManually={() => upd({ venue: 'My Venue' })}
+              darkMode
+            />
           )}
         </div>
       </Section>
