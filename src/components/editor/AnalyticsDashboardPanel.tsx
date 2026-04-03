@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { SidebarSection } from './EditorSidebar';
-import { BarChart2, Smartphone, Monitor, Users, TrendingUp, RefreshCw } from 'lucide-react';
+import { BarChart2, Smartphone, Monitor, Users, TrendingUp, RefreshCw, Layers } from 'lucide-react';
 
 interface VisitStats {
   visits: number;
@@ -22,6 +22,12 @@ interface RsvpStats {
   declined: number;
   pending: number;
   total: number;
+}
+
+interface SectionStat {
+  sectionId: string;
+  views: number;
+  avgDurationMs: number;
 }
 
 // ── Stat card ─────────────────────────────────────────────────
@@ -79,6 +85,7 @@ interface AnalyticsDashboardPanelProps {
 export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps) {
   const [visits, setVisits] = useState<VisitStats | null>(null);
   const [rsvp, setRsvp] = useState<RsvpStats | null>(null);
+  const [sections, setSections] = useState<SectionStat[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -87,9 +94,10 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
     if (!quiet) setLoading(true);
     else setRefreshing(true);
     try {
-      const [vRes, gRes] = await Promise.all([
+      const [vRes, gRes, sRes] = await Promise.all([
         fetch(`/api/analytics/visit?siteId=${encodeURIComponent(siteId)}`),
         fetch(`/api/guests?siteId=${encodeURIComponent(siteId)}`),
+        fetch(`/api/analytics/section?siteId=${encodeURIComponent(siteId)}`),
       ]);
       if (vRes.ok) {
         setVisits(await vRes.json());
@@ -100,6 +108,10 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
         const declined = guests.filter((g: { status: string }) => g.status === 'declined').length;
         const pending = guests.filter((g: { status: string }) => g.status === 'pending').length;
         setRsvp({ attending, declined, pending, total: guests.length });
+      }
+      if (sRes.ok) {
+        const { sections: sectionData } = await sRes.json();
+        setSections(sectionData || []);
       }
     } catch {
       // Silent fail — show zeros
@@ -197,6 +209,87 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
           }}>
             <span style={{ color: '#A3B18A', fontWeight: 800 }}>{rsvpConversionRate}%</span> of visitors have RSVPed
           </div>
+        )}
+      </SidebarSection>
+
+      {/* ── Section Engagement ── */}
+      <SidebarSection title="Section Engagement" defaultOpen>
+        {(!sections || sections.length === 0) ? (
+          <div style={{
+            padding: '10px 12px', borderRadius: '8px',
+            background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.12)',
+            fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6,
+          }}>
+            Section analytics will appear once your site gets visitors.
+          </div>
+        ) : (
+          <>
+            {/* Most viewed section callout */}
+            {sections[0] && (
+              <div style={{
+                padding: '10px 12px', borderRadius: '10px', marginBottom: '10px',
+                background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.22)',
+                display: 'flex', alignItems: 'center', gap: '10px',
+              }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '8px',
+                  background: 'rgba(163,177,138,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <Layers size={15} color="#A3B18A" />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                    Most viewed section
+                  </div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
+                    {sections[0].sectionId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: '#A3B18A', marginTop: '1px' }}>
+                    {sections[0].views.toLocaleString()} views
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Section bar chart */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+              {(() => {
+                const maxViews = sections[0]?.views || 1;
+                return sections.map((sec) => {
+                  const pct = Math.round((sec.views / maxViews) * 100);
+                  const label = sec.sectionId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                  return (
+                    <div key={sec.sectionId} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{
+                        fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)',
+                        width: '68px', flexShrink: 0,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }} title={label}>
+                        {label}
+                      </div>
+                      <div style={{
+                        flex: 1, height: '6px', borderRadius: '3px',
+                        background: 'rgba(255,255,255,0.07)', overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          height: '100%', width: `${pct}%`, borderRadius: '3px',
+                          background: 'linear-gradient(90deg, #A3B18A 0%, #8FC87A 100%)',
+                          transition: 'width 0.6s ease',
+                        }} />
+                      </div>
+                      <div style={{
+                        fontSize: '0.67rem', color: 'rgba(255,255,255,0.5)',
+                        width: '36px', textAlign: 'right', flexShrink: 0,
+                      }}>
+                        {sec.views.toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </>
         )}
       </SidebarSection>
 

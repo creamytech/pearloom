@@ -11,6 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { Field, lbl, inp } from './editor-utils';
 import { ImageManager } from './ImageManager';
 import { SectionStyleEditor } from './SectionStyleEditor';
+import { AlternatesCarousel } from './AlternatesCarousel';
 import { AIBlocksIcon } from '@/components/icons/EditorIcons';
 import type { Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
@@ -31,11 +32,18 @@ interface ChapterPanelProps {
   sectionOverrides?: SectionStyleOverrides;
   onOverridesChange?: (id: string, overrides: SectionStyleOverrides) => void;
   vibeString?: string;
+  streamingText?: string | null;
+  onShowAlternates?: () => void;
+  isLoadingAlternates?: boolean;
+  alternates?: string[];
+  onSelectAlternate?: (desc: string) => void;
+  onCloseAlternates?: () => void;
 }
 
 export function ChapterPanel({
   chapter, onUpdate, onAIRewrite, isRewriting, vibeSkin,
-  sectionOverrides, onOverridesChange, vibeString,
+  sectionOverrides, onOverridesChange, vibeString, streamingText,
+  onShowAlternates, isLoadingAlternates, alternates, onSelectAlternate, onCloseAlternates,
 }: ChapterPanelProps) {
   const upd = useCallback((data: Partial<Chapter>) => onUpdate(chapter.id, data), [chapter.id, onUpdate]);
   const currentLayout = chapter.layout || 'editorial';
@@ -91,12 +99,13 @@ export function ChapterPanel({
       <div>
         <label style={lbl}>Story</label>
         <textarea
-          value={chapter.description || ''}
-          onChange={e => upd({ description: e.target.value })}
+          value={streamingText != null ? streamingText + '▋' : (chapter.description || '')}
+          onChange={streamingText != null ? undefined : e => upd({ description: e.target.value })}
+          readOnly={streamingText != null}
           rows={5}
           placeholder="Write your memory here..."
-          style={{ ...inp, resize: 'vertical', lineHeight: 1.65, minHeight: '120px' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
+          style={{ ...inp, resize: 'vertical', lineHeight: 1.65, minHeight: '120px', ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}) }}
+          onFocus={e => { if (streamingText == null) { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; } }}
           onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
@@ -148,6 +157,41 @@ export function ChapterPanel({
           ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Rewriting…</>
           : <><AIBlocksIcon size={13} /> Rewrite this chapter</>}
       </motion.button>
+
+      {/* Show 3 Alternatives */}
+      {onShowAlternates && (
+        <motion.button
+          onClick={onShowAlternates}
+          disabled={isLoadingAlternates}
+          animate={isLoadingAlternates ? { opacity: [0.5, 1, 0.5] } : { opacity: 1 }}
+          transition={isLoadingAlternates ? { repeat: Infinity, duration: 1.2 } : undefined}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+            padding: '10px 16px', borderRadius: '8px',
+            border: '1px solid rgba(109,89,122,0.35)',
+            background: isLoadingAlternates ? 'rgba(255,255,255,0.04)' : 'rgba(109,89,122,0.12)',
+            color: isLoadingAlternates ? 'rgba(255,255,255,0.4)' : 'var(--eg-plum, #6D597A)',
+            fontSize: '0.85rem', fontWeight: 700, cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
+            letterSpacing: '0.04em', transition: 'all 0.15s',
+          }}
+          onMouseOver={e => { if (!isLoadingAlternates) (e.currentTarget as HTMLElement).style.background = 'rgba(109,89,122,0.22)'; }}
+          onMouseOut={e => { if (!isLoadingAlternates) (e.currentTarget as HTMLElement).style.background = 'rgba(109,89,122,0.12)'; }}
+        >
+          {isLoadingAlternates
+            ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
+            : <>✦ Show 3 alternatives</>}
+        </motion.button>
+      )}
+
+      {/* Alternates Carousel */}
+      {alternates && alternates.length > 0 && onSelectAlternate && onCloseAlternates && (
+        <AlternatesCarousel
+          chapterId={chapter.id}
+          alternates={alternates}
+          onSelect={onSelectAlternate}
+          onClose={onCloseAlternates}
+        />
+      )}
 
       {/* Image Manager */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>

@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Trash2, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, Calendar } from 'lucide-react';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
+import { useEditor } from '@/lib/editor-state';
 import type { StoryManifest, WeddingEvent, FaqItem } from '@/types';
 
 export const EVENT_TYPE_OPTS: Array<{ type: WeddingEvent['type']; label: string; color: string }> = [
@@ -17,8 +18,49 @@ export const EVENT_TYPE_OPTS: Array<{ type: WeddingEvent['type']; label: string;
 ];
 
 export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const { state } = useEditor();
+  const subdomain = state.subdomain;
   const events = manifest.events || [];
   const [expandedId, setExpandedId] = useState<string | null>(events[0]?.id || null);
+
+  // Build Google Calendar URL from first event
+  const buildGoogleCalendarUrl = useCallback(() => {
+    const evt = events[0];
+    if (!evt?.date) return null;
+
+    const formatDateTime = (dateStr: string, timeStr: string) => {
+      // Simple approach: strip separators and append time
+      const datePart = dateStr.replace(/-/g, '');
+      const parseTime = (t: string) => {
+        const normalized = t.trim().toUpperCase();
+        const match = normalized.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
+        if (match) {
+          let h = parseInt(match[1], 10);
+          const m = match[2] ? parseInt(match[2], 10) : 0;
+          if (match[3] === 'PM' && h !== 12) h += 12;
+          if (match[3] === 'AM' && h === 12) h = 0;
+          return `${String(h).padStart(2, '0')}${String(m).padStart(2, '0')}00`;
+        }
+        const m24 = normalized.match(/^(\d{1,2}):(\d{2})$/);
+        if (m24) return `${String(parseInt(m24[1], 10)).padStart(2, '0')}${m24[2]}00`;
+        return '120000';
+      };
+      return `${datePart}T${parseTime(timeStr)}Z`;
+    };
+
+    const start = formatDateTime(evt.date, evt.time || '12:00 PM');
+    const endTime = evt.endTime || '';
+    const end = endTime ? formatDateTime(evt.date, endTime) : formatDateTime(evt.date, '');
+    const location = [evt.venue, evt.address].filter(Boolean).join(', ');
+
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: evt.name || 'Event',
+      dates: `${start}/${end || start}`,
+      location,
+    });
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  }, [events]);
 
   const addEvent = () => {
     const newEvent: WeddingEvent = {
@@ -180,6 +222,75 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
       >
         <Plus size={13} /> Add Event
       </button>
+
+      {/* Add to Calendar */}
+      {events.length > 0 && subdomain && (
+        <div style={{
+          marginTop: '8px',
+          paddingTop: '16px',
+          borderTop: '1px solid rgba(255,255,255,0.07)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}>
+          <div style={{
+            fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            marginBottom: '2px',
+          }}>
+            <Calendar size={11} />
+            Add to Calendar
+          </div>
+
+          {/* Download .ics */}
+          <a
+            href={`/api/calendar/${subdomain}`}
+            download="event.ics"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+              padding: '10px 14px', borderRadius: '8px',
+              border: '1px solid rgba(163,177,138,0.35)',
+              background: 'rgba(163,177,138,0.10)',
+              color: 'var(--eg-accent, #A3B18A)',
+              fontSize: '0.84rem', fontWeight: 700,
+              letterSpacing: '0.03em',
+              textDecoration: 'none',
+              transition: 'all 0.15s',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.20)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.10)'; }}
+          >
+            <Calendar size={13} />
+            Download .ics (Apple / Outlook)
+          </a>
+
+          {/* Google Calendar */}
+          {buildGoogleCalendarUrl() && (
+            <a
+              href={buildGoogleCalendarUrl()!}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+                padding: '10px 14px', borderRadius: '8px',
+                border: '1px solid rgba(109,89,122,0.35)',
+                background: 'rgba(109,89,122,0.10)',
+                color: 'var(--eg-plum, #6D597A)',
+                fontSize: '0.84rem', fontWeight: 700,
+                letterSpacing: '0.03em',
+                textDecoration: 'none',
+                transition: 'all 0.15s',
+              }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(109,89,122,0.20)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(109,89,122,0.10)'; }}
+            >
+              <Calendar size={13} />
+              Add to Google Calendar
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

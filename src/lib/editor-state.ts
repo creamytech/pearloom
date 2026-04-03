@@ -15,7 +15,7 @@ import type { CommandAction } from '@/components/editor/CommandPalette';
 
 // ── Types ──────────────────────────────────────────────────────
 export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate';
+export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors';
 export type SaveState = 'saved' | 'unsaved';
 export type DraftBannerState = 'visible' | 'hidden' | null;
 
@@ -46,6 +46,8 @@ export interface EditorState {
   // Rewrite
   rewritingId: string | null;
   rewriteError: string | null;
+  streamingText: string | null;
+  streamingChapterId: string | null;
 
   // Publish
   showPublish: boolean;
@@ -74,6 +76,10 @@ export interface EditorState {
   isMobile: boolean;
   mobileVisualEdit: boolean;
   mobileActionChapterId: string | null;
+
+  // Chapter alternates
+  chapterAlternates: Record<string, string[]>;
+  alternatesLoadingId: string | null;
 }
 
 export type EditorAction =
@@ -99,6 +105,7 @@ export type EditorAction =
   | { type: 'SET_CAN_REDO'; can: boolean }
   | { type: 'SET_REWRITING'; id: string | null }
   | { type: 'SET_REWRITE_ERROR'; error: string | null }
+  | { type: 'SET_STREAMING_TEXT'; text: string | null; chapterId: string | null }
   | { type: 'SET_SHOW_PUBLISH'; show: boolean }
   | { type: 'SET_SUBDOMAIN'; subdomain: string }
   | { type: 'SET_PUBLISHING'; publishing: boolean }
@@ -113,7 +120,9 @@ export type EditorAction =
   | { type: 'SET_PREVIEW_ZOOM'; zoom: number }
   | { type: 'SET_PREVIEW_PAGE'; page: string | null }
   | { type: 'MARK_PUBLISHED'; url: string }
-  | { type: 'OPEN_PUBLISH' };
+  | { type: 'OPEN_PUBLISH' }
+  | { type: 'SET_CHAPTER_ALTERNATES'; id: string; alternates: string[] }
+  | { type: 'SET_ALTERNATES_LOADING'; id: string | null };
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
@@ -161,6 +170,8 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, rewritingId: action.id };
     case 'SET_REWRITE_ERROR':
       return { ...state, rewriteError: action.error };
+    case 'SET_STREAMING_TEXT':
+      return { ...state, streamingText: action.text, streamingChapterId: action.chapterId };
     case 'SET_SHOW_PUBLISH':
       return { ...state, showPublish: action.show };
     case 'SET_SUBDOMAIN':
@@ -191,6 +202,10 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, publishedUrl: action.url, saveState: 'saved', isDirty: false };
     case 'OPEN_PUBLISH':
       return { ...state, showPublish: true, publishError: null, publishedUrl: null };
+    case 'SET_CHAPTER_ALTERNATES':
+      return { ...state, chapterAlternates: { ...state.chapterAlternates, [action.id]: action.alternates } };
+    case 'SET_ALTERNATES_LOADING':
+      return { ...state, alternatesLoadingId: action.id };
     default:
       return state;
   }
@@ -224,6 +239,7 @@ export interface EditorActions {
 
   // AI
   handleAIRewrite: (id: string) => void;
+  cancelAIRewrite: () => void;
 
   // Publish
   handlePublishSubmit: () => Promise<void>;
@@ -282,6 +298,8 @@ export function createInitialEditorState(
     canRedo: false,
     rewritingId: null,
     rewriteError: null,
+    streamingText: null,
+    streamingChapterId: null,
     showPublish: false,
     subdomain: initialSubdomain || '',
     isPublishing: false,
@@ -296,6 +314,8 @@ export function createInitialEditorState(
     isMobile: false,
     mobileVisualEdit: true,
     mobileActionChapterId: null,
+    chapterAlternates: {},
+    alternatesLoadingId: null,
   };
 }
 

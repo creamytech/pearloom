@@ -12,9 +12,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   LayoutGrid, ExternalLink, Plus, Users, Circle, Square,
-  RefreshCw,
+  RefreshCw, Sparkles,
 } from 'lucide-react';
 import { SidebarSection } from './EditorSidebar';
+import { useEditor } from '@/lib/editor-state';
 import type { SeatingTable, Guest } from '@/types';
 
 interface SeatingStats {
@@ -51,11 +52,15 @@ interface SeatingEditorPanelProps {
 }
 
 export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
+  const { coupleNames } = useEditor();
   const [tables, setTables] = useState<SeatingTable[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [addingTable, setAddingTable] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
+  const [optimizeMsg, setOptimizeMsg] = useState<string | null>(null);
+  const [optimizeError, setOptimizeError] = useState<string | null>(null);
 
   const load = useCallback(async (quiet = false) => {
     if (!siteId) return;
@@ -95,6 +100,30 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
     setAddingTable(false);
   };
 
+  const handleAIArrange = async () => {
+    setOptimizing(true);
+    setOptimizeMsg(null);
+    setOptimizeError(null);
+    try {
+      const res = await fetch('/api/seating/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain: siteId, coupleNames }),
+      });
+      const data = await res.json() as { assignments?: unknown[]; tablesUpdated?: number; error?: string };
+      if (!res.ok || data.error) {
+        setOptimizeError(data.error || 'Optimization failed. Please try again.');
+      } else {
+        setOptimizeMsg(`Guests arranged! Refresh to see the updated seating.`);
+        await load(true);
+      }
+    } catch {
+      setOptimizeError('Network error. Please try again.');
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
   const openFullEditor = () => {
     window.open(`/seating?siteId=${encodeURIComponent(siteId)}`, '_blank', 'noopener');
   };
@@ -128,6 +157,41 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
           <RefreshCw size={12} style={{ animation: refreshing ? 'pl-spin 0.8s linear infinite' : 'none' }} />
         </button>
       </div>
+
+      {/* AI Arrange button */}
+      <motion.button
+        onClick={handleAIArrange}
+        disabled={optimizing}
+        whileHover={!optimizing ? { scale: 1.02 } : {}}
+        whileTap={!optimizing ? { scale: 0.97 } : {}}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+          padding: '10px', borderRadius: '9px',
+          border: '1px solid rgba(163,177,138,0.3)',
+          background: optimizing
+            ? 'rgba(163,177,138,0.06)'
+            : 'linear-gradient(135deg, rgba(163,177,138,0.18) 0%, rgba(143,200,122,0.12) 100%)',
+          color: optimizing ? 'rgba(163,177,138,0.5)' : '#A3B18A',
+          cursor: optimizing ? 'default' : 'pointer',
+          fontSize: '0.78rem', fontWeight: 700,
+          transition: 'all 0.15s',
+        }}
+      >
+        <Sparkles size={13} style={{ animation: optimizing ? 'pl-spin 1s linear infinite' : 'none' }} />
+        {optimizing ? 'Optimizing…' : '✦ AI Arrange'}
+      </motion.button>
+
+      {/* Optimize feedback */}
+      {optimizeMsg && (
+        <p style={{ margin: '-6px 0 0', fontSize: '0.72rem', color: '#A3B18A', textAlign: 'center' }}>
+          {optimizeMsg}
+        </p>
+      )}
+      {optimizeError && (
+        <p style={{ margin: '-6px 0 0', fontSize: '0.72rem', color: '#f87171', textAlign: 'center' }}>
+          {optimizeError}
+        </p>
+      )}
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>

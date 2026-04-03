@@ -259,8 +259,32 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
 // ── Main StoryPanel ────────────────────────────────────────────
 export function StoryPanel() {
   const { state, dispatch, actions, manifest } = useEditor();
-  const { chapters, activeId, rewritingId, sectionOverridesMap } = state;
+  const { chapters, activeId, rewritingId, sectionOverridesMap, streamingText, streamingChapterId, alternatesLoadingId, chapterAlternates } = state;
   const activeChapter = chapters.find(c => c.id === activeId) || null;
+
+  const handleShowAlternates = async () => {
+    if (!activeChapter) return;
+    dispatch({ type: 'SET_ALTERNATES_LOADING', id: activeChapter.id });
+    try {
+      const res = await fetch('/api/rewrite/alternates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: activeChapter.title,
+          description: activeChapter.description,
+          mood: activeChapter.mood,
+          vibeString: manifest.vibeString,
+          occasion: manifest.occasion,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        dispatch({ type: 'SET_CHAPTER_ALTERNATES', id: activeChapter.id, alternates: data.alternates });
+      }
+    } finally {
+      dispatch({ type: 'SET_ALTERNATES_LOADING', id: null });
+    }
+  };
 
   return (
     <>
@@ -400,10 +424,19 @@ export function StoryPanel() {
               vibeSkin={manifest.vibeSkin}
               vibeString={manifest.vibeString}
               sectionOverrides={sectionOverridesMap[activeChapter.id]}
+              streamingText={streamingChapterId === activeChapter.id ? streamingText : null}
               onOverridesChange={(id, overrides) => {
                 dispatch({ type: 'SET_SECTION_OVERRIDES', id, overrides });
                 actions.updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });
               }}
+              onShowAlternates={handleShowAlternates}
+              isLoadingAlternates={alternatesLoadingId === activeChapter.id}
+              alternates={chapterAlternates[activeChapter.id]}
+              onSelectAlternate={(desc) => {
+                actions.updateChapter(activeChapter.id, { description: desc });
+                dispatch({ type: 'SET_CHAPTER_ALTERNATES', id: activeChapter.id, alternates: [] });
+              }}
+              onCloseAlternates={() => dispatch({ type: 'SET_CHAPTER_ALTERNATES', id: activeChapter.id, alternates: [] })}
             />
           </motion.div>
         )}
