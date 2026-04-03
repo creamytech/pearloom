@@ -25,6 +25,7 @@ import type { Chapter } from '@/types';
 import { MobileChapterEditor } from './MobileChapterEditor';
 
 // ── Lazy panel imports ──────────────────────────────────────────
+const StoryPanel              = dynamic(() => import('./StoryPanel').then(m => ({ default: m.StoryPanel })), { ssr: false });
 const DesignPanel             = dynamic(() => import('./DesignPanel').then(m => ({ default: m.DesignPanel })), { ssr: false });
 const EventsPanel             = dynamic(() => import('./EventsPanel').then(m => ({ default: m.EventsPanel })), { ssr: false });
 const DetailsPanel            = dynamic(() => import('./DetailsPanel').then(m => ({ default: m.DetailsPanel })), { ssr: false });
@@ -316,6 +317,9 @@ export function MobileEditorSheet() {
   const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
   const [activeMoreTool, setActiveMoreTool] = useState<string | null>(null);
 
+  // Context panel: slides up from bottom while preview stays visible
+  const [contextPanel, setContextPanel] = useState<ActiveView | null>(null);
+
   const isInChapterEditor = editingChapterId !== null;
   const activeChapter = editingChapterId
     ? chapters.find(c => c.id === editingChapterId) ?? null
@@ -349,29 +353,20 @@ export function MobileEditorSheet() {
       if (event.data?.type === 'pearloom-section-click') {
         const { chapterId, sectionId } = event.data;
         if (chapterId) {
+          // Chapter tap → open chapter editor (full push nav)
           openChapter(chapterId);
-        } else if (sectionId === 'hero') {
-          setActiveView('story');
-        } else if (sectionId === 'events' || sectionId === 'schedule') {
-          setActiveView('events');
-        } else if (sectionId === 'rsvp') {
-          setActiveView('events');
-        } else if (sectionId === 'countdown') {
-          setActiveView('events');
-        } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
-          setActiveView('more');
-          setActiveMoreTool('details');
-        } else if (sectionId === 'photos' || sectionId === 'gallery') {
-          setActiveView('story');
-        } else if (sectionId === 'guestbook') {
-          setActiveView('story');
-        } else if (sectionId === 'design' || sectionId === 'theme') {
-          setActiveView('design');
-        } else if (sectionId === 'spotify' || sectionId === 'music') {
-          setActiveView('more');
-          setActiveMoreTool('spotify');
         } else {
-          setActiveView('story');
+          // Section tap → open context half-sheet over preview
+          const panel: ActiveView =
+            sectionId === 'hero' ? 'story' :
+            sectionId === 'events' || sectionId === 'schedule' || sectionId === 'rsvp' || sectionId === 'countdown' ? 'events' :
+            sectionId === 'design' || sectionId === 'theme' ? 'design' :
+            'story';
+          if (activeView === 'preview') {
+            setContextPanel(panel);
+          } else {
+            setActiveView(panel);
+          }
         }
       }
 
@@ -858,6 +853,56 @@ export function MobileEditorSheet() {
                 onBack={closeChapter}
                 onNavigate={(id) => setEditingChapterId(id)}
               />
+            )}
+          </AnimatePresence>
+
+          {/* ── Context half-sheet (slides up over preview) ── */}
+          <AnimatePresence>
+            {contextPanel && activeView === 'preview' && !isInChapterEditor && (
+              <motion.div
+                key="context-panel"
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', stiffness: 380, damping: 38, mass: 0.9 }}
+                style={{
+                  position: 'absolute',
+                  bottom: 0, left: 0, right: 0,
+                  height: '55%',
+                  background: '#0F0C09',
+                  borderRadius: '20px 20px 0 0',
+                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex', flexDirection: 'column',
+                  overflow: 'hidden',
+                  zIndex: 10,
+                }}
+              >
+                {/* Handle + close */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 16px 8px', flexShrink: 0,
+                }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.15)', margin: '0 auto' }} />
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => setContextPanel(null)}
+                    style={{
+                      position: 'absolute', right: 12, top: 10,
+                      background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
+                      width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', color: 'rgba(214,198,168,0.6)',
+                    }}
+                  >
+                    <X size={14} />
+                  </motion.button>
+                </div>
+                {/* Panel content */}
+                <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 16px 80px' } as React.CSSProperties}>
+                  {contextPanel === 'story' && <StoryPanel />}
+                  {contextPanel === 'events' && <EventsPanel manifest={manifest} onChange={actions.handleDesignChange} />}
+                  {contextPanel === 'design' && <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} />}
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
