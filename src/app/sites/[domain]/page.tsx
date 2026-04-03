@@ -647,6 +647,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     if (!visibleBlocks) return null;
     const result: React.ReactNode[] = [];
     let prevExitColor = bgColor;
+    let dividerIdx = 0;
 
     visibleBlocks.forEach((block) => {
       const rendered = renderBlock(block.type, block.id);
@@ -666,8 +667,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       // Skip divider before hero (it's the first thing on the page)
       if (block.type !== 'hero') {
         const divAbove = block.blockEffects?.dividerAbove;
+        const globalDiv = manifest.theme?.effects?.sectionDivider;
+        const useGlobalDiv = globalDiv && globalDiv.style !== 'none';
         if (divAbove) {
-          // Custom SVG shape divider chosen in the editor
+          // Per-block custom SVG shape divider chosen in the editor
           result.push(
             <SectionDivider
               key={`divider-before-${block.id}`}
@@ -676,6 +679,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               height={divAbove.height}
             />
           );
+        } else if (useGlobalDiv) {
+          // Global section divider from design panel
+          const shouldFlip = globalDiv!.flip && dividerIdx % 2 === 1;
+          result.push(
+            <SectionDivider
+              key={`divider-before-${block.id}`}
+              style={globalDiv!.style}
+              color={thisEntryColor}
+              height={globalDiv!.height}
+              flip={shouldFlip}
+            />
+          );
+          dividerIdx++;
         } else {
           result.push(
             <WaveDivider
@@ -689,11 +705,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         }
       }
 
-      // Wrap in scroll-reveal container if this block has a per-block entrance animation
+      // Wrap in scroll-reveal container — per-block overrides global
       const blockReveal = block.blockEffects?.scrollReveal;
-      if (blockReveal && blockReveal !== 'none') {
+      const globalReveal = manifest.theme?.effects?.scrollReveal;
+      const effectiveReveal = (blockReveal && blockReveal !== 'none') ? blockReveal : globalReveal;
+      if (effectiveReveal && effectiveReveal !== 'none' && block.type !== 'hero') {
         result.push(
-          <div key={block.id} data-pl-reveal={blockReveal}>
+          <div key={block.id} data-pl-reveal={effectiveReveal}>
             {rendered}
           </div>
         );

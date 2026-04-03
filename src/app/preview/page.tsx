@@ -23,6 +23,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
+import { SectionDivider } from '@/components/effects/SectionDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import type { StoryManifest, SitePage } from '@/types';
@@ -117,7 +118,7 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
   }
 
   return (
-    <ThemeProvider theme={manifest.theme || dynamicTheme}>
+    <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
@@ -280,9 +281,7 @@ function PreviewContent() {
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} />
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
-            <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
           </section>
         );
       case 'rsvp':
@@ -296,21 +295,18 @@ function PreviewContent() {
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
         return (
           <section key={key} id="registry">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />
             <RegistryShowcase
               registries={manifest.registry?.entries || []}
               cashFundUrl={manifest.registry?.cashFundUrl}
               cashFundMessage={manifest.registry?.cashFundMessage}
               title={vibeSkin.sectionLabels.registry}
             />
-            <WaveDivider skin={vibeSkin} fromColor={accentLight} toColor={bgColor} height={70} inverted />
           </section>
         );
       case 'travel':
         if (!manifest.travelInfo) return null;
         return (
           <section key={key} id="travel">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={70} />
             <TravelSection info={manifest.travelInfo} />
           </section>
         );
@@ -318,7 +314,6 @@ function PreviewContent() {
         if (!manifest.faqs?.length) return null;
         return (
           <section key={key} id="faq">
-            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
             <FaqSection faqs={manifest.faqs} />
           </section>
         );
@@ -439,6 +434,115 @@ function PreviewContent() {
     ? [...manifest.blocks].sort((a, b) => a.order - b.order).filter(b => b.visible !== false)
     : null;
 
+  // Global section divider setting from design panel
+  const globalDivider = manifest.theme?.effects?.sectionDivider;
+  const useCustomDivider = globalDivider && globalDivider.style !== 'none';
+
+  // Determines the background color a block enters with
+  const blockEntryColor = (type: string): string => {
+    switch (type) {
+      case 'event': return cardBg;
+      case 'registry': return accentLight;
+      case 'travel': return cardBg;
+      case 'guestbook': return cardBg;
+      default: return bgColor;
+    }
+  };
+
+  const blockExitColor = (type: string): string => {
+    switch (type) {
+      case 'event': return cardBg;
+      case 'registry': return accentLight;
+      case 'travel': return cardBg;
+      case 'guestbook': return cardBg;
+      default: return bgColor;
+    }
+  };
+
+  // Build block sequence with dividers injected between sections (mirrors live site)
+  const renderBlockSequence = () => {
+    if (!visibleBlocks) return null;
+    const result: React.ReactNode[] = [];
+    let prevExitColor = bgColor;
+    let dividerIdx = 0;
+
+    visibleBlocks.forEach((block) => {
+      const rendered = renderBlock(block.type, block.id);
+      if (rendered === null) return;
+
+      const thisEntryColor = blockEntryColor(block.type);
+
+      // Inject divider before every non-hero block
+      if (block.type !== 'hero') {
+        const divAbove = (block as any).blockEffects?.dividerAbove;
+        if (divAbove) {
+          // Per-block custom divider
+          result.push(
+            <SectionDivider
+              key={`divider-before-${block.id}`}
+              style={divAbove.style}
+              color={thisEntryColor}
+              height={divAbove.height}
+            />
+          );
+        } else if (useCustomDivider) {
+          // Global section divider from design panel
+          const shouldFlip = globalDivider!.flip && dividerIdx % 2 === 1;
+          result.push(
+            <SectionDivider
+              key={`divider-before-${block.id}`}
+              style={globalDivider!.style}
+              color={thisEntryColor}
+              height={globalDivider!.height}
+              flip={shouldFlip}
+            />
+          );
+          dividerIdx++;
+        } else {
+          // Default wave divider
+          result.push(
+            <WaveDivider
+              key={`divider-before-${block.id}`}
+              skin={vibeSkin}
+              fromColor={prevExitColor}
+              toColor={thisEntryColor}
+              height={80}
+            />
+          );
+        }
+      }
+
+      // Wrap in scroll-reveal container — per-block overrides global
+      const blockReveal = (block as any).blockEffects?.scrollReveal;
+      const globalReveal = manifest.theme?.effects?.scrollReveal;
+      const effectiveReveal = (blockReveal && blockReveal !== 'none') ? blockReveal : globalReveal;
+      if (effectiveReveal && effectiveReveal !== 'none' && block.type !== 'hero') {
+        result.push(
+          <div key={block.id} data-pl-reveal={effectiveReveal}>
+            {rendered}
+          </div>
+        );
+      } else {
+        result.push(rendered);
+      }
+
+      // After hero, inject the vibe quote + welcome statement
+      if (block.type === 'hero') {
+        result.push(
+          <WaveDivider key="divider-hero-quote" skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />,
+          <VibeQuote key="vibe-quote" />,
+          ...(manifest.poetry?.welcomeStatement ? [<WelcomeStatement key="welcome-statement" />] : []),
+          <ArtStrip key="art-strip" />,
+        );
+        prevExitColor = bgColor;
+      } else {
+        prevExitColor = blockExitColor(block.type);
+      }
+    });
+
+    return result;
+  };
+
   // Vibe quote section — mirrors live site art rendering
   const VibeQuote = () => (
     <div style={{ position: 'relative', padding: '6rem 0 5rem', textAlign: 'center', overflow: 'hidden', zIndex: 10 }}>
@@ -523,7 +627,7 @@ function PreviewContent() {
   };
 
   return (
-    <ThemeProvider theme={manifest.theme || dynamicTheme}>
+    <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
 
@@ -568,15 +672,7 @@ function PreviewContent() {
                 backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.22,
               }} />
             ) : null}
-            {visibleBlocks.map(block => renderBlock(block.type, block.id))}
-            {visibleBlocks[0]?.type === 'hero' && (
-              <>
-                <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
-                <VibeQuote />
-                <WelcomeStatement />
-                <ArtStrip />
-              </>
-            )}
+            {renderBlockSequence()}
           </>
         ) : (
           <>
@@ -585,12 +681,24 @@ function PreviewContent() {
             <VibeQuote />
             <WelcomeStatement />
             <ArtStrip />
-            <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
-            {manifest.events?.length ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={cardBg} height={80} /><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section><WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted /></> : null}
-            {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
-            {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <><WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} /><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section></> : null}
-            {manifest.travelInfo ? <section id="travel"><TravelSection info={manifest.travelInfo} /></section> : null}
-            {manifest.faqs?.length ? <section id="faq"><FaqSection faqs={manifest.faqs} /></section> : null}
+            {(() => {
+              const legacyReveal = manifest.theme?.effects?.scrollReveal;
+              const rvAttr = (legacyReveal && legacyReveal !== 'none') ? { 'data-pl-reveal': legacyReveal } : {};
+              const legacyDivider = (color: string, fallbackFrom: string, fallbackTo: string, height = 80, flip = false) =>
+                useCustomDivider
+                  ? <SectionDivider style={globalDivider!.style} color={color} height={globalDivider!.height} flip={flip} />
+                  : <WaveDivider skin={vibeSkin} fromColor={fallbackFrom} toColor={fallbackTo} height={height} />;
+              return (
+                <>
+                  <div {...rvAttr}><section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section></div>
+                  {manifest.events?.length ? <>{legacyDivider(cardBg, bgColor, cardBg)}<div {...rvAttr}><section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section></div></> : null}
+                  {manifest.events?.length ? <div {...rvAttr}><section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section></div> : null}
+                  {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? <>{legacyDivider(accentLight, bgColor, accentLight, 80, !!globalDivider?.flip)}<div {...rvAttr}><section id="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section></div></> : null}
+                  {manifest.travelInfo ? <>{legacyDivider(cardBg, bgColor, cardBg, 70)}<div {...rvAttr}><section id="travel"><TravelSection info={manifest.travelInfo} /></section></div></> : null}
+                  {manifest.faqs?.length ? <>{legacyDivider(bgColor, bgColor, bgColor, 70, !!globalDivider?.flip)}<div {...rvAttr}><section id="faq"><FaqSection faqs={manifest.faqs} /></section></div></> : null}
+                </>
+              );
+            })()}
           </>
         )}
 

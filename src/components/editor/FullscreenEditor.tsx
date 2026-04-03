@@ -35,7 +35,7 @@ import { PagesPanel } from './PagesPanel';
 import { AIBlocksPanel } from './AIBlocksPanel';
 import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
-import { AIEditorChat } from './AIEditorChat';
+// import { AIEditorChat } from './AIEditorChat';
 import { AIContextBar } from './AIContextBar';
 import { MessagingPanel } from '@/components/dashboard/MessagingPanel';
 import { PostWeddingBanner } from './PostWeddingBanner';
@@ -792,8 +792,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         )}
       </DragOverlay>
 
-      {/* AI Chat */}
-      <AIEditorChat manifest={manifest} activeChapterId={state.activeId} onUpdateChapter={updateChapter} onUpdateManifest={handleChatManifestUpdate} />
+      {/* AI Chat — disabled: broken on mobile and takes up space */}
+      {/* <AIEditorChat manifest={manifest} activeChapterId={state.activeId} onUpdateChapter={updateChapter} onUpdateManifest={handleChatManifestUpdate} /> */}
 
       {/* Welcome */}
       <AnimatePresence>
