@@ -32,6 +32,7 @@ import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
+import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 
 export const dynamic = 'force-dynamic';
 
@@ -1013,6 +1014,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           />
           <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Made with Pearloom</div>
         </footer>
+        <AnalyticsBeacon siteId={domain} />
       </div>
     </ThemeProvider>
   );

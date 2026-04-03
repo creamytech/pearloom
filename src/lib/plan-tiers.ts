@@ -22,6 +22,7 @@ export const TAB_TIER: Partial<Record<EditorTab, PlanTier>> = {
   translate:   'pair',   // 9-language translations
   invite:      'pair',   // Bulk invite panel
   savethedate: 'pair',   // Save the Date card designer
+  thankyou:    'pair',   // AI Thank-You Notes generator
 };
 
 // Display labels and accent colors per tier
