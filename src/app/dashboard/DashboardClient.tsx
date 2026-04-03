@@ -388,6 +388,7 @@ export default function DashboardClient() {
               }}
               onDismissDraft={() => { clearDraft(); goTo('photos'); }}
               onStartNew={() => goTo('photos')}
+              onQuickStart={() => goTo('vibe')}
               onEditSite={(site) => dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] })}
               onManageGuests={(site) => { dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] }); dispatch({ type: 'NAVIGATE', step: 'guests' }); }}
             />
