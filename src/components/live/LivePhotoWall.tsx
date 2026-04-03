@@ -9,12 +9,13 @@ import { LiveQROverlay } from './LiveQROverlay';
 interface LivePhotoWallProps {
   domain: string;
   manifest: StoryManifest;
+  names?: [string, string];
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 
-export function LivePhotoWall({ domain, manifest }: LivePhotoWallProps) {
+export function LivePhotoWall({ domain, manifest, names }: LivePhotoWallProps) {
   const [photos, setPhotos] = useState<GuestPhoto[]>([]);
   const [newPhotoIds, setNewPhotoIds] = useState<Set<string>>(new Set());
 
@@ -66,8 +67,8 @@ export function LivePhotoWall({ domain, manifest }: LivePhotoWallProps) {
     };
   }, [domain]);
 
-  const coupleName1 = manifest.coupleNames?.[0] ?? '';
-  const coupleName2 = manifest.coupleNames?.[1] ?? '';
+  const coupleName1 = names?.[0] ?? manifest.coupleNames?.[0] ?? '';
+  const coupleName2 = names?.[1] ?? manifest.coupleNames?.[1] ?? '';
   const displayName = coupleName1 && coupleName2
     ? `${coupleName1} & ${coupleName2}`
     : coupleName1 || coupleName2 || 'Our Celebration';

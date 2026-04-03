@@ -12,9 +12,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   LayoutGrid, ExternalLink, Plus, Users, Circle, Square,
-  RefreshCw,
+  RefreshCw, Sparkles,
 } from 'lucide-react';
 import { SidebarSection } from './EditorSidebar';
+import { useEditor } from '@/lib/editor-state';
 import type { SeatingTable, Guest } from '@/types';
 
 interface SeatingStats {
@@ -51,11 +52,15 @@ interface SeatingEditorPanelProps {
 }
 
 export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
+  const { coupleNames } = useEditor();
   const [tables, setTables] = useState<SeatingTable[]>([]);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [addingTable, setAddingTable] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
+  const [optimizeMsg, setOptimizeMsg] = useState<string | null>(null);
+  const [optimizeError, setOptimizeError] = useState<string | null>(null);
 
   const load = useCallback(async (quiet = false) => {
     if (!siteId) return;

@@ -45,6 +45,8 @@ import { BulkInvitePanel } from './BulkInvitePanel';
 import { SeatingEditorPanel } from './SeatingEditorPanel';
 import { TranslationPanel } from './TranslationPanel';
 import { SaveTheDatePanel } from './SaveTheDatePanel';
+import { ThankYouPanel } from './ThankYouPanel';
+import { SpotifyPanel } from './SpotifyPanel';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -709,6 +711,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
                 {state.activeTab === 'savethedate' && (
                   <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
+                )}
+
+                {state.activeTab === 'thankyou' && (
+                  <ThankYouPanel />
+                )}
+
+                {state.activeTab === 'spotify' && (
+                  <SpotifyPanel />
                 )}
               </motion.div>
             </AnimatePresence>

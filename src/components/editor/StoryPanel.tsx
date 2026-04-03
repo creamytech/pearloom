@@ -429,6 +429,14 @@ export function StoryPanel() {
                 dispatch({ type: 'SET_SECTION_OVERRIDES', id, overrides });
                 actions.updateChapter(id, { styleOverrides: { backgroundColor: overrides.backgroundColor, textColor: overrides.textColor, padding: overrides.padding } });
               }}
+              onShowAlternates={handleShowAlternates}
+              isLoadingAlternates={alternatesLoadingId === activeChapter.id}
+              alternates={chapterAlternates[activeChapter.id]}
+              onSelectAlternate={(desc) => {
+                actions.updateChapter(activeChapter.id, { description: desc });
+                dispatch({ type: 'SET_CHAPTER_ALTERNATES', id: activeChapter.id, alternates: [] });
+              }}
+              onCloseAlternates={() => dispatch({ type: 'SET_CHAPTER_ALTERNATES', id: activeChapter.id, alternates: [] })}
             />
           </motion.div>
         )}
