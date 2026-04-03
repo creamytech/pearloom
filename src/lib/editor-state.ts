@@ -76,6 +76,10 @@ export interface EditorState {
   isMobile: boolean;
   mobileVisualEdit: boolean;
   mobileActionChapterId: string | null;
+
+  // Chapter alternates
+  chapterAlternates: Record<string, string[]>;
+  alternatesLoadingId: string | null;
 }
 
 export type EditorAction =
@@ -116,7 +120,9 @@ export type EditorAction =
   | { type: 'SET_PREVIEW_ZOOM'; zoom: number }
   | { type: 'SET_PREVIEW_PAGE'; page: string | null }
   | { type: 'MARK_PUBLISHED'; url: string }
-  | { type: 'OPEN_PUBLISH' };
+  | { type: 'OPEN_PUBLISH' }
+  | { type: 'SET_CHAPTER_ALTERNATES'; id: string; alternates: string[] }
+  | { type: 'SET_ALTERNATES_LOADING'; id: string | null };
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
@@ -196,6 +202,10 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, publishedUrl: action.url, saveState: 'saved', isDirty: false };
     case 'OPEN_PUBLISH':
       return { ...state, showPublish: true, publishError: null, publishedUrl: null };
+    case 'SET_CHAPTER_ALTERNATES':
+      return { ...state, chapterAlternates: { ...state.chapterAlternates, [action.id]: action.alternates } };
+    case 'SET_ALTERNATES_LOADING':
+      return { ...state, alternatesLoadingId: action.id };
     default:
       return state;
   }
@@ -304,6 +314,8 @@ export function createInitialEditorState(
     isMobile: false,
     mobileVisualEdit: true,
     mobileActionChapterId: null,
+    chapterAlternates: {},
+    alternatesLoadingId: null,
   };
 }
 
