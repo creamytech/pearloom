@@ -40,7 +40,7 @@ export function MobileChapterEditor({
   onBack,
   onNavigate,
 }: MobileChapterEditorProps) {
-  const { state, actions, manifest } = useEditor();
+  const { state, actions } = useEditor();
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [keyboardPad, setKeyboardPad] = useState(0);
 
@@ -286,11 +286,7 @@ export function MobileChapterEditor({
               <label style={labelStyle}>Story</label>
               <motion.button
                 onClick={() =>
-                  actions.handleAIRewrite(
-                    chapter.id,
-                    chapter.description || '',
-                    manifest?.vibeString,
-                  )
+                  actions.handleAIRewrite(chapter.id)
                 }
                 disabled={isRewriting || isStreaming}
                 whileTap={{ scale: 0.9 }}

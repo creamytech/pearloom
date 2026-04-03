@@ -387,61 +387,64 @@ export function MobileEditorSheet() {
       case 'details':
         return (
           <ScrollPanel>
-            <DetailsPanel />
+            <DetailsPanel manifest={manifest} onChange={actions.handleDesignChange} subdomain={state.subdomain} />
           </ScrollPanel>
         );
       case 'guests':
         return (
           <div style={panelStyle}>
-            <GuestSearchPanel />
+            <GuestSearchPanel siteId={state.subdomain} />
           </div>
         );
       case 'messaging':
         return (
           <div style={panelStyle}>
-            <MessagingPanel subdomain={state.subdomain} />
+            <MessagingPanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
           </div>
         );
       case 'invite':
         return (
           <div style={panelStyle}>
-            <BulkInvitePanel />
+            <BulkInvitePanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
           </div>
         );
       case 'blocks':
         return (
           <ScrollPanel>
-            <AIBlocksPanel />
+            <AIBlocksPanel manifest={manifest} coupleNames={coupleNames} onChange={actions.handleDesignChange} />
           </ScrollPanel>
         );
       case 'voice':
         return (
           <div style={panelStyle}>
-            <VoiceTrainerPanel />
+            <VoiceTrainerPanel
+              voiceSamples={manifest?.voiceSamples || []}
+              onChange={(samples) => actions.handleDesignChange({ ...manifest, voiceSamples: samples })}
+            />
           </div>
         );
       case 'seating':
         return (
           <div style={panelStyle}>
-            <SeatingEditorPanel />
+            <SeatingEditorPanel siteId={state.subdomain} />
           </div>
         );
       case 'analytics':
         return (
           <div style={panelStyle}>
-            <AnalyticsDashboardPanel />
+            <AnalyticsDashboardPanel siteId={state.subdomain} />
           </div>
         );
       case 'translate':
         return (
           <ScrollPanel>
-            <TranslationPanel />
+            <TranslationPanel manifest={manifest} onChange={actions.handleDesignChange} />
           </ScrollPanel>
         );
       case 'savethedate':
         return (
           <ScrollPanel>
-            <SaveTheDatePanel />
+            <SaveTheDatePanel manifest={manifest} subdomain={state.subdomain} />
           </ScrollPanel>
         );
       case 'vendors':
@@ -547,14 +550,14 @@ export function MobileEditorSheet() {
       case 'events':
         return (
           <ScrollPanel>
-            <EventsPanel />
+            <EventsPanel manifest={manifest} onChange={actions.handleDesignChange} />
           </ScrollPanel>
         );
 
       case 'design':
         return (
           <ScrollPanel>
-            <DesignPanel />
+            <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} />
           </ScrollPanel>
         );
 
@@ -639,7 +642,7 @@ export function MobileEditorSheet() {
             >
               {coupleNames?.[0] && coupleNames?.[1]
                 ? `${coupleNames[0]} & ${coupleNames[1]}`
-                : manifest?.title || 'My Site'}
+                : coupleNames?.[0] || 'My Site'}
             </div>
 
             {/* Publish button */}
