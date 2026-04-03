@@ -143,20 +143,19 @@ export default function DashboardClient() {
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
+          let event: { type: string; pass?: number; manifest?: StoryManifest; message?: string };
           try {
-            const event = JSON.parse(line.slice(6));
-            if (event.type === 'progress') {
-              dispatch({ type: 'SET_GENERATION_STEP', step: event.pass });
-            } else if (event.type === 'complete') {
-              result = { manifest: event.manifest };
-            } else if (event.type === 'error') {
-              throw new Error(event.message);
-            }
-          } catch (parseErr) {
-            // re-throw real errors, ignore JSON parse failures on individual lines
-            if (parseErr instanceof Error && parseErr.message !== 'Unexpected end of JSON input' && !line.includes('"type"')) {
-              throw parseErr;
-            }
+            event = JSON.parse(line.slice(6));
+          } catch {
+            // ignore parse errors for individual lines
+            continue;
+          }
+          if (event.type === 'progress') {
+            dispatch({ type: 'SET_GENERATION_STEP', step: event.pass! });
+          } else if (event.type === 'complete') {
+            result = { manifest: event.manifest! };
+          } else if (event.type === 'error') {
+            throw new Error(event.message);
           }
         }
       }
