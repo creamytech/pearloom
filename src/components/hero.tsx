@@ -124,6 +124,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         <>
           {/* Full-bleed parallax cover photo at 0.4x scroll speed */}
           <motion.div
+            className="pl-scroll-parallax"
             style={{
               position: 'absolute',
               inset: 0,

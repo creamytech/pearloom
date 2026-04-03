@@ -205,7 +205,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             columns: '3 200px',
             gap: '0.75rem',
           }}
-          className="photo-masonry"
+          className="photo-masonry pl-scroll-fade-up"
         >
           {photos.map((photo, idx) => (
             <motion.div
@@ -339,20 +339,28 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
               </button>
             )}
 
-            {/* Image */}
+            {/* Image with swipe gestures */}
             <AnimatePresence mode="wait">
               <motion.img
                 key={lightboxPhoto.id}
                 initial={{ scale: 0.88, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                animate={{ scale: 1, opacity: 1, x: 0 }}
                 exit={{ scale: 0.88, opacity: 0 }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.15}
+                onDragEnd={(_: unknown, info: { offset: { x: number } }) => {
+                  if (info.offset.x < -80 && lightboxIdx < photos.length - 1) nextPhoto();
+                  else if (info.offset.x > 80 && lightboxIdx > 0) prevPhoto();
+                }}
                 src={lightboxPhoto.url}
                 alt={lightboxPhoto.caption || ''}
                 style={{
                   maxWidth: '100%', maxHeight: '85vh',
                   objectFit: 'contain', borderRadius: '0.75rem',
                   boxShadow: '0 40px 80px rgba(0,0,0,0.6)',
+                  touchAction: 'pan-y',
                 }}
                 onClick={(e) => e.stopPropagation()}
               />

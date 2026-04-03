@@ -280,6 +280,12 @@ input, textarea, select {
   border-radius: var(--pl-radius-xs);
 }
 
+/* ─── Performance: content-visibility for below-fold sections ─── */
+.pl-lazy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
 /* ─── iOS Safe Area ─── */
 .safe-top    { padding-top: env(safe-area-inset-top, 0px); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 24px); }
@@ -427,4 +433,143 @@ select:focus-visible {
 .card-hover:hover {
   transform: translateY(-3px);
   box-shadow: var(--pl-shadow-lg);
+}
+
+/* ── Scroll-driven animations (2026) ─────────────────────── */
+@supports (animation-timeline: view()) {
+  /* Hero parallax on scroll */
+  .pl-scroll-parallax {
+    animation: pl-scroll-parallax-kf linear both;
+    animation-timeline: scroll();
+    animation-range: 0% 50%;
+  }
+  @keyframes pl-scroll-parallax-kf {
+    from { transform: translateY(0); opacity: 1; }
+    to   { transform: translateY(25%); opacity: 0.3; }
+  }
+
+  /* Fade-up on scroll into view */
+  .pl-scroll-fade-up {
+    animation: pl-scroll-fade-up-kf ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+  @keyframes pl-scroll-fade-up-kf {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scale-in on scroll into view */
+  .pl-scroll-scale-in {
+    animation: pl-scroll-scale-in-kf ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 80%;
+  }
+  @keyframes pl-scroll-scale-in-kf {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Slide from left on view */
+  .pl-scroll-slide-left {
+    animation: pl-scroll-slide-left-kf ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+  @keyframes pl-scroll-slide-left-kf {
+    from { opacity: 0; transform: translateX(-50px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Slide from right on view */
+  .pl-scroll-slide-right {
+    animation: pl-scroll-slide-right-kf ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+  @keyframes pl-scroll-slide-right-kf {
+    from { opacity: 0; transform: translateX(50px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Blur-in reveal */
+  .pl-scroll-blur-in {
+    animation: pl-scroll-blur-in-kf ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 90%;
+  }
+  @keyframes pl-scroll-blur-in-kf {
+    from { opacity: 0; filter: blur(12px); transform: scale(1.03); }
+    to   { opacity: 1; filter: blur(0px); transform: scale(1); }
+  }
+
+  /* Progress bar that fills as page scrolls */
+  .pl-scroll-progress {
+    animation: pl-scroll-progress-kf linear both;
+    animation-timeline: scroll();
+    transform-origin: left;
+  }
+  @keyframes pl-scroll-progress-kf {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* Staggered children — use with data-pl-stagger-delay CSS variable */
+  .pl-scroll-stagger {
+    animation: pl-scroll-fade-up-kf ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+    animation-delay: var(--pl-stagger-delay, 0ms);
+  }
+}
+
+/* Reduced motion: disable all scroll-driven animations */
+@media (prefers-reduced-motion: reduce) {
+  .pl-scroll-parallax,
+  .pl-scroll-fade-up,
+  .pl-scroll-scale-in,
+  .pl-scroll-slide-left,
+  .pl-scroll-slide-right,
+  .pl-scroll-blur-in,
+  .pl-scroll-progress,
+  .pl-scroll-stagger {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* ── View Transitions (cross-page navigation) ───────────── */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: 0.25s ease-out both fade-out;
+}
+::view-transition-new(root) {
+  animation: 0.3s ease-in both fade-in;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Shared hero element transitions */
+::view-transition-old(hero-image) {
+  animation: 0.3s ease-out both fade-out;
+}
+::view-transition-new(hero-image) {
+  animation: 0.35s ease-in both fade-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(hero-image),
+  ::view-transition-new(hero-image) {
+    animation-duration: 0s !important;
+  }
 }

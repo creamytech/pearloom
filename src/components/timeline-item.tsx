@@ -1422,7 +1422,7 @@ export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps)
   ) : inner;
 
   const wrapped = (
-    <div data-pe-chapter={chapter.id} data-pe-section="chapter" data-pe-label={`Chapter ${index + 1}`}>
+    <div className="pl-scroll-fade-up" data-pe-chapter={chapter.id} data-pe-section="chapter" data-pe-label={`Chapter ${index + 1}`}>
       {withIcon}
     </div>
   );

@@ -69,6 +69,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
 
   return (
     <motion.div
+      className="pl-scroll-scale-in"
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -78,6 +79,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         ease: [0.16, 1, 0.3, 1],
       }}
       style={{
+        '--pl-stagger-delay': `${index * 100}ms`,
         background: cardBg,
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -89,7 +91,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         flexDirection: 'column',
         position: 'relative',
         fontFamily: bodyFont,
-      }}
+      } as React.CSSProperties}
     >
       {/* Left accent bar */}
       <div

@@ -27,6 +27,7 @@ function FaqAccordionItem({
 
   return (
     <motion.div
+      className="pl-scroll-fade-up"
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -36,9 +37,10 @@ function FaqAccordionItem({
         ease: [0.16, 1, 0.3, 1],
       }}
       style={{
+        '--pl-stagger-delay': `${index * 80}ms`,
         borderBottom: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
-      }}
+      } as React.CSSProperties}
     >
       <button
         onClick={() => setOpen(!open)}

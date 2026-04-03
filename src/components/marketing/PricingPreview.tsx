@@ -43,10 +43,10 @@ const TIERS: Tier[] = [
   },
   {
     name: 'Pair',
-    price: '$19',
-    period: '/celebration',
+    price: '$29',
+    period: 'one-time',
     tagline: 'Everything for your big day',
-    desc: 'The full Pearloom experience for one celebration. One price, no subscriptions.',
+    desc: 'The full Pearloom experience. Pay once, keep forever — no subscriptions.',
     features: [
       'Everything in Seed, plus:',
       'Custom domain',

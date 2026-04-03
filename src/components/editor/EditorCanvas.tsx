@@ -7,10 +7,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X } from 'lucide-react';
-import { PreviewPane } from './PreviewPane';
-import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
+import { motion } from 'framer-motion';
+import { useEditor, stripArtForStorage } from '@/lib/editor-state';
 import { StickerOverlay } from './StickerOverlay';
 import { SectionHoverToolbar } from './SectionHoverToolbar';
 
@@ -109,21 +107,11 @@ function TabletChrome() {
   );
 }
 
-// Quick-add blocks for mobile long-press
-const QUICK_BLOCKS = [
-  { type: 'story',    label: 'Story'    },
-  { type: 'event',    label: 'Event'    },
-  { type: 'photos',   label: 'Photos'   },
-  { type: 'registry', label: 'Registry' },
-] as const;
-
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
-  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom, previewPage, mobileSheetOpen } = state;
+  const { device, iframeReady, previewSlow, activeId, chapters, previewPage } = state;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [deviceKey, setDeviceKey] = useState(device);
 
   // Pulse ambient glow on device change
@@ -149,10 +137,22 @@ export function EditorCanvas() {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
         } else if (sectionId === 'hero') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-        } else if (sectionId === 'events') {
+        } else if (sectionId === 'events' || sectionId === 'schedule') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
+        } else if (sectionId === 'rsvp') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
         } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+        } else if (sectionId === 'photos' || sectionId === 'gallery') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+        } else if (sectionId === 'guestbook') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+        } else if (sectionId === 'design' || sectionId === 'theme') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+        } else if (sectionId === 'countdown') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
+        } else if (sectionId === 'spotify' || sectionId === 'music') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'spotify' });
         } else {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         }
@@ -190,7 +190,7 @@ export function EditorCanvas() {
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [chapters, actions, dispatch, isMobile]);
+  }, [chapters, actions, dispatch]);
 
   useEffect(() => {
     if (iframeReady && iframeRef.current) {
@@ -200,10 +200,9 @@ export function EditorCanvas() {
     }
   }, [iframeReady, iframeRef]);
 
-  const mobileBottomBar = 'calc(56px + env(safe-area-inset-bottom, 0px))';
   const isPhone = device === 'mobile';
   const isTablet = device === 'tablet';
-  const isFramed = !isMobile && (isPhone || isTablet);
+  const isFramed = isPhone || isTablet;
 
   // Device frame dimensions
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
@@ -212,28 +211,25 @@ export function EditorCanvas() {
   return (
     <div style={{
       flex: 1,
-      background: isMobile ? 'transparent' : '#1A1720',
-      backgroundImage: isMobile ? undefined : 'radial-gradient(circle, rgba(163,177,138,0.11) 1px, transparent 0)',
+      background: '#1A1720',
+      backgroundImage: 'radial-gradient(circle, rgba(163,177,138,0.11) 1px, transparent 0)',
       backgroundSize: '24px 24px',
       display: 'flex', flexDirection: 'column',
-      overflow: isMobile ? 'hidden' : 'auto',
-      paddingBottom: isMobile ? mobileBottomBar : undefined,
+      overflow: 'auto',
       position: 'relative',
     }}>
 
       {/* Ambient center glow — reacts to device change */}
-      {!isMobile && (
-        <motion.div
-          key={deviceKey}
-          initial={{ opacity: 0.3, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-            background: 'radial-gradient(ellipse 50% 55% at 50% 46%, rgba(163,177,138,0.07) 0%, rgba(163,177,138,0.02) 55%, transparent 80%)',
-          }}
-        />
-      )}
+      <motion.div
+        key={deviceKey}
+        initial={{ opacity: 0.3, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+          background: 'radial-gradient(ellipse 50% 55% at 50% 46%, rgba(163,177,138,0.07) 0%, rgba(163,177,138,0.02) 55%, transparent 80%)',
+        }}
+      />
 
       {/* ── Main canvas area ── */}
       <div
@@ -305,7 +301,7 @@ export function EditorCanvas() {
               src={`/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`}
               style={{
                 flex: 1, border: 'none', width: '100%', minHeight: '100%',
-                boxShadow: !isMobile ? '0 0 0 1px rgba(255,255,255,0.04)' : undefined,
+                boxShadow: '0 0 0 1px rgba(255,255,255,0.04)',
               }}
               title="Live Preview"
               onLoad={() => {
@@ -336,123 +332,9 @@ export function EditorCanvas() {
           />
         )}
 
-        {/* Section hover toolbar — desktop only, positioned absolutely over canvas */}
-        {!isMobile && <SectionHoverToolbar />}
+        {/* Section hover toolbar */}
+        <SectionHoverToolbar />
 
-        {/* Mobile long-press overlay */}
-        {isMobile && !mobileSheetOpen && !showQuickAdd && (
-          <div
-            onPointerDown={() => {
-              longPressTimer.current = setTimeout(() => setShowQuickAdd(true), 350);
-            }}
-            onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-            onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-            style={{
-              position: 'absolute', inset: 0, zIndex: 2,
-              background: 'transparent', pointerEvents: 'auto',
-            }}
-          />
-        )}
-
-        {/* Quick-add tray (mobile long-press) */}
-        <AnimatePresence>
-          {showQuickAdd && (
-            <>
-              <motion.div
-                key="quickadd-backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                onClick={() => setShowQuickAdd(false)}
-                style={{
-                  position: 'fixed', inset: 0, zIndex: 1100,
-                  background: 'rgba(0,0,0,0.35)',
-                }}
-              />
-              <motion.div
-                key="quickadd-tray"
-                initial={{ y: '100%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: '100%', opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 36 }}
-                style={{
-                  position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
-                  left: 0, right: 0, zIndex: 1101,
-                  background: 'rgba(22,17,13,0.98)',
-                  backdropFilter: 'blur(32px)',
-                  WebkitBackdropFilter: 'blur(32px)',
-                  borderRadius: '20px 20px 0 0',
-                  borderTop: '1px solid rgba(255,255,255,0.1)',
-                  padding: '16px 16px 20px',
-                } as React.CSSProperties}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)' }}>
-                    Add Section
-                  </span>
-                  <motion.button
-                    whileTap={{ scale: 0.88 }}
-                    onClick={() => setShowQuickAdd(false)}
-                    style={{
-                      background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
-                      width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer', color: 'rgba(214,198,168,0.5)',
-                    }}
-                  >
-                    <X size={12} />
-                  </motion.button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                  {QUICK_BLOCKS.map(({ type, label }) => (
-                    <motion.button
-                      key={type}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        setShowQuickAdd(false);
-                        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
-                        dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-                      }}
-                      style={{
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        background: 'rgba(255,255,255,0.05)',
-                        borderRadius: 10, cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center',
-                        justifyContent: 'center', gap: 6, padding: '12px 6px',
-                        color: 'rgba(214,198,168,0.75)',
-                      }}
-                    >
-                      <Plus size={16} color="rgba(163,177,138,0.8)" />
-                      <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1 }}>
-                        {label}
-                      </span>
-                    </motion.button>
-                  ))}
-                </div>
-                <div style={{ marginTop: 12, textAlign: 'center' }}>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setShowQuickAdd(false);
-                      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
-                      dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-                    }}
-                    style={{
-                      border: '1px solid rgba(163,177,138,0.25)',
-                      background: 'rgba(163,177,138,0.08)',
-                      borderRadius: 100, cursor: 'pointer',
-                      padding: '8px 20px',
-                      color: 'rgba(163,177,138,0.8)',
-                      fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                    }}
-                  >
-                    Browse all sections
-                  </motion.button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

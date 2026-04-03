@@ -26,6 +26,8 @@ interface RegistryShowcaseProps {
   registries: RegistryEntry[];
   cashFundUrl?: string;
   cashFundMessage?: string;
+  cashFundGoal?: number;
+  cashFundRaised?: number;
   message?: string;
   title?: string;
 }
@@ -90,7 +92,7 @@ function getBrand(url: string, name: string) {
   };
 }
 
-function LetterAvatar({
+function BrandIcon({
   letter,
   accentColor,
 }: {
@@ -100,8 +102,8 @@ function LetterAvatar({
   return (
     <div
       style={{
-        width: '44px',
-        height: '44px',
+        width: '48px',
+        height: '48px',
         borderRadius: '50%',
         background: accentColor,
         display: 'flex',
@@ -110,12 +112,68 @@ function LetterAvatar({
         flexShrink: 0,
         color: '#fff',
         fontFamily: 'var(--eg-font-heading)',
-        fontSize: '1.1rem',
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
+        fontSize: '1.35rem',
+        fontWeight: 800,
+        letterSpacing: '-0.03em',
+        boxShadow: `0 4px 14px color-mix(in srgb, ${accentColor} 35%, transparent)`,
       }}
     >
       {letter}
+    </div>
+  );
+}
+
+function CashFundProgressBar({
+  goal,
+  raised,
+}: {
+  goal: number;
+  raised: number;
+}) {
+  const pct = Math.min(Math.round((raised / goal) * 100), 100);
+  return (
+    <div style={{ marginTop: '1.5rem', width: '100%', maxWidth: '360px', marginInline: 'auto' }}>
+      <p
+        style={{
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase' as const,
+          color: 'var(--eg-plum)',
+          marginBottom: '0.6rem',
+        }}
+      >
+        Help us reach our goal
+      </p>
+      <div
+        style={{
+          width: '100%',
+          height: '8px',
+          borderRadius: '100px',
+          background: 'color-mix(in srgb, var(--eg-plum) 12%, transparent)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            borderRadius: '100px',
+            background: 'var(--eg-plum)',
+            transition: 'width 0.6s ease',
+          }}
+        />
+      </div>
+      <p
+        style={{
+          fontSize: '0.78rem',
+          color: 'var(--eg-muted)',
+          marginTop: '0.45rem',
+          fontStyle: 'italic',
+        }}
+      >
+        {pct}% funded &mdash; ${raised.toLocaleString()} of ${goal.toLocaleString()}
+      </p>
     </div>
   );
 }
@@ -131,12 +189,14 @@ function RegistryCard({
 
   return (
     <motion.div
+      className="pl-scroll-scale-in"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.75, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -4, boxShadow: '0 24px 60px rgba(43,43,43,0.1)' }}
       style={{
+        '--pl-stagger-delay': `${index * 100}ms`,
         display: 'flex',
         flexDirection: 'column',
         background: '#ffffff',
@@ -144,7 +204,7 @@ function RegistryCard({
         overflow: 'hidden',
         boxShadow: '0 4px 24px rgba(43,43,43,0.05)',
         transition: 'box-shadow 0.4s ease, transform 0.4s ease',
-      }}
+      } as React.CSSProperties}
     >
       {/* Top accent strip */}
       <div
@@ -173,7 +233,7 @@ function RegistryCard({
             marginBottom: '1.5rem',
           }}
         >
-          <LetterAvatar letter={brand.letter} accentColor={brand.accentColor} />
+          <BrandIcon letter={brand.letter} accentColor={brand.accentColor} />
           <div>
             <div
               style={{
@@ -263,6 +323,8 @@ export function RegistryShowcase({
   registries,
   cashFundUrl,
   cashFundMessage,
+  cashFundGoal = 5000,
+  cashFundRaised = 0,
   message,
   title = 'Gifts & Registry',
 }: RegistryShowcaseProps) {
@@ -549,6 +611,10 @@ export function RegistryShowcase({
                   <ElegantHeartIcon size={14} />
                   Contribute a Gift
                 </a>
+
+                {cashFundGoal > 0 && (
+                  <CashFundProgressBar goal={cashFundGoal} raised={cashFundRaised} />
+                )}
               </div>
             </motion.div>
           )}

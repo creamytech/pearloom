@@ -195,6 +195,7 @@ interface UserSite {
 
 interface UserSitesProps {
   onStartNew: () => void;
+  onQuickStart?: () => void;
   onEditSite: (site: UserSite) => void;
   onManageGuests: (site: UserSite) => void;
   userName?: string;
@@ -210,7 +211,7 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 
 // ─────────────────────────────────────────────────────────────
 
-export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: UserSitesProps) {
+export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests, userName }: UserSitesProps) {
   const router = useRouter();
   const goToEditor = (site: UserSite) => router.push(`/editor/${site.domain}`);
   const [sites, setSites]                   = useState<UserSite[]>([]);
@@ -357,9 +358,19 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <p className="text-[var(--pl-muted)] max-w-[320px] leading-[1.8] text-[0.95rem] mb-10">
             Build a stunning celebration website in minutes — AI-powered and completely yours.
           </p>
-          <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>
-            Create Your First Site
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>
+              Create with AI
+            </Button>
+            {onQuickStart && (
+              <Button variant="secondary" size="lg" onClick={onQuickStart}>
+                Quick Start with Template
+              </Button>
+            )}
+          </div>
+          <p className="text-[var(--pl-muted)] text-[0.75rem] mt-4 opacity-70">
+            Quick Start skips photos — pick a template and start editing in seconds.
+          </p>
         </motion.div>
 
       ) : (
