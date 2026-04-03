@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Plus, X, Camera, Upload, Loader2, LayoutGrid, Share2 } from 'lucide-react';
+import { Plus, X, Camera, Upload, Loader2, LayoutGrid, Share2, ImageIcon } from 'lucide-react';
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import { lbl } from './editor-utils';
 import { PhotoReposition } from './PhotoReposition';
+import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import type { ChapterImage } from '@/types';
 
 export function ImageManager({
@@ -28,6 +29,20 @@ export function ImageManager({
   const [captionSuccess, setCaptionSuccess] = useState(false);
   const [captionError, setCaptionError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'constellation'>('grid');
+  const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
+
+  const handleGooglePhotosPicked = (photos: PickedPhoto[]) => {
+    const newImages: ChapterImage[] = photos
+      .filter(p => p.baseUrl)
+      .map(p => ({
+        id: p.id,
+        url: `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=1200&h=900`,
+        alt: p.filename.replace(/\.\w+$/, '') || 'Photo',
+        width: p.width,
+        height: p.height,
+      }));
+    if (newImages.length > 0) onUpdate([...images, ...newImages]);
+  };
 
   const removeImage = (idx: number) => {
     onUpdate(images.filter((_, i) => i !== idx));
@@ -150,6 +165,23 @@ export function ImageManager({
               </button>
             </>
           )}
+          <button
+            onClick={() => pickGooglePhotos(handleGooglePhotosPicked)}
+            disabled={gpState !== 'idle' && gpState !== 'done' && gpState !== 'error'}
+            title="Pick from Google Photos"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              padding: '5px 10px', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)',
+              fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+              minHeight: '32px', transition: 'all 0.15s',
+            }}
+          >
+            {gpState === 'waiting' || gpState === 'fetching' || gpState === 'creating'
+              ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+              : <ImageIcon size={10} />}
+            {gpState === 'waiting' ? 'Picking…' : gpState === 'fetching' ? 'Loading…' : 'Google'}
+          </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
@@ -407,13 +439,13 @@ export function ImageManager({
       </div>
 
       {/* Upload error */}
-      {uploadError && (
+      {(uploadError || gpError) && (
         <div style={{
           marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
           background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
           color: '#fca5a5', fontSize: '0.78rem', lineHeight: 1.4,
         }}>
-          Upload failed: {uploadError}
+          {uploadError ? `Upload failed: ${uploadError}` : gpError}
         </div>
       )}
 

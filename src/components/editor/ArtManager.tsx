@@ -8,10 +8,11 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Image, RefreshCw, Trash2, Upload, Loader2, Sparkles } from 'lucide-react';
+import { Image, RefreshCw, Trash2, Upload, Loader2, Sparkles, ImageIcon } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { colors as C, text, card } from '@/lib/design-tokens';
+import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 
 type ArtSlot = 'heroArtDataUrl' | 'ambientArtDataUrl' | 'artStripDataUrl';
 
@@ -30,16 +31,20 @@ function ArtSlotCard({
   slot,
   url,
   onReplace,
+  onGooglePhotos,
   onRegenerate,
   onRemove,
   isRegenerating,
+  isPickingGoogle,
 }: {
   slot: typeof ART_SLOTS[number];
   url?: string;
   onReplace: (file: File) => void;
+  onGooglePhotos: () => void;
   onRegenerate: () => void;
   onRemove: () => void;
   isRegenerating: boolean;
+  isPickingGoogle: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,7 +76,8 @@ function ArtSlotCard({
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0'; }}
             >
-              <ActionButton icon={<Upload size={14} />} label="Replace" onClick={() => inputRef.current?.click()} />
+              <ActionButton icon={<Upload size={14} />} label="Upload" onClick={() => inputRef.current?.click()} />
+              <ActionButton icon={isPickingGoogle ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ImageIcon size={14} />} label="Google" onClick={onGooglePhotos} disabled={isPickingGoogle} />
               <ActionButton icon={isRegenerating ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />} label="AI Regen" onClick={onRegenerate} disabled={isRegenerating} />
               <ActionButton icon={<Trash2 size={14} />} label="Remove" onClick={onRemove} danger />
             </div>
@@ -80,8 +86,9 @@ function ArtSlotCard({
           <div style={{ textAlign: 'center', padding: '1.5rem' }}>
             <Image size={24} style={{ color: 'rgba(255,255,255,0.2)', marginBottom: '0.5rem' }} />
             <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: text.sm, margin: 0 }}>No art generated</p>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.75rem', flexWrap: 'wrap' }}>
               <ActionButton icon={<Upload size={13} />} label="Upload" onClick={() => inputRef.current?.click()} />
+              <ActionButton icon={isPickingGoogle ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ImageIcon size={13} />} label="Google Photos" onClick={onGooglePhotos} disabled={isPickingGoogle} />
               <ActionButton icon={isRegenerating ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />} label="Generate" onClick={onRegenerate} disabled={isRegenerating} />
             </div>
           </div>
@@ -139,24 +146,46 @@ function ActionButton({
 export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
   const [regenerating, setRegenerating] = useState<ArtSlot | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
+
+  const setSlotUrl = (slot: ArtSlot, url: string) => {
+    const updatedSkin: VibeSkin = { ...manifest.vibeSkin!, [slot]: url };
+    onUpdate({ vibeSkin: updatedSkin });
+  };
 
   const handleReplace = async (slot: ArtSlot, file: File) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (!res.ok) { setError('Upload failed — try again'); setTimeout(() => setError(null), 3000); return; }
-      const { publicUrl } = await res.json();
-      if (!publicUrl) { setError('Upload failed — try again'); setTimeout(() => setError(null), 3000); return; }
-
-      const updatedSkin: VibeSkin = {
-        ...manifest.vibeSkin!,
-        [slot]: publicUrl,
-      };
-      onUpdate({ vibeSkin: updatedSkin });
+      const data = await res.json();
+      if (!res.ok) {
+        const msg = data.error || `Upload failed (${res.status})`;
+        setError(msg);
+        setTimeout(() => setError(null), 5000);
+        return;
+      }
+      if (!data.publicUrl) {
+        setError('Upload failed — no URL returned');
+        setTimeout(() => setError(null), 5000);
+        return;
+      }
+      setSlotUrl(slot, data.publicUrl);
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Upload failed — check your connection';
       console.error('[ArtManager] Upload failed:', err);
+      setError(msg);
+      setTimeout(() => setError(null), 5000);
     }
+  };
+
+  const handleGooglePhotos = (slot: ArtSlot) => {
+    pickGooglePhotos((photos: PickedPhoto[]) => {
+      if (photos.length > 0 && photos[0].baseUrl) {
+        const proxyUrl = `/api/photos/proxy?url=${encodeURIComponent(photos[0].baseUrl)}&w=1920&h=1080`;
+        setSlotUrl(slot, proxyUrl);
+      }
+    });
   };
 
   const handleRegenerate = async (slot: ArtSlot) => {
@@ -202,13 +231,13 @@ export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {error && (
+      {(error || gpError) && (
         <div style={{
           background: 'rgba(220,60,60,0.12)', border: '1px solid rgba(220,60,60,0.3)',
           borderRadius: '8px', padding: '8px 12px', fontSize: '0.82rem',
           color: '#ff6b6b', fontWeight: 600,
         }}>
-          {error}
+          {error || gpError}
         </div>
       )}
       <div style={{ marginBottom: '0.25rem' }}>
@@ -224,9 +253,11 @@ export function ArtManager({ manifest, onUpdate }: ArtManagerProps) {
           slot={slot}
           url={manifest.vibeSkin?.[slot.key] as string | undefined}
           onReplace={file => handleReplace(slot.key, file)}
+          onGooglePhotos={() => handleGooglePhotos(slot.key)}
           onRegenerate={() => handleRegenerate(slot.key)}
           onRemove={() => handleRemove(slot.key)}
           isRegenerating={regenerating === slot.key}
+          isPickingGoogle={gpState === 'waiting' || gpState === 'fetching' || gpState === 'creating'}
         />
       ))}
 
