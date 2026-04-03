@@ -543,11 +543,11 @@ export function MobileEditorSheet() {
       case 'preview':
         return (
           <div style={{
-            flex: 1,
+            width: '100%',
+            height: '100%',
             position: 'relative',
-            overflow: 'auto',
-            WebkitOverflowScrolling: 'touch',
-          } as React.CSSProperties}>
+            overflow: 'hidden',
+          }}>
             {!state.iframeReady && (
               <div style={{
                 position: 'absolute', inset: 0, display: 'flex',

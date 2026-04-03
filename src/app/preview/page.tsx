@@ -120,18 +120,6 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
     <ThemeProvider theme={manifest.theme || dynamicTheme}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
-      <SiteNav
-        names={names}
-        pages={sitePages}
-        logoIcon={manifest.logoIcon}
-        logoSvg={manifest.logoSvg}
-        pageHrefOverride={(slug) => {
-          const params = new URLSearchParams(rawParams ?? '');
-          if (!slug || slug === 'our-story') { params.delete('page'); }
-          else { params.set('page', slug); }
-          return `/preview?${params.toString()}`;
-        }}
-      />
       <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
         {content}
       </main>
@@ -540,18 +528,20 @@ function PreviewContent() {
       <link rel="stylesheet" href={fontUrl} />
 
       <EditBridge enabled={editMode} />
-      <SiteNav
-        names={names}
-        pages={sitePages}
-        logoIcon={manifest.logoIcon}
-        logoSvg={manifest.logoSvg}
-        pageHrefOverride={(slug) => {
-          const params = new URLSearchParams(searchParams.toString());
-          if (!slug || slug === 'our-story') { params.delete('page'); }
-          else { params.set('page', slug); }
-          return `/preview?${params.toString()}`;
-        }}
-      />
+      {!editMode && (
+        <SiteNav
+          names={names}
+          pages={sitePages}
+          logoIcon={manifest.logoIcon}
+          logoSvg={manifest.logoSvg}
+          pageHrefOverride={(slug) => {
+            const params = new URLSearchParams(searchParams.toString());
+            if (!slug || slug === 'our-story') { params.delete('page'); }
+            else { params.set('page', slug); }
+            return `/preview?${params.toString()}`;
+          }}
+        />
+      )}
 
       <CelebrationOverlay
         occasion={(manifest.occasion as 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story') || 'wedding'}
