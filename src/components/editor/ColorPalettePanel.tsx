@@ -177,12 +177,21 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
   const [colors, setColors] = useState<ThemeSchema['colors']>(theme.colors || PRESET_PALETTES[0].colors);
   const [activeTab, setActiveTab] = useState<'custom' | 'ai-art'>('custom');
 
-  // AI Art state
+  // AI Art state — initialize from manifest if background art was previously generated
   const [place, setPlace] = useState('');
   const [artStyle, setArtStyle] = useState('botanical');
   const [extraPrompt, setExtraPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [generatedSvg, setGeneratedSvg] = useState<string | null>(null);
+  const [generatedSvg, setGeneratedSvg] = useState<string | null>(() => {
+    // Recover SVG from manifest.backgroundPatternCss data URI
+    const css = manifest.backgroundPatternCss;
+    if (!css) return null;
+    const match = css.match(/^url\("data:image\/svg\+xml,(.+)"\)$/);
+    if (match) {
+      try { return decodeURIComponent(match[1]); } catch { return null; }
+    }
+    return null;
+  });
   const [prevSvgs, setPrevSvgs] = useState<string[]>([]);
   const [genError, setGenError] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
