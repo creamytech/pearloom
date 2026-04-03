@@ -64,9 +64,10 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
   const cardBg = pal.card;
+  const subMeshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(vibeSkin.fonts.heading)}:ital,wght@0,400;0,600;0,700;1,400&family=${encodeURIComponent(vibeSkin.fonts.body)}:wght@300;400;500;600&display=swap`;
   const sitePages: SitePage[] = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
     ...(manifest.events?.length ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
     ...(manifest.events?.length ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
     ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
@@ -121,7 +122,8 @@ function SubpagePreview({ page, manifest, names, rawParams }: { page: string; ma
     <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="stylesheet" href={fontUrl} />
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor }}>
+      {subMeshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: subMeshActive ? 'transparent' : bgColor }}>
         {content}
       </main>
     </ThemeProvider>
@@ -243,7 +245,7 @@ function PreviewContent() {
 
   // Build nav pages — only show pages that have real content
   const sitePages: SitePage[] = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
     ...(manifest.events?.length ? [{ id: 'schedule', slug: 'schedule', label: 'Schedule', enabled: true, order: 1 }] : []),
     ...(manifest.events?.length ? [{ id: 'rsvp', slug: 'rsvp', label: 'RSVP', enabled: true, order: 2 }] : []),
     ...((manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? [{ id: 'registry', slug: 'registry', label: 'Registry', enabled: true, order: 3 }] : []),
@@ -437,6 +439,10 @@ function PreviewContent() {
   // Global section divider setting from design panel
   const globalDivider = manifest.theme?.effects?.sectionDivider;
   const useCustomDivider = globalDivider && globalDivider.style !== 'none';
+
+  // When gradient mesh is active, make main background transparent so the mesh shows through
+  const meshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
+  const mainBg = meshActive ? 'transparent' : bgColor;
 
   // Determines the background color a block enters with
   const blockEntryColor = (type: string): string => {
@@ -653,7 +659,10 @@ function PreviewContent() {
         accentColor2={pal.accent2 || pal.highlight || pal.accent}
       />
 
-      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
+      {/* Set body bg so it shows behind the mesh when main is transparent */}
+      {meshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+
+      <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: mainBg, position: 'relative', isolation: 'isolate' }}>
         {visibleBlocks ? (
           <>
             {/* Ambient art overlay — very subtle painted page texture */}
@@ -712,7 +721,7 @@ function PreviewContent() {
       }}>
         <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
         <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-          {names[0]} & {names[1]}
+          {names[0]}{names[1]?.trim() ? ` & ${names[1]}` : ''}
         </div>
         <div style={{ opacity: 0.5 }}>Made with Pearloom</div>
       </footer>

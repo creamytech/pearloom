@@ -207,6 +207,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const cardBg = pal.card;
   const accentLight = pal.accent2;
 
+  // When gradient mesh is active, make main transparent so the mesh shows through
+  const meshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
+  const mainBg = meshActive ? 'transparent' : bgColor;
+
   // Build theme dynamically from AI palette + fonts
   const dynamicTheme = {
     name: 'pearloom-ai',
@@ -245,7 +249,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Build real nav pages from manifest content
   const hidden = new Set(manifest.hiddenPages || []);
   const sitePages = [
-    { id: 'story',    slug: 'our-story', label: 'Our Story', enabled: true,  order: 0 },
+    { id: 'story',    slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true,  order: 0 },
     (!hidden.has('schedule') && manifest.events?.length)
       ? { id: 'schedule', slug: 'schedule', label: 'Schedule',   enabled: true,  order: 1 } : null,
     (!hidden.has('rsvp') && manifest.events?.length)
@@ -845,7 +849,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           accentColor2={pal.accent2 || pal.highlight || pal.accent}
         />
 
-        <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
+        {meshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+        <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: mainBg, position: 'relative', isolation: 'isolate' }}>
           {visibleBlocks ? (
             // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
             <>

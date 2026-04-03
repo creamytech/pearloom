@@ -278,7 +278,7 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
   ];
 
   const sitePages = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
   ] as import('@/types').SitePage[];
 
   // FaqSection expects FaqItemWithCategory — add a default category if missing

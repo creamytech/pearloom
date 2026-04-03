@@ -51,13 +51,14 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
     }
   };
 
-  const updateFont = (key: 'heading' | 'body', val: string) => {
+  const updateFonts = (heading: string, body: string) => {
+    const newFonts = { heading, body };
     onChange({
       ...manifest,
-      theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } },
+      theme: { ...manifest.theme, fonts: newFonts },
       vibeSkin: manifest.vibeSkin ? {
         ...manifest.vibeSkin,
-        fonts: { ...manifest.vibeSkin.fonts, [key]: val },
+        fonts: { ...manifest.vibeSkin.fonts, ...newFonts },
       } : manifest.vibeSkin,
     });
   };
@@ -153,7 +154,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         <FontPicker
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
-          onChange={(heading, body) => { updateFont('heading', heading); updateFont('body', body); }}
+          onChange={(heading, body) => updateFonts(heading, body)}
         />
       </SidebarSection>
 
