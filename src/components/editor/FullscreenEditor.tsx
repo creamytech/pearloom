@@ -47,6 +47,7 @@ import { TranslationPanel } from './TranslationPanel';
 import { SaveTheDatePanel } from './SaveTheDatePanel';
 import { ThankYouPanel } from './ThankYouPanel';
 import { SpotifyPanel } from './SpotifyPanel';
+import { AnniversaryNudgePanel } from './AnniversaryNudgePanel';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -646,6 +647,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 exit={{ opacity: 0, x: -12 }}
                 transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               >
+                {state.activeTab === 'story' && <AnniversaryNudgePanel />}
                 {state.activeTab === 'story' && <StoryPanel />}
 
                 {state.activeTab === 'canvas' && (
