@@ -16,7 +16,7 @@ import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import type { StoryManifest, ThemeSchema } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
-export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; coupleNames?: [string, string] }) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenError, setRegenError] = useState('');
 
@@ -29,10 +29,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vibeString: manifest.vibeString,
-          coupleNames: [
-            manifest.chapters?.[0]?.title?.split(' ')[0] ?? 'Partner',
-            manifest.chapters?.[1]?.title?.split(' ')[0] ?? 'Partner',
-          ],
+          coupleNames: coupleNames || ['Partner', 'Partner'],
           chapters: manifest.chapters?.map(c => ({
             title: c.title, subtitle: c.subtitle,
             mood: c.mood, location: c.location,
@@ -163,10 +160,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         {manifest.vibeSkin ? (
           <ArtManager
             manifest={manifest}
-            coupleNames={[
-              manifest.chapters?.[0]?.title?.split(' ')[0] ?? 'Partner',
-              manifest.chapters?.[1]?.title?.split(' ')[0] ?? 'Partner',
-            ]}
+            coupleNames={coupleNames}
             onUpdate={(updates) => onChange({ ...manifest, ...updates })}
           />
         ) : (

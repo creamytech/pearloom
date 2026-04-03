@@ -670,7 +670,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 )}
 
                 {state.activeTab === 'design' && (
-                  <DesignPanel manifest={manifest} onChange={handleDesignChange} />
+                  <DesignPanel manifest={manifest} onChange={handleDesignChange} coupleNames={coupleNames} />
                 )}
 
                 {state.activeTab === 'details' && (
