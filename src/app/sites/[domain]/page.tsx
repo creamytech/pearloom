@@ -850,6 +850,17 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         />
 
         {meshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+
+        {/* AI-generated bespoke background art from the Design panel */}
+        {manifest.backgroundPatternCss && (
+          <div aria-hidden="true" style={{
+            position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+            backgroundImage: manifest.backgroundPatternCss,
+            backgroundRepeat: 'repeat', backgroundSize: '400px 400px',
+            opacity: 0.12,
+          }} />
+        )}
+
         <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: mainBg, position: 'relative', isolation: 'isolate' }}>
           {visibleBlocks ? (
             // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
