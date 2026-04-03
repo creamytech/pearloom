@@ -161,7 +161,14 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
       {/* AI Art Manager — hero, ambient, art strip */}
       <SidebarSection title="AI Art" defaultOpen={true}>
         {manifest.vibeSkin ? (
-          <ArtManager manifest={manifest} onUpdate={(updates) => onChange({ ...manifest, ...updates })} />
+          <ArtManager
+            manifest={manifest}
+            coupleNames={[
+              manifest.chapters?.[0]?.title?.split(' ')[0] ?? 'Partner',
+              manifest.chapters?.[1]?.title?.split(' ')[0] ?? 'Partner',
+            ]}
+            onUpdate={(updates) => onChange({ ...manifest, ...updates })}
+          />
         ) : (
           <div style={{ padding: '1rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>
             <p style={{ marginBottom: '0.75rem' }}>No AI art generated yet.</p>
