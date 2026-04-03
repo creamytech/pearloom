@@ -20,9 +20,8 @@ import {
 } from 'lucide-react';
 import { GripIcon } from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
-import { useEditor } from '@/lib/editor-state';
+import { useEditor, stripArtForStorage } from '@/lib/editor-state';
 import type { Chapter } from '@/types';
-import { MobilePreviewPane } from './MobilePreviewPane';
 import { MobileChapterEditor } from './MobileChapterEditor';
 
 // ── Lazy panel imports ──────────────────────────────────────────
@@ -309,7 +308,7 @@ function ScrollPanel({ children }: { children: React.ReactNode }) {
 
 // ── Main component ──────────────────────────────────────────────
 export function MobileEditorSheet() {
-  const { state, dispatch, actions, manifest, coupleNames } = useEditor();
+  const { state, dispatch, actions, manifest, coupleNames, previewKey, iframeRef } = useEditor();
   const { chapters, activeId, mobileActionChapterId } = state;
 
   const [activeView, setActiveView] = useState<ActiveView>('preview');
@@ -322,6 +321,11 @@ export function MobileEditorSheet() {
     ? chapters.find(c => c.id === editingChapterId) ?? null
     : null;
 
+  const openChapter = useCallback((id: string) => {
+    setEditingChapterId(id);
+    setActiveView('story');
+  }, []);
+
   // Watch mobileActionChapterId — external signal to open a chapter
   useEffect(() => {
     if (mobileActionChapterId) {
@@ -331,10 +335,63 @@ export function MobileEditorSheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mobileActionChapterId]);
 
-  const openChapter = useCallback((id: string) => {
-    setEditingChapterId(id);
-    setActiveView('story');
-  }, []);
+  // ── Listen for edit messages from preview iframe ──────────────
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'pearloom-edit-commit') {
+        const { chapterId, field, value } = event.data;
+        if (chapterId && field !== undefined && field !== null) {
+          const chapter = chapters.find(c => c.id === chapterId);
+          if (chapter) actions.updateChapter(chapterId, { [field]: value });
+        }
+      }
+
+      if (event.data?.type === 'pearloom-section-click') {
+        const { chapterId, sectionId } = event.data;
+        if (chapterId) {
+          openChapter(chapterId);
+        } else if (sectionId === 'hero') {
+          setActiveView('story');
+        } else if (sectionId === 'events') {
+          setActiveView('events');
+        } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
+          setActiveView('more');
+          setActiveMoreTool('details');
+        }
+      }
+
+      if (event.data?.type === 'pearloom-photo-replace') {
+        const { chapterId, photoIndex, newUrl, newAlt } = event.data;
+        if (!chapterId || !newUrl) return;
+        const chapter = chapters.find(c => c.id === chapterId);
+        if (!chapter) return;
+        const imgs = [...(chapter.images || [])];
+        const newImage = { id: `img-${Date.now()}`, url: newUrl, alt: newAlt || '', width: 0, height: 0 };
+        if (photoIndex >= 0 && photoIndex < imgs.length) {
+          imgs[photoIndex] = newImage;
+        } else {
+          imgs.push(newImage);
+        }
+        actions.updateChapter(chapterId, { images: imgs });
+        openChapter(chapterId);
+      }
+
+      if (event.data?.type === 'pearloom-photo-remove') {
+        const { chapterId, photoIndex } = event.data;
+        if (!chapterId) return;
+        const chapter = chapters.find(c => c.id === chapterId);
+        if (!chapter) return;
+        const imgs = (chapter.images || []).filter((_: unknown, i: number) => i !== photoIndex);
+        actions.updateChapter(chapterId, { images: imgs });
+      }
+
+      if (event.data?.type === 'pearloom-photo-ai-regen') {
+        setActiveView('design');
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [chapters, actions, dispatch, openChapter]);
 
   const closeChapter = useCallback(() => {
     setEditingChapterId(null);
@@ -475,16 +532,56 @@ export function MobileEditorSheet() {
     switch (activeView) {
       case 'preview':
         return (
-          <MobilePreviewPane
-            manifest={manifest}
-            coupleNames={coupleNames}
-            vibeSkin={manifest?.vibeSkin}
-            selectedChapterId={activeId}
-            onChapterTap={(id) => {
-              setActiveView('story');
-              openChapter(id);
-            }}
-          />
+          <div style={{
+            flex: 1,
+            position: 'relative',
+            overflow: 'auto',
+            WebkitOverflowScrolling: 'touch',
+          } as React.CSSProperties}>
+            {!state.iframeReady && (
+              <div style={{
+                position: 'absolute', inset: 0, display: 'flex',
+                flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: '#0F0C09', gap: 12, zIndex: 1,
+              }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  border: '2px solid rgba(163,177,138,0.25)',
+                  borderTopColor: '#A3B18A',
+                  animation: 'spin 0.8s linear infinite',
+                }} />
+                <span style={{
+                  fontSize: '0.75rem', color: 'rgba(214,198,168,0.4)',
+                  fontWeight: 600, letterSpacing: '0.06em',
+                }}>
+                  Loading your site…
+                </span>
+              </div>
+            )}
+            <iframe
+              ref={iframeRef}
+              src={`/preview?key=${previewKey}${state.previewPage ? `&page=${encodeURIComponent(state.previewPage)}` : ''}`}
+              style={{
+                width: '100%', height: '100%',
+                border: 'none', display: 'block',
+              }}
+              title="Live Preview"
+              onLoad={() => {
+                dispatch({ type: 'SET_IFRAME_READY', ready: true });
+                dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
+                try {
+                  iframeRef.current?.contentWindow?.postMessage({
+                    type: 'pearloom-preview-update',
+                    manifest: stripArtForStorage(manifest),
+                    names: coupleNames,
+                  }, '*');
+                } catch {}
+                iframeRef.current?.contentWindow?.postMessage({
+                  type: 'pearloom-edit-mode', enabled: true,
+                }, '*');
+              }}
+            />
+          </div>
         );
 
       case 'story':

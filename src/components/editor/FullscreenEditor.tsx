@@ -732,7 +732,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           </EditorWing>
         )}
 
-        {/* Canvas area (desktop only — mobile uses MobileEditorSheet with MobilePreviewPane) */}
+        {/* Canvas area (desktop only — mobile uses MobileEditorSheet with iframe preview) */}
         {!state.isMobile && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
             <PostWeddingBanner
