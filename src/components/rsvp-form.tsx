@@ -566,41 +566,49 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
               </AnimatePresence>
             </div>
 
-            {/* Meal preference pills */}
+            {/* Meal preference cards */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={labelStyle}>Meal Preference</label>
               <div
                 style={{
-                  display: 'flex',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))',
                   gap: '0.5rem',
-                  flexWrap: 'wrap',
                   marginTop: '0.5rem',
                 }}
               >
-                {['Chicken', 'Fish', 'Beef', 'Vegetarian', 'Vegan'].map((m) => (
-                  <button
-                    type="button"
-                    key={m}
-                    onClick={() => setMealPreference(m === mealPreference ? '' : m)}
-                    style={{
-                      padding: '0.45rem 1rem',
-                      borderRadius: '100px',
-                      border: `1.5px solid ${
-                        mealPreference === m ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'
-                      }`,
-                      background:
-                        mealPreference === m ? 'var(--eg-accent-light)' : 'transparent',
-                      color: mealPreference === m ? 'var(--eg-accent)' : 'var(--eg-muted)',
-                      fontSize: '0.85rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      fontFamily: 'var(--eg-font-body)',
-                    }}
-                  >
-                    {m}
-                  </button>
-                ))}
+                {([
+                  { label: 'Chicken', emoji: '🍗' },
+                  { label: 'Fish', emoji: '🐟' },
+                  { label: 'Beef', emoji: '🥩' },
+                  { label: 'Vegetarian', emoji: '🥬' },
+                  { label: 'Vegan', emoji: '🌱' },
+                ] as const).map(({ label: m, emoji }) => {
+                  const selected = mealPreference === m;
+                  return (
+                    <button
+                      type="button"
+                      key={m}
+                      onClick={() => setMealPreference(m === mealPreference ? '' : m)}
+                      style={{
+                        padding: '0.75rem 0.5rem',
+                        borderRadius: '0.875rem',
+                        border: `1.5px solid ${selected ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
+                        background: selected ? 'var(--eg-accent-light)' : 'rgba(0,0,0,0.02)',
+                        color: selected ? 'var(--eg-accent)' : 'var(--eg-muted)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        fontFamily: 'var(--eg-font-body)',
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', gap: '0.35rem',
+                        transform: selected ? 'scale(1.03)' : 'scale(1)',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>{emoji}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{m}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

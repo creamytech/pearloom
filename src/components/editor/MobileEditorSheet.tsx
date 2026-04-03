@@ -16,7 +16,7 @@ import {
   Eye, BookOpen, CalendarDays, Palette, MoreHorizontal,
   Plus, Trash2, Image, Clock, ChevronRight, X,
   Users, Send, Mail, Mic, LayoutGrid, Globe, Gift,
-  Music, ShoppingBag, Heart, BarChart2,
+  Music, ShoppingBag, Heart, BarChart2, Undo2, Redo2,
 } from 'lucide-react';
 import { GripIcon } from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
@@ -730,6 +730,36 @@ export function MobileEditorSheet() {
               >
                 Pearloom
               </span>
+            </div>
+
+            {/* Undo / Redo */}
+            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => actions.undo()}
+                disabled={!state.canUndo}
+                style={{
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', background: 'transparent', cursor: state.canUndo ? 'pointer' : 'default',
+                  color: state.canUndo ? 'rgba(214,198,168,0.65)' : 'rgba(255,255,255,0.15)',
+                  borderRadius: 8,
+                }}
+              >
+                <Undo2 size={15} />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => actions.redo()}
+                disabled={!state.canRedo}
+                style={{
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', background: 'transparent', cursor: state.canRedo ? 'pointer' : 'default',
+                  color: state.canRedo ? 'rgba(214,198,168,0.65)' : 'rgba(255,255,255,0.15)',
+                  borderRadius: 8,
+                }}
+              >
+                <Redo2 size={15} />
+              </motion.button>
             </div>
 
             {/* Couple name / site title */}

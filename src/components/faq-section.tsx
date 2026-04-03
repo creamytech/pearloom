@@ -37,11 +37,10 @@ function FaqAccordionItem({
         ease: [0.16, 1, 0.3, 1],
       }}
       style={{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        '--pl-stagger-delay': `${index * 80}ms` as any,
+        '--pl-stagger-delay': `${index * 80}ms`,
         borderBottom: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
-      }}
+      } as React.CSSProperties}
     >
       <button
         onClick={() => setOpen(!open)}

@@ -79,8 +79,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         ease: [0.16, 1, 0.3, 1],
       }}
       style={{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        '--pl-stagger-delay': `${index * 100}ms` as any,
+        '--pl-stagger-delay': `${index * 100}ms`,
         background: cardBg,
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -92,7 +91,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         flexDirection: 'column',
         position: 'relative',
         fontFamily: bodyFont,
-      }}
+      } as React.CSSProperties}
     >
       {/* Left accent bar */}
       <div
