@@ -249,7 +249,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Build real nav pages from manifest content
   const hidden = new Set(manifest.hiddenPages || []);
   const sitePages = [
-    { id: 'story',    slug: 'our-story', label: 'Our Story', enabled: true,  order: 0 },
+    { id: 'story',    slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true,  order: 0 },
     (!hidden.has('schedule') && manifest.events?.length)
       ? { id: 'schedule', slug: 'schedule', label: 'Schedule',   enabled: true,  order: 1 } : null,
     (!hidden.has('rsvp') && manifest.events?.length)
