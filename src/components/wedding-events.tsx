@@ -343,7 +343,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.5, marginBottom: '0.5rem' }}>
               Ceremony Details
             </p>
-            <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem 1rem', fontSize: '0.82rem' }}>
+            <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.4rem 1rem', fontSize: '0.82rem' }}>
               {event.ceremony.officiant && <><dt style={{ opacity: 0.6 }}>Officiant</dt><dd>{event.ceremony.officiant}</dd></>}
               {event.ceremony.processionalSong && <><dt style={{ opacity: 0.6 }}>Processional</dt><dd style={{ fontStyle: 'italic' }}>{event.ceremony.processionalSong}</dd></>}
               {event.ceremony.recessionalSong && <><dt style={{ opacity: 0.6 }}>Recessional</dt><dd style={{ fontStyle: 'italic' }}>{event.ceremony.recessionalSong}</dd></>}
