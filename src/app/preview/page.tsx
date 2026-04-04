@@ -235,13 +235,13 @@ function PreviewContent() {
   const rawCoverPhoto = manifest.chapters?.[0]?.images?.[0]?.url || '';
   const occasion = manifest.occasion || 'wedding';
   const safeNames = [names[0] || 'Celebrating', names[1] || ''];
+  // Hero image priority: 1) AI-generated Nano Banana art, 2) hero-art API, 3) uploaded photo
   const heroArtParams = new URLSearchParams({
     n1: safeNames[0], n2: safeNames[1],
     occasion, accent: pal.accent, bg: pal.background,
   });
-  const proxiedCover = rawCoverPhoto
-    ? proxyUrl(rawCoverPhoto, 1920, 1080)
-    : `/api/hero-art?${heroArtParams.toString()}`;
+  const proxiedCover = vibeSkin.heroArtDataUrl
+    || `/api/hero-art?${heroArtParams.toString()}`;
 
   // Build nav pages — only show pages that have real content
   const sitePages: SitePage[] = [

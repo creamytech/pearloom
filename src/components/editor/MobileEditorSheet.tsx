@@ -59,7 +59,7 @@ const MORE_TOOLS: MoreTool[] = [
   { id: 'guests',      icon: Users,       label: 'Guests'        },
   { id: 'messaging',   icon: Mail,        label: 'Messaging'     },
   { id: 'invite',      icon: Send,        label: 'Invites'       },
-  { id: 'blocks',      icon: LayoutGrid,  label: 'AI Blocks'     },
+  { id: 'blocks',      icon: LayoutGrid,  label: 'Auto-Fill'     },
   { id: 'voice',       icon: Mic,         label: 'Voice'         },
   { id: 'seating',     icon: Users,       label: 'Seating'       },
   { id: 'analytics',   icon: BarChart2,   label: 'Analytics'     },
