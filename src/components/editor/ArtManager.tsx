@@ -184,10 +184,22 @@ export function ArtManager({ manifest, coupleNames, onUpdate }: ArtManagerProps)
   };
 
   const handleGooglePhotos = (slot: ArtSlot) => {
-    pickGooglePhotos((photos: PickedPhoto[]) => {
-      if (photos.length > 0 && photos[0].baseUrl) {
-        const proxyUrl = `/api/photos/proxy?url=${encodeURIComponent(photos[0].baseUrl)}&w=1920&h=1080`;
-        setSlotUrl(slot, proxyUrl);
+    pickGooglePhotos(async (photos: PickedPhoto[]) => {
+      if (photos.length === 0 || !photos[0].baseUrl) return;
+      // Show proxy URL immediately
+      const proxyUrl = `/api/photos/proxy?url=${encodeURIComponent(photos[0].baseUrl)}&w=1920&h=1080`;
+      setSlotUrl(slot, proxyUrl);
+      // Mirror to permanent storage in background
+      if (photos[0].baseUrl.includes('googleusercontent.com')) {
+        try {
+          const res = await fetch('/api/photos/mirror', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: photos[0].baseUrl, subdomain: 'draft', key: `art-${slot}-${Date.now()}` }),
+          });
+          const data = await res.json();
+          if (data.permanentUrl) setSlotUrl(slot, data.permanentUrl);
+        } catch { /* non-fatal */ }
       }
     });
   };
