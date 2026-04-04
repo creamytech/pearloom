@@ -48,7 +48,7 @@ function useCountdown(targetDate?: string) {
 
 function CountdownUnit({ value, label, isTick = false }: { value: number; label: string; isTick?: boolean }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', minWidth: '72px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', minWidth: 'min(72px, 18vw)' }}>
       <div style={{
         background: 'rgba(255,255,255,0.72)',
         backdropFilter: 'blur(16px)',

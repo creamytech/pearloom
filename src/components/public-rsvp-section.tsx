@@ -316,7 +316,7 @@ export function PublicRsvpSection({
               {/* Card body */}
               <div
                 style={{
-                  padding: '2.5rem',
+                  padding: 'clamp(1.5rem, 5vw, 2.5rem)',
                   textAlign: 'center',
                 }}
               >

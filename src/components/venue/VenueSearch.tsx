@@ -254,7 +254,8 @@ export function VenueSearch({
             borderRadius: darkMode ? '0.5rem' : '0.875rem',
             boxShadow: darkMode ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.12)',
             zIndex: 50,
-            overflow: 'hidden',
+            overflow: 'auto',
+            maxHeight: '260px',
           }}
         >
           {/* Empty / no-results state */}
