@@ -72,11 +72,19 @@ export default function DashboardClient() {
     dispatch({ type: 'SET_VIBE', data });
     setLastVibeData(data);
 
+    // Variable step timing that matches real pipeline stages (approximate):
+    // Pass 0: init (2s) → Pass 1: story gen (45s) → Pass 2: refine (15s) →
+    // Pass 3: DNA (10s) → Pass 4: design (20s) → Pass 5: art (15s) →
+    // Pass 6: critique (10s) → Pass 7: poetry (8s)
+    const STEP_DELAYS = [2000, 45000, 15000, 10000, 20000, 15000, 10000, 8000];
     let stepCount = 0;
-    const stepInterval = setInterval(() => {
+    const advanceStep = () => {
       stepCount++;
-      dispatch({ type: 'SET_GENERATION_STEP', step: Math.min(stepCount, 7) });
-    }, 14000);
+      if (stepCount > 7) return;
+      dispatch({ type: 'SET_GENERATION_STEP', step: stepCount });
+      setTimeout(advanceStep, STEP_DELAYS[stepCount] || 10000);
+    };
+    const stepTimer = setTimeout(advanceStep, STEP_DELAYS[0]);
 
     const controller = new AbortController();
     generationControllerRef.current = controller;
@@ -114,7 +122,7 @@ export default function DashboardClient() {
         signal: controller.signal,
       });
 
-      clearInterval(stepInterval);
+      clearTimeout(stepTimer);
       clearTimeout(timeoutId);
 
       if (!res.ok) {
@@ -188,7 +196,7 @@ export default function DashboardClient() {
         else r.json().then(d => logError('[Generate] Draft save failed:', d.error)).catch(() => {});
       }).catch(e => logError('[Generate] Draft save network error:', e));
     } catch (err) {
-      clearInterval(stepInterval);
+      clearTimeout(stepTimer);
       clearTimeout(timeoutId);
       const msg = err instanceof Error
         ? (err.name === 'AbortError'

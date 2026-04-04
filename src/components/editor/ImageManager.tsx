@@ -31,7 +31,7 @@ export function ImageManager({
   const [viewMode, setViewMode] = useState<'grid' | 'constellation'>('grid');
   const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
 
-  const handleGooglePhotosPicked = (photos: PickedPhoto[]) => {
+  const handleGooglePhotosPicked = async (photos: PickedPhoto[]) => {
     const newImages: ChapterImage[] = photos
       .filter(p => p.baseUrl)
       .map(p => ({
@@ -41,7 +41,30 @@ export function ImageManager({
         width: p.width,
         height: p.height,
       }));
-    if (newImages.length > 0) onUpdate([...images, ...newImages]);
+    if (newImages.length === 0) return;
+    // Add images immediately with proxy URLs (fast preview)
+    onUpdate([...images, ...newImages]);
+    // Mirror to permanent storage in background so they survive past Google's ~1h expiry
+    for (const [i, photo] of photos.entries()) {
+      if (!photo.baseUrl?.includes('googleusercontent.com')) continue;
+      try {
+        const res = await fetch('/api/photos/mirror', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: photo.baseUrl, subdomain: 'draft', key: `img-${Date.now()}-${i}` }),
+        });
+        const data = await res.json();
+        if (data.permanentUrl && data.permanentUrl !== photo.baseUrl) {
+          // Update the image URL in place once mirrored
+          const updated = [...images, ...newImages];
+          const idx = updated.findIndex(img => img.id === photo.id);
+          if (idx >= 0) {
+            updated[idx] = { ...updated[idx], url: data.permanentUrl };
+            onUpdate(updated);
+          }
+        }
+      } catch { /* non-fatal — proxy URL still works for now */ }
+    }
   };
 
   const removeImage = (idx: number) => {
