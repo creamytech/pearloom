@@ -152,8 +152,8 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
   return (
     <section style={{
       position: 'relative',
-      minHeight: '100vh',
-      padding: '8rem 2rem',
+      minHeight: '100dvh',
+      padding: 'clamp(4rem, 10vw, 8rem) clamp(1rem, 5vw, 2rem)',
       background: 'var(--eg-bg)',
       display: 'flex',
       alignItems: 'center',
