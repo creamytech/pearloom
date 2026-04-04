@@ -7,7 +7,7 @@
 // Strips base64 art before saving to prevent payload bloat.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -59,9 +59,26 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
   const [showPublish, setShowPublish] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastManifestRef = useRef<StoryManifest>(initialManifest);
+  const hasPendingSave = useRef(false);
+
+  // Flush pending save on page unload using sendBeacon (survives tab close)
+  useEffect(() => {
+    const handleUnload = () => {
+      if (hasPendingSave.current) {
+        const saveable = unproxyImageUrls(stripArtForStorage(lastManifestRef.current));
+        const payload = JSON.stringify({ subdomain: siteSlug, manifest: saveable, names });
+        navigator.sendBeacon('/api/sites', new Blob([payload], { type: 'application/json' }));
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, [siteSlug, names]);
 
   const handleChange = useCallback((m: StoryManifest) => {
     setManifest(m);
+    lastManifestRef.current = m;
+    hasPendingSave.current = true;
     setSaveStatus('saving');
 
     // Debounced auto-save — 2s after last change
@@ -77,6 +94,7 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
       })
         .then(res => {
           if (res.ok) {
+            hasPendingSave.current = false;
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
           } else {
