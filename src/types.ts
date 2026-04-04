@@ -202,6 +202,8 @@ export interface ThemeSchema {
     };
     /** Custom cursor shape */
     customCursor?: 'none' | 'pearl' | 'heart' | 'ring' | 'petal' | 'star';
+    /** Custom cursor color override — defaults to theme accent */
+    cursorColor?: string;
     /** SVG dividers between page sections */
     sectionDivider?: {
       style: 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';

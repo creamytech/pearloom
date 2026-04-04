@@ -199,7 +199,7 @@ function RegistryCard({
         '--pl-stagger-delay': `${index * 100}ms`,
         display: 'flex',
         flexDirection: 'column',
-        background: '#ffffff',
+        background: 'var(--eg-card-bg, #ffffff)',
         borderRadius: '1.25rem',
         overflow: 'hidden',
         boxShadow: '0 4px 24px rgba(43,43,43,0.05)',

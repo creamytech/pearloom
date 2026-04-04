@@ -120,7 +120,7 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
       {/* ── Custom cursor (portal-like, always on top) ── */}
       <CustomCursor
         shape={fx.customCursor ?? 'none'}
-        accentColor={theme.colors.accent}
+        accentColor={fx.cursorColor || theme.colors.accent}
       />
     </ThemeContext.Provider>
   );
