@@ -54,7 +54,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
   type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating';
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
-    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'relative', zIndex: openSection === id ? 10 : 1 }}>
       <button
         onClick={() => setOpenSection(openSection === id ? null : id)}
         style={{
@@ -73,8 +73,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <motion.div
             key={id}
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1, overflow: 'visible', transitionEnd: { overflow: 'visible' } }}
+            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             style={{ overflow: 'hidden' }}
           >

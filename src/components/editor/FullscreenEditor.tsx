@@ -55,6 +55,7 @@ import {
   EditorContext, editorReducer, createInitialEditorState,
   storePreview, stripArtForStorage,
   PREVIEW_KEY_PREFIX, AUTOSAVE_KEY,
+  useEditor,
   type EditorTab, type EditorActions,
 } from '@/lib/editor-state';
 
@@ -985,5 +986,3 @@ function PublishModalInline() {
   );
 }
 
-// Need useEditor import for PublishModalInline
-import { useEditor } from '@/lib/editor-state';

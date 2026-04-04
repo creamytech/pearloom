@@ -67,7 +67,7 @@ function SliderRow({
         max={max}
         value={value}
         onChange={e => onChange(Number(e.target.value))}
-        style={{ width: '100%', accentColor: 'var(--eg-accent, #A3B18A)', cursor: 'pointer' }}
+        style={{ width: '100%', accentColor: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', height: '6px', WebkitAppearance: 'none', appearance: 'none' } as React.CSSProperties}
       />
       {hint && <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '3px' }}>{hint}</div>}
     </div>

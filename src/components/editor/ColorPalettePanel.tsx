@@ -396,7 +396,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               }}>
                 Art style
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(65px, 1fr))', gap: '4px' }}>
                 {ART_STYLES.map(s => (
                   <button
                     key={s.id}

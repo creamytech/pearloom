@@ -46,8 +46,8 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
       const res = await fetch(`/api/gallery?siteId=${encodeURIComponent(siteId)}`);
       const data = await res.json();
       setPhotos(data.photos || []);
-    } catch {
-      console.error('Failed to fetch gallery');
+    } catch (err) {
+      console.error('[PhotoGallery] Failed to fetch gallery:', err);
     } finally {
       setLoading(false);
     }

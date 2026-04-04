@@ -164,7 +164,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                       </div>
 
                       <Field label="Event Name" value={evt.name} onChange={v => updateEvent(evt.id, { name: v })} placeholder="Ceremony" />
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div>
                           <label style={lbl}>Date</label>
                           <input

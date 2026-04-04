@@ -217,7 +217,7 @@ function RegistryCard({
 
       <div
         style={{
-          padding: '2rem 2.25rem',
+          padding: 'clamp(1.25rem, 4vw, 2rem) clamp(1.25rem, 5vw, 2.25rem)',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',

@@ -224,7 +224,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           textAlign: 'center',
           opacity: opacityText,
           y: yText,
-          padding: '0 2rem',
+          padding: '0 clamp(1rem, 5vw, 2rem)',
           color: hasPhoto ? '#ffffff' : 'var(--eg-fg)',
           width: '100%',
           maxWidth: '1300px',
