@@ -30,6 +30,7 @@ const DesignPanel             = dynamic(() => import('./DesignPanel').then(m => 
 const EventsPanel             = dynamic(() => import('./EventsPanel').then(m => ({ default: m.EventsPanel })), { ssr: false });
 const DetailsPanel            = dynamic(() => import('./DetailsPanel').then(m => ({ default: m.DetailsPanel })), { ssr: false });
 const PagesPanel              = dynamic(() => import('./PagesPanel').then(m => ({ default: m.PagesPanel })), { ssr: false });
+const SectionsPanel           = dynamic(() => import('./SectionsPanel').then(m => ({ default: m.SectionsPanel })), { ssr: false });
 const GuestSearchPanel        = dynamic(() => import('./GuestSearchPanel').then(m => ({ default: m.GuestSearchPanel })), { ssr: false });
 const MessagingPanel          = dynamic(() => import('@/components/dashboard/MessagingPanel').then(m => ({ default: m.MessagingPanel })), { ssr: false });
 const BulkInvitePanel         = dynamic(() => import('./BulkInvitePanel').then(m => ({ default: m.BulkInvitePanel })), { ssr: false });
@@ -54,7 +55,8 @@ type MoreTool = {
 
 // ── More drawer tools ───────────────────────────────────────────
 const MORE_TOOLS: MoreTool[] = [
-  { id: 'pages',       icon: Layers,      label: 'Pages'         },
+  { id: 'sections',    icon: Layers,      label: 'Sections'      },
+  { id: 'pages',       icon: Globe,       label: 'Pages'         },
   { id: 'details',     icon: LayoutGrid,  label: 'Details'       },
   { id: 'guests',      icon: Users,       label: 'Guests'        },
   { id: 'messaging',   icon: Mail,        label: 'Messaging'     },
@@ -453,6 +455,12 @@ export function MobileEditorSheet() {
     const panelStyle: React.CSSProperties = { height: '100%', overflow: 'hidden' };
 
     switch (activeMoreTool) {
+      case 'sections':
+        return (
+          <ScrollPanel>
+            <SectionsPanel manifest={manifest} onChange={actions.handleDesignChange} />
+          </ScrollPanel>
+        );
       case 'pages':
         return (
           <ScrollPanel>
