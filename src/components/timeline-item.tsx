@@ -499,7 +499,8 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(mainImage, 1200, 1600)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block', background: 'var(--eg-accent-light, #e8e4dc)' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
               />
@@ -525,7 +526,8 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(secondImage, 800, 1000)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block', background: 'var(--eg-accent-light, #e8e4dc)' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05) grayscale(0)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'grayscale(18%) brightness(0.97)'; }}
               />

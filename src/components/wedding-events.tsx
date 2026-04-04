@@ -558,7 +558,7 @@ export function WeddingEvents({
                   }
                 : {
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, calc(100vw - 3rem)), 1fr))',
                     gap: '20px',
                   }
             }

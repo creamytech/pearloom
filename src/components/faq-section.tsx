@@ -125,6 +125,8 @@ function FaqAccordionItem({
                   paddingBottom: '2rem',
                   paddingLeft: '1rem',
                   fontWeight: 300,
+                  maxWidth: '600px',
+                  fontFamily: 'var(--eg-font-body)',
                 }}
               >
                 {item.answer}
@@ -167,7 +169,7 @@ export function FaqSection({
 
   return (
     <section data-pe-section="faq" data-pe-label="FAQ" style={{ padding: '8rem 2rem', background: 'var(--eg-bg)' }}>
-      <div style={{ maxWidth: '780px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '860px', margin: '0 auto' }}>
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -148,7 +148,7 @@ export function SiteNav({
           'transition-[background,box-shadow,border-color,padding] duration-300',
           atTop && !isStudio
             ? 'bg-transparent border-b border-transparent shadow-none'
-            : 'bg-[rgba(245,241,232,0.94)] border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
+            : 'bg-[var(--eg-bg,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
           scrolled ? 'py-2' : 'py-4',
         )}
         style={{ backdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)', WebkitBackdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)' }}

@@ -163,6 +163,7 @@ function HotelCard({
                 fontSize: '0.83rem',
                 color: 'var(--eg-muted)',
                 lineHeight: 1.55,
+                wordBreak: 'break-word',
               }}
             >
               {hotel.address}
