@@ -529,10 +529,10 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div>
           <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginBottom: '0.3rem' }}>
-            AI Content Blocks
+            Auto-Fill Sections
           </div>
           <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.5, margin: 0 }}>
-            Describe your details — AI generates beautiful sections instantly.
+            Tell AI about your events, venue, registry, or travel — it generates polished content for each section of your site.
           </p>
         </div>
         <button

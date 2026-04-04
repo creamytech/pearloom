@@ -62,7 +62,7 @@ function HotelCard({
       transition={{ duration: 0.75, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -3, boxShadow: '0 16px 50px rgba(43,43,43,0.08)' }}
       style={{
-        background: '#ffffff',
+        background: 'var(--eg-card-bg, #ffffff)',
         borderRadius: '1.25rem',
         border: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
@@ -426,7 +426,7 @@ export function TravelSection({
               style={{
                 marginBottom: '3rem',
                 padding: '2rem 2.25rem',
-                background: '#ffffff',
+                background: 'var(--eg-card-bg, #ffffff)',
                 borderRadius: '1.25rem',
                 border: '1px solid rgba(0,0,0,0.06)',
                 boxShadow: '0 4px 20px rgba(43,43,43,0.03)',
@@ -565,7 +565,7 @@ export function TravelSection({
                   >
                     <LocationPinIcon size={28} color="rgba(43,43,43,0.35)" />
                   </div>
-                  <div style={{ padding: '1.75rem 2rem', background: '#ffffff' }}>
+                  <div style={{ padding: '1.75rem 2rem', background: 'var(--eg-card-bg, #ffffff)' }}>
                     <div
                       style={{
                         display: 'flex',
@@ -608,7 +608,7 @@ export function TravelSection({
                   transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     padding: '1.75rem 2rem',
-                    background: '#ffffff',
+                    background: 'var(--eg-card-bg, #ffffff)',
                     borderRadius: '1.25rem',
                     border: '1px solid rgba(0,0,0,0.06)',
                     boxShadow: '0 4px 20px rgba(43,43,43,0.03)',

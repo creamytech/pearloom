@@ -206,6 +206,39 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             });
           }}
         />
+
+        {/* Active stickers list with controls */}
+        {(manifest.stickers?.length ?? 0) > 0 && (
+          <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: '8px' }}>
+              Active ({manifest.stickers!.length})
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {manifest.stickers!.map((s, i) => (
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>
+                    Size
+                    <input type="range" min={30} max={200} value={s.size} onChange={e => {
+                      const updated = [...manifest.stickers!];
+                      updated[i] = { ...s, size: Number(e.target.value) };
+                      onChange({ ...manifest, stickers: updated });
+                    }} style={{ width: '50px', accentColor: '#A3B18A' }} />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>
+                    Op.
+                    <input type="range" min={10} max={100} value={Math.round(s.opacity * 100)} onChange={e => {
+                      const updated = [...manifest.stickers!];
+                      updated[i] = { ...s, opacity: Number(e.target.value) / 100 };
+                      onChange({ ...manifest, stickers: updated });
+                    }} style={{ width: '40px', accentColor: '#A3B18A' }} />
+                  </label>
+                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}>✕</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </SidebarSection>
 
       {/* Live color preview swatch */}

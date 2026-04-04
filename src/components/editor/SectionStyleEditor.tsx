@@ -94,13 +94,14 @@ export function SectionStyleEditor({
               border: '1px solid rgba(255,255,255,0.2)',
               cursor: 'pointer', flexShrink: 0, display: 'flex',
               alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+              position: 'relative',
             }}
           >
             <input
               type="color"
               value={currentBg}
               onChange={e => upd({ backgroundColor: e.target.value })}
-              style={{ width: '100%', height: '100%', opacity: 0, cursor: 'pointer', position: 'absolute' }}
+              style={{ width: '100%', height: '100%', opacity: 0, cursor: 'pointer', position: 'absolute', top: 0, left: 0 }}
             />
           </label>
         </div>

@@ -78,13 +78,17 @@ export default function DashboardClient() {
     // Pass 6: critique (10s) → Pass 7: poetry (8s)
     const STEP_DELAYS = [2000, 45000, 15000, 10000, 20000, 15000, 10000, 8000];
     let stepCount = 0;
+    let stepTimers: ReturnType<typeof setTimeout>[] = [];
     const advanceStep = () => {
       stepCount++;
       if (stepCount > 7) return;
       dispatch({ type: 'SET_GENERATION_STEP', step: stepCount });
-      setTimeout(advanceStep, STEP_DELAYS[stepCount] || 10000);
+      const timer = setTimeout(advanceStep, STEP_DELAYS[stepCount] || 10000);
+      stepTimers.push(timer);
     };
-    const stepTimer = setTimeout(advanceStep, STEP_DELAYS[0]);
+    const firstTimer = setTimeout(advanceStep, STEP_DELAYS[0]);
+    stepTimers.push(firstTimer);
+    const generationStartTime = Date.now();
 
     const controller = new AbortController();
     generationControllerRef.current = controller;
@@ -122,7 +126,7 @@ export default function DashboardClient() {
         signal: controller.signal,
       });
 
-      clearTimeout(stepTimer);
+      stepTimers.forEach(t => clearTimeout(t));
       clearTimeout(timeoutId);
 
       if (!res.ok) {
@@ -137,6 +141,31 @@ export default function DashboardClient() {
 
       result.manifest.occasion = data.occasion || 'wedding';
       if (data.layoutFormat) result.manifest.layoutFormat = data.layoutFormat;
+
+      // Animate through remaining steps quickly before showing editor
+      // This ensures users see the progress animation even if the API returns fast
+      const elapsed = Date.now() - generationStartTime;
+      const MIN_ANIMATION_MS = 6000; // At least 6s of animation
+      const remainingSteps = 7 - stepCount;
+      if (elapsed < MIN_ANIMATION_MS && remainingSteps > 0) {
+        const timePerStep = Math.max(400, (MIN_ANIMATION_MS - elapsed) / remainingSteps);
+        await new Promise<void>(resolve => {
+          let i = 0;
+          const rush = () => {
+            stepCount++;
+            if (stepCount <= 7) {
+              dispatch({ type: 'SET_GENERATION_STEP', step: stepCount });
+            }
+            i++;
+            if (i < remainingSteps) {
+              setTimeout(rush, timePerStep);
+            } else {
+              setTimeout(resolve, 800); // Brief pause on final step
+            }
+          };
+          rush();
+        });
+      }
 
       const autoSlug = data.subdomain || generateSlug(data.names);
       dispatch({ type: 'SET_MANIFEST', manifest: result.manifest, subdomain: autoSlug });
@@ -196,7 +225,7 @@ export default function DashboardClient() {
         else r.json().then(d => logError('[Generate] Draft save failed:', d.error)).catch(() => {});
       }).catch(e => logError('[Generate] Draft save network error:', e));
     } catch (err) {
-      clearTimeout(stepTimer);
+      stepTimers.forEach(t => clearTimeout(t));
       clearTimeout(timeoutId);
       const msg = err instanceof Error
         ? (err.name === 'AbortError'

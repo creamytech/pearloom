@@ -8,6 +8,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+function proxyUrl(rawUrl: string, w: number, h: number): string {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('googleusercontent.com')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
+  }
+  return rawUrl;
+}
 import { TimelineItem } from './timeline-item';
 import { useTheme } from '@/components/theme-provider';
 import { getPatternStyle } from '@/lib/patterns';
@@ -133,7 +141,7 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 <div style={{ position: 'relative', width: '100%', paddingBottom: '72%', background: '#111', overflow: 'hidden' }}>
                   {coverImg ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={coverImg} alt={chapter.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: isActive ? 'none' : 'brightness(0.7) saturate(0.85)', transition: 'filter 0.4s' }} />
+                    <img src={proxyUrl(coverImg, 600, 450)} alt={chapter.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: isActive ? 'none' : 'brightness(0.7) saturate(0.85)', transition: 'filter 0.4s', background: 'var(--eg-accent-light, #e8e4dc)' }} />
                   ) : (
                     <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${vibeSkin?.chapterColors?.[i] || 'rgba(163,177,138,0.3)'}, rgba(0,0,0,0.5))` }} />
                   )}
@@ -230,7 +238,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   width: isMobile ? 'calc(50% - 0.625rem)' : 'clamp(160px, 28vw, 220px)',
-                  background: '#faf9f6',
+                  background: 'var(--eg-bg, #faf9f6)',
                   padding: isMobile ? '10px 10px 36px' : '12px 12px 48px',
                   boxShadow: isActive
                     ? '0 30px 80px rgba(0,0,0,0.25), 0 0 0 3px rgba(163,177,138,0.5)'
@@ -245,7 +253,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 <div style={{ width: '100%', paddingBottom: '100%', position: 'relative', background: '#eee', overflow: 'hidden', marginBottom: '8px' }}>
                   {coverImg ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={coverImg} alt={chapter.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={proxyUrl(coverImg, 600, 450)} alt={chapter.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', background: 'var(--eg-accent-light, #e8e4dc)' }} />
                   ) : (
                     <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${vibeSkin?.chapterColors?.[i] || 'rgba(163,177,138,0.4)'}, rgba(163,177,138,0.1))` }} />
                   )}
@@ -321,7 +329,7 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
                 style={{ position: 'relative', height: isMobile ? 'clamp(280px, 60vw, 420px)' : 'clamp(360px, 55vw, 640px)', overflow: 'hidden' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={coverImg} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={proxyUrl(coverImg, 800, 600)} alt={chapter.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--eg-accent-light, #e8e4dc)' }} />
                 {/* On mobile: gradient covers full bottom; on desktop: side gradient */}
                 <div style={{ position: 'absolute', inset: 0, background: isMobile
                   ? 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)'
@@ -424,7 +432,7 @@ function ChaptersLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
               {coverImg && (
                 <div style={{ width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, opacity: isOpen ? 1 : 0.5, transition: 'opacity 0.3s', border: `2px solid ${isOpen ? 'var(--eg-accent, #A3B18A)' : 'transparent'}` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={coverImg} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={proxyUrl(coverImg, 800, 600)} alt={chapter.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--eg-accent-light, #e8e4dc)' }} />
                 </div>
               )}
 
@@ -562,7 +570,7 @@ function StarmapLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
               >
                 {coverImg ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={coverImg} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={proxyUrl(coverImg, 800, 600)} alt={chapter.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--eg-accent-light, #e8e4dc)' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', background: vibeSkin?.chapterColors?.[i] || 'rgba(163,177,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: '1rem' }}>{vibeSkin?.chapterIcons?.[i] || '★'}</span>

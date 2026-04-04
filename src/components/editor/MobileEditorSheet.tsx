@@ -15,7 +15,7 @@ import {
 import {
   Eye, BookOpen, CalendarDays, Palette, MoreHorizontal,
   Plus, Trash2, Image, Clock, ChevronRight, X,
-  Users, Send, Mail, Mic, LayoutGrid, Globe, Gift,
+  Users, Send, Mail, Mic, LayoutGrid, Layers, Globe, Gift,
   Music, ShoppingBag, Heart, BarChart2, Undo2, Redo2,
 } from 'lucide-react';
 import { GripIcon } from '@/components/icons/EditorIcons';
@@ -29,6 +29,8 @@ const StoryPanel              = dynamic(() => import('./StoryPanel').then(m => (
 const DesignPanel             = dynamic(() => import('./DesignPanel').then(m => ({ default: m.DesignPanel })), { ssr: false });
 const EventsPanel             = dynamic(() => import('./EventsPanel').then(m => ({ default: m.EventsPanel })), { ssr: false });
 const DetailsPanel            = dynamic(() => import('./DetailsPanel').then(m => ({ default: m.DetailsPanel })), { ssr: false });
+const PagesPanel              = dynamic(() => import('./PagesPanel').then(m => ({ default: m.PagesPanel })), { ssr: false });
+const SectionsPanel           = dynamic(() => import('./SectionsPanel').then(m => ({ default: m.SectionsPanel })), { ssr: false });
 const GuestSearchPanel        = dynamic(() => import('./GuestSearchPanel').then(m => ({ default: m.GuestSearchPanel })), { ssr: false });
 const MessagingPanel          = dynamic(() => import('@/components/dashboard/MessagingPanel').then(m => ({ default: m.MessagingPanel })), { ssr: false });
 const BulkInvitePanel         = dynamic(() => import('./BulkInvitePanel').then(m => ({ default: m.BulkInvitePanel })), { ssr: false });
@@ -53,11 +55,13 @@ type MoreTool = {
 
 // ── More drawer tools ───────────────────────────────────────────
 const MORE_TOOLS: MoreTool[] = [
+  { id: 'sections',    icon: Layers,      label: 'Sections'      },
+  { id: 'pages',       icon: Globe,       label: 'Pages'         },
   { id: 'details',     icon: LayoutGrid,  label: 'Details'       },
   { id: 'guests',      icon: Users,       label: 'Guests'        },
   { id: 'messaging',   icon: Mail,        label: 'Messaging'     },
   { id: 'invite',      icon: Send,        label: 'Invites'       },
-  { id: 'blocks',      icon: LayoutGrid,  label: 'AI Blocks'     },
+  { id: 'blocks',      icon: LayoutGrid,  label: 'Auto-Fill'     },
   { id: 'voice',       icon: Mic,         label: 'Voice'         },
   { id: 'seating',     icon: Users,       label: 'Seating'       },
   { id: 'analytics',   icon: BarChart2,   label: 'Analytics'     },
@@ -451,6 +455,18 @@ export function MobileEditorSheet() {
     const panelStyle: React.CSSProperties = { height: '100%', overflow: 'hidden' };
 
     switch (activeMoreTool) {
+      case 'sections':
+        return (
+          <ScrollPanel>
+            <SectionsPanel manifest={manifest} onChange={actions.handleDesignChange} />
+          </ScrollPanel>
+        );
+      case 'pages':
+        return (
+          <ScrollPanel>
+            <PagesPanel manifest={manifest} subdomain={state.subdomain} onChange={actions.handleDesignChange} />
+          </ScrollPanel>
+        );
       case 'details':
         return (
           <ScrollPanel>

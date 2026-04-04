@@ -284,6 +284,20 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
             />
           ))}
         </div>
+        {(effects.customCursor ?? 'none') !== 'none' && (
+          <div style={{ marginTop: '10px' }}>
+            <SectionLabel>Color</SectionLabel>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ position: 'relative', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.15)', cursor: 'pointer', overflow: 'hidden', background: effects.cursorColor || accentColor || '#A3B18A' }}>
+                <input type="color" value={effects.cursorColor || accentColor || '#A3B18A'} onChange={e => set('cursorColor', e.target.value)} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
+              </label>
+              <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace' }}>{effects.cursorColor || accentColor || '#A3B18A'}</span>
+              {effects.cursorColor && (
+                <button onClick={() => set('cursorColor', undefined)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '0.65rem', textDecoration: 'underline' }}>Reset</button>
+              )}
+            </div>
+          </div>
+        )}
         <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>
           Only visible on desktop (mouse) devices
         </div>
