@@ -338,6 +338,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate the Story Manifest via Gemini (3-pass: generate → critique → vibeSkin)
+    // Stream real progress back to the client if SSE is requested
     const manifest = await generateStoryManifest(
       enrichedClusters,
       vibeString,

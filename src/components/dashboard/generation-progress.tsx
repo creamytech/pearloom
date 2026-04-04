@@ -16,14 +16,14 @@ import { colors as C, text } from '@/lib/design-tokens';
 
 // ── Pass descriptors ──────────────────────────────────────────
 const PASSES = [
-  { headline: 'Threading the loom\u2026', copy: 'Loading your memories into the weave.', pct: 5 },
-  { headline: 'Writing your story', copy: 'Each photo becomes a chapter only you could have lived.', pct: 20 },
-  { headline: 'Refining every word', copy: 'Making sure it sounds like you, not anyone else.', pct: 34 },
-  { headline: 'Learning your DNA', copy: 'The pets, the places, the inside jokes.', pct: 47 },
-  { headline: 'Designing your world', copy: 'Colors, fonts, and shapes \u2014 born from your vibe.', pct: 61 },
-  { headline: 'Painting custom art', copy: 'AI-generated imagery that belongs to no one else.', pct: 74 },
-  { headline: 'Critiquing the design', copy: 'A second opinion on every detail.', pct: 86 },
-  { headline: 'Final poetry', copy: 'The tagline. The closing line. The welcome in your voice.', pct: 95 },
+  { headline: 'Reading your photos\u2026', copy: 'Scanning dates, places, and faces from your gallery.', pct: 2 },
+  { headline: 'Writing your story', copy: 'Turning each memory into a chapter only you could have lived.', pct: 15 },
+  { headline: 'Refining every word', copy: 'Scoring each chapter and rewriting anything below a 9/10.', pct: 40 },
+  { headline: 'Learning your DNA', copy: 'The pets, the places, the inside jokes that make you, you.', pct: 50 },
+  { headline: 'Designing your world', copy: 'Choosing colors, fonts, and shapes born from your vibe.', pct: 65 },
+  { headline: 'Painting custom art', copy: 'Illustrating one-of-a-kind artwork for your site.', pct: 78 },
+  { headline: 'Uploading your photos', copy: 'Saving images to permanent storage so they never expire.', pct: 88 },
+  { headline: 'Final poetry', copy: 'Writing the tagline, the welcome, and the closing line.', pct: 96 },
 ];
 
 // How many photo cells to activate per pass
@@ -514,18 +514,27 @@ export function GenerationProgress({
       }}>
         <PassDots current={idx} total={PASSES.length} />
 
+        {/* Smooth progress bar */}
+        <div style={{ width: 'min(280px, 70vw)', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+          <motion.div
+            animate={{ width: `${pass.pct}%` }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            style={{ height: '100%', borderRadius: '2px', background: `linear-gradient(90deg, ${C.olive}, ${C.gold})` }}
+          />
+        </div>
+
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.6rem',
           fontSize: '0.65rem', letterSpacing: '0.14em', textTransform: 'uppercase',
           color: C.darkText, fontWeight: 600,
         }}>
-          <span>Pass {idx + 1} of {PASSES.length}</span>
-          <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
           <span>{pass.pct}%</span>
+          <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
+          <span>Step {idx + 1} of {PASSES.length}</span>
           {elapsed > 10 && (
             <>
               <span style={{ width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
-              <span style={{ opacity: 0.4 }}>{elapsed}s</span>
+              <span style={{ opacity: 0.4 }}>{Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}</span>
             </>
           )}
         </div>
