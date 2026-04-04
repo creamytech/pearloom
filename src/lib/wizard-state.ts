@@ -155,6 +155,7 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
         subdomain: action.subdomain,
         coupleNames: action.names,
         step: 'edit',
+        generationStep: 0,
       };
 
     case 'PATCH_VIBE_ART':
