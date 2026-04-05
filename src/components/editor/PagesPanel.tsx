@@ -82,7 +82,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)' }}>
+        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)' }}>
           Site Pages
         </span>
         <button
@@ -90,7 +90,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '5px 10px', borderRadius: '5px', border: 'none',
-            background: 'rgba(163,177,138,0.18)', color: 'var(--eg-accent, #A3B18A)',
+            background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)',
             cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
           }}
         >
@@ -120,13 +120,13 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   disabled={!newPageTitle.trim()}
                   style={{
                     padding: '6px 12px', borderRadius: '5px', border: 'none',
-                    background: newPageTitle.trim() ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.1)',
-                    color: newPageTitle.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+                    background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.06)',
+                    color: newPageTitle.trim() ? '#fff' : 'var(--pl-muted)',
                     fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                   }}
                 >Add</button>
               </div>
-              <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', marginTop: '4px' }}>
                 URL: {baseUrl}/{newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '...'}
               </div>
             </div>
@@ -135,7 +135,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
       </AnimatePresence>
 
       {/* Preset pages */}
-      <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '4px', marginTop: '8px' }}>
+      <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', marginBottom: '4px', marginTop: '8px' }}>
         Built-in Pages
       </div>
       {filteredPresets.map(page => {
@@ -153,18 +153,18 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
           <div key={page.id} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             padding: '8px 10px 8px 12px', borderRadius: '10px',
-            background: isActive && !isHidden ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${isActive && !isHidden ? 'rgba(163,177,138,0.3)' : 'rgba(255,255,255,0.06)'}`,
+            background: isActive && !isHidden ? 'rgba(163,177,138,0.1)' : 'rgba(163,177,138,0.04)',
+            border: `1px solid ${isActive && !isHidden ? 'rgba(163,177,138,0.3)' : 'rgba(0,0,0,0.04)'}`,
             opacity: isHidden ? 0.4 : 1,
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.85rem', fontWeight: 700, color: isActive && !isHidden ? '#fff' : 'rgba(255,255,255,0.45)' }}>{page.label}</div>
-              {subdomain && <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
+              {subdomain && <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
             </div>
             <span style={{
               fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: isActive && !isHidden ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)',
-              background: isActive && !isHidden ? 'rgba(163,177,138,0.15)' : 'rgba(255,255,255,0.05)',
+              color: isActive && !isHidden ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
+              background: isActive && !isHidden ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.06)',
               padding: '3px 8px', borderRadius: '100px',
             }}>{isActive && !isHidden ? 'Live' : 'Inactive'}</span>
             {onPreviewPage && isActive && !isHidden && (
@@ -173,10 +173,10 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                 title={previewPage === page.slug ? 'Back to homepage preview' : `Preview ${page.label} page`}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '2px', flexShrink: 0,
-                  color: previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)',
+                  color: previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
                 }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)'; }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)'; }}
               >
                 <MonitorPlay size={13} />
               </button>
@@ -185,9 +185,9 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
               <button
                 onClick={() => togglePageVisibility(page.id)}
                 title={isHidden ? 'Show page' : 'Hide page'}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: isHidden ? '#f87171' : 'rgba(255,255,255,0.3)', display: 'flex', padding: '2px', flexShrink: 0 }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#fca5a5' : 'rgba(255,255,255,0.7)'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#f87171' : 'rgba(255,255,255,0.3)'; }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: isHidden ? '#f87171' : 'var(--pl-muted)', display: 'flex', padding: '2px', flexShrink: 0 }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#fca5a5' : 'var(--pl-ink)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#f87171' : 'var(--pl-muted)'; }}
               >
                 {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
               </button>
@@ -199,7 +199,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
       {/* Custom pages */}
       {customPages.length > 0 && (
         <>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', margin: '12px 0 4px' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', margin: '12px 0 4px' }}>
             Custom Pages
           </div>
           {customPages.map(page => (
@@ -211,12 +211,12 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
-                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.25)', marginTop: '2px' }}>{baseUrl}/{page.slug}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '2px' }}>{baseUrl}/{page.slug}</div>
               </div>
               <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 <span style={{
                   fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: 'var(--eg-accent, #A3B18A)', background: 'rgba(163,177,138,0.15)', padding: '3px 8px', borderRadius: '100px',
+                  color: 'var(--pl-olive, #A3B18A)', background: 'rgba(163,177,138,0.15)', padding: '3px 8px', borderRadius: '100px',
                 }}>Live</span>
                 {onPreviewPage && (
                   <button
@@ -224,19 +224,19 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                     title={previewPage === page.slug ? 'Back to homepage preview' : `Preview ${page.title} page`}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '2px',
-                      color: previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)',
+                      color: previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
                     }}
-                    onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-                    onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.3)'; }}
+                    onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+                    onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)'; }}
                   >
                     <MonitorPlay size={13} />
                   </button>
                 )}
                 <button
                   onClick={() => deleteCustomPage(page.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
                   onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
                 >
                   <Trash2 size={11} />
                 </button>
@@ -248,7 +248,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
 
       <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(163,177,138,0.06)', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.2)' }}>
         <p style={{ fontSize: '0.82rem', color: 'rgba(163,177,138,0.8)', lineHeight: 1.5, margin: 0 }}>
-          To activate built-in pages, add content in the <strong style={{ color: 'var(--eg-accent, #A3B18A)' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: 'var(--eg-accent, #A3B18A)' }}>Canvas</strong> tab.
+          To activate built-in pages, add content in the <strong style={{ color: 'var(--pl-olive, #A3B18A)' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: 'var(--pl-olive, #A3B18A)' }}>Canvas</strong> tab.
         </p>
       </div>
     </div>

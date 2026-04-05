@@ -59,11 +59,11 @@ function FaqAccordion({ faq }: { faq: FaqItem }) {
           border: 'none',
           textAlign: 'left',
           cursor: 'pointer',
-          fontFamily: 'var(--eg-font-body)',
+          fontFamily: 'var(--pl-font-body)',
         }}
       >
         <span style={{
-          color: 'var(--eg-fg)',
+          color: 'var(--pl-ink)',
           fontWeight: 500,
           fontSize: '0.95rem',
           paddingRight: '1rem',
@@ -131,7 +131,7 @@ export default function FaqPage() {
               <HelpCircle size={22} color="#A3B18A" />
             </div>
             <h1 style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
               fontWeight: 600,
               letterSpacing: '-0.02em',

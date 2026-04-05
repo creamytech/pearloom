@@ -170,7 +170,7 @@ export function ImageManager({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '28px', height: '28px', borderRadius: '5px', border: 'none',
                   background: viewMode === 'grid' ? 'rgba(163,177,138,0.15)' : 'transparent',
-                  color: viewMode === 'grid' ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
+                  color: viewMode === 'grid' ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                 }}
               >
@@ -183,7 +183,7 @@ export function ImageManager({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '28px', height: '28px', borderRadius: '5px', border: 'none',
                   background: viewMode === 'constellation' ? 'rgba(163,177,138,0.15)' : 'transparent',
-                  color: viewMode === 'constellation' ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
+                  color: viewMode === 'constellation' ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                 }}
               >
@@ -197,8 +197,8 @@ export function ImageManager({
             title="Pick from Google Photos"
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 10px', borderRadius: '5px', border: '1px solid rgba(255,255,255,0.12)',
-              background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)',
+              padding: '5px 10px', borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)',
+              background: 'rgba(0,0,0,0.04)', color: 'var(--pl-ink-soft)',
               fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
               minHeight: '32px', transition: 'all 0.15s',
             }}
@@ -214,7 +214,7 @@ export function ImageManager({
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '5px 12px', borderRadius: '5px', border: '1px solid rgba(163,177,138,0.4)',
-              background: 'rgba(163,177,138,0.15)', color: 'var(--eg-accent, #A3B18A)',
+              background: 'rgba(163,177,138,0.15)', color: 'var(--pl-olive, #A3B18A)',
               fontSize: '0.82rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
               opacity: uploading ? 0.6 : 1, minHeight: '32px',
             }}
@@ -260,11 +260,11 @@ export function ImageManager({
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: '8px', width: '100%', padding: '1.5rem',
-              border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '10px',
-              background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.25)',
+              border: '2px dashed rgba(0,0,0,0.06)', borderRadius: '10px',
+              background: 'transparent', cursor: 'pointer', color: 'var(--pl-muted)',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
           >
             <Camera size={20} />
             <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Add photos</span>
@@ -272,7 +272,7 @@ export function ImageManager({
         ) : viewMode === 'grid' ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {images.map((img, i) => (
-              <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
                 {/* Cover image uses PhotoReposition */}
                 {i === 0 && onPositionChange ? (
                   <PhotoReposition
@@ -300,7 +300,7 @@ export function ImageManager({
                     transition: 'background 0.15s',
                     zIndex: 2,
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--eg-plum, #6D597A)'; }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-plum, #6D597A)'; }}
                   onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.7)'; }}
                 >
                   <X size={10} />
@@ -322,12 +322,12 @@ export function ImageManager({
               onClick={() => fileInputRef.current?.click()}
               style={{
                 aspectRatio: '1', borderRadius: '8px',
-                border: '2px dashed rgba(255,255,255,0.1)', background: 'transparent',
+                border: '2px dashed rgba(0,0,0,0.06)', background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(255,255,255,0.25)', transition: 'all 0.15s',
+                color: 'var(--pl-muted)', transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
             >
               <Plus size={16} />
             </button>
@@ -424,7 +424,7 @@ export function ImageManager({
                         height: '18px',
                         borderRadius: '50%',
                         background: 'rgba(0,0,0,0.75)',
-                        border: '1.5px solid rgba(255,255,255,0.3)',
+                        border: '1.5px solid var(--pl-muted)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -435,7 +435,7 @@ export function ImageManager({
                         zIndex: 2,
                         padding: 0,
                       }}
-                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--eg-plum, #6D597A)'; }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-plum, #6D597A)'; }}
                       onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.75)'; }}
                     >
                       <X size={9} />
@@ -451,11 +451,11 @@ export function ImageManager({
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                 width: '100%', marginTop: '8px', padding: '7px 12px', borderRadius: '8px',
-                border: '2px dashed rgba(255,255,255,0.1)', background: 'transparent',
-                cursor: 'pointer', color: 'rgba(255,255,255,0.25)', transition: 'all 0.15s',
+                border: '2px dashed rgba(0,0,0,0.06)', background: 'transparent',
+                cursor: 'pointer', color: 'var(--pl-muted)', transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
             >
               <Plus size={14} />
               <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Add more photos</span>
@@ -485,8 +485,8 @@ export function ImageManager({
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               width: '100%', padding: '7px 12px', borderRadius: '6px',
               border: '1px solid rgba(163,177,138,0.3)',
-              background: generatingCaptions ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
-              color: generatingCaptions ? 'rgba(255,255,255,0.4)' : 'var(--eg-accent, #A3B18A)',
+              background: generatingCaptions ? 'rgba(163,177,138,0.05)' : 'rgba(163,177,138,0.1)',
+              color: generatingCaptions ? 'var(--pl-ink-soft)' : 'var(--pl-olive, #A3B18A)',
               fontSize: '0.82rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
               letterSpacing: '0.04em', transition: 'all 0.15s',
             }}

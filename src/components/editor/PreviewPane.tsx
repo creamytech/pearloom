@@ -114,7 +114,7 @@ function HeroSection({
         <div style={{
           display: 'inline-block',
           fontSize: '11px', fontWeight: 800, letterSpacing: '0.25em',
-          textTransform: 'uppercase', color: coverPhoto ? 'rgba(255,255,255,0.75)' : accent,
+          textTransform: 'uppercase', color: coverPhoto ? 'var(--pl-ink)' : accent,
           marginBottom: '16px', fontFamily: bodyFont,
         }}>
           {coupleNames[0]}{hasPair ? ` & ${coupleNames[1]}` : ''}
@@ -158,8 +158,8 @@ function HeroSection({
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '8px 20px', borderRadius: '100px',
-            background: coverPhoto ? 'rgba(255,255,255,0.12)' : `${accent}15`,
-            border: `1px solid ${coverPhoto ? 'rgba(255,255,255,0.2)' : `${accent}35`}`,
+            background: coverPhoto ? 'rgba(0,0,0,0.07)' : `${accent}15`,
+            border: `1px solid ${coverPhoto ? 'var(--pl-muted)' : `${accent}35`}`,
             fontSize: '13px', fontWeight: 600, color: coverPhoto ? '#fff' : accent, fontFamily: bodyFont,
           }}>
             {new Date(manifest.logistics.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -277,7 +277,7 @@ function ChapterCard({
             {chapter.mood || ''}
           </div>
           <InlineEditableText value={chapter.title} isEditing={isEditingField('title')} onStartEdit={() => onStartEdit('title')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('title', v)} tag="h2" style={titleStyle('36px', '#fff', { margin: '0 0 10px' })} />
-          <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={{ ...descStyle, color: 'rgba(255,255,255,0.75)', WebkitLineClamp: isEditingField('description') ? undefined : 3, display: isEditingField('description') ? 'block' : '-webkit-box', WebkitBoxOrient: 'vertical', overflow: isEditingField('description') ? 'visible' : 'hidden' } as React.CSSProperties} />
+          <InlineEditableText value={chapter.description || ''} isEditing={isEditingField('description')} onStartEdit={() => onStartEdit('description')} onCancelEdit={onCancelEdit} onCommit={(v) => onCommitEdit('description', v)} tag="p" multiline style={{ ...descStyle, color: 'var(--pl-ink)', WebkitLineClamp: isEditingField('description') ? undefined : 3, display: isEditingField('description') ? 'block' : '-webkit-box', WebkitBoxOrient: 'vertical', overflow: isEditingField('description') ? 'visible' : 'hidden' } as React.CSSProperties} />
         </div>
       </div>
     );
@@ -389,23 +389,23 @@ export function PreviewPane({
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100%',
-      background: 'var(--eg-dark-2, #3D3530)', overflow: 'hidden',
+      background: 'var(--pl-ink-soft, #3D3530)', overflow: 'hidden',
     }}>
       {/* ── Header bar ── */}
       <div style={{
         flexShrink: 0, height: '40px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 12px',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        borderBottom: '1px solid rgba(0,0,0,0.06)',
         background: 'rgba(0,0,0,0.2)',
       }}>
         <span style={{
           fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)',
+          textTransform: 'uppercase', color: 'var(--pl-ink-soft)',
         }}>
           Live Preview
         </span>
-        <div style={{ display: 'flex', gap: '2px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px' }}>
+        <div style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.04)', borderRadius: '6px', padding: '2px' }}>
           {(['desktop', 'mobile'] as PreviewDevice[]).map(d => (
             <button
               key={d}
@@ -414,7 +414,7 @@ export function PreviewPane({
               style={{
                 padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer',
                 background: previewDevice === d ? 'rgba(255,255,255,0.14)' : 'transparent',
-                color: previewDevice === d ? '#fff' : 'rgba(255,255,255,0.35)',
+                color: previewDevice === d ? '#fff' : 'var(--pl-muted)',
                 display: 'flex', alignItems: 'center', transition: 'all 0.15s',
               }}
             >
@@ -477,7 +477,7 @@ export function PreviewPane({
                 <div key={ch.id} style={{ opacity: draggingId === ch.id ? 0.35 : 1, transition: 'opacity 0.15s' }}>
                   {isSelected ? (
                     <div style={{
-                      outline: '2px solid var(--eg-plum, #6D597A)',
+                      outline: '2px solid var(--pl-plum, #6D597A)',
                       outlineOffset: '-2px',
                       borderRadius: '4px',
                       position: 'relative',

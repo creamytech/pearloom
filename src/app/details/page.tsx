@@ -74,7 +74,7 @@ const cardStyle: React.CSSProperties = {
 };
 
 const sectionTitleStyle: React.CSSProperties = {
-  fontFamily: 'var(--eg-font-heading)',
+  fontFamily: 'var(--pl-font-heading)',
   fontSize: '1.25rem',
   fontWeight: 600,
   marginBottom: '1.25rem',
@@ -119,7 +119,7 @@ export default function DetailsPage() {
               <Sparkles size={22} color="#A3B18A" />
             </div>
             <h1 style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
               fontWeight: 600,
               letterSpacing: '-0.02em',
@@ -146,7 +146,7 @@ export default function DetailsPage() {
                 style={cardStyle}
               >
                 <h3 style={{
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontSize: '1.15rem', fontWeight: 600, marginBottom: '1rem',
                 }}>
                   {event.name}

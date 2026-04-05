@@ -160,14 +160,14 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
             <span style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '1px', color: s.color, flexShrink: 0 }}>{s.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 800, color: s.color, marginBottom: '2px' }}>{issue.title}</div>
-              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.55 }}>{issue.detail}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.55 }}>{issue.detail}</div>
             </div>
             <button
               onClick={() => setDismissed(prev => new Set([...prev, issue.code]))}
               style={{
                 position: 'absolute', top: '6px', right: '6px',
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(255,255,255,0.2)', fontSize: '0.7rem', padding: '2px',
+                color: 'var(--pl-muted)', fontSize: '0.7rem', padding: '2px',
                 lineHeight: 1,
               }}
               aria-label="Dismiss"

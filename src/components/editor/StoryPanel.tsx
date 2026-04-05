@@ -43,7 +43,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
       transition={{ type: 'spring', stiffness: 420, damping: 22 }}
       style={{
         cursor: 'grab', padding: '0 10px', display: 'flex', alignItems: 'center',
-        color: 'rgba(255,255,255,0.2)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
+        color: 'var(--pl-muted)', touchAction: 'none', userSelect: 'none', flexShrink: 0,
         minHeight: '44px',
       }}
     >
@@ -70,7 +70,7 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
         cursor: isDragging ? 'grabbing' : 'grab',
         padding: '2px 6px 2px 2px',
         display: 'flex', alignItems: 'center',
-        color: isDragging ? 'rgba(163,177,138,0.9)' : 'rgba(255,255,255,0.18)',
+        color: isDragging ? 'rgba(163,177,138,0.9)' : 'rgba(0,0,0,0.1)',
         touchAction: 'none', userSelect: 'none', flexShrink: 0,
         borderRadius: '4px',
       }}
@@ -141,14 +141,14 @@ function SectionItem({
 
           <div style={{
             width: '44px', height: '44px', borderRadius: '7px', flexShrink: 0,
-            background: thumb ? 'transparent' : 'rgba(255,255,255,0.08)',
-            overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)',
+            background: thumb ? 'transparent' : 'rgba(0,0,0,0.06)',
+            overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)',
           }}>
             {thumb
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={thumb} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Image size={14} color="rgba(255,255,255,0.25)" />
+                  <Image size={14} color="var(--pl-muted)" />
                 </div>}
           </div>
 
@@ -228,7 +228,7 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
       {...attributes}
       {...listeners}
       title="Drag to insert →"
-      whileHover={!isDragging ? { x: 3, backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(163,177,138,0.4)' } : {}}
+      whileHover={!isDragging ? { x: 3, backgroundColor: 'rgba(0,0,0,0.06)', borderColor: 'rgba(163,177,138,0.4)' } : {}}
       whileTap={!isDragging ? { scale: 0.97 } : {}}
       transition={{ type: 'spring', stiffness: 380, damping: 28 }}
       style={{
@@ -310,7 +310,7 @@ export function StoryPanel() {
 
       {/* Timeline format switcher — visual previews */}
       <div style={{ marginBottom: '12px' }}>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '6px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
           Timeline Format
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
@@ -318,13 +318,13 @@ export function StoryPanel() {
             { id: 'cascade',   label: 'Cascade',   desc: 'Classic scroll',
               preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[0.3, 0.2, 0.25].map((o, i) => <div key={i} style={{ display: 'flex', flexDirection: i%2===0?'row':'row-reverse', gap: '2px' }}><div style={{ width: '40%', height: '8px', background: `rgba(163,177,138,${o})`, borderRadius: '1px' }} /><div style={{ flex: 1, height: '8px', background: `rgba(255,255,255,${o*0.5})`, borderRadius: '1px' }} /></div>)}</div> },
             { id: 'filmstrip', label: 'Filmstrip', desc: 'Cinematic reel',
-              preview: <div style={{ display: 'flex', gap: '2px', padding: '4px', background: '#0a0a0a' }}>{[0,1,2,3].map(i => <div key={i} style={{ flex: 1, height: '20px', background: 'rgba(255,255,255,0.08)', borderRadius: '1px', border: '1px solid rgba(255,255,255,0.12)' }} />)}</div> },
+              preview: <div style={{ display: 'flex', gap: '2px', padding: '4px', background: '#0a0a0a' }}>{[0,1,2,3].map(i => <div key={i} style={{ flex: 1, height: '20px', background: 'rgba(0,0,0,0.06)', borderRadius: '1px', border: '1px solid rgba(0,0,0,0.07)' }} />)}</div> },
             { id: 'magazine',  label: 'Magazine',  desc: 'Editorial spreads',
-              preview: <div style={{ display: 'flex', padding: '3px', gap: '2px' }}><div style={{ width: '50%', background: 'rgba(163,177,138,0.25)', borderRadius: '1px' }} /><div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}><div style={{ height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '1px' }} /><div style={{ height: '4px', width: '70%', background: 'rgba(255,255,255,0.1)', borderRadius: '1px' }} /></div></div> },
+              preview: <div style={{ display: 'flex', padding: '3px', gap: '2px' }}><div style={{ width: '50%', background: 'rgba(163,177,138,0.25)', borderRadius: '1px' }} /><div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}><div style={{ height: '4px', background: 'var(--pl-muted)', borderRadius: '1px' }} /><div style={{ height: '4px', width: '70%', background: 'rgba(0,0,0,0.06)', borderRadius: '1px' }} /></div></div> },
             { id: 'scrapbook', label: 'Scrapbook', desc: 'Polaroid feel',
               preview: <div style={{ position: 'relative', padding: '3px' }}>{[{r:-5,x:3,y:2},{r:4,x:16,y:3},{r:-2,x:10,y:10}].map((p,i) => <div key={i} style={{ position: 'absolute', width: '10px', height: '12px', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', transform: `rotate(${p.r}deg)`, left: `${p.x}px`, top: `${p.y}px`, borderRadius: '1px' }}><div style={{ width: '100%', height: '6px', background: 'rgba(163,177,138,0.3)' }} /></div>)}</div> },
             { id: 'chapters',  label: 'Chapters',  desc: 'Book pages',
-              preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[100,60,80].map((w,i) => <div key={i} style={{ height: '5px', background: i===0?'rgba(163,177,138,0.4)':'rgba(255,255,255,0.08)', borderRadius: '2px', width: `${w}%` }} />)}</div> },
+              preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[100,60,80].map((w,i) => <div key={i} style={{ height: '5px', background: i===0?'rgba(163,177,138,0.4)':'rgba(0,0,0,0.06)', borderRadius: '2px', width: `${w}%` }} />)}</div> },
             { id: 'starmap',   label: 'Starmap',   desc: 'Constellation',
               preview: <div style={{ background: '#050810', padding: '3px', position: 'relative' }}>{[[20,35],[50,15],[75,30],[35,55],[60,50]].map(([x,y],i) => <div key={i} style={{ position: 'absolute', width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(200,220,255,0.7)', left: `${x}%`, top: `${y}%` }} />)}</div> },
           ].map(fmt => {

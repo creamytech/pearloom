@@ -82,7 +82,7 @@ function SeatCircle({
       <circle
         r={r}
         fill={guest ? colorFromName(guest.name) : isDragOver ? 'rgba(163,177,138,0.35)' : 'rgba(245,241,232,0.9)'}
-        stroke={isDragOver ? '#A3B18A' : guest ? 'rgba(255,255,255,0.6)' : '#D6C6A8'}
+        stroke={isDragOver ? '#A3B18A' : guest ? 'var(--pl-ink-soft)' : '#D6C6A8'}
         strokeWidth={isDragOver ? 2 : 1}
         style={{ transition: 'fill 0.15s, stroke 0.15s' }}
       />
@@ -216,8 +216,8 @@ export function TableObject({
           dominantBaseline="central"
           fontSize="11"
           fontWeight="600"
-          fill="#2B2B2B"
-          fontFamily="var(--eg-font-heading)"
+          fill="var(--pl-ink-soft)"
+          fontFamily="var(--pl-font-heading)"
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           {table.label}
@@ -285,8 +285,8 @@ export function TableObject({
           dominantBaseline="central"
           fontSize="11"
           fontWeight="600"
-          fill="#2B2B2B"
-          fontFamily="var(--eg-font-heading)"
+          fill="var(--pl-ink-soft)"
+          fontFamily="var(--pl-font-heading)"
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           {table.label}

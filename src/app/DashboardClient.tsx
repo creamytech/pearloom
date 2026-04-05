@@ -320,13 +320,13 @@ export default function DashboardClient() {
                 </div>
                 <div
                   className="text-[0.88rem] leading-relaxed mb-1"
-                  style={{ color: 'var(--eg-muted)' }}
+                  style={{ color: 'var(--pl-muted)' }}
                 >
                   {state.error}
                 </div>
                 <div
                   className="text-[0.88rem] leading-relaxed italic"
-                  style={{ color: 'var(--eg-muted)' }}
+                  style={{ color: 'var(--pl-muted)' }}
                 >
                   This sometimes happens when our AI is busy. It usually works on the second try.
                 </div>
@@ -336,13 +336,13 @@ export default function DashboardClient() {
                       onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); handleVibeSubmit(lastVibeData); }}
                       className="px-5 py-2 border-none cursor-pointer text-[0.88rem] font-bold tracking-wide"
                       style={{
-                        borderRadius: 'var(--eg-radius-sm)',
-                        background: 'var(--eg-accent)',
+                        borderRadius: 'var(--pl-radius-sm)',
+                        background: 'var(--pl-olive)',
                         color: '#fff',
                         transition: 'background 0.15s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--eg-accent-hover)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--eg-accent)')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--pl-olive-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--pl-olive)')}
                     >
                       Try Again
                     </button>
@@ -351,13 +351,13 @@ export default function DashboardClient() {
                     onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); goTo('photos'); }}
                     className="px-5 py-2 bg-transparent cursor-pointer text-[0.88rem] font-semibold tracking-wide"
                     style={{
-                      borderRadius: 'var(--eg-radius-sm)',
-                      color: 'var(--eg-muted)',
-                      border: '1px solid var(--eg-divider)',
+                      borderRadius: 'var(--pl-radius-sm)',
+                      color: 'var(--pl-muted)',
+                      border: '1px solid var(--pl-divider)',
                       transition: 'border-color 0.15s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--eg-gold)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--eg-divider)')}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--pl-gold)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--pl-divider)')}
                   >
                     Start Over
                   </button>
@@ -365,8 +365,8 @@ export default function DashboardClient() {
                     onClick={() => dispatch({ type: 'SET_ERROR', error: null })}
                     className="px-4 py-2 bg-transparent border-none cursor-pointer text-[0.88rem] font-medium"
                     style={{
-                      borderRadius: 'var(--eg-radius-sm)',
-                      color: 'var(--eg-muted)',
+                      borderRadius: 'var(--pl-radius-sm)',
+                      color: 'var(--pl-muted)',
                       opacity: 0.7,
                       transition: 'opacity 0.15s',
                     }}

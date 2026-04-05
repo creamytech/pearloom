@@ -417,7 +417,7 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
                       <div
                         className="absolute inset-0 opacity-30"
                         style={{
-                          backgroundImage: 'radial-gradient(circle at 30% 50%, rgba(255,255,255,0.3) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 40%)',
+                          backgroundImage: 'radial-gradient(circle at 30% 50%, var(--pl-muted) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(0,0,0,0.08) 0%, transparent 40%)',
                         }}
                       />
                     )}
@@ -473,7 +473,7 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
                           fontFamily: 'Georgia, serif',
                           fontStyle: 'italic',
                           fontSize: '0.8rem',
-                          color: 'rgba(255,255,255,0.75)',
+                          color: 'var(--pl-ink)',
                           lineHeight: 1.4,
                           textShadow: '0 1px 4px rgba(0,0,0,0.4)',
                           zIndex: 10,

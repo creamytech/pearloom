@@ -148,7 +148,7 @@ export function SiteNav({
           'transition-[background,box-shadow,border-color,padding] duration-300',
           atTop && !isStudio
             ? 'bg-transparent border-b border-transparent shadow-none'
-            : 'bg-[var(--eg-bg,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
+            : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
           scrolled ? 'py-2' : 'py-4',
         )}
         style={{ backdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)', WebkitBackdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)' }}
@@ -445,7 +445,7 @@ export function SiteNav({
             top: 0,
             width: '1.5px',
             height: '100dvh',
-            background: 'linear-gradient(180deg, transparent 0%, var(--eg-accent) 6%, var(--eg-accent) 94%, transparent 100%)',
+            background: 'linear-gradient(180deg, transparent 0%, var(--pl-olive) 6%, var(--pl-olive) 94%, transparent 100%)',
             opacity: 0.28,
             scaleY: scaleX,
             transformOrigin: 'top center',
@@ -487,7 +487,7 @@ export function SiteNav({
                   gap: '3px',
                   padding: '8px 4px 6px',
                   textDecoration: 'none',
-                  color: active ? 'var(--eg-accent, var(--pl-olive))' : 'rgba(0,0,0,0.35)',
+                  color: active ? 'var(--pl-olive, var(--pl-olive))' : 'rgba(0,0,0,0.35)',
                   transition: 'color 0.15s',
                   position: 'relative',
                 }}
@@ -496,7 +496,7 @@ export function SiteNav({
                   <div style={{
                     position: 'absolute', top: 0, left: '25%', right: '25%',
                     height: '2px', borderRadius: '0 0 2px 2px',
-                    background: 'var(--eg-accent, var(--pl-olive))',
+                    background: 'var(--pl-olive, var(--pl-olive))',
                   }} />
                 )}
                 <PageIcon slug={page.slug} size={18} />
@@ -540,7 +540,7 @@ export function SiteNav({
               bottom: 0,
               width: '1px',
               transform: 'translateX(-50%)',
-              background: 'linear-gradient(180deg, transparent, var(--eg-accent) 20%, var(--eg-accent) 80%, transparent)',
+              background: 'linear-gradient(180deg, transparent, var(--pl-olive) 20%, var(--pl-olive) 80%, transparent)',
               opacity: 0.18,
               pointerEvents: 'none',
             }}
@@ -575,7 +575,7 @@ export function SiteNav({
                     fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
-                    color: active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.35)',
+                    color: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                   }}
@@ -588,7 +588,7 @@ export function SiteNav({
                   animate={{
                     width: active ? '7px' : '5px',
                     height: active ? '7px' : '5px',
-                    background: active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.18)',
+                    background: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.18)',
                   }}
                   transition={{ duration: 0.2 }}
                   style={{

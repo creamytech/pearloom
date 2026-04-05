@@ -27,10 +27,10 @@ export function LiveQROverlay({ domain }: LiveQROverlayProps) {
         position: 'fixed',
         bottom: '24px',
         right: '24px',
-        background: 'rgba(255,255,255,0.08)',
+        background: 'rgba(0,0,0,0.06)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.15)',
+        border: '1px solid rgba(0,0,0,0.08)',
         borderRadius: '12px',
         padding: '12px',
         display: 'flex',
@@ -51,7 +51,7 @@ export function LiveQROverlay({ domain }: LiveQROverlayProps) {
       )}
       <span
         style={{
-          color: 'rgba(255,255,255,0.6)',
+          color: 'var(--pl-ink-soft)',
           fontSize: '0.65rem',
           textAlign: 'center',
           lineHeight: 1.4,

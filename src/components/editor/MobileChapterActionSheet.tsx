@@ -48,8 +48,8 @@ function ActionBtn({
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
         padding: '10px 12px', borderRadius: 10, border: 'none', minWidth: 56,
-        background: danger ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.06)',
-        color: danger ? '#fca5a5' : 'rgba(255,255,255,0.75)',
+        background: danger ? 'rgba(239,68,68,0.12)' : 'rgba(0,0,0,0.04)',
+        color: danger ? '#fca5a5' : 'var(--pl-ink)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.35 : 1,
         minHeight: 44,
@@ -69,7 +69,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <label style={{
       fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em',
-      textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)',
+      textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)',
       marginBottom: 4, display: 'block',
     }}>
       {children}
@@ -80,15 +80,15 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 // ── Input field (dark theme) ────────────────────────────────────
 const fieldStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', borderRadius: 10,
-  border: '1.5px solid rgba(255,255,255,0.1)',
-  background: 'rgba(255,255,255,0.04)',
-  color: 'rgba(255,255,255,0.9)',
-  fontSize: '15px', fontFamily: 'var(--eg-font-body)',
+  border: '1.5px solid rgba(0,0,0,0.06)',
+  background: 'rgba(163,177,138,0.05)',
+  color: 'var(--pl-ink)',
+  fontSize: '15px', fontFamily: 'var(--pl-font-body)',
   outline: 'none', transition: 'border-color 0.15s',
 };
 
 const fieldFocusStyle: React.CSSProperties = {
-  borderColor: 'var(--eg-accent, #A3B18A)',
+  borderColor: 'var(--pl-olive, #A3B18A)',
   boxShadow: '0 0 0 3px rgba(163,177,138,0.15)',
 };
 
@@ -170,9 +170,9 @@ export function MobileChapterActionSheet({
           left: 0, right: 0,
           height: '65vh',
           zIndex: 1250,
-          background: 'var(--eg-dark-2, #3D3530)',
+          background: 'var(--pl-ink-soft, #3D3530)',
           borderRadius: '20px 20px 0 0',
-          borderTop: '1px solid rgba(255,255,255,0.12)',
+          borderTop: '1px solid rgba(0,0,0,0.07)',
           display: 'flex', flexDirection: 'column',
           boxShadow: '0 -12px 48px rgba(0,0,0,0.5)',
           overflow: 'hidden',
@@ -197,9 +197,9 @@ export function MobileChapterActionSheet({
             ) : (
               <div style={{
                 width: 44, height: 44, borderRadius: 8, flexShrink: 0,
-                background: 'rgba(255,255,255,0.06)',
+                background: 'rgba(0,0,0,0.04)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(255,255,255,0.2)', fontSize: '0.7rem', fontWeight: 700,
+                color: 'var(--pl-muted)', fontSize: '0.7rem', fontWeight: 700,
               }}>
                 {chapterIndex + 1}
               </div>
@@ -207,13 +207,13 @@ export function MobileChapterActionSheet({
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
                 fontSize: '0.95rem', fontWeight: 700,
-                color: 'rgba(255,255,255,0.9)',
+                color: 'var(--pl-ink)',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
               }}>
                 {chapter.title || 'Untitled'}
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft)' }}>
                 Chapter {chapterIndex + 1} of {chapterCount}
               </div>
             </div>
@@ -222,9 +222,9 @@ export function MobileChapterActionSheet({
               onClick={onClose}
               style={{
                 width: 36, height: 36, borderRadius: 8, border: 'none',
-                background: 'rgba(255,255,255,0.08)', cursor: 'pointer',
+                background: 'rgba(0,0,0,0.06)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(255,255,255,0.5)', flexShrink: 0,
+                color: 'var(--pl-ink-soft)', flexShrink: 0,
               }}
             >
               <X size={16} />
@@ -295,8 +295,8 @@ export function MobileChapterActionSheet({
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                     padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: chapter.layout === opt.id ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.04)',
-                    color: chapter.layout === opt.id ? 'var(--eg-accent)' : 'rgba(255,255,255,0.5)',
+                    background: chapter.layout === opt.id ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.05)',
+                    color: chapter.layout === opt.id ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
                     fontSize: '0.65rem', fontWeight: 600,
                     minHeight: 44,
                     outline: chapter.layout === opt.id ? '1.5px solid rgba(163,177,138,0.4)' : '1.5px solid transparent',
@@ -321,7 +321,7 @@ export function MobileChapterActionSheet({
               style={{
                 ...fieldStyle,
                 ...(focusedField === 'title' ? fieldFocusStyle : {}),
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontWeight: 700,
                 fontSize: '17px',
               }}

@@ -68,13 +68,13 @@ export function PublicRsvpSection({
     <section
       id="rsvp"
       style={{
-        background: 'var(--eg-bg-section)',
+        background: 'var(--pl-cream-deep)',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       {/* Wave divider at top */}
-      <SectionDivider color="var(--eg-bg)" />
+      <SectionDivider color="var(--pl-cream)" />
 
       {/* Pear watermark */}
       <div
@@ -85,7 +85,7 @@ export function PublicRsvpSection({
           width: '300px',
           height: '380px',
           borderRadius: '38% 38% 50% 50% / 28% 28% 50% 50%',
-          background: 'var(--eg-accent)',
+          background: 'var(--pl-olive)',
           opacity: 0.04,
           pointerEvents: 'none',
         }}
@@ -119,7 +119,7 @@ export function PublicRsvpSection({
                 flex: 1,
                 maxWidth: '120px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 transformOrigin: 'right',
               }}
             />
@@ -129,7 +129,7 @@ export function PublicRsvpSection({
               viewport={{ once: true }}
               transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.2 }}
             >
-              <EnvelopeIcon size={22} color="var(--eg-accent)" />
+              <EnvelopeIcon size={22} color="var(--pl-olive)" />
             </motion.div>
             <motion.div
               initial={{ scaleX: 0, opacity: 0 }}
@@ -140,7 +140,7 @@ export function PublicRsvpSection({
                 flex: 1,
                 maxWidth: '120px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 transformOrigin: 'left',
               }}
             />
@@ -148,12 +148,12 @@ export function PublicRsvpSection({
 
           <h2
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2.5rem, 5vw, 4rem)',
               fontWeight: 600,
               fontStyle: 'italic',
               letterSpacing: '-0.03em',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               marginBottom: '1.25rem',
               lineHeight: 1.05,
             }}
@@ -175,7 +175,7 @@ export function PublicRsvpSection({
               style={{
                 width: '24px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.35,
               }}
             />
@@ -183,7 +183,7 @@ export function PublicRsvpSection({
               style={{
                 width: '4px',
                 height: '4px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 transform: 'rotate(45deg)',
                 opacity: 0.5,
               }}
@@ -192,7 +192,7 @@ export function PublicRsvpSection({
               style={{
                 width: '24px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.35,
               }}
             />
@@ -200,7 +200,7 @@ export function PublicRsvpSection({
 
           <p
             style={{
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               fontSize: '1.1rem',
               fontStyle: 'italic',
               maxWidth: '480px',
@@ -223,16 +223,16 @@ export function PublicRsvpSection({
               marginBottom: '2rem',
               padding: '0.875rem 1.5rem',
               background:
-                'linear-gradient(135deg, var(--eg-accent-light), color-mix(in srgb, var(--eg-accent-light) 70%, #fff))',
+                'linear-gradient(135deg, var(--pl-olive-mist), color-mix(in srgb, var(--pl-olive-mist) 70%, #fff))',
               borderRadius: '0.75rem',
-              border: '1.5px solid color-mix(in srgb, var(--eg-accent) 20%, transparent)',
+              border: '1.5px solid color-mix(in srgb, var(--pl-olive) 20%, transparent)',
               textAlign: 'center',
             }}
           >
             <p
               style={{
                 fontSize: '0.85rem',
-                color: 'var(--eg-accent)',
+                color: 'var(--pl-olive)',
                 fontWeight: 600,
                 letterSpacing: '0.04em',
               }}
@@ -322,11 +322,11 @@ export function PublicRsvpSection({
               >
                 <p
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
                     fontWeight: 600,
                     fontStyle: 'italic',
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                     letterSpacing: '-0.02em',
                     lineHeight: 1.15,
                     marginBottom: '0.75rem',
@@ -341,7 +341,7 @@ export function PublicRsvpSection({
                       fontSize: '0.8rem',
                       fontVariant: 'small-caps',
                       letterSpacing: '0.12em',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       marginBottom: '2rem',
                       textTransform: 'uppercase',
                     }}
@@ -370,13 +370,13 @@ export function PublicRsvpSection({
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '2rem',
-                    fontFamily: 'var(--eg-font-body, inherit)',
+                    fontFamily: 'var(--pl-font-body, inherit)',
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     letterSpacing: '0.06em',
                     cursor: envelopeState === 'opening' ? 'default' : 'pointer',
                     boxShadow:
-                      '0 4px 16px rgba(139,112,64,0.35), inset 0 1px 0 rgba(255,255,255,0.15)',
+                      '0 4px 16px rgba(139,112,64,0.35), inset 0 1px 0 rgba(0,0,0,0.08)',
                     transition: 'box-shadow 0.2s',
                   }}
                 >
@@ -448,11 +448,11 @@ export function PublicRsvpSection({
 
                 <p
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: 'clamp(1.5rem, 3.5vw, 2rem)',
                     fontWeight: 600,
                     fontStyle: 'italic',
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                     letterSpacing: '-0.02em',
                     lineHeight: 1.2,
                     marginBottom: '0.5rem',
@@ -464,7 +464,7 @@ export function PublicRsvpSection({
                   style={{
                     fontSize: '0.85rem',
                     fontStyle: 'italic',
-                    color: 'var(--eg-muted)',
+                    color: 'var(--pl-muted)',
                     letterSpacing: '0.02em',
                   }}
                 >

@@ -213,7 +213,7 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
               {card.emoji}
             </motion.div>
             <h3 style={{
-              color: 'rgba(255,255,255,0.95)',
+              color: 'var(--pl-ink)',
               fontFamily: 'var(--font-heading, Georgia, serif)',
               fontStyle: 'italic',
               fontSize: '1.5rem',
@@ -226,7 +226,7 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
               {card.label}
             </h3>
             <p style={{
-              color: 'rgba(255,255,255,0.5)',
+              color: 'var(--pl-ink-soft)',
               fontSize: '0.82rem',
               marginTop: '0.5rem',
               textAlign: 'center',

@@ -85,8 +85,8 @@ function ArtSlotCard({
           </>
         ) : (
           <div style={{ textAlign: 'center', padding: '1.5rem' }}>
-            <Image size={24} style={{ color: 'rgba(255,255,255,0.2)', marginBottom: '0.5rem' }} />
-            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: text.sm, margin: 0 }}>No art generated</p>
+            <Image size={24} style={{ color: 'var(--pl-muted)', marginBottom: '0.5rem' }} />
+            <p style={{ color: 'var(--pl-muted)', fontSize: text.sm, margin: 0 }}>No art generated</p>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.75rem', flexWrap: 'wrap' }}>
               <ActionButton icon={<Upload size={13} />} label="Upload" onClick={() => inputRef.current?.click()} />
               <ActionButton icon={isPickingGoogle ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ImageIcon size={13} />} label="Google Photos" onClick={onGooglePhotos} disabled={isPickingGoogle} />
@@ -132,7 +132,7 @@ function ActionButton({
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
         padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-        background: danger ? 'rgba(220,60,60,0.15)' : 'rgba(255,255,255,0.12)',
+        background: danger ? 'rgba(220,60,60,0.15)' : 'rgba(0,0,0,0.07)',
         border: 'none', cursor: disabled ? 'wait' : 'pointer',
         color: danger ? '#ff6b6b' : '#fff', fontSize: text.xs, fontWeight: 600,
         opacity: disabled ? 0.6 : 1,

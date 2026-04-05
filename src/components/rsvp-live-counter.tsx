@@ -49,7 +49,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
       style={{
         maxWidth: '600px', margin: '0 auto 4rem',
         background: noAttendees
-          ? 'linear-gradient(135deg, rgba(var(--eg-accent-rgb, 184,146,106),0.04), rgba(var(--eg-accent-rgb, 184,146,106),0.08))'
+          ? 'linear-gradient(135deg, rgba(var(--pl-gold),0.04), rgba(var(--pl-gold),0.08))'
           : '#F5F1E8',
         borderRadius: '1.5rem',
         padding: '2rem 2.25rem',
@@ -85,13 +85,13 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
               <Heart size={20} color="#A3B18A" />
             </motion.div>
             <p style={{
-              fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem',
-              fontWeight: 400, color: 'var(--eg-fg)', marginBottom: '0.35rem',
+              fontFamily: 'var(--pl-font-heading)', fontSize: '1.1rem',
+              fontWeight: 400, color: 'var(--pl-ink)', marginBottom: '0.35rem',
               letterSpacing: '-0.01em',
             }}>
               Be the first to RSVP!
             </p>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '0.82rem', fontStyle: 'italic' }}>
+            <p style={{ color: 'var(--pl-muted)', fontSize: '0.82rem', fontStyle: 'italic' }}>
               Help {coupleNames[0]} & {coupleNames[1]} plan their perfect day.
             </p>
           </motion.div>
@@ -120,14 +120,14 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                 <Heart size={18} color="#10b981" strokeWidth={2} fill="rgba(16,185,129,0.2)" />
               </motion.div>
               <div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--eg-fg)', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--pl-ink)', lineHeight: 1.4 }}>
                   <motion.span
                     key={stats?.attending}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                     style={{
-                      fontFamily: 'var(--eg-font-heading)',
+                      fontFamily: 'var(--pl-font-heading)',
                       fontSize: '1.5rem', color: '#10b981', fontWeight: 400,
                       display: 'inline-block', marginRight: '0.35rem',
                     }}
@@ -137,7 +137,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                   {stats?.attending === 1 ? 'person is' : 'people are'} coming to celebrate with {coupleNames[0]} & {coupleNames[1]}!
                 </div>
                 {stats && stats.pending > 0 && (
-                  <div style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', marginTop: '0.2rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '0.2rem' }}>
                     {stats.pending} {stats.pending === 1 ? 'person' : 'people'} still deciding
                   </div>
                 )}
@@ -176,7 +176,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                   background: '#10b981',
                   boxShadow: '0 0 5px rgba(16,185,129,0.5)',
                 }} />
-                <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 600 }}>
                   {stats?.attending} attending
                 </span>
               </div>
@@ -188,7 +188,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
                     width: '8px', height: '8px', borderRadius: '50%',
                     background: '#f87171',
                   }} />
-                  <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 600 }}>
                     {notAttending} unable to attend
                   </span>
                 </div>
@@ -198,13 +198,13 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
               {stats && stats.pending > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <HelpCircle size={10} color="#f59e0b" />
-                  <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 600 }}>
                     {stats.pending} pending
                   </span>
                 </div>
               )}
 
-              <span style={{ fontSize: '0.68rem', color: 'var(--eg-muted)', marginLeft: 'auto' }}>
+              <span style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginLeft: 'auto' }}>
                 {pct}% responded
               </span>
             </div>

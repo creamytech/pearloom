@@ -154,13 +154,13 @@ export function PhotoReposition({
           {/* Crosshair */}
           <div style={{
             width: '32px', height: '32px',
-            border: '2px solid rgba(255,255,255,0.9)',
+            border: '2px solid var(--pl-ink)',
             borderRadius: '50%',
             position: 'relative',
             boxShadow: '0 0 10px rgba(0,0,0,0.5)',
           }}>
-            <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'rgba(255,255,255,0.9)', transform: 'translateY(-50%)' }} />
-            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: 'rgba(255,255,255,0.9)', transform: 'translateX(-50%)' }} />
+            <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--pl-ink)', transform: 'translateY(-50%)' }} />
+            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: 'var(--pl-ink)', transform: 'translateX(-50%)' }} />
           </div>
           <span style={{
             fontSize: '0.65rem', fontWeight: 700, color: '#fff',
@@ -168,7 +168,7 @@ export function PhotoReposition({
           }}>
             Drag to reposition
           </span>
-          <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.6)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+          <span style={{ fontSize: '0.62rem', color: 'var(--pl-ink-soft)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
             {Math.round(posX)}% · {Math.round(posY)}%
           </span>
 
@@ -178,7 +178,7 @@ export function PhotoReposition({
             style={{
               position: 'absolute', top: '6px', right: '6px',
               width: '22px', height: '22px', borderRadius: '50%',
-              background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(0,0,0,0.65)', border: '1px solid var(--pl-muted)',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#fff',
             }}
@@ -197,7 +197,7 @@ export function PhotoReposition({
             position: 'absolute', bottom: '6px', right: '6px',
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '4px 8px', borderRadius: '5px',
-            background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)',
+            background: 'rgba(0,0,0,0.6)', border: '1px solid var(--pl-muted)',
             color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
             backdropFilter: 'blur(6px)',
             transition: 'background 0.15s',

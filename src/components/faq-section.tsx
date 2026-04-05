@@ -38,7 +38,7 @@ function FaqAccordionItem({
       }}
       style={{
         '--pl-stagger-delay': `${index * 80}ms`,
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
+        borderBottom: '1px solid var(--pl-divider)',
         overflow: 'hidden',
       } as React.CSSProperties}
     >
@@ -60,10 +60,10 @@ function FaqAccordionItem({
       >
         <span
           style={{
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
             fontSize: '1rem',
             fontWeight: 600,
-            color: 'var(--eg-fg)',
+            color: 'var(--pl-ink)',
             lineHeight: 1.4,
             letterSpacing: '-0.005em',
             flex: 1,
@@ -81,11 +81,11 @@ function FaqAccordionItem({
             height: '28px',
             borderRadius: '50%',
             border: '1px solid',
-            borderColor: open ? 'var(--eg-accent)' : 'rgba(0,0,0,0.12)',
+            borderColor: open ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: open ? 'var(--eg-accent)' : 'var(--eg-muted)',
+            color: open ? 'var(--pl-olive)' : 'var(--pl-muted)',
             transition: 'border-color 0.3s ease, color 0.3s ease',
           }}
         >
@@ -111,7 +111,7 @@ function FaqAccordionItem({
             <div
               style={{
                 paddingLeft: '0',
-                borderLeft: '2px solid var(--eg-accent)',
+                borderLeft: '2px solid var(--pl-olive)',
                 marginLeft: '0',
                 paddingRight: '2.5rem',
                 marginBottom: '0.5rem',
@@ -119,14 +119,14 @@ function FaqAccordionItem({
             >
               <p
                 style={{
-                  color: 'var(--eg-muted)',
+                  color: 'var(--pl-muted)',
                   fontSize: '0.95rem',
                   lineHeight: 1.7,
                   paddingBottom: '2rem',
                   paddingLeft: '1rem',
                   fontWeight: 300,
                   maxWidth: '600px',
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                 }}
               >
                 {item.answer}
@@ -168,7 +168,7 @@ export function FaqSection({
       : sorted.filter((f) => (f.category || 'General') === activeCategory);
 
   return (
-    <section data-pe-section="faq" data-pe-label="FAQ" style={{ padding: '8rem 2rem', background: 'var(--eg-bg)' }}>
+    <section data-pe-section="faq" data-pe-label="FAQ" style={{ padding: '8rem 2rem', background: 'var(--pl-cream)' }}>
       <div style={{ maxWidth: '860px', margin: '0 auto' }}>
         {/* Section header */}
         <motion.div
@@ -192,16 +192,16 @@ export function FaqSection({
               style={{
                 width: '48px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.3,
               }}
             />
-            <LeafSprigIcon size={20} color="var(--eg-accent)" style={{ opacity: 0.75 }} />
+            <LeafSprigIcon size={20} color="var(--pl-olive)" style={{ opacity: 0.75 }} />
             <div
               style={{
                 width: '48px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.3,
               }}
             />
@@ -209,12 +209,12 @@ export function FaqSection({
 
           <h2
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
               fontWeight: 600,
               fontStyle: 'italic',
               letterSpacing: '-0.03em',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               lineHeight: 1.05,
               marginBottom: '1.5rem',
             }}
@@ -236,7 +236,7 @@ export function FaqSection({
               style={{
                 width: '24px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.35,
               }}
             />
@@ -244,7 +244,7 @@ export function FaqSection({
               style={{
                 width: '4px',
                 height: '4px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 transform: 'rotate(45deg)',
                 opacity: 0.5,
               }}
@@ -253,7 +253,7 @@ export function FaqSection({
               style={{
                 width: '24px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.35,
               }}
             />
@@ -261,7 +261,7 @@ export function FaqSection({
 
           <p
             style={{
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               fontSize: '1.05rem',
               fontStyle: 'italic',
               lineHeight: 1.65,
@@ -295,15 +295,15 @@ export function FaqSection({
                   style={{
                     padding: '0.4rem 1rem',
                     borderRadius: '100px',
-                    border: `1.5px solid ${isActive ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
-                    background: isActive ? 'var(--eg-accent)' : 'transparent',
-                    color: isActive ? '#fff' : 'var(--eg-muted)',
+                    border: `1.5px solid ${isActive ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
+                    background: isActive ? 'var(--pl-olive)' : 'transparent',
+                    color: isActive ? '#fff' : 'var(--pl-muted)',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     letterSpacing: '0.05em',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {cat}

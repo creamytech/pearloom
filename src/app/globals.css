@@ -43,8 +43,11 @@
   --pl-success-mist: rgba(90,122,74,0.10);
 
   /* ── Glass ── */
-  --pl-glass:        rgba(245,241,232,0.78);
-  --pl-glass-border: rgba(214,198,168,0.32);
+  --pl-glass:             rgba(245,241,232,0.78);
+  --pl-glass-border:      rgba(214,198,168,0.32);
+  --pl-glass-light:       rgba(255,255,255,0.88);
+  --pl-glass-light-border: rgba(0,0,0,0.06);
+  --pl-glass-shadow:      0 4px 24px rgba(43,30,20,0.08);
 
   /* ── Typography ── */
   --pl-font-heading: "Playfair Display", Georgia, serif;

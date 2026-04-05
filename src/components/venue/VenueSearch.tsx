@@ -186,8 +186,8 @@ export function VenueSearch({
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          background: darkMode ? 'rgba(255,255,255,0.06)' : '#F5F1E8',
-          border: darkMode ? '1.5px solid rgba(255,255,255,0.12)' : '1.5px solid #D4C9B0',
+          background: darkMode ? 'rgba(0,0,0,0.04)' : '#F5F1E8',
+          border: darkMode ? '1.5px solid rgba(0,0,0,0.07)' : '1.5px solid #D4C9B0',
           borderRadius: darkMode ? '0.5rem' : '1rem',
           padding: darkMode ? '0.65rem 0.8rem' : '0.875rem 1.25rem',
           boxShadow: isOpen
@@ -196,7 +196,7 @@ export function VenueSearch({
           transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
           borderColor: isOpen
             ? darkMode ? 'rgba(163,177,138,0.6)' : '#8B774B'
-            : darkMode ? 'rgba(255,255,255,0.12)' : '#D4C9B0',
+            : darkMode ? 'rgba(0,0,0,0.07)' : '#D4C9B0',
         }}
       >
         {isLoading ? (
@@ -205,7 +205,7 @@ export function VenueSearch({
             style={{ color: darkMode ? 'rgba(163,177,138,0.7)' : '#8B774B', flexShrink: 0, animation: 'spin 1s linear infinite' }}
           />
         ) : (
-          <Search size={darkMode ? 16 : 20} style={{ color: darkMode ? 'rgba(255,255,255,0.35)' : '#8B774B', flexShrink: 0 }} />
+          <Search size={darkMode ? 16 : 20} style={{ color: darkMode ? 'var(--pl-muted)' : '#8B774B', flexShrink: 0 }} />
         )}
         <input
           ref={inputRef}
@@ -236,7 +236,7 @@ export function VenueSearch({
             outline: 'none',
             fontSize: darkMode ? 'max(16px, 0.88rem)' : '1rem',
             fontFamily: 'inherit',
-            color: darkMode ? 'rgba(255,255,255,0.9)' : '#2C2416',
+            color: darkMode ? 'var(--pl-ink)' : '#2C2416',
           } as React.CSSProperties}
         />
       </div>
@@ -250,7 +250,7 @@ export function VenueSearch({
             left: 0,
             right: 0,
             background: darkMode ? '#2a2520' : '#FEFCF8',
-            border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid #D4C9B0',
+            border: darkMode ? '1px solid rgba(0,0,0,0.07)' : '1px solid #D4C9B0',
             borderRadius: darkMode ? '0.5rem' : '0.875rem',
             boxShadow: darkMode ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.12)',
             zIndex: 50,
@@ -263,7 +263,7 @@ export function VenueSearch({
             <div
               style={{
                 padding: '1.25rem 1.5rem',
-                color: darkMode ? 'rgba(255,255,255,0.4)' : '#9A8F7B',
+                color: darkMode ? 'var(--pl-ink-soft)' : '#9A8F7B',
                 fontSize: '0.9rem',
                 textAlign: 'center',
               }}
@@ -308,7 +308,7 @@ export function VenueSearch({
                       style={{
                         fontWeight: 600,
                         fontSize: '0.9375rem',
-                        color: darkMode ? 'rgba(255,255,255,0.9)' : '#2C2416',
+                        color: darkMode ? 'var(--pl-ink)' : '#2C2416',
                         lineHeight: 1.3,
                       }}
                     >
@@ -317,7 +317,7 @@ export function VenueSearch({
                     <div
                       style={{
                         fontSize: '0.8125rem',
-                        color: darkMode ? 'rgba(255,255,255,0.4)' : '#9A8F7B',
+                        color: darkMode ? 'var(--pl-ink-soft)' : '#9A8F7B',
                         marginTop: '2px',
                         lineHeight: 1.4,
                       }}
@@ -335,7 +335,7 @@ export function VenueSearch({
             <div
               style={{
                 borderTop:
-                  predictions.length > 0 || showEmptyState ? `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : '#EAE3D0'}` : 'none',
+                  predictions.length > 0 || showEmptyState ? `1px solid ${darkMode ? 'rgba(0,0,0,0.06)' : '#EAE3D0'}` : 'none',
                 padding: '0.625rem 1.25rem',
               }}
             >

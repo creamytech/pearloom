@@ -41,7 +41,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
         display: 'flex',
         alignItems: 'center',
         gap: '4px',
-        background: 'rgba(255,255,255,0.06)',
+        background: 'rgba(0,0,0,0.04)',
         borderRadius: '8px',
         padding: '3px',
       }}
@@ -49,7 +49,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
       <motion.button
         onClick={handleZoomOut}
         disabled={zoom <= MIN_ZOOM}
-        whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
+        whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' }}
         whileTap={{ scale: 0.9 }}
         transition={{ type: 'spring', stiffness: 420, damping: 22 }}
         title="Zoom out"
@@ -58,7 +58,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
           borderRadius: '5px',
           border: 'none',
           background: 'transparent',
-          color: zoom <= MIN_ZOOM ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.5)',
+          color: zoom <= MIN_ZOOM ? 'rgba(0,0,0,0.08)' : 'var(--pl-ink-soft)',
           cursor: zoom <= MIN_ZOOM ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -69,7 +69,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
 
       <motion.button
         onClick={handleReset}
-        whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+        whileHover={{ backgroundColor: 'rgba(0,0,0,0.06)' }}
         whileTap={{ scale: 0.95 }}
         title="Reset zoom to 100%"
         style={{
@@ -77,7 +77,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
           borderRadius: '4px',
           border: 'none',
           background: 'transparent',
-          color: zoom === 1 ? 'rgba(255,255,255,0.35)' : 'var(--eg-accent, #A3B18A)',
+          color: zoom === 1 ? 'var(--pl-muted)' : 'var(--pl-olive, #A3B18A)',
           cursor: 'pointer',
           fontSize: '0.7rem',
           fontWeight: 700,
@@ -96,7 +96,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
       <motion.button
         onClick={handleZoomIn}
         disabled={zoom >= MAX_ZOOM}
-        whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' }}
+        whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' }}
         whileTap={{ scale: 0.9 }}
         transition={{ type: 'spring', stiffness: 420, damping: 22 }}
         title="Zoom in"
@@ -105,7 +105,7 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
           borderRadius: '5px',
           border: 'none',
           background: 'transparent',
-          color: zoom >= MAX_ZOOM ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.5)',
+          color: zoom >= MAX_ZOOM ? 'rgba(0,0,0,0.08)' : 'var(--pl-ink-soft)',
           cursor: zoom >= MAX_ZOOM ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',

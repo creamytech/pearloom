@@ -106,7 +106,7 @@ function StatCard({
       </div>
       <div style={{
         fontSize: '1.85rem', fontWeight: 700, color: C.espresso,
-        fontFamily: 'var(--eg-font-heading, serif)', lineHeight: 1,
+        fontFamily: 'var(--pl-font-heading, serif)', lineHeight: 1,
       }}>
         {value}
       </div>
@@ -368,7 +368,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
             borderRadius: '0.75rem', border: `1px solid ${C.border}`,
             background: C.gold, color: C.white,
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
-            fontFamily: 'var(--eg-font-body, sans-serif)',
+            fontFamily: 'var(--pl-font-body, sans-serif)',
             transition: 'opacity 0.15s',
           }}
           onMouseOver={(e) => { e.currentTarget.style.opacity = '0.88'; }}
@@ -387,7 +387,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
             borderRadius: '0.75rem', border: `1px solid ${C.border}`,
             background: C.white, color: C.espresso,
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
-            fontFamily: 'var(--eg-font-body, sans-serif)',
+            fontFamily: 'var(--pl-font-body, sans-serif)',
             transition: 'background 0.15s',
           }}
           onMouseOver={(e) => { e.currentTarget.style.background = C.ivory; }}
@@ -409,7 +409,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
               borderRadius: '0.75rem', border: `1px solid ${C.border}`,
               background: C.white, color: C.espresso,
               cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
-              fontFamily: 'var(--eg-font-body, sans-serif)',
+              fontFamily: 'var(--pl-font-body, sans-serif)',
               textDecoration: 'none',
               transition: 'background 0.15s',
             }}
@@ -428,7 +428,7 @@ export function SiteAnalytics({ manifest, coupleNames, onEdit, onShare }: SiteAn
               borderRadius: '0.75rem', border: `1px solid ${C.border}`,
               background: C.ivory, color: C.muted,
               cursor: 'default', fontSize: '0.75rem', fontWeight: 600,
-              fontFamily: 'var(--eg-font-body, sans-serif)',
+              fontFamily: 'var(--pl-font-body, sans-serif)',
             }}
           >
             <ExternalLink size={12} />

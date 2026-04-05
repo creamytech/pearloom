@@ -126,7 +126,7 @@ export function VibeTagPicker({ selectedTags, onChange }: VibeTagPickerProps) {
                     fontWeight: isSelected ? 600 : 400,
                     border: isSelected
                       ? '1px solid rgba(163,177,138,0.6)'
-                      : '1px solid rgba(255,255,255,0.15)',
+                      : '1px solid rgba(0,0,0,0.08)',
                     background: isSelected
                       ? 'rgba(163,177,138,0.22)'
                       : 'transparent',

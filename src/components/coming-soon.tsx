@@ -55,7 +55,7 @@ function CountdownUnit({ value, label, isTick = false }: { value: number; label:
         borderRadius: '1rem',
         padding: '1.25rem 1.5rem',
         boxShadow: '0 8px 32px rgba(43,43,43,0.08), 0 1px 4px rgba(43,43,43,0.04)',
-        border: '1px solid rgba(255,255,255,0.9)',
+        border: '1px solid var(--pl-ink)',
         minWidth: '72px',
         display: 'flex',
         alignItems: 'center',
@@ -69,10 +69,10 @@ function CountdownUnit({ value, label, isTick = false }: { value: number; label:
             exit={{ y: 14, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2.25rem, 5vw, 3.25rem)',
               fontWeight: 400,
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               letterSpacing: '-0.03em',
               lineHeight: 1,
               display: 'block',
@@ -91,7 +91,7 @@ function CountdownUnit({ value, label, isTick = false }: { value: number; label:
         fontWeight: 700,
         letterSpacing: '0.2em',
         textTransform: 'uppercase',
-        color: 'var(--eg-muted)',
+        color: 'var(--pl-muted)',
       }}>
         {label}
       </span>
@@ -154,7 +154,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
       position: 'relative',
       minHeight: '100dvh',
       padding: 'clamp(4rem, 10vw, 8rem) clamp(1rem, 5vw, 2rem)',
-      background: 'var(--eg-bg)',
+      background: 'var(--pl-cream)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -167,7 +167,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         style={{
           position: 'absolute', bottom: '-40px', right: '-40px',
           width: '300px', height: '300px', borderRadius: '50%',
-          background: 'radial-gradient(circle, var(--eg-fg) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, var(--pl-ink) 0%, transparent 70%)',
           zIndex: 0, pointerEvents: 'none',
         }}
       />
@@ -177,7 +177,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         style={{
           position: 'absolute', top: '-60px', left: '-60px',
           width: '240px', height: '240px', borderRadius: '50%',
-          background: 'radial-gradient(circle, var(--eg-accent) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, var(--pl-olive) 0%, transparent 70%)',
           zIndex: 0, pointerEvents: 'none',
         }}
       />
@@ -190,7 +190,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
           position: 'absolute', top: '30%', left: '50%',
           transform: 'translate(-50%, -50%)',
           width: '800px', height: '800px',
-          background: 'radial-gradient(circle, var(--eg-accent-light) 0%, transparent 65%)',
+          background: 'radial-gradient(circle, var(--pl-olive-mist) 0%, transparent 65%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -201,7 +201,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         style={{
           position: 'absolute', top: '70%', left: '30%',
           width: '500px', height: '500px',
-          background: 'radial-gradient(circle, var(--eg-accent-light) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, var(--pl-olive-mist) 0%, transparent 70%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -214,11 +214,11 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         display: 'flex', alignItems: 'center', gap: '1rem', opacity: 0.2,
         zIndex: 1,
       }}>
-        <div style={{ width: '80px', height: '1px', background: 'var(--eg-fg)' }} />
-        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)', transform: 'rotate(45deg)' }} />
-        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--eg-accent)', transform: 'rotate(45deg)' }} />
-        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)', transform: 'rotate(45deg)' }} />
-        <div style={{ width: '80px', height: '1px', background: 'var(--eg-fg)' }} />
+        <div style={{ width: '80px', height: '1px', background: 'var(--pl-ink)' }} />
+        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--pl-olive)', transform: 'rotate(45deg)' }} />
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--pl-olive)', transform: 'rotate(45deg)' }} />
+        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--pl-olive)', transform: 'rotate(45deg)' }} />
+        <div style={{ width: '80px', height: '1px', background: 'var(--pl-ink)' }} />
       </div>
 
       <motion.div
@@ -242,14 +242,14 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             gap: '0.75rem', marginBottom: '2.5rem', opacity: 0.65,
           }}
         >
-          <div style={{ width: '40px', height: '1px', background: 'var(--eg-accent)' }} />
+          <div style={{ width: '40px', height: '1px', background: 'var(--pl-olive)' }} />
           <span style={{
             fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.32em',
-            textTransform: 'uppercase', color: 'var(--eg-accent)',
+            textTransform: 'uppercase', color: 'var(--pl-olive)',
           }}>
             Save the Date
           </span>
-          <div style={{ width: '40px', height: '1px', background: 'var(--eg-accent)' }} />
+          <div style={{ width: '40px', height: '1px', background: 'var(--pl-olive)' }} />
         </motion.div>
 
         {/* Icon */}
@@ -257,33 +257,33 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
           animate={{ scale: [1, 1.04, 1] }}
           transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            color: 'var(--eg-accent)', marginBottom: '2.5rem',
+            color: 'var(--pl-olive)', marginBottom: '2.5rem',
             display: 'flex', justifyContent: 'center',
           }}
         >
           <div style={{
             width: '80px', height: '80px', borderRadius: '50%',
-            background: 'rgba(255,255,255,0.7)',
+            background: 'var(--pl-ink)',
             border: '1.5px solid rgba(163,177,138,0.25)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 12px 40px rgba(163,177,138,0.2)',
             backdropFilter: 'blur(8px)',
           }}>
             {config.passwordProtected ? (
-              <Lock size={30} strokeWidth={1.3} color="var(--eg-accent)" />
+              <Lock size={30} strokeWidth={1.3} color="var(--pl-olive)" />
             ) : (
-              <CalendarHeartIcon size={30} color="var(--eg-accent)" />
+              <CalendarHeartIcon size={30} color="var(--pl-olive)" />
             )}
           </div>
         </motion.div>
 
         {/* Title */}
         <h1 style={{
-          fontFamily: 'var(--eg-font-heading)',
+          fontFamily: 'var(--pl-font-heading)',
           fontSize: 'clamp(2.75rem, 7vw, 5rem)',
           fontWeight: 400,
           fontStyle: 'italic',
-          color: 'var(--eg-fg)',
+          color: 'var(--pl-ink)',
           lineHeight: 1.0,
           marginBottom: '1.5rem',
           letterSpacing: '-0.03em',
@@ -292,10 +292,10 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         </h1>
 
         <p style={{
-          fontFamily: 'var(--eg-font-body)',
+          fontFamily: 'var(--pl-font-body)',
           fontSize: '1.1rem',
           fontWeight: 300,
-          color: 'var(--eg-muted)',
+          color: 'var(--pl-muted)',
           lineHeight: 1.8,
           marginBottom: isCountdownActive ? '3.5rem' : config.revealDate ? '2rem' : '3.5rem',
           fontStyle: 'italic',
@@ -321,27 +321,27 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
               borderRadius: '2rem',
               padding: '2.25rem 2.75rem',
               border: '1px solid rgba(214,198,168,0.3)',
-              boxShadow: '0 8px 40px rgba(43,43,43,0.05), 0 1px 0 rgba(255,255,255,0.9) inset',
+              boxShadow: '0 8px 40px rgba(43,43,43,0.05), 0 1px 0 var(--pl-ink) inset',
             }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.55rem', opacity: 0.6,
               }}>
-                <CalendarHeartIcon size={12} color="var(--eg-accent)" />
+                <CalendarHeartIcon size={12} color="var(--pl-olive)" />
                 <span style={{
                   fontSize: '0.58rem', fontWeight: 700,
                   letterSpacing: '0.3em', textTransform: 'uppercase',
-                  color: 'var(--eg-muted)',
+                  color: 'var(--pl-muted)',
                 }}>
                   Revealing in
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'clamp(0.4rem, 2vw, 1rem)', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <CountdownUnit value={countdown.days} label="days" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <div style={{ color: 'var(--pl-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--pl-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
                 <CountdownUnit value={countdown.hours} label="hours" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <div style={{ color: 'var(--pl-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--pl-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
                 <CountdownUnit value={countdown.minutes} label="min" />
-                <div style={{ color: 'var(--eg-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--eg-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
+                <div style={{ color: 'var(--pl-muted)', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontFamily: 'var(--pl-font-heading)', opacity: 0.25, paddingTop: '0.5rem' }}>·</div>
                 <CountdownUnit value={countdown.seconds} label="sec" isTick />
               </div>
             </div>
@@ -352,8 +352,8 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         {config.revealDate && !isCountdownActive && (
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-            background: 'var(--eg-accent-light)',
-            color: 'var(--eg-accent)',
+            background: 'var(--pl-olive-mist)',
+            color: 'var(--pl-olive)',
             padding: '0.65rem 1.75rem',
             borderRadius: '100px',
             fontSize: '0.72rem',
@@ -363,7 +363,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             marginBottom: '3.5rem',
             border: '1px solid rgba(163,177,138,0.2)',
           }}>
-            <CalendarHeartIcon size={12} color="var(--eg-accent)" />
+            <CalendarHeartIcon size={12} color="var(--pl-olive)" />
             {parseLocalDate(config.revealDate).toLocaleDateString('en-US', {
               month: 'long', day: 'numeric', year: 'numeric',
             })}
@@ -377,18 +377,18 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.9 }}
             style={{
-              background: 'rgba(255,255,255,0.75)',
+              background: 'var(--pl-ink)',
               backdropFilter: 'blur(20px)',
               borderRadius: '1.75rem',
               padding: '2.5rem',
-              boxShadow: '0 20px 60px rgba(43,43,43,0.07), 0 1px 0 rgba(255,255,255,0.95) inset',
+              boxShadow: '0 20px 60px rgba(43,43,43,0.07), 0 1px 0 var(--pl-ink) inset',
               border: '1px solid rgba(214,198,168,0.25)',
               marginBottom: siteId ? '1.5rem' : '0',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.75rem', justifyContent: 'center' }}>
-              <Lock size={14} color="var(--eg-accent)" strokeWidth={1.8} />
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
+              <Lock size={14} color="var(--pl-olive)" strokeWidth={1.8} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>
                 Enter password to view
               </span>
             </div>
@@ -405,13 +405,13 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                     borderRadius: '1rem',
                     border: `1.5px solid ${pwStatus === 'error' ? '#ef4444' : 'rgba(163,177,138,0.25)'}`,
                     outline: 'none', fontSize: '1rem',
-                    fontFamily: 'var(--eg-font-body)',
-                    background: pwStatus === 'error' ? '#fef2f2' : 'rgba(255,255,255,0.6)',
+                    fontFamily: 'var(--pl-font-body)',
+                    background: pwStatus === 'error' ? '#fef2f2' : 'var(--pl-ink-soft)',
                     boxSizing: 'border-box',
                     transition: 'border-color 0.2s, background 0.2s',
                     letterSpacing: showPassword ? '0' : '0.15em',
                   }}
-                  onFocus={e => { if (pwStatus !== 'error') e.target.style.borderColor = 'var(--eg-accent)'; }}
+                  onFocus={e => { if (pwStatus !== 'error') e.target.style.borderColor = 'var(--pl-olive)'; }}
                   onBlur={e => { if (pwStatus !== 'error') e.target.style.borderColor = 'rgba(163,177,138,0.25)'; }}
                 />
                 <button
@@ -420,7 +420,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   style={{
                     position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--eg-muted)', padding: 0, display: 'flex', alignItems: 'center',
+                    color: 'var(--pl-muted)', padding: 0, display: 'flex', alignItems: 'center',
                   }}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -445,12 +445,12 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                 disabled={pwStatus === 'checking' || !password.trim()}
                 style={{
                   padding: '1rem', borderRadius: '1rem',
-                  background: 'var(--eg-fg)', color: '#fff', border: 'none',
+                  background: 'var(--pl-ink)', color: '#fff', border: 'none',
                   cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   transition: 'opacity 0.2s, transform 0.15s',
                   opacity: (pwStatus === 'checking' || !password.trim()) ? 0.5 : 1,
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                 }}
                 onMouseOver={e => { if (pwStatus !== 'checking') e.currentTarget.style.transform = 'translateY(-1px)'; }}
                 onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
@@ -459,7 +459,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                    style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }}
+                    style={{ width: '16px', height: '16px', border: '2px solid var(--pl-muted)', borderTopColor: '#fff', borderRadius: '50%' }}
                   />
                 ) : (
                   <>
@@ -479,21 +479,21 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55, duration: 0.9 }}
             style={{
-              background: 'rgba(255,255,255,0.75)',
+              background: 'var(--pl-ink)',
               backdropFilter: 'blur(20px)',
               borderRadius: '1.75rem',
               padding: '2.5rem',
-              boxShadow: '0 20px 60px rgba(43,43,43,0.06), 0 1px 0 rgba(255,255,255,0.95) inset',
+              boxShadow: '0 20px 60px rgba(43,43,43,0.06), 0 1px 0 var(--pl-ink) inset',
               border: '1px solid rgba(214,198,168,0.25)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', justifyContent: 'center' }}>
-              <Mail size={14} color="var(--eg-accent)" strokeWidth={1.8} />
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
+              <Mail size={14} color="var(--pl-olive)" strokeWidth={1.8} />
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>
                 Be the first to know
               </span>
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', textAlign: 'center', marginBottom: '1.75rem', fontStyle: 'italic', fontWeight: 300, lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', textAlign: 'center', marginBottom: '1.75rem', fontStyle: 'italic', fontWeight: 300, lineHeight: 1.6 }}>
               Leave your email and we will notify you the moment this site goes live.
             </p>
             <form onSubmit={handleCapture} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -505,12 +505,12 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                 style={{
                   width: '100%', padding: '1rem 1.25rem', borderRadius: '1rem',
                   border: '1.5px solid rgba(163,177,138,0.22)', outline: 'none',
-                  fontSize: '1rem', fontFamily: 'var(--eg-font-body)',
-                  background: 'rgba(255,255,255,0.6)', boxSizing: 'border-box',
+                  fontSize: '1rem', fontFamily: 'var(--pl-font-body)',
+                  background: 'var(--pl-ink-soft)', boxSizing: 'border-box',
                   transition: 'border-color 0.2s',
-                  color: 'var(--eg-fg)',
+                  color: 'var(--pl-ink)',
                 }}
-                onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; }}
+                onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; }}
                 onBlur={e => { e.target.style.borderColor = 'rgba(163,177,138,0.22)'; }}
               />
               <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -523,11 +523,11 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   style={{
                     flex: 1, padding: '1rem 1.25rem', borderRadius: '1rem',
                     border: '1.5px solid rgba(163,177,138,0.22)', outline: 'none',
-                    fontSize: '1rem', fontFamily: 'var(--eg-font-body)',
-                    background: 'rgba(255,255,255,0.6)', transition: 'border-color 0.2s',
-                    color: 'var(--eg-fg)',
+                    fontSize: '1rem', fontFamily: 'var(--pl-font-body)',
+                    background: 'var(--pl-ink-soft)', transition: 'border-color 0.2s',
+                    color: 'var(--pl-ink)',
                   }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; }}
                   onBlur={e => { e.target.style.borderColor = 'rgba(163,177,138,0.22)'; }}
                 />
                 <button
@@ -535,7 +535,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                   disabled={captureStatus === 'loading'}
                   style={{
                     padding: '1rem 1.5rem', borderRadius: '1rem',
-                    background: 'var(--eg-fg)', color: '#fff', border: 'none',
+                    background: 'var(--pl-ink)', color: '#fff', border: 'none',
                     cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     flexShrink: 0, transition: 'opacity 0.2s, transform 0.15s',
@@ -548,7 +548,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                      style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }}
+                      style={{ width: '16px', height: '16px', border: '2px solid var(--pl-muted)', borderTopColor: '#fff', borderRadius: '50%' }}
                     />
                   ) : (
                     <ArrowRight size={16} />
@@ -576,7 +576,7 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
-              background: 'rgba(255,255,255,0.75)',
+              background: 'var(--pl-ink)',
               backdropFilter: 'blur(20px)',
               borderRadius: '1.75rem',
               padding: '3rem 2.5rem',
@@ -598,12 +598,12 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
               <Check size={24} color="#fff" strokeWidth={2.5} />
             </motion.div>
             <p style={{
-              fontFamily: 'var(--eg-font-heading)', fontSize: '1.35rem',
-              color: 'var(--eg-fg)', fontWeight: 400, letterSpacing: '-0.01em',
+              fontFamily: 'var(--pl-font-heading)', fontSize: '1.35rem',
+              color: 'var(--pl-ink)', fontWeight: 400, letterSpacing: '-0.01em',
             }}>
               You&apos;re on the list!
             </p>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: '320px', textAlign: 'center' }}>
+            <p style={{ color: 'var(--pl-muted)', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: '320px', textAlign: 'center' }}>
               We&apos;ll reach out the moment this chapter is ready to be shared.
             </p>
           </motion.div>
@@ -617,9 +617,9 @@ export function ComingSoon({ config, siteId, onUnlock }: ComingSoonProps) {
         display: 'flex', alignItems: 'center', gap: '1rem', opacity: 0.15,
         zIndex: 1,
       }}>
-        <div style={{ width: '40px', height: '1px', background: 'var(--eg-fg)' }} />
-        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--eg-accent)', transform: 'rotate(45deg)' }} />
-        <div style={{ width: '40px', height: '1px', background: 'var(--eg-fg)' }} />
+        <div style={{ width: '40px', height: '1px', background: 'var(--pl-ink)' }} />
+        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--pl-olive)', transform: 'rotate(45deg)' }} />
+        <div style={{ width: '40px', height: '1px', background: 'var(--pl-ink)' }} />
       </div>
 
       {/* Tick animation for seconds */}

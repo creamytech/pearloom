@@ -444,7 +444,7 @@ const PRESET_THEMES: Array<VibeSkin & { name: string }> = [
 const lbl: React.CSSProperties = {
   display: 'block', fontSize: '0.6rem', fontWeight: 800,
   letterSpacing: '0.16em', textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.35)', marginBottom: '0.45rem',
+  color: 'var(--pl-muted)', marginBottom: '0.45rem',
 };
 
 export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) {
@@ -473,9 +473,9 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
         <span style={lbl}>Choose a Theme</span>
-        <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
       </div>
 
       {/* Horizontal scroll row */}
@@ -507,10 +507,10 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                 flex: '0 0 auto', width: '120px',
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                 padding: 0, borderRadius: '8px', border: 'none', cursor: 'pointer',
-                background: 'rgba(255,255,255,0.04)',
+                background: 'rgba(163,177,138,0.05)',
                 outline: isSelected
                   ? '2px solid #6b7c3f'
-                  : isHovered ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.07)',
+                  : isHovered ? '1px solid var(--pl-muted)' : '1px solid rgba(0,0,0,0.05)',
                 overflow: 'hidden',
                 boxShadow: isSelected ? '0 0 0 3px rgba(107,124,63,0.3)' : isHovered ? '0 6px 20px rgba(0,0,0,0.35)' : 'none',
                 transition: 'outline 0.15s, box-shadow 0.15s',
@@ -533,14 +533,14 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
               }}>
                 <div style={{
                   fontSize: '0.7rem', fontWeight: 700,
-                  color: isSelected ? '#b4c87a' : 'rgba(255,255,255,0.75)',
+                  color: isSelected ? '#b4c87a' : 'var(--pl-ink)',
                   lineHeight: 1.3, marginBottom: '1px',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
                   {theme.name}
                 </div>
                 <div style={{
-                  fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)',
+                  fontSize: '0.6rem', color: 'var(--pl-muted)',
                   lineHeight: 1.3,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
@@ -574,8 +574,8 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
           padding: '9px 16px', borderRadius: '8px', border: 'none', cursor: pendingName ? 'pointer' : 'not-allowed',
-          background: pendingName ? 'linear-gradient(135deg, #6b7c3f, #8a9e56)' : 'rgba(255,255,255,0.06)',
-          color: pendingName ? '#fff' : 'rgba(255,255,255,0.3)',
+          background: pendingName ? 'linear-gradient(135deg, #6b7c3f, #8a9e56)' : 'rgba(0,0,0,0.04)',
+          color: pendingName ? '#fff' : 'var(--pl-muted)',
           fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em',
           transition: 'background 0.15s',
           opacity: pendingName ? 1 : 0.6,

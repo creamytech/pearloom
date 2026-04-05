@@ -115,7 +115,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
           <SelectPrimitive.Trigger
             ref={ref}
             className={cn(
-              'flex items-center justify-between w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
+              'flex items-center justify-between w-full rounded-[var(--pl-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
               'text-[max(16px,1rem)] text-foreground font-body',
               'outline-none cursor-pointer transition-all duration-200',
               'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',
@@ -193,7 +193,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           ref={ref}
           type="date"
           className={cn(
-            'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
+            'w-full rounded-[var(--pl-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
             'text-[max(16px,1rem)] text-foreground font-body',
             'outline-none cursor-pointer transition-all duration-200',
             'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',
@@ -230,7 +230,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
           ref={ref}
           type="time"
           className={cn(
-            'w-full rounded-[var(--eg-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
+            'w-full rounded-[var(--pl-radius-sm)] border-[1.5px] bg-white px-3 py-2.5',
             'text-[max(16px,1rem)] text-foreground font-body',
             'outline-none cursor-pointer transition-all duration-200',
             'focus:border-ring focus:shadow-[0_0_0_3px_rgba(163,177,138,0.12)]',

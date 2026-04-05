@@ -46,7 +46,7 @@ function ProgressRing({ score, size = 72 }: { score: number; size?: number }) {
   const dash = (score / 100) * circ;
   const is100 = score === 100;
 
-  const color = is100 ? 'var(--eg-gold, #D6C6A8)' : score >= 80 ? 'var(--eg-accent, #A3B18A)' : score >= 50 ? 'var(--eg-gold, #D6C6A8)' : 'var(--eg-plum, #6D597A)';
+  const color = is100 ? 'var(--pl-gold, #D6C6A8)' : score >= 80 ? 'var(--pl-olive, #A3B18A)' : score >= 50 ? 'var(--pl-gold, #D6C6A8)' : 'var(--pl-plum, #6D597A)';
   const glowControls = useAnimation();
 
   useEffect(() => {
@@ -97,7 +97,7 @@ function ProgressRing({ score, size = 72 }: { score: number; size?: number }) {
             fontSize: size * 0.22,
             fontWeight: 800,
             fill: color,
-            fontFamily: 'var(--eg-font-body, system-ui)',
+            fontFamily: 'var(--pl-font-body, system-ui)',
           }}
         >
           {score}%
@@ -145,7 +145,7 @@ function CelebrationSparkles() {
             height: p.size,
             marginLeft: -p.size / 2,
             marginTop: -p.size / 2,
-            color: 'var(--eg-gold, #D6C6A8)',
+            color: 'var(--pl-gold, #D6C6A8)',
             fontSize: p.size,
             lineHeight: 1,
           }}
@@ -249,7 +249,7 @@ function MilestoneRow({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontSize: '0.78rem', fontWeight: 700,
-            color: milestone.done ? 'var(--eg-fg)' : 'rgba(0,0,0,0.5)',
+            color: milestone.done ? 'var(--pl-ink)' : 'rgba(0,0,0,0.5)',
             lineHeight: 1.3,
           }}>
             {milestone.label}
@@ -270,8 +270,8 @@ function MilestoneRow({
               background: expanded ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.08)',
               border: '1px solid rgba(163,177,138,0.2)',
             }}>
-              <Sparkles size={10} color="var(--eg-accent, #A3B18A)" />
-              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)', letterSpacing: '0.06em' }}>
+              <Sparkles size={10} color="var(--pl-olive, #A3B18A)" />
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)', letterSpacing: '0.06em' }}>
                 AI Write
               </span>
             </div>
@@ -307,9 +307,9 @@ function MilestoneRow({
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    style={{ width: '14px', height: '14px', border: '2px solid rgba(163,177,138,0.3)', borderTopColor: 'var(--eg-accent, #A3B18A)', borderRadius: '50%' }}
+                    style={{ width: '14px', height: '14px', border: '2px solid rgba(163,177,138,0.3)', borderTopColor: 'var(--pl-olive, #A3B18A)', borderRadius: '50%' }}
                   />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--eg-accent, #A3B18A)', fontStyle: 'italic' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--pl-olive, #A3B18A)', fontStyle: 'italic' }}>
                     Crafting your suggestion…
                   </span>
                 </div>
@@ -318,7 +318,7 @@ function MilestoneRow({
                   <p style={{
                     fontSize: '0.8rem', lineHeight: 1.65, color: '#3D3530',
                     margin: '0 0 10px', fontStyle: 'italic',
-                    fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+                    fontFamily: 'var(--pl-font-heading, Georgia, serif)',
                   }}>
                     &ldquo;{suggestion}&rdquo;
                   </p>
@@ -329,7 +329,7 @@ function MilestoneRow({
                       style={{
                         display: 'flex', alignItems: 'center', gap: '5px',
                         padding: '5px 12px', borderRadius: '6px', border: 'none',
-                        background: applied ? 'var(--eg-accent, #A3B18A)' : 'linear-gradient(135deg, #A3B18A, #8FA876)',
+                        background: applied ? 'var(--pl-olive, #A3B18A)' : 'linear-gradient(135deg, #A3B18A, #8FA876)',
                         color: '#fff', fontSize: '0.7rem', fontWeight: 700,
                         cursor: applied ? 'default' : 'pointer', transition: 'all 0.2s',
                       }}
@@ -341,7 +341,7 @@ function MilestoneRow({
                       style={{
                         padding: '5px 10px', borderRadius: '6px',
                         border: '1px solid rgba(163,177,138,0.2)',
-                        background: 'transparent', color: 'var(--eg-accent, #A3B18A)',
+                        background: 'transparent', color: 'var(--pl-olive, #A3B18A)',
                         fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer',
                       }}
                     >
@@ -471,7 +471,7 @@ export function SiteCompletenessPanel({
 
   // ── Compact mode (badge in site card) ──────────────────────
   if (compact) {
-    const scoreColor = score >= 80 ? 'var(--eg-accent, #A3B18A)' : score >= 50 ? 'var(--eg-gold, #D6C6A8)' : 'var(--eg-plum, #6D597A)';
+    const scoreColor = score >= 80 ? 'var(--pl-olive, #A3B18A)' : score >= 50 ? 'var(--pl-gold, #D6C6A8)' : 'var(--pl-plum, #6D597A)';
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Mini progress bar */}
@@ -522,16 +522,16 @@ export function SiteCompletenessPanel({
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '3px' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '3px' }}>
             Site Completeness
           </div>
-          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--eg-fg)' }}>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-ink)' }}>
             {doneCount}/{milestones.length} milestones complete
           </div>
           {incomplete.length > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
-              <Sparkles size={11} color="var(--eg-accent, #A3B18A)" />
-              <span style={{ fontSize: '0.68rem', color: 'var(--eg-accent, #A3B18A)', fontWeight: 600 }}>
+              <Sparkles size={11} color="var(--pl-olive, #A3B18A)" />
+              <span style={{ fontSize: '0.68rem', color: 'var(--pl-olive, #A3B18A)', fontWeight: 600 }}>
                 {incomplete.filter(m => m.suggestionField).length} AI suggestions available
               </span>
             </div>

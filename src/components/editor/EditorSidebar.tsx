@@ -389,7 +389,7 @@ export function EditorSidebar({
                   flex: 1,
                   fontSize: '0.92rem',
                   fontWeight: 500,
-                  fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                  fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                   fontStyle: 'italic',
                   letterSpacing: '-0.01em',
                   color: 'rgba(214,198,168,0.88)',

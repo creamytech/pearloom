@@ -130,7 +130,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
         Loading seating…
       </div>
     );
@@ -205,7 +205,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
             padding: '8px 10px', borderRadius: '9px',
             background: `${color}0d`, border: `1px solid ${color}20`,
           }}>
-            <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>{label}</div>
+            <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>{label}</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 800, color }}>{value}</div>
           </div>
         ))}
@@ -215,10 +215,10 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       {stats.totalSeats > 0 && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)' }}>Seat fill</span>
+            <span style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>Seat fill</span>
             <span style={{ fontSize: '0.68rem', color: '#A3B18A', fontWeight: 700 }}>{fillPct}%</span>
           </div>
-          <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+          <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(0,0,0,0.05)', overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${fillPct}%`, borderRadius: '3px',
               background: fillPct >= 90 ? '#f87171' : '#A3B18A',
@@ -255,16 +255,16 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                 <div key={table.id} style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '6px 8px', borderRadius: '7px',
-                  background: 'rgba(255,255,255,0.03)',
+                  background: 'rgba(163,177,138,0.04)',
                 }}>
-                  <ShapeIcon size={11} color={table.isReserved ? '#D6C6A8' : 'rgba(255,255,255,0.3)'} />
+                  <ShapeIcon size={11} color={table.isReserved ? '#D6C6A8' : 'var(--pl-muted)'} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {table.label}
                       {table.isReserved && <span style={{ color: '#D6C6A8', marginLeft: '4px', fontSize: '0.62rem' }}>Reserved</span>}
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.68rem', color: assigned === table.capacity ? '#A3B18A' : 'rgba(255,255,255,0.35)', flexShrink: 0 }}>
+                  <div style={{ fontSize: '0.68rem', color: assigned === table.capacity ? '#A3B18A' : 'var(--pl-muted)', flexShrink: 0 }}>
                     {assigned}/{table.capacity}
                   </div>
                 </div>
@@ -285,9 +285,9 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '7px 10px', borderRadius: '7px',
-                border: '1px solid rgba(255,255,255,0.07)',
-                background: 'rgba(255,255,255,0.03)',
-                color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: '0.75rem',
+                border: '1px solid rgba(0,0,0,0.05)',
+                background: 'rgba(163,177,138,0.04)',
+                color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.75rem',
                 textAlign: 'left',
               }}
             >

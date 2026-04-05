@@ -1,6 +1,6 @@
 // ── Pearloom UI Primitives ─────────────────────────────────────
 // Component library built on shadcn/ui + Radix primitives,
-// styled with --eg-* design tokens and Tailwind utilities.
+// styled with --pl-* design tokens and Tailwind utilities.
 
 export { Button, buttonVariants, type ButtonProps } from './button';
 export { Input, Label, type InputProps } from './input';

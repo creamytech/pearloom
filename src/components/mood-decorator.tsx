@@ -45,7 +45,7 @@ function CoastalDecorator({ light }: { light: boolean }) {
           key={i}
           d="M0 40 Q100 20 200 40 T400 40 T600 40 T800 40"
           fill="none"
-          stroke={light ? 'white' : 'var(--eg-accent)'}
+          stroke={light ? 'white' : 'var(--pl-olive)'}
           strokeWidth={1.5 - i * 0.4}
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
@@ -55,7 +55,7 @@ function CoastalDecorator({ light }: { light: boolean }) {
       ))}
       <motion.circle
         cx="400" cy="40" r="3"
-        fill={light ? 'white' : 'var(--eg-accent)'}
+        fill={light ? 'white' : 'var(--pl-olive)'}
         animate={{ cx: [0, 800], cy: [40, 20, 40, 60, 40] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
         opacity={0.4}
@@ -88,7 +88,7 @@ function WinterDecorator({ light }: { light: boolean }) {
           animate={{ y: ['0vh', '110%'], rotate: [0, 360], opacity: [0, 0.6, 0] }}
           transition={{ duration: f.duration, delay: f.delay, repeat: Infinity, ease: 'linear' }}
         >
-          <path d={f.path} stroke={light ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)'} strokeWidth="1" fill="none" />
+          <path d={f.path} stroke={light ? 'var(--pl-ink-soft)' : 'var(--pl-olive)'} strokeWidth="1" fill="none" />
         </motion.svg>
       ))}
     </div>
@@ -111,7 +111,7 @@ function GoldenHourDecorator({ light }: { light: boolean }) {
             key={i}
             x1="0" y1="18"
             x2="0" y2={30 + (i % 3) * 8}
-            stroke={light ? 'white' : 'var(--eg-accent)'}
+            stroke={light ? 'white' : 'var(--pl-olive)'}
             strokeWidth={i % 3 === 0 ? 1.5 : 0.8}
             transform={`rotate(${angle})`}
             initial={{ scaleY: 0 }}
@@ -119,7 +119,7 @@ function GoldenHourDecorator({ light }: { light: boolean }) {
             transition={{ duration: 3 + (i % 4), repeat: Infinity, delay: i * 0.1, ease: 'easeInOut' }}
           />
         ))}
-        <circle cx="0" cy="0" r="12" fill={light ? 'rgba(255,255,255,0.2)' : 'rgba(201,168,124,0.2)'} />
+        <circle cx="0" cy="0" r="12" fill={light ? 'var(--pl-muted)' : 'rgba(201,168,124,0.2)'} />
       </motion.svg>
     </div>
   );
@@ -150,7 +150,7 @@ function NatureDecorator({ light }: { light: boolean }) {
           animate={{ y: ['0', '120%'], x: [0, 20, -20, 10, 0], rotate: [0, 180, 360], opacity: [0, 0.5, 0.3, 0] }}
           transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <path d={p.path} fill={light ? 'rgba(255,255,255,0.4)' : 'var(--eg-accent)'} opacity={0.5} scale={p.scale} />
+          <path d={p.path} fill={light ? 'var(--pl-ink-soft)' : 'var(--pl-olive)'} opacity={0.5} scale={p.scale} />
         </motion.svg>
       ))}
     </div>
@@ -173,7 +173,7 @@ function UrbanDecorator({ light }: { light: boolean }) {
           y1="0"
           x2={i * 140}
           y2="60"
-          stroke={light ? 'white' : 'var(--eg-fg)'}
+          stroke={light ? 'white' : 'var(--pl-ink)'}
           strokeWidth="0.5"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: [0, 1, 0] }}
@@ -182,7 +182,7 @@ function UrbanDecorator({ light }: { light: boolean }) {
       ))}
       <motion.line
         x1="0" y1="30" x2="800" y2="30"
-        stroke={light ? 'white' : 'var(--eg-accent)'}
+        stroke={light ? 'white' : 'var(--pl-olive)'}
         strokeWidth="0.8"
         strokeDasharray="4 8"
         animate={{ strokeDashoffset: [0, -48] }}
@@ -206,7 +206,7 @@ function RomanticDecorator({ light }: { light: boolean }) {
           animate={{ y: [0, -120], opacity: [0, 0.4, 0], scale: [0.5, 1, 0.8] }}
           transition={{ duration: h.dur, delay: h.delay, repeat: Infinity, ease: 'easeOut' }}
         >
-          <path d={HEART} fill={light ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)'} />
+          <path d={HEART} fill={light ? 'var(--pl-ink-soft)' : 'var(--pl-olive)'} />
         </motion.svg>
       ))}
     </div>
@@ -225,7 +225,7 @@ function AdventureDecorator({ light }: { light: boolean }) {
       {contours.map((d, i) => (
         <motion.path
           key={i} d={d} fill="none"
-          stroke={light ? 'white' : 'var(--eg-accent)'}
+          stroke={light ? 'white' : 'var(--pl-olive)'}
           strokeWidth={0.8}
           initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
           transition={{ duration: 2.5 + i * 0.5, delay: i * 0.4, ease: 'easeInOut' }}
@@ -248,7 +248,7 @@ function CozyDecorator({ light }: { light: boolean }) {
             bottom: 0,
             width: '2px',
             height: '40px',
-            background: `linear-gradient(to top, ${light ? 'rgba(255,255,255,0.3)' : 'rgba(201,168,124,0.3)'}, transparent)`,
+            background: `linear-gradient(to top, ${light ? 'var(--pl-muted)' : 'rgba(201,168,124,0.3)'}, transparent)`,
             borderRadius: '2px',
             transformOrigin: 'bottom',
           }}
@@ -294,7 +294,7 @@ function DefaultDecorator({ light }: { light: boolean }) {
       <motion.path
         d="M0 10 C80 4 160 16 240 10 C280 7 320 13 400 10"
         fill="none"
-        stroke={light ? 'white' : 'var(--eg-accent)'}
+        stroke={light ? 'white' : 'var(--pl-olive)'}
         strokeWidth="1.5"
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
@@ -341,8 +341,8 @@ export function MoodDecoratedHeader({
   light?: boolean;
 }) {
   const formattedDate = date ? new Date(date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
-  const textColor = light ? 'rgba(255,255,255,0.9)' : 'var(--eg-fg)';
-  const mutedColor = light ? 'rgba(255,255,255,0.55)' : 'var(--eg-muted)';
+  const textColor = light ? 'var(--pl-ink)' : 'var(--pl-ink)';
+  const mutedColor = light ? 'var(--pl-ink-soft)' : 'var(--pl-muted)';
 
   return (
     <div style={{ position: 'relative', marginBottom: '2rem' }}>
@@ -355,7 +355,7 @@ export function MoodDecoratedHeader({
           transition={{ duration: 0.7 }}
           style={{
             fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.2em',
-            textTransform: 'uppercase', color: light ? 'rgba(255,255,255,0.6)' : 'var(--eg-accent)',
+            textTransform: 'uppercase', color: light ? 'var(--pl-ink-soft)' : 'var(--pl-olive)',
             marginBottom: '1rem', display: 'block',
           }}
         >
@@ -377,9 +377,9 @@ export function MoodDecoratedHeader({
             fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.2em',
             textTransform: 'uppercase', padding: '0.25rem 0.75rem',
             borderRadius: '100px',
-            background: light ? 'rgba(255,255,255,0.1)' : 'var(--eg-plum-light)',
-            color: light ? 'rgba(255,255,255,0.7)' : 'var(--eg-plum)',
-            border: light ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(109,89,122,0.12)',
+            background: light ? 'rgba(0,0,0,0.06)' : 'var(--pl-plum-mist)',
+            color: light ? 'var(--pl-ink)' : 'var(--pl-plum)',
+            border: light ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(109,89,122,0.12)',
           }}>
             {mood}
           </span>
@@ -393,7 +393,7 @@ export function MoodDecoratedHeader({
         viewport={{ once: true }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
         style={{
-          fontFamily: 'var(--eg-font-heading)',
+          fontFamily: 'var(--pl-font-heading)',
           fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
           fontWeight: 400,
           letterSpacing: '-0.025em',
@@ -412,7 +412,7 @@ export function MoodDecoratedHeader({
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.25 }}
           style={{
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
             fontSize: '1.05rem',
             fontStyle: 'italic',
             color: mutedColor,

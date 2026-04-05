@@ -96,7 +96,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
         <Globe size={11} /> Translations
       </div>
 
-      <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.55 }}>
+      <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', lineHeight: 1.55 }}>
         Generate your story chapters in another language. Once created, guests switch
         language using the toolbar selector.
       </div>
@@ -123,7 +123,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   style={{
                     padding: '3px 8px', borderRadius: '5px',
                     border: '1px solid rgba(214,198,168,0.15)',
-                    background: 'none', color: 'rgba(255,255,255,0.4)',
+                    background: 'none', color: 'var(--pl-ink-soft)',
                     cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
                   }}
                   title="Regenerate"
@@ -135,7 +135,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   style={{
                     padding: '3px', borderRadius: '5px',
                     border: 'none', background: 'none',
-                    color: 'rgba(255,255,255,0.25)', cursor: 'pointer',
+                    color: 'var(--pl-muted)', cursor: 'pointer',
                   }}
                   title="Remove translation"
                 >
@@ -160,14 +160,14 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   width: '100%', padding: '8px 10px', borderRadius: '8px',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(0,0,0,0.04)',
+                  background: 'rgba(163,177,138,0.04)',
                   cursor: generating ? 'wait' : 'pointer',
                   textAlign: 'left',
                 }}
               >
                 <span style={{ fontSize: '1rem', flexShrink: 0 }}>{locale.flag}</span>
-                <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>
+                <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}>
                   {locale.label}
                 </span>
                 {generating === locale.code ? (
@@ -193,7 +193,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
         <div style={{
           padding: '10px 12px', borderRadius: '8px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)',
+          fontSize: '0.72rem', color: 'var(--pl-ink-soft)',
         }}>
           Add story chapters before generating translations.
         </div>

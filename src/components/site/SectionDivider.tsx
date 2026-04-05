@@ -28,7 +28,7 @@ const WAVE_PATHS: Record<VibeSkin['curve'], string> = {
 };
 
 export function SectionDivider({
-  color = 'var(--eg-bg)',
+  color = 'var(--pl-cream)',
   opacity = 1,
   curve = 'organic',
   className,

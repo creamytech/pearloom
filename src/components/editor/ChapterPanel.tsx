@@ -25,12 +25,12 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
     label: 'Editorial',
     preview: (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '3px' }}>
-        <div style={{ height: '14px', background: 'rgba(255,255,255,0.35)', borderRadius: '2px' }} />
+        <div style={{ height: '14px', background: 'var(--pl-muted)', borderRadius: '2px' }} />
         <div style={{ display: 'flex', gap: '2px' }}>
-          <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.15)', borderRadius: '1px' }} />
-          <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '1px' }} />
+          <div style={{ flex: 1, height: '8px', background: 'rgba(0,0,0,0.08)', borderRadius: '1px' }} />
+          <div style={{ flex: 1, height: '8px', background: 'rgba(0,0,0,0.06)', borderRadius: '1px' }} />
         </div>
-        <div style={{ height: '4px', width: '60%', background: 'rgba(255,255,255,0.1)', borderRadius: '1px' }} />
+        <div style={{ height: '4px', width: '60%', background: 'rgba(0,0,0,0.06)', borderRadius: '1px' }} />
       </div>
     ),
   },
@@ -38,7 +38,7 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
     label: 'Full Bleed',
     preview: (
       <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(163,177,138,0.3), rgba(109,89,122,0.2))', borderRadius: '2px', display: 'flex', alignItems: 'flex-end', padding: '3px' }}>
-        <div style={{ height: '6px', width: '70%', background: 'rgba(255,255,255,0.4)', borderRadius: '1px' }} />
+        <div style={{ height: '6px', width: '70%', background: 'var(--pl-ink-soft)', borderRadius: '1px' }} />
       </div>
     ),
   },
@@ -48,8 +48,8 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
       <div style={{ display: 'flex', gap: '2px', height: '100%', padding: '2px' }}>
         <div style={{ width: '45%', background: 'rgba(163,177,138,0.25)', borderRadius: '2px' }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center', padding: '2px' }}>
-          <div style={{ height: '4px', background: 'rgba(255,255,255,0.25)', borderRadius: '1px' }} />
-          <div style={{ height: '4px', width: '70%', background: 'rgba(255,255,255,0.12)', borderRadius: '1px' }} />
+          <div style={{ height: '4px', background: 'var(--pl-muted)', borderRadius: '1px' }} />
+          <div style={{ height: '4px', width: '70%', background: 'rgba(0,0,0,0.07)', borderRadius: '1px' }} />
         </div>
       </div>
     ),
@@ -57,8 +57,8 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
   cinematic: {
     label: 'Cinematic',
     preview: (
-      <div style={{ height: '100%', background: 'linear-gradient(180deg, rgba(26,23,32,0.3), rgba(26,23,32,0.6))', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px' }}>
-        <div style={{ height: '6px', width: '50%', background: 'rgba(255,255,255,0.35)', borderRadius: '1px' }} />
+      <div style={{ height: '100%', background: 'linear-gradient(180deg, rgba(43,30,20,0.06), rgba(43,30,20,0.1))', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3px' }}>
+        <div style={{ height: '6px', width: '50%', background: 'var(--pl-muted)', borderRadius: '1px' }} />
       </div>
     ),
   },
@@ -171,9 +171,9 @@ export function ChapterPanel({
             type="date"
             value={chapter.date ? chapter.date.slice(0, 10) : ''}
             onChange={e => upd({ date: e.target.value })}
-            style={{ ...inp, colorScheme: 'dark', fontSize: '0.82rem', padding: '6px 8px' }}
+            style={{ ...inp, colorScheme: 'light', fontSize: '0.82rem', padding: '6px 8px' }}
             onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
           />
         </div>
         <Field label="Subtitle" value={chapter.subtitle || ''} onChange={v => upd({ subtitle: v })} placeholder="in all the best ways" />
@@ -234,7 +234,7 @@ export function ChapterPanel({
             ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}),
           }}
           onFocus={e => { if (streamingText == null) { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; } }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
 
@@ -324,12 +324,12 @@ export function ChapterPanel({
           placeholder="Or type your own mood..."
           style={{ ...inp, fontSize: '0.82rem', padding: '5px 8px' }}
           onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
         />
       </div>
 
       {/* Image Manager */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem' }}>
+      <div style={{ borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '0.75rem' }}>
         <ImageManager
           images={chapter.images || []}
           onUpdate={imgs => upd({ images: imgs })}
@@ -344,7 +344,7 @@ export function ChapterPanel({
 
       {/* Section Style Overrides */}
       {vibeSkin && onOverridesChange && (
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem' }}>
+        <div style={{ borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '0.75rem' }}>
           <SectionStyleEditor
             sectionId={chapter.id}
             sectionType="chapter"

@@ -38,8 +38,8 @@ const AI_DRAFTS: Record<Segment, string> = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.1)',
+  background: 'rgba(163,177,138,0.06)',
+  border: '1px solid rgba(0,0,0,0.06)',
   borderRadius: '0.75rem',
   color: 'white',
   padding: '0.875rem 1rem',
@@ -133,14 +133,14 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
             fontSize: '1.1rem',
             fontWeight: 500,
             fontStyle: 'italic',
-            fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+            fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
             color: 'rgba(245,241,232,0.92)',
             margin: '0 0 6px',
           }}
         >
           Message Guests
         </h2>
-        <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.82rem', color: 'var(--pl-ink-soft)', margin: 0, lineHeight: 1.5 }}>
           Send updates to your guest list
         </p>
       </div>
@@ -162,13 +162,13 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
                   borderRadius: '100px',
                   border: isActive
                     ? '1px solid rgba(163,177,138,0.4)'
-                    : '1px solid rgba(255,255,255,0.1)',
+                    : '1px solid rgba(0,0,0,0.06)',
                   background: isActive
                     ? 'rgba(163,177,138,0.2)'
-                    : 'rgba(255,255,255,0.05)',
+                    : 'rgba(163,177,138,0.06)',
                   color: isActive
-                    ? 'var(--eg-accent, #A3B18A)'
-                    : 'rgba(255,255,255,0.5)',
+                    ? 'var(--pl-olive, #A3B18A)'
+                    : 'var(--pl-ink-soft)',
                   fontSize: '0.8rem',
                   fontWeight: isActive ? 600 : 400,
                   cursor: 'pointer',
@@ -287,7 +287,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
                 Sent to {result.sent} guest{result.sent !== 1 ? 's' : ''}
               </p>
               {(result.failed > 0 || result.skipped > 0) && (
-                <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--pl-muted)' }}>
                   {result.failed > 0 && `${result.failed} failed`}
                   {result.failed > 0 && result.skipped > 0 && ' · '}
                   {result.skipped > 0 && `${result.skipped} skipped (no email)`}
@@ -311,9 +311,9 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
           borderRadius: '0.75rem',
           border: 'none',
           background: sending
-            ? 'rgba(255,255,255,0.08)'
+            ? 'rgba(0,0,0,0.06)'
             : 'linear-gradient(135deg, #A3B18A 0%, #7A917A 50%, #6D597A 100%)',
-          color: sending ? 'rgba(255,255,255,0.35)' : 'white',
+          color: sending ? 'var(--pl-muted)' : 'white',
           fontWeight: 700,
           fontSize: '0.9rem',
           letterSpacing: '0.03em',
@@ -345,7 +345,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
       <p
         style={{
           fontSize: '0.72rem',
-          color: 'rgba(255,255,255,0.25)',
+          color: 'var(--pl-muted)',
           textAlign: 'center',
           margin: 0,
           lineHeight: 1.5,

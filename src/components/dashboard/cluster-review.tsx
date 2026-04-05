@@ -300,7 +300,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         }}>
           <Calendar size={13} /> {clusters.length} memory group{clusters.length !== 1 ? 's' : ''} detected
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.75rem', fontWeight: 600 }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '0.75rem', fontWeight: 600 }}>
           Where were these taken?
         </h3>
         <p style={{ color: C.muted, fontSize: text.md, lineHeight: 1.6, maxWidth: '480px', margin: '0 auto' }}>
@@ -390,7 +390,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             width: '100%', boxSizing: 'border-box',
                             padding: '0.6rem 0.75rem 0.6rem 2.25rem',
                             borderRadius: card.radius, border: `1.5px solid ${C.olive}`,
-                            fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--eg-font-body)',
+                            fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--pl-font-body)',
                             outline: 'none', background: card.bg,
                           }}
                         />
@@ -579,7 +579,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           borderRadius: card.radius,
                           border: card.border,
                           fontSize: 'max(16px, 0.9rem)',
-                          fontFamily: 'var(--eg-font-body)',
+                          fontFamily: 'var(--pl-font-body)',
                           color: C.ink,
                           outline: 'none',
                           resize: 'none',

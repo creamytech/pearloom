@@ -93,20 +93,20 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
     cursor: 'pointer',
     fontSize: '0.82rem',
     fontWeight: 600,
-    background: activeTab === tab ? 'rgba(255,255,255,0.12)' : 'transparent',
+    background: activeTab === tab ? 'rgba(0,0,0,0.07)' : 'transparent',
     color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.45)',
     transition: 'all 0.15s',
   });
 
   return (
-    <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+    <div style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
       {/* Header */}
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>
             Guest Photos
           </h3>
-          <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+          <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: 'var(--pl-ink-soft)' }}>
             Review and approve photos shared by guests
           </p>
         </div>
@@ -122,7 +122,7 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
       </div>
 
       {/* Filter tabs */}
-      <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', gap: '0.25rem' }}>
+      <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', gap: '0.25rem' }}>
         {(['pending', 'approved', 'rejected'] as FilterTab[]).map(tab => (
           <button key={tab} style={tabStyle(tab)} onClick={() => setActiveTab(tab)}>
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -138,17 +138,17 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
       {/* Content */}
       <div style={{ padding: '1.25rem 1.5rem' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem' }}>
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--pl-muted)', fontSize: '0.85rem' }}>
             Loading photos...
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem' }}>
+          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--pl-muted)', fontSize: '0.85rem' }}>
             No {activeTab} photos
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
             {filtered.map(photo => (
-              <div key={photo.id} style={{ borderRadius: '8px', overflow: 'hidden', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div key={photo.id} style={{ borderRadius: '8px', overflow: 'hidden', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.url}
@@ -157,11 +157,11 @@ export function PhotoModerationPanel({ siteId }: PhotoModerationPanelProps) {
                   style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }}
                 />
                 <div style={{ padding: '0.5rem' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600, marginBottom: '3px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--pl-ink)', fontWeight: 600, marginBottom: '3px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                     {photo.uploaderName}
                   </div>
                   {photo.caption && (
-                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', marginBottom: '5px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', marginBottom: '5px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                       {photo.caption}
                     </div>
                   )}

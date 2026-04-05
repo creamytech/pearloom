@@ -541,19 +541,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           />
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
-          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-          <span style={{ fontSize: '1.75rem', color: 'var(--eg-accent)', opacity: 0.7 }}>{vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}</span>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}</span>
+          <span style={{ fontSize: '1.25rem', color: 'var(--pl-olive)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.75rem', color: 'var(--pl-olive)', opacity: 0.7 }}>{vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.25rem', color: 'var(--pl-olive)', opacity: 0.4 }}>{vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}</span>
         </div>
-        <p style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: 'var(--eg-fg)', opacity: 0.75, letterSpacing: '-0.01em' }}>
+        <p style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: 'var(--pl-ink)', opacity: 0.75, letterSpacing: '-0.01em' }}>
           &ldquo;{vibeSkin.aiGenerated ? vibeSkin.dividerQuote : manifest.vibeString}&rdquo;
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem' }}>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.5 }}>{vibeSkin.decorIcons[3] || '•'}</span>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.25rem', color: 'var(--pl-olive)', opacity: 0.5 }}>{vibeSkin.decorIcons[3] || '•'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
         </div>
       </div>
     </div>
@@ -732,7 +732,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           ...(manifest.anniversaryMode ? [
             <div key="anniversary-banner" style={{
               textAlign: 'center', fontSize: '0.85rem',
-              color: 'var(--eg-accent, #A3B18A)',
+              color: 'var(--pl-olive, #A3B18A)',
               letterSpacing: '0.12em', textTransform: 'uppercase',
               marginTop: '0.5rem', opacity: 0.8,
             }}>
@@ -786,7 +786,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             {manifest.hashtags.map((tag: string) => (
               <span key={tag} style={{
                 fontSize: '0.9rem', fontWeight: 600,
-                color: 'var(--eg-accent, #A3B18A)',
+                color: 'var(--pl-olive, #A3B18A)',
                 background: 'rgba(163,177,138,0.08)',
                 padding: '0.3rem 0.75rem', borderRadius: '999px',
                 border: '1px solid rgba(163,177,138,0.2)',
@@ -937,7 +937,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {manifest.anniversaryMode && (
                 <div style={{
                   textAlign: 'center', fontSize: '0.85rem',
-                  color: 'var(--eg-accent, #A3B18A)',
+                  color: 'var(--pl-olive, #A3B18A)',
                   letterSpacing: '0.12em', textTransform: 'uppercase',
                   marginTop: '0.5rem', opacity: 0.8,
                 }}>
@@ -999,7 +999,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                     {manifest.hashtags.map((tag: string) => (
                       <span key={tag} style={{
                         fontSize: '0.9rem', fontWeight: 600,
-                        color: 'var(--eg-accent, #A3B18A)',
+                        color: 'var(--pl-olive, #A3B18A)',
                         background: 'rgba(163,177,138,0.08)',
                         padding: '0.3rem 0.75rem', borderRadius: '999px',
                         border: '1px solid rgba(163,177,138,0.2)',

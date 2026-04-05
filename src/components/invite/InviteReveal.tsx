@@ -228,7 +228,7 @@ function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
             style={{
               width: '100%',
               padding: '12px 16px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'rgba(163,177,138,0.05)',
               border: '1px solid rgba(196,169,106,0.2)',
               borderRadius: 8,
               color: '#F5F1E8',
@@ -249,7 +249,7 @@ function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
           style={{
             width: '100%',
             padding: '12px 16px',
-            background: 'rgba(255,255,255,0.04)',
+            background: 'rgba(163,177,138,0.05)',
             border: '1px solid rgba(196,169,106,0.2)',
             borderRadius: 8,
             color: '#F5F1E8',
@@ -284,7 +284,7 @@ function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
           background:
             attending !== null && name.trim()
               ? 'rgba(196,169,106,0.18)'
-              : 'rgba(255,255,255,0.04)',
+              : 'rgba(163,177,138,0.05)',
           border: '1px solid rgba(196,169,106,0.35)',
           borderRadius: 8,
           color:
@@ -413,7 +413,7 @@ export function InviteReveal({
                   rx="4"
                   stroke="rgba(196,169,106,0.6)"
                   strokeWidth="1.5"
-                  fill="rgba(255,255,255,0.03)"
+                  fill="rgba(163,177,138,0.04)"
                 />
 
                 {/* Bottom V fold lines */}
@@ -510,7 +510,7 @@ export function InviteReveal({
         {/* Card */}
         <div
           style={{
-            background: 'rgba(255,255,255,0.03)',
+            background: 'rgba(163,177,138,0.04)',
             border: '1px solid rgba(196,169,106,0.2)',
             borderRadius: 16,
             overflow: 'hidden',

@@ -31,11 +31,11 @@ function ProgressRing({ progress, size = 120 }: { progress: number; size?: numbe
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
       {/* Track */}
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={4} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={4} />
       {/* Progress */}
       <motion.circle
         cx={size / 2} cy={size / 2} r={r} fill="none"
-        stroke="rgba(255,255,255,0.7)"
+        stroke="var(--pl-ink)"
         strokeWidth={4}
         strokeLinecap="round"
         strokeDasharray={circumference}
@@ -64,7 +64,7 @@ function PhotoMosaic({ photos, activeCount }: { photos: GooglePhotoMetadata[]; a
           transition={{ delay: i * 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
             width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden',
-            border: '1px solid rgba(255,255,255,0.15)',
+            border: '1px solid rgba(0,0,0,0.08)',
           }}
         >
           {photo.baseUrl ? (
@@ -74,7 +74,7 @@ function PhotoMosaic({ photos, activeCount }: { photos: GooglePhotoMetadata[]; a
               alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           ) : (
-            <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.1)' }} />
+            <div style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.06)' }} />
           )}
         </motion.div>
       ))}
@@ -220,7 +220,7 @@ export function GenerationProgress({
               {isComplete ? 'Your story is ready ✨' : pass.headline}
             </h2>
             <p style={{
-              fontSize: '0.9rem', color: isComplete ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)',
+              fontSize: '0.9rem', color: isComplete ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
               margin: 0, lineHeight: 1.5,
             }}>
               {isComplete ? 'Opening the editor — prepare to be amazed' : pass.copy}
@@ -237,8 +237,8 @@ export function GenerationProgress({
             style={{
               padding: '0.5rem 1.25rem',
               borderRadius: '100px',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(0,0,0,0.04)',
+              border: '1px solid rgba(0,0,0,0.06)',
               marginBottom: '1rem',
             }}
           >
@@ -248,7 +248,7 @@ export function GenerationProgress({
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', margin: 0, fontStyle: 'italic' }}
+                style={{ fontSize: '0.78rem', color: 'var(--pl-ink-soft)', margin: 0, fontStyle: 'italic' }}
               >
                 {pass.peek}
               </motion.p>
@@ -263,7 +263,7 @@ export function GenerationProgress({
               key={i}
               animate={{
                 width: i === idx ? '20px' : '6px',
-                background: i <= idx ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.15)',
+                background: i <= idx ? 'var(--pl-ink)' : 'rgba(0,0,0,0.08)',
               }}
               transition={{ duration: 0.3 }}
               style={{ height: '6px', borderRadius: '3px' }}
@@ -275,7 +275,7 @@ export function GenerationProgress({
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.5rem',
           fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.3)', fontWeight: 600,
+          color: 'var(--pl-muted)', fontWeight: 600,
         }}>
           <span>Step {idx + 1} of {PASSES.length}</span>
           {elapsed > 5 && (
@@ -298,7 +298,7 @@ export function GenerationProgress({
         )}
         {elapsed >= 120 && elapsed < 240 && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 0.4 }}
-            style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'rgba(255,255,255,0.5)', margin: '1.5rem 0 0' }}>
+            style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--pl-ink-soft)', margin: '1.5rem 0 0' }}>
             Still working — almost there&hellip;
           </motion.p>
         )}
@@ -311,8 +311,8 @@ export function GenerationProgress({
             {onCancel && (
               <button onClick={onCancel} style={{
                 padding: '0.5rem 1.25rem', borderRadius: '100px',
-                border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)',
-                color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
+                border: '1px solid var(--pl-muted)', background: 'rgba(0,0,0,0.06)',
+                color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
               }}>
                 Cancel
               </button>

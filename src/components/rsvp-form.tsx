@@ -126,7 +126,7 @@ function StepDots({ current, total }: { current: number; total: number }) {
             width: i === current ? '24px' : '6px',
             height: '6px',
             borderRadius: '100px',
-            background: i === current ? 'var(--eg-accent)' : 'rgba(0,0,0,0.12)',
+            background: i === current ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
             transition: 'all 0.35s ease',
           }}
         />
@@ -150,8 +150,8 @@ const inputStyle: React.CSSProperties = {
   borderBottom: '1.5px solid rgba(0,0,0,0.1)',
   background: 'transparent',
   fontSize: 'max(16px, 0.9rem)',
-  fontFamily: 'var(--eg-font-body)',
-  color: 'var(--eg-fg)',
+  fontFamily: 'var(--pl-font-body)',
+  color: 'var(--pl-ink)',
   outline: 'none',
   transition: 'border-color 0.2s ease',
   borderRadius: 0,
@@ -161,14 +161,14 @@ const labelStyle: React.CSSProperties = {
   display: 'block',
   fontSize: '0.72rem',
   fontWeight: 600,
-  color: 'var(--eg-muted)',
+  color: 'var(--pl-muted)',
   marginBottom: '0.3rem',
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
 };
 
 function focusBorder(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-  e.target.style.borderBottomColor = 'var(--eg-accent)';
+  e.target.style.borderBottomColor = 'var(--pl-olive)';
 }
 function blurBorder(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
   e.target.style.borderBottomColor = 'rgba(0,0,0,0.1)';
@@ -266,7 +266,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           </div>
           <h3
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(1.5rem, 4vw, 2rem)',
               fontWeight: 400,
               fontStyle: 'italic',
@@ -281,7 +281,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           </h3>
           <p
             style={{
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               maxWidth: '380px',
               margin: '0 auto',
               lineHeight: 1.7,
@@ -315,16 +315,16 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           >
             {/* Conversational header */}
             <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(1.4rem, 3vw, 1.75rem)',
               fontWeight: 400, fontStyle: 'italic',
-              color: 'var(--eg-fg)', marginBottom: '0.5rem',
+              color: 'var(--pl-ink)', marginBottom: '0.5rem',
               letterSpacing: '-0.02em', lineHeight: 1.2,
             }}>
               Will you be joining us?
             </h3>
             <p style={{
-              fontSize: '0.88rem', color: 'var(--eg-muted)',
+              fontSize: '0.88rem', color: 'var(--pl-muted)',
               marginBottom: '1.75rem', lineHeight: 1.6,
             }}>
               Let us know if you can make it — we&apos;d love to celebrate with you.
@@ -347,25 +347,25 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                       border: `2px solid ${
                         isActive
                           ? isAttending
-                            ? 'var(--eg-accent)'
+                            ? 'var(--pl-olive)'
                             : '#dc2626'
                           : 'rgba(0,0,0,0.08)'
                       }`,
                       background: isActive
                         ? isAttending
-                          ? 'var(--eg-accent)'
+                          ? 'var(--pl-olive)'
                           : '#fef2f2'
                         : 'transparent',
                       color: isActive
                         ? isAttending
                           ? '#fff'
                           : '#dc2626'
-                        : 'var(--eg-muted)',
+                        : 'var(--pl-muted)',
                       fontSize: '0.9rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                       transition: 'all 0.25s ease',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                       letterSpacing: '0.01em',
                     }}
                   >
@@ -421,11 +421,11 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                         borderRadius: '0.75rem',
                         border: `1.5px solid ${
                           selectedEvents.includes(evt.id)
-                            ? 'var(--eg-accent)'
+                            ? 'var(--pl-olive)'
                             : 'rgba(0,0,0,0.08)'
                         }`,
                         background: selectedEvents.includes(evt.id)
-                          ? 'var(--eg-accent-light)'
+                          ? 'var(--pl-olive-mist)'
                           : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -441,9 +441,9 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                               : [...prev, evt.id]
                           );
                         }}
-                        style={{ accentColor: 'var(--eg-accent)' }}
+                        style={{ accentColor: 'var(--pl-olive)' }}
                       />
-                      <span style={{ fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--eg-font-body)' }}>
+                      <span style={{ fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--pl-font-body)' }}>
                         {evt.name}
                       </span>
                     </label>
@@ -465,11 +465,11 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                 gap: '0.5rem',
                 padding: '1rem 2rem',
                 borderRadius: '100px',
-                background: canAdvanceStep0 ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)',
-                color: canAdvanceStep0 ? '#fff' : 'var(--eg-muted)',
+                background: canAdvanceStep0 ? 'var(--pl-olive)' : 'rgba(0,0,0,0.08)',
+                color: canAdvanceStep0 ? '#fff' : 'var(--pl-muted)',
                 fontSize: 'max(16px, 0.9rem)',
                 fontWeight: 600,
-                fontFamily: 'var(--eg-font-body)',
+                fontFamily: 'var(--pl-font-body)',
                 border: 'none',
                 cursor: canAdvanceStep0 ? 'pointer' : 'not-allowed',
                 transition: 'all 0.25s ease',
@@ -492,16 +492,16 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           >
             {/* Conversational header */}
             <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(1.4rem, 3vw, 1.75rem)',
               fontWeight: 400, fontStyle: 'italic',
-              color: 'var(--eg-fg)', marginBottom: '0.5rem',
+              color: 'var(--pl-ink)', marginBottom: '0.5rem',
               letterSpacing: '-0.02em', lineHeight: 1.2,
             }}>
               A few more details
             </h3>
             <p style={{
-              fontSize: '0.88rem', color: 'var(--eg-muted)',
+              fontSize: '0.88rem', color: 'var(--pl-muted)',
               marginBottom: '1.75rem', lineHeight: 1.6,
             }}>
               Help us make the day perfect for you, {name.split(' ')[0] || 'friend'}.
@@ -520,7 +520,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                   background: 'none',
                   border: 'none',
                   padding: 0,
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                 }}
               >
                 <div
@@ -528,8 +528,8 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                     width: '1.25rem',
                     height: '1.25rem',
                     borderRadius: '0.375rem',
-                    border: `2px solid ${plusOne ? 'var(--eg-accent)' : 'rgba(0,0,0,0.15)'}`,
-                    background: plusOne ? 'var(--eg-accent)' : 'transparent',
+                    border: `2px solid ${plusOne ? 'var(--pl-olive)' : 'rgba(0,0,0,0.15)'}`,
+                    background: plusOne ? 'var(--pl-olive)' : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -539,7 +539,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                 >
                   {plusOne && <Check size={12} color="#fff" />}
                 </div>
-                <span style={{ fontSize: 'max(16px, 0.9rem)', color: 'var(--eg-fg)' }}>
+                <span style={{ fontSize: 'max(16px, 0.9rem)', color: 'var(--pl-ink)' }}>
                   I&apos;m bringing a plus one
                 </span>
               </button>
@@ -593,12 +593,12 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                       style={{
                         padding: '0.75rem 0.5rem',
                         borderRadius: '0.875rem',
-                        border: `1.5px solid ${selected ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
-                        background: selected ? 'var(--eg-accent-light)' : 'rgba(0,0,0,0.02)',
-                        color: selected ? 'var(--eg-accent)' : 'var(--eg-muted)',
+                        border: `1.5px solid ${selected ? 'var(--pl-olive)' : 'rgba(0,0,0,0.08)'}`,
+                        background: selected ? 'var(--pl-olive-mist)' : 'rgba(0,0,0,0.02)',
+                        color: selected ? 'var(--pl-olive)' : 'var(--pl-muted)',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        fontFamily: 'var(--eg-font-body)',
+                        fontFamily: 'var(--pl-font-body)',
                         display: 'flex', flexDirection: 'column',
                         alignItems: 'center', gap: '0.35rem',
                         transform: selected ? 'scale(1.03)' : 'scale(1)',
@@ -637,7 +637,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                     top: '50%',
                     transform: 'translateY(-50%)',
                     pointerEvents: 'none',
-                    color: 'var(--eg-accent)',
+                    color: 'var(--pl-olive)',
                     opacity: 0.6,
                   }}
                 >
@@ -671,11 +671,11 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                   borderRadius: '100px',
                   border: '1.5px solid rgba(0,0,0,0.1)',
                   background: 'transparent',
-                  color: 'var(--eg-muted)',
+                  color: 'var(--pl-muted)',
                   fontSize: 'max(16px, 0.88rem)',
                   fontWeight: 500,
                   cursor: 'pointer',
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                 }}
               >
                 <ChevronLeft size={16} />
@@ -692,11 +692,11 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                   gap: '0.5rem',
                   padding: '0.9rem 2rem',
                   borderRadius: '100px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   color: '#fff',
                   fontSize: 'max(16px, 0.9rem)',
                   fontWeight: 600,
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                   border: 'none',
                   cursor: 'pointer',
                   transition: 'all 0.25s ease',
@@ -720,16 +720,16 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
           >
             {/* Conversational header */}
             <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(1.4rem, 3vw, 1.75rem)',
               fontWeight: 400, fontStyle: 'italic',
-              color: 'var(--eg-fg)', marginBottom: '0.5rem',
+              color: 'var(--pl-ink)', marginBottom: '0.5rem',
               letterSpacing: '-0.02em', lineHeight: 1.2,
             }}>
               {status === 'attending' ? 'One last thing\u2026' : 'Before you go\u2026'}
             </h3>
             <p style={{
-              fontSize: '0.88rem', color: 'var(--eg-muted)',
+              fontSize: '0.88rem', color: 'var(--pl-muted)',
               marginBottom: '1.75rem', lineHeight: 1.6,
             }}>
               {status === 'attending'
@@ -768,11 +768,11 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                   borderRadius: '100px',
                   border: '1.5px solid rgba(0,0,0,0.1)',
                   background: 'transparent',
-                  color: 'var(--eg-muted)',
+                  color: 'var(--pl-muted)',
                   fontSize: 'max(16px, 0.88rem)',
                   fontWeight: 500,
                   cursor: 'pointer',
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                 }}
               >
                 <ChevronLeft size={16} />
@@ -794,18 +794,18 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                   borderRadius: '100px',
                   background: loading
                     ? 'rgba(0,0,0,0.08)'
-                    : 'linear-gradient(135deg, var(--eg-accent) 0%, var(--eg-accent-hover) 100%)',
-                  color: loading ? 'var(--eg-muted)' : '#fff',
+                    : 'linear-gradient(135deg, var(--pl-olive) 0%, var(--pl-olive-hover) 100%)',
+                  color: loading ? 'var(--pl-muted)' : '#fff',
                   fontSize: 'max(16px, 0.9rem)',
                   fontWeight: 700,
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                   border: 'none',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.6 : 1,
                   transition: 'all 0.25s ease',
                   boxShadow: loading
                     ? 'none'
-                    : '0 4px 16px color-mix(in srgb, var(--eg-accent) 35%, transparent)',
+                    : '0 4px 16px color-mix(in srgb, var(--pl-olive) 35%, transparent)',
                   letterSpacing: '0.02em',
                 }}
               >

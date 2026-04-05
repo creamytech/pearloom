@@ -631,12 +631,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Body: Rail + Panel + Canvas */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* Navigation Rail (desktop only) */}
-        {!state.isMobile && <EditorRail onOpen={() => setPanelOpen(true)} />}
-
         {/* Canvas area (desktop only — mobile uses MobileEditorSheet with iframe preview) */}
         {!state.isMobile && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, position: 'relative' }}>
+            {/* Floating glass navigation rail — overlaid on canvas */}
+            <EditorRail onOpen={() => setPanelOpen(true)} />
             <PostWeddingBanner
               manifest={manifest}
               subdomain={state.subdomain}
@@ -758,7 +757,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}
             style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: 'rgba(20,18,16,0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '100px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' } as React.CSSProperties}>
             <span style={{ fontSize: '14px' }}>👆</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap' }}>Click any section in the preview to jump to it</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', whiteSpace: 'nowrap' }}>Click any section in the preview to jump to it</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -776,8 +775,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 100px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 100px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--pl-muted); }
       `}</style>
 
       {/* Publish Modal */}
@@ -786,7 +785,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Drag Overlay */}
       <DragOverlay dropAnimation={null}>
         {state.canvasDragId && (
-          <div style={{ padding: '10px 14px', background: 'var(--eg-accent, #A3B18A)', color: '#F5F1E8', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 700, boxShadow: '0 12px 40px rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none', border: '1px solid rgba(255,255,255,0.2)', whiteSpace: 'nowrap' }}>
+          <div style={{ padding: '10px 14px', background: 'var(--pl-olive, #A3B18A)', color: '#F5F1E8', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 700, boxShadow: '0 12px 40px rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none', border: '1px solid var(--pl-muted)', whiteSpace: 'nowrap' }}>
             <span style={{ fontSize: '1.2rem' }}>{state.canvasDragId.startsWith('chapter:') ? '⌖' : '✦'}</span>
             {state.canvasDragLabel}
           </div>
@@ -853,7 +852,7 @@ function PublishModalInline() {
           style={{
             background: 'linear-gradient(160deg, #3d3530 0%, #312b26 100%)',
             borderRadius: '16px 16px 36px 36px', padding: '2.5rem', maxWidth: '460px', width: '100%',
-            boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.07) inset',
+            boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.05) inset',
             textAlign: 'center', position: 'relative', overflow: 'hidden',
           }}
         >
@@ -870,17 +869,17 @@ function PublishModalInline() {
                 <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: 'spring', stiffness: 360, damping: 22, delay: 0.05 }}
                   style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(163,177,138,0.2)' }}>
-                  <Globe size={26} color="var(--eg-accent, #A3B18A)" />
+                  <Globe size={26} color="var(--pl-olive, #A3B18A)" />
                 </motion.div>
                 <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                  style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>
+                  style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>
                   It&apos;s Live.
                 </motion.h2>
                 <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                   style={{ color: 'rgba(255,255,255,0.48)', margin: 0, fontSize: '0.9rem' }}>Your story is now live at:</motion.p>
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                   style={{ width: '100%', position: 'relative' }}>
-                  <code style={{ display: 'block', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.2)', padding: '0.65rem 2.8rem 0.65rem 1.2rem', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--eg-accent, #A3B18A)', wordBreak: 'break-all', textAlign: 'left' }}>
+                  <code style={{ display: 'block', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.2)', padding: '0.65rem 2.8rem 0.65rem 1.2rem', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--pl-olive, #A3B18A)', wordBreak: 'break-all', textAlign: 'left' }}>
                     {publishedUrl}
                   </code>
                   <motion.button onClick={() => navigator.clipboard?.writeText(publishedUrl!).catch(() => {})} title="Copy link"
@@ -893,19 +892,19 @@ function PublishModalInline() {
                   style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.5rem' }}>
                   <motion.a href={publishedUrl!} target="_blank" rel="noreferrer"
                     whileHover={{ scale: 1.04, boxShadow: '0 6px 22px rgba(163,177,138,0.45)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px rgba(163,177,138,0.35)' }}>
+                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--pl-cream, #F5F1E8)', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center', display: 'block', boxShadow: '0 3px 12px rgba(163,177,138,0.35)' }}>
                     Open Site →
                   </motion.a>
                   <motion.button onClick={() => { dispatch({ type: 'SET_SHOW_PUBLISH', show: false }); }}
-                    whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.1)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                    whileHover={{ scale: 1.04, backgroundColor: 'rgba(0,0,0,0.06)' }} whileTap={{ scale: 0.95 }}
+                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 10px 10px', background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--pl-ink)', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
                     Dashboard
                   </motion.button>
                 </motion.div>
 
                 {/* ── Share with guests ── */}
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.34 }}
-                  style={{ width: '100%', borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '1rem' }}>
+                  style={{ width: '100%', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '1rem' }}>
                   <div style={{ fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.28)', marginBottom: '0.75rem', textAlign: 'left' }}>
                     Share with guests
                   </div>
@@ -914,28 +913,28 @@ function PublishModalInline() {
                     <motion.button
                       whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
                       onClick={() => { if (shareMsg) window.location.href = `sms:?body=${encodeURIComponent(shareMsg)}`; }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.25)', color: 'rgba(255,255,255,0.85)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.25)', color: 'var(--pl-ink)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
                       <Phone size={13} /> iMessage
                     </motion.button>
                     {/* WhatsApp */}
                     <motion.button
                       whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
                       onClick={() => { if (shareMsg) window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank'); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--pl-ink)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
                       <MessageCircle size={13} /> WhatsApp
                     </motion.button>
                     {/* Email */}
                     <motion.button
                       whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
                       onClick={() => { if (publishedUrl) window.open(`mailto:?subject=${encodeURIComponent(`You're invited — ${displayNames}`)}&body=${encodeURIComponent(`View our site:\n${publishedUrl}`)}`); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--pl-ink)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>
                       <Mail size={13} /> Email
                     </motion.button>
                     {/* Copy link */}
                     <motion.button
                       whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.94 }}
                       onClick={handleCopyLink}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: shareCopied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: shareCopied ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(255,255,255,0.1)', color: shareCopied ? '#4ade80' : 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, transition: 'all 0.2s' }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 0.9rem', borderRadius: '100px', background: shareCopied ? 'rgba(34,197,94,0.12)' : 'rgba(0,0,0,0.04)', border: shareCopied ? '1px solid rgba(34,197,94,0.25)' : '1px solid rgba(0,0,0,0.06)', color: shareCopied ? '#4ade80' : 'var(--pl-ink)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, transition: 'all 0.2s' }}>
                       {shareCopied ? <Check size={13} /> : <Copy size={13} />}
                       {shareCopied ? 'Copied!' : 'Copy Link'}
                     </motion.button>
@@ -950,7 +949,7 @@ function PublishModalInline() {
               </motion.div>
             ) : (
               <motion.div key="url-picker" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.8rem', color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Choose Your URL</h2>
+                <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.8rem', color: '#fff', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Choose Your URL</h2>
                 <p style={{ color: 'rgba(255,255,255,0.42)', marginBottom: '2rem', fontSize: '0.88rem' }}>Customize your site address — you can change it anytime.</p>
                 {publishError && (
                   <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
@@ -958,22 +957,22 @@ function PublishModalInline() {
                     <span style={{ flexShrink: 0 }}>⚠</span><span>{publishError}</span>
                   </motion.div>
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.07)', borderRadius: '0.85rem', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.2) inset' }}>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.05)', borderRadius: '0.85rem', border: '1px solid rgba(0,0,0,0.07)', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 2px 12px rgba(0,0,0,0.2) inset' }}>
                   <input value={subdomain} onChange={e => dispatch({ type: 'SET_SUBDOMAIN', subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
                     placeholder="shauna-and-ben" disabled={isPublishing} autoFocus
                     style={{ flex: 1, padding: '0.9rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: '0.95rem', fontFamily: 'inherit' }} />
-                  <div style={{ padding: '0.9rem 1rem', color: 'rgba(255,255,255,0.28)', fontSize: '0.82rem', borderLeft: '1px solid rgba(255,255,255,0.08)', whiteSpace: 'nowrap', background: 'rgba(255,255,255,0.03)' }}>.pearloom.com</div>
+                  <div style={{ padding: '0.9rem 1rem', color: 'rgba(255,255,255,0.28)', fontSize: '0.82rem', borderLeft: '1px solid rgba(0,0,0,0.06)', whiteSpace: 'nowrap', background: 'rgba(163,177,138,0.04)' }}>.pearloom.com</div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                   <motion.button onClick={() => dispatch({ type: 'SET_SHOW_PUBLISH', show: false })} disabled={isPublishing}
-                    whileHover={{ scale: 1.03, backgroundColor: 'rgba(255,255,255,0.1)' }} whileTap={{ scale: 0.95 }}
-                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}>
+                    whileHover={{ scale: 1.03, backgroundColor: 'rgba(0,0,0,0.06)' }} whileTap={{ scale: 0.95 }}
+                    style={{ flex: 1, padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.06)', color: 'var(--pl-ink)', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}>
                     Cancel
                   </motion.button>
                   <motion.button onClick={actions.handlePublishSubmit} disabled={isPublishing || !subdomain}
                     whileHover={!isPublishing && subdomain ? { scale: 1.04, boxShadow: '0 6px 24px rgba(163,177,138,0.5)' } : {}}
                     whileTap={!isPublishing && subdomain ? { scale: 0.95 } : {}}
-                    style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--eg-bg, #F5F1E8)', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.88rem', opacity: isPublishing || !subdomain ? 0.65 : 1, boxShadow: '0 3px 12px rgba(163,177,138,0.3)' }}>
+                    style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '0.9rem', borderRadius: '10px 10px 22px 22px', background: 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)', color: 'var(--pl-cream, #F5F1E8)', border: 'none', cursor: isPublishing || !subdomain ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '0.88rem', opacity: isPublishing || !subdomain ? 0.65 : 1, boxShadow: '0 3px 12px rgba(163,177,138,0.3)' }}>
                     {isPublishing ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Publishing…</> : <><Globe size={14} /> Publish Site</>}
                   </motion.button>
                 </div>

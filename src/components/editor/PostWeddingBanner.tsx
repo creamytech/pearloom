@@ -139,7 +139,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             margin: '0 0 0.3rem',
             fontSize: '0.95rem', fontWeight: 700,
             color: 'rgba(214,198,168,0.95)',
-            fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+            fontFamily: 'var(--pl-font-heading, Georgia, serif)',
           }}>
             Your wedding day has passed ✨
           </h3>
@@ -168,7 +168,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '0.85rem',
             fontWeight: 700,
-            fontFamily: 'var(--eg-font-body, Georgia, serif)',
+            fontFamily: 'var(--pl-font-body, Georgia, serif)',
             whiteSpace: 'nowrap',
             flexShrink: 0,
             transition: 'background 0.2s',

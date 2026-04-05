@@ -411,7 +411,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
   const assignedSeats = tables.reduce((n, t) => n + (t.seats ?? []).filter(s => s.guestId).length, 0);
 
   return (
-    <div style={{ display: 'flex', height: '100%', background: 'var(--eg-bg)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100%', background: 'var(--pl-cream)', overflow: 'hidden' }}>
 
       {/* ── Canvas area ─────────────────────────────────────── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -423,8 +423,8 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             alignItems: 'center',
             gap: '0.5rem',
             padding: '0.6rem 1rem',
-            borderBottom: '1px solid var(--eg-divider)',
-            background: 'rgba(255,255,255,0.85)',
+            borderBottom: '1px solid var(--pl-divider)',
+            background: 'var(--pl-ink)',
             backdropFilter: 'blur(8px)',
             flexShrink: 0,
             flexWrap: 'wrap',
@@ -446,7 +446,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                   left: 0,
                   zIndex: 100,
                   background: '#fff',
-                  border: '1.5px solid var(--eg-divider)',
+                  border: '1.5px solid var(--pl-divider)',
                   borderRadius: '0.75rem',
                   boxShadow: '0 8px 24px rgba(43,43,43,0.1)',
                   minWidth: '160px',
@@ -465,11 +465,11 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                       border: 'none',
                       textAlign: 'left',
                       fontSize: '0.8rem',
-                      fontFamily: 'var(--eg-font-body)',
-                      color: 'var(--eg-fg)',
+                      fontFamily: 'var(--pl-font-body)',
+                      color: 'var(--pl-ink)',
                       cursor: 'pointer',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--eg-accent-light)')}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--pl-olive-mist)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                   >
                     {p.label}
@@ -484,7 +484,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             <LayoutGrid size={14} /> Auto-arrange
           </button>
 
-          <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
+          <div style={{ width: '1px', height: '1.5rem', background: 'var(--pl-divider)', margin: '0 0.25rem' }} />
 
           {/* Undo / Redo */}
           <button
@@ -504,13 +504,13 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             ⌘⇧Z
           </button>
 
-          <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
+          <div style={{ width: '1px', height: '1.5rem', background: 'var(--pl-divider)', margin: '0 0.25rem' }} />
 
           {/* Zoom controls */}
           <button onClick={() => setZoom(z => Math.min(MAX_ZOOM, z + 0.1))} style={iconBtnStyle} title="Zoom in">
             <ZoomIn size={15} />
           </button>
-          <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)', minWidth: '3rem', textAlign: 'center' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', fontFamily: 'var(--pl-font-body)', minWidth: '3rem', textAlign: 'center' }}>
             {Math.round(zoom * 100)}%
           </span>
           <button onClick={() => setZoom(z => Math.max(MIN_ZOOM, z - 0.1))} style={iconBtnStyle} title="Zoom out">
@@ -520,15 +520,15 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             <Maximize2 size={14} />
           </button>
 
-          <div style={{ width: '1px', height: '1.5rem', background: 'var(--eg-divider)', margin: '0 0.25rem' }} />
+          <div style={{ width: '1px', height: '1.5rem', background: 'var(--pl-divider)', margin: '0 0.25rem' }} />
 
           {/* Stats */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', fontFamily: 'var(--pl-font-body)' }}>
               {tables.length} {tables.length === 1 ? 'table' : 'tables'} · {totalSeats} seats · {assignedSeats} assigned
             </span>
             {totalSeats > 0 && (
-              <div style={{ marginTop: '4px', height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
+              <div style={{ marginTop: '4px', height: '3px', background: 'rgba(0,0,0,0.06)', borderRadius: '100px', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${Math.round((assignedSeats / totalSeats) * 100)}%`,
@@ -541,7 +541,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
           </div>
 
           {saving && (
-            <span style={{ fontSize: '0.72rem', color: 'var(--eg-accent)', fontFamily: 'var(--eg-font-body)', marginLeft: 'auto' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--pl-olive)', fontFamily: 'var(--pl-font-body)', marginLeft: 'auto' }}>
               Saving…
             </span>
           )}
@@ -581,7 +581,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             >
               <defs>
                 <pattern id="dot-grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.08)" />
+                  <circle cx="1" cy="1" r="1" fill="rgba(0,0,0,0.06)" />
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#dot-grid)" />
@@ -595,7 +595,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                 top: ROOM_MARGIN,
                 width: CANVAS_W - ROOM_MARGIN * 2,
                 height: CANVAS_H - ROOM_MARGIN * 2,
-                border: '2px dashed rgba(255,255,255,0.12)',
+                border: '2px dashed rgba(0,0,0,0.07)',
                 borderRadius: '12px',
                 pointerEvents: 'none',
               }}
@@ -606,8 +606,8 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                 left: ROOM_MARGIN + 8,
                 top: ROOM_MARGIN + 6,
                 fontSize: '10px',
-                color: 'rgba(255,255,255,0.2)',
-                fontFamily: 'var(--eg-font-body)',
+                color: 'var(--pl-muted)',
+                fontFamily: 'var(--pl-font-body)',
                 pointerEvents: 'none',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
@@ -619,7 +619,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             {/* Loading state */}
             {loading && (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--eg-font-body)', fontSize: '0.9rem' }}>
+                <p style={{ color: 'var(--pl-ink-soft)', fontFamily: 'var(--pl-font-body)', fontSize: '0.9rem' }}>
                   Loading seating chart…
                 </p>
               </div>
@@ -628,12 +628,12 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
             {/* Error state */}
             {!loading && loadError && (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                <p style={{ color: 'rgba(239,68,68,0.8)', fontFamily: 'var(--eg-font-body)', fontSize: '0.9rem', maxWidth: '280px', textAlign: 'center' }}>
+                <p style={{ color: 'rgba(239,68,68,0.8)', fontFamily: 'var(--pl-font-body)', fontSize: '0.9rem', maxWidth: '280px', textAlign: 'center' }}>
                   {loadError}
                 </p>
                 <button
                   onClick={() => { setLoadError(null); setLoading(true); }}
-                  style={{ padding: '0.5rem 1.25rem', borderRadius: '0.6rem', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'rgba(239,68,68,0.8)', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'var(--eg-font-body)' }}
+                  style={{ padding: '0.5rem 1.25rem', borderRadius: '0.6rem', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.1)', color: 'rgba(239,68,68,0.8)', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'var(--pl-font-body)' }}
                 >
                   Retry
                 </button>
@@ -646,10 +646,10 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                 position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
               }}>
-                <p style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', margin: 0 }}>
+                <p style={{ color: 'var(--pl-muted)', fontFamily: 'var(--pl-font-heading)', fontSize: '1.1rem', margin: 0 }}>
                   Your canvas is empty
                 </p>
-                <p style={{ color: 'rgba(255,255,255,0.18)', fontFamily: 'var(--eg-font-body)', fontSize: '0.82rem', margin: 0 }}>
+                <p style={{ color: 'rgba(0,0,0,0.1)', fontFamily: 'var(--pl-font-body)', fontSize: '0.82rem', margin: 0 }}>
                   Add your first table to start building your seating layout.
                 </p>
                 <button
@@ -665,7 +665,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
                     background: 'rgba(163,177,138,0.1)',
                     color: 'rgba(163,177,138,0.85)',
                     fontSize: '0.82rem',
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                   }}
@@ -702,8 +702,8 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
           {/* Zoom hint */}
           <div style={{
             position: 'absolute', bottom: '0.75rem', left: '1rem',
-            fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)',
-            fontFamily: 'var(--eg-font-body)', pointerEvents: 'none',
+            fontSize: '0.7rem', color: 'var(--pl-muted)',
+            fontFamily: 'var(--pl-font-body)', pointerEvents: 'none',
           }}>
             Cmd+scroll to zoom · Alt+drag to pan
           </div>
@@ -711,7 +711,7 @@ export function SeatingCanvas({ siteId, spaceId }: SeatingCanvasProps) {
       </div>
 
       {/* ── Side panel ─────────────────────────────────────── */}
-      <div style={{ width: '280px', flexShrink: 0, borderLeft: '1px solid var(--eg-divider)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ width: '280px', flexShrink: 0, borderLeft: '1px solid var(--pl-divider)', display: 'flex', flexDirection: 'column' }}>
         <SeatingPanel
           siteId={siteId}
           guests={guests}
@@ -735,11 +735,11 @@ const toolbarBtnStyle: React.CSSProperties = {
   gap: '0.35rem',
   padding: '0.4rem 0.75rem',
   borderRadius: '0.75rem',
-  border: '1.5px solid var(--eg-divider)',
-  background: 'rgba(255,255,255,0.7)',
-  color: 'var(--eg-fg)',
+  border: '1.5px solid var(--pl-divider)',
+  background: 'var(--pl-ink)',
+  color: 'var(--pl-ink)',
   fontSize: '0.78rem',
-  fontFamily: 'var(--eg-font-body)',
+  fontFamily: 'var(--pl-font-body)',
   cursor: 'pointer',
   transition: 'background 0.15s',
 };
@@ -751,9 +751,9 @@ const iconBtnStyle: React.CSSProperties = {
   width: '2rem',
   height: '2rem',
   borderRadius: '0.6rem',
-  border: '1.5px solid var(--eg-divider)',
-  background: 'rgba(255,255,255,0.7)',
-  color: 'var(--eg-muted)',
+  border: '1.5px solid var(--pl-divider)',
+  background: 'var(--pl-ink)',
+  color: 'var(--pl-muted)',
   cursor: 'pointer',
   transition: 'background 0.15s',
 };

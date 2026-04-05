@@ -116,7 +116,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--eg-bg)',
+        background: 'var(--pl-cream)',
       }}
     >
       {/* ── Visual Backdrop ── */}
@@ -146,20 +146,20 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             </AnimatePresence>
           </motion.div>
 
-          {/* Dark gradient: transparent top → rgba(0,0,0,0.35) bottom — text readability */}
+          {/* Dark gradient: transparent top → rgba(43,30,20,0.3) bottom — text readability */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 30%, rgba(0,0,0,0.35) 100%)',
+            background: 'linear-gradient(to bottom, rgba(43,30,20,0.1) 0%, transparent 30%, rgba(43,30,20,0.3) 100%)',
           }} />
           {/* Top vignette */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 22%)',
+            background: 'linear-gradient(to bottom, rgba(43,30,20,0.45) 0%, transparent 22%)',
           }} />
           {/* Radial vignette for cinematic frame */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,0.48) 100%)',
+            background: 'radial-gradient(ellipse at center, transparent 38%, rgba(43,30,20,0.4) 100%)',
           }} />
           <FilmGrain />
         </>
@@ -168,7 +168,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         <>
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'radial-gradient(ellipse at 20% 60%, var(--eg-accent-light) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--eg-accent) 15%, transparent) 0%, transparent 55%), var(--eg-bg)',
+            background: 'radial-gradient(ellipse at 20% 60%, var(--pl-olive-mist) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--pl-olive) 15%, transparent) 0%, transparent 55%), var(--pl-cream)',
           }} />
           <FilmGrain />
 
@@ -178,7 +178,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
             style={{
               position: 'absolute', width: 'clamp(300px, 70vw, 700px)', height: 'clamp(300px, 70vw, 700px)', borderRadius: '50%',
-              background: 'radial-gradient(circle, color-mix(in srgb, var(--eg-accent) 18%, transparent) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, color-mix(in srgb, var(--pl-olive) 18%, transparent) 0%, transparent 70%)',
               top: '-15%', left: '-10%', filter: 'blur(60px)', zIndex: 0,
             }}
           />
@@ -187,7 +187,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
             style={{
               position: 'absolute', width: 'clamp(260px, 60vw, 600px)', height: 'clamp(260px, 60vw, 600px)', borderRadius: '50%',
-              background: 'radial-gradient(circle, color-mix(in srgb, var(--eg-accent) 10%, transparent) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, color-mix(in srgb, var(--pl-olive) 10%, transparent) 0%, transparent 70%)',
               bottom: '-10%', right: '-10%', filter: 'blur(80px)', zIndex: 0,
             }}
           />
@@ -209,7 +209,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             style={{
               position: 'absolute', bottom: '-40px', right: '-40px',
               width: '300px', height: '300px', borderRadius: '50%',
-              background: 'radial-gradient(circle, var(--eg-accent) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, var(--pl-olive) 0%, transparent 70%)',
               zIndex: 1, pointerEvents: 'none',
             }}
           />
@@ -225,7 +225,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           opacity: opacityText,
           y: yText,
           padding: '0 clamp(1rem, 5vw, 2rem)',
-          color: hasPhoto ? '#ffffff' : 'var(--eg-fg)',
+          color: hasPhoto ? '#ffffff' : 'var(--pl-ink)',
           width: '100%',
           maxWidth: '1300px',
         }}
@@ -246,7 +246,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               marginBottom: '3.5rem',
               opacity: hasPhoto ? 0.75 : 0.65,
               fontWeight: 700,
-              color: hasPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-accent)',
+              color: hasPhoto ? 'var(--pl-ink)' : 'var(--pl-olive)',
             }}
           >
             {anniversaryLabel}
@@ -258,7 +258,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           data-pe-editable="true"
           data-pe-field="names"
           style={{
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             fontSize: 'clamp(4rem, 12vw, 10rem)',
             lineHeight: 0.88,
             fontWeight: 300,
@@ -268,7 +268,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            color: hasPhoto ? '#ffffff' : 'var(--eg-fg)',
+            color: hasPhoto ? '#ffffff' : 'var(--pl-ink)',
           }}>
           <AnimatedName
             text={names[0]}
@@ -284,11 +284,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 120, damping: 18, delay: 0.9 }}
                 style={{
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontStyle: 'italic',
                   fontWeight: 300,
                   fontSize: 'clamp(2.2rem, 5.5vw, 5rem)',
-                  color: hasPhoto ? 'rgba(255,255,255,0.5)' : 'var(--eg-accent)',
+                  color: hasPhoto ? 'var(--pl-ink-soft)' : 'var(--pl-olive)',
                   margin: '-1.6rem 0 -1.4rem',
                   display: 'block',
                   letterSpacing: '0.02em',
@@ -320,15 +320,15 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               gap: '0.5em',
               padding: '0.6rem 1.75rem',
               borderRadius: '100px',
-              background: hasPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(163,177,138,0.12)',
+              background: hasPhoto ? 'rgba(0,0,0,0.07)' : 'rgba(163,177,138,0.12)',
               backdropFilter: 'blur(12px)',
-              border: hasPhoto ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(163,177,138,0.22)',
+              border: hasPhoto ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(163,177,138,0.22)',
               fontSize: '0.7rem',
               fontWeight: 600,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color: hasPhoto ? 'rgba(255,255,255,0.9)' : 'var(--eg-fg)',
-              fontFamily: 'var(--eg-font-body)',
+              color: hasPhoto ? 'var(--pl-ink)' : 'var(--pl-ink)',
+              fontFamily: 'var(--pl-font-body)',
             }}>
               {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> {formatDateBadge(badgeDateStr)} </>}
               {venue && <><span style={{ opacity: 0.5 }}>·</span> {venue} </>}
@@ -344,11 +344,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             animate="visible"
             variants={{ visible: { transition: { staggerChildren: 0.12, delayChildren: 2.1 } } }}
             style={{
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
               fontStyle: 'italic',
               fontSize: '1.1rem',
               lineHeight: 1.65,
-              color: coverPhoto ? 'rgba(255,255,255,0.7)' : 'var(--eg-muted)',
+              color: coverPhoto ? 'var(--pl-ink)' : 'var(--pl-muted)',
               marginTop: '1.25rem',
               letterSpacing: '0.02em',
             }}
@@ -378,11 +378,11 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.9 }}
             style={{
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
               fontStyle: 'italic',
               fontSize: '1.1rem',
               lineHeight: 1.65,
-              color: coverPhoto ? 'rgba(255,255,255,0.7)' : 'var(--eg-muted)',
+              color: coverPhoto ? 'var(--pl-ink)' : 'var(--pl-muted)',
               marginTop: '1.25rem',
               letterSpacing: '0.02em',
             }}
@@ -403,7 +403,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.6, delay: 2.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5, transformOrigin: 'right' }}
+              style={{ width: '40px', height: '1px', background: coverPhoto ? 'var(--pl-muted)' : 'var(--pl-olive)', opacity: 0.5, transformOrigin: 'right' }}
             />
             <motion.div
               initial={{ scale: 0, rotate: 90 }}
@@ -411,7 +411,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 2.45 }}
               style={{
                 width: '5px', height: '5px', borderRadius: '0',
-                background: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--eg-accent)',
+                background: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--pl-olive)',
                 opacity: 0.65,
               }}
             />
@@ -419,7 +419,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.6, delay: 2.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ width: '40px', height: '1px', background: coverPhoto ? 'rgba(255,255,255,0.25)' : 'var(--eg-accent)', opacity: 0.5, transformOrigin: 'left' }}
+              style={{ width: '40px', height: '1px', background: coverPhoto ? 'var(--pl-muted)' : 'var(--pl-olive)', opacity: 0.5, transformOrigin: 'left' }}
             />
           </motion.div>
         )}
@@ -444,7 +444,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           flexDirection: 'column',
           alignItems: 'center',
           gap: '0.6rem',
-          color: coverPhoto ? 'rgba(255,255,255,0.38)' : 'var(--eg-muted)',
+          color: coverPhoto ? 'var(--pl-muted)' : 'var(--pl-muted)',
           zIndex: 20,
         }}
       >
@@ -460,7 +460,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             style={{
               width: '3px', height: '6px', borderRadius: '2px',
-              background: coverPhoto ? 'rgba(255,255,255,0.8)' : 'currentColor',
+              background: coverPhoto ? 'var(--pl-ink)' : 'currentColor',
             }}
           />
         </div>

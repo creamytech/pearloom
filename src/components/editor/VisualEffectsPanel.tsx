@@ -56,7 +56,7 @@ function SliderRow({
   return (
     <div style={{ marginBottom: '10px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-        <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: '0.8rem', color: 'var(--pl-ink)', fontWeight: 600 }}>{label}</span>
         <span style={{ fontSize: '0.75rem', color: 'rgba(214,198,168,0.7)', fontWeight: 700, minWidth: '38px', textAlign: 'right' }}>
           {value > 0 && unit === 'temp' ? `+${value}` : value}{unit !== 'temp' ? unit : ''}
         </span>
@@ -67,9 +67,9 @@ function SliderRow({
         max={max}
         value={value}
         onChange={e => onChange(Number(e.target.value))}
-        style={{ width: '100%', accentColor: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', height: '6px', WebkitAppearance: 'none', appearance: 'none' } as React.CSSProperties}
+        style={{ width: '100%', accentColor: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', height: '6px', WebkitAppearance: 'none', appearance: 'none' } as React.CSSProperties}
       />
-      {hint && <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '3px' }}>{hint}</div>}
+      {hint && <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', marginTop: '3px' }}>{hint}</div>}
     </div>
   );
 }
@@ -83,9 +83,9 @@ function ToggleChip({
     <button
       onClick={onClick}
       style={{
-        padding: '6px 10px', borderRadius: '8px', border: `1px solid ${active ? (color ?? 'rgba(163,177,138,0.6)') : 'rgba(255,255,255,0.1)'}`,
-        background: active ? `${color ?? 'rgba(163,177,138,1)'}22` : 'rgba(255,255,255,0.04)',
-        color: active ? (color ?? 'rgba(163,177,138,1)') : 'rgba(255,255,255,0.55)',
+        padding: '6px 10px', borderRadius: '8px', border: `1px solid ${active ? (color ?? 'rgba(163,177,138,0.6)') : 'rgba(0,0,0,0.06)'}`,
+        background: active ? `${color ?? 'rgba(163,177,138,1)'}22` : 'rgba(163,177,138,0.05)',
+        color: active ? (color ?? 'rgba(163,177,138,1)') : 'var(--pl-ink-soft)',
         cursor: 'pointer', fontSize: '0.75rem', fontWeight: active ? 700 : 500,
         display: 'flex', alignItems: 'center', gap: '5px',
         transition: 'all 0.15s',
@@ -123,14 +123,14 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
               padding: '6px 8px', borderRadius: '10px', border: `2px solid ${active ? 'rgba(163,177,138,0.8)' : 'transparent'}`,
-              background: active ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.04)',
+              background: active ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
             <div style={{
               width: '36px', height: '24px', borderRadius: '6px', overflow: 'hidden',
               background: p.id === 'none'
-                ? 'rgba(255,255,255,0.1)'
+                ? 'rgba(0,0,0,0.06)'
                 : `linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]}, ${p.colors[2]})`,
               opacity: p.id === 'none' ? 0.4 : 1,
             }} />
@@ -288,17 +288,17 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
           <div style={{ marginTop: '10px' }}>
             <SectionLabel>Color</SectionLabel>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ position: 'relative', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.15)', cursor: 'pointer', overflow: 'hidden', background: effects.cursorColor || accentColor || '#A3B18A' }}>
+              <label style={{ position: 'relative', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.08)', cursor: 'pointer', overflow: 'hidden', background: effects.cursorColor || accentColor || '#A3B18A' }}>
                 <input type="color" value={effects.cursorColor || accentColor || '#A3B18A'} onChange={e => set('cursorColor', e.target.value)} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
               </label>
               <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace' }}>{effects.cursorColor || accentColor || '#A3B18A'}</span>
               {effects.cursorColor && (
-                <button onClick={() => set('cursorColor', undefined)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '0.65rem', textDecoration: 'underline' }}>Reset</button>
+                <button onClick={() => set('cursorColor', undefined)} style={{ background: 'none', border: 'none', color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.65rem', textDecoration: 'underline' }}>Reset</button>
               )}
             </div>
           </div>
         )}
-        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
           Only visible on desktop (mouse) devices
         </div>
       </EffectBlock>
@@ -319,9 +319,9 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
               onClick={() => set('sectionDivider', { ...divider, style: d.id })}
               style={{
                 padding: '6px 10px', borderRadius: '8px',
-                border: `1px solid ${divider.style === d.id ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
-                background: divider.style === d.id ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.04)',
-                color: divider.style === d.id ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.55)',
+                border: `1px solid ${divider.style === d.id ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
+                background: divider.style === d.id ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
+                color: divider.style === d.id ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
                 cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 transition: 'all 0.15s',
@@ -366,7 +366,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
             />
           ))}
         </div>
-        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
           Content sections animate in as visitors scroll down
         </div>
       </EffectBlock>
@@ -385,7 +385,7 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
             />
           ))}
         </div>
-        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>
+        <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
           Subtle material feel layered over the background
         </div>
       </EffectBlock>
@@ -406,7 +406,7 @@ function EffectBlock({
   const toggle = onToggleExpand ?? (() => setOpen(v => !v));
 
   return (
-    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    <div style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
       <button
         onClick={toggle}
         style={{
@@ -417,11 +417,11 @@ function EffectBlock({
       >
         <span style={{
           display: 'flex', alignItems: 'center',
-          color: active ? 'rgba(214,198,168,0.9)' : 'rgba(255,255,255,0.4)',
+          color: active ? 'rgba(214,198,168,0.9)' : 'var(--pl-ink-soft)',
         }}>
           {icon}
         </span>
-        <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 700, color: active ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.65)' }}>
+        <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 700, color: active ? 'rgba(214,198,168,0.95)' : 'var(--pl-ink-soft)' }}>
           {title}
         </span>
         {active && (
@@ -433,7 +433,7 @@ function EffectBlock({
             ON
           </span>
         )}
-        <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+        <span style={{ display: 'flex', alignItems: 'center', color: 'var(--pl-muted)', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
           <IconChevronDown size={14} />
         </span>
       </button>

@@ -97,7 +97,7 @@ export function SpotifyPanel() {
               borderRadius: '8px',
               border: '1px solid rgba(163,177,138,0.35)',
               background: loading ? 'rgba(163,177,138,0.06)' : 'rgba(163,177,138,0.12)',
-              color: loading ? 'rgba(163,177,138,0.5)' : 'var(--eg-accent, #A3B18A)',
+              color: loading ? 'rgba(163,177,138,0.5)' : 'var(--pl-olive, #A3B18A)',
               cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: '0.82rem',
               fontWeight: 700,
@@ -142,8 +142,8 @@ export function SpotifyPanel() {
                     gap: '8px',
                     padding: '8px 10px',
                     borderRadius: '7px',
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'rgba(163,177,138,0.04)',
+                    border: '1px solid rgba(0,0,0,0.04)',
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -157,7 +157,7 @@ export function SpotifyPanel() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {song.title} · <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.55)' }}>{song.artist}</span>
+                      {song.title} · <span style={{ fontWeight: 400, color: 'var(--pl-ink-soft)' }}>{song.artist}</span>
                     </div>
                     <span
                       style={{
@@ -189,8 +189,8 @@ export function SpotifyPanel() {
                       width: '26px',
                       height: '26px',
                       borderRadius: '6px',
-                      background: 'rgba(255,255,255,0.06)',
-                      color: 'rgba(255,255,255,0.4)',
+                      background: 'rgba(0,0,0,0.04)',
+                      color: 'var(--pl-ink-soft)',
                       flexShrink: 0,
                       textDecoration: 'none',
                       transition: 'background 0.15s, color 0.15s',
@@ -200,8 +200,8 @@ export function SpotifyPanel() {
                       (e.currentTarget as HTMLElement).style.color = '#1ED760';
                     }}
                     onMouseOut={e => {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)';
-                      (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)';
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
+                      (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)';
                     }}
                   >
                     <ExternalLink size={11} />
@@ -212,7 +212,7 @@ export function SpotifyPanel() {
           )}
 
           {songs.length === 0 && !loading && !error && (
-            <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', margin: 0, padding: '0.5rem 0' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--pl-muted)', textAlign: 'center', margin: 0, padding: '0.5rem 0' }}>
               Click the button to get 10 songs matched to your vibe
             </p>
           )}
@@ -222,7 +222,7 @@ export function SpotifyPanel() {
       {/* Embed preview */}
       {embedUrl && (
         <SidebarSection title="Preview" defaultOpen={false}>
-          <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.05)' }}>
             <iframe
               src={embedUrl}
               width="100%"

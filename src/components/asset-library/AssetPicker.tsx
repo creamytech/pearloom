@@ -25,7 +25,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
 
   const containerStyle: React.CSSProperties = {
     background: '#1E1B16',
-    color: 'rgba(255,255,255,0.8)',
+    color: 'var(--pl-ink)',
     fontFamily: 'inherit',
     borderRadius: '8px',
     overflow: 'hidden',
@@ -34,7 +34,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
 
   const tabBarStyle: React.CSSProperties = {
     display: 'flex',
-    borderBottom: '1px solid rgba(255,255,255,0.12)',
+    borderBottom: '1px solid rgba(0,0,0,0.07)',
   };
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -43,7 +43,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
     background: 'none',
     border: 'none',
     borderBottom: active ? '2px solid #A3B18A' : '2px solid transparent',
-    color: active ? '#A3B18A' : 'rgba(255,255,255,0.5)',
+    color: active ? '#A3B18A' : 'var(--pl-ink-soft)',
     fontSize: '0.75rem',
     letterSpacing: '0.04em',
     cursor: 'pointer',
@@ -75,7 +75,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
     justifyContent: 'center',
     gap: '4px',
     padding: '8px 4px',
-    border: isSelected ? '2px solid #A3B18A' : '2px solid rgba(255,255,255,0.08)',
+    border: isSelected ? '2px solid #A3B18A' : '2px solid rgba(0,0,0,0.06)',
     borderRadius: '6px',
     cursor: 'pointer',
     background: isSelected ? 'rgba(163,177,138,0.08)' : 'transparent',
@@ -87,7 +87,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
     alignItems: 'center',
     gap: '10px',
     padding: '8px',
-    border: isSelected ? '2px solid #A3B18A' : '2px solid rgba(255,255,255,0.08)',
+    border: isSelected ? '2px solid #A3B18A' : '2px solid rgba(0,0,0,0.06)',
     borderRadius: '6px',
     cursor: 'pointer',
     background: isSelected ? 'rgba(163,177,138,0.08)' : 'transparent',
@@ -96,7 +96,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
 
   const labelStyle: React.CSSProperties = {
     fontSize: '0.6rem',
-    color: 'rgba(255,255,255,0.6)',
+    color: 'var(--pl-ink-soft)',
     textAlign: 'center',
     lineHeight: 1.2,
     wordBreak: 'break-word',
@@ -105,7 +105,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
 
   const dividerLabelStyle: React.CSSProperties = {
     fontSize: '0.6rem',
-    color: 'rgba(255,255,255,0.6)',
+    color: 'var(--pl-ink-soft)',
     whiteSpace: 'nowrap',
     minWidth: '80px',
   };
@@ -137,7 +137,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               {addedId === name && (
                 <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
-              <Comp size={32} color="rgba(255,255,255,0.75)" />
+              <Comp size={32} color="var(--pl-ink)" />
               <span style={labelStyle}>{name.replace('Illustration', '')}</span>
             </div>
           );
@@ -173,7 +173,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               {addedId === name && (
                 <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
-              <Comp size={32} color="rgba(255,255,255,0.75)" />
+              <Comp size={32} color="var(--pl-ink)" />
               <span style={labelStyle}>{name.replace('Accent', '')}</span>
             </div>
           );
@@ -210,7 +210,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
                 <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
               <div style={{ flex: 1, height: '32px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-                <Comp width="100%" height={32} color="rgba(255,255,255,0.75)" />
+                <Comp width="100%" height={32} color="var(--pl-ink)" />
               </div>
               <span style={dividerLabelStyle}>{name.replace('Divider', '')}</span>
             </div>

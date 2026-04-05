@@ -36,7 +36,7 @@ export function EditorBreadcrumb() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex items-center gap-1.5 text-[0.72rem] font-medium"
-      style={{ color: 'rgba(255,255,255,0.35)' }}
+      style={{ color: 'var(--pl-muted)' }}
     >
       <button
         onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' })}
@@ -52,7 +52,7 @@ export function EditorBreadcrumb() {
         onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: activeTab })}
         className="bg-transparent border-none cursor-pointer p-0 hover:text-white transition-colors"
         style={{
-          color: activeChapter ? 'inherit' : 'var(--eg-accent, #A3B18A)',
+          color: activeChapter ? 'inherit' : 'var(--pl-olive, #A3B18A)',
           fontSize: 'inherit',
           fontWeight: activeChapter ? 'inherit' : 700,
         }}
@@ -63,7 +63,7 @@ export function EditorBreadcrumb() {
       {activeChapter && activeTab === 'story' && (
         <>
           <ChevronRight size={10} style={{ opacity: 0.5 }} />
-          <span style={{ color: 'var(--eg-gold, #D6C6A8)', fontWeight: 600 }}>
+          <span style={{ color: 'var(--pl-gold, #D6C6A8)', fontWeight: 600 }}>
             {activeChapter.title || 'Untitled'}
           </span>
         </>

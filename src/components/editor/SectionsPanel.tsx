@@ -80,7 +80,7 @@ export function SectionsPanel({ manifest, onChange }: {
         <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginBottom: '0.3rem' }}>
           Page Sections
         </div>
-        <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', lineHeight: 1.5, margin: 0 }}>
+        <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
           Reorder, show, or hide sections on your site. Drag or use arrows to change order.
         </p>
       </div>
@@ -103,8 +103,8 @@ export function SectionsPanel({ manifest, onChange }: {
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '10px 12px', borderRadius: '10px',
-                background: isHidden ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
-                border: `1px solid ${isHidden ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)'}`,
+                background: isHidden ? 'rgba(163,177,138,0.03)' : 'rgba(163,177,138,0.06)',
+                border: `1px solid ${isHidden ? 'rgba(163,177,138,0.05)' : 'rgba(0,0,0,0.06)'}`,
                 opacity: isHidden ? 0.45 : 1,
                 transition: 'all 0.15s',
                 cursor: 'grab',
@@ -112,13 +112,13 @@ export function SectionsPanel({ manifest, onChange }: {
               }}
             >
               {/* Drag handle */}
-              <GripVertical size={14} style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+              <GripVertical size={14} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
 
               {/* Emoji + label */}
               <span style={{ fontSize: '1rem', flexShrink: 0 }}>{meta.emoji}</span>
               <span style={{
                 flex: 1, fontSize: '0.82rem', fontWeight: 600,
-                color: isHidden ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.8)',
+                color: isHidden ? 'var(--pl-muted)' : 'var(--pl-ink)',
                 textDecoration: isHidden ? 'line-through' : 'none',
               }}>
                 {meta.label}
@@ -132,7 +132,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   style={{
                     all: 'unset', cursor: idx === 0 ? 'default' : 'pointer',
                     fontSize: '0.6rem', lineHeight: 1, padding: '2px',
-                    color: idx === 0 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)',
+                    color: idx === 0 ? 'rgba(0,0,0,0.06)' : 'var(--pl-ink-soft)',
                   }}
                 >▲</button>
                 <button
@@ -141,7 +141,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   style={{
                     all: 'unset', cursor: idx === blocks.length - 1 ? 'default' : 'pointer',
                     fontSize: '0.6rem', lineHeight: 1, padding: '2px',
-                    color: idx === blocks.length - 1 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)',
+                    color: idx === blocks.length - 1 ? 'rgba(0,0,0,0.06)' : 'var(--pl-ink-soft)',
                   }}
                 >▼</button>
               </div>
@@ -152,7 +152,7 @@ export function SectionsPanel({ manifest, onChange }: {
                 style={{
                   all: 'unset', cursor: 'pointer', display: 'flex',
                   padding: '4px', borderRadius: '6px',
-                  color: isHidden ? 'rgba(255,255,255,0.2)' : 'rgba(163,177,138,0.8)',
+                  color: isHidden ? 'var(--pl-muted)' : 'rgba(163,177,138,0.8)',
                 }}
               >
                 {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -165,7 +165,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   style={{
                     all: 'unset', cursor: 'pointer', display: 'flex',
                     padding: '4px', borderRadius: '6px',
-                    color: 'rgba(255,255,255,0.15)',
+                    color: 'rgba(0,0,0,0.08)',
                   }}
                 >
                   <Trash2 size={12} />
@@ -178,7 +178,7 @@ export function SectionsPanel({ manifest, onChange }: {
 
       {/* Add section */}
       <div>
-        <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+        <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--pl-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
           Add Section
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -191,9 +191,9 @@ export function SectionsPanel({ manifest, onChange }: {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '6px 10px', borderRadius: '8px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  background: 'rgba(255,255,255,0.03)',
-                  color: 'rgba(255,255,255,0.5)',
+                  border: '1px solid rgba(0,0,0,0.06)',
+                  background: 'rgba(163,177,138,0.04)',
+                  color: 'var(--pl-ink-soft)',
                   fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}

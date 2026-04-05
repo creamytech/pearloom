@@ -3,282 +3,165 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/EditorRail.tsx
 //
-// Simplified 4-category navigation rail.
-// Groups 15+ tabs into: Content, Design, Pages, Settings
+// Floating glass navigation rail — overlaid on the canvas left edge.
+// Icon-only buttons with labels, rounded glassmorphic card.
+// Matches Stitch Photo Atelier / Glass Island Editor pattern.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BarChart2, Users, LayoutGrid, Globe2, Send, Calendar, Mail, Heart, Music2, Briefcase,
-  MoreHorizontal, ChevronDown, BookOpen, Palette, PanelTop, Settings,
+  Palette, PanelTop, Image, Clock, Settings,
 } from 'lucide-react';
-import {
-  SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
-  DetailsIcon, AIBlocksIcon, VoiceIcon,
-} from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
-import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
-// ── Tab categories ───────────────────────────────────────────
-type RailItem = { tab: EditorTab; Icon: React.ElementType; label: string };
-
-type CategoryDef = {
+// ── Simplified icon-only rail items ─────────────────────────
+type RailItem = {
   id: string;
+  tab: EditorTab;
   Icon: React.ElementType;
   label: string;
-  items: RailItem[];
 };
 
-const CATEGORIES: CategoryDef[] = [
-  {
-    id: 'content',
-    Icon: BookOpen,
-    label: 'Content',
-    items: [
-      { tab: 'story',    Icon: StoryIcon,    label: 'Story'    },
-      { tab: 'events',   Icon: EventsIcon,   label: 'Events'   },
-      { tab: 'guests',   Icon: Users,        label: 'Guests'   },
-      { tab: 'blocks',   Icon: AIBlocksIcon, label: 'AI Blocks'},
-      { tab: 'voice',    Icon: VoiceIcon,    label: 'Voice'    },
-    ],
-  },
-  {
-    id: 'design',
-    Icon: Palette,
-    label: 'Design',
-    items: [
-      { tab: 'design',   Icon: DesignIcon,   label: 'Theme'    },
-      { tab: 'canvas',   Icon: SectionsIcon, label: 'Sections' },
-    ],
-  },
-  {
-    id: 'pages',
-    Icon: PanelTop,
-    label: 'Pages',
-    items: [
-      { tab: 'messaging',   Icon: Mail,      label: 'Messages' },
-      { tab: 'savethedate', Icon: Calendar,   label: 'Save the Date' },
-      { tab: 'thankyou',    Icon: Heart,      label: 'Thank You'},
-      { tab: 'spotify',     Icon: Music2,     label: 'Music'    },
-      { tab: 'vendors',     Icon: Briefcase,  label: 'Vendors'  },
-    ],
-  },
-  {
-    id: 'settings',
-    Icon: Settings,
-    label: 'Settings',
-    items: [
-      { tab: 'details',     Icon: DetailsIcon, label: 'Details' },
-      { tab: 'analytics',   Icon: BarChart2,   label: 'Analytics'},
-      { tab: 'translate',   Icon: Globe2,      label: 'Languages'},
-    ],
-  },
+const RAIL_ITEMS: RailItem[] = [
+  { id: 'design',    tab: 'design',    Icon: Palette,  label: 'Design' },
+  { id: 'structure', tab: 'canvas',    Icon: PanelTop, label: 'Structure' },
+  { id: 'assets',    tab: 'story',     Icon: Image,    label: 'Assets' },
+  { id: 'history',   tab: 'analytics', Icon: Clock,    label: 'History' },
 ];
 
-// Build a map from tab → category for quick lookup
-const TAB_TO_CATEGORY = new Map<string, string>();
-for (const cat of CATEGORIES) {
-  for (const item of cat.items) {
-    TAB_TO_CATEGORY.set(item.tab, cat.id);
-  }
-}
-
-// ── CategoryBtn ──────────────────────────────────────────────
-function CategoryBtn({ category, active, expanded, onClick }: {
-  category: CategoryDef; active: boolean; expanded: boolean; onClick: () => void;
-}) {
-  const { Icon, label } = category;
-
-  return (
-    <motion.button
-      onClick={onClick}
-      title={label}
-      whileHover={{ backgroundColor: 'rgba(163,177,138,0.08)' }}
-      whileTap={{ scale: 0.88 }}
-      transition={{ duration: 0.12 }}
-      style={{
-        width: '100%', height: '56px',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: '5px',
-        border: 'none',
-        background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
-        cursor: 'pointer', position: 'relative',
-        borderRadius: '12px',
-        color: active ? '#6E8C5C' : 'var(--pl-muted)',
-        transition: 'color 0.15s, background 0.15s',
-      }}
-    >
-      {/* Active glow accent bar */}
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            layoutId="rail-accent"
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{ scaleY: 1, opacity: 1 }}
-            exit={{ scaleY: 0, opacity: 0 }}
-            style={{
-              position: 'absolute', left: 0, top: '20%', bottom: '20%',
-              width: '3px',
-              background: 'var(--pl-olive-deep)',
-              borderRadius: '0 3px 3px 0',
-              transformOrigin: 'center',
-            }}
-            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-          />
-        )}
-      </AnimatePresence>
-
-      <Icon size={17} color="currentColor" />
-      <span style={{
-        fontSize: '0.52rem', fontWeight: 800, letterSpacing: '0.06em',
-        textTransform: 'uppercase', lineHeight: 1, color: 'inherit',
-        userSelect: 'none',
-      }}>
-        {label}
-      </span>
-    </motion.button>
-  );
-}
-
-// ── SubItem button ───────────────────────────────────────────
-function SubItemBtn({ item, active, onClick }: {
-  item: RailItem; active: boolean; onClick: () => void;
-}) {
-  const { Icon, label, tab } = item;
-  const tier = TAB_TIER[tab];
-  const meta = tier ? TIER_META[tier] : null;
-
-  return (
-    <motion.button
-      onClick={onClick}
-      title={meta ? `${label} — ${meta.label} plan` : label}
-      whileHover={{ backgroundColor: 'rgba(163,177,138,0.06)' }}
-      whileTap={{ scale: 0.92 }}
-      style={{
-        width: '100%',
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '8px 12px',
-        border: 'none',
-        background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
-        cursor: 'pointer',
-        color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-        fontSize: '0.65rem', fontWeight: 700,
-        letterSpacing: '0.04em',
-        textTransform: 'uppercase',
-        transition: 'color 0.12s, background 0.12s',
-        position: 'relative',
-        borderRadius: '8px',
-      }}
-    >
-      {/* Plan tier dot */}
-      {meta && (
-        <div style={{
-          position: 'absolute', top: '6px', right: '6px',
-          width: '5px', height: '5px', borderRadius: '50%',
-          background: meta.color,
-          opacity: 0.6,
-        }} />
-      )}
-      <Icon size={13} color="currentColor" />
-      {label}
-    </motion.button>
-  );
-}
-
-// ── EditorRail ───────────────────────────────────────────────
 export function EditorRail({ onOpen }: { onOpen?: () => void }) {
   const { state, actions } = useEditor();
   const activeTab = state.activeTab;
-  const activeCategoryId = TAB_TO_CATEGORY.get(activeTab) || 'content';
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(activeCategoryId);
 
-  const handleCategoryClick = (catId: string) => {
-    if (expandedCategory === catId) {
-      // Already expanded — clicking again toggles closed
-      setExpandedCategory(null);
-    } else {
-      setExpandedCategory(catId);
-      // Auto-select first tab in this category
-      const cat = CATEGORIES.find(c => c.id === catId);
-      if (cat && cat.items.length > 0) {
-        actions.handleTabChange(cat.items[0].tab);
-        onOpen?.();
-      }
-    }
-  };
-
-  const handleSubItemClick = (tab: EditorTab) => {
+  const handleClick = (tab: EditorTab) => {
     actions.handleTabChange(tab);
     onOpen?.();
   };
 
   return (
-    <div style={{
-      width: '64px', flexShrink: 0,
-      background: 'var(--pl-cream)',
-      borderRight: '1px solid var(--pl-divider)',
-      display: 'flex', flexDirection: 'column',
-      zIndex: 100,
-      overflowY: 'auto', overflowX: 'hidden',
-      scrollbarWidth: 'none',
-    } as React.CSSProperties}>
-
-      {/* Logo mark */}
-      <div style={{
-        height: '48px', flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderBottom: '1px solid var(--pl-divider)',
-      }}>
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: 'absolute',
+        left: '16px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '12px 8px',
+        borderRadius: '24px',
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(24px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 4px 24px rgba(43,30,20,0.08), 0 1px 4px rgba(43,30,20,0.04)',
+      } as React.CSSProperties}
+    >
+      {/* Avatar / Logo at top */}
+      <motion.div
+        whileHover={{ scale: 1.1 }}
+        style={{
+          width: '40px', height: '40px',
+          borderRadius: '50%',
+          background: 'var(--pl-olive-mist)',
+          border: '2px solid var(--pl-olive)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: '8px',
+          cursor: 'pointer',
+        }}
+      >
         <ElegantHeartIcon size={16} color="var(--pl-olive-deep)" />
-      </div>
+      </motion.div>
 
-      {/* Category tabs with expandable sub-items */}
-      <div style={{ paddingTop: '2px', flex: 1 }}>
-        {CATEGORIES.map(cat => {
-          const isCatActive = activeCategoryId === cat.id;
-          const isExpanded = expandedCategory === cat.id;
+      {/* Nav items */}
+      {RAIL_ITEMS.map((item) => {
+        const Icon = item.Icon;
+        const isActive = activeTab === item.tab;
 
-          return (
-            <div key={cat.id}>
-              <CategoryBtn
-                category={cat}
-                active={isCatActive}
-                expanded={isExpanded}
-                onClick={() => handleCategoryClick(cat.id)}
+        return (
+          <motion.button
+            key={item.id}
+            onClick={() => handleClick(item.tab)}
+            title={item.label}
+            whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+            whileTap={{ scale: 0.88 }}
+            style={{
+              width: '44px', height: '44px',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: '3px',
+              border: 'none',
+              borderRadius: '14px',
+              background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
+              color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            {/* Active indicator dot */}
+            {isActive && (
+              <motion.div
+                layoutId="rail-active"
+                style={{
+                  position: 'absolute', left: '-4px', top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '3px', height: '20px',
+                  borderRadius: '0 3px 3px 0',
+                  background: 'var(--pl-olive-deep)',
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 28 }}
               />
+            )}
+            <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
+            <span style={{
+              fontSize: '0.48rem', fontWeight: 700,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+              lineHeight: 1, userSelect: 'none',
+            }}>
+              {item.label}
+            </span>
+          </motion.button>
+        );
+      })}
 
-              {/* Expandable sub-items */}
-              <AnimatePresence>
-                {isExpanded && cat.items.length > 1 && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    style={{
-                      overflow: 'hidden',
-                      background: 'rgba(163,177,138,0.05)',
-                      borderTop: '1px solid var(--pl-divider)',
-                      borderBottom: '1px solid var(--pl-divider)',
-                    }}
-                  >
-                    {cat.items.map(item => (
-                      <SubItemBtn
-                        key={item.tab}
-                        item={item}
-                        active={activeTab === item.tab}
-                        onClick={() => handleSubItemClick(item.tab)}
-                      />
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+      {/* Spacer */}
+      <div style={{ flex: 1, minHeight: '24px' }} />
+
+      {/* Settings at bottom */}
+      <motion.button
+        onClick={() => handleClick('details')}
+        title="Settings"
+        whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+        whileTap={{ scale: 0.88 }}
+        style={{
+          width: '44px', height: '44px',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: '3px',
+          border: 'none',
+          borderRadius: '14px',
+          background: activeTab === 'details' ? 'rgba(163,177,138,0.15)' : 'transparent',
+          color: activeTab === 'details' ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+          cursor: 'pointer',
+          transition: 'background 0.15s, color 0.15s',
+        }}
+      >
+        <Settings size={18} strokeWidth={1.8} />
+        <span style={{
+          fontSize: '0.48rem', fontWeight: 700,
+          letterSpacing: '0.06em', textTransform: 'uppercase',
+          lineHeight: 1, userSelect: 'none',
+        }}>
+          Settings
+        </span>
+      </motion.button>
+    </motion.div>
   );
 }

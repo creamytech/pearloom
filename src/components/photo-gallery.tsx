@@ -106,7 +106,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
 
       {/* ── Name input ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-        <Camera size={16} color="var(--eg-muted)" />
+        <Camera size={16} color="var(--pl-muted)" />
         <input
           type="text"
           value={uploadName}
@@ -117,11 +117,11 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             border: '1.5px solid rgba(0,0,0,0.08)',
             fontSize: 'max(16px, 0.9rem)',
             background: '#fff', outline: 'none',
-            fontFamily: 'var(--eg-font-body)',
-            color: 'var(--eg-fg)',
+            fontFamily: 'var(--pl-font-body)',
+            color: 'var(--pl-ink)',
             transition: 'border-color 0.2s',
           }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; }}
           onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
         />
       </div>
@@ -133,7 +133,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
         style={{
-          border: `2px dashed ${dragOver ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
+          border: `2px dashed ${dragOver ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
           borderRadius: '1.25rem',
           padding: '2.5rem',
           textAlign: 'center',
@@ -156,7 +156,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
           {uploading ? (
             <Loader2
               size={32}
-              color="var(--eg-accent)"
+              color="var(--pl-olive)"
               style={{ animation: 'spin 1s linear infinite' }}
             />
           ) : (
@@ -169,14 +169,14 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 animation: dragOver ? 'pulse-zone 1s ease-in-out infinite' : 'none',
               }}
             >
-              <Upload size={22} color={dragOver ? 'var(--eg-accent)' : 'var(--eg-muted)'} />
+              <Upload size={22} color={dragOver ? 'var(--pl-olive)' : 'var(--pl-muted)'} />
             </div>
           )}
           <div>
-            <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--eg-fg)' }}>
+            <p style={{ fontSize: '0.95rem', fontWeight: 500, color: 'var(--pl-ink)' }}>
               {uploading ? 'Uploading...' : dragOver ? 'Drop to upload' : 'Drop photos here or tap to upload'}
             </p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>
               JPG, PNG, WebP &middot; Max 10MB each
             </p>
           </div>
@@ -194,7 +194,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
       ) : photos.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 0' }}>
           <Upload size={48} color="rgba(0,0,0,0.12)" style={{ margin: '0 auto 1rem' }} />
-          <p style={{ color: 'var(--eg-muted)', fontSize: '0.925rem' }}>
+          <p style={{ color: 'var(--pl-muted)', fontSize: '0.925rem' }}>
             No photos yet — be the first to share a moment.
           </p>
         </div>
@@ -257,11 +257,11 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                   transition={{ duration: 0.2, delay: 0.05 }}
                 >
                   {photo.uploadedBy && (
-                    <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.78rem', fontWeight: 600 }}>
+                    <p style={{ color: 'var(--pl-ink)', fontSize: '0.78rem', fontWeight: 600 }}>
                       {photo.uploadedBy}
                     </p>
                   )}
-                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                  <p style={{ color: 'var(--pl-ink-soft)', fontSize: '0.68rem', marginTop: '0.15rem' }}>
                     {new Date(photo.uploadedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 </motion.div>
@@ -292,13 +292,13 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
               onClick={(e) => { e.stopPropagation(); setLightboxIdx(null); }}
               style={{
                 position: 'absolute', top: '1rem', right: '1rem',
-                padding: '0.5rem', background: 'rgba(255,255,255,0.1)',
+                padding: '0.5rem', background: 'rgba(0,0,0,0.06)',
                 border: 'none', borderRadius: '50%',
-                color: 'rgba(255,255,255,0.8)', cursor: 'pointer', zIndex: 10,
+                color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
                 display: 'flex', transition: 'background 0.15s',
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
             >
               <X size={20} />
             </button>
@@ -309,13 +309,13 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
                 style={{
                   position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)',
-                  padding: '0.75rem', background: 'rgba(255,255,255,0.1)',
+                  padding: '0.75rem', background: 'rgba(0,0,0,0.06)',
                   border: 'none', borderRadius: '50%',
-                  color: 'rgba(255,255,255,0.8)', cursor: 'pointer', zIndex: 10,
+                  color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
                   display: 'flex', transition: 'background 0.15s',
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
               >
                 <ChevronLeft size={22} />
               </button>
@@ -327,13 +327,13 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
                 onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
                 style={{
                   position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
-                  padding: '0.75rem', background: 'rgba(255,255,255,0.1)',
+                  padding: '0.75rem', background: 'rgba(0,0,0,0.06)',
                   border: 'none', borderRadius: '50%',
-                  color: 'rgba(255,255,255,0.8)', cursor: 'pointer', zIndex: 10,
+                  color: 'var(--pl-ink)', cursor: 'pointer', zIndex: 10,
                   display: 'flex', transition: 'background 0.15s',
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
               >
                 <ChevronRight size={22} />
               </button>
@@ -375,11 +375,11 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
               }}
             >
               {lightboxPhoto.uploadedBy && (
-                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.82rem' }}>
+                <p style={{ color: 'var(--pl-ink)', fontSize: '0.82rem' }}>
                   {lightboxPhoto.uploadedBy}
                 </p>
               )}
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.72rem' }}>
+              <p style={{ color: 'var(--pl-muted)', fontSize: '0.72rem' }}>
                 {lightboxIdx + 1} / {photos.length}
               </p>
             </div>

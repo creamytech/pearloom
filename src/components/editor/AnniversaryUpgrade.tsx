@@ -183,7 +183,7 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
     color: 'rgba(245,240,232,0.6)',
     fontWeight: 500,
     fontSize: '0.8rem',
-    border: '1px solid rgba(255,255,255,0.15)',
+    border: '1px solid rgba(0,0,0,0.08)',
     cursor: 'pointer',
   };
 

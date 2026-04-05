@@ -113,7 +113,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             padding: '5px 12px', borderRadius: '100px',
             border: 'none',
             background: isRegenerating ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.9)',
-            color: isRegenerating ? 'rgba(255,255,255,0.5)' : '#fff',
+            color: isRegenerating ? 'var(--pl-ink-soft)' : '#fff',
             cursor: isRegenerating ? 'not-allowed' : 'pointer',
             fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
             boxShadow: isRegenerating ? 'none' : '0 2px 8px rgba(163,177,138,0.3)',
@@ -234,7 +234,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       onChange({ ...manifest, stickers: updated });
                     }} style={{ width: '50px', accentColor: '#A3B18A' }} />
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted)' }}>
                     Op.
                     <input type="range" min={10} max={100} value={Math.round(s.opacity * 100)} onChange={e => {
                       const updated = [...manifest.stickers!];
@@ -242,7 +242,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       onChange({ ...manifest, stickers: updated });
                     }} style={{ width: '40px', accentColor: '#A3B18A' }} />
                   </label>
-                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', padding: '2px' }}>✕</button>
+                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}>✕</button>
                 </div>
               ))}
             </div>
@@ -253,7 +253,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* Live preview — compact, no extra nesting */}
       <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
-          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--eg-fg, #2B2B2B)', marginBottom: '3px' }}>
+          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, var(--pl-ink-soft))', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}
           </div>
           <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.72rem', marginBottom: '8px' }}>The beginning of everything.</div>

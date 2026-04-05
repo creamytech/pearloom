@@ -296,7 +296,7 @@ function EmptyState() {
           margin: '0 0 0.4rem',
           fontFamily: 'Playfair Display, Georgia, serif',
           fontSize: '1.125rem',
-          color: '#2B2B2B',
+          color: 'var(--pl-ink-soft)',
           fontStyle: 'italic',
         }}
       >
@@ -650,7 +650,7 @@ export function RegistryManager({ siteId }: RegistryManagerProps) {
 }
 
 const reorderBtnStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.9)',
+  background: 'var(--pl-ink)',
   border: '1px solid #DDD8D0',
   borderRadius: '0.375rem',
   width: '24px',

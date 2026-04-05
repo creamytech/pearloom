@@ -19,7 +19,7 @@ import type { StoryManifest } from '@/types';
 const CARD_STYLES = [
   { id: 'elegant',  label: 'Elegant',  bg: 'linear-gradient(135deg, #1a1410 0%, #2d2218 100%)', text: '#D6C6A8', accent: '#A3B18A' },
   { id: 'romantic', label: 'Romantic', bg: 'linear-gradient(135deg, #1f0f14 0%, #2d1520 100%)', text: '#f0d8e0', accent: '#e87ab8' },
-  { id: 'minimal',  label: 'Minimal',  bg: 'linear-gradient(135deg, #faf8f4 0%, #f0ebe2 100%)', text: '#2B2B2B', accent: '#8A7A4A' },
+  { id: 'minimal',  label: 'Minimal',  bg: 'linear-gradient(135deg, #faf8f4 0%, #f0ebe2 100%)', text: 'var(--pl-ink-soft)', accent: '#8A7A4A' },
   { id: 'garden',   label: 'Garden',   bg: 'linear-gradient(135deg, #0d1812 0%, #162412 100%)', text: '#D4E6C3', accent: '#7BB661' },
 ] as const;
 
@@ -93,7 +93,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Style picker */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Card Style</div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Card Style</div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {CARD_STYLES.map(s => (
             <button
@@ -101,7 +101,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               onClick={() => setCardStyle(s.id)}
               style={{
                 padding: '5px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 700,
-                border: `1px solid ${cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.1)'}`,
+                border: `1px solid ${cardStyle === s.id ? s.accent : 'rgba(0,0,0,0.06)'}`,
                 background: cardStyle === s.id ? `${s.accent}22` : 'transparent',
                 color: cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.45)',
                 cursor: 'pointer',
@@ -113,16 +113,16 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Custom message */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Message</div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Message</div>
         <input
           value={customMessage}
           onChange={e => setCustomMessage(e.target.value)}
           placeholder="Please save the date"
           style={{
             width: '100%', padding: '7px 10px', borderRadius: '7px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.04)',
-            color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem',
+            border: '1px solid rgba(0,0,0,0.06)',
+            background: 'rgba(163,177,138,0.05)',
+            color: 'var(--pl-ink)', fontSize: '0.78rem',
             outline: 'none', boxSizing: 'border-box',
           }}
         />
@@ -130,7 +130,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
 
       {/* Card preview */}
       <div>
-        <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Preview</div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Preview</div>
         <div
           ref={cardRef}
           style={{
@@ -146,7 +146,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             padding: '24px',
             boxSizing: 'border-box',
             position: 'relative',
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid rgba(0,0,0,0.06)',
           }}
         >
           {/* Decorative top line */}
@@ -252,7 +252,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
         <div style={{
           padding: '8px 10px', borderRadius: '7px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
-          fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)',
+          fontSize: '0.7rem', color: 'var(--pl-ink-soft)',
         }}>
           Add a ceremony or event with a date to see it on the card.
         </div>

@@ -80,7 +80,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
         touchAction: 'none', userSelect: 'none', flexShrink: 0,
         transition: 'color 0.15s',
       }}
-      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)'; }}
+      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)'; }}
       onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(0,0,0,0.2)'; }}
     >
       <GripVertical size={18} />
@@ -135,7 +135,7 @@ function ChapterCard({
       <div style={{
         background: '#fff',
         borderRadius: '1rem',
-        border: isEditing ? '2px solid var(--eg-accent)' : '1.5px solid rgba(0,0,0,0.06)',
+        border: isEditing ? '2px solid var(--pl-olive)' : '1.5px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
         boxShadow: isEditing
           ? '0 8px 30px rgba(163,177,138,0.16)'
@@ -175,7 +175,7 @@ function ChapterCard({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: cfg.gradient,
               }}>
-                <BlockIcon size={22} color="var(--eg-accent)" />
+                <BlockIcon size={22} color="var(--pl-olive)" />
               </div>
             )}
             {/* Index badge */}
@@ -195,8 +195,8 @@ function ChapterCard({
               {/* Block type badge */}
               <span style={{
                 fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: 'var(--eg-accent)',
-                background: 'var(--eg-accent-light)', padding: '2px 7px',
+                textTransform: 'uppercase', color: 'var(--pl-olive)',
+                background: 'var(--pl-olive-mist)', padding: '2px 7px',
                 borderRadius: '100px',
               }}>
                 {cfg.label}
@@ -228,7 +228,7 @@ function ChapterCard({
             <div style={{
               fontSize: '1rem', fontWeight: 700,
               fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`,
-              color: 'var(--eg-fg)', lineHeight: 1.3,
+              color: 'var(--pl-ink)', lineHeight: 1.3,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {chapter.title || 'Untitled Chapter'}
@@ -237,7 +237,7 @@ function ChapterCard({
             {/* Subtitle */}
             {chapter.subtitle && (
               <div style={{
-                fontSize: '0.78rem', color: 'var(--eg-muted)', fontStyle: 'italic',
+                fontSize: '0.78rem', color: 'var(--pl-muted)', fontStyle: 'italic',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 marginTop: '0.15rem',
               }}>
@@ -280,12 +280,12 @@ function ChapterCard({
               title="Rewrite with AI"
               style={{
                 padding: '0.45rem', borderRadius: '0.5rem', border: '1px solid rgba(0,0,0,0.08)',
-                background: isRewriting ? 'var(--eg-accent-light)' : 'transparent',
-                color: isRewriting ? 'var(--eg-accent)' : 'rgba(0,0,0,0.35)',
+                background: isRewriting ? 'var(--pl-olive-mist)' : 'transparent',
+                color: isRewriting ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
                 cursor: isRewriting ? 'not-allowed' : 'pointer',
                 display: 'flex', transition: 'all 0.15s',
               }}
-              onMouseOver={e => { if (!isRewriting) { (e.currentTarget as HTMLElement).style.background = 'var(--eg-accent-light)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--eg-accent)'; }}}
+              onMouseOver={e => { if (!isRewriting) { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-mist)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive)'; }}}
               onMouseOut={e => { if (!isRewriting) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(0,0,0,0.35)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; }}}
             >
               {isRewriting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
@@ -296,8 +296,8 @@ function ChapterCard({
               onClick={() => onToggleEdit(block.id)}
               style={{
                 padding: '0.45rem 0.7rem', borderRadius: '0.5rem', fontSize: '0.72rem',
-                border: `1px solid ${isEditing ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
-                background: isEditing ? 'var(--eg-accent)' : 'transparent',
+                border: `1px solid ${isEditing ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
+                background: isEditing ? 'var(--pl-olive)' : 'transparent',
                 color: isEditing ? '#fff' : 'rgba(0,0,0,0.5)',
                 cursor: 'pointer', fontWeight: 700,
                 display: 'flex', alignItems: 'center', gap: '4px',
@@ -349,7 +349,7 @@ function ChapterCard({
                     onChange={e => onUpdate(block.id, { title: e.target.value })}
                     style={inputStyle}
                     placeholder="The Rooftop, Brooklyn"
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -361,7 +361,7 @@ function ChapterCard({
                     onChange={e => onUpdate(block.id, { subtitle: e.target.value })}
                     style={inputStyle}
                     placeholder="in all the best ways"
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -374,7 +374,7 @@ function ChapterCard({
                     rows={4}
                     style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.65 }}
                     placeholder="Write your memory here..."
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -386,7 +386,7 @@ function ChapterCard({
                     onChange={e => onUpdate(block.id, { mood: e.target.value })}
                     style={inputStyle}
                     placeholder="golden hour"
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
                     onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
@@ -417,7 +417,7 @@ function ChapterCard({
 const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: '0.65rem', fontWeight: 800,
   letterSpacing: '0.14em', textTransform: 'uppercase',
-  color: 'var(--eg-muted)', marginBottom: '0.5rem',
+  color: 'var(--pl-muted)', marginBottom: '0.5rem',
 };
 
 const inputStyle: React.CSSProperties = {
@@ -425,7 +425,7 @@ const inputStyle: React.CSSProperties = {
   border: '1.5px solid rgba(0,0,0,0.1)', outline: 'none',
   fontSize: '0.88rem', background: '#F5F1E8', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
-  color: 'var(--eg-fg)',
+  color: 'var(--pl-ink)',
 };
 
 // ── AI Block Generator ────────────────────────────────────────
@@ -469,7 +469,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
   return (
     <div style={{
       borderRadius: '1rem', overflow: 'hidden',
-      border: '1px solid rgba(255,255,255,0.08)',
+      border: '1px solid rgba(0,0,0,0.06)',
       background: 'linear-gradient(145deg, #1c1410 0%, #251a10 100%)',
     }}>
       {/* Header */}
@@ -482,14 +482,14 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ padding: '0.3rem', borderRadius: '0.4rem', background: 'rgba(163,177,138,0.2)' }}>
-            <Wand2 size={13} color="var(--eg-accent)" />
+            <Wand2 size={13} color="var(--pl-olive)" />
           </div>
-          <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.75)' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>
             AI Block Generator
           </span>
         </div>
         <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={14} color="rgba(255,255,255,0.4)" />
+          <ChevronDown size={14} color="var(--pl-ink-soft)" />
         </motion.div>
       </button>
 
@@ -503,7 +503,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
             style={{ overflow: 'hidden' }}
           >
             <div style={{ padding: '0 1rem 1rem' }}>
-              <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
                 Describe a section and AI will write it instantly.
               </p>
               <textarea
@@ -513,7 +513,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                 rows={3}
                 style={{
                   width: '100%', padding: '0.75rem', borderRadius: '0.55rem',
-                  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
                   color: '#fff', fontSize: '0.82rem', lineHeight: 1.6, resize: 'none',
                   outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
                 }}
@@ -527,7 +527,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   width: '100%', marginTop: '0.6rem', padding: '0.7rem',
                   borderRadius: '0.55rem', border: 'none', cursor: prompt.trim() ? 'pointer' : 'not-allowed',
-                  background: prompt.trim() ? 'var(--eg-accent)' : 'rgba(255,255,255,0.07)',
+                  background: prompt.trim() ? 'var(--pl-olive)' : 'rgba(0,0,0,0.05)',
                   color: prompt.trim() ? '#fff' : 'rgba(255,255,255,0.28)',
                   fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.04em',
                   transition: 'all 0.2s',
@@ -568,10 +568,10 @@ function PaletteItem({ type, onAdd }: { type: BlockType; onAdd: (t: BlockType) =
         width: '30px', height: '30px', borderRadius: '0.45rem',
         background: cfg.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>
-        <Icon size={14} color="var(--eg-accent)" />
+        <Icon size={14} color="var(--pl-olive)" />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--eg-fg)' }}>{cfg.label}</div>
+        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--pl-ink)' }}>{cfg.label}</div>
       </div>
       <ChevronDown size={12} color="rgba(0,0,0,0.25)" style={{ transform: 'rotate(-90deg)' }} />
     </motion.button>
@@ -670,15 +670,15 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
       }}>
         {/* Header */}
         <div style={{ paddingBottom: '0.25rem' }}>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', marginBottom: '0.2rem' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', marginBottom: '0.2rem' }}>
             Block Editor
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--eg-fg)' }}>Add Sections</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--pl-ink)' }}>Add Sections</div>
             <div style={{ display: 'flex', gap: '0.35rem' }}>
               {onPreview && (
                 <button onClick={onPreview} title="Preview" style={sidebarIconBtn}>
-                  <Eye size={13} color="var(--eg-muted)" />
+                  <Eye size={13} color="var(--pl-muted)" />
                 </button>
               )}
               {onSave && (
@@ -687,9 +687,9 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                   title="Publish"
                   style={{
                     ...sidebarIconBtn,
-                    background: hasChanges ? 'var(--eg-accent)' : 'rgba(0,0,0,0.04)',
-                    border: hasChanges ? '1px solid var(--eg-accent)' : '1px solid rgba(0,0,0,0.08)',
-                    color: hasChanges ? '#fff' : 'var(--eg-muted)',
+                    background: hasChanges ? 'var(--pl-olive)' : 'rgba(0,0,0,0.04)',
+                    border: hasChanges ? '1px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.08)',
+                    color: hasChanges ? '#fff' : 'var(--pl-muted)',
                     padding: '0.45rem 0.875rem',
                     gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700,
                     transition: 'all 0.2s',
@@ -711,8 +711,8 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
               border: '1px solid rgba(0,0,0,0.05)', textAlign: 'center',
               boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
             }}>
-              <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-heading)', lineHeight: 1 }}>{s.value}</div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginTop: '0.3rem' }}>{s.label}</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-heading)', lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginTop: '0.3rem' }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -729,7 +729,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
           <div style={{
             padding: '0.75rem 0.875rem', borderBottom: '1px solid rgba(0,0,0,0.05)',
             fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.18em',
-            textTransform: 'uppercase', color: 'var(--eg-muted)',
+            textTransform: 'uppercase', color: 'var(--pl-muted)',
           }}>
             Block Palette
           </div>
@@ -747,7 +747,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
             padding: '0.6rem', borderRadius: '0.65rem', width: '100%',
             border: '1px solid rgba(0,0,0,0.08)', background: 'transparent',
-            color: 'var(--eg-muted)', fontSize: '0.75rem', fontWeight: 600,
+            color: 'var(--pl-muted)', fontSize: '0.75rem', fontWeight: 600,
             cursor: 'pointer', transition: 'all 0.15s',
           }}
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.2)'; }}
@@ -768,7 +768,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
         }}>
           <div>
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.15rem' }}>
+            <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.15rem' }}>
               Page Canvas
             </div>
             <div style={{ fontSize: '0.82rem', fontWeight: 500, color: 'rgba(0,0,0,0.4)' }}>
@@ -780,7 +780,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
             style={{
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.6rem 1.1rem', borderRadius: '0.6rem',
-              background: 'var(--eg-fg)', color: '#fff', border: 'none',
+              background: 'var(--pl-ink)', color: '#fff', border: 'none',
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
               transition: 'transform 0.15s, box-shadow 0.15s',
@@ -803,7 +803,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                 justifyContent: 'center', minHeight: '320px',
                 background: '#fff', borderRadius: '1rem',
                 border: '2px dashed rgba(0,0,0,0.09)',
-                color: 'var(--eg-muted)', gap: '1rem',
+                color: 'var(--pl-muted)', gap: '1rem',
               }}
             >
               <div style={{
@@ -814,15 +814,15 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                 <LayoutTemplate size={28} color="rgba(0,0,0,0.15)" />
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem', textAlign: 'center', color: 'var(--eg-fg)', marginBottom: '0.35rem' }}>Your canvas is empty</div>
-                <div style={{ fontSize: '0.82rem', textAlign: 'center', color: 'var(--eg-muted)' }}>Add blocks from the sidebar or use AI to generate content</div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem', textAlign: 'center', color: 'var(--pl-ink)', marginBottom: '0.35rem' }}>Your canvas is empty</div>
+                <div style={{ fontSize: '0.82rem', textAlign: 'center', color: 'var(--pl-muted)' }}>Add blocks from the sidebar or use AI to generate content</div>
               </div>
               <button
                 onClick={() => addBlock('chapter')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.7rem 1.5rem', borderRadius: '100px',
-                  background: 'var(--eg-accent)', color: '#fff', border: 'none',
+                  background: 'var(--pl-olive)', color: '#fff', border: 'none',
                   cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem',
                   boxShadow: '0 8px 20px rgba(163,177,138,0.3)',
                 }}
@@ -863,7 +863,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             onClick={() => addBlock('chapter')}
-            whileHover={{ borderColor: 'var(--eg-accent)', color: 'var(--eg-accent)' }}
+            whileHover={{ borderColor: 'var(--pl-olive)', color: 'var(--pl-olive)' }}
             style={{
               marginTop: '0.875rem', padding: '1.1rem',
               border: '2px dashed rgba(0,0,0,0.08)', borderRadius: '0.875rem',

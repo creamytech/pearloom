@@ -66,7 +66,7 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
         style={{
-          fontFamily: 'var(--eg-font-heading, Playfair Display, Georgia, serif)',
+          fontFamily: 'var(--pl-font-heading, Playfair Display, Georgia, serif)',
           fontSize: 'clamp(2rem, 5vw, 3rem)',
           fontStyle: 'italic',
           fontWeight: 400,
@@ -83,7 +83,7 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.45, ease: [0.16, 1, 0.3, 1] }}
         style={{
-          fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
+          fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
           fontSize: '1rem',
           color: 'rgba(245,241,232,0.55)',
           letterSpacing: '0.04em',

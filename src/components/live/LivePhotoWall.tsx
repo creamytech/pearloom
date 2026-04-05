@@ -240,7 +240,7 @@ function PhotoCard({ photo, isNew }: { photo: GuestPhoto; isNew: boolean }) {
               style={{
                 margin: 0,
                 fontSize: '0.82rem',
-                color: 'rgba(255,255,255,0.8)',
+                color: 'var(--pl-ink)',
                 lineHeight: 1.4,
               }}
             >
@@ -252,7 +252,7 @@ function PhotoCard({ photo, isNew }: { photo: GuestPhoto; isNew: boolean }) {
               style={{
                 margin: photo.caption ? '4px 0 0' : 0,
                 fontSize: '0.72rem',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--pl-ink-soft)',
               }}
             >
               — {photo.uploaderName}

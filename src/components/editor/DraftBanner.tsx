@@ -9,7 +9,7 @@ export function DraftBanner({ onRestore, onDismiss }: DraftBannerProps) {
   return (
     <div style={{
       position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
-      background: 'var(--eg-gold, #D6C6A8)', color: '#2B2B2B',
+      background: 'var(--pl-gold, #D6C6A8)', color: '#2B2B2B',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       gap: '0.75rem', padding: '0.6rem 1rem',
       fontSize: '0.85rem', fontWeight: 600,

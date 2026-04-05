@@ -144,7 +144,7 @@ export default function FontPicker({
           flexShrink: 0,
           display: 'flex',
           gap: '0',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
         }}
       >
         {(['pairings', 'custom'] as const).map((t) => (
@@ -176,7 +176,7 @@ export default function FontPicker({
           <div
             style={{
               padding: '10px 20px',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              borderBottom: '1px solid rgba(0,0,0,0.06)',
               flexShrink: 0,
               overflowX: 'auto',
               display: 'flex',
@@ -251,10 +251,10 @@ export default function FontPicker({
                     cursor: 'pointer',
                     background: selected
                       ? 'rgba(163, 177, 138, 0.22)'
-                      : 'rgba(255,255,255,0.03)',
+                      : 'rgba(163,177,138,0.04)',
                     border: selected
                       ? '2px solid #A3B18A'
-                      : '2px solid rgba(255,255,255,0.07)',
+                      : '2px solid rgba(0,0,0,0.05)',
                     boxShadow: selected
                       ? '0 0 0 1px rgba(163, 177, 138, 0.3), inset 0 1px 0 rgba(163, 177, 138, 0.15)'
                       : 'none',
@@ -288,15 +288,15 @@ export default function FontPicker({
 
                   {/* Right: font names + badges */}
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {pair.heading}
                     </span>
-                    <span style={{ fontFamily: `'${pair.body}', sans-serif`, fontSize: '0.72rem', fontWeight: pair.bodyWeight, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontFamily: `'${pair.body}', sans-serif`, fontSize: '0.72rem', fontWeight: pair.bodyWeight, color: 'var(--pl-ink-soft)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {pair.body}
                     </span>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
                       <span style={badgeStyle('#A3B18A', '#1E1B16')}>{CATEGORY_LABELS[pair.category]}</span>
-                      <span style={badgeStyle('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.5)')}>{pair.mood}</span>
+                      <span style={badgeStyle('rgba(0,0,0,0.06)', 'var(--pl-ink-soft)')}>{pair.mood}</span>
                     </div>
                   </div>
 
@@ -328,7 +328,7 @@ export default function FontPicker({
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
           {/* Heading font picker */}
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginBottom: '8px', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--pl-muted)', marginBottom: '8px', fontWeight: 600 }}>
               Heading Font
             </div>
             <input
@@ -337,8 +337,8 @@ export default function FontPicker({
               value={headingSearch}
               onChange={e => setHeadingSearch(e.target.value)}
               style={{
-                width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '0.82rem',
+                width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)',
+                background: 'rgba(163,177,138,0.06)', color: '#fff', fontSize: '0.82rem',
                 outline: 'none', boxSizing: 'border-box', marginBottom: '8px',
               }}
             />
@@ -358,14 +358,14 @@ export default function FontPicker({
                       all: 'unset',
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
-                      background: active ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.03)',
-                      border: active ? '1.5px solid #A3B18A' : '1.5px solid rgba(255,255,255,0.06)',
+                      background: active ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.04)',
+                      border: active ? '1.5px solid #A3B18A' : '1.5px solid rgba(0,0,0,0.04)',
                       transition: 'all 0.12s', width: '100%', boxSizing: 'border-box',
                     }}
                   >
                     <span style={{
                       fontFamily: `'${font}', serif`, fontSize: '1.1rem', fontWeight: 600,
-                      color: active ? '#fff' : 'rgba(255,255,255,0.7)', lineHeight: 1.3,
+                      color: active ? '#fff' : 'var(--pl-ink)', lineHeight: 1.3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
                     }}>
                       {font}
@@ -385,7 +385,7 @@ export default function FontPicker({
 
           {/* Body font picker */}
           <div>
-            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', marginBottom: '8px', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--pl-muted)', marginBottom: '8px', fontWeight: 600 }}>
               Body Font
             </div>
             <input
@@ -394,8 +394,8 @@ export default function FontPicker({
               value={bodySearch}
               onChange={e => setBodySearch(e.target.value)}
               style={{
-                width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '0.82rem',
+                width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)',
+                background: 'rgba(163,177,138,0.06)', color: '#fff', fontSize: '0.82rem',
                 outline: 'none', boxSizing: 'border-box', marginBottom: '8px',
               }}
             />
@@ -415,14 +415,14 @@ export default function FontPicker({
                       all: 'unset',
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
-                      background: active ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.03)',
-                      border: active ? '1.5px solid #A3B18A' : '1.5px solid rgba(255,255,255,0.06)',
+                      background: active ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.04)',
+                      border: active ? '1.5px solid #A3B18A' : '1.5px solid rgba(0,0,0,0.04)',
                       transition: 'all 0.12s', width: '100%', boxSizing: 'border-box',
                     }}
                   >
                     <span style={{
                       fontFamily: `'${font}', sans-serif`, fontSize: '1rem', fontWeight: 400,
-                      color: active ? '#fff' : 'rgba(255,255,255,0.7)', lineHeight: 1.3,
+                      color: active ? '#fff' : 'var(--pl-ink)', lineHeight: 1.3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
                     }}>
                       {font}
@@ -446,22 +446,22 @@ export default function FontPicker({
       <div
         style={{
           padding: '12px 20px',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          borderTop: '1px solid rgba(0,0,0,0.06)',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
           gap: '2px',
         }}
       >
-        <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--pl-muted)' }}>
           Current Pairing
         </span>
-        <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--pl-ink)' }}>
           <span style={{ fontFamily: `'${currentHeading}', serif`, color: '#FFFFFF' }}>{currentHeading}</span>
           {' '}
-          <span style={{ color: 'rgba(255,255,255,0.3)' }}>+</span>
+          <span style={{ color: 'var(--pl-muted)' }}>+</span>
           {' '}
-          <span style={{ fontFamily: `'${currentBody}', sans-serif`, color: 'rgba(255,255,255,0.6)' }}>{currentBody}</span>
+          <span style={{ fontFamily: `'${currentBody}', sans-serif`, color: 'var(--pl-ink-soft)' }}>{currentBody}</span>
         </span>
       </div>
     </div>
@@ -482,9 +482,9 @@ function pillStyle(active: boolean): React.CSSProperties {
     letterSpacing: '0.03em',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
-    background: active ? 'transparent' : 'rgba(255,255,255,0.07)',
-    color: active ? '#1E1B16' : 'rgba(255,255,255,0.6)',
-    border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.1)',
+    background: active ? 'transparent' : 'rgba(0,0,0,0.05)',
+    color: active ? '#1E1B16' : 'var(--pl-ink-soft)',
+    border: active ? '1px solid transparent' : '1px solid rgba(0,0,0,0.06)',
     transition: 'color 0.15s ease',
     flexShrink: 0,
     zIndex: 0,

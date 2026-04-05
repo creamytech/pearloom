@@ -252,7 +252,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
           <motion.button
             onClick={actions.undo} disabled={!canUndo} title="Undo (Cmd+Z)" aria-label="Undo"
-            whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+            whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
             whileTap={canUndo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
@@ -267,7 +267,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           ><UndoIcon size={isMobile ? 11 : 13} /></motion.button>
           <motion.button
             onClick={actions.redo} disabled={!canRedo} title="Redo (Cmd+Shift+Z)" aria-label="Redo"
-            whileHover={canRedo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+            whileHover={canRedo ? { scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
             whileTap={canRedo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{

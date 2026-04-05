@@ -72,8 +72,8 @@ function StatCard({
             fontWeight: 600,
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
-            color: 'var(--eg-muted)',
-            fontFamily: 'var(--eg-font-body)',
+            color: 'var(--pl-muted)',
+            fontFamily: 'var(--pl-font-body)',
             marginBottom: '0.25rem',
           }}
         >
@@ -83,7 +83,7 @@ function StatCard({
           style={{
             fontSize: '2rem',
             fontWeight: 700,
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             color: valueColor,
             lineHeight: 1,
           }}
@@ -137,7 +137,7 @@ function StatusBadge({ status }: { status: Guest['status'] }) {
         fontSize: '0.72rem',
         fontWeight: 600,
         letterSpacing: '0.03em',
-        fontFamily: 'var(--eg-font-body)',
+        fontFamily: 'var(--pl-font-body)',
       }}
     >
       {s.icon}
@@ -230,11 +230,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: sortKey === key ? 'var(--eg-accent)' : 'var(--eg-muted)',
+    color: sortKey === key ? 'var(--pl-olive)' : 'var(--pl-muted)',
     cursor: 'pointer',
     userSelect: 'none',
     whiteSpace: 'nowrap',
-    fontFamily: 'var(--eg-font-body)',
+    fontFamily: 'var(--pl-font-body)',
     background: 'transparent',
     border: 'none',
     textAlign: 'left',
@@ -248,8 +248,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: 'var(--eg-muted)',
-    fontFamily: 'var(--eg-font-body)',
+    color: 'var(--pl-muted)',
+    fontFamily: 'var(--pl-font-body)',
   };
 
   const arrow = (key: SortKey) =>
@@ -276,10 +276,10 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
         >
           <p
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: '1.1rem',
               fontWeight: 600,
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
             }}
           >
             Guest List
@@ -292,11 +292,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
               gap: '0.4rem',
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
-              background: 'var(--eg-fg)',
+              background: 'var(--pl-ink)',
               color: '#ffffff',
               fontSize: '0.8rem',
               fontWeight: 500,
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
               border: 'none',
               cursor: 'pointer',
             }}
@@ -364,8 +364,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                       padding: '0.9rem 1rem',
                       fontWeight: 600,
                       fontSize: '0.9rem',
-                      color: 'var(--eg-fg)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--pl-ink)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.name}
@@ -374,8 +374,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--pl-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                       maxWidth: '180px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -391,12 +391,12 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--pl-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.plus_one ? (
-                      <span style={{ color: 'var(--eg-fg)', fontWeight: 500 }}>
+                      <span style={{ color: 'var(--pl-ink)', fontWeight: 500 }}>
                         {g.plus_one_name ? g.plus_one_name : 'Yes'}
                       </span>
                     ) : (
@@ -407,8 +407,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--pl-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.meal_preference ?? (
@@ -419,8 +419,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.82rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--pl-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                       maxWidth: '160px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -435,8 +435,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                     style={{
                       padding: '0.9rem 1rem',
                       fontSize: '0.78rem',
-                      color: 'var(--eg-muted)',
-                      fontFamily: 'var(--eg-font-body)',
+                      color: 'var(--pl-muted)',
+                      fontFamily: 'var(--pl-font-body)',
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -478,8 +478,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   style={{
                     fontWeight: 600,
                     fontSize: '0.95rem',
-                    color: 'var(--eg-fg)',
-                    fontFamily: 'var(--eg-font-body)',
+                    color: 'var(--pl-ink)',
+                    fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {g.name}
@@ -490,8 +490,8 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                 <p
                   style={{
                     fontSize: '0.8rem',
-                    color: 'var(--eg-muted)',
-                    fontFamily: 'var(--eg-font-body)',
+                    color: 'var(--pl-muted)',
+                    fontFamily: 'var(--pl-font-body)',
                     marginBottom: '0.35rem',
                   }}
                 >
@@ -510,11 +510,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       background: 'rgba(0,0,0,0.04)',
                       borderRadius: '999px',
                       padding: '0.15rem 0.6rem',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     +1{g.plus_one_name ? ` ${g.plus_one_name}` : ''}
@@ -524,11 +524,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       background: 'rgba(0,0,0,0.04)',
                       borderRadius: '999px',
                       padding: '0.15rem 0.6rem',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                     }}
                   >
                     {g.meal_preference}
@@ -538,11 +538,11 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                   <span
                     style={{
                       fontSize: '0.72rem',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       background: 'rgba(163,177,138,0.12)',
                       borderRadius: '999px',
                       padding: '0.15rem 0.6rem',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.25rem',
@@ -557,10 +557,10 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
                 <p
                   style={{
                     fontSize: '0.72rem',
-                    color: 'var(--eg-muted)',
+                    color: 'var(--pl-muted)',
                     opacity: 0.6,
                     marginTop: '0.5rem',
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {new Date(g.responded_at).toLocaleDateString(undefined, {
@@ -618,8 +618,8 @@ function MealSummary({ guests }: { guests: Guest[] }) {
           fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
-          color: 'var(--eg-muted)',
-          fontFamily: 'var(--eg-font-body)',
+          color: 'var(--pl-muted)',
+          fontFamily: 'var(--pl-font-body)',
           marginRight: '0.25rem',
           flexShrink: 0,
         }}
@@ -631,14 +631,14 @@ function MealSummary({ guests }: { guests: Guest[] }) {
           key={label}
           style={{
             fontSize: '0.85rem',
-            color: 'var(--eg-fg)',
-            fontFamily: 'var(--eg-font-body)',
+            color: 'var(--pl-ink)',
+            fontFamily: 'var(--pl-font-body)',
           }}
         >
           <strong style={{ fontWeight: 600 }}>{label}</strong>{' '}
-          <span style={{ color: 'var(--eg-muted)' }}>{count}</span>
+          <span style={{ color: 'var(--pl-muted)' }}>{count}</span>
           {i < entries.length - 1 && (
-            <span style={{ color: 'var(--eg-divider)', margin: '0 0.4rem' }}>·</span>
+            <span style={{ color: 'var(--pl-divider)', margin: '0 0.4rem' }}>·</span>
           )}
         </span>
       ))}
@@ -672,13 +672,13 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
           marginBottom: '1rem',
         }}
       >
-        <LoomThreadIcon size={20} color="var(--eg-accent)" />
+        <LoomThreadIcon size={20} color="var(--pl-olive)" />
         <h2
           style={{
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             fontSize: '1.15rem',
             fontWeight: 600,
-            color: 'var(--eg-fg)',
+            color: 'var(--pl-ink)',
           }}
         >
           Your Playlist
@@ -686,11 +686,11 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
         <span
           style={{
             fontSize: '0.72rem',
-            color: 'var(--eg-muted)',
+            color: 'var(--pl-muted)',
             background: 'rgba(0,0,0,0.04)',
             borderRadius: '999px',
             padding: '0.15rem 0.6rem',
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
           }}
         >
           {songs.length} {songs.length === 1 ? 'song' : 'songs'}
@@ -708,12 +708,12 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
               borderRadius: '999px',
               background: 'rgba(163,177,138,0.12)',
               border: '1px solid rgba(163,177,138,0.25)',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               fontSize: '0.82rem',
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
             }}
           >
-            <Music size={12} color="var(--eg-accent)" />
+            <Music size={12} color="var(--pl-olive)" />
             {song}
           </span>
         ))}
@@ -751,7 +751,7 @@ function CopyLink({ url }: { url: string }) {
           background: 'rgba(0,0,0,0.05)',
           padding: '0.3rem 0.75rem',
           borderRadius: '0.5rem',
-          color: 'var(--eg-fg)',
+          color: 'var(--pl-ink)',
           fontFamily: 'monospace',
         }}
       >
@@ -762,11 +762,11 @@ function CopyLink({ url }: { url: string }) {
         style={{
           padding: '0.3rem 0.75rem',
           borderRadius: '0.5rem',
-          background: copied ? 'var(--eg-accent)' : 'var(--eg-fg)',
+          background: copied ? 'var(--pl-olive)' : 'var(--pl-ink)',
           color: '#ffffff',
           fontSize: '0.78rem',
           fontWeight: 500,
-          fontFamily: 'var(--eg-font-body)',
+          fontFamily: 'var(--pl-font-body)',
           border: 'none',
           cursor: 'pointer',
           transition: 'background 0.2s ease',
@@ -828,7 +828,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
         paddingBottom: '4rem',
         paddingLeft: '1.5rem',
         paddingRight: '1.5rem',
-        fontFamily: 'var(--eg-font-body)',
+        fontFamily: 'var(--pl-font-body)',
       }}
     >
       {/* ── Header row ── */}
@@ -848,9 +848,9 @@ function RsvpPageContent({ domain }: { domain: string }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            color: 'var(--eg-muted)',
+            color: 'var(--pl-muted)',
             fontSize: '0.88rem',
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
             textDecoration: 'none',
             fontWeight: 500,
           }}
@@ -868,8 +868,8 @@ function RsvpPageContent({ domain }: { domain: string }) {
             background: 'rgba(163,177,138,0.12)',
             border: '1px solid rgba(163,177,138,0.25)',
             fontSize: '0.78rem',
-            color: 'var(--eg-muted)',
-            fontFamily: 'var(--eg-font-body)',
+            color: 'var(--pl-muted)',
+            fontFamily: 'var(--pl-font-body)',
             letterSpacing: '0.02em',
           }}
         >
@@ -884,11 +884,11 @@ function RsvpPageContent({ domain }: { domain: string }) {
             gap: '0.4rem',
             padding: '0.5rem 1rem',
             borderRadius: '0.5rem',
-            background: 'var(--eg-fg)',
+            background: 'var(--pl-ink)',
             color: '#ffffff',
             fontSize: '0.82rem',
             fontWeight: 500,
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
             border: 'none',
             cursor: 'pointer',
           }}
@@ -900,10 +900,10 @@ function RsvpPageContent({ domain }: { domain: string }) {
 
       <h1
         style={{
-          fontFamily: 'var(--eg-font-heading)',
+          fontFamily: 'var(--pl-font-heading)',
           fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
           fontWeight: 700,
-          color: 'var(--eg-fg)',
+          color: 'var(--pl-ink)',
           marginBottom: '2rem',
           letterSpacing: '-0.02em',
         }}
@@ -924,8 +924,8 @@ function RsvpPageContent({ domain }: { domain: string }) {
         <StatCard
           label="Total Invited"
           value={list.length}
-          icon={<Users size={28} color="var(--eg-muted)" />}
-          valueColor="var(--eg-fg)"
+          icon={<Users size={28} color="var(--pl-muted)" />}
+          valueColor="var(--pl-ink)"
         />
         <StatCard
           label="Attending"
@@ -979,8 +979,8 @@ function RsvpPageContent({ domain }: { domain: string }) {
             textAlign: 'center',
             boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
             marginBottom: '1.5rem',
-            color: 'var(--eg-muted)',
-            fontFamily: 'var(--eg-font-body)',
+            color: 'var(--pl-muted)',
+            fontFamily: 'var(--pl-font-body)',
             fontSize: '0.9rem',
           }}
         >
@@ -999,13 +999,13 @@ function RsvpPageContent({ domain }: { domain: string }) {
         >
           <Users
             size={48}
-            color="var(--eg-muted)"
+            color="var(--pl-muted)"
             style={{ margin: '0 auto 1rem', opacity: 0.3, display: 'block' }}
           />
           <p
             style={{
-              color: 'var(--eg-muted)',
-              fontFamily: 'var(--eg-font-body)',
+              color: 'var(--pl-muted)',
+              fontFamily: 'var(--pl-font-body)',
               fontSize: '1rem',
               marginBottom: '0.25rem',
             }}
@@ -1048,7 +1048,7 @@ export default function RsvpManagementPage({
         }}
       >
         <p
-          style={{ color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)' }}
+          style={{ color: 'var(--pl-muted)', fontFamily: 'var(--pl-font-body)' }}
         >
           No domain provided. Go back to your dashboard to view RSVPs.
         </p>

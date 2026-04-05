@@ -21,7 +21,7 @@ const BlockEditor = dynamic(
     loading: () => (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        minHeight: '400px', color: 'var(--eg-muted)', fontSize: '0.9rem',
+        minHeight: '400px', color: 'var(--pl-muted)', fontSize: '0.9rem',
         gap: '0.75rem', flexDirection: 'column',
       }}>
         <div style={{
@@ -84,7 +84,7 @@ function ColorField({
       <label style={{
         display: 'block', fontSize: '0.7rem', fontWeight: 700,
         letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'var(--eg-muted)', marginBottom: '0.6rem',
+        color: 'var(--pl-muted)', marginBottom: '0.6rem',
       }}>
         {label}
       </label>
@@ -112,7 +112,7 @@ function ColorField({
             border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none',
             fontSize: '0.85rem', fontFamily: 'monospace', background: 'rgba(0,0,0,0.02)',
           }}
-          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
+          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--pl-olive)'}
           onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
         />
       </div>
@@ -130,7 +130,7 @@ function ColorPreviewSwatch({ colors }: { colors: Record<string, string> }) {
       fontSize: '0.7rem',
     }}>
       <div style={{ background: colors.background, padding: '1rem' }}>
-        <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1rem', color: colors.foreground, marginBottom: '0.4rem' }}>
+        <div style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1rem', color: colors.foreground, marginBottom: '0.4rem' }}>
           Shauna & Ben
         </div>
         <div style={{ color: colors.muted, fontSize: '0.75rem', marginBottom: '0.8rem' }}>
@@ -201,8 +201,8 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
     textTransform: 'uppercase' as const,
     border: 'none',
     cursor: 'pointer' as const,
-    background: active ? (accent ? 'var(--eg-accent)' : 'var(--eg-fg)') : 'transparent',
-    color: active ? '#fff' : 'var(--eg-muted)',
+    background: active ? (accent ? 'var(--pl-olive)' : 'var(--pl-ink)') : 'transparent',
+    color: active ? '#fff' : 'var(--pl-muted)',
     transition: 'all 0.2s ease',
   });
 
@@ -252,12 +252,12 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: '0.6rem 1.25rem', borderRadius: '100px',
                 border: '1.5px solid rgba(0,0,0,0.12)', background: 'transparent',
-                color: 'var(--eg-fg)', fontSize: '0.78rem', fontWeight: 700,
+                color: 'var(--pl-ink)', fontSize: '0.78rem', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
                 transition: 'all 0.2s ease',
               }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.color = 'var(--eg-accent)'; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)'; e.currentTarget.style.color = 'var(--eg-fg)'; }}
+              onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.color = 'var(--pl-olive)'; }}
+              onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)'; e.currentTarget.style.color = 'var(--pl-ink)'; }}
             >
               <Eye size={14} />
               Preview
@@ -309,11 +309,11 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.6rem 1.25rem', borderRadius: '0.6rem',
                   border: '1.5px dashed rgba(0,0,0,0.2)', background: 'transparent',
-                  color: 'var(--eg-muted)', fontSize: '0.8rem', fontWeight: 600,
+                  color: 'var(--pl-muted)', fontSize: '0.8rem', fontWeight: 600,
                   cursor: 'pointer', transition: 'all 0.2s',
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; e.currentTarget.style.color = 'var(--eg-accent)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'; e.currentTarget.style.color = 'var(--eg-muted)'; }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; e.currentTarget.style.color = 'var(--pl-olive)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'; e.currentTarget.style.color = 'var(--pl-muted)'; }}
               >
                 <Plus size={15} />
                 Add Chapter
@@ -329,11 +329,11 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                 {editingId === chapter.id ? (
                   <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--eg-accent)', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--pl-olive)', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
                         Chapter {index + 1}
                       </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>Layout</label>
+                        <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>Layout</label>
                         <select
                           value={chapter.layout || 'editorial'}
                           onChange={(e) => updateChapter(chapter.id, { layout: e.target.value as Chapter['layout'] })}
@@ -356,7 +356,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                           { label: 'Subtitle', key: 'subtitle' as const, type: 'text', size: '0.9rem', italic: true },
                         ].map(field => (
                           <div key={field.key}>
-                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>
                               {field.label}
                             </label>
                             <input
@@ -370,19 +370,19 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                                 fontStyle: field.italic ? 'italic' : 'normal',
                                 background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box',
                               }}
-                              onFocus={(e) => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
+                              onFocus={(e) => e.currentTarget.style.borderColor = 'var(--pl-olive)'}
                               onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
                             />
                           </div>
                         ))}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                           <div>
-                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Date</label>
+                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Date</label>
                             <input type="date" value={chapter.date.slice(0, 10)} onChange={(e) => updateChapter(chapter.id, { date: e.target.value })}
                               style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.85rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }} />
                           </div>
                           <div>
-                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Mood</label>
+                            <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Mood</label>
                             <input type="text" value={chapter.mood} onChange={(e) => updateChapter(chapter.id, { mood: e.target.value })}
                               placeholder="e.g. Romantic"
                               style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.85rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }} />
@@ -390,7 +390,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                         </div>
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>The Story</label>
+                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>The Story</label>
                         <textarea
                           value={chapter.description}
                           onChange={(e) => updateChapter(chapter.id, { description: e.target.value })}
@@ -401,7 +401,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                             outline: 'none', fontSize: '0.9rem', lineHeight: 1.7,
                             resize: 'none', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box',
                           }}
-                          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--eg-accent)'}
+                          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--pl-olive)'}
                           onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
                         />
                       </div>
@@ -413,7 +413,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.5rem',
                           padding: '0.6rem 1.5rem', borderRadius: '0.6rem',
-                          background: 'var(--eg-accent)', color: '#fff',
+                          background: 'var(--pl-olive)', color: '#fff',
                           border: 'none', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
                         }}
                       >
@@ -426,7 +426,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem' }} className="group">
                     {/* Reorder arrows */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', opacity: 0, transition: 'opacity 0.2s' }} className="group-hover:opacity-100">
-                      <button onClick={() => moveChapter(index, 'up')} disabled={index === 0} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: '2px', opacity: index === 0 ? 0.3 : 1 }}>
+                      <button onClick={() => moveChapter(index, 'up')} disabled={index === 0} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: '2px', opacity: index === 0 ? 0.3 : 1 }}>
                         <GripVertical size={14} />
                       </button>
                     </div>
@@ -445,26 +445,26 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
-                        <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--eg-accent)', background: 'rgba(0,0,0,0.04)', padding: '0.2rem 0.5rem', borderRadius: '0.25rem' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-olive)', background: 'rgba(0,0,0,0.04)', padding: '0.2rem 0.5rem', borderRadius: '0.25rem' }}>
                           {new Date(chapter.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                         </span>
                         {chapter.layout && (
-                          <span style={{ fontSize: '0.6rem', color: 'var(--eg-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
+                          <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
                             {chapter.layout}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontFamily: `"${manifest.theme.fonts.heading}", serif`, fontSize: '1rem', fontWeight: 500, color: 'var(--eg-fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontFamily: `"${manifest.theme.fonts.heading}", serif`, fontSize: '1rem', fontWeight: 500, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {chapter.title}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.15rem' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.15rem' }}>
                         {chapter.description}
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: '0.4rem', opacity: 0, transition: 'opacity 0.2s' }} className="group-hover:opacity-100">
-                      <button onClick={() => setEditingId(chapter.id)} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(0,0,0,0.1)', background: 'none', cursor: 'pointer', color: 'var(--eg-muted)', display: 'flex' }}>
+                      <button onClick={() => setEditingId(chapter.id)} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(0,0,0,0.1)', background: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex' }}>
                         <Pencil size={14} />
                       </button>
                       <button onClick={() => deleteChapter(chapter.id)} style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid rgba(239,68,68,0.2)', background: 'none', cursor: 'pointer', color: 'rgba(239,68,68,0.7)', display: 'flex' }}>
@@ -485,8 +485,8 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             {/* Color system */}
             <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Color Palette</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>Customize your site-wide colors. Preview updates live.</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Color Palette</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>Customize your site-wide colors. Preview updates live.</div>
               </div>
               <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -506,12 +506,12 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             {/* Typography */}
             <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Typography</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Typography</div>
               </div>
               <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 {/* Heading font visual picker */}
                 <div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Heading Font</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.75rem' }}>Heading Font</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {HEADING_FONTS.map(font => (
                       <button
@@ -520,20 +520,20 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                         style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           padding: '0.75rem 1rem', borderRadius: '0.6rem', cursor: 'pointer',
-                          border: `1.5px solid ${manifest.theme.fonts.heading === font.name ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
+                          border: `1.5px solid ${manifest.theme.fonts.heading === font.name ? 'var(--pl-olive)' : 'rgba(0,0,0,0.08)'}`,
                           background: manifest.theme.fonts.heading === font.name ? 'rgba(0,0,0,0.02)' : 'transparent',
                           textAlign: 'left',
                         }}
                       >
-                        <span style={{ fontFamily: `"${font.name}", serif`, fontSize: '1.05rem', color: 'var(--eg-fg)' }}>{font.label}</span>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{font.style}</span>
+                        <span style={{ fontFamily: `"${font.name}", serif`, fontSize: '1.05rem', color: 'var(--pl-ink)' }}>{font.label}</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{font.style}</span>
                       </button>
                     ))}
                   </div>
                 </div>
                 {/* Body font visual picker */}
                 <div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.75rem' }}>Body Font</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.75rem' }}>Body Font</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {BODY_FONTS.map(font => (
                       <button
@@ -542,13 +542,13 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                         style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           padding: '0.75rem 1rem', borderRadius: '0.6rem', cursor: 'pointer',
-                          border: `1.5px solid ${manifest.theme.fonts.body === font.name ? 'var(--eg-accent)' : 'rgba(0,0,0,0.08)'}`,
+                          border: `1.5px solid ${manifest.theme.fonts.body === font.name ? 'var(--pl-olive)' : 'rgba(0,0,0,0.08)'}`,
                           background: manifest.theme.fonts.body === font.name ? 'rgba(0,0,0,0.02)' : 'transparent',
                           textAlign: 'left',
                         }}
                       >
-                        <span style={{ fontFamily: `"${font.name}", sans-serif`, fontSize: '1rem', color: 'var(--eg-fg)' }}>{font.label}</span>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--eg-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{font.style}</span>
+                        <span style={{ fontFamily: `"${font.name}", sans-serif`, fontSize: '1rem', color: 'var(--pl-ink)' }}>{font.label}</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{font.style}</span>
                       </button>
                     ))}
                   </div>
@@ -559,7 +559,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             {/* Background pattern */}
             <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Background Pattern</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Background Pattern</div>
               </div>
               <div style={{ padding: '1.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {PATTERNS.map(p => (
@@ -568,9 +568,9 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     onClick={() => onChange({ ...manifest, theme: { ...manifest.theme, backgroundPattern: p.value as typeof manifest.theme.backgroundPattern } })}
                     style={{
                       padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer',
-                      border: `1.5px solid ${(manifest.theme.backgroundPattern || 'none') === p.value ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
+                      border: `1.5px solid ${(manifest.theme.backgroundPattern || 'none') === p.value ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
                       background: (manifest.theme.backgroundPattern || 'none') === p.value ? 'rgba(0,0,0,0.03)' : 'transparent',
-                      fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-fg)',
+                      fontSize: '0.8rem', fontWeight: 600, color: 'var(--pl-ink)',
                     }}
                   >
                     {p.label}
@@ -588,12 +588,12 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             {/* Coming Soon editor */}
             <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Coming Soon Section</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>The bottom section teasing what&apos;s next.</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Coming Soon Section</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>The bottom section teasing what&apos;s next.</div>
               </div>
               <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Section Title</label>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Section Title</label>
                   <input
                     type="text"
                     value={manifest.comingSoon?.title || 'The Next Chapter'}
@@ -602,7 +602,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Subtitle / Message</label>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Subtitle / Message</label>
                   <input
                     type="text"
                     value={manifest.comingSoon?.subtitle || ''}
@@ -612,7 +612,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Reveal Date (Optional)</label>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Reveal Date (Optional)</label>
                   <input
                     type="date"
                     value={manifest.comingSoon?.revealDate?.slice(0, 10) || ''}
@@ -627,8 +627,8 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--eg-fg)' }}>Password Protection</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', marginTop: '0.25rem' }}>Restrict access to your site with a password.</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Password Protection</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>Restrict access to your site with a password.</div>
                 </div>
                 <button
                   onClick={() => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, passwordProtected: !manifest.comingSoon?.passwordProtected, enabled: manifest.comingSoon?.enabled ?? true, title: manifest.comingSoon?.title || 'The Next Chapter', subtitle: manifest.comingSoon?.subtitle || '' } })}
@@ -636,8 +636,8 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     display: 'flex', alignItems: 'center', gap: '0.5rem',
                     padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700,
                     border: 'none', cursor: 'pointer',
-                    background: manifest.comingSoon?.passwordProtected ? 'var(--eg-fg)' : 'rgba(0,0,0,0.06)',
-                    color: manifest.comingSoon?.passwordProtected ? '#fff' : 'var(--eg-muted)',
+                    background: manifest.comingSoon?.passwordProtected ? 'var(--pl-ink)' : 'rgba(0,0,0,0.06)',
+                    color: manifest.comingSoon?.passwordProtected ? '#fff' : 'var(--pl-muted)',
                     transition: 'all 0.2s',
                   }}
                 >
@@ -647,7 +647,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               </div>
               {manifest.comingSoon?.passwordProtected && (
                 <div style={{ padding: '1.25rem 1.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.5rem' }}>Site Password</label>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Site Password</label>
                   <input
                     type="text"
                     value={manifest.comingSoon?.password || ''}

@@ -115,7 +115,7 @@ function GuestsTab({
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Search */}
       <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-        <Search size={13} style={{ position: 'absolute', left: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--eg-muted)' }} />
+        <Search size={13} style={{ position: 'absolute', left: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--pl-muted)' }} />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
@@ -127,17 +127,17 @@ function GuestsTab({
             paddingTop: '0.45rem',
             paddingBottom: '0.45rem',
             borderRadius: '0.75rem',
-            border: '1.5px solid var(--eg-divider)',
-            background: 'rgba(255,255,255,0.7)',
+            border: '1.5px solid var(--pl-divider)',
+            background: 'var(--pl-ink)',
             fontSize: '0.82rem',
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
             outline: 'none',
-            color: 'var(--eg-fg)',
+            color: 'var(--pl-ink)',
             boxSizing: 'border-box',
           }}
         />
         {query && (
-          <button onClick={() => setQuery('')} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: 0, display: 'flex' }}>
+          <button onClick={() => setQuery('')} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: 0, display: 'flex' }}>
             <X size={13} />
           </button>
         )}
@@ -152,11 +152,11 @@ function GuestsTab({
             style={{
               padding: '0.25rem 0.65rem',
               borderRadius: '1rem',
-              border: filter === f.key ? '1.5px solid var(--eg-accent)' : '1.5px solid var(--eg-divider)',
-              background: filter === f.key ? 'var(--eg-accent)' : 'transparent',
-              color: filter === f.key ? '#fff' : 'var(--eg-muted)',
+              border: filter === f.key ? '1.5px solid var(--pl-olive)' : '1.5px solid var(--pl-divider)',
+              background: filter === f.key ? 'var(--pl-olive)' : 'transparent',
+              color: filter === f.key ? '#fff' : 'var(--pl-muted)',
               fontSize: '0.72rem',
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
               cursor: 'pointer',
               transition: 'all 0.15s',
             }}
@@ -169,7 +169,7 @@ function GuestsTab({
       {/* Guest list */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
         {filtered.length === 0 && (
-          <p style={{ color: 'var(--eg-muted)', fontSize: '0.82rem', textAlign: 'center', marginTop: '2rem', fontFamily: 'var(--eg-font-body)' }}>
+          <p style={{ color: 'var(--pl-muted)', fontSize: '0.82rem', textAlign: 'center', marginTop: '2rem', fontFamily: 'var(--pl-font-body)' }}>
             No guests found
           </p>
         )}
@@ -233,11 +233,11 @@ function TableTab({
               style={{
                 padding: '0.3rem 0.65rem',
                 borderRadius: '0.75rem',
-                border: table.shape === s ? '1.5px solid var(--eg-accent)' : '1.5px solid var(--eg-divider)',
-                background: table.shape === s ? 'var(--eg-accent)' : 'transparent',
-                color: table.shape === s ? '#fff' : 'var(--eg-muted)',
+                border: table.shape === s ? '1.5px solid var(--pl-olive)' : '1.5px solid var(--pl-divider)',
+                background: table.shape === s ? 'var(--pl-olive)' : 'transparent',
+                color: table.shape === s ? '#fff' : 'var(--pl-muted)',
                 fontSize: '0.72rem',
-                fontFamily: 'var(--eg-font-body)',
+                fontFamily: 'var(--pl-font-body)',
                 cursor: 'pointer',
                 textTransform: 'capitalize',
               }}
@@ -259,7 +259,7 @@ function TableTab({
           >
             {CAPACITIES.map(c => <option key={c} value={c}>{c} seats</option>)}
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--eg-muted)', pointerEvents: 'none' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--pl-muted)', pointerEvents: 'none' }} />
         </div>
       </div>
 
@@ -270,7 +270,7 @@ function TableTab({
           id="reserved-toggle"
           checked={table.isReserved}
           onChange={e => onUpdate({ isReserved: e.target.checked })}
-          style={{ accentColor: 'var(--eg-accent)' }}
+          style={{ accentColor: 'var(--pl-olive)' }}
         />
         <label htmlFor="reserved-toggle" style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }}>Reserved table</label>
       </div>
@@ -303,13 +303,13 @@ function TableTab({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: '12rem', overflowY: 'auto' }}>
           {seats.map(s => (
             <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
-              <span style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)', width: '1.5rem', flexShrink: 0 }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontFamily: 'var(--pl-font-body)', width: '1.5rem', flexShrink: 0 }}>
                 {s.seatNumber}
               </span>
               {s.guest ? (
                 <GuestChip guest={s.guest} isAssigned draggable={false} />
               ) : (
-                <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontStyle: 'italic', fontFamily: 'var(--eg-font-body)' }}>Empty</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', fontStyle: 'italic', fontFamily: 'var(--pl-font-body)' }}>Empty</span>
               )}
             </div>
           ))}
@@ -329,7 +329,7 @@ function TableTab({
           background: 'transparent',
           color: '#ef4444',
           fontSize: '0.78rem',
-          fontFamily: 'var(--eg-font-body)',
+          fontFamily: 'var(--pl-font-body)',
           cursor: 'pointer',
           marginTop: '0.5rem',
         }}
@@ -371,7 +371,7 @@ function ConstraintsTab({ siteId }: { siteId: string }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', fontFamily: 'var(--eg-font-body)', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.78rem', color: 'var(--pl-muted)', fontFamily: 'var(--pl-font-body)', lineHeight: 1.5 }}>
         Describe seating preferences in plain language. Pearloom will parse them into placement rules.
       </p>
 
@@ -392,10 +392,10 @@ function ConstraintsTab({ siteId }: { siteId: string }) {
             padding: '0.5rem 1rem',
             borderRadius: '0.75rem',
             border: 'none',
-            background: 'var(--eg-accent)',
+            background: 'var(--pl-olive)',
             color: '#fff',
             fontSize: '0.82rem',
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
             cursor: input.trim() ? 'pointer' : 'not-allowed',
             opacity: input.trim() ? 1 : 0.5,
             transition: 'opacity 0.15s',
@@ -418,8 +418,8 @@ function ConstraintsTab({ siteId }: { siteId: string }) {
                 gap: '0.5rem',
                 padding: '0.6rem 0.75rem',
                 borderRadius: '0.75rem',
-                background: 'rgba(255,255,255,0.7)',
-                border: '1.5px solid var(--eg-divider)',
+                background: 'var(--pl-ink)',
+                border: '1.5px solid var(--pl-divider)',
               }}
             >
               <span
@@ -436,12 +436,12 @@ function ConstraintsTab({ siteId }: { siteId: string }) {
               >
                 {CONSTRAINT_LABELS[c.type]}
               </span>
-              <span style={{ fontSize: '0.78rem', color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)', flex: 1, lineHeight: 1.4 }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)', flex: 1, lineHeight: 1.4 }}>
                 {c.description}
               </span>
               <button
                 onClick={() => handleDelete(c.id)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--eg-muted)', padding: 0, display: 'flex', flexShrink: 0 }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: 0, display: 'flex', flexShrink: 0 }}
               >
                 <X size={13} />
               </button>
@@ -451,7 +451,7 @@ function ConstraintsTab({ siteId }: { siteId: string }) {
       )}
 
       {constraints.length === 0 && (
-        <p style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontStyle: 'italic', textAlign: 'center', fontFamily: 'var(--eg-font-body)' }}>
+        <p style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', fontStyle: 'italic', textAlign: 'center', fontFamily: 'var(--pl-font-body)' }}>
           No constraints yet. Add one above.
         </p>
       )}
@@ -467,8 +467,8 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 600,
   letterSpacing: '0.05em',
   textTransform: 'uppercase',
-  color: 'var(--eg-muted)',
-  fontFamily: 'var(--eg-font-body)',
+  color: 'var(--pl-muted)',
+  fontFamily: 'var(--pl-font-body)',
   marginBottom: '0.35rem',
 };
 
@@ -476,12 +476,12 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '0.45rem 0.75rem',
   borderRadius: '0.75rem',
-  border: '1.5px solid var(--eg-divider)',
-  background: 'rgba(255,255,255,0.7)',
+  border: '1.5px solid var(--pl-divider)',
+  background: 'var(--pl-ink)',
   fontSize: '0.82rem',
-  fontFamily: 'var(--eg-font-body)',
+  fontFamily: 'var(--pl-font-body)',
   outline: 'none',
-  color: 'var(--eg-fg)',
+  color: 'var(--pl-ink)',
   boxSizing: 'border-box',
 };
 
@@ -489,9 +489,9 @@ const ghostBtnStyle: React.CSSProperties = {
   background: 'none',
   border: 'none',
   cursor: 'pointer',
-  color: 'var(--eg-muted)',
+  color: 'var(--pl-muted)',
   fontSize: '0.72rem',
-  fontFamily: 'var(--eg-font-body)',
+  fontFamily: 'var(--pl-font-body)',
   textDecoration: 'underline',
   padding: 0,
 };
@@ -534,15 +534,15 @@ export function SeatingPanel({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        background: 'var(--eg-bg)',
-        borderLeft: '1px solid var(--eg-divider)',
+        background: 'var(--pl-cream)',
+        borderLeft: '1px solid var(--pl-divider)',
       }}
     >
       {/* Tab bar */}
       <div
         style={{
           display: 'flex',
-          borderBottom: '1px solid var(--eg-divider)',
+          borderBottom: '1px solid var(--pl-divider)',
           padding: '0 0.5rem',
         }}
       >
@@ -560,10 +560,10 @@ export function SeatingPanel({
               padding: '0.75rem 0.25rem',
               background: 'none',
               border: 'none',
-              borderBottom: effectiveTab === tab.key ? '2px solid var(--eg-accent)' : '2px solid transparent',
-              color: effectiveTab === tab.key ? 'var(--eg-accent)' : tab.key === 'table' && !selectedTable ? 'var(--eg-divider)' : 'var(--eg-muted)',
+              borderBottom: effectiveTab === tab.key ? '2px solid var(--pl-olive)' : '2px solid transparent',
+              color: effectiveTab === tab.key ? 'var(--pl-olive)' : tab.key === 'table' && !selectedTable ? 'var(--pl-divider)' : 'var(--pl-muted)',
               fontSize: '0.75rem',
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
               fontWeight: effectiveTab === tab.key ? 600 : 400,
               cursor: tab.key === 'table' && !selectedTable ? 'not-allowed' : 'pointer',
               transition: 'color 0.15s',
@@ -590,7 +590,7 @@ export function SeatingPanel({
           />
         )}
         {effectiveTab === 'table' && !selectedTable && (
-          <p style={{ color: 'var(--eg-muted)', fontSize: '0.82rem', textAlign: 'center', marginTop: '2rem', fontFamily: 'var(--eg-font-body)' }}>
+          <p style={{ color: 'var(--pl-muted)', fontSize: '0.82rem', textAlign: 'center', marginTop: '2rem', fontFamily: 'var(--pl-font-body)' }}>
             Select a table on the canvas to edit it.
           </p>
         )}

@@ -305,7 +305,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
   if (state === 'idle') {
     return (
       <div style={cardStyle}>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
           Add your photos
         </h3>
         <p style={{ color: C.muted, fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '420px', margin: '0 auto 2rem' }}>
@@ -367,7 +367,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
   if (state === 'device-selecting') {
     return (
       <div style={{ ...cardStyle, maxWidth: 640 }}>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: text.xl, marginBottom: '0.5rem' }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: text.xl, marginBottom: '0.5rem' }}>
           {deviceFiles.length} photo{deviceFiles.length !== 1 ? 's' : ''} selected
         </h3>
         <p style={{ color: C.muted, fontSize: text.base, marginBottom: '1.5rem' }}>
@@ -436,7 +436,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <Upload size={28} color={C.olive} />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
           Uploading your photos...
         </h3>
         <p style={{ color: C.muted, fontSize: '1rem', marginBottom: '1.5rem' }}>
@@ -462,7 +462,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <Loader2 size={28} color={C.olive} style={{ animation: 'spin 1.5s linear infinite' }} />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Connecting...</h3>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Connecting...</h3>
         <p style={{ color: C.muted, fontSize: '1.05rem' }}>Setting up secure connection to Google Photos...</p>
       </div>
     );
@@ -488,7 +488,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             </div>
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.75rem' }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.75rem', marginBottom: '0.75rem' }}>
           Waiting for your selection...
         </h3>
         <p style={{ color: C.muted, fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '450px', margin: '0 auto 1.5rem' }}>
@@ -534,7 +534,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <Loader2 size={28} color={C.olive} style={{ animation: 'spin 1.5s linear infinite' }} />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Loading Your Photos</h3>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Loading Your Photos</h3>
         <p style={{ color: C.muted, fontSize: '1.05rem' }}>Fetching your selected memories from Google...</p>
       </div>
     );
@@ -549,7 +549,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <Clock size={32} color="#d97706" />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#2B2B2B' }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#2B2B2B' }}>
           Session Timed Out
         </h3>
         <p style={{ color: C.muted, fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
@@ -571,7 +571,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <AlertCircle size={32} color="#dc2626" />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#2B2B2B' }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#2B2B2B' }}>
           Connection Error
         </h3>
         <p style={{ color: C.muted, fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
@@ -598,7 +598,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <ImageOff size={32} color={C.olive} />
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '1rem' }}>No Photos Loaded</h3>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '1rem' }}>No Photos Loaded</h3>
         <p style={{ color: C.muted, fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem' }}>
           No photos were loaded from the picker. If you selected photos in Google Photos, click &ldquo;Try Loading Again&rdquo; below.
         </p>
@@ -637,7 +637,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>Select Best Memories</h3>
+          <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>Select Best Memories</h3>
           <p style={{ fontSize: '0.95rem', color: C.muted }}>
             {selected.size} / {maxSelection} photos selected <span style={{ opacity: 0.5 }}>• {photos.length} total from picker</span>
           </p>

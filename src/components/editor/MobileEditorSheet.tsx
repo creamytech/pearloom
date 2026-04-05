@@ -141,7 +141,7 @@ function ChapterReorderRow({
             borderRadius: '0 12px 12px 0',
           }}
         >
-          <Trash2 size={16} color="rgba(255,255,255,0.9)" />
+          <Trash2 size={16} color="var(--pl-ink)" />
         </div>
 
         {/* Row content — x-draggable for swipe-to-delete */}
@@ -152,7 +152,7 @@ function ChapterReorderRow({
           style={{
             x: rowX,
             borderRadius: 12,
-            background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(255,255,255,0.04)',
+            background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(163,177,138,0.05)',
             borderLeft: isActive
               ? '3px solid rgba(163,177,138,0.75)'
               : '3px solid rgba(163,177,138,0.12)',
@@ -172,7 +172,7 @@ function ChapterReorderRow({
               animate(rowX, 0, { type: 'spring', stiffness: 500, damping: 38 });
             }
           }}
-          whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}
+          whileHover={!isActive ? { backgroundColor: 'rgba(0,0,0,0.04)' } : {}}
           transition={{ duration: 0.13 }}
           onClick={() => onSelect(chapter.id)}
         >
@@ -191,7 +191,7 @@ function ChapterReorderRow({
               padding: '0 8px',
               display: 'flex',
               alignItems: 'center',
-              color: 'rgba(255,255,255,0.2)',
+              color: 'var(--pl-muted)',
               touchAction: 'none',
               userSelect: 'none',
               flexShrink: 0,
@@ -207,16 +207,16 @@ function ChapterReorderRow({
               width: 20,
               height: 20,
               borderRadius: '50%',
-              background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(255,255,255,0.07)',
+              background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(0,0,0,0.05)',
               border: isActive
                 ? '1px solid rgba(163,177,138,0.45)'
-                : '1px solid rgba(255,255,255,0.09)',
+                : '1px solid rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '0.63rem',
               fontWeight: 800,
-              color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+              color: isActive ? '#A3B18A' : 'var(--pl-ink-soft)',
             }}
           >
             {index + 1}
@@ -229,9 +229,9 @@ function ChapterReorderRow({
               height: 40,
               borderRadius: 7,
               flexShrink: 0,
-              background: thumb ? 'transparent' : 'rgba(255,255,255,0.07)',
+              background: thumb ? 'transparent' : 'rgba(0,0,0,0.05)',
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.09)',
+              border: '1px solid rgba(0,0,0,0.07)',
             }}
           >
             {thumb ? (
@@ -261,8 +261,8 @@ function ChapterReorderRow({
               style={{
                 fontSize: '0.88rem',
                 fontWeight: 700,
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", Georgia, serif)',
-                color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.9)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", Georgia, serif)',
+                color: isActive ? 'rgba(214,198,168,0.95)' : 'var(--pl-ink)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -275,7 +275,7 @@ function ChapterReorderRow({
               <div
                 style={{
                   fontSize: '0.7rem',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--pl-muted)',
                   marginTop: 2,
                   display: 'flex',
                   alignItems: 'center',
@@ -719,7 +719,7 @@ export function MobileEditorSheet() {
               padding: '0 14px',
               height: 52,
               paddingTop: 'env(safe-area-inset-top, 0px)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              borderBottom: '1px solid rgba(0,0,0,0.04)',
               background: 'rgba(15,12,9,0.98)',
               gap: 8,
             }}
@@ -736,7 +736,7 @@ export function MobileEditorSheet() {
               <ElegantHeartIcon size={20} color="#A3B18A" />
               <span
                 style={{
-                  fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                  fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                   fontSize: '0.9rem',
                   fontWeight: 700,
                   fontStyle: 'italic',
@@ -757,7 +757,7 @@ export function MobileEditorSheet() {
                 style={{
                   width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   border: 'none', background: 'transparent', cursor: state.canUndo ? 'pointer' : 'default',
-                  color: state.canUndo ? 'rgba(214,198,168,0.65)' : 'rgba(255,255,255,0.15)',
+                  color: state.canUndo ? 'rgba(214,198,168,0.65)' : 'rgba(0,0,0,0.08)',
                   borderRadius: 8,
                 }}
               >
@@ -770,7 +770,7 @@ export function MobileEditorSheet() {
                 style={{
                   width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   border: 'none', background: 'transparent', cursor: state.canRedo ? 'pointer' : 'default',
-                  color: state.canRedo ? 'rgba(214,198,168,0.65)' : 'rgba(255,255,255,0.15)',
+                  color: state.canRedo ? 'rgba(214,198,168,0.65)' : 'rgba(0,0,0,0.08)',
                   borderRadius: 8,
                 }}
               >
@@ -785,11 +785,11 @@ export function MobileEditorSheet() {
                 textAlign: 'center',
                 fontSize: '0.82rem',
                 fontWeight: 600,
-                color: 'rgba(255,255,255,0.55)',
+                color: 'var(--pl-ink-soft)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                 fontStyle: 'italic',
               }}
             >
@@ -829,7 +829,7 @@ export function MobileEditorSheet() {
               alignItems: 'center',
               gap: 8,
               padding: '8px 14px',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              borderBottom: '1px solid rgba(0,0,0,0.04)',
               background: 'rgba(15,12,9,0.95)',
             }}
           >
@@ -843,7 +843,7 @@ export function MobileEditorSheet() {
                 padding: '7px 12px',
                 borderRadius: 20,
                 border: 'none',
-                background: 'rgba(255,255,255,0.07)',
+                background: 'rgba(0,0,0,0.05)',
                 color: 'rgba(214,198,168,0.75)',
                 cursor: 'pointer',
                 fontSize: '0.82rem',
@@ -860,7 +860,7 @@ export function MobileEditorSheet() {
                 fontSize: '0.82rem',
                 fontWeight: 700,
                 color: 'rgba(214,198,168,0.75)',
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                 fontStyle: 'italic',
               }}
             >
@@ -917,7 +917,7 @@ export function MobileEditorSheet() {
                   height: '55%',
                   background: '#0F0C09',
                   borderRadius: '20px 20px 0 0',
-                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                  borderTop: '1px solid rgba(0,0,0,0.06)',
                   display: 'flex', flexDirection: 'column',
                   overflow: 'hidden',
                   zIndex: 10,
@@ -928,13 +928,13 @@ export function MobileEditorSheet() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '12px 16px 8px', flexShrink: 0,
                 }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.15)', margin: '0 auto' }} />
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(0,0,0,0.08)', margin: '0 auto' }} />
                   <motion.button
                     whileTap={{ scale: 0.88 }}
                     onClick={() => setContextPanel(null)}
                     style={{
                       position: 'absolute', right: 12, top: 10,
-                      background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
+                      background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%',
                       width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       cursor: 'pointer', color: 'rgba(214,198,168,0.6)',
                     }}
@@ -962,7 +962,7 @@ export function MobileEditorSheet() {
               alignItems: 'center',
               height: 58,
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-              borderTop: '1px solid rgba(255,255,255,0.07)',
+              borderTop: '1px solid rgba(0,0,0,0.05)',
               background: 'rgba(15,12,9,0.98)',
               position: 'relative',
             }}
@@ -1067,7 +1067,7 @@ export function MobileEditorSheet() {
                 zIndex: 601,
                 background: '#181410',
                 borderRadius: '20px 20px 0 0',
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid rgba(0,0,0,0.06)',
                 borderBottom: 'none',
                 paddingBottom: 'env(safe-area-inset-bottom, 0px)',
               }}
@@ -1085,7 +1085,7 @@ export function MobileEditorSheet() {
                     width: 36,
                     height: 4,
                     borderRadius: 2,
-                    background: 'rgba(255,255,255,0.15)',
+                    background: 'rgba(0,0,0,0.08)',
                   }}
                 />
               </div>
@@ -1098,7 +1098,7 @@ export function MobileEditorSheet() {
                   fontWeight: 800,
                   letterSpacing: '0.13em',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.25)',
+                  color: 'var(--pl-muted)',
                 }}
               >
                 More Tools
@@ -1128,8 +1128,8 @@ export function MobileEditorSheet() {
                         gap: 7,
                         padding: '14px 8px',
                         borderRadius: 14,
-                        border: '1px solid rgba(255,255,255,0.07)',
-                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(0,0,0,0.05)',
+                        background: 'rgba(163,177,138,0.04)',
                         color: 'rgba(214,198,168,0.65)',
                         cursor: 'pointer',
                       }}

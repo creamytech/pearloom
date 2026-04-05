@@ -38,7 +38,7 @@ export function SiteFooter({
   };
 
   return (
-    <footer className="bg-[var(--eg-fg)] text-[rgba(245,241,232,0.7)] relative overflow-hidden pb-[calc(60px+env(safe-area-inset-bottom,0px))] lg:pb-0">
+    <footer className="bg-[var(--pl-ink)] text-[rgba(245,241,232,0.7)] relative overflow-hidden pb-[calc(60px+env(safe-area-inset-bottom,0px))] lg:pb-0">
       {/* Subtle noise texture */}
       <div
         className="absolute inset-0 pointer-events-none opacity-40"
@@ -51,7 +51,7 @@ export function SiteFooter({
 
         {/* Pearl divider */}
         <div className="flex justify-center mb-12 opacity-25">
-          <PearlDividerIcon size={14} color="var(--eg-gold)" />
+          <PearlDividerIcon size={14} color="var(--pl-gold)" />
         </div>
 
         {/* Three-column grid */}
@@ -73,14 +73,14 @@ export function SiteFooter({
               </p>
             )}
             <div className="flex items-center gap-2 mt-6">
-              <PearIcon size={18} color="var(--eg-accent)" />
+              <PearIcon size={18} color="var(--pl-olive)" />
               <span className="text-[0.75rem] text-[rgba(245,241,232,0.4)] tracking-[0.04em]">
                 Powered by{' '}
                 <a
                   href="https://pearloom.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[rgba(245,241,232,0.55)] no-underline font-semibold font-heading hover:text-[var(--eg-accent)] transition-colors duration-200"
+                  className="text-[rgba(245,241,232,0.55)] no-underline font-semibold font-heading hover:text-[var(--pl-olive)] transition-colors duration-200"
                 >
                   Pearloom
                 </a>
@@ -118,7 +118,7 @@ export function SiteFooter({
                 </p>
                 <Link
                   href={`${basePath}/${rsvpSlug}`}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[rgba(163,177,138,0.15)] text-[var(--eg-accent)] border border-[rgba(163,177,138,0.25)] no-underline text-[0.85rem] font-semibold font-body hover:bg-[rgba(163,177,138,0.25)] hover:border-[rgba(163,177,138,0.4)] transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[rgba(163,177,138,0.15)] text-[var(--pl-olive)] border border-[rgba(163,177,138,0.25)] no-underline text-[0.85rem] font-semibold font-body hover:bg-[rgba(163,177,138,0.25)] hover:border-[rgba(163,177,138,0.4)] transition-all duration-200"
                 >
                   RSVP Now
                 </Link>

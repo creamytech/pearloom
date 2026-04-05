@@ -96,14 +96,14 @@ const cardStyle: React.CSSProperties = {
 const cardHeaderBar: React.CSSProperties = {
   height: '3px',
   background:
-    'linear-gradient(90deg, var(--eg-accent) 0%, color-mix(in srgb, var(--eg-accent) 30%, transparent) 100%)',
+    'linear-gradient(90deg, var(--pl-olive) 0%, color-mix(in srgb, var(--pl-olive) 30%, transparent) 100%)',
 };
 
 const sectionLabel: React.CSSProperties = {
   fontSize: '0.6rem',
   letterSpacing: '0.32em',
   textTransform: 'uppercase' as const,
-  color: 'var(--eg-muted)',
+  color: 'var(--pl-muted)',
   fontWeight: 700,
   marginBottom: '0.5rem',
 };
@@ -156,13 +156,13 @@ export function GuestDashboard({
           <div style={{ padding: '3rem 2rem' }}>
             <Heart
               size={32}
-              style={{ color: 'var(--eg-accent)', margin: '0 auto 1.25rem' }}
+              style={{ color: 'var(--pl-olive)', margin: '0 auto 1.25rem' }}
             />
             <h2
               style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: '1.75rem',
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 marginBottom: '1rem',
               }}
             >
@@ -170,8 +170,8 @@ export function GuestDashboard({
             </h2>
             <p
               style={{
-                fontFamily: 'var(--eg-font-body)',
-                color: 'var(--eg-muted)',
+                fontFamily: 'var(--pl-font-body)',
+                color: 'var(--pl-muted)',
                 lineHeight: 1.7,
                 marginBottom: '2rem',
               }}
@@ -184,25 +184,25 @@ export function GuestDashboard({
               <button
                 onClick={onEditRsvp}
                 style={{
-                  fontFamily: 'var(--eg-font-body)',
+                  fontFamily: 'var(--pl-font-body)',
                   fontSize: '0.85rem',
                   fontWeight: 600,
                   letterSpacing: '0.06em',
                   padding: '0.75rem 2rem',
                   borderRadius: '2rem',
-                  border: '1px solid var(--eg-accent)',
+                  border: '1px solid var(--pl-olive)',
                   background: 'transparent',
-                  color: 'var(--eg-accent)',
+                  color: 'var(--pl-olive)',
                   cursor: 'pointer',
                   transition: 'background 0.25s, color 0.25s',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget.style.background as string) = 'var(--eg-accent)';
+                  (e.currentTarget.style.background as string) = 'var(--pl-olive)';
                   e.currentTarget.style.color = '#fff';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--eg-accent)';
+                  e.currentTarget.style.color = 'var(--pl-olive)';
                 }}
               >
                 Change My RSVP
@@ -246,9 +246,9 @@ export function GuestDashboard({
         </p>
         <h1
           style={{
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             fontSize: 'clamp(1.75rem, 5vw, 2.75rem)',
-            color: 'var(--eg-fg)',
+            color: 'var(--pl-ink)',
             fontWeight: 400,
             marginBottom: '0.5rem',
           }}
@@ -258,8 +258,8 @@ export function GuestDashboard({
         {eventDate && (
           <p
             style={{
-              fontFamily: 'var(--eg-font-body)',
-              color: 'var(--eg-muted)',
+              fontFamily: 'var(--pl-font-body)',
+              color: 'var(--pl-muted)',
               fontSize: '1rem',
             }}
           >
@@ -309,9 +309,9 @@ export function GuestDashboard({
                 style={{
                   fontSize: '1.75rem',
                   fontWeight: 600,
-                  color: 'var(--eg-fg)',
+                  color: 'var(--pl-ink)',
                   lineHeight: 1,
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
@@ -322,7 +322,7 @@ export function GuestDashboard({
                   fontSize: '0.5rem',
                   letterSpacing: '0.18em',
                   textTransform: 'uppercase',
-                  color: 'var(--eg-muted)',
+                  color: 'var(--pl-muted)',
                   marginTop: '0.35rem',
                   fontWeight: 700,
                 }}
@@ -358,7 +358,7 @@ export function GuestDashboard({
                 marginBottom: '1.5rem',
               }}
             >
-              <Heart size={16} style={{ color: 'var(--eg-accent)' }} />
+              <Heart size={16} style={{ color: 'var(--pl-olive)' }} />
               <span style={sectionLabel}>Your RSVP</span>
             </div>
 
@@ -424,16 +424,16 @@ export function GuestDashboard({
                   marginBottom: '1.25rem',
                 }}
               >
-                <Calendar size={16} style={{ color: 'var(--eg-accent)' }} />
+                <Calendar size={16} style={{ color: 'var(--pl-olive)' }} />
                 <span style={sectionLabel}>Event</span>
               </div>
 
               <h3
                 style={{
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontSize: '1.25rem',
                   fontWeight: 600,
-                  color: 'var(--eg-fg)',
+                  color: 'var(--pl-ink)',
                   marginBottom: '1rem',
                 }}
               >
@@ -449,14 +449,14 @@ export function GuestDashboard({
               >
                 {event.time && (
                   <div style={infoRow}>
-                    <Clock size={14} style={{ color: 'var(--eg-muted)', flexShrink: 0 }} />
+                    <Clock size={14} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
                     <span style={infoText}>{event.time}</span>
                   </div>
                 )}
 
                 {event.venue && (
                   <div style={infoRow}>
-                    <MapPin size={14} style={{ color: 'var(--eg-muted)', flexShrink: 0 }} />
+                    <MapPin size={14} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
                     <span style={infoText}>{event.venue}</span>
                   </div>
                 )}
@@ -472,7 +472,7 @@ export function GuestDashboard({
                       gap: '0.4rem',
                       fontSize: '0.8rem',
                       fontWeight: 600,
-                      color: 'var(--eg-accent)',
+                      color: 'var(--pl-olive)',
                       textDecoration: 'none',
                       marginTop: '0.35rem',
                       transition: 'opacity 0.2s',
@@ -507,16 +507,16 @@ export function GuestDashboard({
                   marginBottom: '1.25rem',
                 }}
               >
-                <MapPin size={16} style={{ color: 'var(--eg-accent)' }} />
+                <MapPin size={16} style={{ color: 'var(--pl-olive)' }} />
                 <span style={sectionLabel}>Accommodation</span>
               </div>
 
               <h3
                 style={{
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontSize: '1.15rem',
                   fontWeight: 600,
-                  color: 'var(--eg-fg)',
+                  color: 'var(--pl-ink)',
                   marginBottom: '0.75rem',
                 }}
               >
@@ -525,7 +525,7 @@ export function GuestDashboard({
 
               {hotel.address && (
                 <div style={{ ...infoRow, marginBottom: '0.5rem' }}>
-                  <MapPin size={14} style={{ color: 'var(--eg-muted)', flexShrink: 0 }} />
+                  <MapPin size={14} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
                   <span style={infoText}>{hotel.address}</span>
                 </div>
               )}
@@ -541,9 +541,9 @@ export function GuestDashboard({
                     gap: '0.4rem',
                     fontSize: '0.8rem',
                     fontWeight: 600,
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                     color: '#fff',
-                    background: 'var(--eg-accent)',
+                    background: 'var(--pl-olive)',
                     padding: '0.55rem 1.4rem',
                     borderRadius: '2rem',
                     textDecoration: 'none',
@@ -574,25 +574,25 @@ export function GuestDashboard({
           <button
             onClick={onEditRsvp}
             style={{
-              fontFamily: 'var(--eg-font-body)',
+              fontFamily: 'var(--pl-font-body)',
               fontSize: '0.85rem',
               fontWeight: 600,
               letterSpacing: '0.06em',
               padding: '0.75rem 2.25rem',
               borderRadius: '2rem',
-              border: '1px solid var(--eg-accent)',
+              border: '1px solid var(--pl-olive)',
               background: 'transparent',
-              color: 'var(--eg-accent)',
+              color: 'var(--pl-olive)',
               cursor: 'pointer',
               transition: 'background 0.25s, color 0.25s',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--eg-accent)';
+              e.currentTarget.style.background = 'var(--pl-olive)';
               e.currentTarget.style.color = '#fff';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--eg-accent)';
+              e.currentTarget.style.color = 'var(--pl-olive)';
             }}
           >
             Edit My RSVP
@@ -612,9 +612,9 @@ const infoRow: React.CSSProperties = {
 };
 
 const infoText: React.CSSProperties = {
-  fontFamily: 'var(--eg-font-body)',
+  fontFamily: 'var(--pl-font-body)',
   fontSize: '0.88rem',
-  color: 'var(--eg-muted)',
+  color: 'var(--pl-muted)',
   lineHeight: 1.5,
 };
 
@@ -634,7 +634,7 @@ function SummaryField({
           display: 'flex',
           alignItems: 'center',
           gap: '0.35rem',
-          color: 'var(--eg-muted)',
+          color: 'var(--pl-muted)',
           marginBottom: '0.3rem',
         }}
       >
@@ -652,9 +652,9 @@ function SummaryField({
       </div>
       <span
         style={{
-          fontFamily: 'var(--eg-font-body)',
+          fontFamily: 'var(--pl-font-body)',
           fontSize: '0.95rem',
-          color: 'var(--eg-fg)',
+          color: 'var(--pl-ink)',
           fontWeight: 500,
         }}
       >
