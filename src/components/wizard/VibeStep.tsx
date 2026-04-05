@@ -133,9 +133,12 @@ export function VibeStep({ coupleNames, vibeString, onSubmit, onBack }: VibeStep
               </h3>
               <div className="flex flex-wrap gap-2">
                 {OCCASIONS.map((occ) => (
-                  <button
+                  <motion.button
                     key={occ.id}
                     onClick={() => setSelectedOccasion(occ.id)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.93 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
                     className="transition-all duration-200"
                     style={{
                       padding: '8px 16px',
@@ -157,7 +160,7 @@ export function VibeStep({ coupleNames, vibeString, onSubmit, onBack }: VibeStep
                     }}
                   >
                     {occ.label}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>

@@ -411,12 +411,12 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(mainImage, 900, 675)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
               {/* Second image tucked corner */}
               {secondImage && (
                 <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.28)', border: '2px solid var(--pl-ink-soft)' }}>
-                  <img src={proxyUrl(secondImage, 160, 160)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <img src={proxyUrl(secondImage, 160, 160)} alt="" className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
               )}
             </div>

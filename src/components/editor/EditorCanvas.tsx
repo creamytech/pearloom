@@ -154,7 +154,12 @@ export function EditorCanvas() {
 
       {/* ── Contextual editing label ── */}
       {state.activeTab && (
-        <div style={{
+        <motion.div
+          key={state.activeTab}
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          style={{
           position: 'absolute', top: '4px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 41,
           padding: '4px 12px',
@@ -166,7 +171,7 @@ export function EditorCanvas() {
           whiteSpace: 'nowrap',
         }}>
           Editing: {state.activeTab === 'story' ? 'Story' : state.activeTab === 'design' ? 'Theme' : state.activeTab === 'canvas' ? 'Sections' : state.activeTab === 'events' ? 'Events' : state.activeTab === 'details' ? 'Settings' : state.activeTab.charAt(0).toUpperCase() + state.activeTab.slice(1)}
-        </div>
+        </motion.div>
       )}
 
       {/* ── Floating device switcher ── */}
@@ -190,17 +195,31 @@ export function EditorCanvas() {
           <motion.button
             key={mode}
             onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.85 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             style={{
               width: '32px', height: '32px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: '50%', border: 'none',
-              background: device === mode ? 'var(--pl-ink)' : 'transparent',
+              background: 'transparent',
               color: device === mode ? 'white' : 'var(--pl-muted)',
               cursor: 'pointer',
-              transition: 'background 0.15s, color 0.15s',
+              transition: 'color 0.15s',
+              position: 'relative', zIndex: 1,
             }}
           >
+            {device === mode && (
+              <motion.div
+                layoutId="device-active"
+                style={{
+                  position: 'absolute', inset: 0, borderRadius: '50%',
+                  background: 'var(--pl-ink)',
+                  zIndex: -1,
+                }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            )}
             <Icon size={14} />
           </motion.button>
         ))}

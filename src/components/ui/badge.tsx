@@ -63,7 +63,7 @@ export interface BadgeProps
 
 function Badge({ variant, size, className, ...props }: BadgeProps) {
   return (
-    <span className={cn(badgeVariants({ variant, size }), className)} {...props} />
+    <span className={cn(badgeVariants({ variant, size }), 'animate-pop-in', className)} {...props} />
   );
 }
 

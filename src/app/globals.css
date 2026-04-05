@@ -156,6 +156,83 @@
   --radius:                  var(--pl-radius-md);
 }
 
+/* ─── Micro-animation utilities ─── */
+
+/* Focus glow — warm olive ring that blooms on focus */
+.pl-focus-glow:focus-within {
+  box-shadow: 0 0 0 3px rgba(163,177,138,0.22), 0 0 12px rgba(163,177,138,0.08);
+  border-color: var(--pl-olive) !important;
+  transition: box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+/* Pop-in entrance for badges, pills, chips */
+.pl-pop-in {
+  animation: pl-pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes pl-pop-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Shake on error */
+.pl-shake {
+  animation: pl-shake 0.4s ease;
+}
+@keyframes pl-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-3px); }
+  80%      { transform: translateX(2px); }
+}
+
+/* Success checkmark pop */
+.pl-check-pop {
+  animation: pl-check-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes pl-check-pop {
+  0%   { opacity: 0; transform: scale(0) rotate(-45deg); }
+  60%  { opacity: 1; transform: scale(1.2) rotate(0deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* Hover lift — subtle raise with shadow bloom */
+.pl-hover-lift {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pl-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(43,30,20,0.1), 0 2px 8px rgba(43,30,20,0.05);
+}
+
+/* Stagger children entrance — apply to parent, children get delayed */
+.pl-stagger > * {
+  opacity: 0;
+  animation: pl-stagger-child 0.4s ease forwards;
+}
+.pl-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.pl-stagger > *:nth-child(2) { animation-delay: 0.1s; }
+.pl-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.pl-stagger > *:nth-child(4) { animation-delay: 0.2s; }
+.pl-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.pl-stagger > *:nth-child(6) { animation-delay: 0.3s; }
+.pl-stagger > *:nth-child(7) { animation-delay: 0.35s; }
+.pl-stagger > *:nth-child(8) { animation-delay: 0.4s; }
+@keyframes pl-stagger-child {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Glow hover for images — soft bloom */
+.pl-glow-hover {
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+.pl-glow-hover:hover {
+  filter: brightness(1.05) drop-shadow(0 0 12px rgba(163,177,138,0.2));
+  transform: scale(1.02);
+}
+
 /* ─── Keyframes ─── */
 
 @keyframes accordion-down {
