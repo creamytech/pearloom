@@ -19,7 +19,7 @@ export const lbl: React.CSSProperties = {
 
 export const inp: React.CSSProperties = {
   width: '100%', padding: '0.55rem 0.7rem', borderRadius: '0.5rem',
-  border: '1px solid var(--pl-divider, #E0D8CA)', background: '#fff',
+  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
   color: 'var(--pl-ink, #1A1A1A)', fontSize: 'max(16px, 0.88rem)', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
   minHeight: '36px',

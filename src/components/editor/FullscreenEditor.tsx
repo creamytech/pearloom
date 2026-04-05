@@ -759,7 +759,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       <AnimatePresence>
         {state.showHint && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}
-            style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: 'rgba(20,18,16,0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '100px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' } as React.CSSProperties}>
+            style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '100px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 24px rgba(43,30,20,0.1)' } as React.CSSProperties}>
             <span style={{ fontSize: '14px' }}>👆</span>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', whiteSpace: 'nowrap' }}>Click any section in the preview to jump to it</span>
           </motion.div>
@@ -768,9 +768,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       <AnimatePresence>
         {state.rewriteError && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}
-            style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: 'rgba(40,10,10,0.92)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: '100px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' } as React.CSSProperties}>
+            style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', zIndex: 1500, pointerEvents: 'none', background: 'rgba(255,240,240,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '100px', padding: '8px 18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 24px rgba(43,30,20,0.1)' } as React.CSSProperties}>
             <span style={{ fontSize: '14px' }}>⚠</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'rgba(248,113,113,0.9)', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#b91c1c', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
           </motion.div>
         )}
       </AnimatePresence>
