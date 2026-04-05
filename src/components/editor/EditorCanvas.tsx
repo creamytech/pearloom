@@ -2,107 +2,38 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / EditorCanvas.tsx — Center preview area
-// Dark studio canvas with dot-grid, ambient glow, device chrome,
-// device framing with centered preview for tablet/mobile modes.
+// Warm cream canvas with rounded iframe card, full-bleed desktop,
+// floating glass overlays for contextual editing.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useEditor, stripArtForStorage } from '@/lib/editor-state';
+import { Monitor, Tablet, Smartphone } from 'lucide-react';
+import { useEditor, stripArtForStorage, type DeviceMode } from '@/lib/editor-state';
 import { StickerOverlay } from './StickerOverlay';
 import { SectionHoverToolbar } from './SectionHoverToolbar';
 
 // ── Skeleton Loading Screen ───────────────────────────────────
-const skeletonShimmer = 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%)';
-const skeletonBarStyle = (width: string, height: string, delay: number): React.CSSProperties => ({
-  width, height, borderRadius: '6px',
-  background: skeletonShimmer,
-  backgroundSize: '200% 100%',
-  animation: `shimmer 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite ${delay}s`,
-});
-
 function SkeletonLoading({ slow }: { slow: boolean }) {
   return (
     <div style={{
       position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-      background: 'rgba(255,255,255,0.02)', pointerEvents: 'none', zIndex: 1, padding: '2.5rem',
+      background: 'var(--pl-cream)', pointerEvents: 'none', zIndex: 1, padding: '2.5rem',
       gap: '1.25rem',
     }}>
-      <div style={skeletonBarStyle('55%', '16px', 0)} />
-      <div style={{
-        width: '100%', height: '240px', borderRadius: '10px',
-        background: skeletonShimmer, backgroundSize: '200% 100%',
-        animation: 'shimmer 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.15s',
-      }} />
+      <div className="skeleton" style={{ width: '55%', height: '16px', borderRadius: '6px' }} />
+      <div className="skeleton" style={{ width: '100%', height: '240px', borderRadius: '10px' }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div style={skeletonBarStyle('85%', '11px', 0.25)} />
-        <div style={skeletonBarStyle('70%', '11px', 0.35)} />
-        <div style={skeletonBarStyle('55%', '11px', 0.45)} />
+        <div className="skeleton" style={{ width: '85%', height: '11px', borderRadius: '6px' }} />
+        <div className="skeleton" style={{ width: '70%', height: '11px', borderRadius: '6px' }} />
+        <div className="skeleton" style={{ width: '55%', height: '11px', borderRadius: '6px' }} />
       </div>
       <div style={{
         marginTop: 'auto', textAlign: 'center',
-        color: 'rgba(214,198,168,0.35)', fontSize: '0.8rem',
+        color: 'var(--pl-muted)', fontSize: '0.8rem',
       }}>
         {slow ? 'Taking a moment\u2026 almost there' : 'Loading preview\u2026'}
       </div>
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// ── Device Chrome: Phone notch bar ────────────────────────────
-function PhoneChrome() {
-  return (
-    <div style={{
-      height: '28px', flexShrink: 0,
-      background: 'rgba(26,23,32,0.96)',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '28px 28px 0 0',
-      position: 'relative',
-    }}>
-      <div style={{
-        width: '80px', height: '6px', borderRadius: '100px',
-        background: 'rgba(255,255,255,0.15)',
-      }} />
-    </div>
-  );
-}
-
-function PhoneBottom() {
-  return (
-    <div style={{
-      height: '20px', flexShrink: 0,
-      background: 'rgba(26,23,32,0.96)',
-      borderTop: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '0 0 28px 28px',
-    }}>
-      <div style={{
-        width: '48px', height: '4px', borderRadius: '100px',
-        background: 'rgba(255,255,255,0.2)',
-      }} />
-    </div>
-  );
-}
-
-function TabletChrome() {
-  return (
-    <div style={{
-      height: '16px', flexShrink: 0,
-      background: 'rgba(26,23,32,0.96)',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <div style={{
-        width: '6px', height: '6px', borderRadius: '50%',
-        background: 'rgba(255,255,255,0.2)',
-      }} />
     </div>
   );
 }
@@ -111,13 +42,6 @@ export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
   const { device, iframeReady, previewSlow, activeId, chapters, previewPage } = state;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
-
-  const [deviceKey, setDeviceKey] = useState(device);
-
-  // Pulse ambient glow on device change
-  useEffect(() => {
-    setDeviceKey(device);
-  }, [device]);
 
   // ── Listen for edit messages from iframe ──────────────────
   useEffect(() => {
@@ -203,56 +127,67 @@ export function EditorCanvas() {
   const isPhone = device === 'mobile';
   const isTablet = device === 'tablet';
   const isFramed = isPhone || isTablet;
-
-  // Device frame dimensions
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
-  const frameRadius = isPhone ? 28 : isTablet ? 12 : 0;
+
+  const iframeSrc = `/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`;
+  const handleIframeLoad = () => {
+    dispatch({ type: 'SET_IFRAME_READY', ready: true });
+    dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
+    try {
+      iframeRef.current?.contentWindow?.postMessage({
+        type: 'pearloom-preview-update',
+        manifest: stripArtForStorage(manifest),
+        names: coupleNames,
+      }, '*');
+    } catch {}
+    iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
+  };
 
   return (
     <div style={{
       flex: 1,
-      background: '#1A1720',
-      backgroundImage: 'radial-gradient(circle, rgba(163,177,138,0.06) 1px, transparent 0)',
-      backgroundSize: '28px 28px',
+      background: 'var(--pl-cream-deep)',
       display: 'flex', flexDirection: 'column',
-      overflow: 'auto',
+      overflow: 'hidden',
       position: 'relative',
     }}>
 
-      {/* Warm studio ambient — dual glow */}
-      <motion.div
-        key={deviceKey}
-        initial={{ opacity: 0.3, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-          background: `
-            radial-gradient(ellipse 55% 50% at 50% 40%, rgba(163,177,138,0.06) 0%, transparent 70%),
-            radial-gradient(ellipse 40% 45% at 50% 60%, rgba(196,169,106,0.04) 0%, transparent 65%)
-          `,
-        }}
-      />
-
-      {/* Click-to-edit hint — shows briefly then fades */}
-      {!iframeReady && !previewSlow && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.4 }}
-          exit={{ opacity: 0 }}
-          transition={{ delay: 1.5, duration: 0.6 }}
-          style={{
-            position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)',
-            zIndex: 5, display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '6px 14px', borderRadius: '100px',
-            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-            color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem', fontWeight: 600,
-            letterSpacing: '0.02em', pointerEvents: 'none',
-          }}
-        >
-          Click any section to edit
-        </motion.div>
-      )}
+      {/* ── Floating device switcher ── */}
+      <div style={{
+        position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 40,
+        display: 'flex', alignItems: 'center', gap: '2px',
+        padding: '4px',
+        borderRadius: '100px',
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 2px 12px rgba(43,30,20,0.08)',
+      } as React.CSSProperties}>
+        {([
+          { mode: 'desktop' as DeviceMode, Icon: Monitor },
+          { mode: 'tablet' as DeviceMode, Icon: Tablet },
+          { mode: 'mobile' as DeviceMode, Icon: Smartphone },
+        ]).map(({ mode, Icon }) => (
+          <motion.button
+            key={mode}
+            onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })}
+            whileTap={{ scale: 0.9 }}
+            style={{
+              width: '32px', height: '32px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: '50%', border: 'none',
+              background: device === mode ? 'var(--pl-ink)' : 'transparent',
+              color: device === mode ? 'white' : 'var(--pl-muted)',
+              cursor: 'pointer',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            <Icon size={14} />
+          </motion.button>
+        ))}
+      </div>
 
       {/* ── Main canvas area ── */}
       <div
@@ -261,14 +196,14 @@ export function EditorCanvas() {
           width: '100%', height: '100%',
           position: 'relative',
           display: 'flex', flexDirection: 'column',
-          alignItems: isFramed ? 'center' : undefined,
+          alignItems: 'center',
           justifyContent: isFramed ? 'center' : undefined,
-          padding: isFramed ? '24px 20px' : undefined,
+          padding: isFramed ? '24px 20px' : '16px',
           zIndex: 1,
-          overflow: isFramed ? 'auto' : undefined,
+          overflow: 'auto',
         }}
       >
-        {/* ── Device frame wrapper (tablet/phone on desktop) ── */}
+        {/* ── Device frame (tablet/phone) ── */}
         {isFramed ? (
           <motion.div
             key={device}
@@ -279,68 +214,46 @@ export function EditorCanvas() {
               width: frameWidth,
               maxWidth: '100%',
               display: 'flex', flexDirection: 'column',
-              borderRadius: frameRadius,
+              borderRadius: 24,
               overflow: 'hidden',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08), 0 0 60px rgba(163,177,138,0.04)',
+              boxShadow: '0 12px 48px rgba(43,30,20,0.12), 0 0 0 1px rgba(0,0,0,0.06)',
               flexShrink: 0,
               minHeight: isPhone ? 780 : 600,
+              background: 'var(--pl-cream)',
             }}
           >
-            {/* Chrome top */}
-            {isPhone ? <PhoneChrome /> : <TabletChrome />}
-
-            {/* Preview area */}
-            <div style={{ flex: 1, position: 'relative', background: 'var(--pl-cream)', minHeight: 0 }}>
+            <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
               {!iframeReady && <SkeletonLoading slow={previewSlow} />}
               <iframe
                 ref={iframeRef}
-                src={`/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`}
+                src={iframeSrc}
                 style={{ width: '100%', height: '100%', border: 'none', display: 'block', minHeight: isPhone ? 780 : 600 }}
                 title="Live Preview"
-                onLoad={() => {
-                  dispatch({ type: 'SET_IFRAME_READY', ready: true });
-                  dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
-                  try {
-                    iframeRef.current?.contentWindow?.postMessage({
-                      type: 'pearloom-preview-update',
-                      manifest: stripArtForStorage(manifest),
-                      names: coupleNames,
-                    }, '*');
-                  } catch {}
-                  iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
-                }}
+                onLoad={handleIframeLoad}
               />
             </div>
-
-            {/* Chrome bottom */}
-            {isPhone && <PhoneBottom />}
           </motion.div>
         ) : (
-          /* ── Full-width desktop or mobile preview ── */
-          <>
+          /* ── Full-bleed desktop — rounded card with soft shadow ── */
+          <div style={{
+            width: '100%', maxWidth: '1120px',
+            flex: 1,
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+            position: 'relative',
+            background: 'white',
+            minHeight: 0,
+          }}>
             {!iframeReady && <SkeletonLoading slow={previewSlow} />}
             <iframe
               ref={iframeRef}
-              src={`/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`}
-              style={{
-                flex: 1, border: 'none', width: '100%', minHeight: '100%',
-                boxShadow: '0 0 0 1px rgba(255,255,255,0.04)',
-              }}
+              src={iframeSrc}
+              style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
               title="Live Preview"
-              onLoad={() => {
-                dispatch({ type: 'SET_IFRAME_READY', ready: true });
-                dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
-                try {
-                  iframeRef.current?.contentWindow?.postMessage({
-                    type: 'pearloom-preview-update',
-                    manifest: stripArtForStorage(manifest),
-                    names: coupleNames,
-                  }, '*');
-                } catch {}
-                iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
-              }}
+              onLoad={handleIframeLoad}
             />
-          </>
+          </div>
         )}
 
         {/* Sticker overlay */}
@@ -357,7 +270,6 @@ export function EditorCanvas() {
 
         {/* Section hover toolbar */}
         <SectionHoverToolbar />
-
       </div>
     </div>
   );

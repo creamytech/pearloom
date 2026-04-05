@@ -23,6 +23,7 @@ import { EditorCanvas } from './EditorCanvas';
 import { EditorWing } from './EditorWing';
 import { EditorRail } from './EditorRail';
 import { EditorStatusBar } from './EditorStatusBar';
+import { FloatingToolbar } from './FloatingToolbar';
 import { StoryPanel } from './StoryPanel';
 import { MobileEditorSheet } from './MobileEditorSheet';
 import { WelcomeOverlay } from './WelcomeOverlay';
@@ -598,7 +599,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       display: 'flex', flexDirection: 'column',
-      background: 'var(--eg-dark-2, #3D3530)', fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
+      background: 'var(--pl-cream-deep)', fontFamily: 'var(--pl-font-body)',
     }}>
       {/* Command Palette */}
       <CommandPalette
@@ -633,14 +634,22 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         {/* Navigation Rail (desktop only) */}
         {!state.isMobile && <EditorRail onOpen={() => setPanelOpen(true)} />}
 
-        {/* Push Panel (desktop only) */}
+        {/* Canvas area (desktop only — mobile uses MobileEditorSheet with iframe preview) */}
         {!state.isMobile && (
-          <EditorWing
-            open={panelOpen}
-            onToggle={() => setPanelOpen(v => !v)}
-            activeTab={state.activeTab}
-            contentRef={contentPanelRef}
-          >
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, position: 'relative' }}>
+            <PostWeddingBanner
+              manifest={manifest}
+              subdomain={state.subdomain}
+              onUpdate={(m) => { onChange(m); pushToPreview(m); }}
+            />
+            <EditorCanvas />
+            {/* Floating glass inspector — overlaid on canvas */}
+            <EditorWing
+              open={panelOpen}
+              onToggle={() => setPanelOpen(v => !v)}
+              activeTab={state.activeTab}
+              contentRef={contentPanelRef}
+            >
             <AnimatePresence mode="wait">
               <motion.div
                 key={state.activeTab}
@@ -731,17 +740,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               </motion.div>
             </AnimatePresence>
           </EditorWing>
-        )}
-
-        {/* Canvas area (desktop only — mobile uses MobileEditorSheet with iframe preview) */}
-        {!state.isMobile && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-            <PostWeddingBanner
-              manifest={manifest}
-              subdomain={state.subdomain}
-              onUpdate={(m) => { onChange(m); pushToPreview(m); }}
-            />
-            <EditorCanvas />
+            {/* Floating bottom toolbar */}
+            <FloatingToolbar />
           </div>
         )}
       </div>

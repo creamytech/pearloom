@@ -157,45 +157,64 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       boxShadow: 'var(--pl-shadow-xs)',
     } as React.CSSProperties}>
 
-      {/* ═══ LEFT ZONE: Exit + Site Name ═══ */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+      {/* ═══ LEFT ZONE: Heirloom Builder branding ═══ */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
         <motion.button
           onClick={onExit}
-          title="Exit editor"
-          whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.1)' }}
-          whileTap={{ scale: 0.94 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+          title="Back to dashboard"
+          whileHover={{ opacity: 0.7 }}
+          whileTap={{ scale: 0.96 }}
           style={{
-            display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '6px 10px', borderRadius: '6px', border: 'none',
-            background: 'var(--pl-cream-deep)', color: 'var(--pl-ink-soft)',
-            cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, flexShrink: 0,
+            display: 'flex', alignItems: 'center', gap: '0',
+            padding: '0', border: 'none',
+            background: 'transparent', cursor: 'pointer', flexShrink: 0,
           }}
         >
-          <ExitIcon size={14} /> Exit
+          <span style={{
+            fontSize: '1.05rem', fontWeight: 600, color: 'var(--pl-ink-soft)',
+            fontFamily: 'var(--pl-font-heading)',
+            letterSpacing: '-0.02em',
+          }}>
+            Heirloom Builder
+          </span>
         </motion.button>
 
-        {/* Site name — editorial italic (truncated on mobile) */}
+        {/* Save status indicator */}
         {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            {manifest.occasion !== 'birthday' && (
-              <ElegantHeartIcon size={12} color="var(--pl-gold)" />
-            )}
-            <span style={{
-              fontSize: '1rem', fontWeight: 400, color: 'var(--pl-ink-soft)',
-              letterSpacing: '-0.02em',
-              fontFamily: 'var(--pl-font-heading)',
-              fontStyle: 'italic',
-            }}>
-              {manifest.occasion === 'birthday'
-                ? `${coupleNames[0]}'s Birthday`
-                : coupleNames[1]?.trim()
-                  ? `${coupleNames[0]} & ${coupleNames[1]}`
-                  : coupleNames[0]}
-            </span>
-          </div>
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 600,
+            color: saveState === 'saved' ? 'var(--pl-muted)' : 'var(--pl-warning)',
+            letterSpacing: '0.04em',
+            display: 'flex', alignItems: 'center', gap: '4px',
+          }}>
+            {saveState === 'saved' ? '' : '|'}
+            {saveState === 'saved' ? '' : ` STATUS: ${saveState === 'unsaved' ? 'UNSAVED' : 'SAVING...'}`}
+          </span>
         )}
       </div>
+
+      {/* ═══ CENTER TABS: Drafts / Archive / Shared ═══ */}
+      {!isMobile && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0', marginLeft: '20px' }}>
+          {['Drafts', 'Archive', 'Shared'].map((tab, i) => (
+            <button
+              key={tab}
+              style={{
+                padding: '6px 14px', border: 'none', background: 'transparent',
+                cursor: 'pointer',
+                fontSize: '0.72rem', fontWeight: i === 0 ? 700 : 500,
+                letterSpacing: '0.04em',
+                color: i === 0 ? 'var(--pl-ink)' : 'var(--pl-muted)',
+                borderBottom: i === 0 ? '2px solid var(--pl-ink)' : '2px solid transparent',
+                textTransform: 'uppercase',
+                transition: 'color 0.15s',
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
       {!isMobile && <div style={{ width: '1px', height: '24px', background: 'var(--pl-divider)', margin: '0 12px', flexShrink: 0 }} />}
