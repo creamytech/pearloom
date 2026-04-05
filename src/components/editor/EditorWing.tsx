@@ -46,6 +46,24 @@ const TAB_LABEL: Partial<Record<EditorTab, string>> = {
   vendors:     'Vendors',
 };
 
+const TAB_HINT: Partial<Record<EditorTab, string>> = {
+  story:       'Edit chapters and narrative',
+  canvas:      'Arrange and add page sections',
+  events:      'Ceremony, reception & schedule',
+  design:      'Theme, colors & visual style',
+  details:     'Site URL, settings & metadata',
+  blocks:      'AI-powered content blocks',
+  voice:       'Train AI to match your voice',
+  messaging:   'Bulk email & guest messaging',
+  analytics:   'Views, RSVPs & engagement',
+  guests:      'Manage your guest list',
+  translate:   'Multi-language translations',
+  savethedate: 'Design your Save the Date',
+  thankyou:    'Post-event thank you notes',
+  spotify:     'Playlist & song requests',
+  vendors:     'Vendor contacts & timeline',
+};
+
 interface EditorWingProps {
   open: boolean;
   onToggle: () => void;
@@ -69,6 +87,7 @@ export function EditorWing({
   const dragStartW = useRef(DEFAULT_W);
 
   const title = TAB_LABEL[activeTab] ?? String(activeTab);
+  const hint  = TAB_HINT[activeTab];
   const tier  = TAB_TIER[activeTab];
   const meta  = tier ? TIER_META[tier] : null;
 
@@ -158,23 +177,37 @@ export function EditorWing({
           borderBottom: '1px solid rgba(255,255,255,0.07)',
           background: 'rgba(255,255,255,0.03)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden', minWidth: 0 }}>
             <AnimatePresence mode="wait">
-              <motion.span
+              <motion.div
                 key={title}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-                style={{
+                style={{ overflow: 'hidden', minWidth: 0 }}
+              >
+                <span style={{
                   fontSize: '0.7rem', fontWeight: 800,
                   letterSpacing: '0.1em', textTransform: 'uppercase' as const,
                   color: 'rgba(255,255,255,0.35)',
                   whiteSpace: 'nowrap' as const,
-                }}
-              >
-                {title}
-              </motion.span>
+                  display: 'block',
+                }}>
+                  {title}
+                </span>
+                {hint && (
+                  <span style={{
+                    fontSize: '0.58rem', fontWeight: 500,
+                    color: 'rgba(255,255,255,0.2)',
+                    whiteSpace: 'nowrap' as const,
+                    display: 'block',
+                    marginTop: '1px',
+                  }}>
+                    {hint}
+                  </span>
+                )}
+              </motion.div>
             </AnimatePresence>
             {meta && (
               <span style={{

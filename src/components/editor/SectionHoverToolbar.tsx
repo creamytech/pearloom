@@ -30,8 +30,8 @@ interface HoverState {
   rect: HoverRect;
 }
 
-const TOOLBAR_H = 34;
-const TOOLBAR_OFFSET = 8; // px above the section top
+const TOOLBAR_H = 38;
+const TOOLBAR_OFFSET = 10; // px above the section top
 
 export function SectionHoverToolbar() {
   const { state, dispatch, actions } = useEditor();
@@ -140,14 +140,16 @@ export function SectionHoverToolbar() {
           />
           <ToolbarDivider />
 
-          {/* AI Rewrite */}
-          <ToolbarBtn
-            icon={<Sparkles size={12} />}
-            label={isRewriting ? '…' : 'AI'}
-            onClick={handleAI}
-            disabled={isRewriting}
-            accent
-          />
+          {/* AI Rewrite — with dropdown for modes */}
+          <div style={{ position: 'relative' }}>
+            <ToolbarBtn
+              icon={<Sparkles size={12} />}
+              label={isRewriting ? 'Rewriting…' : '✨ AI Rewrite'}
+              onClick={handleAI}
+              disabled={isRewriting}
+              accent
+            />
+          </div>
           <ToolbarDivider />
 
           {/* More (relative container for dropdown) */}

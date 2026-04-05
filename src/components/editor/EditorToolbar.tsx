@@ -359,39 +359,21 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           </motion.button>
         )}
 
-        {/* Split + Preview + Publish — desktop only */}
+        {/* Preview + Share + Publish — desktop only */}
         {!isMobile && (
           <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-            {/* Site Health — AI completeness check */}
-            <motion.button
-              onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'blocks' })}
-              title="AI Site Health Check"
-              whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.12)' }}
-              whileTap={{ scale: 0.94 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 10px', borderRadius: '6px',
-                border: '1px solid rgba(163,177,138,0.2)',
-                background: 'transparent', color: 'rgba(163,177,138,0.9)',
-                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
-              }}
-            >
-              <Activity size={12} /> Health
-            </motion.button>
             {/* Preview — opens production rendering in new tab */}
-            {/* Preview — ghost style */}
             <motion.button
               onClick={actions.storePreviewForOpen}
               title="Preview site (Cmd+P)"
-              whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.07)' }}
+              whileHover={{ scale: 1.04, backgroundColor: 'var(--pl-cream-deep)' }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 400, damping: 22 }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '6px 13px', borderRadius: '6px',
-                border: '1px solid rgba(214,198,168,0.12)',
-                background: 'transparent', color: 'rgba(255,255,255,0.8)',
+                border: '1px solid var(--pl-divider)',
+                background: 'transparent', color: 'var(--pl-ink-soft)',
                 cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
               }}
             >
@@ -409,22 +391,23 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               />
             )}
 
-            {/* Publish — gradient with plum shadow */}
+            {/* Publish — prominent primary CTA */}
             <motion.button
               onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
               title="Publish your site"
-              whileHover={{ scale: 1.06, boxShadow: '0 8px 28px rgba(163,177,138,0.45)' }}
+              whileHover={{ scale: 1.06, boxShadow: '0 8px 28px rgba(163,177,138,0.5)' }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 380, damping: 20 }}
               style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 16px', borderRadius: '7px', border: 'none',
-                background: 'linear-gradient(135deg, #A3B18A 0%, #8FA876 100%)',
-                color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
-                boxShadow: '0 4px 16px rgba(163,177,138,0.35)',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '7px 20px', borderRadius: '8px', border: 'none',
+                background: 'linear-gradient(135deg, #A3B18A 0%, #7A8F6E 100%)',
+                color: '#fff', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 700,
+                boxShadow: '0 4px 20px rgba(163,177,138,0.4)',
+                letterSpacing: '0.01em',
               }}
             >
-              <PublishIcon size={13} /> Publish
+              <PublishIcon size={14} /> Publish
             </motion.button>
           </div>
         )}
