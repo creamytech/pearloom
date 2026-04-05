@@ -32,7 +32,7 @@ export function SectionHeader({
   return (
     <div
       className={cn(
-        'relative mb-12',
+        'relative mb-10',
         align === 'center' ? 'text-center' : 'text-left',
         className,
       )}

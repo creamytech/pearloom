@@ -137,14 +137,17 @@ export function PricingPreview() {
                     borderRadius: '14px',
                     background: '#FFFFFF',
                     border: isHighlighted
-                      ? `2px solid ${tier.accent}`
+                      ? `2.5px solid ${tier.accent}`
                       : card.border,
                     boxShadow: isHighlighted
-                      ? `0 8px 32px ${tier.accent}26, 0 2px 8px ${tier.accent}14`
+                      ? `0 12px 40px ${tier.accent}30, 0 4px 12px ${tier.accent}18`
                       : card.shadow,
                     padding: '1.75rem',
                     display: 'flex',
                     flexDirection: 'column',
+                    transform: isHighlighted ? 'scale(1.03)' : 'none',
+                    position: 'relative',
+                    zIndex: isHighlighted ? 2 : 1,
                   }}
                 >
                   {/* Badge row */}

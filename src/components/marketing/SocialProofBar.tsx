@@ -79,13 +79,21 @@ export function SocialProofBar() {
         <div className="bg-white/85 rounded-[var(--pl-radius-lg)] border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] py-[clamp(1.5rem,3vw,2.5rem)]">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0">
             {STATS.map((s, i) => (
-              <div key={s.label} className="text-center relative px-4">
+              <div
+                key={s.label}
+                className="text-center relative px-4"
+                style={{
+                  opacity: inView ? 1 : 0,
+                  transform: inView ? 'translateY(0)' : 'translateY(12px)',
+                  transition: `opacity 0.5s ${i * 0.1}s, transform 0.5s ${i * 0.1}s`,
+                }}
+              >
                 {/* Divider line */}
                 {i < STATS.length - 1 && (
                   <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-[60%] bg-gradient-to-b from-transparent via-[var(--pl-divider)] to-transparent" />
                 )}
 
-                <div className="flex justify-center mb-3 text-[var(--pl-olive)] opacity-70">
+                <div className="flex justify-center mb-3 text-[var(--pl-olive)]">
                   <StatIcon icon={s.icon} />
                 </div>
 
