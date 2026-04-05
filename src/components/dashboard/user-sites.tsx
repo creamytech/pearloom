@@ -278,14 +278,14 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
   const aggStats = useAggregateStats(sites);
 
   return (
-    <div className="w-full max-w-[1280px] mx-auto">
+    <div className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20">
 
       {/* ── Header band ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-10 py-10 mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 overflow-hidden relative"
+        className="rounded-[var(--pl-radius-lg)] sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
       >
         {/* Decorative arc */}
         <div>
@@ -312,7 +312,7 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
 
       {/* ── Bento creation cards ── */}
       {!loading && !fetchError && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10">
           {[
             { icon: <Pencil size={24} />, title: 'New Story', desc: 'Upload photos and let The Loom craft your story.', action: onStartNew },
             { icon: <Image size={24} />, title: 'Photo Site', desc: 'Create a beautiful photo-driven celebration site.', action: onStartNew },
@@ -326,7 +326,7 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
               transition={{ delay: i * 0.08 + 0.3, duration: 0.5 }}
               whileHover={{ y: -3, boxShadow: '0 8px 32px rgba(43,30,20,0.08)' }}
               whileTap={{ scale: 0.98 }}
-              className="flex flex-col items-center text-center p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer"
+              className="flex flex-col items-center text-center p-5 sm:p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer"
             >
               <div className="w-14 h-14 rounded-2xl border border-[var(--pl-divider)] flex items-center justify-center mb-4 text-[var(--pl-muted)]">
                 {card.icon}
@@ -694,9 +694,10 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
         </>
       )}
 
-      {/* ── Floating bottom nav ── */}
+      {/* ── Floating bottom nav (desktop only — mobile uses MobileBottomNav) ── */}
       {!loading && !fetchError && (
         <motion.div
+          className="hidden md:flex"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}

@@ -2,12 +2,13 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / WizardLayout.tsx — The Loom's Progress
-// Split layout matching Stitch: left sidebar nav (Photos/Mood/Vibe/Weave),
-// center stage, top progress bar, bottom action bar.
+// Responsive split layout: sidebar hidden on mobile,
+// center stage fills screen, right panel stacks below on mobile.
 // ─────────────────────────────────────────────────────────────
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image, Sparkles, Palette, Compass, X } from 'lucide-react';
+import { Image, Sparkles, Palette, Compass, X, Menu } from 'lucide-react';
 import { layout } from '@/lib/design-tokens';
 import type { WizardStep } from '@/lib/wizard-state';
 
@@ -38,59 +39,46 @@ interface WizardLayoutProps {
 
 export function WizardLayout({ step, title, subtitle, children, onStepClick, rightPanel, onClose }: WizardLayoutProps) {
   const activeSidebar = STEP_TO_SIDEBAR[step] || 'photos';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const stageLabel = step === 'photos' || step === 'upload' || step === 'clusters'
+    ? 'Photos'
+    : step === 'vibe'
+      ? 'Style'
+      : 'Building';
 
   return (
     <main className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
 
       {/* ── Top bar ── */}
-      <header style={{
-        height: '52px', flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px',
-        borderBottom: '1px solid var(--pl-divider)',
-        background: 'white',
-      }}>
-        <span style={{
-          fontSize: '1rem', fontWeight: 600,
-          fontFamily: 'var(--pl-font-heading)',
-          fontStyle: 'italic',
-          color: 'var(--pl-ink-soft)',
-        }}>
-          Pearloom
-        </span>
-        <span style={{
-          fontSize: '0.82rem', fontWeight: 500,
-          fontFamily: 'var(--pl-font-body)',
-          color: 'var(--pl-ink)',
-        }}>
+      <header className="h-[52px] shrink-0 flex items-center justify-between px-4 md:px-5 border-b border-[var(--pl-divider)] bg-white">
+        <div className="flex items-center gap-3">
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex md:hidden items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-[var(--pl-muted)] cursor-pointer"
+          >
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+          <span className="font-heading italic text-[1rem] font-semibold text-[var(--pl-ink-soft)]">
+            Pearloom
+          </span>
+        </div>
+        <span className="text-[0.82rem] font-medium text-[var(--pl-ink)] hidden sm:block">
           The Loom&rsquo;s Progress
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{
-            fontSize: '0.62rem', fontWeight: 700,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: 'var(--pl-muted)',
-          }}>
-            Curating
-            <br />
-            <strong style={{ color: 'var(--pl-ink)', fontStyle: 'italic' }}>
-              {step === 'photos' || step === 'upload' || step === 'clusters'
-                ? 'Photos'
-                : step === 'vibe'
-                  ? 'Style'
-                  : 'Building'}
-            </strong>
+        <div className="flex items-center gap-2">
+          <span className="text-[0.62rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)] hidden sm:block">
+            Stage: <strong className="text-[var(--pl-ink)] italic">{stageLabel}</strong>
+          </span>
+          {/* Mobile stage pill */}
+          <span className="sm:hidden text-[0.58rem] font-bold tracking-[0.08em] uppercase px-2 py-1 rounded-full bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)]">
+            {stageLabel}
           </span>
           {onClose && (
             <button
               onClick={onClose}
-              style={{
-                width: '32px', height: '32px', borderRadius: '50%',
-                border: '1px solid var(--pl-divider)',
-                background: 'transparent', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--pl-muted)',
-              }}
+              className="w-8 h-8 rounded-full border border-[var(--pl-divider)] bg-transparent cursor-pointer flex items-center justify-center text-[var(--pl-muted)]"
             >
               <X size={14} />
             </button>
@@ -98,115 +86,117 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
         </div>
       </header>
 
-      {/* ── Body: sidebar + content + optional right panel ── */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      {/* ── Body ── */}
+      <div className="flex-1 flex overflow-hidden relative">
 
-        {/* Left sidebar */}
-        <aside style={{
-          width: '180px', flexShrink: 0,
-          background: 'var(--pl-cream)',
-          borderRight: '1px solid var(--pl-divider)',
-          padding: '24px 12px',
-          display: 'flex', flexDirection: 'column',
-          gap: '0',
-        }}>
-          <div style={{ marginBottom: '20px', padding: '0 8px' }}>
-            <h2 style={{
-              fontSize: '1.1rem', fontWeight: 500,
-              fontFamily: 'var(--pl-font-heading)',
-              fontStyle: 'italic',
-              color: 'var(--pl-ink-soft)',
-              margin: 0,
-            }}>
+        {/* Left sidebar — hidden on mobile, shown on md+ */}
+        <aside className="hidden md:flex w-[180px] shrink-0 flex-col bg-[var(--pl-cream)] border-r border-[var(--pl-divider)] p-6 pt-6 pb-4">
+          <div className="mb-5 px-2">
+            <h2 className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)] m-0">
               The Atelier
             </h2>
-            <p style={{
-              fontSize: '0.62rem', fontWeight: 600,
-              letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
-              marginTop: '2px',
-            }}>
+            <p className="text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[var(--pl-muted)] mt-0.5">
               Step-by-step site builder
             </p>
           </div>
 
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <nav className="flex flex-col gap-0.5">
             {SIDEBAR_ITEMS.map((item) => {
               const isActive = activeSidebar === item.id;
               const Icon = item.Icon;
               return (
-                <motion.button
+                <button
                   key={item.id}
-                  whileTap={{ scale: 0.96 }}
                   onClick={() => {
                     if (item.steps.length > 0 && onStepClick) {
                       onStepClick(item.steps[0] as string);
                     }
                   }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: isActive ? 'rgba(163,177,138,0.12)' : 'transparent',
-                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    fontWeight: isActive ? 600 : 500,
-                    fontFamily: 'var(--pl-font-body)',
-                    textAlign: 'left',
-                    transition: 'background 0.15s, color 0.15s',
-                    width: '100%',
-                  }}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] border-none w-full text-left cursor-pointer text-[0.85rem] font-medium transition-all duration-150 ${
+                    isActive
+                      ? 'bg-[rgba(163,177,138,0.12)] text-[var(--pl-olive-deep)] font-semibold'
+                      : 'bg-transparent text-[var(--pl-muted)] hover:bg-[rgba(0,0,0,0.02)]'
+                  }`}
+                  style={{ fontFamily: 'var(--pl-font-body)' }}
                 >
                   <Icon size={16} />
                   {item.label}
-                </motion.button>
+                </button>
               );
             })}
           </nav>
         </aside>
 
+        {/* Mobile sidebar drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-40 bg-black/20 md:hidden"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              <motion.aside
+                initial={{ x: -240 }}
+                animate={{ x: 0 }}
+                exit={{ x: -240 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+                className="fixed top-[52px] left-0 bottom-0 z-50 w-[240px] bg-white border-r border-[var(--pl-divider)] p-5 flex flex-col md:hidden shadow-xl"
+              >
+                <h2 className="font-heading italic text-lg text-[var(--pl-ink-soft)] mb-1">
+                  The Atelier
+                </h2>
+                <p className="text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[var(--pl-muted)] mb-5">
+                  Step-by-step site builder
+                </p>
+                <nav className="flex flex-col gap-1">
+                  {SIDEBAR_ITEMS.map((item) => {
+                    const isActive = activeSidebar === item.id;
+                    const Icon = item.Icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          if (item.steps.length > 0 && onStepClick) {
+                            onStepClick(item.steps[0] as string);
+                          }
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl border-none w-full text-left cursor-pointer text-[0.92rem] transition-all duration-150 ${
+                          isActive
+                            ? 'bg-[rgba(163,177,138,0.12)] text-[var(--pl-olive-deep)] font-semibold'
+                            : 'bg-transparent text-[var(--pl-muted)]'
+                        }`}
+                        style={{ fontFamily: 'var(--pl-font-body)' }}
+                      >
+                        <Icon size={18} />
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Center content */}
-        <div style={{
-          flex: 1, overflow: 'auto',
-          padding: 'clamp(24px, 4vw, 48px) clamp(20px, 3vw, 40px)',
-          position: 'relative',
-        }}>
+        <div className="flex-1 overflow-auto p-4 md:p-8 lg:p-12 relative">
           {/* Step header */}
           {title && step !== 'dashboard' && step !== 'generating' && (
-            <div style={{ marginBottom: '32px' }}>
-              {step !== 'vibe' && (
-                <p style={{
-                  fontSize: '0.65rem', fontWeight: 700,
-                  letterSpacing: '0.12em', textTransform: 'uppercase',
-                  color: 'var(--pl-olive-deep)',
-                  marginBottom: '8px',
-                }}>
-                  {step === 'photos' || step === 'upload' || step === 'clusters'
-                    ? 'Chapter One'
-                    : 'Stage Two of Four'}
-                </p>
-              )}
-              <h2 style={{
-                fontSize: 'clamp(1.8rem, 4vw, 2.6rem)',
-                fontWeight: 500,
-                fontFamily: 'var(--pl-font-heading)',
-                color: 'var(--pl-ink-soft)',
-                letterSpacing: '-0.02em',
-                lineHeight: 1.15,
-                margin: 0,
-              }}>
+            <div className="mb-6 md:mb-8">
+              <p className="text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-olive-deep)] mb-2 hidden md:block">
+                {step === 'photos' || step === 'upload' || step === 'clusters'
+                  ? 'Chapter One'
+                  : 'Stage Two of Four'}
+              </p>
+              <h2 className="text-[clamp(1.4rem,4vw,2.6rem)] font-medium font-heading text-[var(--pl-ink-soft)] leading-tight tracking-tight m-0">
                 {title}
               </h2>
               {subtitle && (
-                <p style={{
-                  maxWidth: '520px',
-                  color: 'var(--pl-muted)',
-                  fontSize: '0.95rem',
-                  lineHeight: 1.7,
-                  marginTop: '12px',
-                }}>
+                <p className="max-w-[520px] text-[var(--pl-muted)] text-[0.88rem] md:text-[0.95rem] leading-relaxed mt-2 md:mt-3">
                   {subtitle}
                 </p>
               )}
@@ -225,15 +215,18 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
               {children}
             </motion.div>
           </AnimatePresence>
+
+          {/* Right panel — stacks below on mobile, floats on lg+ */}
+          {rightPanel && (
+            <div className="mt-8 lg:hidden">
+              {rightPanel}
+            </div>
+          )}
         </div>
 
-        {/* Right panel — glass advisor (optional, shown when rightPanel is provided) */}
+        {/* Right panel — visible on lg+ as sidebar */}
         {rightPanel && (
-          <aside style={{
-            width: '300px', flexShrink: 0,
-            padding: '20px 16px',
-            overflow: 'auto',
-          }}>
+          <aside className="hidden lg:block w-[300px] shrink-0 p-5 overflow-auto">
             {rightPanel}
           </aside>
         )}

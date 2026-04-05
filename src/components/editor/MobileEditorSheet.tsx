@@ -568,7 +568,7 @@ export function MobileEditorSheet() {
               <div style={{
                 position: 'absolute', inset: 0, display: 'flex',
                 flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                background: '#0F0C09', gap: 12, zIndex: 1,
+                background: 'var(--pl-cream)', gap: 12, zIndex: 1,
               }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: '50%',
@@ -635,7 +635,7 @@ export function MobileEditorSheet() {
                 borderRadius: 12,
                 border: '1px dashed rgba(163,177,138,0.35)',
                 background: 'rgba(163,177,138,0.05)',
-                color: '#A3B18A',
+                color: 'var(--pl-olive)',
                 cursor: 'pointer',
                 fontSize: '0.82rem',
                 fontWeight: 700,
@@ -705,7 +705,7 @@ export function MobileEditorSheet() {
           zIndex: 500,
           display: 'flex',
           flexDirection: 'column',
-          background: '#0F0C09',
+          background: 'var(--pl-cream)',
           overflow: 'hidden',
         }}
       >
@@ -915,7 +915,7 @@ export function MobileEditorSheet() {
                   position: 'absolute',
                   bottom: 0, left: 0, right: 0,
                   height: '55%',
-                  background: '#0F0C09',
+                  background: 'var(--pl-cream)',
                   borderRadius: '20px 20px 0 0',
                   borderTop: '1px solid rgba(0,0,0,0.06)',
                   display: 'flex', flexDirection: 'column',
@@ -1065,7 +1065,7 @@ export function MobileEditorSheet() {
                 right: 0,
                 bottom: 0,
                 zIndex: 601,
-                background: '#181410',
+                background: 'var(--pl-cream)',
                 borderRadius: '20px 20px 0 0',
                 border: '1px solid rgba(0,0,0,0.06)',
                 borderBottom: 'none',
