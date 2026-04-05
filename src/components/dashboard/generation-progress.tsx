@@ -13,14 +13,14 @@ import type { GooglePhotoMetadata } from '@/types';
 
 // ── Pass descriptors ──────────────────────────────────────────
 const PASSES = [
-  { headline: 'Reading your photos', copy: 'Scanning dates, places, and faces.', pct: 2 },
-  { headline: 'Writing your story', copy: 'Turning memories into chapters.', pct: 15 },
-  { headline: 'Refining every word', copy: 'Rewriting anything below a 9/10.', pct: 40 },
-  { headline: 'Learning your DNA', copy: 'The inside jokes that make you, you.', pct: 50 },
-  { headline: 'Designing your world', copy: 'Colors, fonts, shapes from your vibe.', pct: 65 },
-  { headline: 'Painting custom art', copy: 'One-of-a-kind artwork for your site.', pct: 78 },
-  { headline: 'Uploading photos', copy: 'Saving to permanent storage.', pct: 88 },
-  { headline: 'Final poetry', copy: 'The tagline and the closing line.', pct: 96 },
+  { headline: 'Reading your photos', copy: 'Scanning dates, places, and faces.', pct: 2, peek: 'Discovering your story...' },
+  { headline: 'Writing your story', copy: 'Turning memories into chapters.', pct: 15, peek: 'Chapter 1 taking shape...' },
+  { headline: 'Refining every word', copy: 'Rewriting anything below a 9/10.', pct: 40, peek: 'Making every sentence sing...' },
+  { headline: 'Learning your DNA', copy: 'The inside jokes that make you, you.', pct: 50, peek: 'Found something beautiful...' },
+  { headline: 'Designing your world', copy: 'Colors, fonts, shapes from your vibe.', pct: 65, peek: 'Your palette is gorgeous...' },
+  { headline: 'Painting custom art', copy: 'One-of-a-kind artwork for your site.', pct: 78, peek: 'Artwork coming to life...' },
+  { headline: 'Uploading photos', copy: 'Saving to permanent storage.', pct: 88, peek: 'Almost ready to reveal...' },
+  { headline: 'Final poetry', copy: 'The tagline and the closing line.', pct: 96, peek: 'Adding the finishing touch...' },
 ];
 
 // ── Progress ring SVG ─────────────────────────────────────────
@@ -213,21 +213,49 @@ export function GenerationProgress({
           >
             <h2 style={{
               fontFamily: '"Playfair Display", serif',
-              fontSize: 'clamp(1.4rem, 4vw, 2rem)',
+              fontSize: isComplete ? 'clamp(1.6rem, 4.5vw, 2.4rem)' : 'clamp(1.4rem, 4vw, 2rem)',
               fontWeight: 600, fontStyle: 'italic',
               color: '#fff', margin: '0 0 0.5rem',
               lineHeight: 1.2,
             }}>
-              {isComplete ? 'Your story is ready' : pass.headline}
+              {isComplete ? 'Your story is ready ✨' : pass.headline}
             </h2>
             <p style={{
-              fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)',
+              fontSize: '0.9rem', color: isComplete ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.5)',
               margin: 0, lineHeight: 1.5,
             }}>
-              {isComplete ? 'Opening the editor\u2026' : pass.copy}
+              {isComplete ? 'Opening the editor — prepare to be amazed' : pass.copy}
             </p>
           </motion.div>
         </AnimatePresence>
+
+        {/* Sneak peek hint */}
+        {!isComplete && idx >= 2 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: '100px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              marginBottom: '1rem',
+            }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={idx}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.4)', margin: 0, fontStyle: 'italic' }}
+              >
+                {pass.peek}
+              </motion.p>
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Step dots */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem' }}>

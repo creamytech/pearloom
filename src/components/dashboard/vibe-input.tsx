@@ -1733,13 +1733,13 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           <Button
             variant="accent"
             size="lg"
-            className="w-full"
+            className="w-full text-[1.05rem] py-4 shadow-[0_4px_24px_rgba(163,177,138,0.3)]"
             onClick={handleFinalSubmit}
           >
             Generate My Site <LoomThreadIcon size={18} />
           </Button>
-          <p style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', margin: 0, textAlign: 'center' }}>
-            Takes about 20–30 seconds. You can keep editing after generation.
+          <p style={{ fontSize: '0.82rem', color: 'var(--eg-muted)', margin: 0, textAlign: 'center', fontWeight: 500 }}>
+            Takes less than 2 minutes — edit everything after
           </p>
           <button
             onClick={() => setWizardPhase('details')}
@@ -1912,41 +1912,72 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         {/* ── STEP 1: OCCASION ── */}
         {step === 1 && (
           <motion.div key="s2" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.2rem', marginBottom: '0.35rem' }}>
               What are you celebrating?
             </h2>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
-              The occasion completely changes how we structure your site.
+            <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
+              This shapes your entire site layout and story
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.75rem' }}>
               {OCCASIONS.map(occ => {
                 const active = occasion === occ.id;
+                const accentColors: Record<string, string> = {
+                  wedding: '#B4838D', engagement: '#C48890', anniversary: '#C4A96A',
+                  birthday: '#A3B18A', story: '#6D597A',
+                };
+                const accent = accentColors[occ.id] || 'var(--eg-accent)';
                 return (
                   <motion.button
                     key={occ.id}
                     onClick={() => setOccasion(occ.id)}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.99 }}
-                    transition={{ duration: 0.15 }}
+                    whileHover={{ y: -3, boxShadow: `0 12px 32px ${accent}25` }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '1.1rem',
-                      padding: '1.1rem 1.5rem', borderRadius: '12px 12px 24px 24px', textAlign: 'left',
-                      border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.06)'}`,
-                      background: active ? 'var(--eg-accent-light)' : '#fff',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
+                      padding: '1.75rem 1.25rem', borderRadius: '16px', textAlign: 'center',
+                      border: `2.5px solid ${active ? accent : 'rgba(0,0,0,0.06)'}`,
+                      background: active ? `${accent}12` : '#fff',
                       cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s',
-                      boxShadow: active ? '0 8px 24px rgba(163,177,138,0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      boxShadow: active ? `0 8px 28px ${accent}20` : '0 2px 8px rgba(0,0,0,0.03)',
+                      position: 'relative', overflow: 'hidden',
                     }}
                   >
-                    <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '10px', background: active ? 'rgba(255,255,255,0.7)' : 'rgba(163,177,138,0.1)' }}>
-                      <occ.icon size={20} color={active ? 'var(--eg-accent)' : 'var(--eg-muted)'} />
+                    {active && (
+                      <motion.div
+                        layoutId="occasion-glow"
+                        style={{
+                          position: 'absolute', inset: 0,
+                          background: `radial-gradient(circle at 50% 30%, ${accent}15, transparent 70%)`,
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    )}
+                    <span style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '48px', height: '48px', borderRadius: '14px',
+                      background: active ? `${accent}20` : 'rgba(163,177,138,0.08)',
+                      transition: 'all 0.2s',
+                    }}>
+                      <occ.icon size={24} color={active ? accent : 'var(--eg-muted)'} />
                     </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>{occ.desc}</div>
+                    <div>
+                      <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.05rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{occ.label}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', marginTop: '0.2rem', lineHeight: 1.4 }}>{occ.desc}</div>
                     </div>
-                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: `2px solid ${active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {active && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--eg-accent)' }} />}
-                    </div>
+                    {active && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        style={{
+                          position: 'absolute', top: '8px', right: '8px',
+                          width: '20px', height: '20px', borderRadius: '50%',
+                          background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </motion.div>
+                    )}
                   </motion.button>
                 );
               })}
@@ -1989,15 +2020,15 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         {/* ── STEP 3: MOOD ── */}
         {step === 3 && (
           <motion.div key="s2" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.2rem', marginBottom: '0.35rem' }}>
               {isBirthday
                 ? `What's ${name1.trim() ? `${name1.trim()}'s` : 'their'} vibe?`
-                : "What's your relationship vibe?"}
+                : "What's your vibe?"}
             </h2>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '3rem' }}>
+            <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
               {isBirthday
-                ? 'Pick the personality that fits them best — it shapes everything.'
-                : 'This shapes the entire tone — colors, fonts, and narrative voice.'}
+                ? 'This shapes the entire look and feel'
+                : 'Colors, fonts, and voice all flow from this'}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '1rem' }}>
               {getMoodsForOccasion(occasion).map(m => {
@@ -2208,13 +2239,38 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         {/* ── STEP 4: COLORS & STYLE (merged palette + layout) ── */}
         {step === 4 && (
           <motion.div key="s4-colors-style" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <Palette size={28} color="var(--eg-accent)" />
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem' }}>Colors & Style</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
+              <Palette size={24} color="var(--eg-accent)" />
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.2rem' }}>Colors & Style</h2>
             </div>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>
-              Pick a palette that feels like your relationship. The AI will use this as a starting point.
+            <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '1.25rem' }}>
+              Pick a palette or let AI choose for you
             </p>
+
+            {/* AI default recommendation */}
+            {!palette && (
+              <motion.button
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => setPalette('custom')}
+                style={{
+                  width: '100%', padding: '1rem 1.25rem', marginBottom: '1rem',
+                  borderRadius: '12px', border: '2px solid rgba(163,177,138,0.3)',
+                  background: 'linear-gradient(135deg, rgba(163,177,138,0.08), rgba(196,169,106,0.06))',
+                  cursor: 'pointer', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                }}
+              >
+                <span style={{ fontSize: '1.25rem' }}>✨</span>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--eg-fg)' }}>Let AI pick colors for you</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', marginTop: '0.15rem' }}>Recommended — matches your vibe perfectly</div>
+                </div>
+                <div style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--eg-accent)', padding: '0.25rem 0.6rem', borderRadius: '100px', background: 'rgba(163,177,138,0.12)' }}>
+                  Recommended
+                </div>
+              </motion.button>
+            )}
 
             {/* Note when step 3 has keywords */}
             {hasInspoInput && (
@@ -2300,9 +2356,9 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
 
             {/* Timeline Layout section */}
             <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '2rem' }}>
-              <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem', marginBottom: '0.5rem' }}>Timeline Layout</h3>
-              <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-                Choose the format for your timeline — the visual structure of your memories.
+              <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.4rem', marginBottom: '0.35rem' }}>Timeline Layout</h3>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+                How your story unfolds visually
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {TIMELINE_FORMATS.map(fmt => {
@@ -2440,53 +2496,87 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         {/* ── STEP 5: YOUR STORY ── */}
         {step === 5 && (
           <motion.div key="s5-story" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+            <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.2rem', marginBottom: '0.35rem' }}>
               {isBirthday
                 ? `Tell us about ${name1.trim() || 'them'}`
-                : 'Tell Us Your Story'}
+                : 'Your Story'}
             </h2>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
-              The more you share, the more personal and beautiful your site will be.
+            <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+              {isBirthday ? 'A few sentences is all we need' : 'Just a few lines — AI does the rest'}
             </p>
+
+            {/* Tone suggestion chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
+              {(isBirthday
+                ? [
+                    { label: 'Funny', emoji: '😂', text: `${name1.trim() || 'They'} always makes everyone laugh — ` },
+                    { label: 'Emotional', emoji: '🥲', text: `Where do I even begin with ${name1.trim() || 'them'}... ` },
+                    { label: 'Short & sweet', emoji: '✨', text: `${name1.trim() || 'They'} — simply the best. ` },
+                  ]
+                : [
+                    { label: 'Funny', emoji: '😂', text: 'It started with a terrible joke — ' },
+                    { label: 'Emotional', emoji: '🥲', text: 'The moment I saw them, something just clicked — ' },
+                    { label: 'Short & sweet', emoji: '✨', text: 'We met. We clicked. The rest is history. ' },
+                  ]
+              ).map(chip => (
+                <button
+                  key={chip.label}
+                  onClick={() => { if (!meetCute.trim()) setMeetCute(chip.text); }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                    padding: '0.45rem 0.85rem', borderRadius: '100px',
+                    border: '1.5px solid rgba(163,177,138,0.25)',
+                    background: 'rgba(163,177,138,0.06)',
+                    color: 'var(--eg-fg)', fontSize: '0.85rem', fontWeight: 500,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                >
+                  <span>{chip.emoji}</span> {chip.label}
+                </button>
+              ))}
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.4rem' }}>
                   {isBirthday
-                    ? `What makes ${name1.trim() || 'this person'} so special? *`
-                    : 'How did you meet? *'}
+                    ? `What makes ${name1.trim() || 'this person'} so special?`
+                    : 'How did you meet?'}
                 </label>
                 <textarea
                   value={meetCute}
                   onChange={e => setMeetCute(e.target.value)}
                   placeholder={isBirthday
-                    ? `e.g. Emma has the biggest laugh in any room. She's been my best friend since we were 12 and she never stops surprising me...`
-                    : "We matched on Hinge and had our first date at a little Italian place..."}
-                  style={{ ...inputStyle, minHeight: '140px', resize: 'none', lineHeight: 1.6, ...(showValidation && !meetCute.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }}
+                    ? `A few sentences about what makes them amazing...`
+                    : "A few sentences about how you met..."}
+                  style={{ ...inputStyle, minHeight: '120px', resize: 'none', lineHeight: 1.6, ...(showValidation && !meetCute.trim() ? { borderColor: 'var(--eg-plum, #6D597A)' } : {}) }}
                   onFocus={getFocusStyle} onBlur={getBlurStyle} autoFocus
                 />
                 {showValidation && !meetCute.trim() && (
-                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>This field is required</p>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--eg-plum, #6D597A)', marginTop: '0.35rem' }}>Just a sentence or two is enough</p>
                 )}
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--eg-fg)', marginBottom: '0.5rem' }}>
-                  {isBirthday
-                    ? `What do you want everyone to know about ${name1.trim() || 'them'}?`
-                    : 'What makes your relationship special?'}{' '}
-                  <span style={{ color: 'var(--eg-muted)', fontWeight: 400 }}>(optional)</span>
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--eg-fg)' }}>
+                    {isBirthday
+                      ? `Anything else about ${name1.trim() || 'them'}?`
+                      : 'What makes you special together?'}
+                  </label>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--eg-muted)', fontStyle: 'italic' }}>optional</span>
+                </div>
                 <textarea
                   value={relationship}
                   onChange={e => setRelationship(e.target.value)}
                   placeholder={isBirthday
-                    ? `e.g. She's the kind of person who remembers every small detail, always shows up first, and makes everyone around her feel seen...`
-                    : "We balance each other perfectly — she's spontaneous and I'm the planner..."}
-                  style={{ ...inputStyle, minHeight: '100px', resize: 'none', lineHeight: 1.6 }}
+                    ? `Hobbies, quirks, what they mean to you...`
+                    : "Inside jokes, shared adventures, what makes you click..."}
+                  style={{ ...inputStyle, minHeight: '80px', resize: 'none', lineHeight: 1.6 }}
                   onFocus={getFocusStyle} onBlur={getBlurStyle}
                 />
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2.5rem' }}>
               <Button variant="ghost" size="lg" onClick={handleBack}><ArrowLeft size={18} /> Back</Button>
               <Button variant="accent" size="lg" onClick={handleNext} disabled={!canProceedStep8}>Continue <ArrowRight size={18} /></Button>
             </div>
@@ -2508,11 +2598,11 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
               }}>
                 <LoomThreadIcon size={28} color="var(--eg-accent)" />
               </div>
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.75rem' }}>Final Magic Touches</h2>
-              <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem', maxWidth: '420px', margin: '0 auto' }}>
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.2rem', marginBottom: '0.5rem' }}>Final touches</h2>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem', maxWidth: '380px', margin: '0 auto' }}>
                 {isBirthday
-                  ? `The details that make ${name1.trim() || 'this person'} uniquely them.`
-                  : 'These optional details add warmth and personality.'}
+                  ? 'All optional — skip anything you want'
+                  : 'All optional — adds warmth and personality'}
               </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -2550,9 +2640,9 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         {step === 7 && isEvent && (
           <motion.div key="s7-event" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.5rem', marginBottom: '0.5rem' }}>Event Details</h2>
-              <p style={{ color: 'var(--eg-muted)', fontSize: '1.1rem' }}>
-                Since this is a {OCCASIONS.find(o => o.id === occasion)?.label}, let&apos;s add the logistics so guests can RSVP and find you.
+              <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2.2rem', marginBottom: '0.35rem' }}>Event Details</h2>
+              <p style={{ color: 'var(--eg-muted)', fontSize: '0.95rem' }}>
+                So guests can RSVP and find you — all optional, add later too
               </p>
               {eventDate && (
                 <p style={{ fontSize: '0.88rem', color: 'var(--eg-accent)', fontWeight: 600, marginTop: '0.75rem' }}>

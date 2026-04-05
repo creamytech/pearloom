@@ -278,7 +278,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       <EditorShowcase />
 
       {/* ══════════════ TRY IT LIVE ══════════════ */}
-      <section className="py-[clamp(4rem,8vw,7rem)] px-[clamp(1.25rem,5vw,4rem)] bg-[var(--pl-cream-deep)]">
+      <section className="py-[clamp(3rem,6vw,5rem)] px-[clamp(1.25rem,5vw,4rem)] bg-[var(--pl-cream-deep)]">
         <div className="max-w-[680px] mx-auto text-center">
           <motion.p
             initial="hidden" whileInView="show" viewport={{ once: true }}
@@ -317,7 +317,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       <section
         id="occasions"
         ref={occasionRef}
-        className="bg-[var(--pl-ink)] py-[clamp(4rem,8vw,8rem)] px-[clamp(1.25rem,5vw,4rem)]"
+        className="bg-[var(--pl-ink)] py-[clamp(3rem,6vw,6rem)] px-[clamp(1.25rem,5vw,4rem)]"
       >
         <div className="max-w-[1100px] mx-auto">
           {/* Header */}
@@ -393,7 +393,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ TESTIMONIALS — floating pull quotes ══════════════ */}
       <section
         ref={testRef}
-        className="bg-[var(--pl-cream)] py-[clamp(4rem,8vw,8rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-[var(--pl-divider)]"
+        className="bg-[var(--pl-cream)] py-[clamp(3rem,6vw,6rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-[var(--pl-divider)]"
       >
         <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
           {TESTIMONIALS.map((t, i) => (
@@ -435,7 +435,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ FINAL CTA — split layout ══════════════ */}
       <section
         ref={ctaRef}
-        className="relative bg-[var(--pl-ink)] overflow-hidden py-[clamp(5rem,10vw,10rem)] px-[clamp(1.5rem,5vw,4rem)]"
+        className="relative bg-[var(--pl-ink)] overflow-hidden py-[clamp(4rem,8vw,7rem)] px-[clamp(1.5rem,5vw,4rem)]"
       >
         {/* Decorative circles */}
         <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full border border-white/[0.04] pointer-events-none" />
@@ -488,13 +488,16 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               <Button
                 variant="gold"
                 size="lg"
-                className="w-full justify-center bg-[var(--pl-gold)] text-[var(--pl-ink)] hover:bg-[#d4b87a] border-0 shadow-[0_4px_24px_rgba(196,169,106,0.35)]"
+                className="w-full justify-center bg-[var(--pl-gold)] text-[var(--pl-ink)] hover:bg-[#d4b87a] border-0 shadow-[0_4px_24px_rgba(196,169,106,0.35)] text-[1rem] py-3.5"
                 onClick={handleSignIn}
                 disabled={status === 'loading'}
               >
                 Begin Your Story <ArrowRight size={16} strokeWidth={2.2} />
               </Button>
-              <p className="text-center mt-4 text-[0.72rem] text-white/30 tracking-[0.08em]">
+              <p className="text-center mt-3 text-[0.8rem] text-white/40 tracking-[0.02em]">
+                Takes less than 2 minutes
+              </p>
+              <p className="text-center mt-1 text-[0.68rem] text-white/25 tracking-[0.08em]">
                 Free to start &nbsp;&middot;&nbsp; No credit card &nbsp;&middot;&nbsp; Live in minutes
               </p>
             </Card>

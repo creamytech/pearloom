@@ -116,7 +116,7 @@ export const ease = {
 // ── Section Padding (responsive) ──────────────────────────────
 
 export const sectionPadding = {
-  y: 'clamp(4rem, 8vw, 8rem)',
+  y: 'clamp(3rem, 6vw, 6rem)',
   x: '1.5rem',
 } as const;
 
