@@ -5,9 +5,9 @@ import { motion, useInView } from 'framer-motion';
 import { colors as C, sectionPadding, layout } from '@/lib/design-tokens';
 
 const STEPS = [
-  { n: '01', title: 'Share your story', body: 'Upload photos and pick a vibe.', accent: C.olive },
-  { n: '02', title: 'The Loom weaves it', body: 'Seven AI passes. One extraordinary site.', accent: C.plum },
-  { n: '03', title: 'Share and celebrate', body: 'Your link goes live — instantly.', accent: C.gold },
+  { n: '01', title: 'Curate your memories', body: 'Upload photos. The Loom groups them by shared soul.', accent: C.olive },
+  { n: '02', title: 'The Loom weaves', body: 'Seven AI passes. Semantic anchoring to final polish.', accent: C.plum },
+  { n: '03', title: 'Publish your legacy', body: 'Your digital atelier goes live — instantly.', accent: C.gold },
 ];
 
 export function HowItWorks() {

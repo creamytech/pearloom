@@ -41,7 +41,7 @@ const DialogContent = forwardRef<
       className={cn(
         'fixed left-1/2 top-1/2 z-[200] w-full',
         '-translate-x-1/2 -translate-y-1/2',
-        'bg-white rounded-[var(--pl-radius-lg)] p-8',
+        'bg-white rounded-[var(--pl-radius-xl)] p-8',
         'border border-[var(--pl-divider)]',
         'shadow-[0_24px_60px_rgba(43,30,20,0.15),0_40px_80px_rgba(43,30,20,0.09)]',
         'data-[state=open]:animate-in   data-[state=open]:fade-in-0   data-[state=open]:zoom-in-95   data-[state=open]:slide-in-from-left-1/2   data-[state=open]:slide-in-from-top-[48%]',

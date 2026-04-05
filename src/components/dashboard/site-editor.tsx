@@ -269,7 +269,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: '0.65rem 1.5rem', borderRadius: '100px',
-                background: 'linear-gradient(135deg, #2B2B2B, #2d2d2d)',
+                background: 'linear-gradient(135deg, var(--pl-cream-deep), var(--pl-cream))',
                 color: '#fff', border: 'none',
                 fontSize: '0.78rem', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
