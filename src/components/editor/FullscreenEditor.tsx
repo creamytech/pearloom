@@ -50,6 +50,7 @@ import { ThankYouPanel } from './ThankYouPanel';
 import { SpotifyPanel } from './SpotifyPanel';
 import { AnniversaryNudgePanel } from './AnniversaryNudgePanel';
 import { VendorPanel } from './VendorPanel';
+import { PropertiesPanel } from './PropertiesPanel';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -679,7 +680,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 )}
 
                 {state.activeTab === 'design' && (
-                  <DesignPanel manifest={manifest} onChange={handleDesignChange} coupleNames={coupleNames} />
+                  <>
+                    <DesignPanel manifest={manifest} onChange={handleDesignChange} coupleNames={coupleNames} />
+                    <PropertiesPanel manifest={manifest} onChange={handleDesignChange} />
+                  </>
                 )}
 
                 {state.activeTab === 'details' && (

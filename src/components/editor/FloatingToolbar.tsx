@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
-import { Move, Paintbrush, Plus, Undo2 } from 'lucide-react';
+import { Move, Paintbrush, Plus, Undo2, Blend } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 
 const TOOLS = [
@@ -15,6 +15,7 @@ const TOOLS = [
   { id: 'style', Icon: Paintbrush, label: 'Style', tab: 'design' as const },
   { id: 'add',   Icon: Plus,       label: 'Add',   tab: 'canvas' as const, primary: true },
   { id: 'undo',  Icon: Undo2,      label: 'Undo',  tab: null },
+  { id: 'fade',  Icon: Blend,      label: 'Fade',  tab: 'design' as const },
 ] as const;
 
 export function FloatingToolbar() {

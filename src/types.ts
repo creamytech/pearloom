@@ -108,6 +108,14 @@ export interface StoryManifest {
   };
   // Decorative SVG stickers placed on the site
   stickers?: StickerItem[];
+  // Parchment tint filter applied to site photos
+  parchmentTint?: 'none' | 'ivory' | 'linen' | 'parchment' | 'sepia';
+  // Show "Hand-curated with Pearloom" watermark on published site
+  watermark?: boolean;
+  // Private gallery — hide photo gallery from public visitors
+  privateGallery?: boolean;
+  // Typography pair preset for the site
+  typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
 }
 
 export interface Chapter {

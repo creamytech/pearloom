@@ -152,9 +152,26 @@ export function EditorCanvas() {
       position: 'relative',
     }}>
 
+      {/* ── Contextual editing label ── */}
+      {state.activeTab && (
+        <div style={{
+          position: 'absolute', top: '4px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 41,
+          padding: '4px 12px',
+          borderRadius: '100px',
+          background: 'var(--pl-olive-deep)',
+          color: 'white',
+          fontSize: '0.55rem', fontWeight: 700,
+          letterSpacing: '0.12em', textTransform: 'uppercase',
+          whiteSpace: 'nowrap',
+        }}>
+          Editing: {state.activeTab === 'story' ? 'Story' : state.activeTab === 'design' ? 'Theme' : state.activeTab === 'canvas' ? 'Sections' : state.activeTab === 'events' ? 'Events' : state.activeTab === 'details' ? 'Settings' : state.activeTab.charAt(0).toUpperCase() + state.activeTab.slice(1)}
+        </div>
+      )}
+
       {/* ── Floating device switcher ── */}
       <div style={{
-        position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: '28px', left: '50%', transform: 'translateX(-50%)',
         zIndex: 40,
         display: 'flex', alignItems: 'center', gap: '2px',
         padding: '4px',

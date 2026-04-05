@@ -12,6 +12,7 @@ import { BlockTypesGrid } from './marketing/BlockTypesGrid';
 import { GuestExperience } from './marketing/GuestExperience';
 import { EditorShowcase } from './marketing/EditorShowcase';
 import { PricingPreview } from './marketing/PricingPreview';
+import { Testimonials } from './marketing/Testimonials';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
@@ -428,6 +429,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
 
       {/* ══════════════ PRICING ══════════════ */}
       <PricingPreview />
+
+      {/* ══════════════ TESTIMONIALS ══════════════ */}
+      <Testimonials />
 
       {/* ══════════════ FAQ ══════════════ */}
       <FAQSection />

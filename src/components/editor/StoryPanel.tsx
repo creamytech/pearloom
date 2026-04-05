@@ -169,6 +169,18 @@ function SectionItem({
               <Clock size={9} style={{ flexShrink: 0, opacity: 0.7 }} />
               <span>{slugDate(chapter.date)}</span>
             </div>
+            {/* Font label */}
+            <div style={{
+              fontSize: '0.58rem', fontWeight: 500,
+              color: 'var(--pl-olive)',
+              fontStyle: 'italic',
+              marginTop: '1px',
+            }}>
+              {chapter.layout === 'editorial' ? 'Newsreader Light' :
+               chapter.layout === 'cinematic' ? 'Playfair Display' :
+               chapter.layout === 'fullbleed' ? 'Newsreader Italic' :
+               'Lora Regular'}
+            </div>
           </div>
 
           <motion.button
