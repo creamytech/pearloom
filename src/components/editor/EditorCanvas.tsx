@@ -212,24 +212,47 @@ export function EditorCanvas() {
     <div style={{
       flex: 1,
       background: '#1A1720',
-      backgroundImage: 'radial-gradient(circle, rgba(163,177,138,0.11) 1px, transparent 0)',
-      backgroundSize: '24px 24px',
+      backgroundImage: 'radial-gradient(circle, rgba(163,177,138,0.06) 1px, transparent 0)',
+      backgroundSize: '28px 28px',
       display: 'flex', flexDirection: 'column',
       overflow: 'auto',
       position: 'relative',
     }}>
 
-      {/* Ambient center glow — reacts to device change */}
+      {/* Warm studio ambient — dual glow */}
       <motion.div
         key={deviceKey}
         initial={{ opacity: 0.3, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-          background: 'radial-gradient(ellipse 50% 55% at 50% 46%, rgba(163,177,138,0.07) 0%, rgba(163,177,138,0.02) 55%, transparent 80%)',
+          background: `
+            radial-gradient(ellipse 55% 50% at 50% 40%, rgba(163,177,138,0.06) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 45% at 50% 60%, rgba(196,169,106,0.04) 0%, transparent 65%)
+          `,
         }}
       />
+
+      {/* Click-to-edit hint — shows briefly then fades */}
+      {!iframeReady && !previewSlow && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          exit={{ opacity: 0 }}
+          transition={{ delay: 1.5, duration: 0.6 }}
+          style={{
+            position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 5, display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '6px 14px', borderRadius: '100px',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+            color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem', fontWeight: 600,
+            letterSpacing: '0.02em', pointerEvents: 'none',
+          }}
+        >
+          Click any section to edit
+        </motion.div>
+      )}
 
       {/* ── Main canvas area ── */}
       <div

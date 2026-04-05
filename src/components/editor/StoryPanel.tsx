@@ -306,38 +306,48 @@ export function StoryPanel() {
         </span>
       </div>
 
-      {/* Timeline format switcher */}
+      {/* Timeline format switcher — visual previews */}
       <div style={{ marginBottom: '12px' }}>
-        <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '6px' }}>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', marginBottom: '6px' }}>
           Timeline Format
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
           {[
-            { id: 'cascade',   label: 'Cascade',   emoji: '⇅' },
-            { id: 'filmstrip', label: 'Filmstrip', emoji: '▤' },
-            { id: 'magazine',  label: 'Magazine',  emoji: '⊞' },
-            { id: 'scrapbook', label: 'Scrapbook', emoji: '✦' },
-            { id: 'chapters',  label: 'Chapters',  emoji: '≡' },
-            { id: 'starmap',   label: 'Starmap',   emoji: '✴' },
+            { id: 'cascade',   label: 'Cascade',   desc: 'Classic scroll',
+              preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[0.3, 0.2, 0.25].map((o, i) => <div key={i} style={{ display: 'flex', flexDirection: i%2===0?'row':'row-reverse', gap: '2px' }}><div style={{ width: '40%', height: '8px', background: `rgba(163,177,138,${o})`, borderRadius: '1px' }} /><div style={{ flex: 1, height: '8px', background: `rgba(255,255,255,${o*0.5})`, borderRadius: '1px' }} /></div>)}</div> },
+            { id: 'filmstrip', label: 'Filmstrip', desc: 'Cinematic reel',
+              preview: <div style={{ display: 'flex', gap: '2px', padding: '4px', background: '#0a0a0a' }}>{[0,1,2,3].map(i => <div key={i} style={{ flex: 1, height: '20px', background: 'rgba(255,255,255,0.08)', borderRadius: '1px', border: '1px solid rgba(255,255,255,0.12)' }} />)}</div> },
+            { id: 'magazine',  label: 'Magazine',  desc: 'Editorial spreads',
+              preview: <div style={{ display: 'flex', padding: '3px', gap: '2px' }}><div style={{ width: '50%', background: 'rgba(163,177,138,0.25)', borderRadius: '1px' }} /><div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}><div style={{ height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '1px' }} /><div style={{ height: '4px', width: '70%', background: 'rgba(255,255,255,0.1)', borderRadius: '1px' }} /></div></div> },
+            { id: 'scrapbook', label: 'Scrapbook', desc: 'Polaroid feel',
+              preview: <div style={{ position: 'relative', padding: '3px' }}>{[{r:-5,x:3,y:2},{r:4,x:16,y:3},{r:-2,x:10,y:10}].map((p,i) => <div key={i} style={{ position: 'absolute', width: '10px', height: '12px', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', transform: `rotate(${p.r}deg)`, left: `${p.x}px`, top: `${p.y}px`, borderRadius: '1px' }}><div style={{ width: '100%', height: '6px', background: 'rgba(163,177,138,0.3)' }} /></div>)}</div> },
+            { id: 'chapters',  label: 'Chapters',  desc: 'Book pages',
+              preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[100,60,80].map((w,i) => <div key={i} style={{ height: '5px', background: i===0?'rgba(163,177,138,0.4)':'rgba(255,255,255,0.08)', borderRadius: '2px', width: `${w}%` }} />)}</div> },
+            { id: 'starmap',   label: 'Starmap',   desc: 'Constellation',
+              preview: <div style={{ background: '#050810', padding: '3px', position: 'relative' }}>{[[20,35],[50,15],[75,30],[35,55],[60,50]].map(([x,y],i) => <div key={i} style={{ position: 'absolute', width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(200,220,255,0.7)', left: `${x}%`, top: `${y}%` }} />)}</div> },
           ].map(fmt => {
             const isActive = (manifest.layoutFormat || 'cascade') === fmt.id;
             return (
               <motion.button
                 key={fmt.id}
                 onClick={() => actions.handleDesignChange({ ...manifest, layoutFormat: fmt.id as StoryManifest['layoutFormat'] })}
-                whileHover={!isActive ? { scale: 1.06, backgroundColor: 'rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.7)' } : { scale: 1.04 }}
-                whileTap={{ scale: 0.91 }}
+                whileHover={!isActive ? { scale: 1.04, borderColor: 'rgba(163,177,138,0.35)' } : {}}
+                whileTap={{ scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
-                  padding: '6px 4px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.04)',
-                  color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.35)',
-                  outline: isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid transparent',
+                  display: 'flex', flexDirection: 'column',
+                  borderRadius: '8px', border: 'none', cursor: 'pointer',
+                  background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.03)',
+                  outline: isActive ? '1.5px solid rgba(163,177,138,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                  overflow: 'hidden', padding: 0,
                 }}
               >
-                <span style={{ fontSize: '1rem', lineHeight: 1 }}>{fmt.emoji}</span>
-                <span style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.04em' }}>{fmt.label}</span>
+                <div style={{ height: '28px', overflow: 'hidden' }}>{fmt.preview}</div>
+                <div style={{ padding: '3px 4px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 700, color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)', letterSpacing: '0.02em' }}>
+                    {fmt.label}
+                  </div>
+                </div>
               </motion.button>
             );
           })}

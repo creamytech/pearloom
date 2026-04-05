@@ -85,46 +85,55 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
     : [colors.background, colors.foreground, colors.accent, colors.accentLight, colors.muted].filter(Boolean);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 
-      {/* ── Theme — full aesthetic preset + AI regenerate ── */}
+      {/* ── Quick AI regenerate — prominent at top ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '10px 12px', borderRadius: '10px',
+        background: 'linear-gradient(135deg, rgba(163,177,138,0.08), rgba(196,169,106,0.05))',
+        border: '1px solid rgba(163,177,138,0.15)',
+      }}>
+        {vibeSkin?.tone && (
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: '#A3B18A',
+            background: 'rgba(163,177,138,0.15)', padding: '3px 10px', borderRadius: '100px',
+            border: '1px solid rgba(163,177,138,0.2)', flexShrink: 0,
+          }}>
+            {vibeSkin.tone}
+          </span>
+        )}
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={handleRegenerateDesign}
+          disabled={isRegenerating}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '5px',
+            padding: '5px 12px', borderRadius: '100px',
+            border: 'none',
+            background: isRegenerating ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.9)',
+            color: isRegenerating ? 'rgba(255,255,255,0.5)' : '#fff',
+            cursor: isRegenerating ? 'not-allowed' : 'pointer',
+            fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
+            boxShadow: isRegenerating ? 'none' : '0 2px 8px rgba(163,177,138,0.3)',
+          }}
+        >
+          {isRegenerating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <DesignIcon size={12} />}
+          {isRegenerating ? 'Generating…' : 'Regenerate'}
+        </button>
+      </div>
+      {regenError && (
+        <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '-4px' }}>{regenError}</p>
+      )}
+
+      {/* ── Theme — presets ── */}
       <SidebarSection title="Theme" defaultOpen={true}>
         <ThemeSwitcher
           currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
           manifest={manifest}
           onApply={handleThemeApply}
         />
-        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {vibeSkin?.tone && (
-            <span style={{
-              fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em',
-              textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)',
-              background: 'rgba(163,177,138,0.12)', padding: '4px 12px', borderRadius: '100px',
-              border: '1px solid rgba(163,177,138,0.2)',
-            }}>
-              {vibeSkin.tone}
-            </span>
-          )}
-          <button
-            onClick={handleRegenerateDesign}
-            disabled={isRegenerating}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '6px 12px', borderRadius: '7px',
-              border: '1px solid rgba(163,177,138,0.25)',
-              background: isRegenerating ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.07)',
-              color: 'var(--eg-accent, #A3B18A)', cursor: isRegenerating ? 'not-allowed' : 'pointer',
-              fontSize: '0.82rem', fontWeight: 700, transition: 'all 0.15s',
-              opacity: isRegenerating ? 0.7 : 1,
-            }}
-          >
-            <DesignIcon size={13} />
-            {isRegenerating ? 'Generating…' : 'Regenerate with AI'}
-          </button>
-        </div>
-        {regenError && (
-          <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '6px' }}>{regenError}</p>
-        )}
       </SidebarSection>
 
       {/* ── Colors — tweak individual colors or generate AI background art ── */}
@@ -241,22 +250,19 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         )}
       </SidebarSection>
 
-      {/* Live color preview swatch */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '10px' }}>Preview</div>
-        <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-          <div style={{ background: colors.background || '#faf9f6', padding: '16px' }}>
-            <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: colors.foreground || 'var(--eg-fg, #2B2B2B)', marginBottom: '4px' }}>
-              {manifest.chapters?.[0]?.title || 'Preview'}
-            </div>
-            <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.75rem', marginBottom: '10px' }}>The beginning of everything.</div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div style={{ background: colors.accent || 'var(--eg-accent, #A3B18A)', color: '#fff', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>RSVP</div>
-              <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || 'var(--eg-accent, #A3B18A)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>View Story</div>
-            </div>
+      {/* Live preview — compact, no extra nesting */}
+      <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+        <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
+          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--eg-fg, #2B2B2B)', marginBottom: '3px' }}>
+            {manifest.chapters?.[0]?.title || 'Preview'}
           </div>
-          <div style={{ height: '4px', background: colors.accent || 'var(--eg-accent, #A3B18A)' }} />
+          <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.72rem', marginBottom: '8px' }}>The beginning of everything.</div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ background: colors.accent || '#A3B18A', color: '#fff', padding: '3px 10px', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 700 }}>RSVP</div>
+            <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || '#A3B18A', padding: '3px 10px', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 600 }}>View Story</div>
+          </div>
         </div>
+        <div style={{ height: '3px', background: colors.accent || '#A3B18A' }} />
       </div>
     </div>
   );
