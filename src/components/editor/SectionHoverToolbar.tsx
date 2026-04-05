@@ -144,7 +144,7 @@ export function SectionHoverToolbar() {
           <div style={{ position: 'relative' }}>
             <ToolbarBtn
               icon={<Sparkles size={12} />}
-              label={isRewriting ? 'Rewriting…' : '✨ AI Rewrite'}
+              label={isRewriting ? 'Rewriting…' : 'AI Rewrite'}
               onClick={handleAI}
               disabled={isRewriting}
               accent
