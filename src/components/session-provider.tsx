@@ -1,7 +1,7 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// everglow / components/session-provider.tsx
+// Pearloom / components/session-provider.tsx
 // Client wrapper for NextAuth SessionProvider
 // ─────────────────────────────────────────────────────────────
 

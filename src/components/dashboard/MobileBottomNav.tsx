@@ -19,7 +19,7 @@ interface MobileBottomNavProps {
 const TABS = [
   { id: 'feed' as const,    Icon: LayoutGrid, label: 'Feed' },
   { id: 'build' as const,   Icon: Plus,       label: 'Build', primary: true },
-  { id: 'aiscout' as const, Icon: Sparkles,   label: 'AIScout' },
+  { id: 'aiscout' as const, Icon: Sparkles,   label: 'AI' },
   { id: 'profile' as const, Icon: User,       label: 'Profile' },
 ];
 

@@ -683,10 +683,10 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
             </div>
             <div className="text-center px-6">
               <div className="font-heading text-[1.1rem] font-semibold italic text-[var(--pl-olive)] mb-1.5">
-                New celebration site
+                New Site
               </div>
               <div className="text-[0.82rem] text-[var(--pl-muted)] leading-snug">
-                Build a love story in 90 seconds
+                Create your celebration site in seconds
               </div>
             </div>
           </motion.button>

@@ -71,7 +71,7 @@ export function ThemeProvider({ theme = defaultTheme, children }: ThemeProviderP
 
   // ── Google Fonts ─────────────────────────────────────────────
   useEffect(() => {
-    const id = 'everglow-google-fonts';
+    const id = 'pearloom-google-fonts';
     let link = document.getElementById(id) as HTMLLinkElement | null;
     if (!link) {
       link = document.createElement('link');

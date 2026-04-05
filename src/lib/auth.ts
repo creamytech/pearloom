@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / lib/auth.ts — NextAuth configuration
+// Pearloom / lib/auth.ts — NextAuth configuration
 // ─────────────────────────────────────────────────────────────
 
 import type { NextAuthOptions, Session } from 'next-auth';

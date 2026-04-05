@@ -93,7 +93,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
         <aside className="hidden md:flex w-[180px] shrink-0 flex-col bg-[var(--pl-cream)] border-r border-[var(--pl-divider)] p-6 pt-6 pb-4">
           <div className="mb-5 px-2">
             <h2 className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)] m-0">
-              The Atelier
+              The Studio
             </h2>
             <p className="text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[var(--pl-muted)] mt-0.5">
               Step-by-step site builder
@@ -146,7 +146,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
                 className="fixed top-[52px] left-0 bottom-0 z-50 w-[240px] bg-white border-r border-[var(--pl-divider)] p-5 flex flex-col md:hidden shadow-xl"
               >
                 <h2 className="font-heading italic text-lg text-[var(--pl-ink-soft)] mb-1">
-                  The Atelier
+                  The Studio
                 </h2>
                 <p className="text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[var(--pl-muted)] mb-5">
                   Step-by-step site builder

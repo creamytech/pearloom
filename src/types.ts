@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / types.ts — canonical type system
+// Pearloom / types.ts — canonical type system
 // ─────────────────────────────────────────────────────────────
 
 import type { VibeSkin } from '@/lib/vibe-engine';

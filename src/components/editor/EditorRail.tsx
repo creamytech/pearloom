@@ -25,9 +25,9 @@ type RailItem = {
 
 const RAIL_ITEMS: RailItem[] = [
   { id: 'design',    tab: 'design',    Icon: Palette,  label: 'Design' },
-  { id: 'structure', tab: 'canvas',    Icon: PanelTop, label: 'Structure' },
-  { id: 'assets',    tab: 'story',     Icon: Image,    label: 'Assets' },
-  { id: 'history',   tab: 'analytics', Icon: Clock,    label: 'History' },
+  { id: 'sections',  tab: 'canvas',    Icon: PanelTop, label: 'Sections' },
+  { id: 'story',     tab: 'story',     Icon: Image,    label: 'Story' },
+  { id: 'analytics', tab: 'analytics', Icon: Clock,    label: 'Insights' },
 ];
 
 export function EditorRail({ onOpen }: { onOpen?: () => void }) {
