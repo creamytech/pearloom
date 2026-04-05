@@ -179,12 +179,12 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         {!isMobile && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
             {manifest.occasion !== 'birthday' && (
-              <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
+              <ElegantHeartIcon size={12} color="var(--pl-gold)" />
             )}
             <span style={{
-              fontSize: '1rem', fontWeight: 400, color: '#fff',
+              fontSize: '1rem', fontWeight: 400, color: 'var(--pl-ink-soft)',
               letterSpacing: '-0.02em',
-              fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+              fontFamily: 'var(--pl-font-heading)',
               fontStyle: 'italic',
             }}>
               {manifest.occasion === 'birthday'
@@ -346,11 +346,12 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '8px 18px', borderRadius: '100px', border: 'none',
-              background: 'linear-gradient(135deg, #A3B18A 0%, #7A8F6E 100%)',
+              background: 'var(--pl-olive-deep)',
               color: '#fff', cursor: 'pointer',
-              fontSize: '0.82rem', fontWeight: 700,
-              letterSpacing: '0.02em',
-              boxShadow: '0 2px 12px rgba(100,140,90,0.35)',
+              fontSize: '0.75rem', fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase' as const,
+              boxShadow: '0 2px 12px rgba(110,140,92,0.3)',
               minHeight: '38px',
             }}
           >
@@ -400,14 +401,15 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               transition={{ type: 'spring', stiffness: 380, damping: 20 }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '7px 20px', borderRadius: '8px', border: 'none',
-                background: 'linear-gradient(135deg, #A3B18A 0%, #7A8F6E 100%)',
-                color: '#fff', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 700,
-                boxShadow: '0 4px 20px rgba(163,177,138,0.4)',
-                letterSpacing: '0.01em',
+                padding: '8px 22px', borderRadius: '100px', border: 'none',
+                background: 'var(--pl-olive-deep)',
+                color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+                boxShadow: '0 2px 12px rgba(110,140,92,0.3)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase' as const,
               }}
             >
-              <PublishIcon size={14} /> Publish
+              <PublishIcon size={13} /> Publish
             </motion.button>
           </div>
         )}

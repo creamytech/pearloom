@@ -16,6 +16,7 @@ const buttonVariants = cva(
   // Base — shared across all variants
   [
     'inline-flex items-center justify-center font-semibold leading-none',
+    'uppercase tracking-[0.08em]',
     'transition-all duration-200 cursor-pointer select-none',
     'font-body',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
@@ -24,14 +25,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        /** Ink-filled — primary CTA */
+        /** Olive-filled — primary CTA (brand-first) */
         primary: [
-          'bg-[var(--pl-ink)] text-white border border-[var(--pl-ink)]',
-          'hover:bg-[var(--pl-ink-soft)] hover:-translate-y-px',
+          'bg-[var(--pl-olive-deep)] text-white border border-[var(--pl-olive-deep)]',
+          'hover:bg-[var(--pl-olive)] hover:-translate-y-px',
           'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)] hover:shadow-[0_4px_20px_rgba(43,30,20,0.12),0_8px_30px_rgba(43,30,20,0.07)]',
         ].join(' '),
 
-        /** Olive-filled — brand CTA */
+        /** Olive-filled — brand CTA (alias) */
         accent: [
           'bg-[var(--pl-olive)] text-white border border-[var(--pl-olive)]',
           'hover:bg-[var(--pl-olive-hover)] hover:-translate-y-px',
@@ -40,20 +41,29 @@ const buttonVariants = cva(
 
         /** Outlined — secondary action */
         secondary: [
-          'bg-transparent text-[var(--pl-ink)] border border-[var(--pl-divider)]',
+          'bg-white text-[var(--pl-ink)] border border-[var(--pl-divider)]',
           'hover:border-[var(--pl-olive)] hover:bg-[var(--pl-olive-mist)]',
         ].join(' '),
 
-        /** No background — tertiary / inline action */
+        /** Underlined italic — tertiary / inline action */
         ghost: [
-          'bg-transparent text-[var(--pl-muted)] border border-transparent',
-          'hover:text-[var(--pl-ink)] hover:bg-[rgba(0,0,0,0.04)]',
+          'bg-transparent text-[var(--pl-ink)] border border-transparent',
+          'not-italic tracking-normal normal-case underline underline-offset-4 decoration-[var(--pl-divider)]',
+          'hover:text-[var(--pl-olive-deep)] hover:decoration-[var(--pl-olive)]',
+          'font-heading italic',
         ].join(' '),
 
-        /** Gold-outlined — premium / upgrade prompt */
+        /** Gold-filled — premium / upgrade prompt */
         gold: [
-          'bg-[var(--pl-gold-mist)] text-[var(--pl-gold)] border border-[var(--pl-gold)]',
-          'hover:bg-[rgba(196,169,106,0.20)] hover:-translate-y-px',
+          'bg-[var(--pl-gold)] text-white border border-[var(--pl-gold)]',
+          'hover:bg-[#b89a5a] hover:-translate-y-px',
+          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]',
+        ].join(' '),
+
+        /** Warning — terracotta outline */
+        warning: [
+          'bg-transparent text-[var(--pl-warning)] border border-[var(--pl-warning)]',
+          'hover:bg-[var(--pl-warning-mist)]',
         ].join(' '),
 
         /** Destructive */
@@ -67,14 +77,21 @@ const buttonVariants = cva(
           'bg-transparent text-[var(--pl-dark-text)] border border-[var(--pl-dark-border)]',
           'hover:bg-white/10 hover:text-[var(--pl-dark-heading)]',
         ].join(' '),
+
+        /** Ink-filled — secondary dark CTA */
+        ink: [
+          'bg-[var(--pl-ink)] text-white border border-[var(--pl-ink)]',
+          'hover:bg-[var(--pl-ink-soft)] hover:-translate-y-px',
+          'shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]',
+        ].join(' '),
       },
 
       size: {
-        xs: 'text-[0.72rem] px-2.5 py-1.5 gap-1 rounded-[var(--pl-radius-xs)]',
-        sm: 'text-[0.82rem] px-3.5 py-2 gap-1.5 rounded-[var(--pl-radius-sm)]',
-        md: 'text-[0.92rem] px-5 py-2.5 gap-2 rounded-[var(--pl-radius-sm)]',
-        lg: 'text-[1rem] px-7 py-3 gap-2.5 rounded-[var(--pl-radius-md)]',
-        xl: 'text-[1.05rem] px-9 py-4 gap-3 rounded-[var(--pl-radius-md)]',
+        xs: 'text-[0.68rem] px-2.5 py-1.5 gap-1 rounded-[var(--pl-radius-xs)]',
+        sm: 'text-[0.75rem] px-3.5 py-2 gap-1.5 rounded-[var(--pl-radius-sm)]',
+        md: 'text-[0.78rem] px-5 py-2.5 gap-2 rounded-[var(--pl-radius-sm)]',
+        lg: 'text-[0.82rem] px-7 py-3 gap-2.5 rounded-[var(--pl-radius-md)]',
+        xl: 'text-[0.88rem] px-9 py-4 gap-3 rounded-[var(--pl-radius-md)]',
         /** Icon-only square */
         icon: 'w-9 h-9 rounded-[var(--pl-radius-sm)]',
         iconLg: 'w-11 h-11 rounded-[var(--pl-radius-md)]',

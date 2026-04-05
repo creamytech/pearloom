@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/cn';
 
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-[var(--pl-radius-full)] text-[0.65rem] font-semibold tracking-[0.05em] leading-none border transition-colors',
+  'inline-flex items-center gap-1.5 rounded-[var(--pl-radius-full)] text-[0.62rem] font-bold uppercase tracking-[0.08em] leading-none border transition-colors',
   {
     variants: {
       variant: {
@@ -12,11 +12,15 @@ const badgeVariants = cva(
         default:
           'bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)] border-transparent',
 
-        /** Subtle green — success / live */
+        /** Subtle green — success / live / published */
         success:
-          'bg-[rgba(163,177,138,0.15)] text-[var(--pl-olive-deep)] border-transparent',
+          'bg-[var(--pl-success-mist)] text-[var(--pl-success)] border-[rgba(90,122,74,0.25)]',
 
-        /** Antique gold — premium / upgrade */
+        /** Outlined olive — curated status */
+        curated:
+          'bg-transparent text-[var(--pl-olive-deep)] border-[var(--pl-olive)]',
+
+        /** Antique gold — premium / sparkle */
         gold:
           'bg-[var(--pl-gold-mist)] text-[var(--pl-gold)] border-[rgba(196,169,106,0.3)]',
 
@@ -24,22 +28,26 @@ const badgeVariants = cva(
         plum:
           'bg-[var(--pl-plum-mist)] text-[var(--pl-plum)] border-transparent',
 
+        /** Warning — restored / attention */
+        warning:
+          'bg-[var(--pl-warning-mist)] text-[var(--pl-warning)] border-[rgba(196,93,62,0.25)]',
+
         /** Error */
         error:
           'bg-red-50 text-red-700 border-red-200',
 
-        /** Neutral */
+        /** Neutral outlined — draft / certified */
         muted:
-          'bg-[rgba(0,0,0,0.05)] text-[var(--pl-muted)] border-transparent',
+          'bg-transparent text-[var(--pl-muted)] border-[var(--pl-divider)]',
 
         /** Dark-surface */
         dark:
           'bg-white/10 text-white/80 border-white/20',
       },
       size: {
-        sm: 'px-1.5 py-0.5 text-[0.58rem]',
+        sm: 'px-1.5 py-0.5 text-[0.55rem]',
         md: 'px-2.5 py-1',
-        lg: 'px-3 py-1.5 text-[0.72rem]',
+        lg: 'px-3.5 py-1.5 text-[0.68rem]',
       },
     },
     defaultVariants: {

@@ -33,6 +33,12 @@ export const colors = {
   darkText:    'rgba(245,241,232,0.55)',
   darkHeading: '#F5F1E8',
 
+  // Semantic states
+  warning:     '#C45D3E',
+  warningMist: 'rgba(196,93,62,0.10)',
+  success:     '#5A7A4A',
+  successMist: 'rgba(90,122,74,0.10)',
+
   // Backward-compat aliases
   dark:        '#3D3530',   // alias for inkSoft
   border:      '#E0D8CA',   // alias for divider

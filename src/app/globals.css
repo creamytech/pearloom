@@ -36,6 +36,12 @@
   --pl-dark-text:    rgba(245,241,232,0.55);
   --pl-dark-heading: #F5F1E8;
 
+  /* ── Semantic states ── */
+  --pl-warning:      #C45D3E;   /* Warm terracotta — warning actions     */
+  --pl-warning-mist: rgba(196,93,62,0.10);
+  --pl-success:      #5A7A4A;   /* Deep botanical green                  */
+  --pl-success-mist: rgba(90,122,74,0.10);
+
   /* ── Glass ── */
   --pl-glass:        rgba(245,241,232,0.78);
   --pl-glass-border: rgba(214,198,168,0.32);
@@ -43,6 +49,8 @@
   /* ── Typography ── */
   --pl-font-heading: "Playfair Display", Georgia, serif;
   --pl-font-body:    "Lora", Georgia, serif;
+  --pl-font-label:   0.68rem;
+  --pl-label-tracking: 0.12em;
 
   /* ── Border Radius ── */
   --pl-radius-xs:  0.375rem;   /* 6px  — tight chips                  */

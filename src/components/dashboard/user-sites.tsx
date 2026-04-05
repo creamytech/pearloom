@@ -285,24 +285,18 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-[var(--pl-radius-xl)] bg-[var(--pl-ink)] px-10 py-10 mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 overflow-hidden relative"
+        className="rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-10 py-10 mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 overflow-hidden relative"
       >
         {/* Decorative arc */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full border border-white/[0.05] pointer-events-none" />
-        <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full border border-[var(--pl-gold)]/10 pointer-events-none" />
-
         <div>
-          <p className="text-[0.72rem] font-bold tracking-[0.18em] uppercase text-[var(--pl-gold)] mb-2">
-            Dashboard
-          </p>
-          <h1 className="font-heading text-[clamp(1.6rem,3vw,2.2rem)] font-semibold italic text-white leading-tight">
+          <p className="text-[0.68rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-2">
             {getGreeting()}{userName ? `, ${userName}` : ''}
-          </h1>
-          <p className="text-[var(--pl-dark-text)] text-[0.88rem] mt-1">
-            {sites.length > 0
-              ? `You have ${sites.length} celebration site${sites.length !== 1 ? 's' : ''}`
-              : 'Build your first celebration site today'}
           </p>
+          <h1 className="font-heading text-[clamp(1.6rem,3vw,2.4rem)] font-medium text-[var(--pl-ink-soft)] leading-tight">
+            Your digital garden is
+            <br />
+            <em className="text-[var(--pl-olive-deep)]">flourishing.</em>
+          </h1>
         </div>
 
         <Button
@@ -351,12 +345,12 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
           <div className="w-20 h-20 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mb-8">
             <PearIcon size={48} color="var(--pl-olive)" />
           </div>
-          <h3 className="font-heading text-[clamp(1.8rem,4vw,2.5rem)] font-semibold italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
-            Start your story
+          <h3 className="font-heading text-[clamp(1.8rem,4vw,2.5rem)] italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
+            No Archives Found
           </h3>
           <div className="w-12 h-[2px] bg-[var(--pl-gold)] mx-auto mb-5 rounded-full" />
           <p className="text-[var(--pl-muted)] max-w-[320px] leading-[1.8] text-[0.95rem] mb-10">
-            Build a stunning celebration website in minutes — AI-powered and completely yours.
+            Begin your legacy by curating your first digital artifact into the Pearloom collection.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 items-center">
             <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>

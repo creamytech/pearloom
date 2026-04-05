@@ -95,17 +95,18 @@ function CategoryBtn({ category, active, expanded, onClick }: {
     <motion.button
       onClick={onClick}
       title={label}
-      whileHover={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+      whileHover={{ backgroundColor: 'rgba(163,177,138,0.08)' }}
       whileTap={{ scale: 0.88 }}
       transition={{ duration: 0.12 }}
       style={{
-        width: '100%', height: '52px',
+        width: '100%', height: '56px',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: '4px',
+        alignItems: 'center', justifyContent: 'center', gap: '5px',
         border: 'none',
-        background: active ? 'rgba(163,177,138,0.13)' : 'transparent',
+        background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
         cursor: 'pointer', position: 'relative',
-        color: active ? '#A3B18A' : 'rgba(255,255,255,0.38)',
+        borderRadius: '12px',
+        color: active ? '#6E8C5C' : 'var(--pl-muted)',
         transition: 'color 0.15s, background 0.15s',
       }}
     >
@@ -118,12 +119,11 @@ function CategoryBtn({ category, active, expanded, onClick }: {
             animate={{ scaleY: 1, opacity: 1 }}
             exit={{ scaleY: 0, opacity: 0 }}
             style={{
-              position: 'absolute', left: 0, top: '16%', bottom: '16%',
+              position: 'absolute', left: 0, top: '20%', bottom: '20%',
               width: '3px',
-              background: 'linear-gradient(180deg, #A3B18A 0%, #8FC87A 100%)',
+              background: 'var(--pl-olive-deep)',
               borderRadius: '0 3px 3px 0',
               transformOrigin: 'center',
-              boxShadow: '0 0 10px rgba(163,177,138,0.55), 0 0 20px rgba(163,177,138,0.2)',
             }}
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
           />
@@ -154,30 +154,31 @@ function SubItemBtn({ item, active, onClick }: {
     <motion.button
       onClick={onClick}
       title={meta ? `${label} — ${meta.label} plan` : label}
-      whileHover={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+      whileHover={{ backgroundColor: 'rgba(163,177,138,0.06)' }}
       whileTap={{ scale: 0.92 }}
       style={{
         width: '100%',
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '8px 12px',
         border: 'none',
-        background: active ? 'rgba(163,177,138,0.15)' : 'transparent',
+        background: active ? 'rgba(163,177,138,0.12)' : 'transparent',
         cursor: 'pointer',
-        color: active ? '#A3B18A' : 'rgba(255,255,255,0.5)',
+        color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
         fontSize: '0.65rem', fontWeight: 700,
         letterSpacing: '0.04em',
         textTransform: 'uppercase',
         transition: 'color 0.12s, background 0.12s',
         position: 'relative',
+        borderRadius: '8px',
       }}
     >
       {/* Plan tier dot */}
       {meta && (
         <div style={{
           position: 'absolute', top: '6px', right: '6px',
-          width: '4px', height: '4px', borderRadius: '50%',
+          width: '5px', height: '5px', borderRadius: '50%',
           background: meta.color,
-          opacity: 0.7,
+          opacity: 0.6,
         }} />
       )}
       <Icon size={13} color="currentColor" />
@@ -215,9 +216,9 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
 
   return (
     <div style={{
-      width: '56px', flexShrink: 0,
-      background: '#252230',
-      borderRight: '1px solid rgba(255,255,255,0.07)',
+      width: '64px', flexShrink: 0,
+      background: 'var(--pl-cream)',
+      borderRight: '1px solid var(--pl-divider)',
       display: 'flex', flexDirection: 'column',
       zIndex: 100,
       overflowY: 'auto', overflowX: 'hidden',
@@ -226,11 +227,11 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
 
       {/* Logo mark */}
       <div style={{
-        height: '44px', flexShrink: 0,
+        height: '48px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        borderBottom: '1px solid var(--pl-divider)',
       }}>
-        <ElegantHeartIcon size={14} color="#A3B18A" />
+        <ElegantHeartIcon size={16} color="var(--pl-olive-deep)" />
       </div>
 
       {/* Category tabs with expandable sub-items */}
@@ -258,9 +259,9 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     style={{
                       overflow: 'hidden',
-                      background: 'rgba(0,0,0,0.15)',
-                      borderTop: '1px solid rgba(255,255,255,0.04)',
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      background: 'rgba(163,177,138,0.05)',
+                      borderTop: '1px solid var(--pl-divider)',
+                      borderBottom: '1px solid var(--pl-divider)',
                     }}
                   >
                     {cat.items.map(item => (

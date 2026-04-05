@@ -116,9 +116,9 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="mb-6 flex justify-center"
         >
-          <Pill sparkle>
-            Powered by The Loom · <RotatingOccasion />
-          </Pill>
+          <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--pl-muted)]">
+            The Digital Curator
+          </span>
         </motion.div>
 
         {/* Main heading */}
@@ -126,13 +126,13 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
-          className="font-heading leading-[1.05] mb-4 text-[var(--pl-ink-soft)]"
-          style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 700, letterSpacing: '-0.04em' }}
+          className="font-heading leading-[1.08] mb-4 text-[var(--pl-ink-soft)]"
+          style={{ fontSize: 'clamp(2.5rem, 6vw, 4.2rem)', fontWeight: 600, letterSpacing: '-0.03em' }}
         >
-          Every moment worth celebrating
+          Crafting Legacies in
           <br />
-          <em className="text-[var(--pl-plum)] not-italic" style={{ fontStyle: 'italic' }}>
-            deserves its own world.
+          <em className="text-[var(--pl-olive-deep)]" style={{ fontStyle: 'italic' }}>
+            Digital Linen.
           </em>
         </motion.h1>
 
@@ -152,9 +152,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           className="mx-auto mb-8 text-[var(--pl-muted)] font-body"
           style={{ fontSize: 'clamp(1.05rem, 1.8vw, 1.2rem)', maxWidth: 480, lineHeight: 1.9 }}
         >
-          Upload your photos. Share your vibe. Watch{' '}
-          <strong className="text-[var(--pl-ink-soft)] font-semibold">The Loom</strong> weave a site
-          that&rsquo;s unmistakably, irreplaceably yours.
+          Experience Loom AI. A bespoke sanctuary for your most cherished
+          memories, woven into a timeless digital tapestry.
         </motion.p>
 
         {/* CTAs — larger, bolder */}
