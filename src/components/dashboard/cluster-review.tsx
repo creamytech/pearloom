@@ -48,7 +48,90 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
     // Default gap: 2 days — consecutive days at different locations stay separate
     const built = clusterPhotos(photos, 2);
     setClusters(built);
-  }, [photos]);
+
+    // Auto-resolve locations for all clusters:
+    // 1. Reverse-geocode clusters that have GPS coords but no label
+    // 2. AI-suggest for clusters with no GPS data at all
+    const autoResolve = async () => {
+      const updates: { idx: number; location: GeoLocation }[] = [];
+      const aiTargets: number[] = [];
+
+      for (let i = 0; i < built.length; i++) {
+        const c = built[i];
+        if (c.location && c.location.lat !== 0 && c.location.lng !== 0 && !c.location.label) {
+          // Has GPS, needs reverse geocode
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${c.location.lat}&lon=${c.location.lng}&format=json&zoom=10`,
+              { headers: { 'User-Agent': 'pearloom/1.0' }, signal: AbortSignal.timeout(5000) }
+            );
+            if (res.ok) {
+              const data = await res.json();
+              const addr = data.address ?? {};
+              const label = [addr.city || addr.town || addr.village, addr.state || addr.country]
+                .filter(Boolean)
+                .join(', ');
+              if (label) {
+                updates.push({ idx: i, location: { ...c.location, label, needsReverseGeocode: false } });
+              }
+            }
+          } catch {}
+        } else if (!c.location || (c.location.lat === 0 && c.location.lng === 0 && !c.location.label)) {
+          // No GPS at all — queue for AI suggestion
+          aiTargets.push(i);
+        }
+      }
+
+      // Apply GPS reverse-geocode results
+      if (updates.length > 0) {
+        setClusters(prev => prev.map((c, i) => {
+          const u = updates.find(u => u.idx === i);
+          return u ? { ...c, location: u.location } : c;
+        }));
+      }
+
+      // Trigger AI suggestions for clusters without GPS (max 5 at once)
+      for (const idx of aiTargets.slice(0, 5)) {
+        triggerAiSuggest(idx, built[idx]);
+      }
+    };
+
+    if (built.length > 0) autoResolve();
+  }, [photos]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // AI suggest helper — extracted so it can be called from auto-resolve and button
+  const triggerAiSuggest = useCallback(async (idx: number, cluster: PhotoCluster) => {
+    if (!cluster) return;
+    setAiSuggesting(idx);
+    try {
+      const res = await fetch('/api/suggest-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photos: cluster.photos.slice(0, 20).map(p => ({
+            filename: p.filename,
+            creationTime: p.creationTime,
+            cameraMake: p.cameraMake,
+            cameraModel: p.cameraModel,
+            description: p.description,
+            latitude: p.location?.latitude,
+            longitude: p.location?.longitude,
+          })),
+          clusterLabel: cluster.suggestedTitle,
+        }),
+      });
+      const data = await res.json();
+      if (data.location) {
+        setAiSuggestions(prev => ({ ...prev, [idx]: data }));
+      } else {
+        setAiSuggestions(prev => ({ ...prev, [idx]: { location: '', confidence: 'low', reason: data.reason || 'Could not determine location' } }));
+      }
+    } catch {
+      setAiSuggestions(prev => ({ ...prev, [idx]: { location: '', confidence: 'low', reason: 'Request failed' } }));
+    } finally {
+      setAiSuggesting(null);
+    }
+  }, []);
 
   // Auto-fetch story arc advice when clusters are ready
   useEffect(() => {
@@ -187,37 +270,8 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
   // Ask AI to suggest a location based on photo metadata
   const suggestLocation = useCallback(async (idx: number) => {
     const cluster = clusters[idx];
-    if (!cluster) return;
-    setAiSuggesting(idx);
-    try {
-      const res = await fetch('/api/suggest-location', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          photos: cluster.photos.slice(0, 20).map(p => ({
-            filename: p.filename,
-            creationTime: p.creationTime,
-            cameraMake: p.cameraMake,
-            cameraModel: p.cameraModel,
-            description: p.description,
-            latitude: p.location?.latitude,
-            longitude: p.location?.longitude,
-          })),
-          clusterLabel: cluster.suggestedTitle,
-        }),
-      });
-      const data = await res.json();
-      if (data.location) {
-        setAiSuggestions(prev => ({ ...prev, [idx]: data }));
-      } else {
-        setAiSuggestions(prev => ({ ...prev, [idx]: { location: '', confidence: 'low', reason: data.reason || 'Could not determine location' } }));
-      }
-    } catch {
-      setAiSuggestions(prev => ({ ...prev, [idx]: { location: '', confidence: 'low', reason: 'Request failed' } }));
-    } finally {
-      setAiSuggesting(null);
-    }
-  }, [clusters]);
+    triggerAiSuggest(idx, cluster);
+  }, [clusters, triggerAiSuggest]);
 
   const acceptSuggestion = (idx: number) => {
     const suggestion = aiSuggestions[idx];

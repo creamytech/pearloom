@@ -78,7 +78,15 @@ export async function POST(req: NextRequest) {
     // ── Priority 2: AI inference from metadata ───────────────────
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ location: '', confidence: 'low', reason: 'AI not configured' });
+      // No AI available — still try to give something useful from dates
+      const firstDate = new Date(photos[0]?.creationTime);
+      const month = firstDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      return NextResponse.json({
+        location: `Photos from ${month}`,
+        confidence: 'low',
+        reason: 'AI not configured — showing date-based label',
+        suggestedTitle: '',
+      });
     }
 
     const photoSummary = photos.slice(0, 15).map(p => {
@@ -98,20 +106,25 @@ export async function POST(req: NextRequest) {
 
     const prompt = `You are helping identify where a group of ${photos.length} photos was taken during ${dateRange}.${clusterLabel ? ` The group is labelled: "${clusterLabel}".` : ''}
 
-These photos have no embedded GPS data. Use every available clue:
-- Filenames sometimes contain city names, trip names, or event names
+These photos have no embedded GPS data. You MUST still provide your best guess. Use every clue:
+- Filenames: look for city names, trip references, event names, location abbreviations
 - Descriptions or notes attached to photos
-- The camera model (e.g. iPhone sold primarily in certain markets, professional cameras at destination weddings)
-- Seasonal context (December photos may be Christmas holidays, summer photos may be vacations)
-- Date clustering (a 2-week gap suggests an international trip)
+- Camera model: iPhone suggests personal/travel photos; professional cameras suggest events
+- Seasonal + date context: December = winter holidays, June-August = summer vacation, weekend cluster = local event
+- Date clustering: photos spanning 1-2 days = local event; 5-14 days = vacation/trip
+- Number of photos: many photos in a short time suggests a special event (wedding, birthday, party)
+
+CRITICAL: You MUST always provide a location guess. Even if confidence is "low", give your best guess based on:
+- The time of year and duration (e.g. "A weekend in December" → could be a holiday gathering at home)
+- The camera type (e.g. professional camera → wedding/event venue)
+- General patterns (most photos are taken in the photographer's home city)
+If you truly have no specific clues, guess "Home City" with low confidence rather than returning empty.
 
 Photo metadata:
 ${photoSummary}
 
-Make your BEST educated guess — even if confidence is medium or low, still provide a location. Only respond with an empty location if there are truly zero clues whatsoever.
-
 Respond with ONLY a JSON object:
-{"location": "City, Country", "confidence": "high"|"medium"|"low", "reason": "1-sentence explanation", "suggestedTitle": "Evocative 3-5 word title"}`;
+{"location": "City, Country or descriptive location", "confidence": "high"|"medium"|"low", "reason": "1-sentence explanation", "suggestedTitle": "Evocative 3-5 word title"}`;
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -140,14 +153,49 @@ Respond with ONLY a JSON object:
 
     try {
       const parsed = JSON.parse(text);
+      // If AI still returned empty, generate a time-based fallback
+      let location = parsed.location || '';
+      let confidence = parsed.confidence || 'low';
+      let reason = parsed.reason || '';
+
+      if (!location) {
+        // Build a descriptive fallback from photo dates
+        const firstDate = new Date(photos[0]?.creationTime);
+        const month = firstDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const photoCount = photos.length;
+        const daySpan = photos.length > 1
+          ? Math.ceil((new Date(photos[photos.length - 1]?.creationTime).getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24))
+          : 0;
+
+        if (daySpan > 4) {
+          location = `Trip, ${month}`;
+          reason = `${photoCount} photos over ${daySpan} days suggest a trip or vacation`;
+        } else if (daySpan >= 1) {
+          location = `Weekend, ${month}`;
+          reason = `${photoCount} photos over ${daySpan + 1} days suggest a weekend event`;
+        } else {
+          location = `Event, ${month}`;
+          reason = `${photoCount} photos in a single day suggest a special event`;
+        }
+        confidence = 'low';
+      }
+
       return NextResponse.json({
-        location: parsed.location || '',
-        confidence: parsed.confidence || 'low',
-        reason: parsed.reason || '',
+        location,
+        confidence,
+        reason,
         suggestedTitle: parsed.suggestedTitle || '',
       });
     } catch {
-      return NextResponse.json({ location: '', confidence: 'low', reason: 'Failed to parse AI response' });
+      // Last resort fallback
+      const firstDate = new Date(photos[0]?.creationTime);
+      const month = firstDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      return NextResponse.json({
+        location: `Photos from ${month}`,
+        confidence: 'low',
+        reason: 'Generated from photo dates',
+        suggestedTitle: '',
+      });
     }
   } catch (error) {
     console.error('[suggest-location] Error:', error);

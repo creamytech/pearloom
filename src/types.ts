@@ -159,6 +159,7 @@ export interface GeoLocation {
   lat: number;
   lng: number;
   label: string; // reverse-geocoded (e.g. "Central Park, NY")
+  needsReverseGeocode?: boolean;
 }
 
 /**
