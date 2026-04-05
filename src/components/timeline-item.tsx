@@ -407,7 +407,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
         >
           {/* Cover image — full width, 4:3 */}
           {mainImage && (
-            <div style={{ borderRadius: '10px', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
+            <div style={{ borderRadius: '20px', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
               <img
                 src={proxyUrl(mainImage, 900, 675)}
                 alt=""

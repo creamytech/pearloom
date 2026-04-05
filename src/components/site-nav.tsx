@@ -223,11 +223,11 @@ export function SiteNav({
                     href={getHref(page.slug)}
                     className={cn(
                       'px-3.5 py-1.5 rounded-[var(--pl-radius-full)]',
-                      'text-[0.875rem] font-body no-underline',
+                      'text-[0.72rem] font-body no-underline uppercase tracking-[0.08em] font-semibold',
                       'border transition-all duration-150 whitespace-nowrap',
                       active
-                        ? 'font-semibold text-[var(--pl-ink)] bg-[var(--pl-olive-mist)] border-[rgba(163,177,138,0.22)]'
-                        : 'font-[450] text-[var(--pl-muted)] bg-transparent border-transparent hover:bg-[rgba(0,0,0,0.04)] hover:text-[var(--pl-ink)]',
+                        ? 'text-[var(--pl-ink)] border-b-2 border-b-[var(--pl-ink)] border-x-transparent border-t-transparent rounded-none bg-transparent'
+                        : 'text-[var(--pl-muted)] bg-transparent border-transparent hover:text-[var(--pl-ink)]',
                     )}
                   >
                     {page.label}

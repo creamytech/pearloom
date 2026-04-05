@@ -2,130 +2,133 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ImagePlus, Lock, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ImagePlus, Lock, Sparkles, MapPin, Save } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import { Button } from '@/components/ui';
 import type { GooglePhotoMetadata } from '@/types';
 
-const MAGIC_MESSAGES = [
-  'Creating your story…',
-  'Finding the best moments…',
-  'Building something beautiful…',
-  'Weaving your memories together…',
-];
+const MAX_PHOTOS = 40;
+
+// ── Story Arc Advisor — right-side glass panel ────────────────
+
+function StoryArcAdvisor({ count, max }: { count: number; max: number }) {
+  const pct = Math.min((count / max) * 100, 100);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Selected Gems counter */}
+      <div
+        className="rounded-[var(--pl-radius-lg)] p-5 border border-[rgba(0,0,0,0.06)]"
+        style={{
+          background: 'rgba(255,255,255,0.8)',
+          backdropFilter: 'blur(16px)',
+        }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)]">
+            Selected Gems
+          </span>
+          <span className="text-[1.4rem] font-heading font-semibold text-[var(--pl-ink)] tabular-nums">
+            {count} <span className="text-[0.85rem] text-[var(--pl-muted)] font-body">/ {max}</span>
+          </span>
+        </div>
+        <div className="h-1.5 rounded-full bg-[var(--pl-cream-deep)] overflow-hidden">
+          <motion.div
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="h-full rounded-full bg-[var(--pl-olive-deep)]"
+          />
+        </div>
+        {count > 0 && count < 10 && (
+          <p className="text-[0.72rem] text-[var(--pl-muted)] mt-3 flex items-center gap-1.5">
+            <Sparkles size={11} className="text-[var(--pl-gold)]" />
+            AI Suggesting {Math.min(5, max - count)} more links
+          </p>
+        )}
+      </div>
+
+      {/* Story Arc Advisor card */}
+      {count >= 5 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-[var(--pl-radius-lg)] p-5 border border-[rgba(0,0,0,0.06)]"
+          style={{
+            background: 'rgba(255,255,255,0.8)',
+            backdropFilter: 'blur(16px)',
+          }}
+        >
+          <div className="flex items-start justify-between mb-3">
+            <h3 className="font-heading text-[1rem] font-semibold text-[var(--pl-ink)]">
+              Story Arc Advisor
+            </h3>
+            <Sparkles size={16} className="text-[var(--pl-gold)]" />
+          </div>
+          <p className="text-[0.82rem] text-[var(--pl-ink-soft)] leading-relaxed mb-4">
+            &ldquo;Your current selection leans heavily towards{' '}
+            <em className="font-semibold">quiet moments</em>. To build a stronger
+            narrative, consider adding more{' '}
+            <em className="font-semibold">candid interactions</em>.&rdquo;
+          </p>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[var(--pl-gold)]" />
+              <span className="text-[0.72rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-muted)]">
+                Missing Link: Dinner Scene
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[var(--pl-olive)]" />
+              <span className="text-[0.72rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-muted)]">
+                Cohesion: High (Warm Palettes)
+              </span>
+            </div>
+          </div>
+          <Button
+            variant="ink"
+            size="sm"
+            className="w-full mt-4"
+          >
+            Ask Advisor for More
+          </Button>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+// ── Main PhotosStep ───────────────────────────────────────────
 
 interface PhotosStepProps {
   selectedPhotos: GooglePhotoMetadata[];
   onPhotosSelected: (photos: GooglePhotoMetadata[]) => void;
   onContinue: () => void;
+  onBack?: () => void;
 }
 
-export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue }: PhotosStepProps) {
+export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBack }: PhotosStepProps) {
   const [attemptedContinue, setAttemptedContinue] = useState(false);
-  const [magicMsgIdx, setMagicMsgIdx] = useState(0);
-
-  // Cycle through magic messages when photos selected
-  useEffect(() => {
-    if (selectedPhotos.length === 0) return;
-    const t = setInterval(() => setMagicMsgIdx(i => (i + 1) % MAGIC_MESSAGES.length), 2800);
-    return () => clearInterval(t);
-  }, [selectedPhotos.length]);
+  const count = selectedPhotos.length;
 
   const handleContinue = () => {
-    if (selectedPhotos.length === 0) {
+    if (count === 0) {
       setAttemptedContinue(true);
       return;
     }
     onContinue();
   };
 
-  const count = selectedPhotos.length;
-
   return (
-    <div>
-      {/* Dynamic feedback bar — shows when photos are selected */}
-      <AnimatePresence>
-        {count > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: -10, height: 0 }}
-            className="mb-6"
-          >
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 rounded-2xl bg-gradient-to-r from-[rgba(163,177,138,0.08)] to-[rgba(196,169,106,0.06)] border border-[rgba(163,177,138,0.2)]">
-              {/* Photo count with pulse */}
-              <div className="flex items-center gap-3">
-                <motion.div
-                  animate={{ scale: [1, 1.15, 1] }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  key={count}
-                  className="flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--pl-olive)] text-white font-bold text-[1rem]"
-                >
-                  {count}
-                </motion.div>
-                <div>
-                  <p className="text-[var(--pl-ink)] font-semibold text-[0.95rem] leading-tight">
-                    {count === 1 ? '1 memory' : `${count} memories`} selected
-                  </p>
-                  <AnimatePresence mode="wait">
-                    <motion.p
-                      key={magicMsgIdx}
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.25 }}
-                      className="text-[var(--pl-muted)] text-[0.8rem] flex items-center gap-1"
-                    >
-                      <Sparkles size={11} className="text-[var(--pl-gold)]" />
-                      {MAGIC_MESSAGES[magicMsgIdx]}
-                    </motion.p>
-                  </AnimatePresence>
-                </div>
-              </div>
+    <div className="flex flex-col h-full">
+      {/* Photo browser */}
+      <div className="flex-1 min-h-0">
+        <PhotoBrowser
+          onSelectionChange={onPhotosSelected}
+          maxSelection={MAX_PHOTOS}
+        />
+      </div>
 
-              {/* Mini photo grid preview */}
-              <div className="flex items-center gap-1.5">
-                {selectedPhotos.slice(0, 5).map((photo, i) => (
-                  <motion.div
-                    key={photo.id || i}
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.06, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-9 h-9 rounded-lg overflow-hidden border border-white/60 shadow-sm"
-                  >
-                    {photo.baseUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={`/api/photos/proxy?url=${encodeURIComponent(photo.baseUrl)}&w=80&h=80`}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[var(--pl-divider)]" />
-                    )}
-                  </motion.div>
-                ))}
-                {count > 5 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="w-9 h-9 rounded-lg bg-[var(--pl-olive-mist)] border border-[rgba(163,177,138,0.2)] flex items-center justify-center text-[0.7rem] font-bold text-[var(--pl-olive)]"
-                  >
-                    +{count - 5}
-                  </motion.div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <PhotoBrowser
-        onSelectionChange={onPhotosSelected}
-        maxSelection={30}
-      />
-
-      {/* Hint when empty — brief and inviting */}
+      {/* Empty state hint */}
       {count === 0 && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -134,31 +137,38 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue }: Pho
         >
           <ImagePlus size={16} className="text-[var(--pl-olive)] flex-shrink-0" />
           <p className="text-[var(--pl-ink)] text-[0.88rem] leading-snug m-0">
-            Select 10–30 photos for the best results
+            Select the clusters that best tell the story of your memories.
           </p>
         </motion.div>
       )}
 
-      {/* Sticky continue bar */}
-      <div className="sticky bottom-4 mt-6 p-3 bg-white/95 backdrop-blur-sm rounded-2xl border border-[var(--pl-divider)] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+      {/* Bottom action bar — matches Stitch "← Previous Step | Status | Continue Weaving →" */}
+      <div className="sticky bottom-0 mt-6 px-4 py-3 bg-white/95 backdrop-blur-sm rounded-t-2xl border-t border-[var(--pl-divider)] flex items-center justify-between gap-4">
+        {onBack && (
+          <Button variant="ghost" size="sm" onClick={onBack} icon={<ArrowLeft size={13} />}>
+            Previous Step
+          </Button>
+        )}
+        <div className="flex items-center gap-2 text-[0.72rem] text-[var(--pl-muted)]">
+          <Save size={12} />
+          <span className="font-semibold uppercase tracking-[0.06em]">Status</span>
+          <span className="font-heading italic text-[var(--pl-olive-deep)]">
+            {count > 0 ? 'Photos selected & clustered' : 'Awaiting selection'}
+          </span>
+        </div>
         <Button
           variant="primary"
-          size="lg"
+          size="md"
           onClick={handleContinue}
           disabled={count === 0}
-          className="w-full min-h-[52px] text-[0.95rem]"
-          icon={count > 0 ? <ArrowRight size={16} /> : <Lock size={14} />}
+          icon={count > 0 ? <ArrowRight size={14} /> : <Lock size={12} />}
         >
-          {count > 0
-            ? `Continue with ${count} photo${count === 1 ? '' : 's'}`
-            : 'Select photos to continue'}
+          Continue Weaving
         </Button>
-        {count === 0 && (
-          <p className="text-center mt-2 text-[var(--pl-muted)] text-[0.78rem]">
-            {attemptedContinue ? 'Select at least 1 photo' : 'Choose your photos above'}
-          </p>
-        )}
       </div>
     </div>
   );
 }
+
+// Export the advisor for use in WizardLayout's rightPanel slot
+export { StoryArcAdvisor };
