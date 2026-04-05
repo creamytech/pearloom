@@ -5,28 +5,16 @@ import { PearIcon } from '@/components/icons/PearloomIcons';
 
 const COLUMNS = [
   {
-    title: 'Product',
+    title: 'Discovery',
     links: [
-      { label: 'How It Works', href: '#how-it-works' },
-      { label: 'The Loom', href: '#the-loom' },
-      { label: 'Editor', href: '#editor' },
-      { label: 'Pricing', href: '#pricing' },
+      { label: 'The Journal', href: '#the-loom' },
+      { label: 'Legacy', href: '#how-it-works' },
+      { label: 'Our Promise', href: '#pricing' },
     ],
   },
   {
-    title: 'Occasions',
+    title: 'Legal',
     links: [
-      { label: 'Weddings', href: '#occasions' },
-      { label: 'Birthdays', href: '#occasions' },
-      { label: 'Anniversaries', href: '#occasions' },
-      { label: 'All Events', href: '#occasions' },
-    ],
-  },
-  {
-    title: 'Support',
-    links: [
-      { label: 'FAQ', href: '#faq' },
-      { label: 'Contact', href: 'mailto:hello@pearloom.com' },
       { label: 'Privacy', href: '/privacy' },
       { label: 'Terms', href: '/terms' },
     ],
@@ -63,7 +51,7 @@ export function MarketingFooter() {
               </span>
             </div>
             <p className="text-[0.85rem] text-[var(--pl-dark-text)] leading-relaxed mb-6">
-              Every moment worth celebrating deserves its own world. Powered by The Loom.
+              Preserving the ephemeral through the precision of the future. The digital atelier for your life&rsquo;s work.
             </p>
 
             {/* Newsletter */}

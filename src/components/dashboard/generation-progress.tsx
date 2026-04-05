@@ -13,14 +13,13 @@ import type { GooglePhotoMetadata } from '@/types';
 
 // ── Pass descriptors ──────────────────────────────────────────
 const PASSES = [
-  { headline: 'Reading your photos', copy: 'Scanning dates, places, and faces.', pct: 2, peek: 'Discovering your story...' },
-  { headline: 'Writing your story', copy: 'Turning memories into chapters.', pct: 15, peek: 'Chapter 1 taking shape...' },
-  { headline: 'Refining every word', copy: 'Rewriting anything below a 9/10.', pct: 40, peek: 'Making every sentence sing...' },
-  { headline: 'Learning your DNA', copy: 'The inside jokes that make you, you.', pct: 50, peek: 'Found something beautiful...' },
-  { headline: 'Designing your world', copy: 'Colors, fonts, shapes from your vibe.', pct: 65, peek: 'Your palette is gorgeous...' },
-  { headline: 'Painting custom art', copy: 'One-of-a-kind artwork for your site.', pct: 78, peek: 'Artwork coming to life...' },
-  { headline: 'Uploading photos', copy: 'Saving to permanent storage.', pct: 88, peek: 'Almost ready to reveal...' },
-  { headline: 'Final poetry', copy: 'The tagline and the closing line.', pct: 96, peek: 'Adding the finishing touch...' },
+  { headline: 'Semantic Anchoring', copy: 'Scanning dates, places, and faces.', pct: 2, peek: 'Discovering your story...' },
+  { headline: 'Atmospheric Synthesis', copy: 'Turning memories into chapters.', pct: 15, peek: 'Chapter 1 taking shape...' },
+  { headline: 'Chromatic Weaving', copy: 'Colors, fonts, shapes from your vibe.', pct: 40, peek: 'Making every thread sing...' },
+  { headline: 'Memory Granulation', copy: 'The inside moments that make you, you.', pct: 50, peek: 'Found something beautiful...' },
+  { headline: 'Ethereal Depth Pass', copy: 'Designing your world with care.', pct: 65, peek: 'Your palette is gorgeous...' },
+  { headline: 'Textural Cohesion', copy: 'One-of-a-kind artwork for your site.', pct: 78, peek: 'Artwork coming to life...' },
+  { headline: 'Final Polish', copy: 'The tagline and the closing line.', pct: 96, peek: 'Adding the finishing touch...' },
 ];
 
 // ── Progress ring SVG ─────────────────────────────────────────
