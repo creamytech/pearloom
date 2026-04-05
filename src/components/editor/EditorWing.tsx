@@ -148,34 +148,34 @@ export function EditorWing({
         zIndex: 50,
       }}
     >
-      {/* Inner panel — always full panelW, clipped by outer overflow:hidden */}
+      {/* Inner panel — light cream theme */}
       <div style={{
         width: panelW,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--pl-dark-bg)',
-        borderRight: '1px solid rgba(255,255,255,0.07)',
-        boxShadow: open ? 'var(--pl-shadow-md)' : 'none',
+        background: 'var(--pl-cream, #FAF7F2)',
+        borderRight: '1px solid var(--pl-divider, #E0D8CA)',
+        boxShadow: open ? '4px 0 16px rgba(0,0,0,0.06)' : 'none',
         transition: 'box-shadow 0.3s',
         position: 'relative',
       } as React.CSSProperties}>
 
-        {/* Top gradient accent line */}
+        {/* Top accent line — olive gradient */}
         <div style={{
           height: '2px',
           flexShrink: 0,
           background: 'linear-gradient(90deg, var(--pl-olive) 0%, rgba(163,177,138,0.3) 50%, transparent 100%)',
         }} />
 
-        {/* Panel header */}
+        {/* Panel header — light */}
         <div style={{
           height: '42px', flexShrink: 0,
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 14px 0 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          background: 'rgba(255,255,255,0.03)',
+          borderBottom: '1px solid var(--pl-divider, #E0D8CA)',
+          background: 'rgba(255,255,255,0.6)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden', minWidth: 0 }}>
             <AnimatePresence mode="wait">
@@ -190,7 +190,7 @@ export function EditorWing({
                 <span style={{
                   fontSize: '0.7rem', fontWeight: 800,
                   letterSpacing: '0.1em', textTransform: 'uppercase' as const,
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--pl-olive-deep, #6E8C5C)',
                   whiteSpace: 'nowrap' as const,
                   display: 'block',
                 }}>
@@ -199,7 +199,7 @@ export function EditorWing({
                 {hint && (
                   <span style={{
                     fontSize: '0.58rem', fontWeight: 500,
-                    color: 'rgba(255,255,255,0.2)',
+                    color: 'var(--pl-muted, #7A756E)',
                     whiteSpace: 'nowrap' as const,
                     display: 'block',
                     marginTop: '1px',
@@ -228,14 +228,14 @@ export function EditorWing({
           <motion.button
             onClick={onToggle}
             title="Collapse panel"
-            whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)', color: '#A3B18A' }}
+            whileHover={{ backgroundColor: 'rgba(163,177,138,0.1)', color: 'var(--pl-olive-deep, #6E8C5C)' }}
             whileTap={{ scale: 0.88 }}
             style={{
               width: '26px', height: '26px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: '6px', border: 'none',
               background: 'transparent',
-              color: 'rgba(255,255,255,0.3)',
+              color: 'var(--pl-muted, #7A756E)',
               cursor: 'pointer',
               flexShrink: 0,
             }}

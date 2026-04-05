@@ -108,15 +108,16 @@ function SectionItem({
       style={{ marginBottom: '6px', cursor: 'pointer' }}
     >
       <motion.div
-        whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.07)' } : {}}
+        whileHover={!isActive ? { backgroundColor: 'rgba(163,177,138,0.04)', borderColor: 'var(--pl-olive, #A3B18A)' } : {}}
         transition={{ duration: 0.15 }}
         style={{
           borderRadius: '10px',
-          background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.04)',
-          border: '1px solid transparent',
-          borderLeft: isActive ? '3px solid rgba(163,177,138,0.8)' : '3px solid rgba(163,177,138,0.15)',
+          background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
+          border: isActive ? '1.5px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
+          borderLeft: isActive ? '3px solid var(--pl-olive, #A3B18A)' : '3px solid rgba(163,177,138,0.2)',
           position: 'relative',
           overflow: 'hidden',
+          boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.1)' : '0 1px 3px rgba(0,0,0,0.03)',
         }}
       >
         <div
@@ -129,10 +130,10 @@ function SectionItem({
           <div style={{
             flexShrink: 0,
             width: '22px', height: '22px', borderRadius: '50%',
-            background: isActive ? 'rgba(163,177,138,0.3)' : 'rgba(255,255,255,0.08)',
-            border: isActive ? '1px solid rgba(163,177,138,0.5)' : '1px solid rgba(255,255,255,0.1)',
+            background: isActive ? 'rgba(163,177,138,0.15)' : 'var(--pl-cream-deep, #F0EBE0)',
+            border: isActive ? '1.5px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.65rem', fontWeight: 800, color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.45)',
+            fontSize: '0.65rem', fontWeight: 800, color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted, #7A756E)',
             letterSpacing: '-0.01em',
           }}>
             {index + 1}
@@ -154,14 +155,14 @@ function SectionItem({
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontSize: '0.88rem', fontWeight: 700,
-              fontFamily: 'var(--eg-font-heading, Playfair Display, Georgia, serif)',
-              color: isActive ? 'var(--eg-gold, #D6C6A8)' : 'rgba(255,255,255,0.92)',
+              fontFamily: 'var(--font-heading, Playfair Display, Georgia, serif)',
+              color: isActive ? 'var(--pl-ink, #1A1A1A)' : 'var(--pl-ink-soft, #3D3530)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               lineHeight: 1.3,
             }}>
               {chapter.title || 'Untitled'}
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.38)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted, #7A756E)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               {chapter.location?.label && (
                 <><LocationPinIcon size={9} style={{ flexShrink: 0, opacity: 0.7 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{chapter.location.label}</span><span>·</span></>
               )}
@@ -182,8 +183,9 @@ function SectionItem({
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               padding: '5px', borderRadius: '5px', border: 'none',
-              background: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
+              background: 'none', color: 'var(--pl-muted, #7A756E)', cursor: 'pointer',
               display: 'flex', flexShrink: 0,
+              opacity: 0.5,
             }}
           >
             <Trash2 size={12} />
@@ -192,7 +194,7 @@ function SectionItem({
 
         <div style={{
           padding: '0 10px 8px 14px',
-          borderTop: '1px solid rgba(255,255,255,0.05)',
+          borderTop: '1px solid var(--pl-divider, #E0D8CA)',
         }}>
           <ChapterActions
             chapter={chapter}
@@ -231,26 +233,26 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
       transition={{ type: 'spring', stiffness: 380, damping: 28 }}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '10px 12px', borderRadius: '8px', minHeight: '60px',
-        border: '1px solid rgba(255,255,255,0.1)',
-        background: isDragging ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.06)',
+        padding: '8px 10px', borderRadius: '8px', minHeight: '52px',
+        border: '1px solid var(--pl-divider, #E0D8CA)',
+        background: isDragging ? 'rgba(163,177,138,0.1)' : '#fff',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none', touchAction: 'none',
-        marginBottom: '6px',
+        marginBottom: '5px',
         opacity: isDragging ? 0.5 : 1,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
       }}
     >
-      <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '1rem', flexShrink: 0, lineHeight: 1 }}>✦</div>
       <div style={{
-        width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
-        background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center',
+        width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+        background: 'rgba(163,177,138,0.1)', display: 'flex', alignItems: 'center',
         justifyContent: 'center',
       }}>
-        <Icon size={16} color="rgba(163,177,138,0.9)" />
+        <Icon size={15} color="var(--pl-olive, #A3B18A)" />
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2 }}>{label}</div>
-        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.42)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-ink-soft, #3D3530)', lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted, #7A756E)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
       </div>
     </motion.div>
   );
@@ -291,16 +293,16 @@ export function StoryPanel() {
       {/* Sticky section header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 5,
-        background: 'var(--pl-dark-bg)',
+        background: 'var(--pl-cream, #FAF7F2)',
         padding: '8px 16px 6px',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid var(--pl-divider, #E0D8CA)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: '4px',
       }}>
         <span style={{
           fontSize: '0.58rem', fontWeight: 800,
           letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.25)',
+          color: 'var(--pl-muted, #7A756E)',
         }}>
           Chapters · {chapters.length}
         </span>
@@ -337,14 +339,15 @@ export function StoryPanel() {
                 style={{
                   display: 'flex', flexDirection: 'column',
                   borderRadius: '8px', border: 'none', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.03)',
-                  outline: isActive ? '1.5px solid rgba(163,177,138,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                  background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
+                  outline: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
                   overflow: 'hidden', padding: 0,
+                  boxShadow: isActive ? '0 2px 6px rgba(163,177,138,0.12)' : '0 1px 2px rgba(0,0,0,0.03)',
                 }}
               >
-                <div style={{ height: '28px', overflow: 'hidden' }}>{fmt.preview}</div>
+                <div style={{ height: '28px', overflow: 'hidden', background: 'var(--pl-cream-deep, #F0EBE0)' }}>{fmt.preview}</div>
                 <div style={{ padding: '3px 4px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 700, color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)', letterSpacing: '0.02em' }}>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 700, color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted, #7A756E)', letterSpacing: '0.02em' }}>
                     {fmt.label}
                   </div>
                 </div>
@@ -381,10 +384,10 @@ export function StoryPanel() {
         style={{
           width: '100%', padding: '14px 16px', marginTop: '8px', marginBottom: '4px',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-          border: '1.5px dashed rgba(163,177,138,0.25)', borderRadius: '10px',
+          border: '1.5px dashed var(--pl-olive, #A3B18A)', borderRadius: '10px',
           background: 'transparent', cursor: 'pointer',
-          color: 'rgba(163,177,138,0.65)', fontSize: '0.8rem', fontWeight: 700,
-          letterSpacing: '0.04em',
+          color: 'var(--pl-olive, #A3B18A)', fontSize: '0.8rem', fontWeight: 700,
+          letterSpacing: '0.04em', opacity: 0.6,
         }}
       >
         <Plus size={14} />
@@ -392,14 +395,14 @@ export function StoryPanel() {
       </motion.button>
 
       {/* Blocks palette */}
-      <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--pl-divider, #E0D8CA)' }}>
         {/* Sticky palette header */}
         <div style={{
           position: 'sticky', top: 0, zIndex: 4,
-          background: 'var(--pl-dark-bg)',
+          background: 'var(--pl-cream, #FAF7F2)',
           padding: '4px 0 8px',
           fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: 'rgba(163,177,138,0.7)', marginBottom: '4px',
+          color: 'var(--pl-olive, #A3B18A)', marginBottom: '4px',
         }}>
           Drag Sections to Canvas
         </div>
@@ -424,7 +427,7 @@ export function StoryPanel() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}
+            style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--pl-divider, #E0D8CA)' }}
           >
             <ChapterPanel
               chapter={activeChapter}

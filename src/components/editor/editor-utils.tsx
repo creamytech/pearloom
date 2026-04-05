@@ -4,6 +4,7 @@
 // Pearloom / components/editor/editor-utils.tsx
 // Shared styles, helpers, and small components used across
 // the editor panel modules.
+// Light cream theme — matches marketing site aesthetic.
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react';
@@ -11,17 +12,17 @@ import { parseLocalDate } from '@/lib/date';
 
 // ── Shared label/input styles ──────────────────────────────────
 export const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.82rem', fontWeight: 700,
-  letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: 'var(--eg-muted, #9A9488)', marginBottom: '0.5rem',
+  display: 'block', fontSize: '0.68rem', fontWeight: 700,
+  letterSpacing: '0.08em', textTransform: 'uppercase',
+  color: 'var(--pl-muted, #7A756E)', marginBottom: '0.35rem',
 };
 
 export const inp: React.CSSProperties = {
-  width: '100%', padding: '0.65rem 0.8rem', borderRadius: '0.5rem',
-  border: '1px solid var(--eg-divider, #E6DFD2)', background: 'rgba(255,255,255,0.8)',
-  color: 'var(--eg-fg, #2B2B2B)', fontSize: 'max(16px, 0.88rem)', outline: 'none', fontFamily: 'inherit',
+  width: '100%', padding: '0.55rem 0.7rem', borderRadius: '0.5rem',
+  border: '1px solid var(--pl-divider, #E0D8CA)', background: '#fff',
+  color: 'var(--pl-ink, #1A1A1A)', fontSize: 'max(16px, 0.88rem)', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
-  minHeight: '38px',
+  minHeight: '36px',
 };
 
 // ── Reusable form field ────────────────────────────────────────
@@ -29,6 +30,15 @@ export function Field({ label, value, onChange, rows, placeholder }: {
   label: string; value: string; onChange: (v: string) => void;
   rows?: number; placeholder?: string;
 }) {
+  const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'var(--pl-olive, #A3B18A)';
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
+  };
+  const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.currentTarget.style.borderColor = 'var(--pl-divider, #E0D8CA)';
+    e.currentTarget.style.boxShadow = 'none';
+  };
+
   if (rows) return (
     <div>
       <label style={lbl}>{label}</label>
@@ -36,8 +46,7 @@ export function Field({ label, value, onChange, rows, placeholder }: {
         value={value} onChange={e => onChange(e.target.value)} rows={rows}
         placeholder={placeholder}
         style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
+        onFocus={focusStyle} onBlur={blurStyle}
       />
     </div>
   );
@@ -48,8 +57,7 @@ export function Field({ label, value, onChange, rows, placeholder }: {
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; e.currentTarget.style.boxShadow = 'none'; }}
+        onFocus={focusStyle} onBlur={blurStyle}
       />
     </div>
   );

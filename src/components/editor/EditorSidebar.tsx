@@ -73,14 +73,14 @@ export function SidebarSection({
     <div style={{ marginBottom: '4px' }}>
       <motion.button
         onClick={() => setOpen(!open)}
-        whileHover={{ backgroundColor: 'rgba(214,198,168,0.09)' }}
+        whileHover={{ backgroundColor: 'rgba(163,177,138,0.06)' }}
         whileTap={{ scale: 0.97 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
           padding: '7px 8px', borderRadius: '6px', border: 'none',
-          background: 'rgba(214,198,168,0.04)', cursor: 'pointer',
-          color: 'rgba(214,198,168,0.6)',
+          background: 'transparent', cursor: 'pointer',
+          color: 'var(--pl-ink-soft, #3D3530)',
         }}
       >
         <ChevronRight
@@ -88,22 +88,22 @@ export function SidebarSection({
           style={{
             transform: open ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: 'rgba(214,198,168,0.3)',
+            color: 'var(--pl-muted, #7A756E)',
             flexShrink: 0,
           }}
         />
-        {Icon && <Icon size={12} color="rgba(214,198,168,0.4)" />}
+        {Icon && <Icon size={12} color="var(--pl-olive, #A3B18A)" />}
         <span style={{
           flex: 1, textAlign: 'left', fontSize: '0.62rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: 'rgba(214,198,168,0.55)',
+          color: 'var(--pl-muted, #7A756E)',
         }}>
           {title}
         </span>
         {badge !== undefined && (
           <span style={{
             fontSize: '0.62rem', padding: '1px 5px', borderRadius: '8px',
-            background: 'rgba(214,198,168,0.08)', color: 'rgba(214,198,168,0.4)',
+            background: 'rgba(163,177,138,0.1)', color: 'var(--pl-olive, #A3B18A)',
           }}>
             {badge}
           </span>

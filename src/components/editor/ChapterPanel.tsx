@@ -146,20 +146,20 @@ export function ChapterPanel({
           placeholder="Chapter Title"
           style={{
             ...inp,
-            fontSize: 'max(16px, 1.2rem)',
+            fontSize: 'max(16px, 1.15rem)',
             fontWeight: 700,
             letterSpacing: '-0.02em',
-            fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+            fontFamily: 'var(--font-heading, "Playfair Display", serif)',
             fontStyle: 'italic',
             background: 'transparent',
             border: 'none',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderBottom: '1.5px solid var(--pl-divider, #E0D8CA)',
             borderRadius: 0,
-            padding: '8px 0',
-            color: 'var(--eg-gold, #D6C6A8)',
+            padding: '6px 0',
+            color: 'var(--pl-ink-soft, #3D3530)',
           }}
-          onFocus={e => { e.currentTarget.style.borderBottomColor = 'rgba(163,177,138,0.5)'; }}
-          onBlur={e => { e.currentTarget.style.borderBottomColor = 'rgba(255,255,255,0.08)'; }}
+          onFocus={e => { e.currentTarget.style.borderBottomColor = 'var(--pl-olive, #A3B18A)'; }}
+          onBlur={e => { e.currentTarget.style.borderBottomColor = 'var(--pl-divider, #E0D8CA)'; }}
         />
       </div>
 
@@ -192,9 +192,9 @@ export function ChapterPanel({
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '3px 8px', borderRadius: '100px',
-                border: '1px solid rgba(163,177,138,0.3)',
-                background: isRewriting ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.08)',
-                color: 'var(--eg-accent, #A3B18A)',
+                border: '1px solid rgba(163,177,138,0.35)',
+                background: isRewriting ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.06)',
+                color: 'var(--pl-olive-deep, #6E8C5C)',
                 fontSize: '0.65rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
               }}
             >
@@ -210,9 +210,9 @@ export function ChapterPanel({
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px',
                   padding: '3px 8px', borderRadius: '100px',
-                  border: '1px solid rgba(109,89,122,0.3)',
-                  background: 'rgba(109,89,122,0.08)',
-                  color: 'var(--eg-plum, #6D597A)',
+                  border: '1px solid rgba(109,89,122,0.25)',
+                  background: 'rgba(109,89,122,0.06)',
+                  color: 'var(--pl-plum, #6D597A)',
                   fontSize: '0.65rem', fontWeight: 700, cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -259,25 +259,26 @@ export function ChapterPanel({
               <motion.button
                 key={l}
                 onClick={() => upd({ layout: l })}
-                whileHover={!isActive ? { scale: 1.04, borderColor: 'rgba(163,177,138,0.4)' } : {}}
+                whileHover={!isActive ? { scale: 1.04, borderColor: 'var(--pl-olive, #A3B18A)' } : {}}
                 whileTap={{ scale: 0.96 }}
                 style={{
                   display: 'flex', flexDirection: 'column',
-                  border: isActive ? '1.5px solid rgba(163,177,138,0.6)' : '1px solid rgba(255,255,255,0.08)',
+                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
                   borderRadius: '8px', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.03)',
+                  background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
                   overflow: 'hidden', transition: 'border-color 0.15s',
                   padding: 0,
+                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.15)' : '0 1px 3px rgba(0,0,0,0.04)',
                 }}
               >
-                <div style={{ height: '36px', overflow: 'hidden', background: 'rgba(0,0,0,0.15)' }}>
+                <div style={{ height: '36px', overflow: 'hidden', background: 'var(--pl-cream-deep, #F0EBE0)' }}>
                   {preview}
                 </div>
                 <div style={{
                   padding: '4px 6px',
                   fontSize: '0.6rem', fontWeight: 700,
                   letterSpacing: '0.04em',
-                  color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.45)',
+                  color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted, #7A756E)',
                   textAlign: 'center',
                 }}>
                   {label}
@@ -303,11 +304,12 @@ export function ChapterPanel({
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '4px 10px', borderRadius: '100px',
-                  border: isActive ? `1.5px solid ${m.color}` : '1px solid rgba(255,255,255,0.08)',
-                  background: isActive ? `${m.color}22` : 'rgba(255,255,255,0.03)',
-                  cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600,
-                  color: isActive ? m.color : 'rgba(255,255,255,0.5)',
+                  border: isActive ? `2px solid ${m.color}` : '1px solid var(--pl-divider, #E0D8CA)',
+                  background: isActive ? `${m.color}15` : '#fff',
+                  cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
+                  color: isActive ? m.color : 'var(--pl-ink-soft, #3D3530)',
                   transition: 'all 0.15s',
+                  boxShadow: isActive ? `0 2px 8px ${m.color}20` : 'none',
                 }}
               >
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: m.color, flexShrink: 0 }} />

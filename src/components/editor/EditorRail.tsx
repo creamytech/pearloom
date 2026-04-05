@@ -163,7 +163,7 @@ function SubItemBtn({ item, active, onClick }: {
         border: 'none',
         background: active ? 'rgba(163,177,138,0.15)' : 'transparent',
         cursor: 'pointer',
-        color: active ? '#A3B18A' : 'rgba(255,255,255,0.45)',
+        color: active ? '#A3B18A' : 'rgba(255,255,255,0.5)',
         fontSize: '0.65rem', fontWeight: 700,
         letterSpacing: '0.04em',
         textTransform: 'uppercase',

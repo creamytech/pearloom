@@ -91,8 +91,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       <div style={{
         display: 'flex', alignItems: 'center', gap: '8px',
         padding: '10px 12px', borderRadius: '10px',
-        background: 'linear-gradient(135deg, rgba(163,177,138,0.08), rgba(196,169,106,0.05))',
-        border: '1px solid rgba(163,177,138,0.15)',
+        background: 'linear-gradient(135deg, rgba(163,177,138,0.06), rgba(196,169,106,0.04))',
+        border: '1px solid rgba(163,177,138,0.2)',
       }}>
         {vibeSkin?.tone && (
           <span style={{
@@ -173,9 +173,9 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             onUpdate={(updates) => onChange({ ...manifest, ...updates })}
           />
         ) : (
-          <div style={{ padding: '1rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>
+          <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--pl-muted, #7A756E)', fontSize: '0.82rem' }}>
             <p style={{ marginBottom: '0.75rem' }}>No AI art generated yet.</p>
-            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '100px', background: 'var(--eg-accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '100px', background: 'var(--pl-olive, #A3B18A)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
               Generate AI Art
             </button>
           </div>
@@ -190,7 +190,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
       {/* Asset Library */}
       <SidebarSection title="Asset Library" defaultOpen={true}>
-        <p style={{ fontSize: '0.82rem', color: 'rgba(214,198,168,0.5)', marginBottom: '10px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted, #7A756E)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
         <AssetPicker
@@ -218,15 +218,15 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
         {/* Active stickers list with controls */}
         {(manifest.stickers?.length ?? 0) > 0 && (
-          <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
-            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: '8px' }}>
+          <div style={{ marginTop: '12px', borderTop: '1px solid var(--pl-divider, #E0D8CA)', paddingTop: '10px' }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted, #7A756E)', marginBottom: '8px' }}>
               Active ({manifest.stickers!.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#fff', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
                     Size
                     <input type="range" min={30} max={200} value={s.size} onChange={e => {
                       const updated = [...manifest.stickers!];
@@ -251,7 +251,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* Live preview — compact, no extra nesting */}
-      <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+      <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
           <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--eg-fg, #2B2B2B)', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}
