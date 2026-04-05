@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Globe, Pencil, ExternalLink, Calendar, Loader2,
+  Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Image,
   Trash2, AlertTriangle, Users, Check, Share2, RefreshCw, Sparkles,
   TrendingUp, Clock, BarChart2,
 } from 'lucide-react';
@@ -310,7 +310,35 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
         </Button>
       </motion.div>
 
-      {/* ── Aggregate stats bar ── */}
+      {/* ── Bento creation cards ── */}
+      {!loading && !fetchError && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+          {[
+            { icon: <Pencil size={24} />, title: 'Journal Entry', desc: 'Document a new heirloom with rich narrative details.', action: onStartNew },
+            { icon: <Image size={24} />, title: 'Visual Gallery', desc: 'Curate a stunning high-resolution image collection.', action: onStartNew },
+            { icon: <Sparkles size={24} />, title: 'Bespoke Layout', desc: 'Craft a unique canvas from a blank parchment.', action: onQuickStart || onStartNew },
+          ].map((card, i) => (
+            <motion.button
+              key={card.title}
+              onClick={card.action}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 + 0.3, duration: 0.5 }}
+              whileHover={{ y: -3, boxShadow: '0 8px 32px rgba(43,30,20,0.08)' }}
+              whileTap={{ scale: 0.98 }}
+              className="flex flex-col items-center text-center p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer"
+            >
+              <div className="w-14 h-14 rounded-2xl border border-[var(--pl-divider)] flex items-center justify-center mb-4 text-[var(--pl-muted)]">
+                {card.icon}
+              </div>
+              <h3 className="font-heading italic text-lg text-[var(--pl-ink-soft)] mb-2">{card.title}</h3>
+              <p className="text-[0.82rem] text-[var(--pl-muted)] leading-relaxed">{card.desc}</p>
+            </motion.button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Stats row ── */}
       {!loading && !fetchError && sites.length > 0 && <StatsBar stats={aggStats} />}
 
       {/* ── Loading ── */}
@@ -368,6 +396,14 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
         </motion.div>
 
       ) : (
+        <>
+        {/* Recent Looms heading */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-heading italic text-[clamp(1.4rem,2.5vw,1.8rem)] text-[var(--pl-ink-soft)]">Recent Looms</h2>
+          <a href="#" className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-colors flex items-center gap-1">
+            View Archive <ExternalLink size={10} />
+          </a>
+        </div>
         <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
           <AnimatePresence>
             {sites.map((site, i) => {
@@ -655,6 +691,67 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
             </div>
           </motion.button>
         </div>
+        </>
+      )}
+
+      {/* ── Floating bottom nav ── */}
+      {!loading && !fetchError && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 50,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '6px 8px',
+            borderRadius: '100px',
+            background: 'rgba(255,255,255,0.92)',
+            backdropFilter: 'blur(24px) saturate(1.4)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+            border: '1px solid rgba(0,0,0,0.06)',
+            boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.06)',
+          } as React.CSSProperties}
+        >
+          <button
+            onClick={onStartNew}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '10px 20px', borderRadius: '100px', border: 'none',
+              background: 'var(--pl-olive-deep)', color: 'white',
+              cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}
+          >
+            <Plus size={14} /> New Loom
+          </button>
+          {[
+            { label: 'Templates', icon: <Globe size={14} /> },
+            { label: 'Import', icon: <ExternalLink size={14} /> },
+            { label: 'Insights', icon: <BarChart2 size={14} /> },
+          ].map((item) => (
+            <button
+              key={item.label}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '10px 14px', borderRadius: '100px', border: 'none',
+                background: 'transparent', color: 'var(--pl-muted)',
+                cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600,
+                letterSpacing: '0.06em', textTransform: 'uppercase',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.color = 'var(--pl-ink)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.color = 'var(--pl-muted)'; }}
+            >
+              {item.icon} {item.label}
+            </button>
+          ))}
+        </motion.div>
       )}
 
       {/* Delete Modal */}
