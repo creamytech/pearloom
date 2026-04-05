@@ -117,7 +117,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           className="mb-6 flex justify-center"
         >
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--pl-muted)]">
-            The Digital Curator
+            The Pearloom Platform
           </span>
         </motion.div>
 
@@ -129,10 +129,10 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           className="font-heading leading-[1.08] mb-4 text-[var(--pl-ink-soft)]"
           style={{ fontSize: 'clamp(2.5rem, 6vw, 4.2rem)', fontWeight: 600, letterSpacing: '-0.03em' }}
         >
-          Crafting Legacies in
+          Every moment, woven into
           <br />
           <em className="text-[var(--pl-olive-deep)]" style={{ fontStyle: 'italic' }}>
-            Digital Linen.
+            timeless beauty.
           </em>
         </motion.h1>
 
@@ -152,8 +152,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           className="mx-auto mb-8 text-[var(--pl-muted)] font-body"
           style={{ fontSize: 'clamp(1.05rem, 1.8vw, 1.2rem)', maxWidth: 480, lineHeight: 1.9 }}
         >
-          Experience Loom AI. A bespoke sanctuary for your most cherished
-          memories, woven into a timeless digital tapestry.
+          Upload your photos, share your vibe, and watch The Loom weave a
+          celebration site that's unmistakably, irreplaceably yours.
         </motion.p>
 
         {/* CTAs — larger, bolder */}

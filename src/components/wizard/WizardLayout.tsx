@@ -75,10 +75,10 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
             <br />
             <strong style={{ color: 'var(--pl-ink)', fontStyle: 'italic' }}>
               {step === 'photos' || step === 'upload' || step === 'clusters'
-                ? 'Selection Stage'
+                ? 'Photos'
                 : step === 'vibe'
-                  ? 'Mood Stage'
-                  : 'Weaving Stage'}
+                  ? 'Style'
+                  : 'Building'}
             </strong>
           </span>
           {onClose && (
@@ -126,7 +126,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
               color: 'var(--pl-muted)',
               marginTop: '2px',
             }}>
-              Curating your digital legacy
+              Step-by-step site builder
             </p>
           </div>
 

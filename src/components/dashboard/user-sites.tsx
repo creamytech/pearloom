@@ -293,9 +293,9 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
             {getGreeting()}{userName ? `, ${userName}` : ''}
           </p>
           <h1 className="font-heading text-[clamp(1.6rem,3vw,2.4rem)] font-medium text-[var(--pl-ink-soft)] leading-tight">
-            Your digital garden is
+            Your celebrations are
             <br />
-            <em className="text-[var(--pl-olive-deep)]">flourishing.</em>
+            <em className="text-[var(--pl-olive-deep)]">looking beautiful.</em>
           </h1>
         </div>
 
@@ -314,9 +314,9 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
       {!loading && !fetchError && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           {[
-            { icon: <Pencil size={24} />, title: 'Journal Entry', desc: 'Document a new heirloom with rich narrative details.', action: onStartNew },
-            { icon: <Image size={24} />, title: 'Visual Gallery', desc: 'Curate a stunning high-resolution image collection.', action: onStartNew },
-            { icon: <Sparkles size={24} />, title: 'Bespoke Layout', desc: 'Craft a unique canvas from a blank parchment.', action: onQuickStart || onStartNew },
+            { icon: <Pencil size={24} />, title: 'New Story', desc: 'Upload photos and let The Loom craft your story.', action: onStartNew },
+            { icon: <Image size={24} />, title: 'Photo Site', desc: 'Create a beautiful photo-driven celebration site.', action: onStartNew },
+            { icon: <Sparkles size={24} />, title: 'From Template', desc: 'Pick a template and customize every detail.', action: onQuickStart || onStartNew },
           ].map((card, i) => (
             <motion.button
               key={card.title}
@@ -374,11 +374,11 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
             <PearIcon size={48} color="var(--pl-olive)" />
           </div>
           <h3 className="font-heading text-[clamp(1.8rem,4vw,2.5rem)] italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
-            No Archives Found
+            Start your story
           </h3>
           <div className="w-12 h-[2px] bg-[var(--pl-gold)] mx-auto mb-5 rounded-full" />
           <p className="text-[var(--pl-muted)] max-w-[320px] leading-[1.8] text-[0.95rem] mb-10">
-            Begin your legacy by curating your first digital artifact into the Pearloom collection.
+            Build a stunning celebration site in minutes — AI-powered and completely yours.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 items-center">
             <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>

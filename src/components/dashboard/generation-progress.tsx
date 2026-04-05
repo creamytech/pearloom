@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / GenerationProgress.tsx
 // The Loom — radial visualization with step sidebar
-// Matches Stitch "The Loom: Ethereal Echoes" screen
+// Matches Stitch "Building: Ethereal Echoes" screen
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
@@ -188,7 +188,7 @@ export function GenerationProgress({
           color: 'var(--pl-muted)',
           marginBottom: '28px',
         }}>
-          Weaving your heirloom...
+          Building your celebration site...
         </p>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
@@ -273,7 +273,7 @@ export function GenerationProgress({
             color: 'var(--pl-ink)',
             margin: 0,
           }}>
-            The Loom: {displayName}
+            Building: {displayName}
           </h1>
         </div>
 

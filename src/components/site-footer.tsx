@@ -134,7 +134,7 @@ export function SiteFooter({
         {/* Bottom bar */}
         <div className="border-t border-[rgba(245,241,232,0.07)] py-6 flex flex-wrap items-center justify-between gap-4">
           <p className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-[rgba(245,241,232,0.3)]">
-            Est. 2024 &middot; Crafted for the Digital Collector
+            Est. 2024 &middot; Made with Pearloom
           </p>
 
           {/* Back to top */}

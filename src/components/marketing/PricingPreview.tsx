@@ -112,8 +112,8 @@ export function PricingPreview() {
         <SectionHeader
           eyebrow="Pricing"
           eyebrowColor={C.gold}
-          title={<>Investment in Continuity</>}
-          subtitle="Select the sanctuary that best preserves your story."
+          title={<>Simple, transparent pricing</>}
+          subtitle="Start free. Upgrade when you're ready. No surprise fees."
           inView={inView}
         />
 

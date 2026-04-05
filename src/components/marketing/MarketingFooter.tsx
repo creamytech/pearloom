@@ -5,11 +5,11 @@ import { PearIcon } from '@/components/icons/PearloomIcons';
 
 const COLUMNS = [
   {
-    title: 'Discovery',
+    title: 'Product',
     links: [
-      { label: 'The Journal', href: '#the-loom' },
-      { label: 'Legacy', href: '#how-it-works' },
-      { label: 'Our Promise', href: '#pricing' },
+      { label: 'How It Works', href: '#the-loom' },
+      { label: 'Pricing', href: '#how-it-works' },
+      { label: 'FAQ', href: '#pricing' },
     ],
   },
   {
