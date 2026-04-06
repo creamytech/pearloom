@@ -7,22 +7,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSiteConfig } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
-  const siteId = req.nextUrl.searchParams.get('siteId');
-  if (!siteId) {
-    return NextResponse.json({ error: 'Missing siteId parameter' }, { status: 400 });
-  }
+  try {
+    const siteId = req.nextUrl.searchParams.get('siteId');
+    if (!siteId) {
+      return NextResponse.json({ error: 'Missing siteId parameter' }, { status: 400 });
+    }
 
-  const config = await getSiteConfig(siteId);
-  if (!config) {
-    return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-  }
+    const config = await getSiteConfig(siteId);
+    if (!config) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
 
-  // Return minimal site metadata — the seating page only needs names
-  const manifest = config.manifest as { names?: string[]; occasion?: string } | null;
-  return NextResponse.json({
-    site: {
-      names: manifest?.names || [],
-      occasion: manifest?.occasion || 'wedding',
-    },
-  });
+    // Return minimal site metadata — the seating page only needs names
+    const manifest = config.manifest as { names?: string[]; occasion?: string } | null;
+    return NextResponse.json({
+      site: {
+        names: manifest?.names || [],
+        occasion: manifest?.occasion || 'wedding',
+      },
+    });
+  } catch (err) {
+    console.error('[api/site]', err);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
 }

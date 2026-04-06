@@ -13,6 +13,7 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ siteId: string }> },
 ) {
+  try {
   const { siteId } = await params;
 
   const siteConfig = await getSiteConfig(siteId);
@@ -90,4 +91,8 @@ export async function GET(
       'Cache-Control': 'no-store',
     },
   });
+  } catch (err) {
+    console.error('[api/calendar]', err);
+    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
+  }
 }

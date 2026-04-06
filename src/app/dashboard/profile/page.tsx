@@ -147,7 +147,20 @@ export default function ProfilePage() {
               </span>
             </div>
             <Button variant="accent" size="md" className="w-full" icon={<ExternalLink size={13} />}
-              onClick={() => window.open('/api/billing/checkout', '_blank')}>
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/billing/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ planId: 'atelier' }),
+                  });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                  else alert(data.error || 'Could not start checkout');
+                } catch {
+                  alert('Network error — please try again');
+                }
+              }}>
               Upgrade to Atelier
             </Button>
           </div>
