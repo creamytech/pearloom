@@ -40,7 +40,7 @@ function SkeletonLoading({ slow }: { slow: boolean }) {
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
-  const { device, iframeReady, previewSlow, activeId, chapters, previewPage } = state;
+  const { device, iframeReady, previewSlow, activeId, chapters, previewPage, previewZoom } = state;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Listen for edit messages from iframe ──────────────────
@@ -275,7 +275,7 @@ export function EditorCanvas() {
           display: 'flex', flexDirection: 'column',
           alignItems: 'center',
           justifyContent: isFramed ? 'center' : undefined,
-          padding: isFramed ? '24px 20px' : '16px',
+          padding: isFramed ? '60px 20px 20px' : '56px 8px 8px',
           zIndex: 1,
           overflow: 'auto',
         }}
@@ -313,7 +313,8 @@ export function EditorCanvas() {
         ) : (
           /* ── Full-bleed desktop — rounded card with soft shadow ── */
           <div style={{
-            width: '100%', maxWidth: '1120px',
+            width: previewZoom !== 1 ? `${100 / previewZoom}%` : '100%',
+            maxWidth: previewZoom !== 1 ? `${1120 / previewZoom}px` : '1120px',
             flex: 1,
             borderRadius: '20px',
             overflow: 'hidden',
@@ -321,6 +322,9 @@ export function EditorCanvas() {
             position: 'relative',
             background: 'white',
             minHeight: 0,
+            transform: previewZoom !== 1 ? `scale(${previewZoom})` : undefined,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s ease',
           }}>
             {!iframeReady && <SkeletonLoading slow={previewSlow} />}
             <iframe

@@ -40,11 +40,11 @@ const TAB_LABEL: Partial<Record<EditorTab, string>> = {
 };
 
 const TAB_HINT: Partial<Record<EditorTab, string>> = {
-  story:       'Contextual Inspector',
-  canvas:      'Arrange and add page sections',
-  events:      'Ceremony, reception & schedule',
-  design:      'Theme, colors & visual style',
-  details:     'Site URL, settings & metadata',
+  story:       'Edit chapters & narrative',
+  canvas:      'Arrange & add sections',
+  events:      'Ceremony & schedule',
+  design:      'Colors, fonts & effects',
+  details:     'URL, SEO & settings',
   blocks:      'AI-powered content blocks',
   voice:       'Train AI to match your voice',
   messaging:   'Bulk email & guest messaging',
@@ -135,9 +135,9 @@ export function EditorWing({
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
           style={{
             position: 'absolute',
-            top: '16px',
-            right: '16px',
-            bottom: '80px',
+            top: '8px',
+            right: '8px',
+            bottom: '72px',
             width: panelW,
             zIndex: 60,
             display: 'flex',
@@ -153,9 +153,9 @@ export function EditorWing({
         >
           {/* Panel header */}
           <div style={{
-            padding: '16px 16px 12px',
-            borderBottom: '1px solid rgba(0,0,0,0.06)',
-            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+            padding: '14px 14px 10px',
+            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div style={{ minWidth: 0 }}>
               <AnimatePresence mode="wait">
@@ -167,9 +167,10 @@ export function EditorWing({
                   transition={{ duration: 0.14 }}
                 >
                   <h3 style={{
-                    fontSize: '1.05rem',
+                    fontSize: '0.92rem',
                     fontWeight: 600,
                     fontFamily: 'var(--pl-font-heading)',
+                    fontStyle: 'italic',
                     color: 'var(--pl-ink)',
                     margin: 0, lineHeight: 1.2,
                   }}>
@@ -177,11 +178,11 @@ export function EditorWing({
                   </h3>
                   {hint && (
                     <span style={{
-                      fontSize: '0.65rem', fontWeight: 700,
-                      letterSpacing: '0.1em',
+                      fontSize: '0.58rem', fontWeight: 600,
+                      letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       color: 'var(--pl-muted)',
-                      display: 'block', marginTop: '3px',
+                      display: 'block', marginTop: '2px',
                     }}>
                       {hint}
                     </span>
@@ -230,7 +231,7 @@ export function EditorWing({
               flex: 1,
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
-              padding: '4px 0',
+              padding: '2px 0',
             } as React.CSSProperties}
           >
             {children}

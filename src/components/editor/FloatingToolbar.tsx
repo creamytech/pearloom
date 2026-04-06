@@ -7,11 +7,11 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
-import { Move, Paintbrush, Plus, Undo2, Blend } from 'lucide-react';
+import { GripVertical, Paintbrush, Plus, Undo2, Blend } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 
 const TOOLS = [
-  { id: 'move',  Icon: Move,       label: 'Move',  tab: null },
+  { id: 'move',  Icon: GripVertical, label: 'Move',  tab: null },
   { id: 'style', Icon: Paintbrush, label: 'Style', tab: 'design' as const },
   { id: 'add',   Icon: Plus,       label: 'Add',   tab: 'canvas' as const, primary: true },
   { id: 'undo',  Icon: Undo2,      label: 'Undo',  tab: null },
