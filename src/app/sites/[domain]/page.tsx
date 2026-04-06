@@ -254,8 +254,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     accent: pal.accent,
     bg: pal.background,
   });
-  // Hero image priority: 1) AI-generated Nano Banana art, 2) hero-art API fallback
-  const coverPhoto = vibeSkin.heroArtDataUrl || `/api/hero-art?${heroArtParams.toString()}`;
+  // Hero image priority: 1) user-uploaded cover, 2) AI-generated art, 3) hero-art API
+  const coverPhoto = manifest.coverPhoto || vibeSkin.heroArtDataUrl || `/api/hero-art?${heroArtParams.toString()}`;
 
   // Memory Film: collect up to 6 chapter images for the cycling hero backdrop
   const filmPhotos = (manifest.chapters || [])

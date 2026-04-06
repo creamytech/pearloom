@@ -16,6 +16,8 @@ export interface StoryManifest {
   theme: ThemeSchema;
   chapters: Chapter[];
   comingSoon: ComingSoonConfig;
+  // User-uploaded hero cover photo (overrides AI-generated art)
+  coverPhoto?: string;
   // What type of life event is this site for?
   occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
   // Timeline macro layout format chosen by user

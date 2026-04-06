@@ -78,8 +78,16 @@ export function EditorCanvas() {
       }
 
       if (event.data?.type === 'pearloom-photo-replace') {
-        const { chapterId, photoIndex, newUrl, newAlt } = event.data;
-        if (!chapterId || !newUrl) return;
+        const { chapterId, photoIndex, newUrl, newAlt, isHero } = event.data;
+        if (!newUrl) return;
+
+        // Hero cover photo — stored at manifest level, not in chapters
+        if (isHero || !chapterId) {
+          const updated = { ...manifest, coverPhoto: newUrl };
+          actions.handleDesignChange(updated);
+          return;
+        }
+
         const chapter = chapters.find(c => c.id === chapterId);
         if (!chapter) return;
         const imgs = [...(chapter.images || [])];
