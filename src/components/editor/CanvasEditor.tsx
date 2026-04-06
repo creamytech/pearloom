@@ -985,7 +985,7 @@ function BlockEffectsEditor({
 }
 
 // ── Add Block Picker ───────────────────────────────────────────
-function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd: (type: BlockType) => void; existingTypes: Set<BlockType>; occasion?: OccasionTag }) {
+function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding' }: { onAdd: (type: BlockType) => void; onDragType?: (type: BlockType | null) => void; existingTypes: Set<BlockType>; occasion?: OccasionTag }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -1046,6 +1046,13 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
               {filtered.map(b => (
                 <button
                   key={b.type}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('pearloom/block-type', b.type);
+                    e.dataTransfer.effectAllowed = 'copy';
+                    onDragType?.(b.type);
+                  }}
+                  onDragEnd={() => onDragType?.(null)}
                   onClick={() => { onAdd(b.type); setOpen(false); setSearch(''); }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
@@ -1053,7 +1060,7 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
                     border: `1px solid ${existingTypes.has(b.type) ? `${b.color}28` : 'transparent'}`,
                     background: existingTypes.has(b.type) ? `${b.color}08` : 'transparent',
                     borderLeft: `2px solid ${existingTypes.has(b.type) ? b.color : 'transparent'}`,
-                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.12s',
+                    cursor: 'grab', textAlign: 'left', transition: 'all 0.12s',
                   }}
                   onMouseOver={e => {
                     const el = e.currentTarget as HTMLElement;
@@ -1082,7 +1089,7 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
                         <span style={{ fontSize: '0.58rem', color: b.color, padding: '1px 5px', borderRadius: '4px', background: `${b.color}18`, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>added</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: '1px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{b.description}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginTop: '1px', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{b.description}</div>
                   </div>
                 </button>
               ))}
@@ -1251,6 +1258,49 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
     if (activePage === id) setActivePage('main');
   };
 
+  // ── External drag: new block being dragged from picker ──────────
+  const [draggingNewType, setDraggingNewType] = useState<BlockType | null>(null);
+  const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
+
+  const insertBlockAt = useCallback((type: BlockType, position: number) => {
+    const id = `block-${type}-${Date.now()}`;
+    const newBlock: PageBlock = { id, type, order: position, visible: true };
+    const updated = [...blocks];
+    updated.splice(position, 0, newBlock);
+    commit(updated);
+    setActiveBlockId(id);
+  }, [blocks, commit]);
+
+  const handleExternalDrop = useCallback((e: React.DragEvent, position: number) => {
+    e.preventDefault();
+    const blockType = e.dataTransfer.getData('pearloom/block-type') as BlockType;
+    if (blockType) {
+      insertBlockAt(blockType, position);
+    }
+    setDropTargetIdx(null);
+    setDraggingNewType(null);
+  }, [insertBlockAt]);
+
+  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    if (e.dataTransfer.types.includes('pearloom/block-type')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      setDropTargetIdx(idx);
+    }
+  }, []);
+
+  // ── Listen for section-click events from preview ──────────────
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const blockType = (e as CustomEvent).detail?.blockType;
+      if (!blockType) return;
+      const match = blocks.find(b => b.type === blockType);
+      if (match) setActiveBlockId(match.id);
+    };
+    window.addEventListener('pearloom-select-block', handler);
+    return () => window.removeEventListener('pearloom-select-block', handler);
+  }, [blocks]);
+
   const activeBlock = blocks.find(b => b.id === activeBlockId);
   const activeDef = activeBlock ? BLOCK_CATALOGUE.find(d => d.type === activeBlock.type) : null;
   const existingTypes = new Set(blocks.map(b => b.type));
@@ -1386,7 +1436,36 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
         )}
 
         {/* ── Drag-sortable block list ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', position: 'relative' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '5px', position: 'relative' }}
+          onDragOver={(e) => {
+            if (e.dataTransfer.types.includes('pearloom/block-type')) {
+              e.preventDefault();
+              // If over the container but not a specific zone, target end
+              setDropTargetIdx(blocks.length);
+            }
+          }}
+          onDragLeave={() => setDropTargetIdx(null)}
+          onDrop={(e) => {
+            if (e.dataTransfer.types.includes('pearloom/block-type')) {
+              handleExternalDrop(e, dropTargetIdx ?? blocks.length);
+            }
+          }}
+        >
+          {/* Drop zone at top */}
+          {draggingNewType && (
+            <div
+              onDragOver={(e) => handleDragOver(e, 0)}
+              onDrop={(e) => handleExternalDrop(e, 0)}
+              style={{
+                height: dropTargetIdx === 0 ? '4px' : '12px',
+                borderRadius: '2px',
+                background: dropTargetIdx === 0 ? 'var(--pl-olive)' : 'transparent',
+                transition: 'all 0.15s',
+                boxShadow: dropTargetIdx === 0 ? '0 0 8px rgba(163,177,138,0.5)' : 'none',
+              }}
+            />
+          )}
           {(() => {
             // Convert the hook's final-array dropIndex to the visual list position
             // where the indicator line should appear.
@@ -1455,13 +1534,27 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                     boxShadow: '0 0 6px rgba(163,177,138,0.5)',
                   }} />
                 )}
+                {/* External drag drop zone — between blocks */}
+                {draggingNewType && (
+                  <div
+                    onDragOver={(e) => handleDragOver(e, idx + 1)}
+                    onDrop={(e) => handleExternalDrop(e, idx + 1)}
+                    style={{
+                      height: dropTargetIdx === idx + 1 ? '4px' : '8px',
+                      borderRadius: '2px',
+                      background: dropTargetIdx === idx + 1 ? 'var(--pl-olive)' : 'transparent',
+                      transition: 'all 0.15s',
+                      boxShadow: dropTargetIdx === idx + 1 ? '0 0 8px rgba(163,177,138,0.5)' : 'none',
+                    }}
+                  />
+                )}
               </div>
             );
             });
           })()}
         </div>
 
-        <AddBlockPicker onAdd={addBlock} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
+        <AddBlockPicker onAdd={addBlock} onDragType={setDraggingNewType} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
       </div>
 
       {/* ── Config panel (slides up from bottom) ── */}
@@ -1490,7 +1583,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   <activeDef.icon size={14} color={activeDef.color} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--pl-ink)' }}>{activeDef.label}</div>
                   <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings · Section style</div>
                 </div>
                 <button
@@ -1564,7 +1657,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--pl-ink)', lineHeight: 1.3 }}>
                 {draggedDef?.label ?? draggedBlock?.type}
               </div>
-              <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', marginTop: '2px' }}>
                 Drag to reorder
               </div>
             </div>

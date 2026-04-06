@@ -59,28 +59,21 @@ export function EditorCanvas() {
       if (event.data?.type === 'pearloom-section-click') {
         const { chapterId, sectionId } = event.data;
         if (chapterId) {
+          // Story chapter click — open story tab and select chapter
           dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-        } else if (sectionId === 'hero') {
-          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-        } else if (sectionId === 'events' || sectionId === 'schedule') {
-          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
-        } else if (sectionId === 'rsvp') {
-          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
-        } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
-          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
-        } else if (sectionId === 'photos' || sectionId === 'gallery') {
-          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
-        } else if (sectionId === 'guestbook') {
-          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         } else if (sectionId === 'design' || sectionId === 'theme') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
-        } else if (sectionId === 'countdown') {
-          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
         } else if (sectionId === 'spotify' || sectionId === 'music') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'spotify' });
-        } else {
+        } else if (sectionId) {
+          // All other section clicks → open canvas tab and auto-select matching block
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+          // Dispatch a custom event so CanvasEditor can select the right block
+          const blockType = sectionId === 'events' || sectionId === 'schedule' ? 'event'
+            : sectionId === 'gallery' ? 'photos'
+            : sectionId;
+          window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType } }));
         }
       }
 
