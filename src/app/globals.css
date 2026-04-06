@@ -306,6 +306,126 @@
   border-color: rgba(163,177,138,0.3);
 }
 
+/* ── Fluid micro-animations ─── */
+
+/* Page load — content fades up on initial render */
+.pl-page-enter > * {
+  animation: pl-page-enter 0.5s ease both;
+}
+.pl-page-enter > *:nth-child(1) { animation-delay: 0.05s; }
+.pl-page-enter > *:nth-child(2) { animation-delay: 0.1s; }
+.pl-page-enter > *:nth-child(3) { animation-delay: 0.15s; }
+.pl-page-enter > *:nth-child(4) { animation-delay: 0.2s; }
+.pl-page-enter > *:nth-child(5) { animation-delay: 0.25s; }
+@keyframes pl-page-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Button press — tactile spring feedback */
+.pl-press {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pl-press:active {
+  transform: scale(0.96);
+}
+
+/* Card tap — subtle scale + lift on touch */
+.pl-card-tap {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease;
+}
+.pl-card-tap:active {
+  transform: scale(0.98) translateY(1px);
+}
+
+/* Input focus bloom — soft glow on focus */
+input:focus, textarea:focus, select:focus {
+  transition: border-color 0.25s ease, box-shadow 0.3s ease;
+}
+
+/* Toggle slide — smooth switch transition */
+.pl-toggle-slide {
+  transition: background-color 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Count up — number changes animate */
+.pl-count-up {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pl-count-up.changed {
+  animation: pl-count-bump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pl-count-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Notification dot pulse */
+.pl-dot-pulse {
+  animation: pl-dot-pulse 2s ease-in-out infinite;
+}
+@keyframes pl-dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* Smooth scroll snap for horizontal carousels */
+.pl-scroll-snap {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.pl-scroll-snap > * {
+  scroll-snap-align: start;
+}
+
+/* Smooth list item entrance — for dynamically added items */
+.pl-list-enter {
+  animation: pl-list-enter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes pl-list-enter {
+  from { opacity: 0; transform: translateX(-8px) scale(0.97); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* Smooth remove — item slides out before removal */
+.pl-list-exit {
+  animation: pl-list-exit 0.25s ease both;
+}
+@keyframes pl-list-exit {
+  to { opacity: 0; transform: translateX(8px) scale(0.97); height: 0; padding: 0; margin: 0; overflow: hidden; }
+}
+
+/* Tab switch — content cross-fades */
+.pl-tab-content {
+  animation: pl-tab-fade 0.2s ease;
+}
+@keyframes pl-tab-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tooltip entrance */
+.pl-tooltip {
+  animation: pl-tooltip 0.15s ease both;
+}
+@keyframes pl-tooltip {
+  from { opacity: 0; transform: scale(0.95) translateY(2px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Success flash — brief green glow after save */
+.pl-success-flash {
+  animation: pl-success-flash 0.6s ease;
+}
+@keyframes pl-success-flash {
+  0% { box-shadow: 0 0 0 0 rgba(163,177,138,0); }
+  30% { box-shadow: 0 0 0 4px rgba(163,177,138,0.3); }
+  100% { box-shadow: 0 0 0 0 rgba(163,177,138,0); }
+}
+
 /* Styled checkbox — olive accent color */
 .accent-olive {
   accent-color: var(--pl-olive-deep);
