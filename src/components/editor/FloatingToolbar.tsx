@@ -39,14 +39,21 @@ export function FloatingToolbar() {
       style={{
         position: 'absolute',
         bottom: '24px',
-        left: '50%',
-        transform: 'translateX(-50%)',
+        left: '0',
+        right: '0',
         zIndex: 50,
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+      } as React.CSSProperties}
+    >
+      <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: '4px',
         padding: '6px 8px',
         borderRadius: '100px',
+        pointerEvents: 'auto',
         background: 'rgba(255,255,255,0.88)',
         backdropFilter: 'blur(24px) saturate(1.5)',
         WebkitBackdropFilter: 'blur(24px) saturate(1.5)',
@@ -106,6 +113,7 @@ export function FloatingToolbar() {
           </motion.button>
         );
       })}
+      </div>
     </motion.div>
   );
 }

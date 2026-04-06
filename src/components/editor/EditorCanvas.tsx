@@ -187,27 +187,40 @@ export function EditorCanvas() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           style={{
-          position: 'absolute', top: '4px', left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute', top: '8px',
+          left: '0', right: '0',
+          display: 'flex', justifyContent: 'center',
           zIndex: 41,
-          padding: '4px 12px',
-          borderRadius: '100px',
-          background: 'var(--pl-olive-deep)',
-          color: 'white',
-          fontSize: '0.55rem', fontWeight: 700,
-          letterSpacing: '0.12em', textTransform: 'uppercase',
-          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
         }}>
+          <span style={{
+            padding: '4px 12px',
+            borderRadius: '100px',
+            background: 'var(--pl-olive-deep)',
+            color: 'white',
+            fontSize: '0.55rem', fontWeight: 700,
+            letterSpacing: '0.12em', textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'auto',
+          }}>
           Editing: {state.activeTab === 'story' ? 'Story' : state.activeTab === 'design' ? 'Theme' : state.activeTab === 'canvas' ? 'Sections' : state.activeTab === 'events' ? 'Events' : state.activeTab === 'details' ? 'Settings' : state.activeTab.charAt(0).toUpperCase() + state.activeTab.slice(1)}
+          </span>
         </motion.div>
       )}
 
       {/* ── Floating device switcher ── */}
       <div style={{
-        position: 'absolute', top: '28px', left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: '32px',
+        left: '0', right: '0',
+        display: 'flex', justifyContent: 'center',
         zIndex: 40,
+        pointerEvents: 'none',
+      }}>
+      <div style={{
         display: 'flex', alignItems: 'center', gap: '2px',
         padding: '4px',
         borderRadius: '100px',
+        pointerEvents: 'auto',
         background: 'rgba(255,255,255,0.88)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
@@ -250,6 +263,7 @@ export function EditorCanvas() {
             <Icon size={14} />
           </motion.button>
         ))}
+      </div>
       </div>
 
       {/* ── Main canvas area ── */}
