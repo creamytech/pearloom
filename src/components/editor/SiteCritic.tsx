@@ -190,12 +190,16 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
         style={{
-          background: 'var(--pl-cream, #FAF7F2)',
+          background: 'rgba(255,255,255,0.55)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderLeft: '3px solid var(--pl-olive, #A3B18A)',
-          borderRadius: '8px',
+          borderRadius: '12px',
           padding: '14px 16px',
           position: 'relative',
-        }}
+          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 2px 8px rgba(43,30,20,0.04)',
+        } as React.CSSProperties}
       >
         {/* ── Header ──────────────────────────────────────── */}
         <div

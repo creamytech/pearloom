@@ -155,12 +155,14 @@ export default function FaqPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              background: '#ffffff',
-              borderRadius: '1.25rem',
-              border: '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
+              background: 'rgba(255,255,255,0.55)',
+              backdropFilter: 'blur(24px) saturate(1.3)',
+              WebkitBackdropFilter: 'blur(24px) saturate(1.3)',
+              borderRadius: '1.5rem',
+              border: '1px solid rgba(255,255,255,0.6)',
+              boxShadow: '0 8px 40px rgba(43,30,20,0.06), 0 2px 8px rgba(43,30,20,0.03), inset 0 1px 0 rgba(255,255,255,0.5)',
               padding: '0.5rem clamp(1.5rem, 4vw, 2.5rem)',
-            }}
+            } as React.CSSProperties}
           >
             {FAQS.sort((a, b) => a.order - b.order).map((faq) => (
               <FaqAccordion key={faq.id} faq={faq} />

@@ -8,23 +8,23 @@ import { cn } from '@/lib/cn';
 // ─────────────────────────────────────────────────────────────
 
 const cardVariants = {
-  /** Default white card with soft organic shadow */
+  /** Default card with glass treatment and warm shadow */
   elevated: [
-    'bg-white border border-[rgba(0,0,0,0.05)]',
-    'shadow-[0_1px_4px_rgba(43,30,20,0.04),0_4px_16px_rgba(43,30,20,0.03)]',
-    'hover:shadow-[0_4px_20px_rgba(43,30,20,0.08),0_8px_32px_rgba(43,30,20,0.04)] hover:-translate-y-0.5',
+    'bg-white/80 backdrop-blur-sm border border-[rgba(255,255,255,0.6)]',
+    'shadow-[0_2px_8px_rgba(43,30,20,0.04),0_4px_20px_rgba(43,30,20,0.03)]',
+    'hover:shadow-[0_4px_24px_rgba(43,30,20,0.08),0_8px_32px_rgba(43,30,20,0.04)] hover:-translate-y-0.5',
     'transition-all duration-300',
   ].join(' '),
 
-  /** Cream-tinted flat card — section blocks, bento tiles */
+  /** Cream-tinted glass card — section blocks, bento tiles */
   flat: [
-    'bg-[var(--pl-cream-deep)] border border-transparent',
+    'bg-white/40 backdrop-blur-sm border border-[rgba(255,255,255,0.5)]',
     'transition-all duration-300',
   ].join(' '),
 
   /** Outlined — table rows, list items */
   outlined: [
-    'bg-white border-[1.5px] border-[rgba(0,0,0,0.07)]',
+    'bg-white/70 backdrop-blur-sm border-[1.5px] border-[rgba(0,0,0,0.06)]',
     'hover:border-[var(--pl-olive)] transition-all duration-200',
   ].join(' '),
 
