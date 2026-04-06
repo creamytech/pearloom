@@ -259,9 +259,20 @@ export function ChapterPanel({
         />
       )}
 
-      {/* Layout — visual preview cards */}
-      <div>
-        <label style={{ ...lbl, fontSize: '0.62rem' }}>Layout</label>
+      {/* Layout Override — collapsed by default, auto-assigned normally */}
+      <details style={{ marginTop: '0.25rem' }}>
+        <summary style={{
+          fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'var(--pl-muted)',
+          cursor: 'pointer', padding: '4px 0', listStyle: 'none',
+          display: 'flex', alignItems: 'center', gap: '4px',
+        }}>
+          <span style={{ fontSize: '0.5rem' }}>▸</span> Layout Override
+          <span style={{ fontSize: '0.55rem', fontWeight: 500, fontStyle: 'italic', textTransform: 'none', letterSpacing: 'normal' }}>
+            (auto: {currentLayout})
+          </span>
+        </summary>
+        <div style={{ marginTop: '6px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {LAYOUT_OPTS.map(l => {
             const isActive = currentLayout === l;
@@ -298,7 +309,8 @@ export function ChapterPanel({
             );
           })}
         </div>
-      </div>
+        </div>
+      </details>
 
       {/* Mood — visual selectable presets */}
       <div>

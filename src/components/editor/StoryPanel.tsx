@@ -320,7 +320,7 @@ export function StoryPanel() {
       {/* Timeline format switcher — visual previews */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
-          Timeline Format
+          Story Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
           {[
