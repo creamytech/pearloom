@@ -17,10 +17,10 @@ interface MobileBottomNavProps {
 }
 
 const TABS = [
-  { id: 'feed' as const,    Icon: LayoutGrid, label: 'Feed' },
-  { id: 'build' as const,   Icon: Plus,       label: 'Build', primary: true },
-  { id: 'aiscout' as const, Icon: Sparkles,   label: 'AI' },
-  { id: 'profile' as const, Icon: User,       label: 'Profile' },
+  { id: 'feed' as const,    Icon: LayoutGrid, label: 'Feed',    href: '/dashboard' },
+  { id: 'build' as const,   Icon: Plus,       label: 'Build',   primary: true, href: null },
+  { id: 'aiscout' as const, Icon: Sparkles,   label: 'AI',      href: '/marketplace' },
+  { id: 'profile' as const, Icon: User,       label: 'Profile', href: '/dashboard/profile' },
 ];
 
 export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBottomNavProps) {
@@ -51,6 +51,8 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
               onClick={() => {
                 if (tab.id === 'build' && onBuild) {
                   onBuild();
+                } else if ('href' in tab && tab.href) {
+                  window.location.href = tab.href;
                 } else {
                   onTabChange(tab.id);
                 }

@@ -266,10 +266,11 @@ export default function DashboardClient() {
 
   // ── Main wizard render ──────────────────────────────────────
   const handleTemplateSelect = (template: SiteTemplate) => {
+    const slug = template.id + '-' + Date.now().toString(36);
     const manifest = applyTemplate(template, {} as import('@/types').StoryManifest, ['', '']);
-    dispatch({ type: 'SET_MANIFEST', manifest, subdomain: 'my-site-' + Date.now() });
+    // Go straight to editor — template already has blocks, theme, poetry
+    dispatch({ type: 'EDIT_SITE', manifest, subdomain: slug, names: ['', ''] });
     setShowTemplates(false);
-    goTo('vibe');
   };
 
   return (

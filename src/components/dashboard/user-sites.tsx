@@ -316,8 +316,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10">
           {[
             { icon: <Pencil size={24} />, title: 'New Story', desc: 'Upload photos and let The Loom craft your story.', action: onStartNew },
-            { icon: <Image size={24} />, title: 'Photo Site', desc: 'Create a photo-driven site from your gallery.', action: onStartNew },
-            { icon: <Sparkles size={24} />, title: 'From Template', desc: 'Pick a template and customize every detail.', action: onQuickStart || onStartNew },
+            { icon: <Image size={24} />, title: 'Photo Site', desc: 'Start from a photo-focused template.', action: onOpenTemplates || onStartNew },
+            { icon: <Sparkles size={24} />, title: 'From Template', desc: 'Pick a template and customize every detail.', action: onOpenTemplates || onQuickStart || onStartNew },
           ].map((card, i) => (
             <motion.button
               key={card.title}
