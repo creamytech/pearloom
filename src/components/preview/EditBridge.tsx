@@ -180,7 +180,85 @@ export function EditBridge({ enabled }: EditBridgeProps) {
     makeEditable();
     const observer = new MutationObserver(makeEditable);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+
+    // ── Icon swap click handler ──────────────────────────
+    const ICON_OPTIONS = ['✦', '♡', '❋', '✿', '◆', '☆', '✧', '♢', '❀', '✻', '❖', '△', '◎', '⟡', '✶', '❁', '♤', '⚘', '✽', '⟐'];
+
+    const handleIconClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('[data-pe-icon]') as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const field = target.getAttribute('data-pe-icon') || 'accentSymbol';
+      const rect = target.getBoundingClientRect();
+
+      // Remove existing picker
+      document.getElementById('pe-icon-picker')?.remove();
+
+      // Create icon picker popup
+      const picker = document.createElement('div');
+      picker.id = 'pe-icon-picker';
+      picker.style.cssText = `
+        position: fixed; z-index: 99999;
+        top: ${Math.min(rect.bottom + 8, window.innerHeight - 260)}px;
+        left: ${Math.max(8, Math.min(rect.left - 80, window.innerWidth - 240))}px;
+        width: 220px; padding: 12px;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 12px 40px rgba(43,30,20,0.12), 0 4px 12px rgba(43,30,20,0.06);
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+        animation: peIconPickerIn 0.15s ease-out;
+      `;
+      picker.innerHTML = ICON_OPTIONS.map(icon => `
+        <button style="
+          width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+          border-radius: 10px; border: 1px solid rgba(0,0,0,0.04);
+          background: ${target.textContent?.trim() === icon ? 'rgba(163,177,138,0.15)' : 'transparent'};
+          cursor: pointer; font-size: 1.1rem; transition: all 0.12s;
+        " data-icon="${icon}" title="${icon}">
+          ${icon}
+        </button>
+      `).join('');
+
+      // Add style tag for animation
+      if (!document.getElementById('pe-icon-picker-style')) {
+        const s = document.createElement('style');
+        s.id = 'pe-icon-picker-style';
+        s.textContent = `@keyframes peIconPickerIn { from { opacity: 0; transform: translateY(-4px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }`;
+        document.head.appendChild(s);
+      }
+
+      picker.addEventListener('click', (ev) => {
+        const btn = (ev.target as HTMLElement).closest('[data-icon]') as HTMLElement | null;
+        if (!btn) return;
+        const newIcon = btn.getAttribute('data-icon') || '✦';
+        window.parent.postMessage({ type: 'pearloom-icon-swap', field, value: newIcon }, '*');
+        target.textContent = newIcon;
+        picker.remove();
+      });
+
+      document.body.appendChild(picker);
+
+      // Close on outside click
+      const closeHandler = (ev: MouseEvent) => {
+        if (!picker.contains(ev.target as Node) && ev.target !== target) {
+          picker.remove();
+          document.removeEventListener('mousedown', closeHandler);
+        }
+      };
+      setTimeout(() => document.addEventListener('mousedown', closeHandler), 50);
+    };
+
+    document.addEventListener('click', handleIconClick);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('click', handleIconClick);
+      document.getElementById('pe-icon-picker')?.remove();
+    };
   }, [enabled]);
 
   // ── Inject "Edit Cover Photo" button into the hero section ───

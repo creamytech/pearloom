@@ -343,8 +343,8 @@ function PreviewContent() {
       case 'quote':
         return (
           <section key={key} data-pe-section="quote" data-pe-label="Quote" style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
-            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
-            <p style={{
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}><span data-pe-icon="accentSymbol" style={{ cursor: 'pointer' }}>{vibeSkin.accentSymbol || '✦'}</span></div>
+            <p data-pe-editable="true" data-pe-path="poetry.dividerQuote" style={{
               fontFamily: `"${vibeSkin.fonts.heading}", serif`,
               fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic',
               lineHeight: 1.65, color: pal.foreground, opacity: 0.75,
@@ -586,10 +586,10 @@ function PreviewContent() {
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
           <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: pal.accent, opacity: 0.3 }} />
-          <span style={{ fontSize: '1.5rem', color: pal.accent, opacity: 0.7 }}>{vibeSkin.accentSymbol || '✦'}</span>
+          <span style={{ fontSize: '1.5rem', color: pal.accent, opacity: 0.7 }}><span data-pe-icon="accentSymbol" style={{ cursor: 'pointer' }}>{vibeSkin.accentSymbol || '✦'}</span></span>
           <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: pal.accent, opacity: 0.3 }} />
         </div>
-        <p style={{
+        <p data-pe-editable="true" data-pe-path="poetry.vibeQuote" style={{
           fontFamily: `"${vibeSkin.fonts.heading}", serif`,
           fontSize: 'clamp(1.2rem, 2.5vw, 1.9rem)', fontWeight: 400, fontStyle: 'italic',
           lineHeight: 1.7, color: pal.foreground, opacity: 0.78,
@@ -624,7 +624,7 @@ function PreviewContent() {
     if (!statement) return null;
     return (
       <div style={{ padding: '0 2rem 5rem', maxWidth: '680px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <p style={{
+        <p data-pe-editable="true" data-pe-path="poetry.welcomeStatement" style={{
           fontFamily: `"${vibeSkin.fonts.body}", sans-serif`,
           fontSize: 'clamp(1rem, 2.2vw, 1.15rem)', lineHeight: 1.85,
           color: pal.foreground, opacity: 0.7,

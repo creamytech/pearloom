@@ -115,6 +115,21 @@ export function EditorCanvas() {
         dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
       }
 
+      // ── Icon swap ─────────────────────────────────────────────
+      if (event.data?.type === 'pearloom-icon-swap') {
+        const { field, value } = event.data;
+        if (!field || !value) return;
+        if (field === 'accentSymbol' && manifest.vibeSkin) {
+          const updated = {
+            ...manifest,
+            vibeSkin: { ...manifest.vibeSkin, accentSymbol: value },
+          };
+          actions.handleDesignChange(updated);
+        } else if (field === 'logoIcon') {
+          actions.handleDesignChange({ ...manifest, logoIcon: value });
+        }
+      }
+
       // ── Manifest path edit (non-chapter fields: events, FAQ, etc.) ──
       if (event.data?.type === 'pearloom-manifest-edit') {
         const { path, value } = event.data;

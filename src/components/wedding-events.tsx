@@ -322,7 +322,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
               >
                 Dress Code
               </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--pl-ink)' }}>
+              <div data-pe-editable="true" data-pe-path={`events.${index}.dressCode`} style={{ fontSize: '0.88rem', color: 'var(--pl-ink)' }}>
                 {event.dressCode}
               </div>
             </div>
@@ -332,6 +332,8 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         {/* Description */}
         {event.description && (
           <p
+            data-pe-editable="true"
+            data-pe-path={`events.${index}.description`}
             style={{
               fontSize: '0.85rem',
               color: 'var(--pl-muted)',
