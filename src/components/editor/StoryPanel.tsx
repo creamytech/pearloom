@@ -184,12 +184,10 @@ function SectionItem({
           </div>
 
           <motion.button
-            onClick={e => {
+            onClick={async (e) => {
               e.stopPropagation();
-              // TODO: Replace with useDialog().confirm()
-              if (window.confirm(`Delete "${chapter.title}"? This cannot be undone.`)) {
-                onDelete(chapter.id);
-              }
+              const ok = window.confirm(`Delete "${chapter.title}"? This cannot be undone.`);
+              if (ok) onDelete(chapter.id);
             }}
             whileHover={{ scale: 1.15, color: '#f87171', backgroundColor: 'rgba(248,113,113,0.12)' }}
             whileTap={{ scale: 0.88 }}

@@ -342,15 +342,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
                 />
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap', paddingBottom: '0.1rem' }}>
-                <input
-                  type="checkbox"
+              <div style={{ display: 'flex', alignItems: 'center', paddingBottom: '0.1rem' }}>
+                <Switch
                   checked={newGuest.plusOne}
-                  onChange={(e) => setNewGuest((p) => ({ ...p, plusOne: e.target.checked }))}
-                  style={{ accentColor: 'var(--pl-olive)' }}
+                  onChange={(checked) => setNewGuest((p) => ({ ...p, plusOne: checked }))}
+                  label="+1 Allowed"
                 />
-                +1 Allowed
-              </label>
+              </div>
               {addError && (
                 <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.5rem', fontSize: '0.8rem', color: '#b91c1c' }}>
                   {addError}
@@ -438,7 +436,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           <span style={{ display: 'flex', alignItems: 'center' }}>
             <input
               type="checkbox"
-              style={{ accentColor: 'var(--pl-olive)', cursor: 'pointer' }}
+              className="accent-olive cursor-pointer w-4 h-4 rounded"
               checked={filtered.length > 0 && filtered.every(g => selectedIds.has(g.id))}
               onChange={(e) => {
                 if (e.target.checked) {
@@ -530,7 +528,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
                     <input
                       type="checkbox"
-                      style={{ accentColor: 'var(--pl-olive)', cursor: 'pointer' }}
+                      className="accent-olive cursor-pointer w-4 h-4 rounded"
                       checked={selectedIds.has(guest.id)}
                       onChange={(e) => {
                         setSelectedIds(prev => {

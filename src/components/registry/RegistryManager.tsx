@@ -399,7 +399,6 @@ export function RegistryManager({ siteId }: RegistryManagerProps) {
   // ── Delete ─────────────────────────────────────────────────
 
   const handleDelete = async (id: string) => {
-    // TODO: Replace with useDialog().confirm()
     if (!confirm('Remove this registry?')) return;
 
     // Optimistic

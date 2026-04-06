@@ -233,6 +233,12 @@
   transform: scale(1.02);
 }
 
+/* Styled checkbox — olive accent color */
+.accent-olive {
+  accent-color: var(--pl-olive-deep);
+  border-radius: 4px;
+}
+
 /* ─── Keyframes ─── */
 
 @keyframes accordion-down {

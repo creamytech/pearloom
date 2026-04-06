@@ -229,19 +229,19 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
                     Size
-                    <input type="range" min={30} max={200} value={s.size} onChange={e => {
+                    <RangeSlider min={30} max={200} value={s.size} onChange={v => {
                       const updated = [...manifest.stickers!];
-                      updated[i] = { ...s, size: Number(e.target.value) };
+                      updated[i] = { ...s, size: v };
                       onChange({ ...manifest, stickers: updated });
-                    }} style={{ width: '50px', accentColor: '#A3B18A' }} />
+                    }} />
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted)' }}>
                     Op.
-                    <input type="range" min={10} max={100} value={Math.round(s.opacity * 100)} onChange={e => {
+                    <RangeSlider min={10} max={100} value={Math.round(s.opacity * 100)} onChange={v => {
                       const updated = [...manifest.stickers!];
-                      updated[i] = { ...s, opacity: Number(e.target.value) / 100 };
+                      updated[i] = { ...s, opacity: v / 100 };
                       onChange({ ...manifest, stickers: updated });
-                    }} style={{ width: '40px', accentColor: '#A3B18A' }} />
+                    }} />
                   </label>
                   <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}>✕</button>
                 </div>

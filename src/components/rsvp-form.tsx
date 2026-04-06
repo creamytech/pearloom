@@ -441,7 +441,7 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                               : [...prev, evt.id]
                           );
                         }}
-                        style={{ accentColor: 'var(--pl-olive)' }}
+                        className="accent-olive w-4 h-4 cursor-pointer"
                       />
                       <span style={{ fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--pl-font-body)' }}>
                         {evt.name}

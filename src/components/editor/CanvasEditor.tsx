@@ -972,10 +972,8 @@ function BlockEffectsEditor({
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft)' }}>Height</span>
                   <span style={{ fontSize: '0.72rem', color: 'rgba(214,198,168,0.7)', fontWeight: 700 }}>{divHeight}px</span>
                 </div>
-                <input
-                  type="range" min={30} max={200} value={divHeight}
-                  onChange={e => onUpdate({ dividerAbove: { style: divStyle, height: Number(e.target.value) } })}
-                  style={{ width: '100%', accentColor: 'var(--pl-olive, #A3B18A)', cursor: 'pointer' }}
+                <RangeSlider min={30} max={200} value={divHeight} suffix="px"
+                  onChange={v => onUpdate({ dividerAbove: { style: divStyle, height: v } })}
                 />
               </div>
             )}
