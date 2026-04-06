@@ -33,6 +33,8 @@ import { UploadStep } from '@/components/wizard/UploadStep';
 import { ClustersStep } from '@/components/wizard/ClustersStep';
 import { VibeStep } from '@/components/wizard/VibeStep';
 import { GeneratingStep } from '@/components/wizard/GeneratingStep';
+import { LivePreview, QuickStartBanner } from '@/components/wizard/LivePreview';
+import { createProgressiveSession, type ProgressiveState } from '@/lib/progressive-generation';
 import { GuestsStep } from '@/components/wizard/GuestsStep';
 import { PublishModal } from '@/components/shared/PublishModal';
 import { TemplateGallery } from '@/components/dashboard/TemplateGallery';
@@ -67,6 +69,8 @@ export default function DashboardClient() {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [mobileTab, setMobileTab] = useState<'feed' | 'build' | 'aiscout' | 'profile'>('feed');
+  const [progressiveSession] = useState(() => createProgressiveSession());
+  const [previewState, setPreviewState] = useState<ProgressiveState>(progressiveSession.state);
 
   // ── URL tracking — keep address bar in sync with current step ──
   useEffect(() => {
@@ -91,6 +95,15 @@ export default function DashboardClient() {
   const handleVibeSubmit = useCallback(async (data: VibeFormData) => {
     dispatch({ type: 'SET_VIBE', data });
     setLastVibeData(data);
+
+    // Trigger progressive generation style phase
+    progressiveSession.onIdentityReady(data.names, data.occasion || 'wedding')
+      .then(() => progressiveSession.onStyleReady(
+        (data.vibeString || '').split(/[\s,]+/).filter(Boolean),
+        'ai-decide'
+      ))
+      .then(() => setPreviewState({ ...progressiveSession.getState() }))
+      .catch(() => {});
 
     const controller = new AbortController();
     generationControllerRef.current = controller;
@@ -297,6 +310,11 @@ export default function DashboardClient() {
           title={meta.title}
           subtitle={meta.subtitle}
           onStepClick={(stepId) => goTo(stepId as WizardStep)}
+          rightPanel={
+            state.step !== 'dashboard' && state.step !== 'generating' && previewState.progress > 0 ? (
+              <LivePreview state={previewState} names={state.coupleNames} occasion={state.step === 'vibe' ? 'wedding' : undefined} />
+            ) : undefined
+          }
         >
           {/* Error display */}
           {state.error && (
@@ -411,11 +429,20 @@ export default function DashboardClient() {
           )}
 
           {state.step === 'photos' && (
-            <PhotosStep
-              selectedPhotos={state.photos}
-              onPhotosSelected={(photos) => dispatch({ type: 'SET_PHOTOS', photos })}
-              onContinue={() => goTo('clusters')}
-            />
+            <>
+              {state.photos.length === 0 && (
+                <QuickStartBanner onQuickStart={() => setShowTemplates(true)} />
+              )}
+              <PhotosStep
+                selectedPhotos={state.photos}
+                onPhotosSelected={(photos) => {
+                  dispatch({ type: 'SET_PHOTOS', photos });
+                  // Start progressive generation — photo analysis
+                  progressiveSession.onPhotosReady(photos).then(() => setPreviewState({ ...progressiveSession.getState() }));
+                }}
+                onContinue={() => goTo('clusters')}
+              />
+            </>
           )}
 
           {state.step === 'upload' && (
