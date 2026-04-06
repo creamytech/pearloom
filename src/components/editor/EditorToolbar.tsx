@@ -158,8 +158,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       boxShadow: 'var(--pl-shadow-xs)',
     } as React.CSSProperties}>
 
-      {/* ═══ LEFT ZONE: Heirloom Builder branding ═══ */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+      {/* ═══ LEFT ZONE: Pearloom branding + Exit ═══ */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         <motion.button
           onClick={onExit}
           title="Back to dashboard"
@@ -172,50 +172,15 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           }}
         >
           <span style={{
-            fontSize: '1.05rem', fontWeight: 600, color: 'var(--pl-ink-soft)',
+            fontSize: '1rem', fontWeight: 600, color: 'var(--pl-ink-soft)',
             fontFamily: 'var(--pl-font-heading)',
+            fontStyle: 'italic',
             letterSpacing: '-0.02em',
           }}>
-            Heirloom Builder
+            Pearloom
           </span>
         </motion.button>
-
-        {/* Save status indicator */}
-        {!isMobile && (
-          <span style={{
-            fontSize: '0.68rem', fontWeight: 600,
-            color: saveState === 'saved' ? 'var(--pl-muted)' : 'var(--pl-warning)',
-            letterSpacing: '0.04em',
-            display: 'flex', alignItems: 'center', gap: '4px',
-          }}>
-            {saveState === 'saved' ? '' : '|'}
-            {saveState === 'saved' ? '' : ` STATUS: ${saveState === 'unsaved' ? 'UNSAVED' : 'SAVING...'}`}
-          </span>
-        )}
       </div>
-
-      {/* ═══ CENTER TABS: Drafts / Archive / Shared ═══ */}
-      {!isMobile && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0', marginLeft: '20px' }}>
-          {['Drafts', 'Archive', 'Shared'].map((tab, i) => (
-            <button
-              key={tab}
-              style={{
-                padding: '6px 14px', border: 'none', background: 'transparent',
-                cursor: 'pointer',
-                fontSize: '0.72rem', fontWeight: i === 0 ? 700 : 500,
-                letterSpacing: '0.04em',
-                color: i === 0 ? 'var(--pl-ink)' : 'var(--pl-muted)',
-                borderBottom: i === 0 ? '2px solid var(--pl-ink)' : '2px solid transparent',
-                textTransform: 'uppercase',
-                transition: 'color 0.15s',
-              }}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
       {!isMobile && <div style={{ width: '1px', height: '24px', background: 'var(--pl-divider)', margin: '0 12px', flexShrink: 0 }} />}
