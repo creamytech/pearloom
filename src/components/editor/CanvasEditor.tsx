@@ -20,6 +20,8 @@ import {
   Plus, Eye, EyeOff, Trash2,
   ChevronDown, ChevronRight, X,
   Sparkles, LayoutTemplate,
+  Music, Hash, ImageIcon, PartyPopper,
+  Heart, MessageSquareQuote, Users2, Footprints,
 } from 'lucide-react';
 import {
   BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,
@@ -64,6 +66,17 @@ const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'text',      label: 'Text Block',        icon: BlockTextIcon,      description: 'Custom text section',                         color: '#6a8b4a', occasions: ALL_OCCASIONS },
   { type: 'video',     label: 'Video',             icon: BlockVideoIcon,     description: 'YouTube or Vimeo embed',                      color: '#4a4a8b', occasions: ALL_OCCASIONS },
   { type: 'divider',   label: 'Divider',           icon: BlockDividerIcon,   description: 'Visual section separator',                    color: '#8b8b4a', occasions: ALL_OCCASIONS },
+  { type: 'vibeQuote', label: 'Vibe Quote',        icon: MessageSquareQuote, description: 'Atmospheric quote with decorative symbol',    color: '#9b6a8b', occasions: ALL_OCCASIONS },
+  { type: 'welcome',   label: 'Welcome',           icon: Heart,              description: 'Personal welcome statement from the couple',  color: '#c47a7a', occasions: ALL_OCCASIONS },
+  { type: 'spotify',   label: 'Spotify Playlist',  icon: Music,              description: 'Embedded Spotify playlist for your guests',   color: '#1DB954', occasions: ALL_OCCASIONS },
+  { type: 'hashtag',   label: 'Hashtag',           icon: Hash,               description: 'Social media hashtag for your event',         color: '#4a7a9b', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'photoWall', label: 'Photo Wall',        icon: ImageIcon,          description: 'Full-width photo mosaic display',             color: '#7a6a4a', occasions: ALL_OCCASIONS },
+  { type: 'gallery',   label: 'Gallery Grid',      icon: BlockPhotosIcon,    description: 'Photo gallery with lightbox viewing',         color: '#4a8b6a', occasions: ALL_OCCASIONS },
+  { type: 'quiz',      label: 'Couple Quiz',       icon: Sparkles,           description: 'Fun quiz about the couple for guests',        color: '#b88a4a', occasions: ['wedding', 'engagement', 'birthday'] },
+  { type: 'weddingParty', label: 'Wedding Party',  icon: Users2,             description: 'Bridal party, groomsmen & roles',             color: '#7c5cbf', occasions: ['wedding', 'engagement'] },
+  { type: 'anniversary', label: 'Anniversary',     icon: PartyPopper,        description: 'Anniversary milestones & memories',           color: '#c4774a', occasions: ['anniversary'] },
+  { type: 'storymap',  label: 'Story Map',         icon: BlockMapIcon,       description: 'Interactive map of your journey together',    color: '#4a6a8b', occasions: ALL_OCCASIONS },
+  { type: 'footer',    label: 'Footer',            icon: Footprints,         description: 'Site footer with credits and links',          color: '#7a7a7a', occasions: ALL_OCCASIONS },
 ];
 
 const DEFAULT_BLOCKS: PageBlock[] = [
@@ -439,7 +452,7 @@ function BlockRow({
       {/* Label */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '0.84rem', fontWeight: 700, color: block.visible ? 'var(--pl-ink)' : 'var(--pl-muted)', lineHeight: 1.3 }}>
-          {def?.label || block.type}
+          {def?.label || block.type.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()}
         </div>
         <div style={{ fontSize: '0.65rem', color: 'var(--pl-ink-soft)', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {def?.description}
@@ -1655,7 +1668,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             </div>
             <div>
               <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--pl-ink)', lineHeight: 1.3 }}>
-                {draggedDef?.label ?? draggedBlock?.type}
+                {draggedDef?.label ?? (draggedBlock?.type || '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()}
               </div>
               <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', marginTop: '2px' }}>
                 Drag to reorder
