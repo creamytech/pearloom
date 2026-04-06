@@ -179,13 +179,13 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
 
 const STEP_META: Record<WizardStep, { title: string; subtitle: string }> = {
   dashboard: { title: '', subtitle: '' },
-  photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that capture the feeling.' },
-  upload: { title: 'Upload Photos', subtitle: 'Directly upload your favorite high-quality images.' },
-  clusters: { title: 'Where Were You?', subtitle: 'Add locations to each memory group for a richer story.' },
-  vibe: { title: 'Set Your Vibe', subtitle: 'Describe the feeling — the AI will do the rest.' },
+  photos: { title: 'Choose Your Memories', subtitle: 'The moments that matter most become the chapters of your story.' },
+  upload: { title: 'Your Photos', subtitle: 'Upload the images that tell your story.' },
+  clusters: { title: 'The Places', subtitle: 'Where did these moments happen? Add locations to enrich your narrative.' },
+  vibe: { title: 'Your Vision', subtitle: 'Describe the feeling you want — the AI shapes everything around it.' },
   generating: { title: '', subtitle: '' },
   edit: { title: '', subtitle: '' },
-  guests: { title: 'Guest List', subtitle: 'Track RSVPs and manage your guests.' },
+  guests: { title: 'Your Guests', subtitle: 'Manage RSVPs and your guest list.' },
 };
 
 export default function DashboardClient() {

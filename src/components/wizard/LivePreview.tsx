@@ -155,21 +155,27 @@ export function QuickStartBanner({ onQuickStart }: QuickStartProps) {
       onClick={onQuickStart}
       whileHover={{ scale: 1.01, y: -1 }}
       whileTap={{ scale: 0.99 }}
-      className="w-full p-4 rounded-[16px] border border-[rgba(163,177,138,0.2)] bg-gradient-to-r from-[rgba(163,177,138,0.04)] to-[rgba(196,169,106,0.03)] cursor-pointer text-left transition-all hover:border-[rgba(163,177,138,0.4)]"
+      className="w-full p-4 rounded-2xl cursor-pointer text-left transition-all"
+      style={{
+        background: 'rgba(200,180,140,0.06)',
+        border: '1px solid rgba(200,180,140,0.12)',
+      }}
     >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[var(--pl-olive-mist)] flex items-center justify-center shrink-0">
-          <span className="text-[1.1rem]">✦</span>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: 'rgba(200,180,140,0.1)', border: '1px solid rgba(200,180,140,0.15)' }}>
+          <span className="text-[1.1rem]" style={{ color: 'rgba(200,180,140,0.8)' }}>✦</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[0.82rem] font-semibold text-[var(--pl-ink)] m-0">
+          <p className="text-[0.82rem] font-semibold m-0" style={{ color: 'rgba(245,241,232,0.8)' }}>
             Surprise Me
           </p>
-          <p className="text-[0.68rem] text-[var(--pl-muted)] m-0">
+          <p className="text-[0.68rem] m-0" style={{ color: 'rgba(245,241,232,0.3)' }}>
             Skip the details — AI picks everything from your photos
           </p>
         </div>
-        <span className="text-[0.62rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)] shrink-0">
+        <span className="text-[0.58rem] font-bold uppercase tracking-[0.08em] shrink-0 px-2 py-1 rounded-full"
+          style={{ color: 'rgba(200,180,140,0.7)', background: 'rgba(200,180,140,0.08)' }}>
           90 sec
         </span>
       </div>
