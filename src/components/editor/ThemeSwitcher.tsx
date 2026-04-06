@@ -507,12 +507,14 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                 flex: '0 0 auto', width: '120px',
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                 padding: 0, borderRadius: '8px', border: 'none', cursor: 'pointer',
-                background: 'rgba(163,177,138,0.05)',
+                background: 'rgba(255,255,255,0.5)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
                 outline: isSelected
                   ? '2px solid #6b7c3f'
                   : isHovered ? '1px solid var(--pl-muted)' : '1px solid rgba(0,0,0,0.05)',
                 overflow: 'hidden',
-                boxShadow: isSelected ? '0 0 0 3px rgba(107,124,63,0.3)' : isHovered ? '0 6px 20px rgba(0,0,0,0.35)' : 'none',
+                boxShadow: isSelected ? '0 0 0 3px rgba(107,124,63,0.3)' : isHovered ? '0 4px 16px rgba(43,30,20,0.1)' : '0 1px 4px rgba(43,30,20,0.04)',
                 transition: 'outline 0.15s, box-shadow 0.15s',
                 position: 'relative',
               }}
@@ -529,7 +531,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
               {/* Theme info */}
               <div style={{
                 padding: '6px 7px', textAlign: 'left',
-                background: isSelected ? 'rgba(107,124,63,0.15)' : 'transparent',
+                background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent',
               }}>
                 <div style={{
                   fontSize: '0.7rem', fontWeight: 700,

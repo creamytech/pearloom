@@ -121,7 +121,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           const evtTypeOpt = EVENT_TYPE_OPTS.find(o => o.type === (evt.type || 'other')) || EVENT_TYPE_OPTS[EVENT_TYPE_OPTS.length - 1];
           const isExpanded = expandedId === evt.id;
           return (
-            <div key={evt.id} style={{ borderRadius: '10px', border: `1px solid ${isExpanded ? `${evtTypeOpt.color}35` : 'rgba(0,0,0,0.05)'}`, background: isExpanded ? `${evtTypeOpt.color}08` : 'rgba(163,177,138,0.05)', overflow: 'hidden', transition: 'all 0.15s' }}>
+            <div key={evt.id} style={{ borderRadius: '12px', border: `1px solid ${isExpanded ? `${evtTypeOpt.color}30` : 'rgba(0,0,0,0.05)'}`, background: isExpanded ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.45)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', overflow: 'hidden', transition: 'all 0.15s', boxShadow: isExpanded ? '0 2px 8px rgba(43,30,20,0.04)' : 'none' } as React.CSSProperties}>
               {/* Card header — click to expand */}
               <button
                 onClick={() => setExpandedId(isExpanded ? null : evt.id)}

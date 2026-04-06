@@ -639,7 +639,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       display: 'flex', flexDirection: 'column',
-      background: 'var(--pl-cream-deep)', fontFamily: 'var(--pl-font-body)',
+      background: 'var(--pl-cream)', fontFamily: 'var(--pl-font-body)',
     }}>
       {/* Command Palette */}
       <CommandPalette

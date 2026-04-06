@@ -411,12 +411,14 @@ function BlockRow({
         padding: '13px 10px 13px 8px',
         minHeight: '68px',
         borderRadius: '10px',
-        background: isActive ? `${color}18` : hovered ? 'rgba(0,0,0,0.04)' : 'rgba(163,177,138,0.04)',
-        border: `1px solid ${isActive ? `${color}45` : hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
+        background: isActive ? `rgba(255,255,255,0.8)` : hovered ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: `1px solid ${isActive ? `${color}40` : hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
         borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
-        cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s', position: 'relative',
+        cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
         userSelect: 'none',
-        boxShadow: isActive ? `0 2px 16px ${color}14, 0 0 0 1px ${color}08` : 'none',
+        boxShadow: isActive ? `0 2px 12px ${color}18, 0 0 0 1px ${color}08` : hovered ? '0 2px 8px rgba(43,30,20,0.04)' : 'none',
       }}
     >
       {/* Drag handle — unified for mobile and desktop */}
@@ -1581,9 +1583,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             style={{
               overflow: 'hidden', flexShrink: 0,
-              borderTop: `2px solid ${activeDef.color}50`,
-              background: `${activeDef.color}06`,
-            }}
+              borderTop: `2px solid ${activeDef.color}40`,
+              background: `rgba(255,255,255,0.6)`,
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+            } as React.CSSProperties}
           >
             <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {/* Panel header */}

@@ -88,10 +88,12 @@ function ViewportPopover({
             style={{
               position: 'absolute', top: '100%', right: 0, marginTop: '6px',
               width: '200px', padding: '8px',
-              background: 'var(--pl-cream-card)',
-              border: '1px solid var(--pl-divider)',
+              background: 'rgba(255,255,255,0.92)',
+              backdropFilter: 'blur(24px) saturate(1.4)',
+              WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+              border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '16px',
-              boxShadow: 'var(--pl-shadow-md)',
+              boxShadow: '0 8px 32px rgba(43,30,20,0.1), 0 2px 8px rgba(43,30,20,0.05)',
               zIndex: 100,
             }}
           >
@@ -151,11 +153,13 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
     <div style={{
       height: '44px', flexShrink: 0,
       display: 'flex', alignItems: 'center',
-      borderBottom: '1px solid var(--pl-divider)',
-      background: 'var(--pl-cream-card)',
+      borderBottom: '1px solid rgba(0,0,0,0.06)',
+      background: 'rgba(255,255,255,0.85)',
+      backdropFilter: 'blur(20px) saturate(1.3)',
+      WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
       padding: '0 1rem', gap: '0',
       zIndex: 10,
-      boxShadow: 'var(--pl-shadow-xs)',
+      boxShadow: '0 1px 4px rgba(43,30,20,0.04)',
     } as React.CSSProperties}>
 
       {/* ═══ LEFT ZONE: Pearloom branding + Exit ═══ */}
