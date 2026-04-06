@@ -13,7 +13,17 @@ interface ClustersStepProps {
 export function ClustersStep({ photos, onConfirm, onBack }: ClustersStepProps) {
   return (
     <ErrorBoundary>
-      <div className="p-6 sm:p-8 bg-white rounded-[var(--pl-radius-md)] border border-[var(--pl-divider)] shadow-[0_2px_8px_rgba(43,30,20,0.08),0_1px_3px_rgba(43,30,20,0.05)]">
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(255,255,255,0.4)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
+          padding: 'clamp(16px, 3vw, 32px)',
+        } as React.CSSProperties}
+      >
         <ClusterReview
           photos={photos}
           onConfirm={onConfirm}

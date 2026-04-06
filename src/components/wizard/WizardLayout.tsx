@@ -1,19 +1,19 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / WizardLayout.tsx — Cinematic wizard shell
-// Dark, moody, film-like experience for site creation
+// Pearloom / WizardLayout.tsx — Glass-Over-Gradient Wizard
+// Frosted glass card floating over warm abstract background
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image, Palette, Compass, X, ArrowLeft, Check } from 'lucide-react';
+import { X, ArrowLeft, Check, Menu } from 'lucide-react';
 import type { WizardStep } from '@/lib/wizard-state';
 
 const STEPS = [
-  { id: 'photos',     label: 'Memories',  num: '01', matchSteps: ['photos', 'upload', 'clusters'] },
-  { id: 'vibe',       label: 'Vision',    num: '02', matchSteps: ['vibe'] },
-  { id: 'generating', label: 'Weave',     num: '03', matchSteps: ['generating'] },
+  { id: 'photos',     label: 'Photos',  num: 1, matchSteps: ['photos', 'upload', 'clusters'] },
+  { id: 'vibe',       label: 'Style',   num: 2, matchSteps: ['vibe'] },
+  { id: 'generating', label: 'Build',   num: 3, matchSteps: ['generating'] },
 ] as const;
 
 function getStepIndex(step: WizardStep): number {
@@ -21,6 +21,35 @@ function getStepIndex(step: WizardStep): number {
   if (step === 'vibe') return 1;
   if (step === 'generating') return 2;
   return 0;
+}
+
+// ── Abstract silk gradient background ─────────────────────────
+function AmbientBackground() {
+  return (
+    <div className="fixed inset-0 z-0 overflow-hidden">
+      {/* Base warm gradient */}
+      <div className="absolute inset-0" style={{
+        background: 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 20%, #D4B8A0 40%, #E8CDB8 60%, #F0DFD0 80%, #DCC4AE 100%)',
+      }} />
+      {/* Silk wave overlays */}
+      <div className="absolute inset-0" style={{
+        background: `
+          radial-gradient(ellipse 80% 60% at 20% 50%, rgba(232,195,168,0.7) 0%, transparent 60%),
+          radial-gradient(ellipse 70% 50% at 80% 30%, rgba(210,180,160,0.6) 0%, transparent 55%),
+          radial-gradient(ellipse 90% 40% at 50% 80%, rgba(220,200,180,0.5) 0%, transparent 50%),
+          radial-gradient(ellipse 60% 80% at 70% 60%, rgba(240,220,200,0.4) 0%, transparent 50%)
+        `,
+      }} />
+      {/* Warm light wash */}
+      <div className="absolute inset-0" style={{
+        background: 'radial-gradient(ellipse 120% 80% at 30% 20%, rgba(255,240,220,0.4) 0%, transparent 60%)',
+      }} />
+      {/* Subtle noise texture */}
+      <div className="absolute inset-0 opacity-[0.015]" style={{
+        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")',
+      }} />
+    </div>
+  );
 }
 
 interface WizardLayoutProps {
@@ -35,35 +64,38 @@ interface WizardLayoutProps {
 
 export function WizardLayout({ step, title, subtitle, children, onStepClick, rightPanel, onClose }: WizardLayoutProps) {
   const currentIdx = getStepIndex(step);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <main className="min-h-dvh flex flex-col" style={{
-      background: 'linear-gradient(180deg, #1a1814 0%, #2a2520 40%, #1e1b17 100%)',
-    }}>
+    <div className="min-h-dvh flex flex-col relative">
+      <AmbientBackground />
 
-      {/* ── Cinematic header ── */}
+      {/* ── Top nav — floats over the gradient ── */}
       <header className="shrink-0 z-20 relative">
-        {/* Subtle grain overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
-        }} />
-
-        <div className="flex items-center justify-between px-5 md:px-8 h-14">
-          {/* Left: back */}
-          {onClose && (
-            <motion.button
-              onClick={onClose}
-              whileHover={{ x: -2 }}
-              className="flex items-center gap-1.5 text-[0.72rem] font-medium bg-transparent border-none cursor-pointer"
-              style={{ color: 'rgba(245,241,232,0.4)' }}
+        <div className="h-12 flex items-center justify-between px-4 md:px-8">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex md:hidden items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent cursor-pointer"
+              style={{ color: 'rgba(80,60,40,0.5)' }}
             >
-              <ArrowLeft size={13} />
-              <span className="hidden sm:inline">Exit</span>
-            </motion.button>
-          )}
-          {!onClose && <div />}
+              <Menu size={18} />
+            </button>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="hidden md:flex items-center gap-1.5 text-[0.72rem] font-medium bg-transparent border-none cursor-pointer transition-colors"
+                style={{ color: 'rgba(80,60,40,0.45)' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'rgba(80,60,40,0.8)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(80,60,40,0.45)')}
+              >
+                <ArrowLeft size={13} />
+                Dashboard
+              </button>
+            )}
+          </div>
 
-          {/* Center: progress indicators */}
+          {/* Center: progress stepper */}
           <div className="flex items-center gap-0">
             {STEPS.map((s, i) => {
               const isActive = i === currentIdx;
@@ -73,61 +105,32 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
               return (
                 <div key={s.id} className="flex items-center">
                   {i > 0 && (
-                    <div className="w-8 md:w-14 h-px mx-1" style={{
-                      background: i <= currentIdx
-                        ? 'rgba(200,180,140,0.5)'
-                        : 'rgba(245,241,232,0.08)',
+                    <div className="w-8 md:w-14 h-[1.5px] mx-1" style={{
+                      background: i <= currentIdx ? 'var(--pl-olive)' : 'rgba(0,0,0,0.08)',
+                      borderRadius: '1px',
                     }} />
                   )}
                   <button
                     onClick={() => isClickable && onStepClick!(s.matchSteps[0] as string)}
                     disabled={!isClickable}
-                    className="flex items-center gap-2 border-none transition-all"
+                    className="flex items-center gap-1.5 rounded-full border-none transition-all"
                     style={{
-                      background: 'transparent',
+                      padding: isActive ? '5px 14px' : '5px 10px',
+                      background: isActive ? 'rgba(163,177,138,0.18)' : 'transparent',
+                      border: isActive ? '1.5px solid rgba(163,177,138,0.3)' : '1.5px solid transparent',
                       cursor: isClickable ? 'pointer' : 'default',
-                      padding: '6px 0',
                     }}
                   >
-                    {/* Step number / check */}
-                    <span
-                      className="flex items-center justify-center rounded-full transition-all"
-                      style={{
-                        width: isActive ? '28px' : '22px',
-                        height: isActive ? '28px' : '22px',
-                        background: isActive
-                          ? 'rgba(200,180,140,0.2)'
-                          : isComplete
-                            ? 'rgba(200,180,140,0.15)'
-                            : 'rgba(245,241,232,0.05)',
-                        border: isActive
-                          ? '1.5px solid rgba(200,180,140,0.6)'
-                          : isComplete
-                            ? '1px solid rgba(200,180,140,0.3)'
-                            : '1px solid rgba(245,241,232,0.08)',
-                        fontSize: '0.55rem',
-                        fontWeight: 700,
-                        color: isActive
-                          ? 'rgba(220,200,160,1)'
-                          : isComplete
-                            ? 'rgba(200,180,140,0.8)'
-                            : 'rgba(245,241,232,0.2)',
-                        letterSpacing: '0.05em',
-                      }}
-                    >
-                      {isComplete ? <Check size={10} strokeWidth={3} /> : s.num}
+                    <span className="flex items-center justify-center rounded-full text-[0.5rem] font-bold" style={{
+                      width: '18px', height: '18px',
+                      background: isComplete ? 'var(--pl-olive)' : isActive ? 'rgba(163,177,138,0.25)' : 'rgba(0,0,0,0.06)',
+                      color: isComplete ? 'white' : isActive ? 'var(--pl-olive-deep)' : 'rgba(80,60,40,0.3)',
+                    }}>
+                      {isComplete ? <Check size={9} strokeWidth={3} /> : s.num}
                     </span>
-                    {/* Label — only on desktop or active */}
-                    <span
-                      className={`text-[0.65rem] font-semibold uppercase tracking-[0.12em] transition-all ${isActive ? '' : 'hidden md:inline'}`}
-                      style={{
-                        color: isActive
-                          ? 'rgba(220,200,160,0.9)'
-                          : isComplete
-                            ? 'rgba(200,180,140,0.5)'
-                            : 'rgba(245,241,232,0.15)',
-                      }}
-                    >
+                    <span className={`text-[0.65rem] font-semibold tracking-[0.03em] ${isActive ? '' : 'hidden sm:inline'}`} style={{
+                      color: isActive ? 'var(--pl-olive-deep)' : isComplete ? 'rgba(80,60,40,0.6)' : 'rgba(80,60,40,0.25)',
+                    }}>
                       {s.label}
                     </span>
                   </button>
@@ -136,113 +139,147 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
             })}
           </div>
 
-          {/* Right: close */}
           {onClose ? (
-            <motion.button
+            <button
               onClick={onClose}
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              className="w-8 h-8 rounded-full flex items-center justify-center border-none cursor-pointer"
-              style={{
-                background: 'rgba(245,241,232,0.06)',
-                color: 'rgba(245,241,232,0.3)',
-                border: '1px solid rgba(245,241,232,0.06)',
-              }}
+              className="w-7 h-7 rounded-full flex items-center justify-center border-none cursor-pointer transition-colors"
+              style={{ background: 'rgba(0,0,0,0.04)', color: 'rgba(80,60,40,0.35)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; e.currentTarget.style.color = 'rgba(80,60,40,0.7)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = 'rgba(80,60,40,0.35)'; }}
             >
-              <X size={14} />
-            </motion.button>
-          ) : <div className="w-8" />}
+              <X size={13} />
+            </button>
+          ) : <div className="w-7" />}
         </div>
-
-        {/* Bottom accent line */}
-        <div className="h-px" style={{
-          background: 'linear-gradient(90deg, transparent 0%, rgba(200,180,140,0.2) 30%, rgba(200,180,140,0.3) 50%, rgba(200,180,140,0.2) 70%, transparent 100%)',
-        }} />
       </header>
 
-      {/* ── Body ── */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Ambient glow */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-[30%] left-[10%] w-[500px] h-[500px] rounded-full opacity-[0.04]" style={{
-            background: 'radial-gradient(circle, rgba(200,180,140,1) 0%, transparent 70%)',
-          }} />
-          <div className="absolute -bottom-[20%] right-[5%] w-[400px] h-[400px] rounded-full opacity-[0.03]" style={{
-            background: 'radial-gradient(circle, rgba(163,177,138,1) 0%, transparent 70%)',
-          }} />
-        </div>
-
-        {/* Center content */}
-        <div className="flex-1 overflow-auto relative z-10">
-          <div className="max-w-[900px] mx-auto px-5 md:px-10 py-8 md:py-12">
-            {/* Step header */}
-            {title && step !== 'dashboard' && step !== 'generating' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="mb-10 md:mb-14"
-              >
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: '40px' }}
-                  transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="h-[1px] mb-6"
-                  style={{ background: 'rgba(200,180,140,0.5)' }}
-                />
-                <h2
-                  className="font-heading font-normal leading-[1.1] tracking-tight m-0"
-                  style={{
-                    fontSize: 'clamp(1.8rem, 5vw, 3.2rem)',
-                    color: 'rgba(245,241,232,0.92)',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {title}
-                </h2>
-                {subtitle && (
-                  <p
-                    className="max-w-[480px] leading-relaxed mt-4"
-                    style={{
-                      fontSize: 'clamp(0.85rem, 1.5vw, 0.95rem)',
-                      color: 'rgba(245,241,232,0.35)',
-                    }}
-                  >
-                    {subtitle}
-                  </p>
-                )}
-              </motion.div>
-            )}
-
-            {/* Step content */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Right panel — stacks below on mobile */}
-            {rightPanel && (
-              <div className="mt-10 lg:hidden">
-                {rightPanel}
+      {/* ── Mobile drawer ── */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 bg-black/15 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+            <motion.aside
+              initial={{ x: -260 }} animate={{ x: 0 }} exit={{ x: -260 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+              className="fixed top-0 left-0 bottom-0 z-50 w-[260px] flex flex-col md:hidden"
+              style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: '4px 0 24px rgba(43,30,20,0.06)', borderRight: '1px solid rgba(0,0,0,0.04)' } as React.CSSProperties}
+            >
+              <div className="p-5 border-b border-[rgba(0,0,0,0.04)]">
+                <span className="font-heading italic text-lg text-[var(--pl-ink-soft)]">Pearloom</span>
               </div>
+              <nav className="flex flex-col gap-1 p-4 flex-1">
+                {STEPS.map((s, i) => {
+                  const isActive = i === currentIdx;
+                  const isComplete = i < currentIdx;
+                  return (
+                    <button key={s.id} onClick={() => { if (i <= currentIdx && onStepClick) onStepClick(s.matchSteps[0] as string); setMobileMenuOpen(false); }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl border-none w-full text-left cursor-pointer text-[0.85rem] transition-all"
+                      style={{ background: isActive ? 'rgba(163,177,138,0.1)' : 'transparent', color: isActive ? 'var(--pl-olive-deep)' : isComplete ? 'var(--pl-ink-soft)' : 'var(--pl-muted)', fontWeight: isActive ? 600 : 400 }}>
+                      {isComplete ? <Check size={15} className="text-[var(--pl-olive)]" /> : <span className="text-[0.7rem] font-bold w-4">{s.num}</span>}
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </nav>
+              {onClose && (
+                <div className="p-4 border-t border-[rgba(0,0,0,0.04)]">
+                  <button onClick={onClose} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-none w-full text-left text-[0.82rem] text-[var(--pl-muted)] bg-transparent cursor-pointer">
+                    <ArrowLeft size={14} /> Dashboard
+                  </button>
+                </div>
+              )}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Main content — frosted glass card ── */}
+      <div className="flex-1 flex relative z-10 overflow-hidden">
+        <div className="flex-1 overflow-auto flex justify-center px-4 md:px-8 py-6 md:py-10">
+          <div className="w-full max-w-[960px] flex flex-col lg:flex-row gap-5">
+            {/* Glass card */}
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="flex-1 min-w-0"
+              style={{
+                background: 'rgba(255,255,255,0.55)',
+                backdropFilter: 'blur(40px) saturate(1.3)',
+                WebkitBackdropFilter: 'blur(40px) saturate(1.3)',
+                borderRadius: '24px',
+                border: '1px solid rgba(255,255,255,0.6)',
+                boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 2px 8px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
+                overflow: 'hidden',
+              } as React.CSSProperties}
+            >
+              {/* Inner content with padding */}
+              <div className="p-6 md:p-10">
+                {/* Step label + progress */}
+                {title && step !== 'dashboard' && step !== 'generating' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-[0.6rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)]">
+                        {STEPS[currentIdx]?.label?.toUpperCase() || 'STEP'}
+                      </span>
+                      <div className="flex-1 h-[1.5px] rounded-full" style={{
+                        background: 'linear-gradient(90deg, var(--pl-olive) 0%, rgba(163,177,138,0.15) 100%)',
+                      }} />
+                      <span className="text-[0.6rem] font-bold text-[var(--pl-muted)] tabular-nums">
+                        {currentIdx + 1} / {STEPS.length}
+                      </span>
+                    </div>
+
+                    <h2 className="font-heading leading-[1.15] tracking-tight m-0 mt-5" style={{
+                      fontSize: 'clamp(1.5rem, 3.5vw, 2.4rem)',
+                      color: 'var(--pl-ink-soft)',
+                      fontWeight: 400,
+                    }}>
+                      {title}
+                    </h2>
+                    {subtitle && (
+                      <p className="max-w-[480px] text-[var(--pl-muted)] text-[0.88rem] leading-relaxed mt-2">
+                        {subtitle}
+                      </p>
+                    )}
+
+                    <div className="mt-8" />
+                  </motion.div>
+                )}
+
+                {/* Step content */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {children}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            {/* Right panel — floats beside the glass card on lg+ */}
+            {rightPanel && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="hidden lg:block w-[240px] shrink-0"
+              >
+                {rightPanel}
+              </motion.div>
             )}
           </div>
         </div>
-
-        {/* Right panel — visible on lg+ as sidebar */}
-        {rightPanel && (
-          <aside className="hidden lg:block w-[280px] shrink-0 p-5 overflow-auto relative z-10">
-            {rightPanel}
-          </aside>
-        )}
       </div>
-    </main>
+    </div>
   );
 }

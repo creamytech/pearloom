@@ -2,69 +2,73 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, ImagePlus, Lock, Sparkles, Save } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ImagePlus, Lock, Sparkles } from 'lucide-react';
 import { PhotoBrowser } from '@/components/dashboard/photo-browser';
 import type { GooglePhotoMetadata } from '@/types';
 
 const MAX_PHOTOS = 40;
 
-// ── Story Arc Advisor — right-side glass panel ────────────────
+// ── Story Arc Advisor — right-side floating glass card ────────
 
 function StoryArcAdvisor({ count, max }: { count: number; max: number }) {
   const pct = Math.min((count / max) * 100, 100);
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        className="rounded-2xl p-5"
-        style={{
-          background: 'rgba(245,241,232,0.06)',
-          border: '1px solid rgba(245,241,232,0.08)',
-          backdropFilter: 'blur(16px)',
-        }}
-      >
+      {/* Selected counter */}
+      <div style={{
+        background: 'rgba(255,255,255,0.5)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255,255,255,0.6)',
+        padding: '20px',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+      } as React.CSSProperties}>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[0.6rem] font-bold uppercase tracking-[0.12em]" style={{ color: 'rgba(200,180,140,0.5)' }}>
+          <span className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[var(--pl-muted)]">
             Selected
           </span>
-          <span className="text-[1.4rem] font-heading font-semibold tabular-nums" style={{ color: 'rgba(245,241,232,0.9)' }}>
-            {count} <span className="text-[0.85rem] font-body" style={{ color: 'rgba(245,241,232,0.3)' }}>/ {max}</span>
+          <span className="text-[1.3rem] font-heading font-semibold text-[var(--pl-ink)] tabular-nums">
+            {count} <span className="text-[0.8rem] text-[var(--pl-muted)] font-body">/ {max}</span>
           </span>
         </div>
-        <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(245,241,232,0.06)' }}>
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.04)' }}>
           <motion.div
             animate={{ width: `${pct}%` }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, rgba(200,180,140,0.6), rgba(200,180,140,0.9))' }}
+            style={{ background: 'var(--pl-olive)' }}
           />
         </div>
         {count > 0 && count < 10 && (
-          <p className="text-[0.7rem] mt-3 flex items-center gap-1.5" style={{ color: 'rgba(200,180,140,0.5)' }}>
-            <Sparkles size={10} />
+          <p className="text-[0.68rem] text-[var(--pl-muted)] mt-3 flex items-center gap-1.5">
+            <Sparkles size={10} className="text-[var(--pl-gold)]" />
             Add more for a richer story
           </p>
         )}
       </div>
 
+      {/* Story quality card */}
       {count >= 5 && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl p-5"
           style={{
-            background: 'rgba(245,241,232,0.04)',
-            border: '1px solid rgba(245,241,232,0.06)',
-          }}
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.5)',
+            padding: '20px',
+          } as React.CSSProperties}
         >
-          <div className="flex items-start justify-between mb-3">
-            <h3 className="font-heading text-[0.95rem] font-semibold" style={{ color: 'rgba(245,241,232,0.8)' }}>
-              Story Arc
-            </h3>
-            <Sparkles size={14} style={{ color: 'rgba(200,180,140,0.6)' }} />
-          </div>
-          <p className="text-[0.78rem] leading-relaxed" style={{ color: 'rgba(245,241,232,0.4)' }}>
-            Great selection — your story has a rich emotional range with warm, intimate moments.
+          <h3 className="font-heading text-[0.92rem] font-semibold text-[var(--pl-ink)] mb-2 flex items-center gap-2">
+            Story Arc
+            <Sparkles size={12} className="text-[var(--pl-gold)]" />
+          </h3>
+          <p className="text-[0.78rem] text-[var(--pl-muted)] leading-relaxed">
+            Great selection — your story has a rich emotional range.
           </p>
         </motion.div>
       )}
@@ -94,9 +98,9 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBac
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Photo browser */}
-      <div className="flex-1 min-h-0">
+      <div className="min-h-[300px]">
         <PhotoBrowser
           onSelectionChange={onPhotosSelected}
           maxSelection={MAX_PHOTOS}
@@ -110,66 +114,61 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBac
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 mx-auto mt-6 px-5 py-3.5 max-w-[480px] rounded-xl"
           style={{
-            background: 'rgba(200,180,140,0.08)',
-            border: '1px solid rgba(200,180,140,0.12)',
+            background: 'rgba(163,177,138,0.08)',
+            border: '1px solid rgba(163,177,138,0.15)',
           }}
         >
-          <ImagePlus size={16} style={{ color: 'rgba(200,180,140,0.6)', flexShrink: 0 }} />
-          <p className="text-[0.85rem] leading-snug m-0" style={{ color: 'rgba(245,241,232,0.5)' }}>
+          <ImagePlus size={16} className="text-[var(--pl-olive)] flex-shrink-0" />
+          <p className="text-[var(--pl-ink-soft)] text-[0.85rem] leading-snug m-0">
             Choose the photos that will become chapters of your story.
           </p>
         </motion.div>
       )}
 
-      {/* Bottom action bar — cinematic dark glass */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="sticky bottom-0 mt-8 px-5 py-4 flex items-center justify-between gap-4"
+      {/* Bottom action bar — glass style */}
+      <div
+        className="mt-8 px-5 py-4 flex items-center justify-between gap-4 rounded-2xl"
         style={{
-          background: 'rgba(26,24,20,0.85)',
-          backdropFilter: 'blur(20px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(20px) saturate(1.2)',
-          borderTop: '1px solid rgba(200,180,140,0.1)',
-          borderRadius: '16px 16px 0 0',
+          background: 'rgba(255,255,255,0.4)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255,255,255,0.5)',
         } as React.CSSProperties}
       >
         {onBack ? (
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-[0.75rem] font-medium bg-transparent border-none cursor-pointer"
-            style={{ color: 'rgba(245,241,232,0.35)' }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[0.78rem] font-medium bg-transparent cursor-pointer transition-colors"
+            style={{
+              color: 'var(--pl-muted)',
+              border: '1px solid rgba(0,0,0,0.06)',
+            }}
           >
             <ArrowLeft size={13} />
             Back
           </button>
         ) : <div />}
 
-        <div className="flex items-center gap-2 text-[0.68rem]" style={{ color: 'rgba(245,241,232,0.25)' }}>
-          <span className="font-semibold uppercase tracking-[0.08em]" style={{ color: 'rgba(200,180,140,0.4)' }}>
-            {count > 0 ? `${count} memories selected` : 'Awaiting selection'}
-          </span>
-        </div>
+        <span className="text-[0.68rem] font-semibold text-[var(--pl-muted)] hidden sm:block">
+          {count > 0 ? `${count} memories selected` : 'Awaiting selection'}
+        </span>
 
         <motion.button
           onClick={handleContinue}
           disabled={count === 0}
-          whileHover={count > 0 ? { scale: 1.02, y: -1 } : {}}
+          whileHover={count > 0 ? { scale: 1.02 } : {}}
           whileTap={count > 0 ? { scale: 0.98 } : {}}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-full border-none cursor-pointer text-[0.78rem] font-bold tracking-[0.04em] transition-all"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-full border-none cursor-pointer text-[0.75rem] font-bold uppercase tracking-[0.06em] transition-all"
           style={{
-            background: count > 0
-              ? 'linear-gradient(135deg, rgba(200,180,140,0.9), rgba(180,160,120,0.95))'
-              : 'rgba(245,241,232,0.06)',
-            color: count > 0 ? '#1a1814' : 'rgba(245,241,232,0.2)',
-            boxShadow: count > 0 ? '0 4px 20px rgba(200,180,140,0.25)' : 'none',
+            background: count > 0 ? 'var(--pl-olive)' : 'rgba(0,0,0,0.04)',
+            color: count > 0 ? 'white' : 'var(--pl-muted)',
+            boxShadow: count > 0 ? '0 4px 16px rgba(163,177,138,0.3)' : 'none',
           }}
         >
-          {count > 0 ? <ArrowRight size={14} /> : <Lock size={11} />}
           Continue
+          {count > 0 ? <ArrowRight size={13} /> : <Lock size={11} />}
         </motion.button>
-      </motion.div>
+      </div>
     </div>
   );
 }
