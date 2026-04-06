@@ -17,7 +17,7 @@ import type { DragHandleProps } from './useDragSort';
 import { BlockPresetsPanel } from './BlockPresetsPanel';
 import { SidebarSection } from './EditorSidebar';
 import {
-  Plus, Eye, EyeOff, Trash2,
+  Plus, Eye, EyeOff, Trash2, Copy,
   ChevronDown, ChevronRight, X,
   Sparkles, LayoutTemplate,
   Music, Hash, ImageIcon, PartyPopper,
@@ -379,7 +379,7 @@ function EventBlockConfig({ events, onChange }: {
 
 // ── Block Row ──────────────────────────────────────────────────
 function BlockRow({
-  block, def, isActive, onSelect, onToggle, onDelete, dragHandleProps,
+  block, def, isActive, onSelect, onToggle, onDelete, onDuplicate, dragHandleProps,
   isMobile,
 }: {
   block: PageBlock;
@@ -388,6 +388,7 @@ function BlockRow({
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
   dragHandleProps: DragHandleProps;
   isMobile?: boolean;
 }) {
@@ -478,6 +479,15 @@ function BlockRow({
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'var(--pl-muted)' : '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
               >
                 {block.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); onDuplicate(block.id); }}
+                title="Duplicate block"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
+              >
+                <Copy size={14} />
               </button>
               <button
                 onClick={e => { e.stopPropagation(); onDelete(block.id); }}
@@ -1216,6 +1226,18 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
     if (activeBlockId === id) setActiveBlockId(null);
   }, [blocks, commit, activeBlockId]);
 
+  const duplicateBlock = useCallback((id: string) => {
+    const source = blocks.find(b => b.id === id);
+    if (!source) return;
+    const idx = blocks.findIndex(b => b.id === id);
+    const newId = `${source.type}-dup-${Date.now()}`;
+    const dup: PageBlock = { ...source, id: newId, config: source.config ? { ...source.config } : undefined };
+    const updated = [...blocks];
+    updated.splice(idx + 1, 0, dup);
+    commit(updated);
+    setActiveBlockId(newId);
+  }, [blocks, commit]);
+
   const addBlock = useCallback((type: BlockType) => {
     const id = `block-${type}-${Date.now()}`;
     const newBlock: PageBlock = { id, type, order: blocks.length, visible: true };
@@ -1536,6 +1558,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   onSelect={id => setActiveBlockId(activeBlockId === id ? null : id)}
                   onToggle={toggleVisible}
                   onDelete={deleteBlock}
+                  onDuplicate={duplicateBlock}
                   dragHandleProps={handleProps}
                   isMobile={isMobile}
                 />

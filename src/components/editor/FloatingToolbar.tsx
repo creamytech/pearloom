@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
-import { GripVertical, Paintbrush, Plus, Undo2, Blend } from 'lucide-react';
+import { GripVertical, Paintbrush, Plus, Undo2, Redo2 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 
 const TOOLS = [
@@ -15,7 +15,7 @@ const TOOLS = [
   { id: 'style', Icon: Paintbrush, label: 'Style', tab: 'design' as const },
   { id: 'add',   Icon: Plus,       label: 'Add',   tab: 'canvas' as const, primary: true },
   { id: 'undo',  Icon: Undo2,      label: 'Undo',  tab: null },
-  { id: 'fade',  Icon: Blend,      label: 'Fade',  tab: 'design' as const },
+  { id: 'redo',  Icon: Redo2,      label: 'Redo',  tab: null },
 ] as const;
 
 export function FloatingToolbar() {
@@ -24,6 +24,10 @@ export function FloatingToolbar() {
   const handleClick = (tool: typeof TOOLS[number]) => {
     if (tool.id === 'undo') {
       actions.undo();
+      return;
+    }
+    if (tool.id === 'redo') {
+      actions.redo();
       return;
     }
     if (tool.tab) {
@@ -70,7 +74,7 @@ export function FloatingToolbar() {
           <motion.button
             key={tool.id}
             onClick={() => handleClick(tool)}
-            disabled={tool.id === 'undo' && !state.canUndo}
+            disabled={(tool.id === 'undo' && !state.canUndo) || (tool.id === 'redo' && !state.canRedo)}
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
             title={tool.label}
@@ -79,7 +83,7 @@ export function FloatingToolbar() {
               alignItems: 'center', justifyContent: 'center',
               gap: '3px',
               border: 'none',
-              cursor: tool.id === 'undo' && !state.canUndo ? 'not-allowed' : 'pointer',
+              cursor: ((tool.id === 'undo' && !state.canUndo) || (tool.id === 'redo' && !state.canRedo)) ? 'not-allowed' : 'pointer',
               borderRadius: isPrimary ? '50%' : '12px',
               padding: isPrimary ? '0' : '8px 14px',
               width: isPrimary ? '44px' : 'auto',
@@ -94,7 +98,7 @@ export function FloatingToolbar() {
                 : isActive
                   ? 'var(--pl-olive-deep)'
                   : 'var(--pl-muted)',
-              opacity: tool.id === 'undo' && !state.canUndo ? 0.35 : 1,
+              opacity: ((tool.id === 'undo' && !state.canUndo) || (tool.id === 'redo' && !state.canRedo)) ? 0.35 : 1,
               transition: 'background 0.15s, color 0.15s',
             }}
           >
