@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { BLOCK_TEMPLATES, searchTemplates as searchBlockTemplates, instantiateTemplate } from '@/lib/block-engine/templates';
 import { SITE_TEMPLATES, searchTemplates as searchSiteTemplates } from '@/lib/templates/wedding-templates';
+import { COLOR_THEMES, searchColorThemes } from '@/lib/templates/color-themes';
 import { MARKETPLACE_CATEGORIES } from '@/lib/marketplace';
 import { Button } from '@/components/ui/button';
 
@@ -242,17 +243,68 @@ export default function MarketplacePage() {
         )}
 
         {/* ── Themes tab ── */}
-        {activeTab === 'themes' && (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mx-auto mb-4">
-              <Sparkles size={24} className="text-[var(--pl-olive)]" />
-            </div>
-            <h2 className="font-heading italic text-xl text-[var(--pl-ink)] mb-2">Theme Gallery Coming Soon</h2>
-            <p className="text-[0.88rem] text-[var(--pl-muted)] max-w-[400px] mx-auto">
-              Community-designed color palettes, font pairings, and visual styles. Submit your own or browse what others have created.
-            </p>
-          </div>
-        )}
+        {activeTab === 'themes' && (() => {
+          const themeResults = search ? searchColorThemes(search) : [...COLOR_THEMES];
+          const filtered = category === 'all' ? themeResults : themeResults.filter(t => t.tags.includes(category) || t.occasions.includes(category));
+          return (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-heading italic text-[1.4rem] text-[var(--pl-ink)]">Color Themes</h2>
+                <span className="text-[0.72rem] text-[var(--pl-muted)]">{filtered.length} themes</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filtered.map((theme, i) => (
+                  <motion.div
+                    key={theme.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="rounded-[20px] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 transition-all duration-200"
+                  >
+                    {/* Color preview */}
+                    <div style={{ height: '100px', background: theme.previewGradient, position: 'relative' }}>
+                      {/* Font preview text */}
+                      <div style={{
+                        position: 'absolute', bottom: '12px', left: '14px',
+                        fontFamily: `"${theme.fonts.heading}", serif`,
+                        fontSize: '1rem', fontStyle: 'italic', fontWeight: 600,
+                        color: theme.colors.background.startsWith('#0') || theme.colors.background.startsWith('#1') ? theme.colors.foreground : theme.colors.foreground,
+                        opacity: 0.7,
+                      }}>
+                        Aa
+                      </div>
+                      {/* Season badge */}
+                      <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.52rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-muted)]">
+                        {theme.season === 'all-season' ? 'All Year' : theme.season}
+                      </div>
+                    </div>
+                    {/* Color swatch strip */}
+                    <div className="flex h-2">
+                      {[theme.colors.background, theme.colors.accent, theme.colors.accentLight, theme.colors.muted, theme.colors.foreground].map((c, ci) => (
+                        <div key={ci} className="flex-1" style={{ background: c }} />
+                      ))}
+                    </div>
+                    {/* Info */}
+                    <div className="p-4">
+                      <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)] mb-0.5">{theme.name}</h3>
+                      <p className="text-[0.72rem] text-[var(--pl-muted)] mb-2">{theme.description}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-1">
+                          {theme.tags.slice(0, 3).map(tag => (
+                            <span key={tag} className="text-[0.52rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">{tag}</span>
+                          ))}
+                        </div>
+                        <span className="text-[0.62rem] font-semibold text-[var(--pl-olive-deep)]">
+                          {theme.fonts.heading}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
 
         {/* ── Community tab ── */}
         {activeTab === 'community' && (
