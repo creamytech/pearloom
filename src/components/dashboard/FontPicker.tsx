@@ -129,7 +129,7 @@ export default function FontPicker({
   return (
     <div
       style={{
-        background: '#1E1B16',
+        background: 'var(--pl-cream-deep)',
         color: '#FFFFFF',
         display: 'flex',
         flexDirection: 'column',
@@ -295,7 +295,7 @@ export default function FontPicker({
                       {pair.body}
                     </span>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
-                      <span style={badgeStyle('#A3B18A', '#1E1B16')}>{CATEGORY_LABELS[pair.category]}</span>
+                      <span style={badgeStyle('#A3B18A', '#fff')}>{CATEGORY_LABELS[pair.category]}</span>
                       <span style={badgeStyle('rgba(0,0,0,0.06)', 'var(--pl-ink-soft)')}>{pair.mood}</span>
                     </div>
                   </div>
@@ -311,7 +311,7 @@ export default function FontPicker({
                         style={{
                           flexShrink: 0, width: '24px', height: '24px', borderRadius: '50%',
                           background: '#A3B18A', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '12px', color: '#1E1B16', fontWeight: 700, lineHeight: 1,
+                          fontSize: '12px', color: 'var(--pl-ink)', fontWeight: 700, lineHeight: 1,
                         }}
                       >
                         ✓
@@ -338,7 +338,7 @@ export default function FontPicker({
               onChange={e => setHeadingSearch(e.target.value)}
               style={{
                 width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)',
-                background: 'rgba(163,177,138,0.06)', color: '#fff', fontSize: '0.82rem',
+                background: 'rgba(163,177,138,0.06)', color: 'var(--pl-ink)', fontSize: '0.82rem',
                 outline: 'none', boxSizing: 'border-box', marginBottom: '8px',
               }}
             />
@@ -365,7 +365,7 @@ export default function FontPicker({
                   >
                     <span style={{
                       fontFamily: `'${font}', serif`, fontSize: '1.1rem', fontWeight: 600,
-                      color: active ? '#fff' : 'var(--pl-ink)', lineHeight: 1.3,
+                      color: active ? 'var(--pl-ink)' : 'var(--pl-muted)', lineHeight: 1.3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
                     }}>
                       {font}
@@ -374,7 +374,7 @@ export default function FontPicker({
                       <span style={{
                         width: '18px', height: '18px', borderRadius: '50%', background: '#A3B18A',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '10px', color: '#1E1B16', fontWeight: 700, flexShrink: 0,
+                        fontSize: '10px', color: 'var(--pl-ink)', fontWeight: 700, flexShrink: 0,
                       }}>✓</span>
                     )}
                   </button>
@@ -395,7 +395,7 @@ export default function FontPicker({
               onChange={e => setBodySearch(e.target.value)}
               style={{
                 width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)',
-                background: 'rgba(163,177,138,0.06)', color: '#fff', fontSize: '0.82rem',
+                background: 'rgba(163,177,138,0.06)', color: 'var(--pl-ink)', fontSize: '0.82rem',
                 outline: 'none', boxSizing: 'border-box', marginBottom: '8px',
               }}
             />
@@ -422,7 +422,7 @@ export default function FontPicker({
                   >
                     <span style={{
                       fontFamily: `'${font}', sans-serif`, fontSize: '1rem', fontWeight: 400,
-                      color: active ? '#fff' : 'var(--pl-ink)', lineHeight: 1.3,
+                      color: active ? 'var(--pl-ink)' : 'var(--pl-muted)', lineHeight: 1.3,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
                     }}>
                       {font}
@@ -431,7 +431,7 @@ export default function FontPicker({
                       <span style={{
                         width: '18px', height: '18px', borderRadius: '50%', background: '#A3B18A',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '10px', color: '#1E1B16', fontWeight: 700, flexShrink: 0,
+                        fontSize: '10px', color: 'var(--pl-ink)', fontWeight: 700, flexShrink: 0,
                       }}>✓</span>
                     )}
                   </button>

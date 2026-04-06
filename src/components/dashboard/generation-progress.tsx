@@ -2,8 +2,8 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / GenerationProgress.tsx
-// The Loom — radial visualization with step sidebar
-// Matches Stitch "Building: Ethereal Echoes" screen
+// The Loom — radial visualization with step sidebar.
+// Mobile-first: stacks vertically on mobile, split layout on desktop.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react';
@@ -21,7 +21,6 @@ const PASSES = [
   { headline: 'Final Polish', copy: 'The tagline and the closing line.', pct: 96 },
 ];
 
-// ── Sidebar step categories ──────────────────────────────────
 const SIDEBAR_STEPS = [
   { id: 'neural',    label: 'Neural Thread',    passes: [0, 1] },
   { id: 'chromatic', label: 'Chromatic Weave',  passes: [2, 3] },
@@ -34,53 +33,6 @@ function getActiveSidebarStep(passIdx: number): string {
     if (step.passes.includes(passIdx)) return step.id;
   }
   return SIDEBAR_STEPS[SIDEBAR_STEPS.length - 1].id;
-}
-
-// ── Photo mosaic for radial center ───────────────────────────
-function LoomPhotos({ photos, count }: { photos: GooglePhotoMetadata[]; count: number }) {
-  const visible = photos.slice(0, Math.min(count, 4));
-  if (visible.length === 0) return null;
-
-  const positions = [
-    { top: '25%', left: '30%', rotate: -8, size: 80 },
-    { top: '20%', left: '55%', rotate: 6, size: 64 },
-    { top: '55%', left: '25%', rotate: -4, size: 56 },
-    { top: '50%', left: '58%', rotate: 10, size: 72 },
-  ];
-
-  return (
-    <>
-      {visible.map((photo, i) => {
-        const pos = positions[i % positions.length];
-        const src = photo.baseUrl?.includes('googleusercontent.com')
-          ? `/api/photos/proxy?url=${encodeURIComponent(photo.baseUrl)}&w=200&h=200`
-          : photo.baseUrl;
-        return (
-          <motion.div
-            key={photo.id || i}
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.3 + 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              position: 'absolute',
-              top: pos.top, left: pos.left,
-              width: pos.size, height: pos.size,
-              borderRadius: '16px',
-              overflow: 'hidden',
-              transform: `rotate(${pos.rotate}deg)`,
-              boxShadow: '0 8px 32px rgba(43,30,20,0.15)',
-              border: '2px solid rgba(255,255,255,0.3)',
-            }}
-          >
-            {src && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            )}
-          </motion.div>
-        );
-      })}
-    </>
-  );
 }
 
 export function GenerationProgress({
@@ -106,7 +58,6 @@ export function GenerationProgress({
   const pass = PASSES[idx];
   const activeSidebar = isComplete ? 'final' : getActiveSidebarStep(idx);
   const [elapsed, setElapsed] = useState(0);
-  const activeCount = Math.min(idx + 2, photos.length, 4);
 
   useEffect(() => {
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
@@ -121,266 +72,155 @@ export function GenerationProgress({
 
   const displayName = names[1]?.trim()
     ? `${names[0]} & ${names[1]}`
-    : names[0] || 'your heirloom';
+    : names[0] || 'your site';
 
   const pct = isComplete ? 100 : pass.pct;
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      display: 'flex',
-      background: 'var(--pl-cream)',
-      fontFamily: 'var(--pl-font-body)',
-    }}>
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-[var(--pl-cream)]" style={{ fontFamily: 'var(--pl-font-body)' }}>
+
       {/* ── Top bar ── */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0,
-        height: '52px', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', padding: '0 24px',
-        borderBottom: '1px solid var(--pl-divider)',
-        background: 'white', zIndex: 10,
-      }}>
-        <span style={{
-          fontSize: '1rem', fontWeight: 600,
-          fontFamily: 'var(--pl-font-heading)',
-          fontStyle: 'italic',
-          color: 'var(--pl-ink-soft)',
-        }}>
+      <header className="h-[52px] shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white z-10">
+        <span className="font-heading italic text-[1rem] font-semibold text-[var(--pl-ink-soft)]">
           Pearloom
         </span>
-        <span style={{ fontSize: '0.85rem', color: 'var(--pl-ink)' }}>
-          The Loom
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <motion.span
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-            style={{ fontSize: '16px' }}
-          >
-            ✦
-          </motion.span>
-          <span style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--pl-olive-mist)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
-            ⚙
-          </span>
-        </div>
-      </div>
-
-      {/* ── Left sidebar — step list ── */}
-      <aside style={{
-        width: '220px', flexShrink: 0,
-        paddingTop: '72px', padding: '72px 20px 24px',
-        borderRight: '1px solid var(--pl-divider)',
-        display: 'flex', flexDirection: 'column',
-        background: 'var(--pl-cream)',
-      }}>
-        <h2 style={{
-          fontSize: '1.1rem', fontWeight: 500,
-          fontFamily: 'var(--pl-font-heading)',
-          fontStyle: 'italic',
-          color: 'var(--pl-ink-soft)',
-          marginBottom: '4px',
-        }}>
-          The Loom
-        </h2>
-        <p style={{
-          fontSize: '0.62rem', fontWeight: 600,
-          letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: 'var(--pl-muted)',
-          marginBottom: '28px',
-        }}>
-          Building your celebration site...
-        </p>
-
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-          {SIDEBAR_STEPS.map((s) => {
-            const isActive = activeSidebar === s.id;
-            const isPast = SIDEBAR_STEPS.findIndex(x => x.id === activeSidebar) > SIDEBAR_STEPS.findIndex(x => x.id === s.id);
-            return (
-              <div
-                key={s.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  background: isActive ? 'rgba(163,177,138,0.12)' : 'transparent',
-                  transition: 'background 0.2s',
-                }}
-              >
-                <div style={{
-                  width: '28px', height: '28px', borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '12px',
-                  background: isPast || isActive ? 'var(--pl-olive-deep)' : 'var(--pl-cream-deep)',
-                  color: isPast || isActive ? 'white' : 'var(--pl-muted)',
-                  fontWeight: 700,
-                }}>
-                  {isPast ? '✓' : '⚙'}
-                </div>
-                <span style={{
-                  fontSize: '0.78rem',
-                  fontWeight: isActive ? 700 : 500,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-                }}>
-                  {s.label}
-                </span>
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* New generation button */}
-        <button
-          onClick={onCancel}
-          style={{
-            width: '100%', padding: '12px',
-            borderRadius: '10px', border: 'none',
-            background: 'var(--pl-olive-deep)',
-            color: 'white', cursor: 'pointer',
-            fontSize: '0.72rem', fontWeight: 700,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            marginTop: 'auto',
-          }}
+        <span className="text-[0.82rem] text-[var(--pl-ink)]">The Loom</span>
+        <motion.span
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+          className="text-[16px]"
         >
-          New Generation
-        </button>
-      </aside>
+          ✦
+        </motion.span>
+      </header>
 
-      {/* ── Center — radial loom + progress ── */}
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
-        paddingTop: '52px', overflow: 'hidden',
-        background: 'linear-gradient(180deg, var(--pl-cream-deep) 0%, var(--pl-cream) 40%)',
-      }}>
-        {/* Active generation header */}
-        <div style={{
-          textAlign: 'center', padding: '32px 24px 0',
-          background: 'linear-gradient(180deg, rgba(163,177,138,0.08) 0%, transparent 100%)',
-        }}>
-          <p style={{
-            fontSize: '0.62rem', fontWeight: 700,
-            letterSpacing: '0.14em', textTransform: 'uppercase',
-            color: 'var(--pl-muted)', marginBottom: '8px',
-          }}>
-            Active Generation
+      {/* ── Main content ── */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+
+        {/* ── Left sidebar — hidden on mobile ── */}
+        <aside className="hidden md:flex w-[220px] shrink-0 flex-col p-5 pt-6 border-r border-[var(--pl-divider)] bg-[var(--pl-cream)]">
+          <h2 className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)] mb-1">
+            The Loom
+          </h2>
+          <p className="text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[var(--pl-muted)] mb-6">
+            Building your celebration site...
           </p>
-          <h1 style={{
-            fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)',
-            fontWeight: 500,
-            fontFamily: 'var(--pl-font-heading)',
-            fontStyle: 'italic',
-            color: 'var(--pl-ink)',
-            margin: 0,
+
+          <nav className="flex flex-col gap-1 flex-1">
+            {SIDEBAR_STEPS.map((s) => {
+              const isActive = activeSidebar === s.id;
+              const isPast = SIDEBAR_STEPS.findIndex(x => x.id === activeSidebar) > SIDEBAR_STEPS.findIndex(x => x.id === s.id);
+              return (
+                <div key={s.id} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] transition-colors ${isActive ? 'bg-[rgba(163,177,138,0.12)]' : ''}`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold ${isPast || isActive ? 'bg-[var(--pl-olive-deep)] text-white' : 'bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]'}`}>
+                    {isPast ? '✓' : '⚙'}
+                  </div>
+                  <span className={`text-[0.75rem] font-semibold uppercase tracking-[0.04em] ${isActive ? 'text-[var(--pl-olive-deep)]' : 'text-[var(--pl-muted)]'}`}>
+                    {s.label}
+                  </span>
+                </div>
+              );
+            })}
+          </nav>
+
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="w-full py-3 rounded-[10px] border-none bg-[var(--pl-olive-deep)] text-white cursor-pointer text-[0.72rem] font-bold tracking-[0.1em] uppercase mt-auto"
+            >
+              New Generation
+            </button>
+          )}
+        </aside>
+
+        {/* ── Center — mobile-first stacked layout ── */}
+        <div className="flex-1 flex flex-col overflow-auto">
+
+          {/* Active generation header */}
+          <div className="text-center px-4 pt-6 pb-4 md:pt-8 md:pb-6" style={{
+            background: 'linear-gradient(180deg, rgba(163,177,138,0.06) 0%, transparent 100%)',
           }}>
-            Building: {displayName}
-          </h1>
-        </div>
+            <p className="text-[0.6rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-muted)] mb-2">
+              Active Generation
+            </p>
+            <h1 className="font-heading italic text-[clamp(1.3rem,4vw,2.2rem)] font-medium text-[var(--pl-ink)] m-0">
+              Building: {displayName}
+            </h1>
+          </div>
 
-        {/* Radial loom visualization */}
-        <div style={{
-          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          position: 'relative',
-        }}>
-          {/* Concentric circles */}
-          {[280, 220, 160].map((size, i) => (
+          {/* Radial loom visualization */}
+          <div className="flex-1 flex items-center justify-center relative min-h-[200px] md:min-h-[300px]">
+            {/* Concentric circles */}
+            {[200, 150, 100].map((size, i) => (
+              <motion.div
+                key={size}
+                animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
+                transition={{ duration: 30 + i * 10, repeat: Infinity, ease: 'linear' }}
+                className="absolute rounded-full"
+                style={{
+                  width: `min(${size}px, ${size * 0.6}vw)`,
+                  height: `min(${size}px, ${size * 0.6}vw)`,
+                  border: `1px solid rgba(163,177,138,${0.12 - i * 0.03})`,
+                }}
+              />
+            ))}
             <motion.div
-              key={size}
-              animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
-              transition={{ duration: 30 + i * 10, repeat: Infinity, ease: 'linear' }}
-              style={{
-                position: 'absolute',
-                width: size, height: size,
-                borderRadius: '50%',
-                border: `1px solid rgba(163,177,138,${0.12 - i * 0.03})`,
-              }}
-            />
-          ))}
+              animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[rgba(163,177,138,0.15)] backdrop-blur-sm flex items-center justify-center z-5 text-[18px]"
+            >
+              ✦
+            </motion.div>
+          </div>
 
-          {/* Center sparkle */}
-          <motion.div
-            animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              width: '56px', height: '56px', borderRadius: '50%',
-              background: 'rgba(163,177,138,0.15)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 5,
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>✦</span>
-          </motion.div>
+          {/* ── Step list — mobile: horizontal pills, desktop: right panel ── */}
+          <div className="px-4 pb-3 md:hidden">
+            <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
+              {PASSES.map((p, i) => {
+                const isActive = i === idx;
+                const isPast = i < idx;
+                return (
+                  <div
+                    key={i}
+                    className={`shrink-0 px-3 py-2 rounded-full text-[0.62rem] font-bold uppercase tracking-[0.06em] whitespace-nowrap transition-all ${
+                      isActive
+                        ? 'bg-[var(--pl-olive-deep)] text-white'
+                        : isPast
+                          ? 'bg-[rgba(163,177,138,0.15)] text-[var(--pl-olive-deep)]'
+                          : 'bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]'
+                    }`}
+                  >
+                    {String(i + 1).padStart(2, '0')} {p.headline}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-          {/* Photo thumbnails floating in the loom */}
-          <LoomPhotos photos={photos} count={activeCount} />
-        </div>
+          {/* Desktop right step list */}
+          <div className="hidden md:block absolute right-8 top-1/2 -translate-y-1/2 w-[260px] bg-white/60 backdrop-blur-md rounded-[16px] p-5 border border-[rgba(0,0,0,0.06)]">
+            {PASSES.map((p, i) => {
+              const isActive = i === idx;
+              const isPast = i < idx;
+              return (
+                <div key={i} className={`flex items-center gap-3 py-2 ${isPast ? 'opacity-50' : isActive ? 'opacity-100' : 'opacity-40'}`}>
+                  <span className={`text-[0.72rem] font-bold min-w-[20px] ${isActive ? 'text-[var(--pl-olive-deep)]' : 'text-[var(--pl-muted)]'}`}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div className={`transition-all ${isActive ? 'w-6' : 'w-4'} h-[2px] ${isActive ? 'bg-[var(--pl-ink)]' : 'bg-[var(--pl-divider)]'}`} />
+                  <span className={`transition-all ${isActive ? 'text-[1rem] font-heading font-semibold italic text-[var(--pl-ink)]' : 'text-[0.82rem] text-[var(--pl-muted)]'}`}>
+                    {p.headline}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
 
-        {/* Right sidebar — step list with numbering */}
-        <div style={{
-          position: 'absolute', right: '32px', top: '50%',
-          transform: 'translateY(-50%)',
-          width: '260px',
-          background: 'rgba(255,255,255,0.6)',
-          backdropFilter: 'blur(16px)',
-          borderRadius: '16px',
-          padding: '20px',
-          border: '1px solid rgba(0,0,0,0.06)',
-        }}>
-          {PASSES.map((p, i) => {
-            const isActive = i === idx;
-            const isPast = i < idx;
-            return (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '8px 0',
-                opacity: isPast ? 0.5 : isActive ? 1 : 0.4,
-              }}>
-                <span style={{
-                  fontSize: '0.72rem', fontWeight: 700,
-                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-                  minWidth: '20px',
-                }}>
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <div style={{
-                  width: isActive ? '24px' : '16px',
-                  height: '2px',
-                  background: isActive ? 'var(--pl-ink)' : 'var(--pl-divider)',
-                  transition: 'all 0.3s',
-                }} />
-                <span style={{
-                  fontSize: isActive ? '1rem' : '0.82rem',
-                  fontFamily: isActive ? 'var(--pl-font-heading)' : 'var(--pl-font-body)',
-                  fontWeight: isActive ? 600 : 400,
-                  fontStyle: isActive ? 'italic' : 'normal',
-                  color: isActive ? 'var(--pl-ink)' : 'var(--pl-muted)',
-                  transition: 'all 0.3s',
-                }}>
-                  {p.headline}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Bottom progress bar */}
-        <div style={{
-          padding: '16px 32px 24px',
-          borderTop: '1px solid var(--pl-divider)',
-          display: 'flex', alignItems: 'center', gap: '16px',
-        }}>
-          <div style={{ flex: 1 }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginBottom: '8px',
-            }}>
-              <div>
-                <span style={{
-                  fontSize: '0.62rem', fontWeight: 700,
-                  letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: 'var(--pl-muted)',
-                }}>
+          {/* ── Bottom progress ── */}
+          <div className="shrink-0 px-4 py-3 md:px-8 md:py-4 border-t border-[var(--pl-divider)] bg-white/50">
+            <div className="flex items-start md:items-center justify-between gap-3 mb-2">
+              <div className="min-w-0">
+                <span className="text-[0.58rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)] block">
                   Weaving Progress
                 </span>
                 <AnimatePresence mode="wait">
@@ -389,67 +229,39 @@ export function GenerationProgress({
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    style={{
-                      fontSize: '1.1rem', fontWeight: 500,
-                      fontFamily: 'var(--pl-font-heading)',
-                      fontStyle: 'italic',
-                      color: 'var(--pl-ink)',
-                      margin: '2px 0 0',
-                    }}
+                    className="font-heading italic text-[clamp(0.9rem,2.5vw,1.1rem)] font-medium text-[var(--pl-ink)] mt-0.5 m-0"
                   >
-                    {isComplete ? 'Weaving Complete' : `Refining ${pass.headline}`}
+                    {isComplete ? 'Complete' : `Refining ${pass.headline}`}
                   </motion.h3>
                 </AnimatePresence>
               </div>
-              <span style={{
-                fontSize: '1.2rem', fontWeight: 600,
-                color: 'var(--pl-olive-deep)',
-              }}>
+              <span className="text-[clamp(1rem,3vw,1.2rem)] font-semibold text-[var(--pl-olive-deep)] shrink-0">
                 {pct}%
               </span>
             </div>
+
             {/* Progress bar */}
-            <div style={{
-              height: '6px', borderRadius: '3px',
-              background: 'var(--pl-cream-deep)',
-              overflow: 'hidden',
-            }}>
+            <div className="h-1.5 rounded-full bg-[var(--pl-cream-deep)] overflow-hidden mb-2">
               <motion.div
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  height: '100%', borderRadius: '3px',
-                  background: 'var(--pl-olive-deep)',
-                }}
+                className="h-full rounded-full bg-[var(--pl-olive-deep)]"
               />
             </div>
+
             {/* Status line */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginTop: '8px',
-            }}>
-              <span style={{
-                fontSize: '0.58rem', fontWeight: 600,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: 'var(--pl-muted)',
-              }}>
-                AI Engine: <strong style={{ color: 'var(--pl-ink-soft)' }}>Loom v2.4</strong>
-                {' // '}Latency: <strong style={{ color: 'var(--pl-ink-soft)' }}>14ms</strong>
-                {' // '}Entropy: <strong style={{ color: 'var(--pl-ink-soft)' }}>0.82</strong>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className="text-[0.52rem] md:text-[0.58rem] font-semibold tracking-[0.06em] uppercase text-[var(--pl-muted)]">
+                AI Engine: <strong className="text-[var(--pl-ink-soft)]">Loom v2.4</strong>
+                {' // '}Latency: <strong className="text-[var(--pl-ink-soft)]">14ms</strong>
+                {' // '}Entropy: <strong className="text-[var(--pl-ink-soft)]">0.82</strong>
               </span>
               {onCancel && !isComplete && (
                 <button
                   onClick={onCancel}
-                  style={{
-                    fontSize: '0.62rem', fontWeight: 700,
-                    letterSpacing: '0.08em', textTransform: 'uppercase',
-                    color: 'var(--pl-warning)',
-                    background: 'none', border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                  }}
+                  className="text-[0.58rem] font-bold tracking-[0.06em] uppercase text-[var(--pl-warning)] bg-transparent border-none cursor-pointer flex items-center gap-1"
                 >
-                  ✕ Abort Generation
+                  ✕ Abort
                 </button>
               )}
             </div>

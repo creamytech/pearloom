@@ -24,7 +24,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
   const [addedId, setAddedId] = useState<string | null>(null);
 
   const containerStyle: React.CSSProperties = {
-    background: '#1E1B16',
+    background: 'var(--pl-cream-deep)',
     color: 'var(--pl-ink)',
     fontFamily: 'inherit',
     borderRadius: '8px',
@@ -135,7 +135,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'illustrations', name })}
             >
               {addedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
               <Comp size={32} color="var(--pl-ink)" />
               <span style={labelStyle}>{name.replace('Illustration', '')}</span>
@@ -171,7 +171,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'accents', name })}
             >
               {addedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
               <Comp size={32} color="var(--pl-ink)" />
               <span style={labelStyle}>{name.replace('Accent', '')}</span>
@@ -207,7 +207,7 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
               onKeyDown={(e) => e.key === 'Enter' && onSelect({ id: name, type: 'dividers', name })}
             >
               {addedId === name && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: '#1E1B16', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
+                <span style={{ position: 'absolute', top: '4px', right: '4px', fontSize: '0.55rem', background: '#A3B18A', color: 'var(--pl-ink)', padding: '2px 5px', borderRadius: '4px' }}>Added!</span>
               )}
               <div style={{ flex: 1, height: '32px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
                 <Comp width="100%" height={32} color="var(--pl-ink)" />
