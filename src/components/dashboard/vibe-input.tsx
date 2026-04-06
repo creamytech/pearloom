@@ -448,7 +448,7 @@ function FormatMiniPreview({ id }: { id: string }) {
   );
 
   if (id === 'filmstrip') return (
-    <div style={{ ...base, background:'#1a1713', gap:'2px', padding:'4px' }}>
+    <div style={{ ...base, background:'var(--pl-olive-mist)', gap:'2px', padding:'4px' }}>
       {[0,1,2,3].map(i => (
         <div key={i} style={{ width:'14px', flex:'none', height:'44px', background:'rgba(0,0,0,0.06)', borderRadius:'2px', border:'1px solid rgba(0,0,0,0.08)' }} />
       ))}
@@ -2427,7 +2427,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                           <div style={{ display: 'flex', gap: '4px', height: '40px' }}>
                             <div style={{ width: '36px', height: '100%', background: active ? '#A3B18A' : 'var(--pl-divider, #E6DFD2)', borderRadius: '2px' }} />
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px', justifyContent: 'center' }}>
-                              <div style={{ height: '4px', borderRadius: 1, background: active ? '#1a1713' : '#bbb' }} />
+                              <div style={{ height: '4px', borderRadius: 1, background: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : '#ccc' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : 'var(--pl-divider, #E6DFD2)', width: '80%' }} />
                               <div style={{ height: '2px', borderRadius: 1, background: active ? '#8FA876' : 'var(--pl-divider, #E6DFD2)', width: '60%' }} />

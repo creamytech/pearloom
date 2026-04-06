@@ -92,7 +92,7 @@ export function PearloomMark({
 export function PearloomWordmark({
   size = 120,
   color = '#A3B18A',
-  textColor = '#2B2B2B',
+  textColor = 'var(--pl-ink)',
   style,
 }: {
   size?: number;

@@ -110,14 +110,14 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
       {/* Film reel strip */}
       <div style={{ position: 'relative', overflowX: 'auto', overflowY: 'visible', paddingBottom: '1rem', WebkitOverflowScrolling: 'touch' as unknown as undefined }}>
         {/* Film perforations — top */}
-        <div style={{ position: 'sticky', left: 0, display: 'flex', gap: 0, background: '#1a1713', padding: '8px 24px', minWidth: 'max-content' }}>
+        <div style={{ position: 'sticky', left: 0, display: 'flex', gap: 0, background: 'var(--pl-olive-mist)', padding: '8px 24px', minWidth: 'max-content' }}>
           {chapters.map((_, i) => (
             <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
           ))}
         </div>
 
         {/* Frames */}
-        <div style={{ display: 'flex', gap: 'clamp(8px, 2vw, 16px)', padding: '0 24px', background: '#1a1713', minWidth: 'max-content' }}>
+        <div style={{ display: 'flex', gap: 'clamp(8px, 2vw, 16px)', padding: '0 24px', background: 'var(--pl-olive-mist)', minWidth: 'max-content' }}>
           {chapters.map((chapter, i) => {
             const coverImg = chapter.images?.[chapter.heroPhotoIndex ?? 0]?.url || chapter.images?.[0]?.url;
             const isActive = activeIdx === i;
@@ -168,7 +168,7 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
         </div>
 
         {/* Film perforations — bottom */}
-        <div style={{ display: 'flex', gap: 0, background: '#1a1713', padding: '8px 24px', minWidth: 'max-content' }}>
+        <div style={{ display: 'flex', gap: 0, background: 'var(--pl-olive-mist)', padding: '8px 24px', minWidth: 'max-content' }}>
           {chapters.map((_, i) => (
             <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
           ))}

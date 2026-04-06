@@ -720,7 +720,7 @@ export function MobileEditorSheet() {
               height: 52,
               paddingTop: 'env(safe-area-inset-top, 0px)',
               borderBottom: '1px solid rgba(0,0,0,0.04)',
-              background: 'rgba(15,12,9,0.98)',
+              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
               gap: 8,
             }}
           >
@@ -830,7 +830,7 @@ export function MobileEditorSheet() {
               gap: 8,
               padding: '8px 14px',
               borderBottom: '1px solid rgba(0,0,0,0.04)',
-              background: 'rgba(15,12,9,0.95)',
+              background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
             }}
           >
             <motion.button
@@ -963,7 +963,7 @@ export function MobileEditorSheet() {
               height: 58,
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
               borderTop: '1px solid rgba(0,0,0,0.05)',
-              background: 'rgba(15,12,9,0.98)',
+              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
               position: 'relative',
             }}
           >

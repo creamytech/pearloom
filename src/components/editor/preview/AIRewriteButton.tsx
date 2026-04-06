@@ -116,7 +116,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     border: `1.5px solid ${activeStyle === s.id ? '#A3B18A' : 'rgba(0,0,0,0.08)'}`,
                     background: activeStyle === s.id ? 'rgba(163,177,138,0.1)' : '#fff',
                     fontSize: '0.78rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
-                    color: '#2B2B2B', transition: 'all 0.15s',
+                    color: 'var(--pl-ink)', transition: 'all 0.15s',
                   }}
                 >
                   {s.label}
@@ -138,7 +138,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                 <div style={{
                   padding: '0.6rem', borderRadius: '0.5rem', background: 'rgba(163,177,138,0.06)',
                   border: '1px solid rgba(163,177,138,0.15)', fontSize: '0.85rem', lineHeight: 1.5,
-                  color: '#2B2B2B', marginBottom: '0.5rem',
+                  color: 'var(--pl-ink)', marginBottom: '0.5rem',
                 }}>
                   {result}
                 </div>

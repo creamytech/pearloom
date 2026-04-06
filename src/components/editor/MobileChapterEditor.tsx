@@ -117,7 +117,7 @@ export function MobileChapterEditor({
           gap: 8,
           padding: '12px 12px 12px',
           borderBottom: '1px solid rgba(0,0,0,0.05)',
-          background: 'rgba(15,12,9,0.98)',
+          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
           paddingTop: 'calc(12px + env(safe-area-inset-top, 0px))',
         }}
       >

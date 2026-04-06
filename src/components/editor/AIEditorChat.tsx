@@ -367,7 +367,7 @@ export function AIEditorChat({
                   borderRadius: '0.6rem',
                   border: `1px solid rgba(163,177,138,0.35)`,
                   background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
-                  color: '#2B2B2B',
+                  color: 'var(--pl-ink)',
                   fontSize: '0.82rem',
                   outline: 'none',
                   fontFamily: 'inherit',
