@@ -11,7 +11,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, LogOut, Check, Loader2, Zap, Star,
-  LayoutDashboard, BarChart2, LayoutGrid, ExternalLink,
+  LayoutDashboard, LayoutGrid, ExternalLink,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { cn } from '@/lib/cn';
@@ -136,8 +136,8 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
             <div className="flex items-stretch border-b border-[var(--pl-divider)]">
               {[
                 { icon: LayoutDashboard, label: 'Dashboard', action: () => { setIsOpen(false); if (onDashboard) onDashboard(); else window.location.href = '/dashboard'; } },
-                { icon: BarChart2,       label: 'Analytics', action: () => { setIsOpen(false); window.location.href = '/dashboard'; } },
-                { icon: LayoutGrid,      label: 'Seating',   action: () => { setIsOpen(false); window.open('/seating', '_blank'); } },
+                { icon: LayoutGrid,      label: 'Gallery',   action: () => { setIsOpen(false); window.location.href = '/dashboard/gallery'; } },
+                { icon: ExternalLink,    label: 'Marketplace', action: () => { setIsOpen(false); window.location.href = '/marketplace'; } },
               ].map(({ icon: Icon, label, action }) => (
                 <button
                   key={label}

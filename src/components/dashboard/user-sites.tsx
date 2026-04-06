@@ -401,7 +401,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         {/* Recent Looms heading */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-heading italic text-[clamp(1.4rem,2.5vw,1.8rem)] text-[var(--pl-ink-soft)]">Recent Looms</h2>
-          <a href="/marketplace" className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-colors flex items-center gap-1">
+          <a href="/dashboard/gallery" className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-colors flex items-center gap-1">
             View Archive <ExternalLink size={10} />
           </a>
         </div>
@@ -735,8 +735,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           </button>
           {[
             { label: 'Templates', icon: <Globe size={14} />, onClick: onOpenTemplates || onQuickStart },
-            { label: 'New Site', icon: <ExternalLink size={14} />, onClick: onStartNew },
-            { label: 'Insights', icon: <BarChart2 size={14} />, onClick: (() => {}) as (() => void) | undefined },
+            { label: 'Marketplace', icon: <Sparkles size={14} />, onClick: () => window.location.href = '/marketplace' },
+            { label: 'Gallery', icon: <Image size={14} />, onClick: () => window.location.href = '/dashboard/gallery' },
           ].map((item) => (
             <button
               key={item.label}

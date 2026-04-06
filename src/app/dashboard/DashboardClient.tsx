@@ -28,6 +28,7 @@ import type { StoryManifest } from '@/types';
 // ── Wizard step components ──────────────────────────────────────
 import { WizardLayout } from '@/components/wizard/WizardLayout';
 import { DashboardStep } from '@/components/wizard/DashboardStep';
+import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { PhotosStep } from '@/components/wizard/PhotosStep';
 import { UploadStep } from '@/components/wizard/UploadStep';
 import { ClustersStep } from '@/components/wizard/ClustersStep';
@@ -294,204 +295,222 @@ export default function DashboardClient() {
       colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
       borderRadius: '1rem',
     }}>
-      {status !== 'unauthenticated' && (
-        <SiteNav
-          names={['Pearloom', 'Studio']}
-          pages={[]}
-          user={session?.user || undefined}
-          onGoToDashboard={session ? () => goTo('dashboard') : undefined}
-          onStartNew={session ? () => goTo('photos') : undefined}
-        />
-      )}
-
-      {status === 'loading' ? null : (
-        <WizardLayout
-          step={state.step}
-          title={meta.title}
-          subtitle={meta.subtitle}
-          onStepClick={(stepId) => goTo(stepId as WizardStep)}
-          rightPanel={
-            state.step !== 'dashboard' && state.step !== 'generating' && previewState.progress > 0 ? (
-              <LivePreview state={previewState} names={state.coupleNames} occasion={state.step === 'vibe' ? 'wedding' : undefined} />
-            ) : undefined
-          }
-        >
-          {/* Error display */}
-          {state.error && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.15 }}
-              className="mb-8 p-5 flex gap-5"
-              style={{
-                borderRadius: card.radius,
-                background: card.bg,
-                border: card.border,
-                borderLeft: '3px solid #b91c1c',
-                boxShadow: card.shadow,
-              }}
-            >
-              <div
-                className="flex-shrink-0 flex items-center justify-center"
+      {status === 'loading' ? null : state.step === 'dashboard' ? (
+        /* ── Dashboard: own layout with sidebar, no wizard chrome ── */
+        <>
+          <SiteNav
+            names={['Pearloom', 'Studio']}
+            pages={[]}
+            user={session?.user || undefined}
+            onGoToDashboard={session ? () => goTo('dashboard') : undefined}
+            onStartNew={session ? () => goTo('photos') : undefined}
+          />
+          <div className="flex min-h-[calc(100dvh-4rem)]">
+            {/* Desktop sidebar */}
+            <div className="hidden md:block">
+              <DashboardSidebar />
+            </div>
+            {/* Main content */}
+            <main className="flex-1 overflow-auto bg-[var(--pl-cream)] p-4 md:p-8 lg:p-12">
+              <DashboardStep
+                draftBanner={getDraft()}
+                onResumeDraft={() => {
+                  const draft = getDraft();
+                  if (draft) dispatch({ type: 'RESTORE_DRAFT', draft });
+                }}
+                onDismissDraft={() => { clearDraft(); goTo('photos'); }}
+                onStartNew={() => goTo('photos')}
+                onQuickStart={() => setShowTemplates(true)}
+                onOpenTemplates={() => setShowTemplates(true)}
+                onEditSite={(site) => dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] })}
+                onManageGuests={(site) => { dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] }); dispatch({ type: 'NAVIGATE', step: 'guests' }); }}
+              />
+            </main>
+          </div>
+        </>
+      ) : (
+        /* ── Wizard steps: Photos, Clusters, Vibe, Generating, Guests ── */
+        <>
+          {status !== 'unauthenticated' && (
+            <SiteNav
+              names={['Pearloom', 'Studio']}
+              pages={[]}
+              user={session?.user || undefined}
+              onGoToDashboard={session ? () => goTo('dashboard') : undefined}
+              onStartNew={session ? () => goTo('photos') : undefined}
+            />
+          )}
+          <WizardLayout
+            step={state.step}
+            title={meta.title}
+            subtitle={meta.subtitle}
+            onStepClick={(stepId) => goTo(stepId as WizardStep)}
+            rightPanel={
+              state.step !== 'generating' && previewState.progress > 0 ? (
+                <LivePreview state={previewState} names={state.coupleNames} occasion={state.step === 'vibe' ? 'wedding' : undefined} />
+              ) : undefined
+            }
+          >
+            {/* Error display */}
+            {state.error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                className="mb-8 p-5 flex gap-5"
                 style={{
-                  width: 44,
-                  height: 44,
-                  color: '#b91c1c',
+                  borderRadius: card.radius,
+                  background: card.bg,
+                  border: card.border,
+                  borderLeft: '3px solid #b91c1c',
+                  boxShadow: card.shadow,
                 }}
               >
-                <AlertTriangle size={22} />
-              </div>
-              <div className="flex-1">
                 <div
-                  className="font-bold text-[0.95rem] mb-1"
-                  style={{ color: '#b91c1c' }}
+                  className="flex-shrink-0 flex items-center justify-center"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    color: '#b91c1c',
+                  }}
                 >
-                  Generation failed
+                  <AlertTriangle size={22} />
                 </div>
-                <div
-                  className="text-[0.88rem] leading-relaxed mb-1"
-                  style={{ color: 'var(--pl-muted)' }}
-                >
-                  {state.error}
-                </div>
-                <div
-                  className="text-[0.88rem] leading-relaxed italic"
-                  style={{ color: 'var(--pl-muted)' }}
-                >
-                  This sometimes happens when our AI is busy. It usually works on the second try.
-                </div>
-                <div className="flex gap-3 mt-4 flex-wrap">
-                  {lastVibeData && (
+                <div className="flex-1">
+                  <div
+                    className="font-bold text-[0.95rem] mb-1"
+                    style={{ color: '#b91c1c' }}
+                  >
+                    Generation failed
+                  </div>
+                  <div
+                    className="text-[0.88rem] leading-relaxed mb-1"
+                    style={{ color: 'var(--pl-muted)' }}
+                  >
+                    {state.error}
+                  </div>
+                  <div
+                    className="text-[0.88rem] leading-relaxed italic"
+                    style={{ color: 'var(--pl-muted)' }}
+                  >
+                    This sometimes happens when our AI is busy. It usually works on the second try.
+                  </div>
+                  <div className="flex gap-3 mt-4 flex-wrap">
+                    {lastVibeData && (
+                      <button
+                        onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); handleVibeSubmit(lastVibeData); }}
+                        className="px-5 py-2 border-none cursor-pointer text-[0.88rem] font-bold tracking-wide"
+                        style={{
+                          borderRadius: 'var(--pl-radius-sm)',
+                          background: 'var(--pl-olive)',
+                          color: '#fff',
+                          transition: 'background 0.15s',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--pl-olive-hover)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--pl-olive)')}
+                      >
+                        Try Again
+                      </button>
+                    )}
                     <button
-                      onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); handleVibeSubmit(lastVibeData); }}
-                      className="px-5 py-2 border-none cursor-pointer text-[0.88rem] font-bold tracking-wide"
+                      onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); goTo('photos'); }}
+                      className="px-5 py-2 bg-transparent cursor-pointer text-[0.88rem] font-semibold tracking-wide"
                       style={{
                         borderRadius: 'var(--pl-radius-sm)',
-                        background: 'var(--pl-olive)',
-                        color: '#fff',
-                        transition: 'background 0.15s',
+                        color: 'var(--pl-muted)',
+                        border: '1px solid var(--pl-divider)',
+                        transition: 'border-color 0.15s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--pl-olive-hover)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--pl-olive)')}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--pl-gold)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--pl-divider)')}
                     >
-                      Try Again
+                      Start Over
                     </button>
-                  )}
-                  <button
-                    onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); goTo('photos'); }}
-                    className="px-5 py-2 bg-transparent cursor-pointer text-[0.88rem] font-semibold tracking-wide"
-                    style={{
-                      borderRadius: 'var(--pl-radius-sm)',
-                      color: 'var(--pl-muted)',
-                      border: '1px solid var(--pl-divider)',
-                      transition: 'border-color 0.15s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--pl-gold)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--pl-divider)')}
-                  >
-                    Start Over
-                  </button>
-                  <button
-                    onClick={() => dispatch({ type: 'SET_ERROR', error: null })}
-                    className="px-4 py-2 bg-transparent border-none cursor-pointer text-[0.88rem] font-medium"
-                    style={{
-                      borderRadius: 'var(--pl-radius-sm)',
-                      color: 'var(--pl-muted)',
-                      opacity: 0.7,
-                      transition: 'opacity 0.15s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
-                  >
-                    Dismiss
-                  </button>
+                    <button
+                      onClick={() => dispatch({ type: 'SET_ERROR', error: null })}
+                      className="px-4 py-2 bg-transparent border-none cursor-pointer text-[0.88rem] font-medium"
+                      style={{
+                        borderRadius: 'var(--pl-radius-sm)',
+                        color: 'var(--pl-muted)',
+                        opacity: 0.7,
+                        transition: 'opacity 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {/* ── Step content ── */}
-          {state.step === 'dashboard' && (
-            <DashboardStep
-              draftBanner={getDraft()}
-              onResumeDraft={() => {
-                const draft = getDraft();
-                if (draft) dispatch({ type: 'RESTORE_DRAFT', draft });
-              }}
-              onDismissDraft={() => { clearDraft(); goTo('photos'); }}
-              onStartNew={() => goTo('photos')}
-              onQuickStart={() => setShowTemplates(true)}
-              onOpenTemplates={() => setShowTemplates(true)}
-              onEditSite={(site) => dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] })}
-              onManageGuests={(site) => { dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] }); dispatch({ type: 'NAVIGATE', step: 'guests' }); }}
-            />
-          )}
+            {/* ── Step content ── */}
+            {state.step === 'photos' && (
+              <>
+                {state.photos.length === 0 && (
+                  <QuickStartBanner onQuickStart={() => setShowTemplates(true)} />
+                )}
+                <PhotosStep
+                  selectedPhotos={state.photos}
+                  onPhotosSelected={(photos) => {
+                    dispatch({ type: 'SET_PHOTOS', photos });
+                    progressiveSession.onPhotosReady(photos).then(() => setPreviewState({ ...progressiveSession.getState() }));
+                  }}
+                  onContinue={() => goTo('clusters')}
+                />
+              </>
+            )}
 
-          {state.step === 'photos' && (
-            <>
-              {state.photos.length === 0 && (
-                <QuickStartBanner onQuickStart={() => setShowTemplates(true)} />
-              )}
-              <PhotosStep
-                selectedPhotos={state.photos}
-                onPhotosSelected={(photos) => {
-                  dispatch({ type: 'SET_PHOTOS', photos });
-                  // Start progressive generation — photo analysis
-                  progressiveSession.onPhotosReady(photos).then(() => setPreviewState({ ...progressiveSession.getState() }));
-                }}
-                onContinue={() => goTo('clusters')}
+            {state.step === 'upload' && (
+              <UploadStep
+                onUploadComplete={(photos) => { dispatch({ type: 'SET_PHOTOS', photos }); goTo('clusters'); }}
+                onBack={() => goTo('photos')}
               />
-            </>
-          )}
+            )}
 
-          {state.step === 'upload' && (
-            <UploadStep
-              onUploadComplete={(photos) => { dispatch({ type: 'SET_PHOTOS', photos }); goTo('clusters'); }}
-              onBack={() => goTo('photos')}
-            />
-          )}
+            {state.step === 'clusters' && (
+              <ClustersStep
+                photos={state.photos}
+                onConfirm={(clusters) => { dispatch({ type: 'SET_CLUSTERS', clusters }); goTo('vibe'); }}
+                onBack={() => goTo('photos')}
+              />
+            )}
 
-          {state.step === 'clusters' && (
-            <ClustersStep
-              photos={state.photos}
-              onConfirm={(clusters) => { dispatch({ type: 'SET_CLUSTERS', clusters }); goTo('vibe'); }}
-              onBack={() => goTo('photos')}
-            />
-          )}
+            {state.step === 'vibe' && (
+              <VibeStep
+                coupleNames={state.coupleNames}
+                vibeString={state.vibeData?.vibeString || ''}
+                onSubmit={handleVibeSubmit}
+                onBack={() => goTo('clusters')}
+              />
+            )}
 
-          {state.step === 'vibe' && (
-            <VibeStep
-              coupleNames={state.coupleNames}
-              vibeString={state.vibeData?.vibeString || ''}
-              onSubmit={handleVibeSubmit}
-              onBack={() => goTo('clusters')}
-            />
-          )}
+            {state.step === 'generating' && (
+              <GeneratingStep
+                step={state.generationStep}
+                photos={state.photos}
+                names={lastVibeData?.names ?? state.coupleNames}
+                vibeString={lastVibeData?.vibeString ?? ''}
+                occasion={lastVibeData?.occasion ?? 'wedding'}
+                onCancel={() => {
+                  generationControllerRef.current?.abort();
+                  generationControllerRef.current = null;
+                  goTo('vibe');
+                  dispatch({ type: 'SET_ERROR', error: null });
+                }}
+              />
+            )}
 
-          {state.step === 'generating' && (
-            <GeneratingStep
-              step={state.generationStep}
-              photos={state.photos}
-              names={lastVibeData?.names ?? state.coupleNames}
-              vibeString={lastVibeData?.vibeString ?? ''}
-              occasion={lastVibeData?.occasion ?? 'wedding'}
-              onCancel={() => {
-                generationControllerRef.current?.abort();
-                generationControllerRef.current = null;
-                goTo('vibe');
-                dispatch({ type: 'SET_ERROR', error: null });
-              }}
-            />
-          )}
-
-          {state.step === 'guests' && state.subdomain && (
-            <GuestsStep
-              siteId={state.subdomain}
-              onBack={() => goTo('dashboard')}
-            />
-          )}
-        </WizardLayout>
+            {state.step === 'guests' && state.subdomain && (
+              <GuestsStep
+                siteId={state.subdomain}
+                onBack={() => goTo('dashboard')}
+              />
+            )}
+          </WizardLayout>
+        </>
       )}
 
       <PublishModal
