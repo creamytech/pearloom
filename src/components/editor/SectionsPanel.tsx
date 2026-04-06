@@ -7,9 +7,14 @@
 // and move up/down buttons for reordering.
 // ─────────────────────────────────────────────────────────────
 
-import { useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import { suggestMissingBlocks } from '@/lib/block-engine/ai-blocks';
+import { MultiSelectToolbar } from './MultiSelectToolbar';
+import { SpacingHandle } from './SpacingHandle';
+import { BlockDropZone } from './BlockDropZone';
+import { useEditor } from '@/lib/editor-state';
+import { insertBlockAt } from '@/lib/block-engine/block-actions';
 import {
   Eye, EyeOff, GripVertical, Plus, Trash2, Sparkles,
   Image, BookOpen, CalendarDays, Mail, Gift, Plane,
@@ -67,10 +72,34 @@ export function SectionsPanel({ manifest, onChange }: {
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
 }) {
+  const { state, dispatch } = useEditor();
+  const [draggingType, setDraggingType] = useState<string | null>(null);
+
   const blocks = useMemo(
     () => [...(manifest.blocks || [])].sort((a, b) => a.order - b.order),
     [manifest.blocks],
   );
+
+  const handleBlockClick = useCallback((blockId: string, shiftKey: boolean) => {
+    if (shiftKey) {
+      dispatch({ type: 'TOGGLE_BLOCK_SELECTION', id: blockId });
+    } else {
+      dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
+      dispatch({ type: 'SET_SELECTED_BLOCKS', ids: [] });
+    }
+  }, [dispatch]);
+
+  const handleDropAtPosition = useCallback((position: number) => {
+    if (!draggingType) return;
+    const updated = insertBlockAt(blocks, draggingType, position);
+    onChange({ ...manifest, blocks: updated });
+    setDraggingType(null);
+  }, [draggingType, blocks, manifest, onChange]);
+
+  const handleMultiSelectUpdate = useCallback((updatedBlocks: PageBlock[]) => {
+    onChange({ ...manifest, blocks: updatedBlocks });
+    dispatch({ type: 'SET_SELECTED_BLOCKS', ids: [] });
+  }, [manifest, onChange, dispatch]);
 
   const updateBlocks = (newBlocks: typeof blocks) => {
     const sorted = newBlocks.map((b, i) => ({ ...b, order: i }));
@@ -127,10 +156,15 @@ export function SectionsPanel({ manifest, onChange }: {
               const BlockIcon = BLOCK_ICONS[block.type] || Package;
           const isHidden = block.visible === false;
 
+          const isSelected = state.selectedBlockIds.includes(block.id);
+
           return (
+            <div key={block.id}>
+            {/* Drop zone between blocks */}
+            <BlockDropZone index={idx} isDragging={!!draggingType} onDrop={handleDropAtPosition} />
             <Reorder.Item
-              key={block.id}
               value={block}
+              onClick={(e: React.MouseEvent) => handleBlockClick(block.id, e.shiftKey)}
               className="pl-panel-card"
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
@@ -200,6 +234,7 @@ export function SectionsPanel({ manifest, onChange }: {
                 </button>
               )}
             </Reorder.Item>
+            </div>
           );
         })}
       </Reorder.Group>
@@ -217,6 +252,9 @@ export function SectionsPanel({ manifest, onChange }: {
               <button
                 key={type}
                 onClick={() => addBlock(type)}
+                draggable
+                onDragStart={() => setDraggingType(type)}
+                onDragEnd={() => setDraggingType(null)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '6px 10px', borderRadius: '8px',
@@ -269,6 +307,16 @@ export function SectionsPanel({ manifest, onChange }: {
           </div>
         );
       })()}
+
+      {/* Multi-select toolbar */}
+      {state.selectedBlockIds.length >= 2 && (
+        <MultiSelectToolbar
+          selectedIds={state.selectedBlockIds}
+          blocks={blocks}
+          onUpdate={handleMultiSelectUpdate}
+          onClearSelection={() => dispatch({ type: 'SET_SELECTED_BLOCKS', ids: [] })}
+        />
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, stripArtForStorage, type DeviceMode } from '@/lib/editor-state';
 import { StickerOverlay } from './StickerOverlay';
 import { SectionHoverToolbar } from './SectionHoverToolbar';
+import { CanvasCursors } from './CanvasCursors';
 import { INLINE_EDIT_SCRIPT } from '@/lib/block-engine/inline-edit';
 
 // ── Skeleton Loading Screen ───────────────────────────────────
@@ -359,6 +360,13 @@ export function EditorCanvas() {
 
         {/* Section hover toolbar */}
         <SectionHoverToolbar />
+
+        {/* Collaborative cursors */}
+        <CanvasCursors
+          currentUserId={state.activeId || 'local'}
+          siteId={state.previewPage || 'editor'}
+          containerRef={canvasContainerRef}
+        />
       </div>
     </div>
   );

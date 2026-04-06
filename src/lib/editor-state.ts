@@ -80,6 +80,9 @@ export interface EditorState {
   // Chapter alternates
   chapterAlternates: Record<string, string[]>;
   alternatesLoadingId: string | null;
+
+  // Multi-select blocks
+  selectedBlockIds: string[];
 }
 
 export type EditorAction =
@@ -122,7 +125,9 @@ export type EditorAction =
   | { type: 'MARK_PUBLISHED'; url: string }
   | { type: 'OPEN_PUBLISH' }
   | { type: 'SET_CHAPTER_ALTERNATES'; id: string; alternates: string[] }
-  | { type: 'SET_ALTERNATES_LOADING'; id: string | null };
+  | { type: 'SET_ALTERNATES_LOADING'; id: string | null }
+  | { type: 'SET_SELECTED_BLOCKS'; ids: string[] }
+  | { type: 'TOGGLE_BLOCK_SELECTION'; id: string };
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
@@ -206,6 +211,14 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       return { ...state, chapterAlternates: { ...state.chapterAlternates, [action.id]: action.alternates } };
     case 'SET_ALTERNATES_LOADING':
       return { ...state, alternatesLoadingId: action.id };
+    case 'SET_SELECTED_BLOCKS':
+      return { ...state, selectedBlockIds: action.ids };
+    case 'TOGGLE_BLOCK_SELECTION': {
+      const ids = state.selectedBlockIds.includes(action.id)
+        ? state.selectedBlockIds.filter(id => id !== action.id)
+        : [...state.selectedBlockIds, action.id];
+      return { ...state, selectedBlockIds: ids };
+    }
     default:
       return state;
   }
@@ -316,6 +329,7 @@ export function createInitialEditorState(
     mobileActionChapterId: null,
     chapterAlternates: {},
     alternatesLoadingId: null,
+    selectedBlockIds: [],
   };
 }
 

@@ -55,6 +55,7 @@ import { BlockConfigEditor } from './BlockConfigEditor';
 import { BlockStyleEditor } from './BlockStyleEditor';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CustomCSSEditor } from './CustomCSSEditor';
+import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
   setBlockStyle, saveSnapshot, parseElementId,
@@ -864,6 +865,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#b91c1c', whiteSpace: 'nowrap' }}>{state.rewriteError}</span>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Active AI badge — shows during rewrite/regeneration */}
+      <AnimatePresence>
+        <ActiveCuratorBadge active={!!state.rewritingId} />
       </AnimatePresence>
 
       <style>{`
