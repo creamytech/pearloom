@@ -1160,7 +1160,15 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           padding: '3rem 2rem', textAlign: 'center',
           background: pal.foreground, color: `${pal.background}cc`,
           fontSize: '0.75rem', letterSpacing: '0.05em',
+          position: 'relative', overflow: 'hidden',
         }}>
+          {/* Corner decorations on footer */}
+          {vibeSkin.cornerFlourishSvg && (
+            <>
+              <div aria-hidden="true" style={{ position: 'absolute', bottom: 0, left: 0, width: 'min(30vw, 200px)', height: 'min(30vw, 200px)', pointerEvents: 'none', opacity: 0.15, transform: 'scaleY(-1)', filter: 'invert(1)' }} dangerouslySetInnerHTML={{ __html: vibeSkin.cornerFlourishSvg.replace(/opacity="[^"]*"/g, 'opacity="0.5"') }} />
+              <div aria-hidden="true" style={{ position: 'absolute', bottom: 0, right: 0, width: 'min(30vw, 200px)', height: 'min(30vw, 200px)', pointerEvents: 'none', opacity: 0.15, transform: 'scale(-1, -1)', filter: 'invert(1)' }} dangerouslySetInnerHTML={{ __html: vibeSkin.cornerFlourishSvg.replace(/opacity="[^"]*"/g, 'opacity="0.5"') }} />
+            </>
+          )}
           <div style={{ marginBottom: '0.5rem', fontSize: '1rem', opacity: 0.6 }}>{vibeSkin.accentSymbol || '♡'}</div>
           <div style={{
             fontFamily: `"${vibeSkin.fonts.heading}", serif`,

@@ -128,16 +128,28 @@ export function buildFallbackArt(accent: string, curve: VibeSkin['curve']): {
   <circle cx="600" cy="20" r="1.5" fill="${a}" opacity="0.2"/>
 </svg>`;
 
-  const cornerFlourishSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
-  <g fill="none" stroke="${a}" stroke-width="0.8" opacity="0.35">
-    <path d="M4,4 Q20,4 20,20"/>
-    <path d="M4,4 Q4,20 20,20"/>
-    <path d="M4,4 L12,4 M4,4 L4,12"/>
-    <circle cx="20" cy="20" r="3"/>
-    <path d="M28,4 Q36,12 28,20" opacity="0.5"/>
-    <path d="M4,28 Q12,36 20,28" opacity="0.5"/>
+  const cornerFlourishSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <g fill="none" stroke="${a}" opacity="0.2">
+    <path d="M0,0 C80,10 120,60 140,140" stroke-width="1.5"/>
+    <path d="M0,20 C60,28 100,70 120,150" stroke-width="1"/>
+    <path d="M20,0 C28,60 70,100 150,120" stroke-width="1"/>
+    <path d="M0,60 C40,65 70,90 90,160" stroke-width="0.8" opacity="0.15"/>
+    <path d="M60,0 C65,40 90,70 160,90" stroke-width="0.8" opacity="0.15"/>
+    <circle cx="50" cy="50" r="12" stroke-width="0.8" opacity="0.12"/>
+    <circle cx="50" cy="50" r="6" fill="${a}" opacity="0.08"/>
+    <path d="M30,15 C35,25 45,30 30,40 C20,30 25,25 30,15Z" fill="${a}" opacity="0.1"/>
+    <path d="M15,30 C25,35 30,45 40,30 C30,20 25,25 15,30Z" fill="${a}" opacity="0.1"/>
+    <path d="M65,8 C70,18 80,22 65,32 C55,22 60,18 65,8Z" fill="${a}" opacity="0.08"/>
+    <path d="M8,65 C18,70 22,80 32,65 C22,55 18,60 8,65Z" fill="${a}" opacity="0.08"/>
+    <path d="M100,30 C105,45 115,55 100,65 C90,55 95,45 100,30Z" fill="${a}" opacity="0.06"/>
+    <path d="M30,100 C45,105 55,115 65,100 C55,90 45,95 30,100Z" fill="${a}" opacity="0.06"/>
+    <circle cx="30" cy="15" r="2" fill="${a}" opacity="0.15"/>
+    <circle cx="15" cy="30" r="2" fill="${a}" opacity="0.15"/>
+    <circle cx="75" cy="25" r="1.5" fill="${a}" opacity="0.12"/>
+    <circle cx="25" cy="75" r="1.5" fill="${a}" opacity="0.12"/>
+    <circle cx="110" cy="45" r="1" fill="${a}" opacity="0.1"/>
+    <circle cx="45" cy="110" r="1" fill="${a}" opacity="0.1"/>
   </g>
-  <circle cx="4" cy="4" r="1.5" fill="${a}" opacity="0.4"/>
 </svg>`;
 
   const pts = Array.from({ length: 8 }, (_, i) => {
