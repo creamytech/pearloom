@@ -108,6 +108,14 @@ export interface StoryManifest {
   };
   // Decorative SVG stickers placed on the site
   stickers?: StickerItem[];
+  // Wedding party members
+  weddingParty?: WeddingPartyMember[];
+  // Meal options for RSVP
+  mealOptions?: MealOption[];
+  // Guest broadcast messages
+  broadcasts?: GuestBroadcast[];
+  // Post-event mode settings
+  postEventMode?: 'active' | 'thank-you' | 'archive';
   // Parchment tint filter applied to site photos
   parchmentTint?: 'none' | 'ivory' | 'linen' | 'parchment' | 'sepia';
   // Show "Hand-curated with Pearloom" watermark on published site
@@ -427,7 +435,8 @@ export type BlockType =
   | 'vibeQuote'
   | 'welcome'
   | 'footer'
-  | 'anniversary';
+  | 'anniversary'
+  | 'weddingParty';
 
 export interface PageBlock {
   id: string;
@@ -737,4 +746,42 @@ export interface StickerItem {
   rotation: number;      // degrees
   opacity: number;       // 0-1
   color?: string;
+}
+
+// ── Wedding Party ─────────────────────────────────────────────
+
+export interface WeddingPartyMember {
+  id: string;
+  name: string;
+  role: 'bride' | 'groom' | 'maid-of-honor' | 'best-man' | 'bridesmaid' | 'groomsman'
+    | 'flower-girl' | 'ring-bearer' | 'officiant' | 'parent' | 'grandparent' | 'other';
+  customRole?: string;
+  bio?: string;
+  photo?: string;
+  relationship?: string; // "Bride's sister", "Groom's college roommate"
+  order: number;
+}
+
+// ── Meal Options ──────────────────────────────────────────────
+
+export interface MealOption {
+  id: string;
+  name: string; // "Herb-Crusted Chicken", "Pan-Seared Salmon", "Garden Risotto"
+  description?: string;
+  dietaryTags: Array<'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'nut-free' | 'halal' | 'kosher'>;
+  /** Which event this meal belongs to (ceremony, reception, brunch) */
+  eventId?: string;
+}
+
+// ── Guest Broadcasts ──────────────────────────────────────────
+
+export interface GuestBroadcast {
+  id: string;
+  message: string;
+  type: 'update' | 'thank-you' | 'reminder' | 'emergency';
+  sentAt: number;
+  /** Number of guests this was sent to */
+  recipientCount: number;
+  /** Delivery channel */
+  channel: 'email' | 'sms' | 'site-banner';
 }

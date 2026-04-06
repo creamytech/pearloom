@@ -34,6 +34,9 @@ import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { buildContext, resolveBlockConfig } from '@/lib/block-engine';
+import { getPostEventConfig, getPostEventBanner } from '@/lib/post-event';
+import { generateJsonLd, getTwitterMeta } from '@/lib/guest-services';
+import { WeddingPartySection } from '@/components/site/WeddingPartySection';
 
 export const dynamic = 'force-dynamic';
 
@@ -583,6 +586,18 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {(blockCfg.title as string) || 'Anniversary Edition'}
             </p>
           </section>
+        );
+      case 'weddingParty':
+        if (!manifest.weddingParty?.length) return null;
+        return (
+          <WeddingPartySection
+            key={key}
+            members={manifest.weddingParty}
+            title={(blockCfg.title as string) || 'Our People'}
+            accentColor={pal.accent}
+            headingFont={vibeSkin.fonts.heading}
+            bodyFont={vibeSkin.fonts.body}
+          />
         );
       case 'footer':
         return (
@@ -1171,6 +1186,37 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Made with Pearloom</div>
         </footer>
         <AnalyticsBeacon siteId={domain} />
+
+        {/* JSON-LD structured data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: generateJsonLd(manifest, safeNames, domain) }}
+        />
+
+        {/* Post-event banner */}
+        {(() => {
+          const postEvent = getPostEventConfig(manifest, safeNames);
+          const banner = getPostEventBanner(postEvent);
+          if (!banner?.show) return null;
+          return (
+            <div style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+              padding: '16px 20px',
+              background: 'rgba(255,255,255,0.92)',
+              backdropFilter: 'blur(16px)',
+              borderTop: `1px solid ${pal.accent}20`,
+              textAlign: 'center',
+            }}>
+              <span style={{ marginRight: '8px' }}>{banner.icon}</span>
+              <strong style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontStyle: 'italic' }}>
+                {banner.title}
+              </strong>
+              <span style={{ color: pal.muted, fontSize: '0.85rem', marginLeft: '8px' }}>
+                {banner.subtitle}
+              </span>
+            </div>
+          );
+        })()}
 
         {/* Parchment tint filter — applies to all images */}
         {parchmentFilter !== 'none' && (
