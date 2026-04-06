@@ -124,6 +124,8 @@ export interface StoryManifest {
   privateGallery?: boolean;
   // Typography pair preset for the site
   typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
+  /** Site customization options (borders, frames, transitions, etc.) */
+  customization?: import("./types").SiteCustomization;
 }
 
 export interface Chapter {
@@ -784,4 +786,29 @@ export interface GuestBroadcast {
   recipientCount: number;
   /** Delivery channel */
   channel: 'email' | 'sms' | 'site-banner';
+}
+
+// ── Customization Options ─────────────────────────────────────
+
+export interface SiteCustomization {
+  /** Card border style ID */
+  cardBorder?: string;
+  /** Section background ID per section (blockId → bgId) */
+  sectionBackgrounds?: Record<string, string>;
+  /** Photo frame style ID */
+  photoFrame?: string;
+  /** Monogram style + initials */
+  monogram?: { style: string; initials: string; color: string };
+  /** Section transition style ID */
+  sectionTransition?: string;
+  /** Custom RSVP questions */
+  rsvpQuestions?: Array<{ id: string; question: string; type: 'text' | 'select' | 'radio'; options?: string[]; required: boolean }>;
+  /** Custom guestbook prompts (IDs from GUESTBOOK_PROMPTS) */
+  guestbookPrompts?: string[];
+  /** Countdown style ID */
+  countdownStyle?: string;
+  /** Text animation effect ID */
+  textEffect?: string;
+  /** Background music config */
+  backgroundMusic?: { url: string; autoPlay: boolean; volume: number; showControls: boolean; position: string; consentMessage: string };
 }
