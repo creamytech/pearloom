@@ -51,6 +51,7 @@ import { SpotifyPanel } from './SpotifyPanel';
 import { AnniversaryNudgePanel } from './AnniversaryNudgePanel';
 import { VendorPanel } from './VendorPanel';
 import { PropertiesPanel } from './PropertiesPanel';
+import { BlockConfigEditor } from './BlockConfigEditor';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -662,7 +663,25 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 {state.activeTab === 'story' && <StoryPanel />}
 
                 {state.activeTab === 'canvas' && (
+                  <>
                   <CanvasEditor manifest={manifest} onChange={(m) => { onChange(m); }} pushToPreview={pushToPreview} />
+                  {/* Block config editor — shown when a block is selected */}
+                  {state.activeId && manifest.blocks?.find(b => b.id === state.activeId) && (
+                    <BlockConfigEditor
+                      block={manifest.blocks.find(b => b.id === state.activeId)!}
+                      onChange={(config) => {
+                        const updated = {
+                          ...manifest,
+                          blocks: (manifest.blocks || []).map(b =>
+                            b.id === state.activeId ? { ...b, config } : b
+                          ),
+                        };
+                        onChange(updated);
+                        pushToPreview(updated);
+                      }}
+                    />
+                  )}
+                  </>
                 )}
 
                 {state.activeTab === 'events' && (

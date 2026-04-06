@@ -33,6 +33,7 @@ import { ShareBar } from '@/components/site/ShareBar';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
+import { buildContext, resolveBlockConfig } from '@/lib/block-engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -265,9 +266,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   const isPasswordProtected = manifest.comingSoon?.passwordProtected && manifest.comingSoon?.password;
 
+  // ── Binding context for template/binding resolution ──────────────
+  const bindingCtx = buildContext(manifest, safeNames, vibeSkin);
+
   // ── Block renderer: ordered by manifest.blocks ─────────────────
   const renderBlock = (type: string, key: string) => {
-    const blockCfg = (manifest.blocks || []).find((b: { id: string }) => b.id === key)?.config || {};
+    const rawCfg = (manifest.blocks || []).find((b: { id: string }) => b.id === key)?.config || {};
+    const blockCfg = resolveBlockConfig(rawCfg, bindingCtx);
     switch (type) {
       case 'hero':
         return (
