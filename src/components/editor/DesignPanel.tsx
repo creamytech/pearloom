@@ -14,8 +14,127 @@ import { DesignIcon } from '@/components/icons/EditorIcons';
 import { VisualEffectsPanel } from './VisualEffectsPanel';
 import { DesignAdvisor } from './DesignAdvisor';
 import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
+import { CORNER_PRESETS, renderCornerSvg, type CornerPreset } from '@/lib/corner-presets';
+import { Check } from 'lucide-react';
 import type { StoryManifest, ThemeSchema } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+
+// ── Corner Decoration Picker ──────────────────────────────────
+function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const accent = manifest.vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
+  const currentSvg = manifest.vibeSkin?.cornerFlourishSvg || '';
+  const [filter, setFilter] = useState<string>('all');
+
+  const categories = ['all', 'botanical', 'whimsical', 'geometric', 'minimal', 'cultural'];
+  const filtered = filter === 'all' ? CORNER_PRESETS : CORNER_PRESETS.filter(p => p.category === filter);
+
+  const applyPreset = (preset: CornerPreset) => {
+    const svg = preset.svg ? renderCornerSvg(preset, accent) : '';
+    onChange({
+      ...manifest,
+      vibeSkin: manifest.vibeSkin ? { ...manifest.vibeSkin, cornerFlourishSvg: svg || undefined } : manifest.vibeSkin,
+    });
+  };
+
+  // Check if current matches a preset (rough match by id presence in svg)
+  const isActive = (preset: CornerPreset) => {
+    if (!preset.svg && !currentSvg) return true;
+    if (!preset.svg || !currentSvg) return false;
+    const rendered = renderCornerSvg(preset, accent);
+    // Compare first 100 chars of path data as fingerprint
+    return rendered.slice(0, 120) === currentSvg.slice(0, 120);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
+        Decorative corners for the hero and footer — personalized to your style.
+      </p>
+
+      {/* Category filter pills */}
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setFilter(cat)}
+            style={{
+              padding: '3px 10px', borderRadius: '100px', border: 'none',
+              fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
+              textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s',
+              background: filter === cat ? 'var(--pl-olive)' : 'rgba(0,0,0,0.03)',
+              color: filter === cat ? 'white' : 'var(--pl-muted)',
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Preset grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+        {filtered.map(preset => {
+          const active = isActive(preset);
+          const previewSvg = preset.svg ? renderCornerSvg(preset, accent) : '';
+          return (
+            <button
+              key={preset.id}
+              onClick={() => applyPreset(preset)}
+              title={preset.label}
+              style={{
+                position: 'relative',
+                aspectRatio: '1',
+                borderRadius: '12px',
+                border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                transition: 'all 0.15s',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              } as React.CSSProperties}
+            >
+              {previewSvg ? (
+                <div
+                  style={{ width: '80%', height: '80%' }}
+                  dangerouslySetInnerHTML={{ __html: previewSvg }}
+                />
+              ) : (
+                <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 600 }}>None</span>
+              )}
+              {active && (
+                <div style={{
+                  position: 'absolute', top: '4px', right: '4px',
+                  width: '16px', height: '16px', borderRadius: '50%',
+                  background: 'var(--pl-olive)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Check size={9} color="white" strokeWidth={3} />
+                </div>
+              )}
+              <span style={{
+                position: 'absolute', bottom: '3px', left: 0, right: 0,
+                fontSize: '0.5rem', fontWeight: 700, color: 'var(--pl-muted)',
+                textAlign: 'center', letterSpacing: '0.03em',
+              }}>
+                {preset.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {currentSvg && (
+        <p style={{ fontSize: '0.6rem', color: 'var(--pl-olive)', textAlign: 'center', margin: 0, fontStyle: 'italic' }}>
+          ✦ AI-generated corners will be replaced when you pick a preset
+        </p>
+      )}
+    </div>
+  );
+}
 
 export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; coupleNames?: [string, string] }) {
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -180,6 +299,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             </button>
           </div>
         )}
+      </SidebarSection>
+
+      {/* ── Corner Decorations — swappable presets ── */}
+      <SidebarSection title="Corner Decorations" defaultOpen={true}>
+        <CornerDecorationPicker manifest={manifest} onChange={onChange} />
       </SidebarSection>
 
       {/* Design Health — advisors collapsed at bottom */}
