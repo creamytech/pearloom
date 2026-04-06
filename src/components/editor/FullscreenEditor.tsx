@@ -57,6 +57,7 @@ import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CustomCSSEditor } from './CustomCSSEditor';
 import { CustomizationPanel } from './CustomizationPanel';
 import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
+import { trackPublish, trackEdit } from '@/lib/intelligence';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
@@ -437,6 +438,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to publish');
       dispatch({ type: 'MARK_PUBLISHED', url: data.url });
+      trackPublish(state.subdomain, historyRef.current.length, Date.now() - (state as unknown as Record<string, number>)._startTime || 0);
       onPublish?.();
     } catch (err) {
       dispatch({ type: 'SET_PUBLISH_ERROR', error: err instanceof Error ? err.message : 'Unknown error' });

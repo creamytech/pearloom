@@ -543,6 +543,13 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
+    // ── Quality evaluation ──────────────────────────────
+    const { evaluateQuality: evalQuality } = await import('@/lib/intelligence/quality-eval');
+    const qualityReport = evalQuality(manifest);
+    console.log(`[Generate] Quality score: ${qualityReport.overallScore}/100 (${qualityReport.passed ? 'PASSED' : 'FLAGGED'})`);
+    if (qualityReport.issues.filter(i => i.severity === 'critical').length > 0) {
+      console.warn('[Generate] Critical quality issues:', qualityReport.issues.filter(i => i.severity === 'critical').map(i => i.message));
+    }
     return NextResponse.json({ manifest });
   } catch (error) {
     console.error('Generation error:', error);
