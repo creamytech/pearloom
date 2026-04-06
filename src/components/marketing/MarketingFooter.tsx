@@ -7,9 +7,18 @@ const COLUMNS = [
   {
     title: 'Product',
     links: [
-      { label: 'How It Works', href: '#the-loom' },
-      { label: 'Pricing', href: '#how-it-works' },
-      { label: 'FAQ', href: '#pricing' },
+      { label: 'How It Works', href: '#how-it-works' },
+      { label: 'Marketplace', href: '/marketplace' },
+      { label: 'Pricing', href: '#pricing' },
+      { label: 'FAQ', href: '#faq' },
+    ],
+  },
+  {
+    title: 'Partners',
+    links: [
+      { label: 'Partner Program', href: '/partners' },
+      { label: 'For Photographers', href: '/partners' },
+      { label: 'For Planners', href: '/partners' },
     ],
   },
   {
