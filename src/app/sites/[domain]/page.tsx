@@ -274,7 +274,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <div key={key} style={{ position: 'relative' }}>
             <Hero
               names={safeNames}
-              subtitle={siteConfig.tagline || 'A love story beautifully told.'}
+              subtitle={(blockCfg.subtitle as string) || siteConfig.tagline || ''}
               coverPhoto={coverPhoto}
               weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
               vibeSkin={vibeSkin}
@@ -300,7 +300,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
-            <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+            <WeddingEvents events={manifest.events} title={(blockCfg.title as string) || vibeSkin.sectionLabels.events} />
           </section>
         );
       case 'rsvp':
@@ -322,7 +322,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               registries={manifest.registry?.entries || []}
               cashFundUrl={manifest.registry?.cashFundUrl}
               cashFundMessage={manifest.registry?.cashFundMessage}
-              title={vibeSkin.sectionLabels.registry}
+              title={(blockCfg.title as string) || vibeSkin.sectionLabels.registry}
             />
           </section>
         );
@@ -363,11 +363,12 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         const eventDate = manifest.logistics?.date || manifest.events?.[0]?.date;
         if (!eventDate) return null;
         const occasion = manifest.occasion || 'wedding';
-        const countdownLabel = occasion === 'birthday' ? 'Until the celebration!'
+        const defaultCountdownLabel = occasion === 'birthday' ? 'Until the celebration!'
           : occasion === 'anniversary' ? 'Until our anniversary!'
           : occasion === 'engagement' ? 'Until the big day!'
           : occasion === 'story' ? 'The moment arrives'
           : 'Until we say I do';
+        const countdownLabel = (blockCfg.label as string) || defaultCountdownLabel;
         return (
           <CountdownBlock
             key={key}
@@ -397,10 +398,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'quote': {
         // Accept 'quote' (legacy) and 'text' (CanvasEditor saves as 'text')
         const customQuote = (blockCfg.quote || blockCfg.text) as string | undefined;
-        const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.';
+        const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || '';
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
-            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{(blockCfg.symbol as string) || vibeSkin.accentSymbol || '\u2726'}</div>
             <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: pal.foreground, opacity: 0.75 }}>
               &ldquo;{quoteText}&rdquo;
             </p>
@@ -451,14 +452,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         );
       }
       case 'divider':
-        return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
+        return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={(blockCfg.height as number) || 60} />;
       case 'photos': {
         const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '0.6rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
-                {vibeSkin.sectionLabels.photos || 'Our Photos'}
+                {(blockCfg.title as string) || vibeSkin.sectionLabels.photos || 'Our Photos'}
               </div>
               <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
             </div>
@@ -481,6 +482,106 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </section>
         );
       }
+      case 'spotify':
+        if (!manifest.spotifyUrl) return null;
+        return (
+          <SpotifySection
+            key={key}
+            spotifyUrl={manifest.spotifyUrl}
+            playlistName={(blockCfg.title as string) || manifest.spotifyPlaylistName}
+            vibeSkin={vibeSkin}
+          />
+        );
+      case 'quiz': {
+        const quizChapters = (manifest.chapters || []).filter((ch: import('@/types').Chapter) => ch.quizQuestion);
+        if (quizChapters.length === 0) return null;
+        return (
+          <CoupleQuiz
+            key={key}
+            chapters={quizChapters}
+            vibeSkin={vibeSkin}
+            siteId={domain}
+            coupleNames={safeNames}
+          />
+        );
+      }
+      case 'photoWall':
+        return (
+          <GuestPhotoWall
+            key={key}
+            siteId={domain}
+            vibeSkin={vibeSkin}
+          />
+        );
+      case 'hashtag': {
+        if (!manifest.hashtags?.length) return null;
+        return (
+          <section key={key} style={{ padding: 'clamp(3rem,6vw,5rem) 2rem', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: pal.accent, marginBottom: '1rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
+              {(blockCfg.title as string) || 'Share the Moment'}
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {manifest.hashtags.map((tag: string) => (
+                <span key={tag} style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 600, fontStyle: 'italic', color: pal.foreground }}>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </section>
+        );
+      }
+      case 'gallery':
+        return (
+          <SiteGallerySection key={key} siteId={domain} coupleNames={safeNames} />
+        );
+      case 'vibeQuote': {
+        const vqText = (blockCfg.text as string) || vibeSkin.dividerQuote || manifest.vibeString || '';
+        if (!vqText) return null;
+        return (
+          <section key={key} style={{ padding: 'clamp(3rem,6vw,6rem) 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{(blockCfg.symbol as string) || vibeSkin.accentSymbol || '\u2726'}</div>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.7, color: pal.foreground, opacity: 0.75 }}>
+              &ldquo;{vqText}&rdquo;
+            </p>
+          </section>
+        );
+      }
+      case 'welcome': {
+        const welcomeText = (blockCfg.text as string) || manifest.poetry?.welcomeStatement;
+        if (!welcomeText) return null;
+        return (
+          <section key={key} style={{ padding: 'clamp(3rem,6vw,5rem) 2rem', textAlign: 'center', maxWidth: '680px', margin: '0 auto' }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.05rem', lineHeight: 1.9, color: pal.foreground, opacity: 0.8 }}>
+              {welcomeText}
+            </p>
+          </section>
+        );
+      }
+      case 'anniversary':
+        if (!manifest.anniversaryMode) return null;
+        return (
+          <section key={key} style={{ textAlign: 'center', padding: '1.5rem', background: `${pal.accent}08` }}>
+            <p style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: pal.accent }}>
+              {(blockCfg.title as string) || 'Anniversary Edition'}
+            </p>
+          </section>
+        );
+      case 'footer':
+        return (
+          <footer key={key} style={{ background: pal.foreground, color: `${pal.background}B0`, padding: 'clamp(3rem,6vw,5rem) 2rem 2rem', textAlign: 'center' }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.2rem,3vw,1.8rem)', fontWeight: 600, fontStyle: 'italic', color: `${pal.background}F0`, marginBottom: '0.75rem' }}>
+              {safeNames[1]?.trim() ? `${safeNames[0]} & ${safeNames[1]}` : safeNames[0]}
+            </p>
+            {manifest.poetry?.closingLine && (
+              <p style={{ fontSize: '0.88rem', fontStyle: 'italic', opacity: 0.6, marginBottom: '2rem', maxWidth: '480px', margin: '0 auto 2rem' }}>
+                {(blockCfg.text as string) || manifest.poetry.closingLine}
+              </p>
+            )}
+            <p style={{ fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.3, marginTop: '2rem' }}>
+              {(blockCfg.subtitle as string) || 'Made with Pearloom'}
+            </p>
+          </footer>
+        );
       default:
         return null;
     }

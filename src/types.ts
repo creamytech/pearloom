@@ -421,14 +421,31 @@ export type BlockType =
   | 'spotify'
   | 'quiz'
   | 'storymap'
-  | 'hashtag';
+  | 'hashtag'
+  | 'photoWall'
+  | 'gallery'
+  | 'vibeQuote'
+  | 'welcome'
+  | 'footer'
+  | 'anniversary';
 
 export interface PageBlock {
   id: string;
   type: BlockType;
   order: number;
   visible: boolean;
-  // Optional per-block config overrides
+  /**
+   * Per-block config — every block can override its title, subtitle,
+   * and carry type-specific settings. This makes every section editable.
+   *
+   * Common fields:
+   *   title    — custom section heading (overrides vibeSkin.sectionLabels)
+   *   subtitle — custom subheading or intro text
+   *   text     — main body content (for text/quote blocks)
+   *   url      — media URL (for video/spotify/map blocks)
+   *   symbol   — decorative symbol (for quote/divider blocks)
+   *   label    — action label or countdown text
+   */
   config?: Record<string, unknown>;
   /** Per-block visual effects — override or supplement global theme effects */
   blockEffects?: {

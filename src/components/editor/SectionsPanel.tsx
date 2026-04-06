@@ -13,7 +13,8 @@ import {
   Eye, EyeOff, GripVertical, Plus, Trash2,
   Image, BookOpen, CalendarDays, Mail, Gift, Plane,
   HelpCircle, Timer, FileText, Quote, Video, MapPin,
-  Camera, MessageSquare, Minus, Package, type LucideIcon,
+  Camera, MessageSquare, Minus, Package, Music, Hash, Star,
+  type LucideIcon,
 } from 'lucide-react';
 import type { StoryManifest, PageBlock } from '@/types';
 
@@ -24,6 +25,9 @@ const BLOCK_ICONS: Record<string, LucideIcon> = {
   faq: HelpCircle, countdown: Timer, text: FileText,
   quote: Quote, video: Video, map: MapPin,
   photos: Camera, guestbook: MessageSquare, divider: Minus,
+  spotify: Music, quiz: HelpCircle, photoWall: Camera,
+  hashtag: Hash, gallery: Image, vibeQuote: Quote,
+  welcome: FileText, footer: Minus, anniversary: Star,
 };
 
 const BLOCK_LABELS: Record<string, { label: string }> = {
@@ -42,9 +46,21 @@ const BLOCK_LABELS: Record<string, { label: string }> = {
   photos: { label: 'Photo Gallery' },
   guestbook: { label: 'Guestbook' },
   divider: { label: 'Divider' },
+  spotify: { label: 'Music' },
+  quiz: { label: 'Couple Quiz' },
+  photoWall: { label: 'Guest Photos' },
+  hashtag: { label: 'Hashtags' },
+  gallery: { label: 'Gallery' },
+  vibeQuote: { label: 'Vibe Quote' },
+  welcome: { label: 'Welcome' },
+  footer: { label: 'Footer' },
+  anniversary: { label: 'Anniversary' },
 };
 
-const ADDABLE_TYPES = ['countdown', 'text', 'quote', 'video', 'map', 'photos', 'guestbook', 'divider'];
+const ADDABLE_TYPES = [
+  'countdown', 'text', 'quote', 'video', 'map', 'photos', 'guestbook', 'divider',
+  'spotify', 'quiz', 'photoWall', 'hashtag', 'gallery', 'vibeQuote', 'welcome', 'footer', 'anniversary',
+];
 
 export function SectionsPanel({ manifest, onChange }: {
   manifest: StoryManifest;
