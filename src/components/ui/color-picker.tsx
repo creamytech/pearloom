@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pipette, Check } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -114,15 +115,24 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
         <span className="text-[0.82rem] font-mono text-[var(--pl-ink)]">{value}</span>
       </button>
 
-      {/* Dropdown picker */}
+      {/* Dropdown picker — rendered via portal to escape overflow:hidden */}
+      {typeof document !== 'undefined' && createPortal(
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={(el) => {
+              if (el && pickerRef.current) {
+                const rect = pickerRef.current.getBoundingClientRect();
+                el.style.position = 'fixed';
+                el.style.top = `${rect.bottom + 4}px`;
+                el.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 252))}px`;
+              }
+            }}
             initial={{ opacity: 0, y: -4, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 z-50 w-[240px] p-3 rounded-[16px] bg-white/95 backdrop-blur-xl border border-[rgba(0,0,0,0.06)] shadow-[0_8px_32px_rgba(43,30,20,0.12)]"
+            className="z-[10000] w-[240px] p-3 rounded-[16px] bg-white/95 backdrop-blur-xl border border-[rgba(0,0,0,0.06)] shadow-[0_8px_32px_rgba(43,30,20,0.12)]"
           >
             {/* Hue slider */}
             <div className="mb-3">
@@ -194,7 +204,9 @@ export function ColorPicker({ value, onChange, label, className }: ColorPickerPr
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }

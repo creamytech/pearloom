@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check, Search } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -93,15 +94,25 @@ export function CustomSelect({
         />
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown — portal to escape overflow */}
+      {typeof document !== 'undefined' && createPortal(
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={(el) => {
+              if (el && ref.current) {
+                const rect = ref.current.getBoundingClientRect();
+                el.style.position = 'fixed';
+                el.style.top = `${rect.bottom + 4}px`;
+                el.style.left = `${rect.left}px`;
+                el.style.width = `${rect.width}px`;
+              }
+            }}
             initial={{ opacity: 0, y: -4, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-1 z-50 rounded-[14px] bg-white/95 backdrop-blur-xl border border-[rgba(0,0,0,0.06)] shadow-[0_8px_32px_rgba(43,30,20,0.12)] overflow-hidden"
+            className="z-[10000] rounded-[14px] bg-white/95 backdrop-blur-xl border border-[rgba(0,0,0,0.06)] shadow-[0_8px_32px_rgba(43,30,20,0.12)] overflow-hidden"
           >
             {/* Search */}
             {searchable && (
@@ -163,7 +174,9 @@ export function CustomSelect({
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }

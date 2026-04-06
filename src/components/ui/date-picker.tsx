@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -129,14 +130,16 @@ export function DatePicker({ value, onChange, label, placeholder = 'Select date'
       </button>
 
       {/* Calendar dropdown */}
+      {typeof document !== "undefined" && createPortal(
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={(el) => { if (el && ref.current) { const rect = ref.current.getBoundingClientRect(); el.style.position = "fixed"; el.style.top = `${rect.bottom + 4}px`; el.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 292))}px`; } }}
             initial={{ opacity: 0, y: -4, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 z-50 w-[280px] p-4 rounded-[16px] bg-white/95 backdrop-blur-xl border border-[rgba(0,0,0,0.06)] shadow-[0_8px_32px_rgba(43,30,20,0.12)]"
+            className="z-[10000] w-[280px] p-4 rounded-[16px] bg-white/95 backdrop-blur-xl border border-[rgba(0,0,0,0.06)] shadow-[0_8px_32px_rgba(43,30,20,0.12)]"
           >
             {/* Month/Year header */}
             <div className="flex items-center justify-between mb-3">
@@ -203,7 +206,9 @@ export function DatePicker({ value, onChange, label, placeholder = 'Select date'
             </button>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+      )}
     </div>
   );
 }
