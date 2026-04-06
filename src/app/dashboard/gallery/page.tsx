@@ -58,27 +58,38 @@ export default function GalleryPage() {
   }, []);
 
   return (
-    <div className="min-h-dvh bg-[var(--pl-cream)] flex">
-      {/* Sidebar — desktop only */}
-      <div className="hidden md:block">
-        <DashboardSidebar />
-      </div>
+    <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
+      {/* Dashboard header */}
+      <header className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white/80 backdrop-blur-md z-10">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="font-heading italic text-[1.05rem] font-semibold text-[var(--pl-ink-soft)] no-underline hover:opacity-75 transition-opacity">
+            Pearloom
+          </Link>
+          <span className="hidden sm:block text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
+            Gallery
+          </span>
+        </div>
+        <Link href="/dashboard" className="text-[0.72rem] text-[var(--pl-muted)] no-underline flex items-center gap-1 hover:text-[var(--pl-ink)] transition-colors">
+          <ArrowLeft size={12} /> Back to Dashboard
+        </Link>
+      </header>
 
-      {/* Main content */}
-      <main className="flex-1 p-4 md:p-8">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar — desktop only */}
+        <div className="hidden md:block">
+          <DashboardSidebar />
+        </div>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-auto p-4 md:p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Link href="/dashboard" className="text-[0.72rem] text-[var(--pl-muted)] no-underline flex items-center gap-1 mb-2 md:hidden">
-              <ArrowLeft size={12} /> Dashboard
-            </Link>
-            <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2rem)] text-[var(--pl-ink)]">
-              Photo Gallery
-            </h1>
-            <p className="text-[0.82rem] text-[var(--pl-muted)]">
-              {photos.length} photos across all your sites
-            </p>
-          </div>
+        <div className="mb-6">
+          <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2rem)] text-[var(--pl-ink)]">
+            Photo Gallery
+          </h1>
+          <p className="text-[0.82rem] text-[var(--pl-muted)]">
+            {photos.length} photos across all your sites
+          </p>
         </div>
 
         {/* Gallery grid */}
@@ -127,7 +138,8 @@ export default function GalleryPage() {
             ))}
           </div>
         )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

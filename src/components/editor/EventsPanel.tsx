@@ -129,7 +129,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               >
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: evtTypeOpt.color, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.name || 'Event'}</div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.name || 'Event'}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', marginTop: '2px' }}>{evt.date}{evt.time ? ` · ${evt.time}` : ''}{evt.venue ? ` · ${evt.venue}` : ''}</div>
                 </div>
                 <ChevronDown size={13} color="var(--pl-muted)" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />

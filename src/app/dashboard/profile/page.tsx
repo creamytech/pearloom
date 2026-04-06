@@ -63,19 +63,31 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-dvh bg-[var(--pl-cream)] flex">
-      <div className="hidden md:block">
-        <DashboardSidebar />
-      </div>
-
-      <main className="flex-1 p-4 md:p-8 max-w-[700px]">
-        <Link href="/dashboard" className="text-[0.72rem] text-[var(--pl-muted)] no-underline flex items-center gap-1 mb-4 md:hidden">
-          <ArrowLeft size={12} /> Dashboard
+    <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
+      {/* Dashboard header */}
+      <header className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white/80 backdrop-blur-md z-10">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="font-heading italic text-[1.05rem] font-semibold text-[var(--pl-ink-soft)] no-underline hover:opacity-75 transition-opacity">
+            Pearloom
+          </Link>
+          <span className="hidden sm:block text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
+            Settings
+          </span>
+        </div>
+        <Link href="/dashboard" className="text-[0.72rem] text-[var(--pl-muted)] no-underline flex items-center gap-1 hover:text-[var(--pl-ink)] transition-colors">
+          <ArrowLeft size={12} /> Back to Dashboard
         </Link>
+      </header>
 
-        <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2rem)] text-[var(--pl-ink)] mb-8">
-          Account Settings
-        </h1>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="hidden md:block">
+          <DashboardSidebar />
+        </div>
+
+        <main className="flex-1 overflow-auto p-4 md:p-8 max-w-[700px]">
+          <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2rem)] text-[var(--pl-ink)] mb-8">
+            Account Settings
+          </h1>
 
         {/* ── Profile ── */}
         <section className="mb-8">
@@ -211,7 +223,8 @@ export default function ProfilePage() {
             Sign Out
           </Button>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

@@ -132,7 +132,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
         <div key={evt.id} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
           <button
             onClick={() => setExpanded(expanded === evt.id ? null : evt.id)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', gap: '8px' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-ink)', gap: '8px' }}
           >
             <span style={{ flex: 1, fontSize: '0.78rem', fontWeight: 700, textAlign: 'left' }}>{evt.name || 'Event'}</span>
             <span style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>{evt.time}</span>
@@ -337,7 +337,7 @@ function BlockCard({
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>{block.label}</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--pl-ink)' }}>{block.label}</span>
             {isApplied && (
               <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: block.color, background: `${block.color}15`, padding: '2px 6px', borderRadius: '4px' }}>
                 Active
