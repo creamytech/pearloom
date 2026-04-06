@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Palette, Type, Maximize2, Eye } from 'lucide-react';
 import { type BlockStyleOverrides, getBlockStyle, setBlockStyle } from '@/lib/block-engine/block-actions';
+import { ColorPicker } from '@/components/ui/color-picker';
 import type { PageBlock } from '@/types';
 
 const SPACING_OPTIONS = [
@@ -75,69 +76,20 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
 
       {/* Background color */}
       <div style={{ marginBottom: '16px' }}>
-        <span style={labelStyle}>Background Color</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="color"
-            value={style.backgroundColor || '#FFFFFF'}
-            onChange={(e) => update('backgroundColor', e.target.value)}
-            style={{
-              width: '32px', height: '32px', borderRadius: '50%',
-              border: '2px solid var(--pl-divider)', cursor: 'pointer', padding: 0,
-            }}
-          />
-          <input
-            type="text"
-            value={style.backgroundColor || ''}
-            onChange={(e) => update('backgroundColor', e.target.value)}
-            placeholder="transparent"
-            className="pl-focus-glow"
-            style={{
-              flex: 1, padding: '6px 10px', borderRadius: '6px',
-              border: '1.5px solid var(--pl-divider)', fontSize: '0.82rem',
-              background: 'white', color: 'var(--pl-ink)',
-            }}
-          />
-          {style.backgroundColor && (
-            <button
-              onClick={() => update('backgroundColor', undefined)}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--pl-muted)', fontSize: '0.72rem',
-              }}
-            >
-              Reset
-            </button>
-          )}
-        </div>
+        <ColorPicker
+          label="Background Color"
+          value={style.backgroundColor || '#FFFFFF'}
+          onChange={(color) => update('backgroundColor', color)}
+        />
       </div>
 
       {/* Text color */}
       <div style={{ marginBottom: '16px' }}>
-        <span style={labelStyle}>Text Color</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="color"
-            value={style.textColor || '#1A1A1A'}
-            onChange={(e) => update('textColor', e.target.value)}
-            style={{
-              width: '32px', height: '32px', borderRadius: '50%',
-              border: '2px solid var(--pl-divider)', cursor: 'pointer', padding: 0,
-            }}
-          />
-          <input
-            type="text"
-            value={style.textColor || ''}
-            onChange={(e) => update('textColor', e.target.value)}
-            placeholder="inherit"
-            className="pl-focus-glow"
-            style={{
-              flex: 1, padding: '6px 10px', borderRadius: '6px',
-              border: '1.5px solid var(--pl-divider)', fontSize: '0.82rem',
-              background: 'white', color: 'var(--pl-ink)',
-            }}
-          />
-        </div>
+        <ColorPicker
+          label="Text Color"
+          value={style.textColor || '#1A1A1A'}
+          onChange={(color) => update('textColor', color)}
+        />
       </div>
 
       {/* Padding */}

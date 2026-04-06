@@ -15,6 +15,8 @@ import { BLOCK_SCHEMAS, type PropSchema, type BlockSchema } from '@/lib/block-en
 import { hasBindings } from '@/lib/block-engine/bindings';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { ColorPicker } from '@/components/ui/color-picker';
+import { DatePicker } from '@/components/ui/date-picker';
 import type { PageBlock } from '@/types';
 
 // ── Single prop control ──────────────────────────────────────
@@ -132,35 +134,18 @@ function PropControl({
       )}
 
       {schema.type === 'date' && (
-        <input
-          type="date"
+        <DatePicker
           value={strValue}
-          onChange={(e) => onChange(e.target.value)}
-          style={inputStyle}
-          className="pl-focus-glow"
+          onChange={(date) => onChange(date)}
+          placeholder={schema.placeholder}
         />
       )}
 
       {schema.type === 'color' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="color"
-            value={strValue || '#A3B18A'}
-            onChange={(e) => onChange(e.target.value)}
-            style={{
-              width: '36px', height: '36px', borderRadius: '50%',
-              border: '2px solid var(--pl-divider)', cursor: 'pointer',
-              padding: 0,
-            }}
-          />
-          <input
-            type="text"
-            value={strValue}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="#A3B18A"
-            style={{ ...inputStyle, flex: 1 }}
-          />
-        </div>
+        <ColorPicker
+          value={strValue || '#A3B18A'}
+          onChange={(color) => onChange(color)}
+        />
       )}
 
       {schema.type === 'image' && (
