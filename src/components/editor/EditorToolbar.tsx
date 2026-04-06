@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Tablet, Smartphone, Settings2, Activity } from 'lucide-react';
@@ -89,7 +90,7 @@ function ViewportPopover({
               width: '200px', padding: '8px',
               background: 'var(--pl-cream-card)',
               border: '1px solid var(--pl-divider)',
-              borderRadius: '10px',
+              borderRadius: '16px',
               boxShadow: 'var(--pl-shadow-md)',
               zIndex: 100,
             }}
@@ -157,44 +158,28 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       boxShadow: 'var(--pl-shadow-xs)',
     } as React.CSSProperties}>
 
-      {/* ═══ LEFT ZONE: Exit + Site Name ═══ */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+      {/* ═══ LEFT ZONE: Pearloom branding + Exit ═══ */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         <motion.button
           onClick={onExit}
-          title="Exit editor"
-          whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.1)' }}
-          whileTap={{ scale: 0.94 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+          title="Back to dashboard"
+          whileHover={{ opacity: 0.7 }}
+          whileTap={{ scale: 0.96 }}
           style={{
-            display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '6px 10px', borderRadius: '6px', border: 'none',
-            background: 'var(--pl-cream-deep)', color: 'var(--pl-ink-soft)',
-            cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, flexShrink: 0,
+            display: 'flex', alignItems: 'center', gap: '0',
+            padding: '0', border: 'none',
+            background: 'transparent', cursor: 'pointer', flexShrink: 0,
           }}
         >
-          <ExitIcon size={14} /> Exit
+          <span style={{
+            fontSize: '1rem', fontWeight: 600, color: 'var(--pl-ink-soft)',
+            fontFamily: 'var(--pl-font-heading)',
+            fontStyle: 'italic',
+            letterSpacing: '-0.02em',
+          }}>
+            Pearloom
+          </span>
         </motion.button>
-
-        {/* Site name — editorial italic (truncated on mobile) */}
-        {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            {manifest.occasion !== 'birthday' && (
-              <ElegantHeartIcon size={12} color="var(--eg-gold, #D6C6A8)" />
-            )}
-            <span style={{
-              fontSize: '1rem', fontWeight: 400, color: '#fff',
-              letterSpacing: '-0.02em',
-              fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
-              fontStyle: 'italic',
-            }}>
-              {manifest.occasion === 'birthday'
-                ? `${coupleNames[0]}'s Birthday`
-                : coupleNames[1]?.trim()
-                  ? `${coupleNames[0]} & ${coupleNames[1]}`
-                  : coupleNames[0]}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
@@ -233,7 +218,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
           <motion.button
             onClick={actions.undo} disabled={!canUndo} title="Undo (Cmd+Z)" aria-label="Undo"
-            whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+            whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
             whileTap={canUndo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
@@ -248,7 +233,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           ><UndoIcon size={isMobile ? 11 : 13} /></motion.button>
           <motion.button
             onClick={actions.redo} disabled={!canRedo} title="Redo (Cmd+Shift+Z)" aria-label="Redo"
-            whileHover={canRedo ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+            whileHover={canRedo ? { scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
             whileTap={canRedo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
@@ -346,11 +331,12 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '8px 18px', borderRadius: '100px', border: 'none',
-              background: 'linear-gradient(135deg, #A3B18A 0%, #7A8F6E 100%)',
+              background: 'var(--pl-olive-deep)',
               color: '#fff', cursor: 'pointer',
-              fontSize: '0.82rem', fontWeight: 700,
-              letterSpacing: '0.02em',
-              boxShadow: '0 2px 12px rgba(100,140,90,0.35)',
+              fontSize: '0.75rem', fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase' as const,
+              boxShadow: '0 2px 12px rgba(110,140,92,0.3)',
               minHeight: '38px',
             }}
           >
@@ -359,39 +345,21 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           </motion.button>
         )}
 
-        {/* Split + Preview + Publish — desktop only */}
+        {/* Preview + Share + Publish — desktop only */}
         {!isMobile && (
           <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-            {/* Site Health — AI completeness check */}
-            <motion.button
-              onClick={() => dispatch({ type: 'SET_ACTIVE_TAB', tab: 'blocks' })}
-              title="AI Site Health Check"
-              whileHover={{ scale: 1.04, backgroundColor: 'rgba(163,177,138,0.12)' }}
-              whileTap={{ scale: 0.94 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 10px', borderRadius: '6px',
-                border: '1px solid rgba(163,177,138,0.2)',
-                background: 'transparent', color: 'rgba(163,177,138,0.9)',
-                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
-              }}
-            >
-              <Activity size={12} /> Health
-            </motion.button>
             {/* Preview — opens production rendering in new tab */}
-            {/* Preview — ghost style */}
             <motion.button
               onClick={actions.storePreviewForOpen}
               title="Preview site (Cmd+P)"
-              whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.07)' }}
+              whileHover={{ scale: 1.04, backgroundColor: 'var(--pl-cream-deep)' }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 400, damping: 22 }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '6px 13px', borderRadius: '6px',
-                border: '1px solid rgba(214,198,168,0.12)',
-                background: 'transparent', color: 'rgba(255,255,255,0.8)',
+                border: '1px solid var(--pl-divider)',
+                background: 'transparent', color: 'var(--pl-ink-soft)',
                 cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
               }}
             >
@@ -409,19 +377,21 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               />
             )}
 
-            {/* Publish — gradient with plum shadow */}
+            {/* Publish — prominent primary CTA */}
             <motion.button
               onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
               title="Publish your site"
-              whileHover={{ scale: 1.06, boxShadow: '0 8px 28px rgba(163,177,138,0.45)' }}
+              whileHover={{ scale: 1.06, boxShadow: '0 8px 28px rgba(163,177,138,0.5)' }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 380, damping: 20 }}
               style={{
-                display: 'flex', alignItems: 'center', gap: '5px',
-                padding: '6px 16px', borderRadius: '7px', border: 'none',
-                background: 'linear-gradient(135deg, #A3B18A 0%, #8FA876 100%)',
-                color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
-                boxShadow: '0 4px 16px rgba(163,177,138,0.35)',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '8px 22px', borderRadius: '100px', border: 'none',
+                background: 'var(--pl-olive-deep)',
+                color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+                boxShadow: '0 2px 12px rgba(110,140,92,0.3)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase' as const,
               }}
             >
               <PublishIcon size={13} /> Publish

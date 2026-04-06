@@ -82,7 +82,7 @@ export default async function RegistryPage({ searchParams }: RegistryPageProps) 
           style={{
             fontFamily: 'Playfair Display, Georgia, serif',
             fontSize: '1rem',
-            color: '#2B2B2B',
+            color: 'var(--pl-ink-soft)',
             fontWeight: 600,
           }}
         >

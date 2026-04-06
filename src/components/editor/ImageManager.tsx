@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Plus, X, Camera, Upload, Loader2, LayoutGrid, Share2 } from 'lucide-react';
+import { Plus, X, Camera, Upload, Loader2, LayoutGrid, Share2, ImageIcon } from 'lucide-react';
 import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import { lbl } from './editor-utils';
 import { PhotoReposition } from './PhotoReposition';
+import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import type { ChapterImage } from '@/types';
 
 export function ImageManager({
@@ -28,6 +29,43 @@ export function ImageManager({
   const [captionSuccess, setCaptionSuccess] = useState(false);
   const [captionError, setCaptionError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'constellation'>('grid');
+  const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
+
+  const handleGooglePhotosPicked = async (photos: PickedPhoto[]) => {
+    const newImages: ChapterImage[] = photos
+      .filter(p => p.baseUrl)
+      .map(p => ({
+        id: p.id,
+        url: `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=1200&h=900`,
+        alt: p.filename.replace(/\.\w+$/, '') || 'Photo',
+        width: p.width,
+        height: p.height,
+      }));
+    if (newImages.length === 0) return;
+    // Add images immediately with proxy URLs (fast preview)
+    onUpdate([...images, ...newImages]);
+    // Mirror to permanent storage in background so they survive past Google's ~1h expiry
+    for (const [i, photo] of photos.entries()) {
+      if (!photo.baseUrl?.includes('googleusercontent.com')) continue;
+      try {
+        const res = await fetch('/api/photos/mirror', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: photo.baseUrl, subdomain: 'draft', key: `img-${Date.now()}-${i}` }),
+        });
+        const data = await res.json();
+        if (data.permanentUrl && data.permanentUrl !== photo.baseUrl) {
+          // Update the image URL in place once mirrored
+          const updated = [...images, ...newImages];
+          const idx = updated.findIndex(img => img.id === photo.id);
+          if (idx >= 0) {
+            updated[idx] = { ...updated[idx], url: data.permanentUrl };
+            onUpdate(updated);
+          }
+        }
+      } catch { /* non-fatal — proxy URL still works for now */ }
+    }
+  };
 
   const removeImage = (idx: number) => {
     onUpdate(images.filter((_, i) => i !== idx));
@@ -50,8 +88,11 @@ export function ImageManager({
     const results: ChapterImage[] = [];
     for (const file of validFiles) {
       try {
+        // Sanitize filename for iOS Safari — special chars cause "string did not match expected pattern"
+        const safeName = (file.name || 'photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const safeFile = new File([file], safeName, { type: file.type || 'image/jpeg' });
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', safeFile);
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
         if (res.ok && data.publicUrl) {
@@ -129,7 +170,7 @@ export function ImageManager({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '28px', height: '28px', borderRadius: '5px', border: 'none',
                   background: viewMode === 'grid' ? 'rgba(163,177,138,0.15)' : 'transparent',
-                  color: viewMode === 'grid' ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
+                  color: viewMode === 'grid' ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                 }}
               >
@@ -142,7 +183,7 @@ export function ImageManager({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '28px', height: '28px', borderRadius: '5px', border: 'none',
                   background: viewMode === 'constellation' ? 'rgba(163,177,138,0.15)' : 'transparent',
-                  color: viewMode === 'constellation' ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
+                  color: viewMode === 'constellation' ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                 }}
               >
@@ -151,12 +192,29 @@ export function ImageManager({
             </>
           )}
           <button
+            onClick={() => pickGooglePhotos(handleGooglePhotosPicked)}
+            disabled={gpState !== 'idle' && gpState !== 'done' && gpState !== 'error'}
+            title="Pick from Google Photos"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              padding: '5px 10px', borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)',
+              background: 'rgba(0,0,0,0.04)', color: 'var(--pl-ink-soft)',
+              fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+              minHeight: '32px', transition: 'all 0.15s',
+            }}
+          >
+            {gpState === 'waiting' || gpState === 'fetching' || gpState === 'creating'
+              ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+              : <ImageIcon size={10} />}
+            {gpState === 'waiting' ? 'Picking…' : gpState === 'fetching' ? 'Loading…' : 'Google'}
+          </button>
+          <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '5px 12px', borderRadius: '5px', border: '1px solid rgba(163,177,138,0.4)',
-              background: 'rgba(163,177,138,0.15)', color: 'var(--eg-accent, #A3B18A)',
+              background: 'rgba(163,177,138,0.15)', color: 'var(--pl-olive, #A3B18A)',
               fontSize: '0.82rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
               opacity: uploading ? 0.6 : 1, minHeight: '32px',
             }}
@@ -202,11 +260,11 @@ export function ImageManager({
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: '8px', width: '100%', padding: '1.5rem',
-              border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '10px',
-              background: 'transparent', cursor: 'pointer', color: 'rgba(255,255,255,0.25)',
+              border: '2px dashed rgba(0,0,0,0.06)', borderRadius: '10px',
+              background: 'transparent', cursor: 'pointer', color: 'var(--pl-muted)',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
           >
             <Camera size={20} />
             <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Add photos</span>
@@ -214,7 +272,7 @@ export function ImageManager({
         ) : viewMode === 'grid' ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {images.map((img, i) => (
-              <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div key={img.id || i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)' }}>
                 {/* Cover image uses PhotoReposition */}
                 {i === 0 && onPositionChange ? (
                   <PhotoReposition
@@ -242,7 +300,7 @@ export function ImageManager({
                     transition: 'background 0.15s',
                     zIndex: 2,
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--eg-plum, #6D597A)'; }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-plum, #6D597A)'; }}
                   onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.7)'; }}
                 >
                   <X size={10} />
@@ -264,12 +322,12 @@ export function ImageManager({
               onClick={() => fileInputRef.current?.click()}
               style={{
                 aspectRatio: '1', borderRadius: '8px',
-                border: '2px dashed rgba(255,255,255,0.1)', background: 'transparent',
+                border: '2px dashed rgba(0,0,0,0.06)', background: 'transparent',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(255,255,255,0.25)', transition: 'all 0.15s',
+                color: 'var(--pl-muted)', transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
             >
               <Plus size={16} />
             </button>
@@ -366,7 +424,7 @@ export function ImageManager({
                         height: '18px',
                         borderRadius: '50%',
                         background: 'rgba(0,0,0,0.75)',
-                        border: '1.5px solid rgba(255,255,255,0.3)',
+                        border: '1.5px solid var(--pl-muted)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -377,7 +435,7 @@ export function ImageManager({
                         zIndex: 2,
                         padding: 0,
                       }}
-                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--eg-plum, #6D597A)'; }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-plum, #6D597A)'; }}
                       onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.75)'; }}
                     >
                       <X size={9} />
@@ -393,11 +451,11 @@ export function ImageManager({
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                 width: '100%', marginTop: '8px', padding: '7px 12px', borderRadius: '8px',
-                border: '2px dashed rgba(255,255,255,0.1)', background: 'transparent',
-                cursor: 'pointer', color: 'rgba(255,255,255,0.25)', transition: 'all 0.15s',
+                border: '2px dashed rgba(0,0,0,0.06)', background: 'transparent',
+                cursor: 'pointer', color: 'var(--pl-muted)', transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent, #A3B18A)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
             >
               <Plus size={14} />
               <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Add more photos</span>
@@ -407,13 +465,13 @@ export function ImageManager({
       </div>
 
       {/* Upload error */}
-      {uploadError && (
+      {(uploadError || gpError) && (
         <div style={{
           marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '6px',
           background: 'rgba(185,28,28,0.15)', border: '1px solid rgba(185,28,28,0.3)',
           color: '#fca5a5', fontSize: '0.78rem', lineHeight: 1.4,
         }}>
-          Upload failed: {uploadError}
+          {uploadError ? `Upload failed: ${uploadError}` : gpError}
         </div>
       )}
 
@@ -427,8 +485,8 @@ export function ImageManager({
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               width: '100%', padding: '7px 12px', borderRadius: '6px',
               border: '1px solid rgba(163,177,138,0.3)',
-              background: generatingCaptions ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
-              color: generatingCaptions ? 'rgba(255,255,255,0.4)' : 'var(--eg-accent, #A3B18A)',
+              background: generatingCaptions ? 'rgba(163,177,138,0.05)' : 'rgba(163,177,138,0.1)',
+              color: generatingCaptions ? 'var(--pl-ink-soft)' : 'var(--pl-olive, #A3B18A)',
               fontSize: '0.82rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
               letterSpacing: '0.04em', transition: 'all 0.15s',
             }}

@@ -72,8 +72,9 @@ export function BlockTypesGrid() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.04 + 0.2, duration: 0.4 }}
+                whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.15 } }}
               >
-                <Card variant="elevated" interactive padding="sm" className="text-center cursor-default">
+                <Card variant="elevated" interactive padding="sm" className="text-center cursor-default transition-shadow duration-200 hover:shadow-[0_8px_32px_rgba(43,30,20,0.1)]">
                   <div className="mx-auto mb-2.5">
                     <IconCircle icon={Icon} accent={b.accent} size={44} iconSize={20} />
                   </div>

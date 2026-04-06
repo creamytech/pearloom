@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { StoryManifest } from '@/types';
 import { parseLocalDate } from '@/lib/date';
@@ -219,7 +220,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
             >
               <div style={styles.capsuleInfo}>
                 <div style={styles.capsuleNames}>
-                  <span>💌</span>
+                  <span style={{ color: 'var(--pl-olive)' }}>◆</span>
                   <strong style={styles.capsuleNameText}>
                     From: {capsule.fromName} → To: {capsule.toName}
                   </strong>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Globe, Pencil, ExternalLink, Calendar, Loader2,
+  Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Image,
   Trash2, AlertTriangle, Users, Check, Share2, RefreshCw, Sparkles,
   TrendingUp, Clock, BarChart2,
 } from 'lucide-react';
@@ -195,6 +195,7 @@ interface UserSite {
 
 interface UserSitesProps {
   onStartNew: () => void;
+  onQuickStart?: () => void;
   onEditSite: (site: UserSite) => void;
   onManageGuests: (site: UserSite) => void;
   userName?: string;
@@ -210,7 +211,7 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 
 // ─────────────────────────────────────────────────────────────
 
-export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: UserSitesProps) {
+export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests, userName }: UserSitesProps) {
   const router = useRouter();
   const goToEditor = (site: UserSite) => router.push(`/editor/${site.domain}`);
   const [sites, setSites]                   = useState<UserSite[]>([]);
@@ -277,31 +278,25 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
   const aggStats = useAggregateStats(sites);
 
   return (
-    <div className="w-full max-w-[1280px] mx-auto">
+    <div className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20">
 
       {/* ── Header band ── */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-[var(--pl-radius-xl)] bg-[var(--pl-ink)] px-10 py-10 mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 overflow-hidden relative"
+        className="rounded-[var(--pl-radius-lg)] sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
       >
         {/* Decorative arc */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full border border-white/[0.05] pointer-events-none" />
-        <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full border border-[var(--pl-gold)]/10 pointer-events-none" />
-
         <div>
-          <p className="text-[0.72rem] font-bold tracking-[0.18em] uppercase text-[var(--pl-gold)] mb-2">
-            Dashboard
-          </p>
-          <h1 className="font-heading text-[clamp(1.6rem,3vw,2.2rem)] font-semibold italic text-white leading-tight">
+          <p className="text-[0.68rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-2">
             {getGreeting()}{userName ? `, ${userName}` : ''}
-          </h1>
-          <p className="text-[var(--pl-dark-text)] text-[0.88rem] mt-1">
-            {sites.length > 0
-              ? `You have ${sites.length} celebration site${sites.length !== 1 ? 's' : ''}`
-              : 'Build your first celebration site today'}
           </p>
+          <h1 className="font-heading text-[clamp(1.6rem,3vw,2.4rem)] font-medium text-[var(--pl-ink-soft)] leading-tight">
+            Your celebrations are
+            <br />
+            <em className="text-[var(--pl-olive-deep)]">looking beautiful.</em>
+          </h1>
         </div>
 
         <Button
@@ -315,7 +310,35 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
         </Button>
       </motion.div>
 
-      {/* ── Aggregate stats bar ── */}
+      {/* ── Bento creation cards ── */}
+      {!loading && !fetchError && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10">
+          {[
+            { icon: <Pencil size={24} />, title: 'New Story', desc: 'Upload photos and let The Loom craft your story.', action: onStartNew },
+            { icon: <Image size={24} />, title: 'Photo Site', desc: 'Create a beautiful photo-driven celebration site.', action: onStartNew },
+            { icon: <Sparkles size={24} />, title: 'From Template', desc: 'Pick a template and customize every detail.', action: onQuickStart || onStartNew },
+          ].map((card, i) => (
+            <motion.button
+              key={card.title}
+              onClick={card.action}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 + 0.3, duration: 0.5 }}
+              whileHover={{ y: -3, boxShadow: '0 8px 32px rgba(43,30,20,0.08)' }}
+              whileTap={{ scale: 0.98 }}
+              className="flex flex-col items-center text-center p-5 sm:p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer"
+            >
+              <div className="w-14 h-14 rounded-2xl border border-[var(--pl-divider)] flex items-center justify-center mb-4 text-[var(--pl-muted)]">
+                {card.icon}
+              </div>
+              <h3 className="font-heading italic text-lg text-[var(--pl-ink-soft)] mb-2">{card.title}</h3>
+              <p className="text-[0.82rem] text-[var(--pl-muted)] leading-relaxed">{card.desc}</p>
+            </motion.button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Stats row ── */}
       {!loading && !fetchError && sites.length > 0 && <StatsBar stats={aggStats} />}
 
       {/* ── Loading ── */}
@@ -350,19 +373,37 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
           <div className="w-20 h-20 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mb-8">
             <PearIcon size={48} color="var(--pl-olive)" />
           </div>
-          <h3 className="font-heading text-[clamp(1.8rem,4vw,2.5rem)] font-semibold italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
+          <h3 className="font-heading text-[clamp(1.8rem,4vw,2.5rem)] italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
             Start your story
           </h3>
           <div className="w-12 h-[2px] bg-[var(--pl-gold)] mx-auto mb-5 rounded-full" />
           <p className="text-[var(--pl-muted)] max-w-[320px] leading-[1.8] text-[0.95rem] mb-10">
-            Build a stunning celebration website in minutes — AI-powered and completely yours.
+            Build a stunning celebration site in minutes — AI-powered and completely yours.
           </p>
-          <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>
-            Create Your First Site
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>
+              Create with AI
+            </Button>
+            {onQuickStart && (
+              <Button variant="secondary" size="lg" onClick={onQuickStart}>
+                Quick Start with Template
+              </Button>
+            )}
+          </div>
+          <p className="text-[var(--pl-muted)] text-[0.75rem] mt-4 opacity-70">
+            Quick Start skips photos — pick a template and start editing in seconds.
+          </p>
         </motion.div>
 
       ) : (
+        <>
+        {/* Recent Looms heading */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-heading italic text-[clamp(1.4rem,2.5vw,1.8rem)] text-[var(--pl-ink-soft)]">Recent Looms</h2>
+          <a href="#" className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-colors flex items-center gap-1">
+            View Archive <ExternalLink size={10} />
+          </a>
+        </div>
         <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
           <AnimatePresence>
             {sites.map((site, i) => {
@@ -412,7 +453,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                       <div
                         className="absolute inset-0 opacity-30"
                         style={{
-                          backgroundImage: 'radial-gradient(circle at 30% 50%, rgba(255,255,255,0.3) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 40%)',
+                          backgroundImage: 'radial-gradient(circle at 30% 50%, var(--pl-muted) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(0,0,0,0.08) 0%, transparent 40%)',
                         }}
                       />
                     )}
@@ -468,7 +509,7 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
                           fontFamily: 'Georgia, serif',
                           fontStyle: 'italic',
                           fontSize: '0.8rem',
-                          color: 'rgba(255,255,255,0.75)',
+                          color: 'var(--pl-ink)',
                           lineHeight: 1.4,
                           textShadow: '0 1px 4px rgba(0,0,0,0.4)',
                           zIndex: 10,
@@ -642,14 +683,84 @@ export function UserSites({ onStartNew, onEditSite, onManageGuests, userName }: 
             </div>
             <div className="text-center px-6">
               <div className="font-heading text-[1.1rem] font-semibold italic text-[var(--pl-olive)] mb-1.5">
-                New celebration site
+                New Site
               </div>
               <div className="text-[0.82rem] text-[var(--pl-muted)] leading-snug">
-                Build a love story in 90 seconds
+                Create your celebration site in seconds
               </div>
             </div>
           </motion.button>
         </div>
+        </>
+      )}
+
+      {/* ── Floating bottom nav (desktop only — mobile uses MobileBottomNav) ── */}
+      {!loading && !fetchError && (
+        <motion.div
+          className="hidden md:flex"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '0',
+            right: '0',
+            zIndex: 50,
+            display: 'flex',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          } as React.CSSProperties}
+        >
+          <div style={{
+            pointerEvents: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '6px 8px',
+            borderRadius: '100px',
+            background: 'rgba(255,255,255,0.92)',
+            backdropFilter: 'blur(24px) saturate(1.4)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+            border: '1px solid rgba(0,0,0,0.06)',
+            boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.06)',
+          } as React.CSSProperties}
+        >
+          <button
+            onClick={onStartNew}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '10px 20px', borderRadius: '100px', border: 'none',
+              background: 'var(--pl-olive-deep)', color: 'white',
+              cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}
+          >
+            <Plus size={14} /> New Loom
+          </button>
+          {[
+            { label: 'Templates', icon: <Globe size={14} /> },
+            { label: 'Import', icon: <ExternalLink size={14} /> },
+            { label: 'Insights', icon: <BarChart2 size={14} /> },
+          ].map((item) => (
+            <button
+              key={item.label}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '10px 14px', borderRadius: '100px', border: 'none',
+                background: 'transparent', color: 'var(--pl-muted)',
+                cursor: 'pointer', fontSize: '0.68rem', fontWeight: 600,
+                letterSpacing: '0.06em', textTransform: 'uppercase',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.color = 'var(--pl-ink)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.color = 'var(--pl-muted)'; }}
+            >
+              {item.icon} {item.label}
+            </button>
+          ))}
+          </div>
+        </motion.div>
       )}
 
       {/* Delete Modal */}

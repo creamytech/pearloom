@@ -8,6 +8,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
+import { RangeSlider } from '@/components/ui/range-slider';
+import { ColorPicker } from '@/components/ui/color-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDragSort } from './useDragSort';
 import type { DragHandleProps } from './useDragSort';
@@ -46,7 +49,7 @@ interface BlockDef {
 }
 
 const BLOCK_CATALOGUE: BlockDef[] = [
-  { type: 'hero',      label: 'Hero',              icon: BlockHeroIcon,      description: 'Full-screen hero with names & cover photo',  color: 'var(--eg-accent, #A3B18A)', occasions: ALL_OCCASIONS },
+  { type: 'hero',      label: 'Hero',              icon: BlockHeroIcon,      description: 'Full-screen hero with names & cover photo',  color: 'var(--pl-olive, #A3B18A)', occasions: ALL_OCCASIONS },
   { type: 'story',     label: 'Our Story',         icon: BlockStoryIcon,     description: 'Chapter timeline & photo narrative',          color: '#7c5cbf', occasions: ALL_OCCASIONS },
   { type: 'event',     label: 'Event Cards',       icon: BlockEventIcon,     description: 'Ceremony, reception & event details',         color: '#e8927a', occasions: ['wedding', 'engagement'] },
   { type: 'countdown', label: 'Countdown',         icon: BlockCountdownIcon, description: 'Live countdown to your big day',              color: '#4a9b8a', occasions: ['wedding', 'engagement', 'birthday'] },
@@ -142,12 +145,12 @@ const EVENT_TYPES: Record<WeddingEvent['type'], {
 const lbl: React.CSSProperties = {
   display: 'block', fontSize: '0.62rem', fontWeight: 800,
   letterSpacing: '0.14em', textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.35)', marginBottom: '0.4rem',
+  color: 'var(--pl-muted)', marginBottom: '0.4rem',
 };
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(0,0,0,0.07)', background: 'rgba(163,177,138,0.06)',
   color: '#fff', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
   boxSizing: 'border-box', transition: 'border-color 0.15s',
 };
@@ -162,7 +165,7 @@ function MiniInput({ label, value, onChange, placeholder, type = 'text' }: {
         type={type} value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} style={inp}
         onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'; }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
       />
     </div>
   );
@@ -171,12 +174,12 @@ function MiniInput({ label, value, onChange, placeholder, type = 'text' }: {
 function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
-      <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{label}</span>
+      <span style={{ fontSize: '0.78rem', color: 'var(--pl-ink-soft)' }}>{label}</span>
       <button
         onClick={() => onChange(!value)}
         style={{
           width: '36px', height: '20px', borderRadius: '100px',
-          background: value ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.12)',
+          background: value ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
           border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
         }}
       >
@@ -233,8 +236,8 @@ function EventBlockConfig({ events, onChange }: {
               onClick={() => setActiveId(e.id)}
               style={{
                 padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
-                background: activeId === e.id ? def.color : 'rgba(255,255,255,0.07)',
-                color: activeId === e.id ? '#fff' : 'rgba(255,255,255,0.5)',
+                background: activeId === e.id ? def.color : 'rgba(0,0,0,0.05)',
+                color: activeId === e.id ? '#fff' : 'var(--pl-ink-soft)',
                 transition: 'all 0.15s',
               }}
             >
@@ -377,7 +380,7 @@ function BlockRow({
 }) {
   const [hovered, setHovered] = useState(false);
   const Icon = def?.icon || LayoutTemplate;
-  const color = def?.color || 'var(--eg-accent, #A3B18A)';
+  const color = def?.color || 'var(--pl-olive, #A3B18A)';
   const showActions = isActive || hovered;
 
   return (
@@ -395,9 +398,9 @@ function BlockRow({
         padding: '13px 10px 13px 8px',
         minHeight: '68px',
         borderRadius: '10px',
-        background: isActive ? `${color}18` : hovered ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
-        border: `1px solid ${isActive ? `${color}45` : hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
-        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'}`,
+        background: isActive ? `${color}18` : hovered ? 'rgba(0,0,0,0.04)' : 'rgba(163,177,138,0.04)',
+        border: `1px solid ${isActive ? `${color}45` : hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
+        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
         cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s', position: 'relative',
         userSelect: 'none',
         boxShadow: isActive ? `0 2px 16px ${color}14, 0 0 0 1px ${color}08` : 'none',
@@ -411,15 +414,15 @@ function BlockRow({
         aria-label="Hold and drag to reorder"
         style={{
           ...dragHandleProps.style,
-          color: 'rgba(255,255,255,0.25)',
+          color: 'var(--pl-muted)',
           display: 'flex',
           flexShrink: 0,
           padding: isMobile ? '8px 10px' : '4px',
           borderRadius: '4px',
           transition: 'color 0.15s',
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.25)'; }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
       >
         <GripIcon size={isMobile ? 16 : 14} />
       </div>
@@ -435,10 +438,10 @@ function BlockRow({
 
       {/* Label */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: block.visible ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)', lineHeight: 1.3 }}>
+        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: block.visible ? 'var(--pl-ink)' : 'var(--pl-muted)', lineHeight: 1.3 }}>
           {def?.label || block.type}
         </div>
-        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: '0.65rem', color: 'var(--pl-ink-soft)', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {def?.description}
         </div>
       </div>
@@ -457,16 +460,16 @@ function BlockRow({
               <button
                 onClick={e => { e.stopPropagation(); onToggle(block.id); }}
                 title={block.visible ? 'Hide section' : 'Show section'}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'rgba(255,255,255,0.3)' : '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'var(--pl-muted)' : '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
               >
                 {block.visible ? <Eye size={14} /> : <EyeOff size={14} />}
               </button>
               <button
                 onClick={e => { e.stopPropagation(); onDelete(block.id); }}
                 title="Remove block"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.2)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
               >
                 <Trash2 size={14} />
               </button>
@@ -477,7 +480,7 @@ function BlockRow({
         <motion.div
           animate={{ rotate: isActive ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          style={{ color: isActive ? color : 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', minWidth: '36px', minHeight: '36px' }}
+          style={{ color: isActive ? color : 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', minWidth: '36px', minHeight: '36px' }}
         >
           <ChevronDown size={14} />
         </motion.div>
@@ -535,7 +538,7 @@ function SectionStylePanel({
     { label: 'Blush', value: '#fdf0f3' },
     { label: 'Sage', value: '#eef2ed' },
     { label: 'Slate', value: '#f0f2f5' },
-    { label: 'Dark', value: 'var(--eg-dark-2, #3D3530)' },
+    { label: 'Dark', value: 'var(--pl-ink-soft, #3D3530)' },
     { label: 'Navy', value: '#1a2332' },
     { label: 'Mocha', value: '#2c2420' },
     { label: 'Accent', value: 'accent' },
@@ -551,7 +554,7 @@ function SectionStylePanel({
   const ALIGN_OPTS = ['left', 'center', 'right'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', marginTop: '4px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '12px', marginTop: '4px' }}>
       <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
         Section Style
       </div>
@@ -569,24 +572,22 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ bgColor: bg.value })}
                 style={{
                   width: '24px', height: '24px', borderRadius: '6px',
-                  border: isActive ? '2px solid var(--eg-accent, #A3B18A)' : '1px solid rgba(255,255,255,0.15)',
+                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(0,0,0,0.08)',
                   background: bg.value === 'accent' ? 'linear-gradient(135deg, #A3B18A, #8FA876)' : bg.value || 'transparent',
                   cursor: 'pointer', position: 'relative', transition: 'border 0.15s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                {!bg.value && <X size={10} color="rgba(255,255,255,0.3)" />}
+                {!bg.value && <X size={10} color="var(--pl-muted)" />}
               </button>
             );
           })}
         </div>
         {/* Custom hex input */}
         <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-          <input
-            type="color"
-            value={config.bgColor as string || '#ffffff'}
-            onChange={e => updateConfig({ bgColor: e.target.value })}
-            style={{ width: '28px', height: '28px', border: 'none', borderRadius: '4px', cursor: 'pointer', background: 'transparent', padding: 0 }}
+          <ColorPicker
+            value={(config.bgColor as string) || '#ffffff'}
+            onChange={(c) => updateConfig({ bgColor: c })}
           />
           <input
             value={config.bgColor as string || ''}
@@ -609,8 +610,8 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ verticalPadding: p.value })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.06)',
-                  color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
+                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(0,0,0,0.04)',
+                  color: isActive ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
@@ -634,8 +635,8 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textAlign: a })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.06)',
-                  color: isActive ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
+                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(0,0,0,0.04)',
+                  color: isActive ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
                 }}
               >
@@ -650,7 +651,7 @@ function SectionStylePanel({
       <div>
         <label style={lbl}>Text Color</label>
         <div style={{ display: 'flex', gap: '4px' }}>
-          {['', 'var(--eg-dark-2, #3D3530)', '#ffffff', '#8c8c8c', 'var(--eg-accent, #A3B18A)'].map(c => {
+          {['', 'var(--pl-ink-soft, #3D3530)', '#ffffff', '#8c8c8c', 'var(--pl-olive, #A3B18A)'].map(c => {
             const isActive = (config.textColor || '') === c;
             return (
               <button
@@ -658,12 +659,12 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textColor: c })}
                 style={{
                   width: '28px', height: '28px', borderRadius: '6px',
-                  border: isActive ? '2px solid var(--eg-accent, #A3B18A)' : '1px solid rgba(255,255,255,0.15)',
+                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(0,0,0,0.08)',
                   background: c || 'transparent', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                {!c && <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>A</span>}
+                {!c && <span style={{ fontSize: '0.62rem', color: 'var(--pl-ink-soft)', fontWeight: 700 }}>A</span>}
               </button>
             );
           })}
@@ -704,7 +705,7 @@ function BlockConfigPanel({
   };
 
   const noConfig = (
-    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.6 }}>
+    <p style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', lineHeight: 1.6 }}>
       This block uses your site-wide content. Edit it from the Story, Events, or Details tabs.
     </p>
   );
@@ -876,7 +877,7 @@ function BlockEffectsEditor({
   const hasEffects = reveal !== 'none' || divStyle !== null;
 
   return (
-    <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginTop: '6px', paddingTop: '6px' }}>
+    <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', marginTop: '6px', paddingTop: '6px' }}>
       <button
         onClick={() => setOpen(v => !v)}
         style={{
@@ -885,10 +886,10 @@ function BlockEffectsEditor({
           cursor: 'pointer', textAlign: 'left',
         }}
       >
-        <span style={{ display: 'flex', alignItems: 'center', color: hasEffects ? 'rgba(214,198,168,0.9)' : 'rgba(255,255,255,0.35)' }}>
+        <span style={{ display: 'flex', alignItems: 'center', color: hasEffects ? 'rgba(214,198,168,0.9)' : 'var(--pl-muted)' }}>
           <IconReveal size={14} />
         </span>
-        <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 700, color: hasEffects ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.5)' }}>
+        <span style={{ flex: 1, fontSize: '0.75rem', fontWeight: 700, color: hasEffects ? 'rgba(214,198,168,0.95)' : 'var(--pl-ink-soft)' }}>
           Block Effects
         </span>
         {hasEffects && (
@@ -898,7 +899,7 @@ function BlockEffectsEditor({
             padding: '2px 6px', borderRadius: '100px', border: '1px solid rgba(163,177,138,0.25)',
           }}>ON</span>
         )}
-        <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.25)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+        <span style={{ display: 'flex', alignItems: 'center', color: 'var(--pl-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
           <IconChevronDown size={14} />
         </span>
       </button>
@@ -908,7 +909,7 @@ function BlockEffectsEditor({
 
           {/* Scroll reveal */}
           <div>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
               Entrance Animation
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -918,9 +919,9 @@ function BlockEffectsEditor({
                   onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : (opt.value as 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in') })}
                   style={{
                     padding: '5px 9px', borderRadius: '7px',
-                    border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
-                    background: reveal === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.04)',
-                    color: reveal === opt.value ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.55)',
+                    border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
+                    background: reveal === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(163,177,138,0.05)',
+                    color: reveal === opt.value ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
                     cursor: 'pointer', fontSize: '0.72rem', fontWeight: reveal === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
                     transition: 'all 0.12s',
@@ -935,7 +936,7 @@ function BlockEffectsEditor({
 
           {/* Divider above */}
           <div>
-            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
               Divider Shape Above
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -951,9 +952,9 @@ function BlockEffectsEditor({
                   }}
                   style={{
                     padding: '5px 9px', borderRadius: '7px',
-                    border: `1px solid ${divStyle === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.1)'}`,
-                    background: divStyle === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(255,255,255,0.04)',
-                    color: divStyle === opt.value ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.55)',
+                    border: `1px solid ${divStyle === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
+                    background: divStyle === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(163,177,138,0.05)',
+                    color: divStyle === opt.value ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
                     cursor: 'pointer', fontSize: '0.72rem', fontWeight: divStyle === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
                     transition: 'all 0.12s',
@@ -968,13 +969,11 @@ function BlockEffectsEditor({
             {divStyle !== null && (
               <div style={{ marginTop: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)' }}>Height</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft)' }}>Height</span>
                   <span style={{ fontSize: '0.72rem', color: 'rgba(214,198,168,0.7)', fontWeight: 700 }}>{divHeight}px</span>
                 </div>
-                <input
-                  type="range" min={30} max={200} value={divHeight}
-                  onChange={e => onUpdate({ dividerAbove: { style: divStyle, height: Number(e.target.value) } })}
-                  style={{ width: '100%', accentColor: 'var(--eg-accent, #A3B18A)', cursor: 'pointer' }}
+                <RangeSlider min={30} max={200} value={divHeight} suffix="px"
+                  onChange={v => onUpdate({ dividerAbove: { style: divStyle, height: v } })}
                 />
               </div>
             )}
@@ -1009,7 +1008,7 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
           color: 'rgba(163,177,138,0.95)', cursor: 'pointer',
           fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em',
           transition: 'all 0.15s',
-          boxShadow: open ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'none',
+          boxShadow: open ? 'inset 0 1px 0 rgba(163,177,138,0.05)' : 'none',
         }}
       >
         <Sparkles size={13} />
@@ -1026,13 +1025,13 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
             transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 100,
-              background: '#1e1d1b', border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--pl-cream)', border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '12px', overflow: 'hidden', marginTop: '4px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+              boxShadow: '0 20px 60px rgba(43,30,20,0.1)',
             }}
           >
             {/* Search */}
-            <div style={{ padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
               <input
                 autoFocus
                 value={search}
@@ -1077,7 +1076,7 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
                     <b.icon size={15} color={b.color} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--pl-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {b.label}
                       {existingTypes.has(b.type) && (
                         <span style={{ fontSize: '0.58rem', color: b.color, padding: '1px 5px', borderRadius: '4px', background: `${b.color}18`, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>added</span>
@@ -1262,7 +1261,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
 
         {/* ── Page Selector ── */}
-        <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '4px' }}>
+        <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(0,0,0,0.04)', marginBottom: '4px' }}>
           <label style={{ ...lbl, marginBottom: '6px' }}>Editing Page</label>
           <select
             value={activePage}
@@ -1270,14 +1269,14 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             style={{
               ...inp, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
               background: 'rgba(163,177,138,0.1)', borderColor: 'rgba(163,177,138,0.3)',
-              color: 'var(--eg-accent, #A3B18A)', padding: '8px 10px',
+              color: 'var(--pl-olive, #A3B18A)', padding: '8px 10px',
             }}
           >
-            <option value="main" style={{ background: 'var(--eg-dark-2, #3D3530)', color: '#fff' }}>
+            <option value="main" style={{ background: 'var(--pl-ink-soft, #3D3530)', color: '#fff' }}>
               Main Page
             </option>
             {customPages.map(p => (
-              <option key={p.id} value={p.id} style={{ background: 'var(--eg-dark-2, #3D3530)', color: '#fff' }}>
+              <option key={p.id} value={p.id} style={{ background: 'var(--pl-ink-soft, #3D3530)', color: '#fff' }}>
                 {p.title}
               </option>
             ))}
@@ -1290,7 +1289,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                 padding: '6px', borderRadius: '6px', border: '1px dashed rgba(163,177,138,0.4)',
-                background: 'rgba(163,177,138,0.06)', color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer',
+                background: 'rgba(163,177,138,0.06)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer',
                 fontSize: '0.7rem', fontWeight: 700, transition: 'all 0.15s',
               }}
             >
@@ -1302,7 +1301,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
                   padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(109,89,122,0.2)',
-                  background: 'rgba(109,89,122,0.06)', color: 'var(--eg-plum, #6D597A)', cursor: 'pointer',
+                  background: 'rgba(109,89,122,0.06)', color: 'var(--pl-plum, #6D597A)', cursor: 'pointer',
                   fontSize: '0.65rem', fontWeight: 700, transition: 'all 0.15s',
                 }}
               >
@@ -1333,8 +1332,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                       disabled={!newPageTitle.trim()}
                       style={{
                         padding: '6px 12px', borderRadius: '5px', border: 'none',
-                        background: newPageTitle.trim() ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.1)',
-                        color: newPageTitle.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+                        background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.06)',
+                        color: newPageTitle.trim() ? '#fff' : 'var(--pl-muted)',
                         fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                       }}
                     >Add</button>
@@ -1347,10 +1346,10 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
 
         {/* Section header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-          <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)' }}>
+          <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-ink-soft)' }}>
             {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Page Sections'}
           </span>
-          <span style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.2)' }}>
+          <span style={{ fontSize: '0.62rem', color: 'var(--pl-muted)' }}>
             {isMobile ? 'tap to edit · hold to drag' : 'click to edit · drag to reorder'}
           </span>
         </div>
@@ -1482,7 +1481,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           >
             <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {/* Panel header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
                 <div style={{
                   width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
                   background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1492,11 +1491,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
-                  <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.65)' }}>Block settings · Section style</div>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings · Section style</div>
                 </div>
                 <button
                   onClick={() => setActiveBlockId(null)}
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', display: 'flex', padding: '5px' }}
+                  style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
                 >
                   <X size={13} />
                 </button>
@@ -1539,7 +1538,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               background: `${ghostColor}18`,
               border: `1px solid ${ghostColor}55`,
               borderLeft: `3px solid ${ghostColor}`,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3)',
+              boxShadow: '0 12px 40px rgba(43,30,20,0.1), 0 4px 12px rgba(0,0,0,0.3)',
               transform: 'rotate(1.5deg) scale(1.03)',
               opacity: 0.95,
               backdropFilter: 'blur(8px)',
@@ -1562,7 +1561,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               <GhostIcon size={15} color={ghostColor} />
             </div>
             <div>
-              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'rgba(255,255,255,0.95)', lineHeight: 1.3 }}>
+              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--pl-ink)', lineHeight: 1.3 }}>
                 {draggedDef?.label ?? draggedBlock?.type}
               </div>
               <div style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>

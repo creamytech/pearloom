@@ -45,7 +45,7 @@ function IssueCard({ severity, title, detail, onDismiss }: {
       <span style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '1px', color: s.color, flexShrink: 0 }}>{s.icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: s.color, marginBottom: '2px' }}>{title}</div>
-        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.55 }}>{detail}</div>
+        <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.55 }}>{detail}</div>
       </div>
       {onDismiss && (
         <button
@@ -53,7 +53,7 @@ function IssueCard({ severity, title, detail, onDismiss }: {
           style={{
             position: 'absolute', top: '6px', right: '6px',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(255,255,255,0.2)', padding: '2px',
+            color: 'var(--pl-muted)', padding: '2px',
             display: 'flex', alignItems: 'center',
           }}
           aria-label="Dismiss"
@@ -183,7 +183,7 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
           border: '1px solid rgba(163,177,138,0.12)',
         }}>
           <span style={{ animation: 'pl-spin 1s linear infinite', display: 'flex', alignItems: 'center', color: 'rgba(163,177,138,0.7)' }}><IconSparkle size={13} /></span>
-          <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>Analysing your palette…</span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--pl-muted)' }}>Analysing your palette…</span>
           <style>{`@keyframes pl-spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}

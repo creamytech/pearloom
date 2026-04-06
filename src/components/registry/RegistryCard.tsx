@@ -290,7 +290,7 @@ export function RegistryCard({ source, onEdit, onDelete, editable = false }: Reg
                 lineHeight: 1,
                 transition: 'color 0.15s',
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = '#2B2B2B')}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--pl-ink)')}
               onMouseLeave={(e) =>
                 ((e.currentTarget as HTMLButtonElement).style.color = '#9A9488')
               }

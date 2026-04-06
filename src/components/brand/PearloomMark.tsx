@@ -92,7 +92,7 @@ export function PearloomMark({
 export function PearloomWordmark({
   size = 120,
   color = '#A3B18A',
-  textColor = '#2B2B2B',
+  textColor = 'var(--pl-ink)',
   style,
 }: {
   size?: number;
@@ -104,7 +104,7 @@ export function PearloomWordmark({
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: size * 0.08, ...style }}>
       <PearloomMark size={size * 0.35} color={color} />
       <span style={{
-        fontFamily: 'var(--eg-font-heading)',
+        fontFamily: 'var(--pl-font-heading)',
         fontSize: size * 0.2,
         fontWeight: 400,
         letterSpacing: '-0.02em',

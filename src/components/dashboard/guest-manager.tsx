@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { CustomSelect } from '@/components/ui/custom-select';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Plus, Trash2, Check, X, Download,
@@ -184,8 +186,8 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
     background: '#fff',
     width: '100%',
     boxSizing: 'border-box',
-    fontFamily: 'var(--eg-font-body)',
-    color: 'var(--eg-fg)',
+    fontFamily: 'var(--pl-font-body)',
+    color: 'var(--pl-ink)',
     transition: 'border-color 0.2s',
   };
 
@@ -195,12 +197,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       {/* ── Stats bar ── */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         {[
-          { label: `${stats.total} total`, color: 'var(--eg-fg)', bg: 'rgba(0,0,0,0.05)' },
+          { label: `${stats.total} total`, color: 'var(--pl-ink)', bg: 'rgba(0,0,0,0.05)' },
           { label: `${stats.attending} attending`, color: '#3d7a4a', bg: 'rgba(163,177,138,0.15)' },
           { label: `${stats.declined} declined`, color: '#b91c1c', bg: 'rgba(239,68,68,0.08)' },
           { label: `${stats.pending} pending`, color: '#92400e', bg: 'rgba(245,158,11,0.10)' },
           ...(stats.plusOnes > 0
-            ? [{ label: `${stats.plusOnes} plus ones`, color: 'var(--eg-accent)', bg: 'rgba(163,177,138,0.10)' }]
+            ? [{ label: `${stats.plusOnes} plus ones`, color: 'var(--pl-olive)', bg: 'rgba(163,177,138,0.10)' }]
             : []),
         ].map((s) => (
           <span
@@ -221,13 +223,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
         {/* Search */}
         <div style={{ flex: '1 1 200px', position: 'relative', minWidth: '160px' }}>
-          <Search size={14} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--eg-muted)', pointerEvents: 'none' }} />
+          <Search size={14} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--pl-muted)', pointerEvents: 'none' }} />
           <input
             placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ ...inputBase, paddingLeft: '2.5rem' }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; }}
             onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
           />
         </div>
@@ -243,7 +245,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
               border: '1.5px solid rgba(0,0,0,0.08)',
               background: '#fff', fontSize: 'max(16px, 0.85rem)',
               fontWeight: 600, appearance: 'none', cursor: 'pointer',
-              fontFamily: 'var(--eg-font-body)', color: 'var(--eg-fg)',
+              fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)',
             }}
           >
             <option value="all">All Guests</option>
@@ -251,13 +253,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             <option value="declined">Declined</option>
             <option value="pending">Pending</option>
           </select>
-          <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--eg-muted)' }} />
+          <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--pl-muted)' }} />
         </div>
 
         <button
           onClick={fetchGuests}
           aria-label="Refresh guest list"
-          style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--eg-muted)', transition: 'background 0.15s' }}
+          style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)', transition: 'background 0.15s' }}
           onMouseOver={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
           onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; }}
         >
@@ -271,7 +273,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             padding: '0.7rem 1rem', borderRadius: '0.65rem',
             border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff',
             cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-            color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)',
+            color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)',
             transition: 'background 0.15s',
           }}
           onMouseOver={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
@@ -286,9 +288,9 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           style={{
             display: 'flex', alignItems: 'center', gap: '0.4rem',
             padding: '0.7rem 1.25rem', borderRadius: '0.65rem',
-            background: 'var(--eg-fg)', color: '#fff', border: 'none',
+            background: 'var(--pl-ink)', color: '#fff', border: 'none',
             cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
           }}
         >
           <Plus size={15} />
@@ -314,7 +316,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
               className="add-guest-grid"
             >
               <div>
-                <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>
+                <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.4rem' }}>
                   Guest Name *
                 </label>
                 <input
@@ -322,12 +324,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   value={newGuest.name}
                   onChange={(e) => setNewGuest((p) => ({ ...p, name: e.target.value }))}
                   style={inputBase}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '0.4rem' }}>
+                <label style={{ display: 'block', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.4rem' }}>
                   Email
                 </label>
                 <input
@@ -336,19 +338,17 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   value={newGuest.email}
                   onChange={(e) => setNewGuest((p) => ({ ...p, email: e.target.value }))}
                   style={inputBase}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--eg-accent)'; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pl-olive)'; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'; }}
                 />
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap', paddingBottom: '0.1rem' }}>
-                <input
-                  type="checkbox"
+              <div style={{ display: 'flex', alignItems: 'center', paddingBottom: '0.1rem' }}>
+                <Switch
                   checked={newGuest.plusOne}
-                  onChange={(e) => setNewGuest((p) => ({ ...p, plusOne: e.target.checked }))}
-                  style={{ accentColor: 'var(--eg-accent)' }}
+                  onChange={(checked) => setNewGuest((p) => ({ ...p, plusOne: checked }))}
+                  label="+1 Allowed"
                 />
-                +1 Allowed
-              </label>
+              </div>
               {addError && (
                 <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.5rem', fontSize: '0.8rem', color: '#b91c1c' }}>
                   {addError}
@@ -361,10 +361,10 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.4rem',
                     padding: '0.7rem 1.1rem', borderRadius: '0.65rem',
-                    background: 'var(--eg-accent)', color: '#fff',
+                    background: 'var(--pl-olive)', color: '#fff',
                     border: 'none', cursor: saving || !newGuest.name.trim() ? 'not-allowed' : 'pointer',
                     fontWeight: 700, fontSize: '0.8rem', opacity: !newGuest.name.trim() ? 0.5 : 1,
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />}
@@ -372,7 +372,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 </button>
                 <button
                   onClick={() => setAddOpen(false)}
-                  style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--eg-muted)' }}
+                  style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)' }}
                 >
                   <X size={14} />
                 </button>
@@ -430,13 +430,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             background: 'rgba(0,0,0,0.015)',
             borderBottom: '1px solid rgba(0,0,0,0.05)',
             fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
-            textTransform: 'uppercase', color: 'var(--eg-muted)',
+            textTransform: 'uppercase', color: 'var(--pl-muted)',
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center' }}>
             <input
               type="checkbox"
-              style={{ accentColor: 'var(--eg-accent)', cursor: 'pointer' }}
+              className="accent-olive cursor-pointer w-4 h-4 rounded"
               checked={filtered.length > 0 && filtered.every(g => selectedIds.has(g.id))}
               onChange={(e) => {
                 if (e.target.checked) {
@@ -457,12 +457,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
 
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
-            <Loader2 size={24} color="var(--eg-muted)" style={{ margin: '0 auto', animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={24} color="var(--pl-muted)" style={{ margin: '0 auto', animation: 'spin 1s linear infinite' }} />
           </div>
         ) : fetchError ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
             <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginBottom: '1rem' }}>{fetchError}</p>
-            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)' }}>
+            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)' }}>
               <RefreshCw size={13} /> Retry
             </button>
           </div>
@@ -470,10 +470,10 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           /* Empty state */
           <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
             <Users size={40} color="rgba(0,0,0,0.1)" style={{ margin: '0 auto 1.25rem' }} />
-            <h4 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.3rem', fontWeight: 400, marginBottom: '0.75rem', color: 'var(--eg-fg)' }}>
+            <h4 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.3rem', fontWeight: 400, marginBottom: '0.75rem', color: 'var(--pl-ink)' }}>
               No RSVPs yet
             </h4>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', maxWidth: '320px', margin: '0 auto 1.5rem', lineHeight: 1.7 }}>
+            <p style={{ color: 'var(--pl-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', maxWidth: '320px', margin: '0 auto 1.5rem', lineHeight: 1.7 }}>
               Share your site to start collecting responses from your guests.
             </p>
             {shareUrl && (
@@ -483,10 +483,10 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.75rem 1.5rem', borderRadius: '100px',
                   background: copiedShare ? 'rgba(34,197,94,0.1)' : 'rgba(163,177,138,0.1)',
-                  color: copiedShare ? '#16a34a' : 'var(--eg-accent)',
+                  color: copiedShare ? '#16a34a' : 'var(--pl-olive)',
                   border: `1px solid ${copiedShare ? 'rgba(34,197,94,0.2)' : 'rgba(163,177,138,0.2)'}`,
                   cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem',
-                  fontFamily: 'var(--eg-font-body)', transition: 'all 0.2s',
+                  fontFamily: 'var(--pl-font-body)', transition: 'all 0.2s',
                 }}
               >
                 {copiedShare ? <Check size={15} /> : <Share2 size={15} />}
@@ -496,7 +496,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
-            <p style={{ color: 'var(--eg-muted)', fontSize: '0.875rem' }}>No guests match your search.</p>
+            <p style={{ color: 'var(--pl-muted)', fontSize: '0.875rem' }}>No guests match your search.</p>
           </div>
         ) : (
           filtered.map((guest, i) => {
@@ -528,7 +528,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
                     <input
                       type="checkbox"
-                      style={{ accentColor: 'var(--eg-accent)', cursor: 'pointer' }}
+                      className="accent-olive cursor-pointer w-4 h-4 rounded"
                       checked={selectedIds.has(guest.id)}
                       onChange={(e) => {
                         setSelectedIds(prev => {
@@ -541,14 +541,14 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                     />
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--eg-fg)' }}>{guest.name}</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--pl-ink)' }}>{guest.name}</div>
                     {guest.songRequest && (
-                      <div style={{ fontSize: '0.68rem', color: 'var(--eg-muted)', marginTop: '0.15rem', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginTop: '0.15rem', fontStyle: 'italic' }}>
                         Song: {guest.songRequest}
                       </div>
                     )}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--pl-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {guest.email ? (
                       <a
                         href={`mailto:${guest.email}`}
@@ -559,7 +559,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                           borderBottom: '1px dotted rgba(0,0,0,0.25)',
                           transition: 'border-color 0.15s',
                         }}
-                        onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'var(--eg-accent, #A3B18A)'; }}
+                        onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'var(--pl-olive, #A3B18A)'; }}
                         onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.borderBottomColor = 'rgba(0,0,0,0.25)'; }}
                       >
                         {guest.email}
@@ -576,10 +576,10 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                       {sc.label}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.82rem', color: guest.plusOne ? 'var(--eg-accent)' : 'var(--eg-muted)', fontWeight: guest.plusOne ? 600 : 400 }}>
+                  <div style={{ fontSize: '0.82rem', color: guest.plusOne ? 'var(--pl-olive)' : 'var(--pl-muted)', fontWeight: guest.plusOne ? 600 : 400 }}>
                     {guest.plusOne ? 'Yes' : '—'}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--eg-muted)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)' }}>
                     {guest.respondedAt ? new Date(guest.respondedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
                   </div>
                   <button
@@ -606,26 +606,26 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                       <div style={{ padding: '1rem 1.25rem 1.25rem', display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                         {guest.plusOneName && (
                           <div>
-                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--eg-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>+1 Name</span>
-                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--eg-fg)' }}>{guest.plusOneName}</p>
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--pl-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>+1 Name</span>
+                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--pl-ink)' }}>{guest.plusOneName}</p>
                           </div>
                         )}
                         {guest.mealPreference && (
                           <div>
-                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--eg-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Meal</span>
-                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--eg-fg)' }}>{guest.mealPreference}</p>
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--pl-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Meal</span>
+                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--pl-ink)' }}>{guest.mealPreference}</p>
                           </div>
                         )}
                         {guest.dietaryRestrictions && (
                           <div>
-                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--eg-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Dietary</span>
-                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--eg-fg)' }}>{guest.dietaryRestrictions}</p>
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--pl-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Dietary</span>
+                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--pl-ink)' }}>{guest.dietaryRestrictions}</p>
                           </div>
                         )}
                         {guest.songRequest && (
                           <div>
-                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--eg-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Song Request</span>
-                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--eg-fg)', fontStyle: 'italic' }}>{guest.songRequest}</p>
+                            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--pl-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Song Request</span>
+                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: 'var(--pl-ink)', fontStyle: 'italic' }}>{guest.songRequest}</p>
                           </div>
                         )}
                         {guest.message && (
@@ -633,7 +633,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                             <span style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.5 }}>
                               Message
                             </span>
-                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', fontStyle: 'italic', color: 'var(--eg-fg)', lineHeight: 1.5 }}>
+                            <p style={{ fontSize: '0.85rem', marginTop: '0.25rem', fontStyle: 'italic', color: 'var(--pl-ink)', lineHeight: 1.5 }}>
                               "{guest.message}"
                             </p>
                           </div>
@@ -656,7 +656,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       )}
 
       {filtered.length > 0 && (
-        <p style={{ fontSize: '0.72rem', color: 'var(--eg-muted)', textAlign: 'center' }}>
+        <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', textAlign: 'center' }}>
           Showing {filtered.length} of {guests.length} guests
         </p>
       )}

@@ -62,8 +62,8 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '8px 12px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        background: 'rgba(255,255,255,0.03)',
+        borderBottom: '1px solid rgba(0,0,0,0.04)',
+        background: 'rgba(163,177,138,0.04)',
       }}>
         <span style={{
           fontSize: '0.78rem', fontWeight: 700,
@@ -76,7 +76,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             onClick={handleToggleEdit}
             style={{
               fontSize: '0.65rem', fontWeight: 700, padding: '2px 7px',
-              borderRadius: '5px', border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)',
               background: editing ? 'rgba(163,177,138,0.18)' : 'transparent',
               color: editing ? '#A3B18A' : 'rgba(255,255,255,0.45)',
               cursor: 'pointer',
@@ -90,7 +90,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '24px', height: '24px', borderRadius: '5px',
-              border: '1px solid rgba(255,255,255,0.12)',
+              border: '1px solid rgba(0,0,0,0.07)',
               background: copied ? 'rgba(163,177,138,0.18)' : 'transparent',
               color: copied ? '#A3B18A' : 'rgba(255,255,255,0.45)',
               cursor: 'pointer',
@@ -108,8 +108,8 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             onChange={e => setDraft(e.target.value)}
             style={{
               width: '100%', minHeight: '90px', resize: 'vertical',
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '6px', padding: '7px', color: 'rgba(255,255,255,0.85)',
+              background: 'rgba(163,177,138,0.05)', border: '1px solid rgba(0,0,0,0.06)',
+              borderRadius: '6px', padding: '7px', color: 'var(--pl-ink)',
               fontSize: '0.75rem', lineHeight: 1.6, fontFamily: 'inherit', outline: 'none',
               boxSizing: 'border-box',
             }}
@@ -117,7 +117,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
         ) : (
           <p style={{
             margin: 0, fontSize: '0.75rem', lineHeight: 1.65,
-            color: 'rgba(255,255,255,0.7)',
+            color: 'var(--pl-ink)',
           }}>
             {draft}
           </p>
@@ -279,8 +279,8 @@ export function ThankYouPanel() {
               style={{
                 display: 'flex', flexDirection: 'column', gap: '4px',
                 padding: '8px 10px', borderRadius: '9px',
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(0,0,0,0.06)',
+                background: 'rgba(163,177,138,0.04)',
                 position: 'relative',
               }}
             >
@@ -291,7 +291,7 @@ export function ThankYouPanel() {
                 style={{
                   position: 'absolute', top: '6px', right: '6px',
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'rgba(255,255,255,0.25)', padding: '2px',
+                  color: 'var(--pl-muted)', padding: '2px',
                   display: 'flex', alignItems: 'center',
                 }}
               >
@@ -305,8 +305,8 @@ export function ThankYouPanel() {
                 value={entry.name}
                 onChange={e => updateEntry(entry.id, 'name', e.target.value)}
                 style={{
-                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)',
-                  color: 'rgba(255,255,255,0.85)', fontSize: '0.78rem', fontWeight: 600,
+                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)',
+                  color: 'var(--pl-ink)', fontSize: '0.78rem', fontWeight: 600,
                   padding: '2px 0', outline: 'none', width: 'calc(100% - 20px)',
                   fontFamily: 'inherit',
                 }}
@@ -319,8 +319,8 @@ export function ThankYouPanel() {
                 value={entry.gift}
                 onChange={e => updateEntry(entry.id, 'gift', e.target.value)}
                 style={{
-                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.55)', fontSize: '0.72rem',
+                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.04)',
+                  color: 'var(--pl-ink-soft)', fontSize: '0.72rem',
                   padding: '2px 0', outline: 'none', width: '100%',
                   fontFamily: 'inherit',
                 }}
@@ -333,8 +333,8 @@ export function ThankYouPanel() {
                 value={entry.relationship}
                 onChange={e => updateEntry(entry.id, 'relationship', e.target.value)}
                 style={{
-                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.55)', fontSize: '0.72rem',
+                  background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.04)',
+                  color: 'var(--pl-ink-soft)', fontSize: '0.72rem',
                   padding: '2px 0', outline: 'none', width: '100%',
                   fontFamily: 'inherit',
                 }}
@@ -348,9 +348,9 @@ export function ThankYouPanel() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               padding: '7px', borderRadius: '8px',
-              border: '1px dashed rgba(255,255,255,0.12)',
+              border: '1px dashed rgba(0,0,0,0.07)',
               background: 'transparent',
-              color: 'rgba(255,255,255,0.38)', cursor: 'pointer', fontSize: '0.73rem',
+              color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.73rem',
             }}
           >
             <Plus size={12} /> Add guest
@@ -371,8 +371,8 @@ export function ThankYouPanel() {
             border: '1px solid rgba(163,177,138,0.3)',
             background: canGenerate
               ? 'linear-gradient(135deg, rgba(163,177,138,0.18) 0%, rgba(143,200,122,0.12) 100%)'
-              : 'rgba(255,255,255,0.04)',
-            color: canGenerate ? '#A3B18A' : 'rgba(255,255,255,0.2)',
+              : 'rgba(163,177,138,0.05)',
+            color: canGenerate ? '#A3B18A' : 'var(--pl-muted)',
             cursor: canGenerate ? 'pointer' : 'default',
             fontSize: '0.78rem', fontWeight: 700,
             transition: 'all 0.15s',

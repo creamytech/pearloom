@@ -57,8 +57,8 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
             placeholder="A message from us"
             style={{
               width: '100%', padding: '10px 12px', borderRadius: 10,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(0,0,0,0.06)',
+              background: 'rgba(163,177,138,0.06)',
               color: 'rgba(214,198,168,0.92)', fontSize: '0.88rem',
               outline: 'none', boxSizing: 'border-box',
             }}
@@ -80,8 +80,8 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
             placeholder="Write your message here…"
             style={{
               width: '100%', padding: '10px 12px', borderRadius: 10,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(0,0,0,0.06)',
+              background: 'rgba(163,177,138,0.06)',
               color: 'rgba(214,198,168,0.92)', fontSize: '0.88rem',
               outline: 'none', resize: 'vertical', boxSizing: 'border-box',
               fontFamily: 'inherit',

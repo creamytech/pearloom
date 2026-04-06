@@ -116,10 +116,10 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
             position: 'relative',
             zIndex: 1,
             textAlign: 'center',
-            color: onPhoto ? 'rgba(255,255,255,0.85)' : ambient.textAccent,
+            color: onPhoto ? 'var(--pl-ink)' : ambient.textAccent,
             fontSize: '1.4rem',
             fontStyle: 'italic',
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             fontWeight: 400,
             letterSpacing: '0.04em',
             marginTop: '2rem',
@@ -131,10 +131,10 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
     );
   }
 
-  const textColor = onPhoto ? 'rgba(255,255,255,0.97)' : 'var(--eg-fg)';
-  const mutedColor = onPhoto ? 'rgba(255,255,255,0.52)' : 'var(--eg-muted)';
-  const cardBg = onPhoto ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.85)';
-  const cardBorder = onPhoto ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.07)';
+  const textColor = onPhoto ? 'rgba(255,255,255,0.97)' : 'var(--pl-ink)';
+  const mutedColor = onPhoto ? 'rgba(255,255,255,0.52)' : 'var(--pl-muted)';
+  const cardBg = onPhoto ? 'rgba(0,0,0,0.06)' : 'var(--pl-ink)';
+  const cardBorder = onPhoto ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.07)';
   const cardShadow = onPhoto
     ? '0 4px 20px rgba(0,0,0,0.15)'
     : '0 4px 20px rgba(43,43,43,0.07), 0 1px 4px rgba(43,43,43,0.04)';
@@ -182,7 +182,7 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
       >
         {/* Section icon + label */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
-          <CalendarHeartIcon size={14} color={onPhoto ? 'rgba(255,255,255,0.6)' : ambient.textAccent} />
+          <CalendarHeartIcon size={14} color={onPhoto ? 'var(--pl-ink-soft)' : ambient.textAccent} />
           <span style={{
             fontSize: '0.58rem',
             letterSpacing: '0.38em',
@@ -220,7 +220,7 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
                     fontWeight: 600,
                     color: textColor,
                     lineHeight: 1,
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontVariantNumeric: 'tabular-nums',
                     // CSS tick animation on seconds
                     ...(seg.isTick ? {

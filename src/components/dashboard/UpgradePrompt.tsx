@@ -58,7 +58,7 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
           whileTap={loading ? {} : { scale: 0.97 }}
           style={{
             padding: '0.6rem 1.5rem', borderRadius: '0.75rem',
-            background: '#2B2B2B', color: '#fff',
+            background: 'var(--pl-olive-deep)', color: '#fff',
             border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
             fontWeight: 600, fontSize: '0.9rem',
           }}

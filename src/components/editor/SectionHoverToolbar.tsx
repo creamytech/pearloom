@@ -30,8 +30,8 @@ interface HoverState {
   rect: HoverRect;
 }
 
-const TOOLBAR_H = 34;
-const TOOLBAR_OFFSET = 8; // px above the section top
+const TOOLBAR_H = 38;
+const TOOLBAR_OFFSET = 10; // px above the section top
 
 export function SectionHoverToolbar() {
   const { state, dispatch, actions } = useEditor();
@@ -84,7 +84,7 @@ export function SectionHoverToolbar() {
     if (hovered.chapterId) actions.handleAIRewrite(hovered.chapterId);
   };
   const handleDelete = () => {
-    if (chapter && window.confirm(`Delete "${chapter.title}"?`)) {
+    if (chapter && confirm(`Delete "${chapter.title}"?`)) {
       actions.deleteChapter(hovered.chapterId);
       setHovered(null);
     }
@@ -114,12 +114,12 @@ export function SectionHoverToolbar() {
             zIndex: 50,
             display: 'flex', alignItems: 'center',
             height: TOOLBAR_H,
-            background: 'rgba(22,18,28,0.92)',
+            background: 'rgba(255,255,255,0.92)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            border: '1px solid rgba(0,0,0,0.06)',
             borderRadius: '100px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(163,177,138,0.12)',
+            boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 0 0 1px rgba(0,0,0,0.06)',
             overflow: 'visible',
             whiteSpace: 'nowrap',
           } as React.CSSProperties}
@@ -140,14 +140,16 @@ export function SectionHoverToolbar() {
           />
           <ToolbarDivider />
 
-          {/* AI Rewrite */}
-          <ToolbarBtn
-            icon={<Sparkles size={12} />}
-            label={isRewriting ? '…' : 'AI'}
-            onClick={handleAI}
-            disabled={isRewriting}
-            accent
-          />
+          {/* AI Rewrite — with dropdown for modes */}
+          <div style={{ position: 'relative' }}>
+            <ToolbarBtn
+              icon={<Sparkles size={12} />}
+              label={isRewriting ? 'Rewriting…' : 'AI Rewrite'}
+              onClick={handleAI}
+              disabled={isRewriting}
+              accent
+            />
+          </div>
           <ToolbarDivider />
 
           {/* More (relative container for dropdown) */}
@@ -170,7 +172,7 @@ export function SectionHoverToolbar() {
                     background: 'rgba(22,18,28,0.96)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(0,0,0,0.06)',
                     borderRadius: '12px',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
                     padding: '4px',
@@ -217,8 +219,8 @@ function ToolbarBtn({
       disabled={disabled}
       title={label}
       whileHover={!disabled ? {
-        backgroundColor: accent ? 'rgba(163,177,138,0.18)' : 'rgba(255,255,255,0.1)',
-        color: accent ? '#A3B18A' : 'rgba(255,255,255,0.95)',
+        backgroundColor: accent ? 'rgba(163,177,138,0.18)' : 'rgba(0,0,0,0.06)',
+        color: accent ? '#A3B18A' : 'var(--pl-ink)',
       } : {}}
       whileTap={!disabled ? { scale: 0.9 } : {}}
       transition={{ duration: 0.1 }}
@@ -226,7 +228,7 @@ function ToolbarBtn({
         display: 'flex', alignItems: 'center', gap: '4px',
         padding: '0 10px', height: TOOLBAR_H,
         border: 'none', background: 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
-        color: accent ? 'rgba(163,177,138,0.8)' : 'rgba(255,255,255,0.65)',
+        color: accent ? 'rgba(163,177,138,0.8)' : 'var(--pl-ink-soft)',
         fontSize: '0.7rem', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,
         borderRadius: '100px',
@@ -240,7 +242,7 @@ function ToolbarBtn({
 }
 
 function ToolbarDivider() {
-  return <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />;
+  return <div style={{ width: 1, height: 16, background: 'rgba(0,0,0,0.06)', flexShrink: 0 }} />;
 }
 
 function DropdownItem({
@@ -251,13 +253,13 @@ function DropdownItem({
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ backgroundColor: danger ? 'rgba(248,113,113,0.12)' : 'rgba(255,255,255,0.08)' }}
+      whileHover={{ backgroundColor: danger ? 'rgba(248,113,113,0.12)' : 'rgba(0,0,0,0.06)' }}
       whileTap={{ scale: 0.97 }}
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
         width: '100%', padding: '7px 10px', borderRadius: '8px',
         border: 'none', background: 'transparent', cursor: 'pointer',
-        color: danger ? 'rgba(248,113,113,0.9)' : 'rgba(255,255,255,0.75)',
+        color: danger ? 'rgba(248,113,113,0.9)' : 'var(--pl-ink)',
         fontSize: '0.75rem', fontWeight: 600, textAlign: 'left',
       }}
     >

@@ -47,7 +47,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
   return (
     <section 
       style={{ 
-        background: 'var(--eg-card-bg, #ffffff)', 
+        background: 'var(--pl-cream-card, #ffffff)', 
         padding: '8rem 2rem', 
         borderTop: '1px solid rgba(0,0,0,0.05)',
         position: 'relative' 
@@ -55,11 +55,11 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
     >
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <h2 style={{ 
-          fontFamily: 'var(--eg-font-heading)', 
+          fontFamily: 'var(--pl-font-heading)', 
           fontSize: '3rem', 
           textAlign: 'center', 
           marginBottom: '4rem',
-          color: 'var(--eg-fg)' 
+          color: 'var(--pl-ink)' 
         }}>
           Event Details
         </h2>
@@ -68,24 +68,24 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
           
           {/* LOGISTICS BLOCK */}
           {logistics?.venue && (
-            <div style={{ background: 'var(--eg-card-bg)', padding: '3rem', borderRadius: 'var(--eg-radius)', boxShadow: 'var(--eg-card-shadow)', border: 'var(--eg-card-border)', backdropFilter: 'blur(10px)' }}>
+            <div style={{ background: 'var(--pl-cream-card)', padding: '3rem', borderRadius: 'var(--pl-radius-md)', boxShadow: 'var(--pl-card-shadow)', border: 'var(--pl-card-border)', backdropFilter: 'blur(10px)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <Calendar color="var(--eg-accent)" style={{ marginTop: '0.2rem' }} />
+                  <Calendar color="var(--pl-olive)" style={{ marginTop: '0.2rem' }} />
                   <div>
-                    <h4 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.25rem', fontWeight: 600 }}>When</h4>
-                    <p style={{ color: 'var(--eg-muted)', marginTop: '0.5rem' }}>{logistics.date}</p>
-                    {logistics.time && <p style={{ color: 'var(--eg-muted)' }}>{logistics.time}</p>}
+                    <h4 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.25rem', fontWeight: 600 }}>When</h4>
+                    <p style={{ color: 'var(--pl-muted)', marginTop: '0.5rem' }}>{logistics.date}</p>
+                    {logistics.time && <p style={{ color: 'var(--pl-muted)' }}>{logistics.time}</p>}
                   </div>
                 </div>
                 
                 <div style={{ width: '100%', height: '1px', background: 'rgba(0,0,0,0.05)' }} />
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                  <MapPin color="var(--eg-accent)" style={{ marginTop: '0.2rem' }} />
+                  <MapPin color="var(--pl-olive)" style={{ marginTop: '0.2rem' }} />
                   <div>
-                    <h4 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.25rem', fontWeight: 600 }}>Where</h4>
-                    <p style={{ color: 'var(--eg-muted)', marginTop: '0.5rem' }}>{logistics.venue}</p>
+                    <h4 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.25rem', fontWeight: 600 }}>Where</h4>
+                    <p style={{ color: 'var(--pl-muted)', marginTop: '0.5rem' }}>{logistics.venue}</p>
                   </div>
                 </div>
 
@@ -93,10 +93,10 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                   <>
                     <div style={{ width: '100%', height: '1px', background: 'rgba(0,0,0,0.05)' }} />
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                      <Gift color="var(--eg-accent)" style={{ marginTop: '0.2rem' }} />
+                      <Gift color="var(--pl-olive)" style={{ marginTop: '0.2rem' }} />
                       <div>
-                        <h4 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.25rem', fontWeight: 600 }}>Registry</h4>
-                        <p style={{ color: 'var(--eg-muted)', margin: '0.5rem 0 1rem' }}>Your presence is enough, but if you wish to contribute to our future:</p>
+                        <h4 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.25rem', fontWeight: 600 }}>Registry</h4>
+                        <p style={{ color: 'var(--pl-muted)', margin: '0.5rem 0 1rem' }}>Your presence is enough, but if you wish to contribute to our future:</p>
                         <a 
                           href={registry.cashFundUrl} 
                           target="_blank" 
@@ -104,8 +104,8 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                           style={{ 
                             display: 'inline-block',
                             padding: '0.5rem 1rem', 
-                            background: 'var(--eg-accent-light, #EEE8DC)', 
-                            color: 'var(--eg-accent, #A3B18A)',
+                            background: 'var(--pl-olive-mist, #EEE8DC)', 
+                            color: 'var(--pl-olive, #A3B18A)',
                             borderRadius: '0.5rem',
                             fontWeight: 500,
                             textDecoration: 'none'
@@ -123,19 +123,19 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
 
           {/* RSVP FORM */}
           {logistics?.rsvpDeadline && (
-            <div style={{ background: 'var(--eg-card-bg)', padding: '3rem', borderRadius: 'var(--eg-radius)', boxShadow: 'var(--eg-card-shadow)', border: 'var(--eg-card-border)', backdropFilter: 'blur(10px)' }}>
-              <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>RSVP</h3>
-              <p style={{ color: 'var(--eg-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Kindly reply by {logistics.rsvpDeadline}</p>
+            <div style={{ background: 'var(--pl-cream-card)', padding: '3rem', borderRadius: 'var(--pl-radius-md)', boxShadow: 'var(--pl-card-shadow)', border: 'var(--pl-card-border)', backdropFilter: 'blur(10px)' }}>
+              <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>RSVP</h3>
+              <p style={{ color: 'var(--pl-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Kindly reply by {logistics.rsvpDeadline}</p>
               
               {status === 'success' ? (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }} 
                   animate={{ opacity: 1, scale: 1 }}
-                  style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--eg-accent)' }}
+                  style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--pl-olive)' }}
                 >
                   <CheckCircle2 size={48} style={{ margin: '0 auto 1rem' }} />
-                  <p style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.5rem' }}>Thank you!</p>
-                  <p style={{ color: 'var(--eg-muted)', fontSize: '0.9rem' }}>Your RSVP has been received.</p>
+                  <p style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.5rem' }}>Thank you!</p>
+                  <p style={{ color: 'var(--pl-muted)', fontSize: '0.9rem' }}>Your RSVP has been received.</p>
                 </motion.div>
               ) : (
                 <form onSubmit={handleRSVP} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -145,7 +145,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                     placeholder="Full Name" 
                     value={name} 
                     onChange={e => setName(e.target.value)}
-                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--eg-radius) / 2)', fontFamily: 'var(--eg-font-body)' }}
+                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--pl-radius-md) / 2)', fontFamily: 'var(--pl-font-body)' }}
                   />
                   <input 
                     required 
@@ -153,7 +153,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                     placeholder="Email Address" 
                     value={email} 
                     onChange={e => setEmail(e.target.value)}
-                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--eg-radius) / 2)', fontFamily: 'var(--eg-font-body)' }}
+                    style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--pl-radius-md) / 2)', fontFamily: 'var(--pl-font-body)' }}
                   />
                   
                   <div style={{ display: 'flex', gap: '1rem', margin: '0.5rem 0' }}>
@@ -161,10 +161,10 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                       type="button"
                       onClick={() => setAttending(true)}
                       style={{ 
-                        flex: 1, padding: '1rem', borderRadius: 'calc(var(--eg-radius) / 2)', cursor: 'pointer',
-                        border: `2px solid ${attending === true ? 'var(--eg-accent)' : 'rgba(0,0,0,0.1)'}`,
-                        background: attending === true ? 'var(--eg-accent-light)' : 'transparent',
-                        color: 'var(--eg-fg)', fontWeight: 500
+                        flex: 1, padding: '1rem', borderRadius: 'calc(var(--pl-radius-md) / 2)', cursor: 'pointer',
+                        border: `2px solid ${attending === true ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
+                        background: attending === true ? 'var(--pl-olive-mist)' : 'transparent',
+                        color: 'var(--pl-ink)', fontWeight: 500
                       }}
                     >
                       Joyfully Accept
@@ -173,10 +173,10 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                       type="button"
                       onClick={() => setAttending(false)}
                       style={{ 
-                        flex: 1, padding: '1rem', borderRadius: 'calc(var(--eg-radius) / 2)', cursor: 'pointer',
+                        flex: 1, padding: '1rem', borderRadius: 'calc(var(--pl-radius-md) / 2)', cursor: 'pointer',
                         border: `2px solid ${attending === false ? '#ff4d4f' : 'rgba(0,0,0,0.1)'}`,
                         background: attending === false ? '#fff1f0' : 'transparent',
-                        color: 'var(--eg-fg)', fontWeight: 500
+                        color: 'var(--pl-ink)', fontWeight: 500
                       }}
                     >
                       Regretfully Decline
@@ -189,7 +189,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                       value={dietary}
                       onChange={e => setDietary(e.target.value)}
                       rows={2}
-                      style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--eg-radius) / 2)', fontFamily: 'var(--eg-font-body)', resize: 'vertical' }}
+                      style={{ width: '100%', padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 'calc(var(--pl-radius-md) / 2)', fontFamily: 'var(--pl-font-body)', resize: 'vertical' }}
                     />
                   )}
 
@@ -197,7 +197,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                     type="submit" 
                     disabled={status === 'loading' || attending === null}
                     style={{ 
-                      width: '100%', padding: '1.25rem', background: 'var(--eg-fg)', color: '#fff', 
+                      width: '100%', padding: '1.25rem', background: 'var(--pl-ink)', color: '#fff', 
                       borderRadius: '0.5rem', border: 'none', fontWeight: 600, cursor: 'pointer',
                       opacity: attending === null ? 0.5 : 1, transition: 'opacity 0.2s', marginTop: '1rem'
                     }}

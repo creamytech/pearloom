@@ -44,9 +44,9 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
 
   const textareaStyle: React.CSSProperties = {
     width: '100%', padding: '0.75rem', borderRadius: '0.6rem',
-    border: '1.5px solid rgba(255,255,255,0.1)', fontSize: '0.85rem',
-    background: 'rgba(255,255,255,0.04)', fontFamily: 'var(--eg-font-body)',
-    color: 'var(--eg-fg)', outline: 'none', resize: 'none',
+    border: '1.5px solid rgba(0,0,0,0.06)', fontSize: '0.85rem',
+    background: 'rgba(163,177,138,0.05)', fontFamily: 'var(--pl-font-body)',
+    color: 'var(--pl-ink)', outline: 'none', resize: 'none',
     lineHeight: 1.6, boxSizing: 'border-box',
     transition: 'border-color 0.2s',
   };
@@ -60,12 +60,12 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
         border: '1px solid rgba(163,177,138,0.15)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Sparkles size={15} color="var(--eg-accent)" />
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--eg-accent)', letterSpacing: '0.05em' }}>
+          <Sparkles size={15} color="var(--pl-olive)" />
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--pl-olive)', letterSpacing: '0.05em' }}>
             AI Voice Training
           </span>
         </div>
-        <p style={{ fontSize: '0.8rem', color: 'var(--eg-muted)', lineHeight: 1.6, margin: 0 }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', lineHeight: 1.6, margin: 0 }}>
           Paste real texts, captions, or voice notes you&apos;ve written. The AI chatbot will respond to your guests <em>as you</em> — in your exact tone, energy, and emoji style.
         </p>
       </div>
@@ -73,7 +73,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
       {/* Existing samples */}
       {voiceSamples.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
+          <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>
             {voiceSamples.length} Voice Sample{voiceSamples.length !== 1 ? 's' : ''} Added
           </label>
           <AnimatePresence>
@@ -84,13 +84,13 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 style={{
-                  background: 'rgba(255,255,255,0.06)', borderRadius: '0.6rem', padding: '0.65rem 0.85rem',
-                  border: '1px solid rgba(255,255,255,0.1)', display: 'flex',
+                  background: 'rgba(0,0,0,0.04)', borderRadius: '0.6rem', padding: '0.65rem 0.85rem',
+                  border: '1px solid rgba(0,0,0,0.06)', display: 'flex',
                   alignItems: 'flex-start', gap: '0.5rem',
                 }}
               >
-                <MessageSquare size={13} color="var(--eg-accent)" style={{ marginTop: '2px', flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--eg-fg)', lineHeight: 1.5 }}>
+                <MessageSquare size={13} color="var(--pl-olive)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: '0.8rem', color: 'var(--pl-ink)', lineHeight: 1.5 }}>
                   &ldquo;{sample}&rdquo;
                 </span>
                 <button
@@ -107,7 +107,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
 
       {/* Add sample */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted)' }}>
+        <label style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>
           Paste a text or caption
         </label>
         <textarea
@@ -116,8 +116,8 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           rows={3}
           placeholder={'Paste a real text you\'ve sent, a caption from a post, a voice note transcript — anything that sounds like you...'}
           style={textareaStyle}
-          onFocus={e => { e.target.style.borderColor = 'var(--eg-accent)'; e.target.style.background = 'rgba(255,255,255,0.08)'; }}
-          onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.04)'; }}
+          onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; e.target.style.background = 'rgba(0,0,0,0.06)'; }}
+          onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.background = 'rgba(163,177,138,0.05)'; }}
         />
         <button
           onClick={addSample}
@@ -125,7 +125,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
             padding: '0.65rem 1rem', borderRadius: '0.6rem',
-            background: 'var(--eg-accent)', color: '#fff',
+            background: 'var(--pl-olive)', color: '#fff',
             border: 'none', cursor: newSample.trim() ? 'pointer' : 'not-allowed',
             fontSize: '0.8rem', fontWeight: 700, opacity: newSample.trim() ? 1 : 0.4,
             transition: 'all 0.2s',
@@ -142,8 +142,8 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           onClick={loadExamples}
           style={{
             padding: '0.6rem 1rem', borderRadius: '0.6rem',
-            border: '1.5px dashed rgba(255,255,255,0.12)', background: 'transparent',
-            color: 'var(--eg-muted)', fontSize: '0.75rem', cursor: 'pointer',
+            border: '1.5px dashed rgba(0,0,0,0.07)', background: 'transparent',
+            color: 'var(--pl-muted)', fontSize: '0.75rem', cursor: 'pointer',
             fontWeight: 600, letterSpacing: '0.02em',
           }}
         >
@@ -151,7 +151,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
         </button>
       )}
 
-      <p style={{ fontSize: '0.7rem', color: 'var(--eg-muted)', textAlign: 'center', opacity: 0.7 }}>
+      <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', textAlign: 'center', opacity: 0.7 }}>
         Add 3–10 samples for best results. The AI learns your exact vibe.
       </p>
     </div>

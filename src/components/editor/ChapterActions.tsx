@@ -116,18 +116,18 @@ function CompletionDot({ filled, tooltip }: { filled: boolean; tooltip: string }
         title={tooltip}
         style={{
           width: '7px', height: '7px', borderRadius: '50%',
-          background: filled ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.15)',
-          border: filled ? 'none' : '1px solid rgba(255,255,255,0.2)',
+          background: filled ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.08)',
+          border: filled ? 'none' : '1px solid var(--pl-muted)',
           transition: 'background 0.2s', cursor: 'default', flexShrink: 0,
         }}
       />
       {hover && (
         <div style={{
           position: 'absolute', bottom: '130%', left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(20,18,15,0.97)', color: 'rgba(255,255,255,0.85)',
+          background: 'rgba(20,18,15,0.97)', color: 'var(--pl-ink)',
           fontSize: '0.6rem', fontWeight: 600, whiteSpace: 'nowrap',
           padding: '3px 6px', borderRadius: '4px', pointerEvents: 'none',
-          zIndex: 100, border: '1px solid rgba(255,255,255,0.1)',
+          zIndex: 100, border: '1px solid rgba(0,0,0,0.06)',
         }}>
           {tooltip}
         </div>
@@ -160,13 +160,13 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
           padding: '4px 7px', height: '26px', borderRadius: '5px',
-          border: `1px solid ${open ? 'rgba(163,177,138,0.5)' : 'rgba(255,255,255,0.12)'}`,
-          background: open ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.05)',
-          color: open ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.5)',
+          border: `1px solid ${open ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.07)'}`,
+          background: open ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.06)',
+          color: open ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
           cursor: 'pointer', transition: 'all 0.15s',
         }}
-        onMouseOver={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.09)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.75)'; }}}
-        onMouseOut={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.5)'; }}}
+        onMouseOver={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}}
+        onMouseOut={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)'; }}}
       >
         <span style={{ display: 'flex', alignItems: 'center' }}>{active.icon}</span>
         <svg width="7" height="5" viewBox="0 0 7 5" fill="none" style={{ opacity: 0.4, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
@@ -177,10 +177,10 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
       {open && (
         <div style={{
           position: 'absolute', bottom: 'calc(100% + 6px)', left: 0,
-          background: 'rgba(18,16,13,0.98)', border: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(18,16,13,0.98)', border: '1px solid rgba(0,0,0,0.06)',
           borderRadius: '10px', padding: '6px',
           display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px',
-          zIndex: 300, boxShadow: '0 -8px 32px rgba(0,0,0,0.6)',
+          zIndex: 300, boxShadow: '0 4px 24px rgba(43,30,20,0.1)',
           backdropFilter: 'blur(16px)', minWidth: '168px',
         }}>
           {LAYOUT_OPTS.map(opt => {
@@ -195,8 +195,8 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
                   padding: '8px 6px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.18)' : isHov ? 'rgba(255,255,255,0.08)' : 'transparent',
-                  color: isActive ? 'var(--eg-accent, #A3B18A)' : isHov ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)',
+                  background: isActive ? 'rgba(163,177,138,0.18)' : isHov ? 'rgba(0,0,0,0.06)' : 'transparent',
+                  color: isActive ? 'var(--pl-olive, #A3B18A)' : isHov ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
                   transition: 'all 0.12s',
                   outline: isActive ? '1.5px solid rgba(163,177,138,0.4)' : 'none',
                 }}
@@ -211,9 +211,9 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
           {/* Preview label */}
           {hovered && (
             <div style={{
-              gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.07)',
+              gridColumn: '1 / -1', borderTop: '1px solid rgba(0,0,0,0.05)',
               paddingTop: '5px', marginTop: '2px',
-              fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)',
+              fontSize: '0.6rem', color: 'var(--pl-muted)',
               textAlign: 'center', fontStyle: 'italic',
             }}>
               {LAYOUT_OPTS.find(l => l.id === hovered)?.label} layout
@@ -328,7 +328,7 @@ export function ChapterActions({
       </div>
 
       {/* Divider */}
-      <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.08)', marginRight: '1px' }} />
+      <div style={{ width: '1px', height: '14px', background: 'rgba(0,0,0,0.06)', marginRight: '1px' }} />
 
       {/* Layout switcher */}
       <LayoutSwitcher
@@ -337,7 +337,7 @@ export function ChapterActions({
       />
 
       {/* Divider */}
-      <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.08)', marginLeft: '1px' }} />
+      <div style={{ width: '1px', height: '14px', background: 'rgba(0,0,0,0.06)', marginLeft: '1px' }} />
 
       {/* Rewrite button + tone dropdown */}
       <div ref={menuRef} style={{ position: 'relative' }}>
@@ -348,8 +348,8 @@ export function ChapterActions({
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '4px 8px', borderRadius: '5px',
             border: '1px solid rgba(163,177,138,0.3)',
-            background: rewriting ? 'rgba(255,255,255,0.04)' : 'rgba(163,177,138,0.1)',
-            color: rewriting ? 'rgba(255,255,255,0.3)' : 'var(--eg-accent, #A3B18A)',
+            background: rewriting ? 'rgba(163,177,138,0.05)' : 'rgba(163,177,138,0.1)',
+            color: rewriting ? 'var(--pl-muted)' : 'var(--pl-olive, #A3B18A)',
             fontSize: '0.65rem', fontWeight: 700,
             cursor: rewriting ? 'not-allowed' : 'pointer',
             letterSpacing: '0.03em', transition: 'all 0.15s',
@@ -368,9 +368,9 @@ export function ChapterActions({
         {showToneMenu && (
           <div style={{
             position: 'absolute', top: '100%', left: 0, marginTop: '4px',
-            background: 'rgba(22,20,17,0.98)', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(22,20,17,0.98)', border: '1px solid rgba(0,0,0,0.06)',
             borderRadius: '8px', padding: '4px', minWidth: '148px',
-            zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            zIndex: 200, boxShadow: '0 8px 32px rgba(43,30,20,0.1)',
             backdropFilter: 'blur(12px)',
           }}>
             {TONE_OPTS.map(({ value, label, desc }) => (
@@ -386,8 +386,8 @@ export function ChapterActions({
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--eg-accent, #A3B18A)' }}>{label}</span>
-                <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', marginTop: '1px' }}>{desc}</span>
+                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>{label}</span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', marginTop: '1px' }}>{desc}</span>
               </button>
             ))}
           </div>
@@ -402,16 +402,16 @@ export function ChapterActions({
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '4px 8px', borderRadius: '5px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: sortingPhotos ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
-            color: sortingPhotos ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.45)',
+            border: '1px solid rgba(0,0,0,0.06)',
+            background: sortingPhotos ? 'rgba(163,177,138,0.03)' : 'rgba(163,177,138,0.06)',
+            color: sortingPhotos ? 'var(--pl-muted)' : 'rgba(255,255,255,0.45)',
             fontSize: '0.65rem', fontWeight: 700,
             cursor: sortingPhotos ? 'not-allowed' : 'pointer',
             letterSpacing: '0.03em', transition: 'all 0.15s',
             whiteSpace: 'nowrap', height: '26px',
           }}
-          onMouseOver={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.09)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}}
-          onMouseOut={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)'; }}}
+          onMouseOver={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}}
+          onMouseOut={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.06)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)'; }}}
         >
           {sortingPhotos
             ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />

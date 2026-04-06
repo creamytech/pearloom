@@ -67,7 +67,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
         style={{
           width: '100%',
           maxWidth: '460px',
-          background: 'var(--eg-bg, #fff)',
+          background: 'var(--pl-cream, #fff)',
           border: '1px solid rgba(0,0,0,0.08)',
           borderRadius: '1.5rem',
           padding: '2.5rem',
@@ -77,10 +77,10 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
         {/* Heading */}
         <h2
           style={{
-            fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+            fontFamily: 'var(--pl-font-heading, Georgia, serif)',
             fontSize: '1.75rem',
             fontWeight: 700,
-            color: 'var(--eg-fg, #1a1a1a)',
+            color: 'var(--pl-ink, #1a1a1a)',
             marginBottom: '0.5rem',
             marginTop: 0,
             textAlign: 'center',
@@ -91,7 +91,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
         <p
           style={{
             fontSize: '0.9rem',
-            color: 'var(--eg-muted, #888)',
+            color: 'var(--pl-muted, #888)',
             textAlign: 'center',
             marginBottom: '1.75rem',
             marginTop: 0,
@@ -114,14 +114,14 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
               borderRadius: '0.75rem',
               border: '1.5px solid rgba(0,0,0,0.12)',
               fontSize: '1rem',
-              color: 'var(--eg-fg, #1a1a1a)',
-              background: 'var(--eg-bg, #fff)',
+              color: 'var(--pl-ink, #1a1a1a)',
+              background: 'var(--pl-cream, #fff)',
               outline: 'none',
               boxSizing: 'border-box',
               transition: 'border-color 0.2s',
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = 'var(--eg-accent, #A3B18A)';
+              e.currentTarget.style.borderColor = 'var(--pl-olive, #A3B18A)';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = 'rgba(0,0,0,0.12)';
@@ -131,7 +131,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
             type="submit"
             disabled={state === 'loading' || !name.trim()}
             style={{
-              background: 'var(--eg-accent, #A3B18A)',
+              background: 'var(--pl-olive, #A3B18A)',
               color: '#fff',
               border: 'none',
               borderRadius: '100px',
@@ -182,7 +182,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
                     fontWeight: 700,
                     letterSpacing: '0.12em',
                     textTransform: 'uppercase',
-                    color: 'var(--eg-muted, #888)',
+                    color: 'var(--pl-muted, #888)',
                     marginBottom: '0.5rem',
                   }}
                 >
@@ -190,11 +190,11 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
                 </div>
                 <h3
                   style={{
-                    fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+                    fontFamily: 'var(--pl-font-heading, Georgia, serif)',
                     fontSize: '2rem',
                     fontWeight: 700,
                     fontStyle: 'italic',
-                    color: 'var(--eg-fg, #1a1a1a)',
+                    color: 'var(--pl-ink, #1a1a1a)',
                     margin: '0 0 0.75rem 0',
                     lineHeight: 1.2,
                   }}
@@ -214,7 +214,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
                   <span
                     style={{
                       fontSize: '0.9rem',
-                      color: 'var(--eg-fg, #1a1a1a)',
+                      color: 'var(--pl-ink, #1a1a1a)',
                       fontWeight: 600,
                     }}
                   >
@@ -228,7 +228,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
                         alignItems: 'center',
                         padding: '0.25rem 0.75rem',
                         borderRadius: '100px',
-                        background: 'var(--eg-accent, #A3B18A)',
+                        background: 'var(--pl-olive, #A3B18A)',
                         color: '#fff',
                         fontSize: '0.78rem',
                         fontWeight: 700,
@@ -245,7 +245,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
                   <p
                     style={{
                       fontSize: '0.85rem',
-                      color: 'var(--eg-muted, #888)',
+                      color: 'var(--pl-muted, #888)',
                       marginTop: '0.75rem',
                       marginBottom: 0,
                       lineHeight: 1.5,
@@ -279,7 +279,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
                 <p
                   style={{
                     fontSize: '0.92rem',
-                    color: 'var(--eg-muted, #888)',
+                    color: 'var(--pl-muted, #888)',
                     margin: 0,
                     lineHeight: 1.6,
                   }}

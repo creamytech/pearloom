@@ -136,7 +136,7 @@ export function VideoChapterPlayer({ videoUrl, title, className, style }: VideoC
           gap: '0.5rem',
           padding: '0.75rem 1.5rem',
           borderRadius: '8px',
-          background: 'var(--eg-accent, #6B8F5A)',
+          background: 'var(--pl-olive, #6B8F5A)',
           color: '#fff',
           fontSize: '0.875rem',
           fontWeight: 600,

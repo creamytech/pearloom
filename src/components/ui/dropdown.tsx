@@ -45,8 +45,8 @@ const DropdownMenuItem = forwardRef<
     ref={ref}
     className={cn(
       'flex items-center gap-2 px-3 py-2 rounded-lg text-[0.88rem] font-medium cursor-pointer transition-colors',
-      'text-[var(--eg-fg)] outline-none',
-      'focus:bg-[rgba(163,177,138,0.12)] focus:text-[var(--eg-accent)]',
+      'text-[var(--pl-ink)] outline-none',
+      'focus:bg-[rgba(163,177,138,0.12)] focus:text-[var(--pl-olive)]',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}
@@ -115,7 +115,7 @@ export function DropdownItem({ active, icon, className, children, onClick, ...pr
   return (
     <DropdownMenuItem
       icon={icon}
-      className={cn(active && 'bg-[rgba(163,177,138,0.12)] text-[var(--eg-accent)]', className)}
+      className={cn(active && 'bg-[rgba(163,177,138,0.12)] text-[var(--pl-olive)]', className)}
       onSelect={onClick as () => void}
     >
       {children}

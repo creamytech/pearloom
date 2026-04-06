@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Briefcase, Plus, Trash2, Pencil, Check, X, Wand2,
@@ -45,20 +46,20 @@ interface TimelineItem {
 // ── Constants ──────────────────────────────────────────────────
 
 const CATEGORY_OPTIONS: { value: VendorCategory; label: string; icon: string }[] = [
-  { value: 'venue',        label: 'Venue',         icon: '🏛' },
-  { value: 'catering',     label: 'Catering',      icon: '🍽' },
-  { value: 'photography',  label: 'Photography',   icon: '📷' },
-  { value: 'videography',  label: 'Videography',   icon: '🎥' },
-  { value: 'flowers',      label: 'Flowers',       icon: '💐' },
-  { value: 'music',        label: 'Music',         icon: '🎵' },
-  { value: 'hair_makeup',  label: 'Hair & Makeup', icon: '💄' },
-  { value: 'cake',         label: 'Cake',          icon: '🎂' },
-  { value: 'transport',    label: 'Transport',     icon: '🚗' },
-  { value: 'other',        label: 'Other',         icon: '✦' },
+  { value: 'venue',        label: 'Venue',         icon: 'V' },
+  { value: 'catering',     label: 'Catering',      icon: 'C' },
+  { value: 'photography',  label: 'Photography',   icon: 'P' },
+  { value: 'videography',  label: 'Videography',   icon: 'Vi' },
+  { value: 'flowers',      label: 'Flowers',       icon: 'F' },
+  { value: 'music',        label: 'Music',         icon: 'M' },
+  { value: 'hair_makeup',  label: 'Hair & Makeup', icon: 'HM' },
+  { value: 'cake',         label: 'Cake',          icon: 'Ck' },
+  { value: 'transport',    label: 'Transport',     icon: 'T' },
+  { value: 'other',        label: 'Other',         icon: '+'  },
 ];
 
 const STATUS_OPTIONS: { value: VendorStatus; label: string; color: string; bg: string }[] = [
-  { value: 'considering', label: 'Considering', color: 'rgba(255,255,255,0.45)', bg: 'rgba(255,255,255,0.07)' },
+  { value: 'considering', label: 'Considering', color: 'rgba(255,255,255,0.45)', bg: 'rgba(0,0,0,0.05)' },
   { value: 'booked',      label: 'Booked',      color: '#A3B18A',               bg: 'rgba(163,177,138,0.12)' },
   { value: 'paid',        label: 'Paid',        color: '#6bcb77',               bg: 'rgba(107,203,119,0.12)' },
   { value: 'cancelled',   label: 'Cancelled',   color: '#f87171',               bg: 'rgba(248,113,113,0.12)' },
@@ -112,7 +113,7 @@ function StatusBadge({ status }: { status: VendorStatus }) {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box',
-  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+  background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.07)',
   borderRadius: '7px', color: '#fff', fontSize: '0.78rem',
   padding: '7px 10px', outline: 'none',
 };
@@ -312,7 +313,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
   // ── Render ─────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
         Loading vendors…
       </div>
     );
@@ -358,8 +359,8 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           >
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '8px',
-              padding: '12px', borderRadius: '10px',
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+              padding: '12px', borderRadius: '14px',
+              background: 'rgba(163,177,138,0.05)', border: '1px solid rgba(0,0,0,0.06)',
             }}>
               <input
                 style={inputStyle} placeholder="Vendor name *"
@@ -434,7 +435,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
               background: `${s.color}0d`, border: `1px solid ${s.color}22`,
               textAlign: 'center',
             }}>
-              <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>
+              <div style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '3px' }}>
                 {s.label}
               </div>
               <div style={{ fontSize: '0.88rem', fontWeight: 800, color: s.color }}>
@@ -450,8 +451,8 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
         {vendors.length === 0 ? (
           <div style={{
             padding: '12px', borderRadius: '8px',
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-            fontSize: '0.73rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center',
+            background: 'rgba(163,177,138,0.04)', border: '1px solid rgba(0,0,0,0.06)',
+            fontSize: '0.73rem', color: 'var(--pl-muted)', textAlign: 'center',
           }}>
             No vendors yet. Click + Add to get started.
           </div>
@@ -464,7 +465,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                   // Edit inline form
                   <div style={{
                     padding: '10px', borderRadius: '8px',
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(163,177,138,0.25)',
+                    background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.25)',
                     display: 'flex', flexDirection: 'column', gap: '6px',
                   }}>
                     <input style={inputStyle} value={editData.name} onChange={e => setEditData(p => ({ ...p, name: e.target.value }))} placeholder="Name" />
@@ -482,7 +483,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                       <button onClick={saveEdit} disabled={saving} style={{ flex: 1, background: 'rgba(163,177,138,0.15)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '6px', color: '#A3B18A', fontSize: '0.72rem', fontWeight: 700, padding: '6px', cursor: 'pointer' }}>
                         <Check size={11} style={{ display: 'inline', marginRight: '4px' }} />Save
                       </button>
-                      <button onClick={() => setEditingId(null)} style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', padding: '6px', cursor: 'pointer' }}>
+                      <button onClick={() => setEditingId(null)} style={{ flex: 1, background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', color: 'rgba(255,255,255,0.45)', fontSize: '0.72rem', padding: '6px', cursor: 'pointer' }}>
                         Cancel
                       </button>
                     </div>
@@ -490,7 +491,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                 ) : (
                   <div style={{
                     padding: '10px 12px', borderRadius: '8px',
-                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(163,177,138,0.05)', border: '1px solid rgba(0,0,0,0.06)',
                     display: 'flex', flexDirection: 'column', gap: '5px',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -500,7 +501,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                           <StatusBadge status={v.status} />
                           {v.amount_cents ? (
-                            <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--pl-ink-soft)', fontWeight: 600 }}>
                               {formatCents(v.amount_cents)}
                             </span>
                           ) : null}
@@ -510,14 +511,14 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                         <button
                           onClick={() => draftEmail(v)}
                           title="Draft email"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer', color: 'rgba(255,255,255,0.4)' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)' }}
                         >
                           <Mail size={12} />
                         </button>
                         <button
                           onClick={() => startEdit(v)}
                           title="Edit"
-                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer', color: 'rgba(255,255,255,0.4)' }}
+                          style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)' }}
                         >
                           <Pencil size={12} />
                         </button>
@@ -540,14 +541,14 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                           exit={{ opacity: 0, height: 0 }}
                           style={{ overflow: 'hidden' }}
                         >
-                          <div style={{ marginTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px' }}>
+                          <div style={{ marginTop: '6px', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '8px' }}>
                             {emailLoading === v.id ? (
-                              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: '6px' }}>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '6px' }}>
                                 Drafting email…
                               </div>
                             ) : (
                               <>
-                                <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
+                                <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>
                                   Draft email
                                 </div>
                                 <textarea
@@ -556,11 +557,11 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                                   style={{
                                     ...inputStyle, minHeight: '80px', resize: 'vertical',
                                     fontSize: '0.72rem', lineHeight: 1.6,
-                                    color: 'rgba(255,255,255,0.7)',
+                                    color: 'var(--pl-ink)',
                                   }}
                                   onClick={e => (e.target as HTMLTextAreaElement).select()}
                                 />
-                                <div style={{ fontSize: '0.63rem', color: 'rgba(255,255,255,0.25)', marginTop: '3px' }}>
+                                <div style={{ fontSize: '0.63rem', color: 'var(--pl-muted)', marginTop: '3px' }}>
                                   Click to select all, then copy
                                 </div>
                               </>
@@ -630,7 +631,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
                   </div>
                   {/* Description */}
                   <div style={{ paddingTop: '2px' }}>
-                    <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--pl-ink)', lineHeight: 1.4 }}>
                       {item.description}
                     </div>
                     {item.vendor && (

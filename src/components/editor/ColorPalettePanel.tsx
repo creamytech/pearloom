@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef } from 'react';
+import { ColorPicker } from '@/components/ui/color-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   RefreshCw, Check, Sparkles, Loader2, Wand2,
@@ -19,7 +20,7 @@ import type { StoryManifest, ThemeSchema } from '@/types';
 // ── Curated preset palettes ────────────────────────────────────
 interface PresetPalette {
   name: string;
-  emoji: string;
+  accent: string;
   description: string;
   colors: ThemeSchema['colors'];
   fonts: ThemeSchema['fonts'];
@@ -29,15 +30,15 @@ interface PresetPalette {
 const PRESET_PALETTES: PresetPalette[] = [
   {
     name: 'Warm Ivory',
-    emoji: '🕯️',
+    accent: '#D4A574',
     description: 'Classic, romantic, timeless',
-    colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: 'var(--eg-accent, #A3B18A)', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
+    colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: 'var(--pl-olive, #A3B18A)', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
     fonts: { heading: 'Playfair Display', body: 'Inter' },
     borderRadius: '1rem',
   },
   {
     name: 'Dark Romance',
-    emoji: '🌹',
+    accent: '#c9706a',
     description: 'Moody, dramatic, luxurious',
     colors: { background: '#0f0e0d', foreground: '#f5f0ea', accent: '#c9706a', accentLight: '#2a1515', muted: '#7a7068', cardBg: '#1a1815' },
     fonts: { heading: 'Cormorant Garamond', body: 'Raleway' },
@@ -45,7 +46,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Garden Sage',
-    emoji: '🌿',
+    accent: '#6a8f5a',
     description: 'Botanical, organic, serene',
     colors: { background: '#f4f7f1', foreground: '#1e2a1a', accent: '#6a8f5a', accentLight: '#ddebd4', muted: '#7a8c72', cardBg: '#ffffff' },
     fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
@@ -53,7 +54,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Coastal Blue',
-    emoji: '🌊',
+    accent: '#3a7ca8',
     description: 'Fresh, breezy, nautical',
     colors: { background: '#f0f5fa', foreground: '#0c1f2e', accent: '#3a7ca8', accentLight: '#cce3f5', muted: '#6a8fa8', cardBg: '#ffffff' },
     fonts: { heading: 'Libre Baskerville', body: 'Source Sans Pro' },
@@ -61,7 +62,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Desert Gold',
-    emoji: '🏔️',
+    accent: '#c97c30',
     description: 'Earthy, warm, Southwest boho',
     colors: { background: '#fdf8f0', foreground: '#2c1a0a', accent: '#c97c30', accentLight: '#faebd7', muted: '#9a7a55', cardBg: '#fffaf4' },
     fonts: { heading: 'Josefin Sans', body: 'Lato' },
@@ -69,7 +70,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Midnight Lavender',
-    emoji: '🌙',
+    accent: '#9b7fd9',
     description: 'Dreamy, celestial, ethereal',
     colors: { background: '#0d0b14', foreground: '#f0eeff', accent: '#9b7fd9', accentLight: '#1e1a30', muted: '#7a6ea0', cardBg: '#131020' },
     fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
@@ -77,7 +78,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Blush & Champagne',
-    emoji: '🥂',
+    accent: '#d4829a',
     description: 'Soft, feminine, glamorous',
     colors: { background: '#fdf8f5', foreground: '#2a1a18', accent: '#d4829a', accentLight: '#fce8ef', muted: '#b0889a', cardBg: '#fff9f7' },
     fonts: { heading: 'Playfair Display', body: 'Poppins' },
@@ -85,7 +86,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Minimalist White',
-    emoji: '◻️',
+    accent: '#111111',
     description: 'Clean, modern, editorial',
     colors: { background: '#ffffff', foreground: '#111111', accent: '#111111', accentLight: '#f5f5f5', muted: '#888888', cardBg: '#f8f8f8' },
     fonts: { heading: 'DM Serif Display', body: 'DM Sans' },
@@ -112,21 +113,9 @@ function Swatch({ color, onChange, label }: { color: string; onChange: (c: strin
       <label style={{
         display: 'block', fontSize: '0.62rem', fontWeight: 800,
         letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+        color: 'var(--pl-muted)', marginBottom: '6px',
       }}>{label}</label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <input
-          type="color"
-          value={color}
-          onChange={e => onChange(e.target.value)}
-          style={{
-            width: '36px', height: '36px', borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.12)',
-            cursor: 'pointer', padding: '2px', background: 'transparent',
-          }}
-        />
-        <span style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: 'rgba(255,255,255,0.5)' }}>{color}</span>
-      </div>
+      <ColorPicker value={color} onChange={onChange} />
     </div>
   );
 }
@@ -143,7 +132,7 @@ function SvgPreview({ svg, bg, label }: { svg: string; bg: string; label?: strin
         backgroundImage: `url("${dataUri}")`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        border: '1px solid rgba(255,255,255,0.08)',
+        border: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
       }}>
         {/* Overlay gradient for readability */}
@@ -156,7 +145,7 @@ function SvgPreview({ svg, bg, label }: { svg: string; bg: string; label?: strin
         <div style={{
           position: 'absolute', bottom: '8px', left: '8px',
           fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)',
+          textTransform: 'uppercase', color: 'var(--pl-ink-soft)',
           background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)',
           padding: '2px 6px', borderRadius: '4px',
         }}>{label}</div>
@@ -177,17 +166,26 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
   const [colors, setColors] = useState<ThemeSchema['colors']>(theme.colors || PRESET_PALETTES[0].colors);
   const [activeTab, setActiveTab] = useState<'custom' | 'ai-art'>('custom');
 
-  // AI Art state
+  // AI Art state — initialize from manifest if background art was previously generated
   const [place, setPlace] = useState('');
   const [artStyle, setArtStyle] = useState('botanical');
   const [extraPrompt, setExtraPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [generatedSvg, setGeneratedSvg] = useState<string | null>(null);
+  const [generatedSvg, setGeneratedSvg] = useState<string | null>(() => {
+    // Recover SVG from manifest.backgroundPatternCss data URI
+    const css = manifest.backgroundPatternCss;
+    if (!css) return null;
+    const match = css.match(/^url\("data:image\/svg\+xml,(.+)"\)$/);
+    if (match) {
+      try { return decodeURIComponent(match[1]); } catch { return null; }
+    }
+    return null;
+  });
   const [prevSvgs, setPrevSvgs] = useState<string[]>([]);
   const [genError, setGenError] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
 
-  const accent = colors.accent || 'var(--eg-accent, #A3B18A)';
+  const accent = colors.accent || 'var(--pl-olive, #A3B18A)';
   const bg = colors.background || '#faf9f6';
 
   // Apply colors + optional SVG background to manifest
@@ -287,7 +285,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
       {/* Tab strip */}
       <div style={{
         display: 'flex', gap: '2px',
-        background: 'rgba(255,255,255,0.04)', padding: '3px', borderRadius: '8px',
+        background: 'rgba(163,177,138,0.05)', padding: '3px', borderRadius: '8px',
       }}>
         {tabs.map(t => (
           <button
@@ -296,7 +294,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             style={{
               flex: 1, padding: '5px 0', borderRadius: '6px', border: 'none',
               background: activeTab === t.id ? 'rgba(163,177,138,0.2)' : 'transparent',
-              color: activeTab === t.id ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.35)',
+              color: activeTab === t.id ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
               cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
               transition: 'all 0.15s', whiteSpace: 'nowrap',
             }}
@@ -322,8 +320,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               padding: '6px 10px', borderRadius: '6px',
-              border: '1px solid rgba(255,255,255,0.08)', background: 'transparent',
-              color: 'rgba(255,255,255,0.35)', cursor: 'pointer', fontSize: '0.65rem',
+              border: '1px solid rgba(0,0,0,0.06)', background: 'transparent',
+              color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.65rem',
             }}
           >
             <RefreshCw size={10} /> Reset to default
@@ -342,8 +340,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             borderRadius: '10px', padding: '10px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <Sparkles size={12} color="var(--eg-accent, #A3B18A)" />
-              <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)' }}>
+              <Sparkles size={12} color="var(--pl-olive, #A3B18A)" />
+              <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-olive, #A3B18A)' }}>
                 Bespoke AI Background Art
               </span>
             </div>
@@ -359,7 +357,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               <label style={{
                 display: 'block', fontSize: '0.62rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+                color: 'var(--pl-muted)', marginBottom: '6px',
               }}>
                 Place or inspiration
               </label>
@@ -369,12 +367,12 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 placeholder="Santorini, Japanese garden, Tuscany vineyard, the Alps…"
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: '7px',
-                  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
                   color: '#fff', fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
-                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)'; }}
               />
             </div>
 
@@ -383,11 +381,11 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               <label style={{
                 display: 'block', fontSize: '0.62rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+                color: 'var(--pl-muted)', marginBottom: '6px',
               }}>
                 Art style
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(65px, 1fr))', gap: '4px' }}>
                 {ART_STYLES.map(s => (
                   <button
                     key={s.id}
@@ -395,9 +393,9 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     title={s.hint}
                     style={{
                       padding: '5px 4px', borderRadius: '6px',
-                      border: `1px solid ${artStyle === s.id ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.07)'}`,
+                      border: `1px solid ${artStyle === s.id ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.05)'}`,
                       background: artStyle === s.id ? 'rgba(163,177,138,0.15)' : 'transparent',
-                      color: artStyle === s.id ? 'var(--eg-accent, #A3B18A)' : 'rgba(255,255,255,0.4)',
+                      color: artStyle === s.id ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                       cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
                       textAlign: 'center', transition: 'all 0.15s', lineHeight: 1.3,
                     }}
@@ -413,7 +411,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               <label style={{
                 display: 'block', fontSize: '0.62rem', fontWeight: 800,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.35)', marginBottom: '6px',
+                color: 'var(--pl-muted)', marginBottom: '6px',
               }}>
                 Extra details (optional)
               </label>
@@ -424,12 +422,12 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 placeholder="We met hiking in the mountains, we love jazz, our dog is a golden retriever…"
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: '7px',
-                  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
                   color: '#fff', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
-                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)'; }}
               />
             </div>
           </div>
@@ -444,9 +442,9 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               padding: '12px', borderRadius: '8px', border: 'none',
               background: generating
-                ? 'rgba(255,255,255,0.06)'
-                : 'linear-gradient(135deg, #9b7fd9, var(--eg-accent, #A3B18A))',
-              color: generating ? 'rgba(255,255,255,0.4)' : '#fff',
+                ? 'rgba(0,0,0,0.04)'
+                : 'linear-gradient(135deg, #9b7fd9, var(--pl-olive, #A3B18A))',
+              color: generating ? 'var(--pl-ink-soft)' : '#fff',
               fontSize: '0.82rem', fontWeight: 800, cursor: generating ? 'not-allowed' : 'pointer',
               letterSpacing: '0.05em', boxShadow: generating ? 'none' : '0 4px 20px rgba(155,127,217,0.3)',
               transition: 'all 0.2s',
@@ -484,7 +482,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             <div style={{
               display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px',
               borderRadius: '7px', background: 'rgba(109,89,122,0.1)',
-              border: '1px solid rgba(109,89,122,0.2)', fontSize: '0.72rem', color: 'var(--eg-plum, #6D597A)',
+              border: '1px solid rgba(109,89,122,0.2)', fontSize: '0.72rem', color: 'var(--pl-plum, #6D597A)',
             }}>
               <AlertTriangle size={12} /> {genError}
             </div>
@@ -501,7 +499,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
               >
                 {isFallback && (
                   <div style={{
-                    fontSize: '0.62rem', color: 'rgba(255,255,255,0.3)',
+                    fontSize: '0.62rem', color: 'var(--pl-muted)',
                     display: 'flex', alignItems: 'center', gap: '4px',
                   }}>
                     <AlertTriangle size={9} /> Using generative fallback — try again for a Gemini-crafted design
@@ -519,7 +517,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                       flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       gap: '4px', padding: '7px', borderRadius: '6px',
                       border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.08)',
-                      color: 'var(--eg-accent, #A3B18A)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
+                      color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
                     }}
                   >
                     <RefreshCw size={11} /> Regenerate
@@ -528,8 +526,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     onClick={removeBackground}
                     style={{
                       padding: '7px 12px', borderRadius: '6px',
-                      border: '1px solid rgba(255,255,255,0.08)', background: 'transparent',
-                      color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '0.7rem',
+                      border: '1px solid rgba(0,0,0,0.06)', background: 'transparent',
+                      color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.7rem',
                     }}
                   >
                     Remove
@@ -544,7 +542,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             <div>
               <div style={{
                 fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: '6px',
+                textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px',
               }}>
                 Previous generations
               </div>
@@ -559,11 +557,11 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                       background: bg,
                       backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
                       backgroundSize: 'cover',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(0,0,0,0.06)',
                       cursor: 'pointer', transition: 'border-color 0.15s',
                     }}
-                    onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--eg-accent, #A3B18A)'; }}
-                    onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--pl-olive, #A3B18A)'; }}
+                    onMouseOut={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)'; }}
                   />
                 ))}
               </div>
@@ -572,10 +570,10 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
 
           {/* Tip */}
           <p style={{
-            fontSize: '0.62rem', color: 'rgba(255,255,255,0.2)', lineHeight: 1.5, margin: 0,
-            borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px',
+            fontSize: '0.62rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0,
+            borderTop: '1px solid rgba(163,177,138,0.06)', paddingTop: '8px',
           }}>
-            💡 The more specific you are — place, story details, style — the more unique and tailored the artwork becomes. Hit Regenerate for a fresh interpretation.
+            The more specific you are — place, story details, style — the more unique and tailored the artwork becomes. Hit Regenerate for a fresh interpretation.
           </p>
         </div>
       )}

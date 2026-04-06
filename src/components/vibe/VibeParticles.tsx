@@ -54,7 +54,7 @@ const PARTICLE_CONFIGS: Record<VibeSkin['particle'], {
   },
   snowflakes: {
     symbols: ['❄', '❅', '❆', '✻', '✼'],
-    colors: ['rgba(255,255,255,0.7)', 'rgba(200,230,255,0.6)', 'rgba(220,240,255,0.5)'],
+    colors: ['var(--pl-ink)', 'rgba(200,230,255,0.6)', 'rgba(220,240,255,0.5)'],
     count: 16, speed: 0.3, drift: 0.6, spin: true,
   },
   fireflies: {

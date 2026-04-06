@@ -94,7 +94,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
             transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-              background: '#fff', border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '0.75rem', boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
               padding: '0.75rem', minWidth: '220px', zIndex: 100,
             }}
@@ -116,7 +116,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     border: `1.5px solid ${activeStyle === s.id ? '#A3B18A' : 'rgba(0,0,0,0.08)'}`,
                     background: activeStyle === s.id ? 'rgba(163,177,138,0.1)' : '#fff',
                     fontSize: '0.78rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
-                    color: '#2B2B2B', transition: 'all 0.15s',
+                    color: 'var(--pl-ink)', transition: 'all 0.15s',
                   }}
                 >
                   {s.label}
@@ -138,7 +138,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                 <div style={{
                   padding: '0.6rem', borderRadius: '0.5rem', background: 'rgba(163,177,138,0.06)',
                   border: '1px solid rgba(163,177,138,0.15)', fontSize: '0.85rem', lineHeight: 1.5,
-                  color: '#2B2B2B', marginBottom: '0.5rem',
+                  color: 'var(--pl-ink)', marginBottom: '0.5rem',
                 }}>
                   {result}
                 </div>

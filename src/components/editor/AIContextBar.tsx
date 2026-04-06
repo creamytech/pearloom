@@ -43,7 +43,7 @@ export function AIContextBar() {
             flexShrink: 0,
             overflow: 'hidden',
             background: 'rgba(26,23,32,0.95)',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid rgba(0,0,0,0.04)',
           }}
         >
           <div style={{
@@ -56,7 +56,7 @@ export function AIContextBar() {
               onClick={navigatePrev}
               disabled={!prevChapter}
               title={prevChapter ? `← ${prevChapter.title}` : 'No previous chapter'}
-              whileHover={prevChapter ? { backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+              whileHover={prevChapter ? { backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
               whileTap={prevChapter ? { scale: 0.88 } : {}}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -88,7 +88,7 @@ export function AIContextBar() {
               onClick={navigateNext}
               disabled={!nextChapter}
               title={nextChapter ? `${nextChapter.title} →` : 'No next chapter'}
-              whileHover={nextChapter ? { backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
+              whileHover={nextChapter ? { backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
               whileTap={nextChapter ? { scale: 0.88 } : {}}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -103,7 +103,7 @@ export function AIContextBar() {
             </motion.button>
 
             {/* Divider */}
-            <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+            <div style={{ width: 1, height: 18, background: 'rgba(0,0,0,0.06)', flexShrink: 0 }} />
 
             {/* AI action pills */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1, overflow: 'hidden' }}>
@@ -126,7 +126,7 @@ export function AIContextBar() {
             {/* Chapter position indicator */}
             <span style={{
               fontSize: '0.65rem', fontWeight: 600,
-              color: 'rgba(255,255,255,0.2)',
+              color: 'var(--pl-muted)',
               letterSpacing: '0.04em',
               flexShrink: 0,
             }}>
@@ -149,7 +149,7 @@ function AIActionPill({
       onClick={onClick}
       disabled={disabled}
       whileHover={!disabled ? {
-        backgroundColor: accent ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.1)',
+        backgroundColor: accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)',
         color: accent ? '#A3B18A' : 'rgba(214,198,168,0.9)',
       } : {}}
       whileTap={!disabled ? { scale: 0.94 } : {}}
@@ -157,8 +157,8 @@ function AIActionPill({
       style={{
         display: 'flex', alignItems: 'center', gap: '4px',
         padding: '3px 9px', borderRadius: '100px',
-        border: `1px solid ${accent ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.08)'}`,
-        background: accent ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)'}`,
+        background: accent ? 'rgba(163,177,138,0.1)' : 'rgba(163,177,138,0.05)',
         color: accent ? 'rgba(163,177,138,0.85)' : 'rgba(214,198,168,0.45)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontSize: '0.72rem', fontWeight: 700,

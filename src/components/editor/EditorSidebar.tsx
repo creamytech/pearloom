@@ -70,40 +70,41 @@ export function SidebarSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div style={{ marginBottom: '4px' }}>
+    <div className="pl-panel-section" style={{ marginBottom: '2px', padding: '0' }}>
       <motion.button
         onClick={() => setOpen(!open)}
-        whileHover={{ backgroundColor: 'rgba(214,198,168,0.09)' }}
+        whileHover={{ backgroundColor: 'rgba(163,177,138,0.06)' }}
         whileTap={{ scale: 0.97 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '7px 8px', borderRadius: '6px', border: 'none',
-          background: 'rgba(214,198,168,0.04)', cursor: 'pointer',
-          color: 'rgba(214,198,168,0.6)',
+          padding: '10px 12px', borderRadius: 'var(--pl-radius-sm)', border: 'none',
+          background: 'transparent', cursor: 'pointer',
+          color: 'var(--pl-ink-soft)',
         }}
       >
         <ChevronRight
-          size={11}
+          size={10}
           style={{
             transform: open ? 'rotate(90deg)' : 'none',
             transition: 'transform 0.2s',
-            color: 'rgba(214,198,168,0.3)',
+            color: open ? 'var(--pl-olive)' : 'var(--pl-muted)',
             flexShrink: 0,
           }}
         />
-        {Icon && <Icon size={12} color="rgba(214,198,168,0.4)" />}
+        {Icon && <Icon size={12} color="var(--pl-olive)" />}
         <span style={{
-          flex: 1, textAlign: 'left', fontSize: '0.62rem', fontWeight: 700,
+          flex: 1, textAlign: 'left', fontSize: '0.6rem', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: 'rgba(214,198,168,0.55)',
+          color: open ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
         }}>
           {title}
         </span>
         {badge !== undefined && (
           <span style={{
-            fontSize: '0.62rem', padding: '1px 5px', borderRadius: '8px',
-            background: 'rgba(214,198,168,0.08)', color: 'rgba(214,198,168,0.4)',
+            fontSize: '0.58rem', padding: '2px 7px', borderRadius: '100px',
+            background: 'rgba(163,177,138,0.12)', color: 'var(--pl-olive-deep)',
+            fontWeight: 700,
           }}>
             {badge}
           </span>
@@ -118,7 +119,7 @@ export function SidebarSection({
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ padding: '4px 0 8px' }}>
+            <div style={{ padding: '2px 10px 10px' }}>
               {children}
             </div>
           </motion.div>
@@ -389,7 +390,7 @@ export function EditorSidebar({
                   flex: 1,
                   fontSize: '0.92rem',
                   fontWeight: 500,
-                  fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                  fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                   fontStyle: 'italic',
                   letterSpacing: '-0.01em',
                   color: 'rgba(214,198,168,0.88)',

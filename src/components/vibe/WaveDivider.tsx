@@ -71,7 +71,7 @@ export function VibeSectionHeader({
   label,
   title,
   subtitle,
-  accentColor = 'var(--eg-accent)',
+  accentColor = 'var(--pl-olive)',
 }: VibeSectionHeaderProps) {
   const icon = skin.decorIcons[0] || '✦';
   const icon2 = skin.decorIcons[1] || '✦';
@@ -101,10 +101,10 @@ export function VibeSectionHeader({
       )}
 
       <h2 style={{
-        fontFamily: 'var(--eg-font-heading)',
+        fontFamily: 'var(--pl-font-heading)',
         fontSize: 'clamp(2.5rem, 5vw, 4rem)',
         fontWeight: 400, letterSpacing: '-0.025em',
-        color: 'var(--eg-fg)', marginBottom: subtitle ? '1.25rem' : 0,
+        color: 'var(--pl-ink)', marginBottom: subtitle ? '1.25rem' : 0,
         lineHeight: 1.15,
       }}>
         {title}
@@ -112,7 +112,7 @@ export function VibeSectionHeader({
 
       {subtitle && (
         <p style={{
-          color: 'var(--eg-muted)', fontSize: '1.05rem',
+          color: 'var(--pl-muted)', fontSize: '1.05rem',
           fontStyle: 'italic', maxWidth: '560px', margin: '0 auto',
           lineHeight: 1.65,
         }}>
@@ -131,7 +131,7 @@ interface VibeAccentProps {
   style?: React.CSSProperties;
 }
 
-export function VibeAccent({ skin, color = 'var(--eg-accent)', size = 120, style }: VibeAccentProps) {
+export function VibeAccent({ skin, color = 'var(--pl-olive)', size = 120, style }: VibeAccentProps) {
   const { accentShape } = skin;
 
   if (accentShape === 'ring') {

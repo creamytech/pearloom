@@ -15,20 +15,22 @@ import {
 import {
   Eye, BookOpen, CalendarDays, Palette, MoreHorizontal,
   Plus, Trash2, Image, Clock, ChevronRight, X,
-  Users, Send, Mail, Mic, LayoutGrid, Globe, Gift,
-  Music, ShoppingBag, Heart, BarChart2,
+  Users, Send, Mail, Mic, LayoutGrid, Layers, Globe, Gift,
+  Music, ShoppingBag, Heart, BarChart2, Undo2, Redo2,
 } from 'lucide-react';
 import { GripIcon } from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
-import { useEditor } from '@/lib/editor-state';
+import { useEditor, stripArtForStorage } from '@/lib/editor-state';
 import type { Chapter } from '@/types';
-import { MobilePreviewPane } from './MobilePreviewPane';
 import { MobileChapterEditor } from './MobileChapterEditor';
 
 // ── Lazy panel imports ──────────────────────────────────────────
+const StoryPanel              = dynamic(() => import('./StoryPanel').then(m => ({ default: m.StoryPanel })), { ssr: false });
 const DesignPanel             = dynamic(() => import('./DesignPanel').then(m => ({ default: m.DesignPanel })), { ssr: false });
 const EventsPanel             = dynamic(() => import('./EventsPanel').then(m => ({ default: m.EventsPanel })), { ssr: false });
 const DetailsPanel            = dynamic(() => import('./DetailsPanel').then(m => ({ default: m.DetailsPanel })), { ssr: false });
+const PagesPanel              = dynamic(() => import('./PagesPanel').then(m => ({ default: m.PagesPanel })), { ssr: false });
+const SectionsPanel           = dynamic(() => import('./SectionsPanel').then(m => ({ default: m.SectionsPanel })), { ssr: false });
 const GuestSearchPanel        = dynamic(() => import('./GuestSearchPanel').then(m => ({ default: m.GuestSearchPanel })), { ssr: false });
 const MessagingPanel          = dynamic(() => import('@/components/dashboard/MessagingPanel').then(m => ({ default: m.MessagingPanel })), { ssr: false });
 const BulkInvitePanel         = dynamic(() => import('./BulkInvitePanel').then(m => ({ default: m.BulkInvitePanel })), { ssr: false });
@@ -53,11 +55,13 @@ type MoreTool = {
 
 // ── More drawer tools ───────────────────────────────────────────
 const MORE_TOOLS: MoreTool[] = [
+  { id: 'sections',    icon: Layers,      label: 'Sections'      },
+  { id: 'pages',       icon: Globe,       label: 'Pages'         },
   { id: 'details',     icon: LayoutGrid,  label: 'Details'       },
   { id: 'guests',      icon: Users,       label: 'Guests'        },
   { id: 'messaging',   icon: Mail,        label: 'Messaging'     },
   { id: 'invite',      icon: Send,        label: 'Invites'       },
-  { id: 'blocks',      icon: LayoutGrid,  label: 'AI Blocks'     },
+  { id: 'blocks',      icon: LayoutGrid,  label: 'Auto-Fill'     },
   { id: 'voice',       icon: Mic,         label: 'Voice'         },
   { id: 'seating',     icon: Users,       label: 'Seating'       },
   { id: 'analytics',   icon: BarChart2,   label: 'Analytics'     },
@@ -137,7 +141,7 @@ function ChapterReorderRow({
             borderRadius: '0 12px 12px 0',
           }}
         >
-          <Trash2 size={16} color="rgba(255,255,255,0.9)" />
+          <Trash2 size={16} color="var(--pl-ink)" />
         </div>
 
         {/* Row content — x-draggable for swipe-to-delete */}
@@ -148,7 +152,7 @@ function ChapterReorderRow({
           style={{
             x: rowX,
             borderRadius: 12,
-            background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(255,255,255,0.04)',
+            background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(163,177,138,0.05)',
             borderLeft: isActive
               ? '3px solid rgba(163,177,138,0.75)'
               : '3px solid rgba(163,177,138,0.12)',
@@ -168,7 +172,7 @@ function ChapterReorderRow({
               animate(rowX, 0, { type: 'spring', stiffness: 500, damping: 38 });
             }
           }}
-          whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.06)' } : {}}
+          whileHover={!isActive ? { backgroundColor: 'rgba(0,0,0,0.04)' } : {}}
           transition={{ duration: 0.13 }}
           onClick={() => onSelect(chapter.id)}
         >
@@ -187,7 +191,7 @@ function ChapterReorderRow({
               padding: '0 8px',
               display: 'flex',
               alignItems: 'center',
-              color: 'rgba(255,255,255,0.2)',
+              color: 'var(--pl-muted)',
               touchAction: 'none',
               userSelect: 'none',
               flexShrink: 0,
@@ -203,16 +207,16 @@ function ChapterReorderRow({
               width: 20,
               height: 20,
               borderRadius: '50%',
-              background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(255,255,255,0.07)',
+              background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(0,0,0,0.05)',
               border: isActive
                 ? '1px solid rgba(163,177,138,0.45)'
-                : '1px solid rgba(255,255,255,0.09)',
+                : '1px solid rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '0.63rem',
               fontWeight: 800,
-              color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.4)',
+              color: isActive ? '#A3B18A' : 'var(--pl-ink-soft)',
             }}
           >
             {index + 1}
@@ -225,9 +229,9 @@ function ChapterReorderRow({
               height: 40,
               borderRadius: 7,
               flexShrink: 0,
-              background: thumb ? 'transparent' : 'rgba(255,255,255,0.07)',
+              background: thumb ? 'transparent' : 'rgba(0,0,0,0.05)',
               overflow: 'hidden',
-              border: '1px solid rgba(255,255,255,0.09)',
+              border: '1px solid rgba(0,0,0,0.07)',
             }}
           >
             {thumb ? (
@@ -257,8 +261,8 @@ function ChapterReorderRow({
               style={{
                 fontSize: '0.88rem',
                 fontWeight: 700,
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", Georgia, serif)',
-                color: isActive ? 'rgba(214,198,168,0.95)' : 'rgba(255,255,255,0.9)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", Georgia, serif)',
+                color: isActive ? 'rgba(214,198,168,0.95)' : 'var(--pl-ink)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -271,7 +275,7 @@ function ChapterReorderRow({
               <div
                 style={{
                   fontSize: '0.7rem',
-                  color: 'rgba(255,255,255,0.35)',
+                  color: 'var(--pl-muted)',
                   marginTop: 2,
                   display: 'flex',
                   alignItems: 'center',
@@ -309,7 +313,7 @@ function ScrollPanel({ children }: { children: React.ReactNode }) {
 
 // ── Main component ──────────────────────────────────────────────
 export function MobileEditorSheet() {
-  const { state, dispatch, actions, manifest, coupleNames } = useEditor();
+  const { state, dispatch, actions, manifest, coupleNames, previewKey, iframeRef } = useEditor();
   const { chapters, activeId, mobileActionChapterId } = state;
 
   const [activeView, setActiveView] = useState<ActiveView>('preview');
@@ -317,10 +321,18 @@ export function MobileEditorSheet() {
   const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
   const [activeMoreTool, setActiveMoreTool] = useState<string | null>(null);
 
+  // Context panel: slides up from bottom while preview stays visible
+  const [contextPanel, setContextPanel] = useState<ActiveView | null>(null);
+
   const isInChapterEditor = editingChapterId !== null;
   const activeChapter = editingChapterId
     ? chapters.find(c => c.id === editingChapterId) ?? null
     : null;
+
+  const openChapter = useCallback((id: string) => {
+    setEditingChapterId(id);
+    setActiveView('story');
+  }, []);
 
   // Watch mobileActionChapterId — external signal to open a chapter
   useEffect(() => {
@@ -331,10 +343,69 @@ export function MobileEditorSheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mobileActionChapterId]);
 
-  const openChapter = useCallback((id: string) => {
-    setEditingChapterId(id);
-    setActiveView('story');
-  }, []);
+  // ── Listen for edit messages from preview iframe ──────────────
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'pearloom-edit-commit') {
+        const { chapterId, field, value } = event.data;
+        if (chapterId && field !== undefined && field !== null) {
+          const chapter = chapters.find(c => c.id === chapterId);
+          if (chapter) actions.updateChapter(chapterId, { [field]: value });
+        }
+      }
+
+      if (event.data?.type === 'pearloom-section-click') {
+        const { chapterId, sectionId } = event.data;
+        if (chapterId) {
+          // Chapter tap → open chapter editor (full push nav)
+          openChapter(chapterId);
+        } else {
+          // Section tap → open context half-sheet over preview
+          const panel: ActiveView =
+            sectionId === 'hero' ? 'story' :
+            sectionId === 'events' || sectionId === 'schedule' || sectionId === 'rsvp' || sectionId === 'countdown' ? 'events' :
+            sectionId === 'design' || sectionId === 'theme' ? 'design' :
+            'story';
+          if (activeView === 'preview') {
+            setContextPanel(panel);
+          } else {
+            setActiveView(panel);
+          }
+        }
+      }
+
+      if (event.data?.type === 'pearloom-photo-replace') {
+        const { chapterId, photoIndex, newUrl, newAlt } = event.data;
+        if (!chapterId || !newUrl) return;
+        const chapter = chapters.find(c => c.id === chapterId);
+        if (!chapter) return;
+        const imgs = [...(chapter.images || [])];
+        const newImage = { id: `img-${Date.now()}`, url: newUrl, alt: newAlt || '', width: 0, height: 0 };
+        if (photoIndex >= 0 && photoIndex < imgs.length) {
+          imgs[photoIndex] = newImage;
+        } else {
+          imgs.push(newImage);
+        }
+        actions.updateChapter(chapterId, { images: imgs });
+        openChapter(chapterId);
+      }
+
+      if (event.data?.type === 'pearloom-photo-remove') {
+        const { chapterId, photoIndex } = event.data;
+        if (!chapterId) return;
+        const chapter = chapters.find(c => c.id === chapterId);
+        if (!chapter) return;
+        const imgs = (chapter.images || []).filter((_: unknown, i: number) => i !== photoIndex);
+        actions.updateChapter(chapterId, { images: imgs });
+      }
+
+      if (event.data?.type === 'pearloom-photo-ai-regen') {
+        setActiveView('design');
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [chapters, actions, dispatch, openChapter]);
 
   const closeChapter = useCallback(() => {
     setEditingChapterId(null);
@@ -384,6 +455,18 @@ export function MobileEditorSheet() {
     const panelStyle: React.CSSProperties = { height: '100%', overflow: 'hidden' };
 
     switch (activeMoreTool) {
+      case 'sections':
+        return (
+          <ScrollPanel>
+            <SectionsPanel manifest={manifest} onChange={actions.handleDesignChange} />
+          </ScrollPanel>
+        );
+      case 'pages':
+        return (
+          <ScrollPanel>
+            <PagesPanel manifest={manifest} subdomain={state.subdomain} onChange={actions.handleDesignChange} />
+          </ScrollPanel>
+        );
       case 'details':
         return (
           <ScrollPanel>
@@ -475,16 +558,56 @@ export function MobileEditorSheet() {
     switch (activeView) {
       case 'preview':
         return (
-          <MobilePreviewPane
-            manifest={manifest}
-            coupleNames={coupleNames}
-            vibeSkin={manifest?.vibeSkin}
-            selectedChapterId={activeId}
-            onChapterTap={(id) => {
-              setActiveView('story');
-              openChapter(id);
-            }}
-          />
+          <div style={{
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            {!state.iframeReady && (
+              <div style={{
+                position: 'absolute', inset: 0, display: 'flex',
+                flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: 'var(--pl-cream)', gap: 12, zIndex: 1,
+              }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  border: '2px solid rgba(163,177,138,0.25)',
+                  borderTopColor: '#A3B18A',
+                  animation: 'spin 0.8s linear infinite',
+                }} />
+                <span style={{
+                  fontSize: '0.75rem', color: 'rgba(214,198,168,0.4)',
+                  fontWeight: 600, letterSpacing: '0.06em',
+                }}>
+                  Loading your site…
+                </span>
+              </div>
+            )}
+            <iframe
+              ref={iframeRef}
+              src={`/preview?key=${previewKey}${state.previewPage ? `&page=${encodeURIComponent(state.previewPage)}` : ''}`}
+              style={{
+                width: '100%', height: '100%',
+                border: 'none', display: 'block',
+              }}
+              title="Live Preview"
+              onLoad={() => {
+                dispatch({ type: 'SET_IFRAME_READY', ready: true });
+                dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
+                try {
+                  iframeRef.current?.contentWindow?.postMessage({
+                    type: 'pearloom-preview-update',
+                    manifest: stripArtForStorage(manifest),
+                    names: coupleNames,
+                  }, '*');
+                } catch {}
+                iframeRef.current?.contentWindow?.postMessage({
+                  type: 'pearloom-edit-mode', enabled: true,
+                }, '*');
+              }}
+            />
+          </div>
         );
 
       case 'story':
@@ -512,7 +635,7 @@ export function MobileEditorSheet() {
                 borderRadius: 12,
                 border: '1px dashed rgba(163,177,138,0.35)',
                 background: 'rgba(163,177,138,0.05)',
-                color: '#A3B18A',
+                color: 'var(--pl-olive)',
                 cursor: 'pointer',
                 fontSize: '0.82rem',
                 fontWeight: 700,
@@ -557,7 +680,7 @@ export function MobileEditorSheet() {
       case 'design':
         return (
           <ScrollPanel>
-            <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} />
+            <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} coupleNames={coupleNames} />
           </ScrollPanel>
         );
 
@@ -582,7 +705,7 @@ export function MobileEditorSheet() {
           zIndex: 500,
           display: 'flex',
           flexDirection: 'column',
-          background: '#0F0C09',
+          background: 'var(--pl-cream)',
           overflow: 'hidden',
         }}
       >
@@ -596,8 +719,8 @@ export function MobileEditorSheet() {
               padding: '0 14px',
               height: 52,
               paddingTop: 'env(safe-area-inset-top, 0px)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              background: 'rgba(15,12,9,0.98)',
+              borderBottom: '1px solid rgba(0,0,0,0.04)',
+              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
               gap: 8,
             }}
           >
@@ -613,7 +736,7 @@ export function MobileEditorSheet() {
               <ElegantHeartIcon size={20} color="#A3B18A" />
               <span
                 style={{
-                  fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                  fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                   fontSize: '0.9rem',
                   fontWeight: 700,
                   fontStyle: 'italic',
@@ -625,6 +748,36 @@ export function MobileEditorSheet() {
               </span>
             </div>
 
+            {/* Undo / Redo */}
+            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => actions.undo()}
+                disabled={!state.canUndo}
+                style={{
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', background: 'transparent', cursor: state.canUndo ? 'pointer' : 'default',
+                  color: state.canUndo ? 'rgba(214,198,168,0.65)' : 'rgba(0,0,0,0.08)',
+                  borderRadius: 8,
+                }}
+              >
+                <Undo2 size={15} />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={() => actions.redo()}
+                disabled={!state.canRedo}
+                style={{
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: 'none', background: 'transparent', cursor: state.canRedo ? 'pointer' : 'default',
+                  color: state.canRedo ? 'rgba(214,198,168,0.65)' : 'rgba(0,0,0,0.08)',
+                  borderRadius: 8,
+                }}
+              >
+                <Redo2 size={15} />
+              </motion.button>
+            </div>
+
             {/* Couple name / site title */}
             <div
               style={{
@@ -632,11 +785,11 @@ export function MobileEditorSheet() {
                 textAlign: 'center',
                 fontSize: '0.82rem',
                 fontWeight: 600,
-                color: 'rgba(255,255,255,0.55)',
+                color: 'var(--pl-ink-soft)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                 fontStyle: 'italic',
               }}
             >
@@ -676,8 +829,8 @@ export function MobileEditorSheet() {
               alignItems: 'center',
               gap: 8,
               padding: '8px 14px',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              background: 'rgba(15,12,9,0.95)',
+              borderBottom: '1px solid rgba(0,0,0,0.04)',
+              background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
             }}
           >
             <motion.button
@@ -690,7 +843,7 @@ export function MobileEditorSheet() {
                 padding: '7px 12px',
                 borderRadius: 20,
                 border: 'none',
-                background: 'rgba(255,255,255,0.07)',
+                background: 'rgba(0,0,0,0.05)',
                 color: 'rgba(214,198,168,0.75)',
                 cursor: 'pointer',
                 fontSize: '0.82rem',
@@ -707,7 +860,7 @@ export function MobileEditorSheet() {
                 fontSize: '0.82rem',
                 fontWeight: 700,
                 color: 'rgba(214,198,168,0.75)',
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                 fontStyle: 'italic',
               }}
             >
@@ -748,6 +901,56 @@ export function MobileEditorSheet() {
               />
             )}
           </AnimatePresence>
+
+          {/* ── Context half-sheet (slides up over preview) ── */}
+          <AnimatePresence>
+            {contextPanel && activeView === 'preview' && !isInChapterEditor && (
+              <motion.div
+                key="context-panel"
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', stiffness: 380, damping: 38, mass: 0.9 }}
+                style={{
+                  position: 'absolute',
+                  bottom: 0, left: 0, right: 0,
+                  height: '55%',
+                  background: 'var(--pl-cream)',
+                  borderRadius: '20px 20px 0 0',
+                  borderTop: '1px solid rgba(0,0,0,0.06)',
+                  display: 'flex', flexDirection: 'column',
+                  overflow: 'hidden',
+                  zIndex: 10,
+                }}
+              >
+                {/* Handle + close */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 16px 8px', flexShrink: 0,
+                }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(0,0,0,0.08)', margin: '0 auto' }} />
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => setContextPanel(null)}
+                    style={{
+                      position: 'absolute', right: 12, top: 10,
+                      background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%',
+                      width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', color: 'rgba(214,198,168,0.6)',
+                    }}
+                  >
+                    <X size={14} />
+                  </motion.button>
+                </div>
+                {/* Panel content */}
+                <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 16px 80px' } as React.CSSProperties}>
+                  {contextPanel === 'story' && <StoryPanel />}
+                  {contextPanel === 'events' && <EventsPanel manifest={manifest} onChange={actions.handleDesignChange} />}
+                  {contextPanel === 'design' && <DesignPanel manifest={manifest} onChange={actions.handleDesignChange} coupleNames={coupleNames} />}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* ── Bottom tab bar (hidden when in chapter editor) ── */}
@@ -759,8 +962,8 @@ export function MobileEditorSheet() {
               alignItems: 'center',
               height: 58,
               paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-              borderTop: '1px solid rgba(255,255,255,0.07)',
-              background: 'rgba(15,12,9,0.98)',
+              borderTop: '1px solid rgba(0,0,0,0.05)',
+              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
               position: 'relative',
             }}
           >
@@ -862,9 +1065,9 @@ export function MobileEditorSheet() {
                 right: 0,
                 bottom: 0,
                 zIndex: 601,
-                background: '#181410',
+                background: 'var(--pl-cream)',
                 borderRadius: '20px 20px 0 0',
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid rgba(0,0,0,0.06)',
                 borderBottom: 'none',
                 paddingBottom: 'env(safe-area-inset-bottom, 0px)',
               }}
@@ -882,7 +1085,7 @@ export function MobileEditorSheet() {
                     width: 36,
                     height: 4,
                     borderRadius: 2,
-                    background: 'rgba(255,255,255,0.15)',
+                    background: 'rgba(0,0,0,0.08)',
                   }}
                 />
               </div>
@@ -895,7 +1098,7 @@ export function MobileEditorSheet() {
                   fontWeight: 800,
                   letterSpacing: '0.13em',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.25)',
+                  color: 'var(--pl-muted)',
                 }}
               >
                 More Tools
@@ -925,8 +1128,8 @@ export function MobileEditorSheet() {
                         gap: 7,
                         padding: '14px 8px',
                         borderRadius: 14,
-                        border: '1px solid rgba(255,255,255,0.07)',
-                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(0,0,0,0.05)',
+                        background: 'rgba(163,177,138,0.04)',
                         color: 'rgba(214,198,168,0.65)',
                         cursor: 'pointer',
                       }}

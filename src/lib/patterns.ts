@@ -11,7 +11,7 @@ export function getPatternStyle(pattern: string | undefined): React.CSSPropertie
     return { backgroundImage: 'none' };
   }
 
-  // All SVGs should inherit the current text color (`currentColor` which we will set to `var(--eg-accent)`)
+  // All SVGs should inherit the current text color (`currentColor` which we will set to `var(--pl-olive)`)
   // with a very low opacity.
   const svgMap: Record<string, string> = {
     noise: defaultNoise,
@@ -26,7 +26,7 @@ export function getPatternStyle(pattern: string | undefined): React.CSSPropertie
 
   return {
     backgroundImage: url,
-    color: 'var(--eg-accent)', // Make currentColor map to the accent color
+    color: 'var(--pl-olive)', // Make currentColor map to the accent color
     opacity: pattern === 'noise' ? 0.15 : 0.05,
     mixBlendMode: pattern === 'noise' ? 'multiply' : 'normal',
     pointerEvents: 'none',

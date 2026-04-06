@@ -3,213 +3,165 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / editor/EditorRail.tsx
 //
-// 56px dark-glass always-visible icon navigation rail.
-// Dark editor surface with glowing olive active accent,
-// visible group labels, and frosted glass borders.
+// Floating glass navigation rail — overlaid on the canvas left edge.
+// Icon-only buttons with labels, rounded glassmorphic card.
+// Matches Stitch Photo Atelier / Glass Island Editor pattern.
 // ─────────────────────────────────────────────────────────────
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BarChart2, Users, LayoutGrid, Globe2, Send, Calendar, Mail, Heart, Music2, Briefcase,
+  Palette, PanelTop, Image, Clock, Settings,
 } from 'lucide-react';
-import {
-  SectionsIcon, StoryIcon, EventsIcon, DesignIcon,
-  DetailsIcon, AIBlocksIcon, VoiceIcon,
-} from '@/components/icons/EditorIcons';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
-import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
-// ── Tab groups ─────────────────────────────────────────────────
-type RailItem = { tab: EditorTab; Icon: React.ElementType; label: string };
+// ── Simplified icon-only rail items ─────────────────────────
+type RailItem = {
+  id: string;
+  tab: EditorTab;
+  Icon: React.ElementType;
+  label: string;
+};
 
-const NARRATIVE: RailItem[] = [
-  { tab: 'story',   Icon: StoryIcon,    label: 'Story'    },
-  { tab: 'events',  Icon: EventsIcon,   label: 'Events'   },
-  { tab: 'canvas',  Icon: SectionsIcon, label: 'Sections' },
+const RAIL_ITEMS: RailItem[] = [
+  { id: 'design',    tab: 'design',    Icon: Palette,  label: 'Design' },
+  { id: 'sections',  tab: 'canvas',    Icon: PanelTop, label: 'Sections' },
+  { id: 'story',     tab: 'story',     Icon: Image,    label: 'Story' },
+  { id: 'analytics', tab: 'analytics', Icon: Clock,    label: 'Insights' },
 ];
 
-const AESTHETIC: RailItem[] = [
-  { tab: 'design',  Icon: DesignIcon,   label: 'Design'   },
-  { tab: 'details', Icon: DetailsIcon,  label: 'Details'  },
-  { tab: 'blocks',  Icon: AIBlocksIcon, label: 'Blocks'   },
-  { tab: 'voice',   Icon: VoiceIcon,    label: 'Voice'    },
-];
-
-const TOOLS: RailItem[] = [
-  { tab: 'messaging',   Icon: Mail,      label: 'Messages' },
-  { tab: 'guests',      Icon: Users,     label: 'Guests'   },
-  { tab: 'vendors',     Icon: Briefcase, label: 'Vendors'  },
-  { tab: 'analytics',   Icon: BarChart2, label: 'Stats'    },
-  { tab: 'translate',   Icon: Globe2,    label: 'Langs'    },
-  { tab: 'savethedate', Icon: Calendar,  label: 'STD'      },
-  { tab: 'thankyou',    Icon: Heart,     label: 'Thanks'   },
-  { tab: 'spotify',     Icon: Music2,    label: 'Music'    },
-];
-
-// ── Group Label ────────────────────────────────────────────────
-function GroupLabel({ label }: { label: string }) {
-  return (
-    <div style={{
-      padding: '8px 0 4px',
-      display: 'flex', justifyContent: 'center',
-    }}>
-      <span style={{
-        fontSize: '0.42rem', fontWeight: 800,
-        letterSpacing: '0.14em', textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.22)',
-        userSelect: 'none',
-      }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
-// ── RailBtn ────────────────────────────────────────────────────
-function RailBtn({ item, active, onClick }: {
-  item: RailItem; active: boolean; onClick: () => void;
-}) {
-  const { Icon, label, tab } = item;
-  const tier = TAB_TIER[tab];
-  const meta = tier ? TIER_META[tier] : null;
-
-  return (
-    <motion.button
-      onClick={onClick}
-      title={meta ? `${label} — ${meta.label} plan` : label}
-      whileHover={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
-      whileTap={{ scale: 0.88 }}
-      transition={{ duration: 0.12 }}
-      style={{
-        width: '100%', height: '52px',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: '4px',
-        border: 'none',
-        background: active ? 'rgba(163,177,138,0.13)' : 'transparent',
-        cursor: 'pointer', position: 'relative',
-        color: active ? '#A3B18A' : 'rgba(255,255,255,0.38)',
-        transition: 'color 0.15s, background 0.15s',
-      }}
-    >
-      {/* Active glow accent bar */}
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            layoutId="rail-accent"
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{ scaleY: 1, opacity: 1 }}
-            exit={{ scaleY: 0, opacity: 0 }}
-            style={{
-              position: 'absolute', left: 0, top: '16%', bottom: '16%',
-              width: '3px',
-              background: 'linear-gradient(180deg, #A3B18A 0%, #8FC87A 100%)',
-              borderRadius: '0 3px 3px 0',
-              transformOrigin: 'center',
-              boxShadow: '0 0 10px rgba(163,177,138,0.55), 0 0 20px rgba(163,177,138,0.2)',
-            }}
-            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Plan tier dot — top-right of the icon area */}
-      {meta && (
-        <div style={{
-          position: 'absolute', top: '8px', right: '8px',
-          width: '5px', height: '5px', borderRadius: '50%',
-          background: meta.color,
-          opacity: 0.75,
-          flexShrink: 0,
-        }} />
-      )}
-
-      <Icon size={17} color="currentColor" />
-      <span style={{
-        fontSize: '0.52rem', fontWeight: 800, letterSpacing: '0.06em',
-        textTransform: 'uppercase', lineHeight: 1, color: 'inherit',
-        userSelect: 'none',
-      }}>
-        {label}
-      </span>
-    </motion.button>
-  );
-}
-
-// ── EditorRail ─────────────────────────────────────────────────
 export function EditorRail({ onOpen }: { onOpen?: () => void }) {
   const { state, actions } = useEditor();
-  const active = state.activeTab;
+  const activeTab = state.activeTab;
 
-  const handleClick = (tab: typeof active) => {
+  const handleClick = (tab: EditorTab) => {
     actions.handleTabChange(tab);
     onOpen?.();
   };
 
   return (
-    <div style={{
-      width: '56px', flexShrink: 0,
-      background: '#252230',
-      borderRight: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', flexDirection: 'column',
-      zIndex: 100,
-      overflowY: 'auto', overflowX: 'hidden',
-      scrollbarWidth: 'none',
-    } as React.CSSProperties}>
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: 'absolute',
+        left: '16px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '12px 8px',
+        borderRadius: '24px',
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(24px) saturate(1.4)',
+        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 4px 24px rgba(43,30,20,0.08), 0 1px 4px rgba(43,30,20,0.04)',
+      } as React.CSSProperties}
+    >
+      {/* Avatar / Logo at top */}
+      <motion.div
+        whileHover={{ scale: 1.1 }}
+        style={{
+          width: '40px', height: '40px',
+          borderRadius: '50%',
+          background: 'var(--pl-olive-mist)',
+          border: '2px solid var(--pl-olive)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: '8px',
+          cursor: 'pointer',
+        }}
+      >
+        <ElegantHeartIcon size={16} color="var(--pl-olive-deep)" />
+      </motion.div>
 
-      {/* Logo mark */}
-      <div style={{
-        height: '44px', flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-      }}>
-        <ElegantHeartIcon size={14} color="#A3B18A" />
-      </div>
+      {/* Nav items */}
+      {RAIL_ITEMS.map((item) => {
+        const Icon = item.Icon;
+        const isActive = activeTab === item.tab;
 
-      {/* Narrative group */}
-      <div style={{ paddingTop: '2px' }}>
-        <GroupLabel label="Content" />
-        {NARRATIVE.map(item => (
-          <RailBtn
-            key={item.tab}
-            item={item}
-            active={active === item.tab}
+        return (
+          <motion.button
+            key={item.id}
             onClick={() => handleClick(item.tab)}
-          />
-        ))}
-      </div>
+            title={item.label}
+            whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+            whileTap={{ scale: 0.88 }}
+            style={{
+              width: '44px', height: '44px',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: '3px',
+              border: 'none',
+              borderRadius: '14px',
+              background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
+              color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            {/* Active indicator dot */}
+            {isActive && (
+              <motion.div
+                layoutId="rail-active"
+                style={{
+                  position: 'absolute', left: '-4px', top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '3px', height: '20px',
+                  borderRadius: '0 3px 3px 0',
+                  background: 'var(--pl-olive-deep)',
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              />
+            )}
+            <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
+            <span style={{
+              fontSize: '0.48rem', fontWeight: 700,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+              lineHeight: 1, userSelect: 'none',
+            }}>
+              {item.label}
+            </span>
+          </motion.button>
+        );
+      })}
 
-      {/* Divider */}
-      <div style={{ height: '1px', margin: '4px 12px', background: 'rgba(255,255,255,0.06)' }} />
+      {/* Spacer */}
+      <div style={{ flex: 1, minHeight: '24px' }} />
 
-      {/* Aesthetic group */}
-      <div>
-        <GroupLabel label="Style" />
-        {AESTHETIC.map(item => (
-          <RailBtn
-            key={item.tab}
-            item={item}
-            active={active === item.tab}
-            onClick={() => handleClick(item.tab)}
-          />
-        ))}
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: '1px', margin: '4px 12px', background: 'rgba(255,255,255,0.06)' }} />
-
-      {/* Tools group */}
-      <div>
-        <GroupLabel label="Tools" />
-        {TOOLS.map(item => (
-          <RailBtn
-            key={item.tab}
-            item={item}
-            active={active === item.tab}
-            onClick={() => handleClick(item.tab)}
-          />
-        ))}
-      </div>
-    </div>
+      {/* Settings at bottom */}
+      <motion.button
+        onClick={() => handleClick('details')}
+        title="Settings"
+        whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+        whileTap={{ scale: 0.88 }}
+        style={{
+          width: '44px', height: '44px',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: '3px',
+          border: 'none',
+          borderRadius: '14px',
+          background: activeTab === 'details' ? 'rgba(163,177,138,0.15)' : 'transparent',
+          color: activeTab === 'details' ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+          cursor: 'pointer',
+          transition: 'background 0.15s, color 0.15s',
+        }}
+      >
+        <Settings size={18} strokeWidth={1.8} />
+        <span style={{
+          fontSize: '0.48rem', fontWeight: 700,
+          letterSpacing: '0.06em', textTransform: 'uppercase',
+          lineHeight: 1, userSelect: 'none',
+        }}>
+          Settings
+        </span>
+      </motion.button>
+    </motion.div>
   );
 }

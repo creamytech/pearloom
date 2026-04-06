@@ -8,12 +8,14 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Sparkles,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
-import type { Chapter } from '@/types';
+import { ImageManager } from './ImageManager';
+import type { Chapter, ChapterImage } from '@/types';
 
 // Layout options matching Chapter['layout']
 const LAYOUTS: Array<{
@@ -101,7 +103,7 @@ export function MobileChapterEditor({
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
-        background: '#0F0C09',
+        background: 'var(--pl-cream)',
         zIndex: 10,
         paddingBottom: keyboardPad,
       }}
@@ -114,8 +116,8 @@ export function MobileChapterEditor({
           alignItems: 'center',
           gap: 8,
           padding: '12px 12px 12px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          background: 'rgba(15,12,9,0.98)',
+          borderBottom: '1px solid rgba(0,0,0,0.05)',
+          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
           paddingTop: 'calc(12px + env(safe-area-inset-top, 0px))',
         }}
       >
@@ -131,7 +133,7 @@ export function MobileChapterEditor({
             padding: '8px 12px',
             borderRadius: 20,
             border: 'none',
-            background: 'rgba(255,255,255,0.07)',
+            background: 'rgba(0,0,0,0.05)',
             color: 'rgba(214,198,168,0.75)',
             cursor: 'pointer',
             fontSize: '0.85rem',
@@ -151,7 +153,7 @@ export function MobileChapterEditor({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+            fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
             fontStyle: 'italic',
             fontSize: '0.95rem',
             fontWeight: 600,
@@ -173,8 +175,8 @@ export function MobileChapterEditor({
               height: 32,
               borderRadius: '50%',
               border: 'none',
-              background: 'rgba(255,255,255,0.06)',
-              color: prevChapter ? 'rgba(214,198,168,0.7)' : 'rgba(255,255,255,0.12)',
+              background: 'rgba(0,0,0,0.04)',
+              color: prevChapter ? 'rgba(214,198,168,0.7)' : 'rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -193,8 +195,8 @@ export function MobileChapterEditor({
               height: 32,
               borderRadius: '50%',
               border: 'none',
-              background: 'rgba(255,255,255,0.06)',
-              color: nextChapter ? 'rgba(214,198,168,0.7)' : 'rgba(255,255,255,0.12)',
+              background: 'rgba(0,0,0,0.04)',
+              color: nextChapter ? 'rgba(214,198,168,0.7)' : 'rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -233,10 +235,10 @@ export function MobileChapterEditor({
               style={{
                 width: '100%',
                 border: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.12)',
+                borderBottom: '1px solid rgba(0,0,0,0.07)',
                 background: 'transparent',
                 outline: 'none',
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                 fontSize: '1.5rem',
                 fontWeight: 700,
                 fontStyle: 'italic',
@@ -259,10 +261,10 @@ export function MobileChapterEditor({
               style={{
                 width: '100%',
                 border: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                borderBottom: '1px solid rgba(0,0,0,0.06)',
                 background: 'transparent',
                 outline: 'none',
-                fontFamily: 'var(--eg-font-heading, "Playfair Display", serif)',
+                fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                 fontSize: '1.05rem',
                 fontStyle: 'italic',
                 color: 'rgba(214,198,168,0.72)',
@@ -324,12 +326,12 @@ export function MobileChapterEditor({
               rows={9}
               style={{
                 width: '100%',
-                border: '1px solid rgba(255,255,255,0.09)',
+                border: '1px solid rgba(0,0,0,0.07)',
                 borderRadius: 14,
                 background: 'rgba(255,255,255,0.025)',
                 outline: 'none',
                 resize: 'none',
-                fontFamily: 'var(--eg-font-body, Lora, Georgia, serif)',
+                fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
                 fontSize: '0.97rem',
                 lineHeight: 1.75,
                 color: 'rgba(245,241,232,0.82)',
@@ -370,13 +372,13 @@ export function MobileChapterEditor({
                       borderRadius: 13,
                       border: active
                         ? '1px solid rgba(163,177,138,0.55)'
-                        : '1px solid rgba(255,255,255,0.07)',
+                        : '1px solid rgba(0,0,0,0.05)',
                       background: active
                         ? 'rgba(163,177,138,0.13)'
-                        : 'rgba(255,255,255,0.03)',
+                        : 'rgba(163,177,138,0.04)',
                       color: active
                         ? '#A3B18A'
-                        : 'rgba(255,255,255,0.38)',
+                        : 'var(--pl-muted)',
                       cursor: 'pointer',
                       minWidth: 68,
                       transition: 'all 0.15s',
@@ -402,23 +404,69 @@ export function MobileChapterEditor({
 
           {/* ── Date ── */}
           <div>
-            <label style={labelStyle}>Date</label>
+            <DatePicker
+              label="Date"
+              value={chapter.date?.slice(0, 10) || ''}
+              onChange={(d) => scheduleUpdate({ date: d })}
+            />
+          </div>
+
+          {/* ── Mood ── */}
+          <div>
+            <label style={labelStyle}>Mood</label>
             <input
-              type="date"
-              key={`date-${chapter.id}`}
-              defaultValue={chapter.date?.slice(0, 10) || ''}
-              onChange={e => scheduleUpdate({ date: e.target.value })}
+              key={`mood-${chapter.id}`}
+              defaultValue={chapter.mood || ''}
+              onChange={e => scheduleUpdate({ mood: e.target.value })}
+              placeholder="Romantic, joyful, nostalgic…"
               style={{
+                width: '100%',
                 padding: '9px 14px',
                 borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.09)',
-                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(0,0,0,0.07)',
+                background: 'rgba(163,177,138,0.04)',
                 color: 'rgba(214,198,168,0.75)',
-                fontSize: '0.88rem',
+                fontSize: 'max(16px, 0.88rem)',
                 outline: 'none',
                 WebkitAppearance: 'none',
                 boxSizing: 'border-box',
               } as React.CSSProperties}
+            />
+          </div>
+
+          {/* ── Location ── */}
+          <div>
+            <label style={labelStyle}>Location</label>
+            <input
+              key={`location-${chapter.id}`}
+              defaultValue={chapter.location?.label || ''}
+              onChange={e => scheduleUpdate({ location: e.target.value ? { lat: 0, lng: 0, label: e.target.value } : null })}
+              placeholder="Paris, the old café…"
+              style={{
+                width: '100%',
+                padding: '9px 14px',
+                borderRadius: 10,
+                border: '1px solid rgba(0,0,0,0.07)',
+                background: 'rgba(163,177,138,0.04)',
+                color: 'rgba(214,198,168,0.75)',
+                fontSize: 'max(16px, 0.88rem)',
+                outline: 'none',
+                WebkitAppearance: 'none',
+                boxSizing: 'border-box',
+              } as React.CSSProperties}
+            />
+          </div>
+
+          {/* ── Photos ── */}
+          <div>
+            <ImageManager
+              images={chapter.images || []}
+              onUpdate={(imgs: ChapterImage[]) => actions.updateChapter(chapter.id, { images: imgs })}
+              imagePosition={chapter.imagePosition}
+              onPositionChange={(x, y) => actions.updateChapter(chapter.id, { imagePosition: { x, y } })}
+              chapterTitle={chapter.title}
+              chapterMood={chapter.mood}
+              chapterDescription={chapter.description}
             />
           </div>
         </div>

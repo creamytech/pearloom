@@ -37,7 +37,7 @@ function BarButton({
   onClick: (e: React.MouseEvent) => void;
   danger?: boolean;
 }) {
-  const color = danger ? '#fca5a5' : 'rgba(255,255,255,0.85)';
+  const color = danger ? '#fca5a5' : 'var(--pl-ink)';
   return (
     <button
       aria-label={label}
@@ -45,7 +45,7 @@ function BarButton({
       onClick={(e) => { e.stopPropagation(); onClick(e); }}
       style={{ ...barBtnStyle, color }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+        e.currentTarget.style.background = 'rgba(0,0,0,0.08)';
         if (!danger) e.currentTarget.style.color = '#fff';
       }}
       onMouseLeave={(e) => {
@@ -59,7 +59,7 @@ function BarButton({
 }
 
 const Sep = () => (
-  <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.18)', flexShrink: 0 }} />
+  <div style={{ width: 1, height: 18, background: 'rgba(0,0,0,0.1)', flexShrink: 0 }} />
 );
 
 export function ChapterHoverBar({
@@ -105,8 +105,8 @@ export function ChapterHoverBar({
               <button
                 aria-label="Change layout"
                 onClick={(e) => e.stopPropagation()}
-                style={{ ...barBtnStyle, color: 'rgba(255,255,255,0.85)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+                style={{ ...barBtnStyle, color: 'var(--pl-ink)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <LayoutGrid size={14} />
@@ -116,7 +116,7 @@ export function ChapterHoverBar({
               {LAYOUT_OPTS.map((opt) => (
                 <DropdownMenuItem
                   key={opt.id}
-                  className={currentLayout === opt.id ? 'bg-[rgba(163,177,138,0.12)] text-[var(--eg-accent)]' : ''}
+                  className={currentLayout === opt.id ? 'bg-[rgba(163,177,138,0.12)] text-[var(--pl-olive)]' : ''}
                   onSelect={() => onLayoutChange(opt.id)}
                 >
                   <span style={{ width: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

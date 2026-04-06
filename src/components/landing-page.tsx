@@ -12,6 +12,7 @@ import { BlockTypesGrid } from './marketing/BlockTypesGrid';
 import { GuestExperience } from './marketing/GuestExperience';
 import { EditorShowcase } from './marketing/EditorShowcase';
 import { PricingPreview } from './marketing/PricingPreview';
+import { Testimonials } from './marketing/Testimonials';
 import { FAQSection } from './marketing/FAQSection';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
@@ -40,6 +41,90 @@ const OCCASIONS = [
   { num: '04', label: 'Birthdays', tagline: 'Every year a new story', accent: C.plum },
   { num: '05', label: 'Any Celebration', tagline: 'If it matters, it deserves a site', accent: C.olive },
 ];
+
+// ── Try It Live Playground ─────────────────────────────────────
+function TryItLivePlayground({ onGetStarted }: { onGetStarted: () => void }) {
+  const [name1, setName1] = useState('Sarah');
+  const [name2, setName2] = useState('Alex');
+
+  const display = name1 && name2
+    ? `${name1} & ${name2}`
+    : name1 || name2 || 'Your Names';
+
+  return (
+    <div>
+      {/* Input row */}
+      <div className="flex gap-3 mb-6 max-w-[400px] mx-auto">
+        <input
+          type="text"
+          value={name1}
+          onChange={(e) => setName1(e.target.value)}
+          placeholder="First name"
+          className="flex-1 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
+        />
+        <input
+          type="text"
+          value={name2}
+          onChange={(e) => setName2(e.target.value)}
+          placeholder="Partner's name"
+          className="flex-1 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
+        />
+      </div>
+
+      {/* Live preview card */}
+      <motion.div
+        layout
+        className="rounded-2xl overflow-hidden mx-auto max-w-[400px]"
+        style={{
+          background: 'linear-gradient(145deg, #faf9f6 0%, #f0ece4 100%)',
+          border: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 12px 48px rgba(43,30,20,0.10), 0 0 0 1px rgba(0,0,0,0.02)',
+        }}
+      >
+        {/* Hero image placeholder */}
+        <div
+          style={{
+            height: 160,
+            background: 'linear-gradient(135deg, rgba(163,177,138,0.15) 0%, rgba(196,169,106,0.1) 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative', overflow: 'hidden',
+          }}
+        >
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(circle at 30% 50%, rgba(163,177,138,0.2) 0%, transparent 60%)',
+          }} />
+          <motion.h3
+            key={display}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="font-heading text-[clamp(1.6rem,4vw,2.2rem)] font-semibold italic tracking-[-0.02em] relative z-10"
+            style={{ color: '#3D3530' }}
+          >
+            {display}
+          </motion.h3>
+        </div>
+        {/* Mini sections */}
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-[2px] rounded-full" style={{ background: C.olive, opacity: 0.5 }} />
+            <span className="text-[0.6rem] font-bold tracking-[0.15em] uppercase" style={{ color: C.olive }}>Our Story</span>
+            <div className="flex-1 h-[2px] rounded-full" style={{ background: C.olive, opacity: 0.2 }} />
+          </div>
+          <div className="space-y-2 mb-4">
+            <div className="h-2 rounded-full bg-[rgba(0,0,0,0.06)] w-[90%]" />
+            <div className="h-2 rounded-full bg-[rgba(0,0,0,0.04)] w-[70%]" />
+            <div className="h-2 rounded-full bg-[rgba(0,0,0,0.03)] w-[50%]" />
+          </div>
+          <Button variant="accent" size="sm" onClick={onGetStarted} className="w-full">
+            Create yours free <ArrowRight size={14} />
+          </Button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 const TESTIMONIALS = [
   {
@@ -193,11 +278,47 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ EDITOR ══════════════ */}
       <EditorShowcase />
 
+      {/* ══════════════ TRY IT LIVE ══════════════ */}
+      <section className="py-[clamp(3rem,6vw,5rem)] px-[clamp(1.25rem,5vw,4rem)] bg-[var(--pl-cream-deep)]">
+        <div className="max-w-[680px] mx-auto text-center">
+          <motion.p
+            initial="hidden" whileInView="show" viewport={{ once: true }}
+            variants={fadeUp} custom={0}
+            className="text-[0.72rem] font-bold tracking-[0.2em] uppercase mb-4"
+            style={{ color: C.olive }}
+          >
+            Try it now
+          </motion.p>
+          <motion.h2
+            initial="hidden" whileInView="show" viewport={{ once: true }}
+            variants={fadeUp} custom={1}
+            className="font-heading text-[clamp(2rem,5vw,3rem)] font-bold italic tracking-[-0.03em] mb-3 leading-tight"
+            style={{ color: C.ink }}
+          >
+            See your names come alive
+          </motion.h2>
+          <motion.p
+            initial="hidden" whileInView="show" viewport={{ once: true }}
+            variants={fadeUp} custom={2}
+            className="text-[var(--pl-muted)] text-[1rem] mb-10 max-w-[420px] mx-auto leading-relaxed"
+          >
+            Type your names below and watch the preview update instantly.
+          </motion.p>
+
+          <motion.div
+            initial="hidden" whileInView="show" viewport={{ once: true }}
+            variants={fadeUp} custom={3}
+          >
+            <TryItLivePlayground onGetStarted={handleSignIn} />
+          </motion.div>
+        </div>
+      </section>
+
       {/* ══════════════ OCCASIONS — numbered list on dark bg ══════════════ */}
       <section
         id="occasions"
         ref={occasionRef}
-        className="bg-[var(--pl-ink)] py-[clamp(4rem,8vw,8rem)] px-[clamp(1.25rem,5vw,4rem)]"
+        className="bg-[var(--pl-ink)] py-[clamp(3rem,6vw,6rem)] px-[clamp(1.25rem,5vw,4rem)]"
       >
         <div className="max-w-[1100px] mx-auto">
           {/* Header */}
@@ -273,7 +394,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ TESTIMONIALS — floating pull quotes ══════════════ */}
       <section
         ref={testRef}
-        className="bg-[var(--pl-cream)] py-[clamp(4rem,8vw,8rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-[var(--pl-divider)]"
+        className="bg-[var(--pl-cream)] py-[clamp(3rem,6vw,6rem)] px-[clamp(1.25rem,5vw,4rem)] border-t border-[var(--pl-divider)]"
       >
         <div className="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
           {TESTIMONIALS.map((t, i) => (
@@ -309,13 +430,16 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ PRICING ══════════════ */}
       <PricingPreview />
 
+      {/* ══════════════ TESTIMONIALS ══════════════ */}
+      <Testimonials />
+
       {/* ══════════════ FAQ ══════════════ */}
       <FAQSection />
 
       {/* ══════════════ FINAL CTA — split layout ══════════════ */}
       <section
         ref={ctaRef}
-        className="relative bg-[var(--pl-ink)] overflow-hidden py-[clamp(5rem,10vw,10rem)] px-[clamp(1.5rem,5vw,4rem)]"
+        className="relative bg-[var(--pl-ink)] overflow-hidden py-[clamp(4rem,8vw,7rem)] px-[clamp(1.5rem,5vw,4rem)]"
       >
         {/* Decorative circles */}
         <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full border border-white/[0.04] pointer-events-none" />
@@ -368,13 +492,16 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               <Button
                 variant="gold"
                 size="lg"
-                className="w-full justify-center bg-[var(--pl-gold)] text-[var(--pl-ink)] hover:bg-[#d4b87a] border-0 shadow-[0_4px_24px_rgba(196,169,106,0.35)]"
+                className="w-full justify-center bg-[var(--pl-gold)] text-[var(--pl-ink)] hover:bg-[#d4b87a] border-0 shadow-[0_4px_24px_rgba(196,169,106,0.35)] text-[1rem] py-3.5"
                 onClick={handleSignIn}
                 disabled={status === 'loading'}
               >
                 Begin Your Story <ArrowRight size={16} strokeWidth={2.2} />
               </Button>
-              <p className="text-center mt-4 text-[0.72rem] text-white/30 tracking-[0.08em]">
+              <p className="text-center mt-3 text-[0.8rem] text-white/40 tracking-[0.02em]">
+                Takes less than 2 minutes
+              </p>
+              <p className="text-center mt-1 text-[0.68rem] text-white/25 tracking-[0.08em]">
                 Free to start &nbsp;&middot;&nbsp; No credit card &nbsp;&middot;&nbsp; Live in minutes
               </p>
             </Card>

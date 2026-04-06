@@ -2,134 +2,46 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / EditorCanvas.tsx — Center preview area
-// Dark studio canvas with dot-grid, ambient glow, device chrome,
-// device framing with centered preview for tablet/mobile modes.
+// Warm cream canvas with rounded iframe card, full-bleed desktop,
+// floating glass overlays for contextual editing.
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X } from 'lucide-react';
-import { PreviewPane } from './PreviewPane';
-import { useEditor, DEVICE_DIMS, stripArtForStorage } from '@/lib/editor-state';
+import { motion } from 'framer-motion';
+import { Monitor, Tablet, Smartphone } from 'lucide-react';
+import { useEditor, stripArtForStorage, type DeviceMode } from '@/lib/editor-state';
 import { StickerOverlay } from './StickerOverlay';
 import { SectionHoverToolbar } from './SectionHoverToolbar';
 
 // ── Skeleton Loading Screen ───────────────────────────────────
-const skeletonShimmer = 'linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%)';
-const skeletonBarStyle = (width: string, height: string, delay: number): React.CSSProperties => ({
-  width, height, borderRadius: '6px',
-  background: skeletonShimmer,
-  backgroundSize: '200% 100%',
-  animation: `shimmer 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite ${delay}s`,
-});
-
 function SkeletonLoading({ slow }: { slow: boolean }) {
   return (
     <div style={{
       position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-      background: 'rgba(255,255,255,0.02)', pointerEvents: 'none', zIndex: 1, padding: '2.5rem',
+      background: 'var(--pl-cream)', pointerEvents: 'none', zIndex: 1, padding: '2.5rem',
       gap: '1.25rem',
     }}>
-      <div style={skeletonBarStyle('55%', '16px', 0)} />
-      <div style={{
-        width: '100%', height: '240px', borderRadius: '10px',
-        background: skeletonShimmer, backgroundSize: '200% 100%',
-        animation: 'shimmer 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.15s',
-      }} />
+      <div className="skeleton" style={{ width: '55%', height: '16px', borderRadius: '6px' }} />
+      <div className="skeleton" style={{ width: '100%', height: '240px', borderRadius: '10px' }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div style={skeletonBarStyle('85%', '11px', 0.25)} />
-        <div style={skeletonBarStyle('70%', '11px', 0.35)} />
-        <div style={skeletonBarStyle('55%', '11px', 0.45)} />
+        <div className="skeleton" style={{ width: '85%', height: '11px', borderRadius: '6px' }} />
+        <div className="skeleton" style={{ width: '70%', height: '11px', borderRadius: '6px' }} />
+        <div className="skeleton" style={{ width: '55%', height: '11px', borderRadius: '6px' }} />
       </div>
       <div style={{
         marginTop: 'auto', textAlign: 'center',
-        color: 'rgba(214,198,168,0.35)', fontSize: '0.8rem',
+        color: 'var(--pl-muted)', fontSize: '0.8rem',
       }}>
         {slow ? 'Taking a moment\u2026 almost there' : 'Loading preview\u2026'}
       </div>
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-      `}</style>
     </div>
   );
 }
-
-// ── Device Chrome: Phone notch bar ────────────────────────────
-function PhoneChrome() {
-  return (
-    <div style={{
-      height: '28px', flexShrink: 0,
-      background: 'rgba(26,23,32,0.96)',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '28px 28px 0 0',
-      position: 'relative',
-    }}>
-      <div style={{
-        width: '80px', height: '6px', borderRadius: '100px',
-        background: 'rgba(255,255,255,0.15)',
-      }} />
-    </div>
-  );
-}
-
-function PhoneBottom() {
-  return (
-    <div style={{
-      height: '20px', flexShrink: 0,
-      background: 'rgba(26,23,32,0.96)',
-      borderTop: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      borderRadius: '0 0 28px 28px',
-    }}>
-      <div style={{
-        width: '48px', height: '4px', borderRadius: '100px',
-        background: 'rgba(255,255,255,0.2)',
-      }} />
-    </div>
-  );
-}
-
-function TabletChrome() {
-  return (
-    <div style={{
-      height: '16px', flexShrink: 0,
-      background: 'rgba(26,23,32,0.96)',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <div style={{
-        width: '6px', height: '6px', borderRadius: '50%',
-        background: 'rgba(255,255,255,0.2)',
-      }} />
-    </div>
-  );
-}
-
-// Quick-add blocks for mobile long-press
-const QUICK_BLOCKS = [
-  { type: 'story',    label: 'Story'    },
-  { type: 'event',    label: 'Event'    },
-  { type: 'photos',   label: 'Photos'   },
-  { type: 'registry', label: 'Registry' },
-] as const;
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
-  const { isMobile, device, splitView, iframeReady, previewSlow, canvasDragId, activeId, chapters, previewZoom, previewPage, mobileSheetOpen } = state;
+  const { device, iframeReady, previewSlow, activeId, chapters, previewPage, previewZoom } = state;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
-
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [deviceKey, setDeviceKey] = useState(device);
-
-  // Pulse ambient glow on device change
-  useEffect(() => {
-    setDeviceKey(device);
-  }, [device]);
 
   // ── Listen for edit messages from iframe ──────────────────
   useEffect(() => {
@@ -149,10 +61,22 @@ export function EditorCanvas() {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
         } else if (sectionId === 'hero') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-        } else if (sectionId === 'events') {
+        } else if (sectionId === 'events' || sectionId === 'schedule') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
+        } else if (sectionId === 'rsvp') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
         } else if (sectionId === 'faq' || sectionId === 'travel' || sectionId === 'registry') {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'details' });
+        } else if (sectionId === 'photos' || sectionId === 'gallery') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+        } else if (sectionId === 'guestbook') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+        } else if (sectionId === 'design' || sectionId === 'theme') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+        } else if (sectionId === 'countdown') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
+        } else if (sectionId === 'spotify' || sectionId === 'music') {
+          dispatch({ type: 'SET_ACTIVE_TAB', tab: 'spotify' });
         } else {
           dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
         }
@@ -187,10 +111,37 @@ export function EditorCanvas() {
       if (event.data?.type === 'pearloom-photo-ai-regen') {
         dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
       }
+
+      // ── Inline text editing ──────────────────────────────────
+      if (event.data?.type === 'pearloom-inline-edit-commit') {
+        const { elementId, newText } = event.data;
+        if (!elementId || !newText) return;
+        // Parse inline edit element ID (format: "chapterId:field" or "block:blockId:field")
+        let parsed: { type: 'chapter' | 'block'; id: string; field: string } | null = null;
+        if (elementId.startsWith('block:')) {
+          const parts = elementId.split(':');
+          if (parts.length >= 3) parsed = { type: 'block', id: parts[1], field: parts.slice(2).join(':') };
+        } else {
+          const colonIdx = elementId.indexOf(':');
+          if (colonIdx > 0) parsed = { type: 'chapter', id: elementId.slice(0, colonIdx), field: elementId.slice(colonIdx + 1) };
+        }
+        if (!parsed) return;
+
+        if (parsed.type === 'chapter') {
+          const chapter = chapters.find(c => c.id === parsed.id);
+          if (chapter) {
+            actions.updateChapter(parsed.id, { [parsed.field]: newText });
+          }
+        }
+        // Block inline edits update block config
+        if (parsed.type === 'block') {
+          dispatch({ type: 'SET_ACTIVE_ID', id: parsed.id });
+        }
+      }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [chapters, actions, dispatch, isMobile]);
+  }, [chapters, actions, dispatch]);
 
   useEffect(() => {
     if (iframeReady && iframeRef.current) {
@@ -200,40 +151,120 @@ export function EditorCanvas() {
     }
   }, [iframeReady, iframeRef]);
 
-  const mobileBottomBar = 'calc(56px + env(safe-area-inset-bottom, 0px))';
   const isPhone = device === 'mobile';
   const isTablet = device === 'tablet';
-  const isFramed = !isMobile && (isPhone || isTablet);
-
-  // Device frame dimensions
+  const isFramed = isPhone || isTablet;
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
-  const frameRadius = isPhone ? 28 : isTablet ? 12 : 0;
+
+  const iframeSrc = `/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`;
+  const handleIframeLoad = () => {
+    dispatch({ type: 'SET_IFRAME_READY', ready: true });
+    dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
+    try {
+      iframeRef.current?.contentWindow?.postMessage({
+        type: 'pearloom-preview-update',
+        manifest: stripArtForStorage(manifest),
+        names: coupleNames,
+      }, '*');
+    } catch {}
+    iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
+  };
 
   return (
     <div style={{
       flex: 1,
-      background: isMobile ? 'transparent' : '#1A1720',
-      backgroundImage: isMobile ? undefined : 'radial-gradient(circle, rgba(163,177,138,0.11) 1px, transparent 0)',
-      backgroundSize: '24px 24px',
+      background: 'var(--pl-cream-deep)',
       display: 'flex', flexDirection: 'column',
-      overflow: isMobile ? 'hidden' : 'auto',
-      paddingBottom: isMobile ? mobileBottomBar : undefined,
+      overflow: 'hidden',
       position: 'relative',
     }}>
 
-      {/* Ambient center glow — reacts to device change */}
-      {!isMobile && (
+      {/* ── Contextual editing label ── */}
+      {state.activeTab && (
         <motion.div
-          key={deviceKey}
-          initial={{ opacity: 0.3, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          key={state.activeTab}
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-            background: 'radial-gradient(ellipse 50% 55% at 50% 46%, rgba(163,177,138,0.07) 0%, rgba(163,177,138,0.02) 55%, transparent 80%)',
-          }}
-        />
+          position: 'absolute', top: '8px',
+          left: '0', right: '0',
+          display: 'flex', justifyContent: 'center',
+          zIndex: 41,
+          pointerEvents: 'none',
+        }}>
+          <span style={{
+            padding: '4px 12px',
+            borderRadius: '100px',
+            background: 'var(--pl-olive-deep)',
+            color: 'white',
+            fontSize: '0.55rem', fontWeight: 700,
+            letterSpacing: '0.12em', textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'auto',
+          }}>
+          Editing: {state.activeTab === 'story' ? 'Story' : state.activeTab === 'design' ? 'Theme' : state.activeTab === 'canvas' ? 'Sections' : state.activeTab === 'events' ? 'Events' : state.activeTab === 'details' ? 'Settings' : state.activeTab.charAt(0).toUpperCase() + state.activeTab.slice(1)}
+          </span>
+        </motion.div>
       )}
+
+      {/* ── Floating device switcher ── */}
+      <div style={{
+        position: 'absolute', top: '32px',
+        left: '0', right: '0',
+        display: 'flex', justifyContent: 'center',
+        zIndex: 40,
+        pointerEvents: 'none',
+      }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '2px',
+        padding: '4px',
+        borderRadius: '100px',
+        pointerEvents: 'auto',
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow: '0 2px 12px rgba(43,30,20,0.08)',
+      } as React.CSSProperties}>
+        {([
+          { mode: 'desktop' as DeviceMode, Icon: Monitor },
+          { mode: 'tablet' as DeviceMode, Icon: Tablet },
+          { mode: 'mobile' as DeviceMode, Icon: Smartphone },
+        ]).map(({ mode, Icon }) => (
+          <motion.button
+            key={mode}
+            onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.85 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            style={{
+              width: '32px', height: '32px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: '50%', border: 'none',
+              background: 'transparent',
+              color: device === mode ? 'white' : 'var(--pl-muted)',
+              cursor: 'pointer',
+              transition: 'color 0.15s',
+              position: 'relative', zIndex: 1,
+            }}
+          >
+            {device === mode && (
+              <motion.div
+                layoutId="device-active"
+                style={{
+                  position: 'absolute', inset: 0, borderRadius: '50%',
+                  background: 'var(--pl-ink)',
+                  zIndex: -1,
+                }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            )}
+            <Icon size={14} />
+          </motion.button>
+        ))}
+      </div>
+      </div>
 
       {/* ── Main canvas area ── */}
       <div
@@ -242,14 +273,14 @@ export function EditorCanvas() {
           width: '100%', height: '100%',
           position: 'relative',
           display: 'flex', flexDirection: 'column',
-          alignItems: isFramed ? 'center' : undefined,
+          alignItems: 'center',
           justifyContent: isFramed ? 'center' : undefined,
-          padding: isFramed ? '24px 20px' : undefined,
+          padding: isFramed ? '60px 20px 20px' : '56px 8px 8px',
           zIndex: 1,
-          overflow: isFramed ? 'auto' : undefined,
+          overflow: 'auto',
         }}
       >
-        {/* ── Device frame wrapper (tablet/phone on desktop) ── */}
+        {/* ── Device frame (tablet/phone) ── */}
         {isFramed ? (
           <motion.div
             key={device}
@@ -260,68 +291,50 @@ export function EditorCanvas() {
               width: frameWidth,
               maxWidth: '100%',
               display: 'flex', flexDirection: 'column',
-              borderRadius: frameRadius,
+              borderRadius: 24,
               overflow: 'hidden',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08), 0 0 60px rgba(163,177,138,0.04)',
+              boxShadow: '0 12px 48px rgba(43,30,20,0.12), 0 0 0 1px rgba(0,0,0,0.06)',
               flexShrink: 0,
               minHeight: isPhone ? 780 : 600,
+              background: 'var(--pl-cream)',
             }}
           >
-            {/* Chrome top */}
-            {isPhone ? <PhoneChrome /> : <TabletChrome />}
-
-            {/* Preview area */}
-            <div style={{ flex: 1, position: 'relative', background: 'var(--pl-cream)', minHeight: 0 }}>
+            <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
               {!iframeReady && <SkeletonLoading slow={previewSlow} />}
               <iframe
                 ref={iframeRef}
-                src={`/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`}
+                src={iframeSrc}
                 style={{ width: '100%', height: '100%', border: 'none', display: 'block', minHeight: isPhone ? 780 : 600 }}
                 title="Live Preview"
-                onLoad={() => {
-                  dispatch({ type: 'SET_IFRAME_READY', ready: true });
-                  dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
-                  try {
-                    iframeRef.current?.contentWindow?.postMessage({
-                      type: 'pearloom-preview-update',
-                      manifest: stripArtForStorage(manifest),
-                      names: coupleNames,
-                    }, '*');
-                  } catch {}
-                  iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
-                }}
+                onLoad={handleIframeLoad}
               />
             </div>
-
-            {/* Chrome bottom */}
-            {isPhone && <PhoneBottom />}
           </motion.div>
         ) : (
-          /* ── Full-width desktop or mobile preview ── */
-          <>
+          /* ── Full-bleed desktop — rounded card with soft shadow ── */
+          <div style={{
+            width: previewZoom !== 1 ? `${100 / previewZoom}%` : '100%',
+            maxWidth: previewZoom !== 1 ? `${1120 / previewZoom}px` : '1120px',
+            flex: 1,
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+            position: 'relative',
+            background: 'white',
+            minHeight: 0,
+            transform: previewZoom !== 1 ? `scale(${previewZoom})` : undefined,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s ease',
+          }}>
             {!iframeReady && <SkeletonLoading slow={previewSlow} />}
             <iframe
               ref={iframeRef}
-              src={`/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`}
-              style={{
-                flex: 1, border: 'none', width: '100%', minHeight: '100%',
-                boxShadow: !isMobile ? '0 0 0 1px rgba(255,255,255,0.04)' : undefined,
-              }}
+              src={iframeSrc}
+              style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
               title="Live Preview"
-              onLoad={() => {
-                dispatch({ type: 'SET_IFRAME_READY', ready: true });
-                dispatch({ type: 'SET_PREVIEW_SLOW', slow: false });
-                try {
-                  iframeRef.current?.contentWindow?.postMessage({
-                    type: 'pearloom-preview-update',
-                    manifest: stripArtForStorage(manifest),
-                    names: coupleNames,
-                  }, '*');
-                } catch {}
-                iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
-              }}
+              onLoad={handleIframeLoad}
             />
-          </>
+          </div>
         )}
 
         {/* Sticker overlay */}
@@ -336,123 +349,8 @@ export function EditorCanvas() {
           />
         )}
 
-        {/* Section hover toolbar — desktop only, positioned absolutely over canvas */}
-        {!isMobile && <SectionHoverToolbar />}
-
-        {/* Mobile long-press overlay */}
-        {isMobile && !mobileSheetOpen && !showQuickAdd && (
-          <div
-            onPointerDown={() => {
-              longPressTimer.current = setTimeout(() => setShowQuickAdd(true), 350);
-            }}
-            onPointerUp={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-            onPointerCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-            style={{
-              position: 'absolute', inset: 0, zIndex: 2,
-              background: 'transparent', pointerEvents: 'auto',
-            }}
-          />
-        )}
-
-        {/* Quick-add tray (mobile long-press) */}
-        <AnimatePresence>
-          {showQuickAdd && (
-            <>
-              <motion.div
-                key="quickadd-backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                onClick={() => setShowQuickAdd(false)}
-                style={{
-                  position: 'fixed', inset: 0, zIndex: 1100,
-                  background: 'rgba(0,0,0,0.35)',
-                }}
-              />
-              <motion.div
-                key="quickadd-tray"
-                initial={{ y: '100%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: '100%', opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 36 }}
-                style={{
-                  position: 'fixed', bottom: 'calc(56px + env(safe-area-inset-bottom, 0px))',
-                  left: 0, right: 0, zIndex: 1101,
-                  background: 'rgba(22,17,13,0.98)',
-                  backdropFilter: 'blur(32px)',
-                  WebkitBackdropFilter: 'blur(32px)',
-                  borderRadius: '20px 20px 0 0',
-                  borderTop: '1px solid rgba(255,255,255,0.1)',
-                  padding: '16px 16px 20px',
-                } as React.CSSProperties}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)' }}>
-                    Add Section
-                  </span>
-                  <motion.button
-                    whileTap={{ scale: 0.88 }}
-                    onClick={() => setShowQuickAdd(false)}
-                    style={{
-                      background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
-                      width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer', color: 'rgba(214,198,168,0.5)',
-                    }}
-                  >
-                    <X size={12} />
-                  </motion.button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                  {QUICK_BLOCKS.map(({ type, label }) => (
-                    <motion.button
-                      key={type}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => {
-                        setShowQuickAdd(false);
-                        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
-                        dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-                      }}
-                      style={{
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        background: 'rgba(255,255,255,0.05)',
-                        borderRadius: 10, cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center',
-                        justifyContent: 'center', gap: 6, padding: '12px 6px',
-                        color: 'rgba(214,198,168,0.75)',
-                      }}
-                    >
-                      <Plus size={16} color="rgba(163,177,138,0.8)" />
-                      <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1 }}>
-                        {label}
-                      </span>
-                    </motion.button>
-                  ))}
-                </div>
-                <div style={{ marginTop: 12, textAlign: 'center' }}>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setShowQuickAdd(false);
-                      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
-                      dispatch({ type: 'SET_MOBILE_SHEET', open: true });
-                    }}
-                    style={{
-                      border: '1px solid rgba(163,177,138,0.25)',
-                      background: 'rgba(163,177,138,0.08)',
-                      borderRadius: 100, cursor: 'pointer',
-                      padding: '8px 20px',
-                      color: 'rgba(163,177,138,0.8)',
-                      fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                    }}
-                  >
-                    Browse all sections
-                  </motion.button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+        {/* Section hover toolbar */}
+        <SectionHoverToolbar />
       </div>
     </div>
   );

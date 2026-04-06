@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { LayoutDashboard, Users, Image, ExternalLink } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Stories', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/rsvps', label: 'Guests', icon: Users },
   { href: '/dashboard/gallery', label: 'Gallery', icon: Image },
 ];
@@ -15,8 +15,12 @@ export function DashboardSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 shrink-0 border-r border-[var(--pl-divider)] bg-white/50 min-h-[calc(100vh-4rem)]">
-      <nav className="p-4 space-y-1">
+    <aside className="w-56 shrink-0 border-r border-[var(--pl-divider)] bg-[var(--pl-cream)] min-h-[calc(100vh-4rem)]">
+      <div className="px-5 pt-5 pb-3">
+        <h2 className="font-heading italic text-lg text-[var(--pl-ink-soft)]">Pearloom</h2>
+        <p className="text-[0.65rem] uppercase tracking-[0.12em] text-[var(--pl-muted)] font-bold mt-0.5">Your celebration sites</p>
+      </div>
+      <nav className="px-3 pb-4 space-y-1">
         {NAV_ITEMS.map((item, i) => {
           const isActive = pathname === item.href;
           return (

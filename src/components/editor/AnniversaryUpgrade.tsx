@@ -72,7 +72,7 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
         transition={{ duration: 1.2, delay: 2.5, repeat: Infinity, repeatDelay: 6 }}
         style={{ fontSize: '0.8rem', display: 'inline-block' }}
       >
-        ✨
+
       </motion.span>
     </motion.div>
   );
@@ -183,7 +183,7 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
     color: 'rgba(245,240,232,0.6)',
     fontWeight: 500,
     fontSize: '0.8rem',
-    border: '1px solid rgba(255,255,255,0.15)',
+    border: '1px solid rgba(0,0,0,0.08)',
     cursor: 'pointer',
   };
 

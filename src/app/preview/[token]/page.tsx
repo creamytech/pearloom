@@ -56,7 +56,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
         width: '320px',
         background: 'rgba(30,27,22,0.97)',
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid rgba(0,0,0,0.07)',
         borderRadius: '1rem',
         padding: '1.25rem',
         zIndex: 10000,
@@ -67,7 +67,7 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
         <span style={{ color: '#f5f0e8', fontWeight: 600, fontSize: '0.9rem' }}>Leave feedback</span>
         <button
           onClick={onClose}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '1.1rem', padding: 0 }}
+          style={{ background: 'none', border: 'none', color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '1.1rem', padding: 0 }}
           aria-label="Close"
         >
           ×
@@ -89,8 +89,8 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem 0.75rem',
               borderRadius: '0.5rem',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(0,0,0,0.05)',
               color: '#f5f0e8',
               fontSize: '0.875rem',
               marginBottom: '0.6rem',
@@ -108,8 +108,8 @@ function FeedbackForm({ token, onClose }: { token: string; onClose: () => void }
               width: '100%',
               padding: '0.6rem 0.75rem',
               borderRadius: '0.5rem',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(0,0,0,0.05)',
               color: '#f5f0e8',
               fontSize: '0.875rem',
               resize: 'vertical',
@@ -168,7 +168,7 @@ function PreviewBanner({ token }: { token: string }) {
           zIndex: 9999,
           background: 'rgba(30,27,22,0.97)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          borderBottom: '1px solid rgba(0,0,0,0.06)',
           padding: '0.65rem 1.25rem',
           display: 'flex',
           alignItems: 'center',
@@ -182,8 +182,8 @@ function PreviewBanner({ token }: { token: string }) {
           <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.875rem', fontWeight: 500 }}>
             Preview Mode
           </span>
-          <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.875rem' }}>·</span>
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
+          <span style={{ color: 'var(--pl-muted)', fontSize: '0.875rem' }}>·</span>
+          <span style={{ color: 'var(--pl-ink-soft)', fontSize: '0.8rem' }}>
             This site hasn&apos;t been published yet
           </span>
         </div>
@@ -193,9 +193,9 @@ function PreviewBanner({ token }: { token: string }) {
             style={{
               padding: '0.35rem 0.85rem',
               borderRadius: '0.4rem',
-              border: '1px solid rgba(255,255,255,0.2)',
+              border: '1px solid var(--pl-muted)',
               background: 'transparent',
-              color: 'rgba(255,255,255,0.8)',
+              color: 'var(--pl-ink)',
               fontSize: '0.8rem',
               cursor: 'pointer',
               fontWeight: 500,
@@ -278,7 +278,7 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
   ];
 
   const sitePages = [
-    { id: 'story', slug: 'our-story', label: 'Our Story', enabled: true, order: 0 },
+    { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
   ] as import('@/types').SitePage[];
 
   // FaqSection expects FaqItemWithCategory — add a default category if missing
@@ -551,7 +551,7 @@ export default function PreviewPage({ params }: PreviewPageProps) {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#1e1b16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'sans-serif', fontSize: '1rem' }}>Loading preview…</p>
+        <p style={{ color: 'var(--pl-ink-soft)', fontFamily: 'sans-serif', fontSize: '1rem' }}>Loading preview…</p>
       </div>
     );
   }

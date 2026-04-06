@@ -72,11 +72,23 @@ export default function DashboardClient() {
     dispatch({ type: 'SET_VIBE', data });
     setLastVibeData(data);
 
+    // Variable step timing that matches real pipeline stages (approximate):
+    // Pass 0: init (2s) → Pass 1: story gen (45s) → Pass 2: refine (15s) →
+    // Pass 3: DNA (10s) → Pass 4: design (20s) → Pass 5: art (15s) →
+    // Pass 6: critique (10s) → Pass 7: poetry (8s)
+    const STEP_DELAYS = [2000, 45000, 15000, 10000, 20000, 15000, 10000, 8000];
     let stepCount = 0;
-    const stepInterval = setInterval(() => {
+    let stepTimers: ReturnType<typeof setTimeout>[] = [];
+    const advanceStep = () => {
       stepCount++;
-      dispatch({ type: 'SET_GENERATION_STEP', step: Math.min(stepCount, 7) });
-    }, 14000);
+      if (stepCount > 7) return;
+      dispatch({ type: 'SET_GENERATION_STEP', step: stepCount });
+      const timer = setTimeout(advanceStep, STEP_DELAYS[stepCount] || 10000);
+      stepTimers.push(timer);
+    };
+    const firstTimer = setTimeout(advanceStep, STEP_DELAYS[0]);
+    stepTimers.push(firstTimer);
+    const generationStartTime = Date.now();
 
     const controller = new AbortController();
     generationControllerRef.current = controller;
@@ -114,7 +126,7 @@ export default function DashboardClient() {
         signal: controller.signal,
       });
 
-      clearInterval(stepInterval);
+      stepTimers.forEach(t => clearTimeout(t));
       clearTimeout(timeoutId);
 
       if (!res.ok) {
@@ -129,6 +141,31 @@ export default function DashboardClient() {
 
       result.manifest.occasion = data.occasion || 'wedding';
       if (data.layoutFormat) result.manifest.layoutFormat = data.layoutFormat;
+
+      // Animate through remaining steps quickly before showing editor
+      // This ensures users see the progress animation even if the API returns fast
+      const elapsed = Date.now() - generationStartTime;
+      const MIN_ANIMATION_MS = 6000; // At least 6s of animation
+      const remainingSteps = 7 - stepCount;
+      if (elapsed < MIN_ANIMATION_MS && remainingSteps > 0) {
+        const timePerStep = Math.max(400, (MIN_ANIMATION_MS - elapsed) / remainingSteps);
+        await new Promise<void>(resolve => {
+          let i = 0;
+          const rush = () => {
+            stepCount++;
+            if (stepCount <= 7) {
+              dispatch({ type: 'SET_GENERATION_STEP', step: stepCount });
+            }
+            i++;
+            if (i < remainingSteps) {
+              setTimeout(rush, timePerStep);
+            } else {
+              setTimeout(resolve, 800); // Brief pause on final step
+            }
+          };
+          rush();
+        });
+      }
 
       const autoSlug = data.subdomain || generateSlug(data.names);
       dispatch({ type: 'SET_MANIFEST', manifest: result.manifest, subdomain: autoSlug });
@@ -188,7 +225,7 @@ export default function DashboardClient() {
         else r.json().then(d => logError('[Generate] Draft save failed:', d.error)).catch(() => {});
       }).catch(e => logError('[Generate] Draft save network error:', e));
     } catch (err) {
-      clearInterval(stepInterval);
+      stepTimers.forEach(t => clearTimeout(t));
       clearTimeout(timeoutId);
       const msg = err instanceof Error
         ? (err.name === 'AbortError'
@@ -283,13 +320,13 @@ export default function DashboardClient() {
                 </div>
                 <div
                   className="text-[0.88rem] leading-relaxed mb-1"
-                  style={{ color: 'var(--eg-muted)' }}
+                  style={{ color: 'var(--pl-muted)' }}
                 >
                   {state.error}
                 </div>
                 <div
                   className="text-[0.88rem] leading-relaxed italic"
-                  style={{ color: 'var(--eg-muted)' }}
+                  style={{ color: 'var(--pl-muted)' }}
                 >
                   This sometimes happens when our AI is busy. It usually works on the second try.
                 </div>
@@ -299,13 +336,13 @@ export default function DashboardClient() {
                       onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); handleVibeSubmit(lastVibeData); }}
                       className="px-5 py-2 border-none cursor-pointer text-[0.88rem] font-bold tracking-wide"
                       style={{
-                        borderRadius: 'var(--eg-radius-sm)',
-                        background: 'var(--eg-accent)',
+                        borderRadius: 'var(--pl-radius-sm)',
+                        background: 'var(--pl-olive)',
                         color: '#fff',
                         transition: 'background 0.15s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--eg-accent-hover)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--eg-accent)')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--pl-olive-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--pl-olive)')}
                     >
                       Try Again
                     </button>
@@ -314,13 +351,13 @@ export default function DashboardClient() {
                     onClick={() => { dispatch({ type: 'SET_ERROR', error: null }); goTo('photos'); }}
                     className="px-5 py-2 bg-transparent cursor-pointer text-[0.88rem] font-semibold tracking-wide"
                     style={{
-                      borderRadius: 'var(--eg-radius-sm)',
-                      color: 'var(--eg-muted)',
-                      border: '1px solid var(--eg-divider)',
+                      borderRadius: 'var(--pl-radius-sm)',
+                      color: 'var(--pl-muted)',
+                      border: '1px solid var(--pl-divider)',
                       transition: 'border-color 0.15s',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--eg-gold)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--eg-divider)')}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--pl-gold)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--pl-divider)')}
                   >
                     Start Over
                   </button>
@@ -328,8 +365,8 @@ export default function DashboardClient() {
                     onClick={() => dispatch({ type: 'SET_ERROR', error: null })}
                     className="px-4 py-2 bg-transparent border-none cursor-pointer text-[0.88rem] font-medium"
                     style={{
-                      borderRadius: 'var(--eg-radius-sm)',
-                      color: 'var(--eg-muted)',
+                      borderRadius: 'var(--pl-radius-sm)',
+                      color: 'var(--pl-muted)',
                       opacity: 0.7,
                       transition: 'opacity 0.15s',
                     }}

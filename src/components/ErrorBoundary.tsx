@@ -36,20 +36,20 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         <div style={{
           padding: '2rem',
           textAlign: 'center',
-          background: 'var(--eg-bg, #F5F1E8)',
+          background: 'var(--pl-cream, #F5F1E8)',
           borderRadius: '12px',
           border: '1px solid rgba(255,59,48,0.15)',
           margin: '1rem',
         }}>
-          <p style={{ color: 'var(--eg-fg, #2B2B2B)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+          <p style={{ color: 'var(--pl-ink, #2B2B2B)', fontSize: '0.9rem', marginBottom: '0.75rem' }}>
             Something went wrong loading this section.
           </p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
             style={{
               padding: '0.5rem 1.25rem',
-              background: 'var(--eg-fg, #2B2B2B)',
-              color: 'var(--eg-bg, #F5F1E8)',
+              background: 'var(--pl-ink, #2B2B2B)',
+              color: 'var(--pl-cream, #F5F1E8)',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',

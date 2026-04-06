@@ -174,12 +174,14 @@ export function GuestExperience() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: gi * 0.08 + 0.3, duration: 0.55 }}
+                whileHover={{ y: -4, boxShadow: '0 8px 32px rgba(43,30,20,0.08)', transition: { duration: 0.2 } }}
                 style={{
                   background: '#FFFFFF',
                   border: `1px solid ${C.divider}`,
                   borderRadius: '12px',
                   padding: '1.5rem',
                   boxShadow: '0 1px 4px rgba(43,30,20,0.04)',
+                  cursor: 'default',
                 }}
               >
                 {/* Group header */}

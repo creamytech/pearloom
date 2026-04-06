@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { RangeSlider } from '@/components/ui/range-slider';
 import { Loader2 } from 'lucide-react';
 import { lbl } from './editor-utils';
 import { ColorPalettePanel } from './ColorPalettePanel';
@@ -16,7 +17,7 @@ import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import type { StoryManifest, ThemeSchema } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 
-export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; coupleNames?: [string, string] }) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenError, setRegenError] = useState('');
 
@@ -29,10 +30,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vibeString: manifest.vibeString,
-          coupleNames: [
-            manifest.chapters?.[0]?.title?.split(' ')[0] ?? 'Partner',
-            manifest.chapters?.[1]?.title?.split(' ')[0] ?? 'Partner',
-          ],
+          coupleNames: coupleNames || ['Partner', 'Partner'],
           chapters: manifest.chapters?.map(c => ({
             title: c.title, subtitle: c.subtitle,
             mood: c.mood, location: c.location,
@@ -51,13 +49,14 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
     }
   };
 
-  const updateFont = (key: 'heading' | 'body', val: string) => {
+  const updateFonts = (heading: string, body: string) => {
+    const newFonts = { heading, body };
     onChange({
       ...manifest,
-      theme: { ...manifest.theme, fonts: { ...manifest.theme.fonts, [key]: val } },
+      theme: { ...manifest.theme, fonts: newFonts },
       vibeSkin: manifest.vibeSkin ? {
         ...manifest.vibeSkin,
-        fonts: { ...manifest.vibeSkin.fonts, [key]: val },
+        fonts: { ...manifest.vibeSkin.fonts, ...newFonts },
       } : manifest.vibeSkin,
     });
   };
@@ -87,46 +86,54 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
     : [colors.background, colors.foreground, colors.accent, colors.accentLight, colors.muted].filter(Boolean);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
 
-      {/* ── Theme — full aesthetic preset + AI regenerate ── */}
+      {/* ── Quick AI regenerate ── */}
+      <div className="pl-panel-section" style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        background: 'linear-gradient(135deg, rgba(163,177,138,0.06), rgba(196,169,106,0.04))',
+        border: '1px solid rgba(163,177,138,0.15)',
+      }}>
+        {vibeSkin?.tone && (
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
+            textTransform: 'uppercase', color: '#A3B18A',
+            background: 'rgba(163,177,138,0.15)', padding: '3px 10px', borderRadius: '100px',
+            border: '1px solid rgba(163,177,138,0.2)', flexShrink: 0,
+          }}>
+            {vibeSkin.tone}
+          </span>
+        )}
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={handleRegenerateDesign}
+          disabled={isRegenerating}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '5px',
+            padding: '5px 12px', borderRadius: '100px',
+            border: 'none',
+            background: isRegenerating ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.9)',
+            color: isRegenerating ? 'var(--pl-ink-soft)' : '#fff',
+            cursor: isRegenerating ? 'not-allowed' : 'pointer',
+            fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
+            boxShadow: isRegenerating ? 'none' : '0 2px 8px rgba(163,177,138,0.3)',
+          }}
+        >
+          {isRegenerating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <DesignIcon size={12} />}
+          {isRegenerating ? 'Generating…' : 'Regenerate'}
+        </button>
+      </div>
+      {regenError && (
+        <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '-4px' }}>{regenError}</p>
+      )}
+
+      {/* ── Theme — presets ── */}
       <SidebarSection title="Theme" defaultOpen={true}>
         <ThemeSwitcher
           currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
           manifest={manifest}
           onApply={handleThemeApply}
         />
-        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {vibeSkin?.tone && (
-            <span style={{
-              fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em',
-              textTransform: 'uppercase', color: 'var(--eg-accent, #A3B18A)',
-              background: 'rgba(163,177,138,0.12)', padding: '4px 12px', borderRadius: '100px',
-              border: '1px solid rgba(163,177,138,0.2)',
-            }}>
-              {vibeSkin.tone}
-            </span>
-          )}
-          <button
-            onClick={handleRegenerateDesign}
-            disabled={isRegenerating}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '6px 12px', borderRadius: '7px',
-              border: '1px solid rgba(163,177,138,0.25)',
-              background: isRegenerating ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.07)',
-              color: 'var(--eg-accent, #A3B18A)', cursor: isRegenerating ? 'not-allowed' : 'pointer',
-              fontSize: '0.82rem', fontWeight: 700, transition: 'all 0.15s',
-              opacity: isRegenerating ? 0.7 : 1,
-            }}
-          >
-            <DesignIcon size={13} />
-            {isRegenerating ? 'Generating…' : 'Regenerate with AI'}
-          </button>
-        </div>
-        {regenError && (
-          <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '6px' }}>{regenError}</p>
-        )}
       </SidebarSection>
 
       {/* ── Colors — tweak individual colors or generate AI background art ── */}
@@ -153,18 +160,22 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
         <FontPicker
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
-          onChange={(heading, body) => { updateFont('heading', heading); updateFont('body', body); }}
+          onChange={(heading, body) => updateFonts(heading, body)}
         />
       </SidebarSection>
 
       {/* AI Art Manager — hero, ambient, art strip */}
       <SidebarSection title="AI Art" defaultOpen={true}>
         {manifest.vibeSkin ? (
-          <ArtManager manifest={manifest} onUpdate={(updates) => onChange({ ...manifest, ...updates })} />
+          <ArtManager
+            manifest={manifest}
+            coupleNames={coupleNames}
+            onUpdate={(updates) => onChange({ ...manifest, ...updates })}
+          />
         ) : (
-          <div style={{ padding: '1rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>
+          <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--pl-muted, #7A756E)', fontSize: '0.82rem' }}>
             <p style={{ marginBottom: '0.75rem' }}>No AI art generated yet.</p>
-            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '100px', background: 'var(--eg-accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
+            <button onClick={handleRegenerateDesign} style={{ padding: '0.5rem 1rem', borderRadius: '100px', background: 'var(--pl-olive, #A3B18A)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>
               Generate AI Art
             </button>
           </div>
@@ -179,7 +190,7 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
 
       {/* Asset Library */}
       <SidebarSection title="Asset Library" defaultOpen={true}>
-        <p style={{ fontSize: '0.82rem', color: 'rgba(214,198,168,0.5)', marginBottom: '10px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted, #7A756E)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
         <AssetPicker
@@ -204,24 +215,54 @@ export function DesignPanel({ manifest, onChange }: { manifest: StoryManifest; o
             });
           }}
         />
-      </SidebarSection>
 
-      {/* Live color preview swatch */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--eg-muted, #9A9488)', marginBottom: '10px' }}>Preview</div>
-        <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-          <div style={{ background: colors.background || '#faf9f6', padding: '16px' }}>
-            <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1.1rem', fontWeight: 700, color: colors.foreground || 'var(--eg-fg, #2B2B2B)', marginBottom: '4px' }}>
-              {manifest.chapters?.[0]?.title || 'Preview'}
+        {/* Active stickers list with controls */}
+        {(manifest.stickers?.length ?? 0) > 0 && (
+          <div style={{ marginTop: '12px', borderTop: '1px solid var(--pl-divider, #E0D8CA)', paddingTop: '10px' }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted, #7A756E)', marginBottom: '8px' }}>
+              Active ({manifest.stickers!.length})
             </div>
-            <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.75rem', marginBottom: '10px' }}>The beginning of everything.</div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <div style={{ background: colors.accent || 'var(--eg-accent, #A3B18A)', color: '#fff', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>RSVP</div>
-              <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || 'var(--eg-accent, #A3B18A)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>View Story</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {manifest.stickers!.map((s, i) => (
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#fff', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
+                    Size
+                    <RangeSlider min={30} max={200} value={s.size} onChange={v => {
+                      const updated = [...manifest.stickers!];
+                      updated[i] = { ...s, size: v };
+                      onChange({ ...manifest, stickers: updated });
+                    }} />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted)' }}>
+                    Op.
+                    <RangeSlider min={10} max={100} value={Math.round(s.opacity * 100)} onChange={v => {
+                      const updated = [...manifest.stickers!];
+                      updated[i] = { ...s, opacity: v / 100 };
+                      onChange({ ...manifest, stickers: updated });
+                    }} />
+                  </label>
+                  <button onClick={() => onChange({ ...manifest, stickers: manifest.stickers!.filter((_, j) => j !== i) })} style={{ all: 'unset', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}>✕</button>
+                </div>
+              ))}
             </div>
           </div>
-          <div style={{ height: '4px', background: colors.accent || 'var(--eg-accent, #A3B18A)' }} />
+        )}
+      </SidebarSection>
+
+      {/* Live preview — compact, no extra nesting */}
+      <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
+        <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
+          <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, var(--pl-ink-soft))', marginBottom: '3px' }}>
+            {manifest.chapters?.[0]?.title || 'Preview'}
+          </div>
+          <div style={{ color: colors.muted || '#8c8c8c', fontSize: '0.72rem', marginBottom: '8px' }}>The beginning of everything.</div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ background: colors.accent || '#A3B18A', color: '#fff', padding: '3px 10px', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 700 }}>RSVP</div>
+            <div style={{ background: colors.accentLight || '#f3e8d8', color: colors.accent || '#A3B18A', padding: '3px 10px', borderRadius: '100px', fontSize: '0.65rem', fontWeight: 600 }}>View Story</div>
+          </div>
         </div>
+        <div style={{ height: '3px', background: colors.accent || '#A3B18A' }} />
       </div>
     </div>
   );

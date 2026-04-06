@@ -10,6 +10,7 @@ interface DashboardStepProps {
   onResumeDraft: () => void;
   onDismissDraft: () => void;
   onStartNew: () => void;
+  onQuickStart?: () => void;
   onEditSite: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
   onManageGuests: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
 }
@@ -19,6 +20,7 @@ export function DashboardStep({
   onResumeDraft,
   onDismissDraft,
   onStartNew,
+  onQuickStart,
   onEditSite,
   onManageGuests,
 }: DashboardStepProps) {
@@ -64,6 +66,7 @@ export function DashboardStep({
       )}
       <UserSites
         onStartNew={onStartNew}
+        onQuickStart={onQuickStart}
         onEditSite={onEditSite}
         onManageGuests={onManageGuests}
       />

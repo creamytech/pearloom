@@ -1,7 +1,7 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// everglow / components/mascot.tsx
+// Pearloom / components/mascot.tsx
 // Dynamic mascot component — positioned via props
 // ─────────────────────────────────────────────────────────────
 

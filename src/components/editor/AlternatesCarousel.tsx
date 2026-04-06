@@ -25,14 +25,14 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
         backdropFilter: 'blur(28px)',
         WebkitBackdropFilter: 'blur(28px)',
         padding: '20px',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
+        borderTop: '1px solid rgba(0,0,0,0.05)',
       }}
     >
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <span style={{
           fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)',
+          textTransform: 'uppercase', color: 'var(--pl-muted)',
         }}>
           3 Alternatives
         </span>
@@ -40,7 +40,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
           onClick={onClose}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(255,255,255,0.35)', display: 'flex', padding: '4px',
+            color: 'var(--pl-muted)', display: 'flex', padding: '4px',
             borderRadius: '4px',
           }}
           aria-label="Close alternatives"
@@ -69,7 +69,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               background: 'rgba(22,18,28,0.96)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '12px',
               padding: '16px',
               display: 'flex',
@@ -81,7 +81,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
             <span style={{
               fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: 'var(--eg-accent, #A3B18A)',
+              color: 'var(--pl-olive, #A3B18A)',
               background: 'rgba(163,177,138,0.1)',
               borderRadius: '100px',
               padding: '3px 8px',
@@ -109,7 +109,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
                 borderRadius: '7px',
                 border: '1px solid rgba(163,177,138,0.35)',
                 background: 'rgba(163,177,138,0.12)',
-                color: 'var(--eg-accent, #A3B18A)',
+                color: 'var(--pl-olive, #A3B18A)',
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 cursor: 'pointer',

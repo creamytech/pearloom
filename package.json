@@ -1,5 +1,5 @@
 {
-  "name": "everglow",
+  "name": "pearloom",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,6 +17,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@google-ai/generativelanguage": "^3.7.0",
     "@mapbox/mapbox-gl-geocoder": "^5.1.2",
+    "@paper-design/shaders-react": "^0.0.72",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",

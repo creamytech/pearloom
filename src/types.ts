@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / types.ts — canonical type system
+// Pearloom / types.ts — canonical type system
 // ─────────────────────────────────────────────────────────────
 
 import type { VibeSkin } from '@/lib/vibe-engine';
@@ -108,6 +108,14 @@ export interface StoryManifest {
   };
   // Decorative SVG stickers placed on the site
   stickers?: StickerItem[];
+  // Parchment tint filter applied to site photos
+  parchmentTint?: 'none' | 'ivory' | 'linen' | 'parchment' | 'sepia';
+  // Show "Hand-curated with Pearloom" watermark on published site
+  watermark?: boolean;
+  // Private gallery — hide photo gallery from public visitors
+  privateGallery?: boolean;
+  // Typography pair preset for the site
+  typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
 }
 
 export interface Chapter {
@@ -159,6 +167,7 @@ export interface GeoLocation {
   lat: number;
   lng: number;
   label: string; // reverse-geocoded (e.g. "Central Park, NY")
+  needsReverseGeocode?: boolean;
 }
 
 /**
@@ -202,6 +211,8 @@ export interface ThemeSchema {
     };
     /** Custom cursor shape */
     customCursor?: 'none' | 'pearl' | 'heart' | 'ring' | 'petal' | 'star';
+    /** Custom cursor color override — defaults to theme accent */
+    cursorColor?: string;
     /** SVG dividers between page sections */
     sectionDivider?: {
       style: 'none' | 'wave' | 'wave2' | 'diagonal' | 'zigzag' | 'torn' | 'chevron' | 'arc';
@@ -410,14 +421,31 @@ export type BlockType =
   | 'spotify'
   | 'quiz'
   | 'storymap'
-  | 'hashtag';
+  | 'hashtag'
+  | 'photoWall'
+  | 'gallery'
+  | 'vibeQuote'
+  | 'welcome'
+  | 'footer'
+  | 'anniversary';
 
 export interface PageBlock {
   id: string;
   type: BlockType;
   order: number;
   visible: boolean;
-  // Optional per-block config overrides
+  /**
+   * Per-block config — every block can override its title, subtitle,
+   * and carry type-specific settings. This makes every section editable.
+   *
+   * Common fields:
+   *   title    — custom section heading (overrides vibeSkin.sectionLabels)
+   *   subtitle — custom subheading or intro text
+   *   text     — main body content (for text/quote blocks)
+   *   url      — media URL (for video/spotify/map blocks)
+   *   symbol   — decorative symbol (for quote/divider blocks)
+   *   label    — action label or countdown text
+   */
   config?: Record<string, unknown>;
   /** Per-block visual effects — override or supplement global theme effects */
   blockEffects?: {

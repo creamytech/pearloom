@@ -190,9 +190,9 @@ export function EditBridge({ enabled }: EditBridgeProps) {
         'z-index:20', 'cursor:pointer',
         'background:rgba(22,18,14,0.88)', 'backdrop-filter:blur(16px)',
         '-webkit-backdrop-filter:blur(16px)',
-        'border:1px solid rgba(255,255,255,0.15)',
+        'border:1px solid rgba(0,0,0,0.08)',
         'border-radius:100px',
-        'color:rgba(255,255,255,0.9)',
+        'color:var(--pl-ink)',
         'font-family:system-ui,-apple-system,sans-serif',
         'font-size:13px', 'font-weight:700',
         'padding:10px 18px', 'min-height:44px',
@@ -402,7 +402,7 @@ export function EditBridge({ enabled }: EditBridgeProps) {
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
           fontFamily: 'system-ui, sans-serif',
           fontSize: '13px', fontWeight: 600,
-          color: 'rgba(255,255,255,0.85)',
+          color: 'var(--pl-ink)',
           whiteSpace: 'nowrap',
           animation: 'pe-fadein 0.2s ease',
         }}>
@@ -488,7 +488,7 @@ function PhotoActionBtn({
         padding: '8px 14px',
         minHeight: '44px', // WCAG touch target
         borderRadius: '100px',
-        border: `1px solid ${danger ? 'rgba(248,113,113,0.35)' : accent ? 'rgba(163,177,138,0.4)' : 'rgba(255,255,255,0.15)'}`,
+        border: `1px solid ${danger ? 'rgba(248,113,113,0.35)' : accent ? 'rgba(163,177,138,0.4)' : 'rgba(0,0,0,0.08)'}`,
         background: danger
           ? 'rgba(40,10,10,0.92)'
           : accent

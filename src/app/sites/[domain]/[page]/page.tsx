@@ -141,25 +141,25 @@ export default async function SiteSubPage(
     }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
-          <span style={{ fontSize: '1rem', color: 'var(--eg-accent)', opacity: 0.6 }}>{vibeSkin.decorIcons[0] || '✦'}</span>
-          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
+          <span style={{ fontSize: '1rem', color: 'var(--pl-olive)', opacity: 0.6 }}>{vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
         </div>
         <h1 style={{
-          fontFamily: 'var(--eg-font-heading)',
+          fontFamily: 'var(--pl-font-heading)',
           fontSize: 'clamp(2.5rem, 5vw, 4rem)',
           fontWeight: 400, letterSpacing: '-0.025em',
-          color: 'var(--eg-fg)', margin: '0 0 1rem',
+          color: 'var(--pl-ink)', margin: '0 0 1rem',
         }}>{title}</h1>
         {subtitle && (
-          <p style={{ color: 'var(--eg-muted)', fontSize: '1.05rem', fontStyle: 'italic' }}>{subtitle}</p>
+          <p style={{ color: 'var(--pl-muted)', fontSize: '1.05rem', fontStyle: 'italic' }}>{subtitle}</p>
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
-          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
-          <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', opacity: 0.5 }}>
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
+          <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', opacity: 0.5 }}>
             {safeNames.join(' & ')}
           </span>
-          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
+          <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
         </div>
       </div>
     </div>
@@ -197,16 +197,16 @@ export default async function SiteSubPage(
                 border: '1px solid rgba(0,0,0,0.06)',
                 boxShadow: '0 8px 40px rgba(0,0,0,0.04)',
               }}>
-                <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', fontWeight: 400, color: 'var(--eg-fg)', marginBottom: '1rem' }}>
+                <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', fontWeight: 400, color: 'var(--pl-ink)', marginBottom: '1rem' }}>
                   {venue}
                 </h2>
                 {manifest.logistics?.date && (
-                  <p style={{ color: 'var(--eg-muted)', fontSize: '1rem', marginBottom: '0.5rem' }}>
+                  <p style={{ color: 'var(--pl-muted)', fontSize: '1rem', marginBottom: '0.5rem' }}>
                     {new Date(manifest.logistics.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                 )}
                 {manifest.logistics?.time && (
-                  <p style={{ color: 'var(--eg-muted)', fontSize: '1rem' }}>
+                  <p style={{ color: 'var(--pl-muted)', fontSize: '1rem' }}>
                     {manifest.logistics.time}
                   </p>
                 )}
@@ -217,7 +217,7 @@ export default async function SiteSubPage(
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                     marginTop: '1.5rem', padding: '0.65rem 1.5rem',
-                    background: 'var(--eg-fg)', color: '#fff',
+                    background: 'var(--pl-ink)', color: '#fff',
                     borderRadius: '100px', fontSize: '0.8rem', fontWeight: 700,
                     textDecoration: 'none', letterSpacing: '0.05em',
                   }}
@@ -326,15 +326,15 @@ export default async function SiteSubPage(
               {customPage.blocks?.map(block => (
                 <div key={block.id} style={{ padding: '2rem 0' }}>
                   {block.type === 'text' && (
-                    <div style={{ fontFamily: 'var(--eg-font-body)', color: 'var(--eg-fg)', fontSize: '1.05rem', lineHeight: 1.8 }}>
+                    <div style={{ fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)', fontSize: '1.05rem', lineHeight: 1.8 }}>
                       {(block.config?.content as string) || 'Content coming soon...'}
                     </div>
                   )}
                   {block.type === 'quote' && (
                     <blockquote style={{
-                      fontFamily: 'var(--eg-font-heading)', fontSize: '1.6rem', fontStyle: 'italic',
-                      color: 'var(--eg-fg)', textAlign: 'center', padding: '2rem',
-                      borderLeft: '3px solid var(--eg-accent)', opacity: 0.9,
+                      fontFamily: 'var(--pl-font-heading)', fontSize: '1.6rem', fontStyle: 'italic',
+                      color: 'var(--pl-ink)', textAlign: 'center', padding: '2rem',
+                      borderLeft: '3px solid var(--pl-olive)', opacity: 0.9,
                     }}>
                       {(block.config?.text as string) || '"..."'}
                     </blockquote>

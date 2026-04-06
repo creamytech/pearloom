@@ -148,7 +148,7 @@ export function SiteNav({
           'transition-[background,box-shadow,border-color,padding] duration-300',
           atTop && !isStudio
             ? 'bg-transparent border-b border-transparent shadow-none'
-            : 'bg-[rgba(245,241,232,0.94)] border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
+            : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
           scrolled ? 'py-2' : 'py-4',
         )}
         style={{ backdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)', WebkitBackdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)' }}
@@ -223,11 +223,11 @@ export function SiteNav({
                     href={getHref(page.slug)}
                     className={cn(
                       'px-3.5 py-1.5 rounded-[var(--pl-radius-full)]',
-                      'text-[0.875rem] font-body no-underline',
+                      'text-[0.72rem] font-body no-underline uppercase tracking-[0.08em] font-semibold',
                       'border transition-all duration-150 whitespace-nowrap',
                       active
-                        ? 'font-semibold text-[var(--pl-ink)] bg-[var(--pl-olive-mist)] border-[rgba(163,177,138,0.22)]'
-                        : 'font-[450] text-[var(--pl-muted)] bg-transparent border-transparent hover:bg-[rgba(0,0,0,0.04)] hover:text-[var(--pl-ink)]',
+                        ? 'text-[var(--pl-ink)] border-b-2 border-b-[var(--pl-ink)] border-x-transparent border-t-transparent rounded-none bg-transparent'
+                        : 'text-[var(--pl-muted)] bg-transparent border-transparent hover:text-[var(--pl-ink)]',
                     )}
                   >
                     {page.label}
@@ -445,7 +445,7 @@ export function SiteNav({
             top: 0,
             width: '1.5px',
             height: '100dvh',
-            background: 'linear-gradient(180deg, transparent 0%, var(--eg-accent) 6%, var(--eg-accent) 94%, transparent 100%)',
+            background: 'linear-gradient(180deg, transparent 0%, var(--pl-olive) 6%, var(--pl-olive) 94%, transparent 100%)',
             opacity: 0.28,
             scaleY: scaleX,
             transformOrigin: 'top center',
@@ -453,6 +453,67 @@ export function SiteNav({
             pointerEvents: 'none',
           }}
         />
+      )}
+
+      {/* ── Mobile bottom tab bar ── */}
+      {!isDesktop && !isStudio && enabledPages.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 0, left: 0, right: 0,
+            zIndex: 99,
+            display: 'flex',
+            alignItems: 'stretch',
+            background: 'rgba(245,241,232,0.96)',
+            backdropFilter: 'blur(16px) saturate(1.6)',
+            WebkitBackdropFilter: 'blur(16px) saturate(1.6)',
+            borderTop: '1px solid rgba(0,0,0,0.06)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            boxShadow: '0 -2px 16px rgba(0,0,0,0.04)',
+          }}
+        >
+          {enabledPages.slice(0, 5).map((page) => {
+            const active = isActive(page.slug);
+            return (
+              <Link
+                key={page.id}
+                href={getHref(page.slug)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '3px',
+                  padding: '8px 4px 6px',
+                  textDecoration: 'none',
+                  color: active ? 'var(--pl-olive, var(--pl-olive))' : 'rgba(0,0,0,0.35)',
+                  transition: 'color 0.15s',
+                  position: 'relative',
+                }}
+              >
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '25%', right: '25%',
+                    height: '2px', borderRadius: '0 0 2px 2px',
+                    background: 'var(--pl-olive, var(--pl-olive))',
+                  }} />
+                )}
+                <PageIcon slug={page.slug} size={18} />
+                <span style={{
+                  fontSize: '0.58rem',
+                  fontWeight: active ? 700 : 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1,
+                  color: 'inherit',
+                }}>
+                  {page.label.length > 8 ? page.label.slice(0, 7) + '…' : page.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
       )}
 
       {/* ── Feature 2: Thread Navigation ── */}
@@ -479,7 +540,7 @@ export function SiteNav({
               bottom: 0,
               width: '1px',
               transform: 'translateX(-50%)',
-              background: 'linear-gradient(180deg, transparent, var(--eg-accent) 20%, var(--eg-accent) 80%, transparent)',
+              background: 'linear-gradient(180deg, transparent, var(--pl-olive) 20%, var(--pl-olive) 80%, transparent)',
               opacity: 0.18,
               pointerEvents: 'none',
             }}
@@ -514,7 +575,7 @@ export function SiteNav({
                     fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
-                    color: active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.35)',
+                    color: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                   }}
@@ -527,7 +588,7 @@ export function SiteNav({
                   animate={{
                     width: active ? '7px' : '5px',
                     height: active ? '7px' : '5px',
-                    background: active ? 'var(--eg-accent)' : 'rgba(0,0,0,0.18)',
+                    background: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.18)',
                   }}
                   transition={{ duration: 0.2 }}
                   style={{

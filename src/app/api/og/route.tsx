@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
   const name2   = (searchParams.get('n2')    || 'Forever').slice(0, 60);
   const date    = (searchParams.get('date')  || '').slice(0, 30);
   const tagline = (searchParams.get('tag')   || 'A love story beautifully told.').slice(0, 120);
-  const bg      = searchParams.get('bg')     || '#2B2B2B';
+  const bg      = searchParams.get('bg')     || 'var(--pl-ink-soft)';
   const accent  = searchParams.get('accent') || '#A3B18A';
 
   // Resolve relative /api/img/ URLs to absolute so external crawlers can fetch them

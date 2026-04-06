@@ -78,7 +78,7 @@ export function TheLoomShowcase() {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.18 }}
           className="font-body max-w-[460px] mb-16"
-          style={{ fontSize: text.md, color: C.darkText, lineHeight: 1.75 }}
+          style={{ fontSize: text.md, color: 'rgba(245,241,232,0.65)', lineHeight: 1.75 }}
         >
           Seven AI passes read your photos, understand your vibe, and thread together a site that&rsquo;s unmistakably yours.
         </motion.p>
@@ -135,37 +135,38 @@ export function TheLoomShowcase() {
         </motion.p>
 
         {/* Rind swatches — 3 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-[640px]">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-[700px]">
           {RINDS.map((r, i) => (
             <motion.div
               key={r.name}
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.7 + i * 0.1, duration: 0.5 }}
-              className="flex flex-col items-center gap-3 p-5 rounded-2xl"
+              whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }}
+              className="flex flex-col items-center gap-4 p-6 rounded-2xl cursor-default"
               style={{
                 background: C.darkCard,
                 border: `1px solid ${C.darkBorder}`,
               }}
             >
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 {r.palette.map((c, j) => (
                   <div
                     key={j}
-                    className="w-7 h-7 rounded-full"
+                    className="w-8 h-8 rounded-full"
                     style={{ background: c, border: `1px solid ${C.darkBorder}` }}
                   />
                 ))}
               </div>
               <p
                 className="font-body font-semibold"
-                style={{ fontSize: '0.78rem', color: C.darkHeading }}
+                style={{ fontSize: '0.85rem', color: C.darkHeading }}
               >
                 {r.name}
               </p>
               <p
                 className="italic"
-                style={{ fontSize: '0.75rem', color: C.darkText, fontFamily: r.font }}
+                style={{ fontSize: '0.8rem', color: 'rgba(245,241,232,0.65)', fontFamily: r.font }}
               >
                 {r.font}
               </p>

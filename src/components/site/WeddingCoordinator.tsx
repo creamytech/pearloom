@@ -325,7 +325,7 @@ export default function WeddingCoordinator({
               gap: '10px',
               alignItems: 'flex-end',
               flexShrink: 0,
-              backgroundColor: 'rgba(255,255,255,0.7)',
+              backgroundColor: 'var(--pl-ink)',
             }}
           >
             <textarea

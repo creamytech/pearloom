@@ -123,8 +123,8 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             style={{
               flex: 1, padding: '6px 10px', borderRadius: '7px',
               border: '1px solid rgba(214,198,168,0.2)',
-              background: 'rgba(255,255,255,0.05)',
-              color: 'rgba(255,255,255,0.8)', fontSize: '0.78rem',
+              background: 'rgba(163,177,138,0.06)',
+              color: 'var(--pl-ink)', fontSize: '0.78rem',
               outline: 'none',
             }}
           />
@@ -142,8 +142,8 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             onClick={() => setSaving(false)}
             style={{
               padding: '6px 8px', borderRadius: '7px',
-              border: 'none', background: 'rgba(255,255,255,0.06)',
-              color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.78rem',
+              border: 'none', background: 'rgba(0,0,0,0.04)',
+              color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.78rem',
             }}
           >✕</button>
         </div>
@@ -151,7 +151,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
 
       {/* Presets list */}
       {presets.length === 0 ? (
-        <div style={{ padding: '10px', textAlign: 'center', fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)' }}>
+        <div style={{ padding: '10px', textAlign: 'center', fontSize: '0.7rem', color: 'var(--pl-muted)' }}>
           No saved presets yet
         </div>
       ) : (
@@ -163,15 +163,15 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '8px 10px', borderRadius: '8px',
-              background: hoveredId === preset.id ? 'rgba(214,198,168,0.06)' : 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: hoveredId === preset.id ? 'rgba(214,198,168,0.06)' : 'rgba(163,177,138,0.04)',
+              border: '1px solid rgba(0,0,0,0.04)',
               transition: 'background 0.15s',
             }}
           >
             <Bookmark size={12} color="rgba(214,198,168,0.45)" style={{ flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.75)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</div>
-              <div style={{ fontSize: '0.63rem', color: 'rgba(255,255,255,0.3)' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</div>
+              <div style={{ fontSize: '0.63rem', color: 'var(--pl-muted)' }}>
                 {new Date(preset.savedAt).toLocaleDateString()}
               </div>
             </div>
@@ -195,7 +195,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
               style={{
                 display: 'flex', padding: '4px', borderRadius: '5px',
                 border: 'none', background: 'none',
-                color: 'rgba(255,255,255,0.2)', cursor: 'pointer',
+                color: 'var(--pl-muted)', cursor: 'pointer',
                 flexShrink: 0,
               }}
             >

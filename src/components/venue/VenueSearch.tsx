@@ -40,6 +40,7 @@ export interface VenueSearchProps {
   onSelect: (venue: VenuePartial) => void;
   onAddManually?: () => void;
   placeholder?: string;
+  darkMode?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -72,6 +73,7 @@ export function VenueSearch({
   onSelect,
   onAddManually,
   placeholder = 'Search for your venue…',
+  darkMode = false,
 }: VenueSearchProps) {
   const [query, setQuery] = useState('');
   const [predictions, setPredictions] = useState<PlaceResult[]>([]);
@@ -184,24 +186,26 @@ export function VenueSearch({
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          background: '#F5F1E8',
-          border: '1.5px solid #D4C9B0',
-          borderRadius: '1rem',
-          padding: '0.875rem 1.25rem',
+          background: darkMode ? 'rgba(0,0,0,0.04)' : '#F5F1E8',
+          border: darkMode ? '1.5px solid rgba(0,0,0,0.07)' : '1.5px solid #D4C9B0',
+          borderRadius: darkMode ? '0.5rem' : '1rem',
+          padding: darkMode ? '0.65rem 0.8rem' : '0.875rem 1.25rem',
           boxShadow: isOpen
-            ? '0 0 0 3px rgba(139, 119, 75, 0.15), 0 4px 20px rgba(0,0,0,0.08)'
-            : '0 2px 8px rgba(0,0,0,0.06)',
+            ? darkMode ? '0 0 0 2px rgba(163,177,138,0.3)' : '0 0 0 3px rgba(139, 119, 75, 0.15), 0 4px 20px rgba(0,0,0,0.08)'
+            : darkMode ? 'none' : '0 2px 8px rgba(0,0,0,0.06)',
           transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
-          borderColor: isOpen ? '#8B774B' : '#D4C9B0',
+          borderColor: isOpen
+            ? darkMode ? 'rgba(163,177,138,0.6)' : '#8B774B'
+            : darkMode ? 'rgba(0,0,0,0.07)' : '#D4C9B0',
         }}
       >
         {isLoading ? (
           <Loader2
-            size={20}
-            style={{ color: '#8B774B', flexShrink: 0, animation: 'spin 1s linear infinite' }}
+            size={darkMode ? 16 : 20}
+            style={{ color: darkMode ? 'rgba(163,177,138,0.7)' : '#8B774B', flexShrink: 0, animation: 'spin 1s linear infinite' }}
           />
         ) : (
-          <Search size={20} style={{ color: '#8B774B', flexShrink: 0 }} />
+          <Search size={darkMode ? 16 : 20} style={{ color: darkMode ? 'var(--pl-muted)' : '#8B774B', flexShrink: 0 }} />
         )}
         <input
           ref={inputRef}
@@ -230,10 +234,9 @@ export function VenueSearch({
             border: 'none',
             background: 'transparent',
             outline: 'none',
-            fontSize: '1rem',
+            fontSize: darkMode ? 'max(16px, 0.88rem)' : '1rem',
             fontFamily: 'inherit',
-            color: '#2C2416',
-            '::placeholder': { color: '#9A8F7B' },
+            color: darkMode ? 'var(--pl-ink)' : '#2C2416',
           } as React.CSSProperties}
         />
       </div>
@@ -246,12 +249,13 @@ export function VenueSearch({
             top: 'calc(100% + 0.5rem)',
             left: 0,
             right: 0,
-            background: '#FEFCF8',
-            border: '1px solid #D4C9B0',
-            borderRadius: '0.875rem',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            background: darkMode ? '#2a2520' : '#FEFCF8',
+            border: darkMode ? '1px solid rgba(0,0,0,0.07)' : '1px solid #D4C9B0',
+            borderRadius: darkMode ? '0.5rem' : '0.875rem',
+            boxShadow: darkMode ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.12)',
             zIndex: 50,
-            overflow: 'hidden',
+            overflow: 'auto',
+            maxHeight: '260px',
           }}
         >
           {/* Empty / no-results state */}
@@ -259,7 +263,7 @@ export function VenueSearch({
             <div
               style={{
                 padding: '1.25rem 1.5rem',
-                color: '#9A8F7B',
+                color: darkMode ? 'var(--pl-ink-soft)' : '#9A8F7B',
                 fontSize: '0.9rem',
                 textAlign: 'center',
               }}
@@ -291,20 +295,20 @@ export function VenueSearch({
                     gap: '0.75rem',
                     padding: '0.75rem 1.25rem',
                     cursor: 'pointer',
-                    background: activeIndex === i ? '#F0EAD8' : 'transparent',
+                    background: activeIndex === i ? (darkMode ? 'rgba(163,177,138,0.15)' : '#F0EAD8') : 'transparent',
                     transition: 'background 0.15s ease',
                   }}
                 >
                   <MapPin
                     size={16}
-                    style={{ color: '#8B774B', flexShrink: 0, marginTop: '2px' }}
+                    style={{ color: darkMode ? 'rgba(163,177,138,0.7)' : '#8B774B', flexShrink: 0, marginTop: '2px' }}
                   />
                   <div>
                     <div
                       style={{
                         fontWeight: 600,
                         fontSize: '0.9375rem',
-                        color: '#2C2416',
+                        color: darkMode ? 'var(--pl-ink)' : '#2C2416',
                         lineHeight: 1.3,
                       }}
                     >
@@ -313,7 +317,7 @@ export function VenueSearch({
                     <div
                       style={{
                         fontSize: '0.8125rem',
-                        color: '#9A8F7B',
+                        color: darkMode ? 'var(--pl-ink-soft)' : '#9A8F7B',
                         marginTop: '2px',
                         lineHeight: 1.4,
                       }}
@@ -331,7 +335,7 @@ export function VenueSearch({
             <div
               style={{
                 borderTop:
-                  predictions.length > 0 || showEmptyState ? '1px solid #EAE3D0' : 'none',
+                  predictions.length > 0 || showEmptyState ? `1px solid ${darkMode ? 'rgba(0,0,0,0.06)' : '#EAE3D0'}` : 'none',
                 padding: '0.625rem 1.25rem',
               }}
             >
@@ -351,14 +355,14 @@ export function VenueSearch({
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#8B774B',
+                  color: darkMode ? 'rgba(163,177,138,0.8)' : '#8B774B',
                   fontSize: '0.875rem',
                   fontWeight: 500,
                   padding: '0.25rem 0',
                   width: '100%',
                   textAlign: 'left',
                   borderRadius: activeIndex === predictions.length ? '0.375rem' : 0,
-                  outline: activeIndex === predictions.length ? '2px solid #8B774B' : 'none',
+                  outline: activeIndex === predictions.length ? `2px solid ${darkMode ? 'rgba(163,177,138,0.6)' : '#8B774B'}` : 'none',
                   outlineOffset: '2px',
                 }}
               >

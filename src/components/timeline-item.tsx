@@ -119,10 +119,10 @@ function ChapterGhost({ number }: { number: number }) {
       aria-hidden="true"
       style={{
         position: 'absolute',
-        fontFamily: 'var(--eg-font-heading)',
+        fontFamily: 'var(--pl-font-heading)',
         fontSize: 'clamp(7rem, 14vw, 12rem)',
         fontWeight: 700,
-        color: 'var(--eg-gold)',
+        color: 'var(--pl-gold)',
         opacity: 0.12,
         lineHeight: 1,
         letterSpacing: '-0.05em',
@@ -156,9 +156,9 @@ function MoodBadge({ mood, light = false }: { mood?: string; light?: boolean }) 
         fontVariant: 'small-caps',
         padding: '0.28rem 0.8rem',
         borderRadius: '100px',
-        background: light ? 'rgba(255,255,255,0.12)' : 'var(--eg-plum-light)',
-        color: light ? 'rgba(255,255,255,0.75)' : 'var(--eg-plum)',
-        border: light ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(109,89,122,0.15)',
+        background: light ? 'rgba(0,0,0,0.07)' : 'var(--pl-plum-mist)',
+        color: light ? 'var(--pl-ink)' : 'var(--pl-plum)',
+        border: light ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(109,89,122,0.15)',
         backdropFilter: light ? 'blur(8px)' : 'none',
         marginBottom: '1.1rem',
       }}
@@ -177,14 +177,14 @@ function LocationPill({ label, light = false }: { label: string; light?: boolean
       gap: '0.4rem',
       padding: '0.3rem 0.8rem',
       borderRadius: '100px',
-      background: light ? 'rgba(255,255,255,0.08)' : 'rgba(163,177,138,0.1)',
-      border: light ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(163,177,138,0.2)',
-      color: light ? 'rgba(255,255,255,0.65)' : 'var(--eg-muted)',
+      background: light ? 'rgba(43,30,20,0.05)' : 'rgba(163,177,138,0.1)',
+      border: light ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(163,177,138,0.2)',
+      color: light ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
       fontSize: '0.65rem',
       letterSpacing: '0.12em',
       textTransform: 'uppercase',
     }}>
-      <LocationPinIcon size={10} color={light ? 'rgba(255,255,255,0.65)' : 'var(--eg-accent)'} />
+      <LocationPinIcon size={10} color={light ? 'var(--pl-ink-soft)' : 'var(--pl-olive)'} />
       <span>{label}</span>
     </div>
   );
@@ -205,7 +205,7 @@ function ChapterDivider() {
       viewport={{ once: true, margin: '-20px' }}
       transition={{ type: 'spring', stiffness: 280, damping: 18 }}
     >
-      <PearlDividerIcon size={12} color="var(--eg-accent)" />
+      <PearlDividerIcon size={12} color="var(--pl-olive)" />
     </motion.div>
   );
 }
@@ -229,21 +229,21 @@ function EmotionalPeakMarker() {
           whileInView={{ scaleX: 1, opacity: 0.5 }}
           viewport={{ once: true }}
           transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', transformOrigin: 'right' }}
+          style={{ width: '40px', height: '1px', background: 'var(--pl-gold)', transformOrigin: 'right' }}
         />
         <motion.span
           initial={{ opacity: 0, scale: 0.4 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ type: 'spring', stiffness: 220, damping: 14, delay: 0.35 }}
-          style={{ fontSize: '1.1rem', color: 'var(--eg-gold)', letterSpacing: '0.2em' }}
+          style={{ fontSize: '1.1rem', color: 'var(--pl-gold)', letterSpacing: '0.2em' }}
         >✦ ✦ ✦</motion.span>
         <motion.div
           initial={{ scaleX: 0, opacity: 0 }}
           whileInView={{ scaleX: 1, opacity: 0.5 }}
           viewport={{ once: true }}
           transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-          style={{ width: '40px', height: '1px', background: 'var(--eg-gold)', transformOrigin: 'left' }}
+          style={{ width: '40px', height: '1px', background: 'var(--pl-gold)', transformOrigin: 'left' }}
         />
       </div>
       <motion.span
@@ -256,7 +256,7 @@ function EmotionalPeakMarker() {
         letterSpacing: '0.3em',
         textTransform: 'uppercase',
         fontVariant: 'small-caps',
-        color: 'var(--eg-gold)',
+        color: 'var(--pl-gold)',
         fontWeight: 700,
       }}>
         A defining moment
@@ -278,18 +278,18 @@ function CollapsibleVideo({ videoUrl }: { videoUrl: string }) {
           alignItems: 'center',
           gap: '0.4rem',
           background: 'none',
-          border: '1px solid var(--eg-accent)',
+          border: '1px solid var(--pl-olive)',
           borderRadius: '100px',
           padding: '0.35rem 0.9rem',
           fontSize: '0.72rem',
           fontWeight: 700,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color: 'var(--eg-accent)',
+          color: 'var(--pl-olive)',
           cursor: 'pointer',
           transition: 'background 0.18s',
         }}
-        onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--eg-accent-rgb, 107,143,90), 0.08)'; }}
+        onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(var(--pl-olive), 0.08)'; }}
         onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
       >
         <span aria-hidden="true">{open ? '▼' : '▶'}</span>
@@ -338,16 +338,17 @@ function EnhancedDescription({ text, light = false }: { text: string; light?: bo
   const sentences = text.split(/(?<=[.!?])\s+/);
   const first = sentences[0] ?? '';
   const rest = sentences.slice(1).join(' ');
-  const mutedColor = light ? 'rgba(255,255,255,0.75)' : 'var(--eg-muted)';
+  const mutedColor = light ? 'var(--pl-ink)' : 'var(--pl-muted)';
 
   return (
     <div>
       {first && (
         <p style={{
+          fontFamily: 'var(--pl-font-body)',
           fontSize: '1.15rem',
           fontWeight: 500,
           lineHeight: 1.75,
-          color: light ? 'rgba(255,255,255,0.9)' : 'var(--eg-fg)',
+          color: light ? 'var(--pl-ink)' : 'var(--pl-ink)',
           margin: '0 0 0.75rem 0',
           maxWidth: '600px',
         }}>
@@ -356,6 +357,7 @@ function EnhancedDescription({ text, light = false }: { text: string; light?: bo
       )}
       {rest && (
         <p style={{
+          fontFamily: 'var(--pl-font-body)',
           fontSize: '1.05rem',
           fontWeight: 300,
           lineHeight: 1.85,
@@ -405,16 +407,16 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
         >
           {/* Cover image — full width, 4:3 */}
           {mainImage && (
-            <div style={{ borderRadius: '10px', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
+            <div style={{ borderRadius: '20px', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
               <img
                 src={proxyUrl(mainImage, 900, 675)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
               {/* Second image tucked corner */}
               {secondImage && (
-                <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.28)', border: '2px solid rgba(255,255,255,0.5)' }}>
-                  <img src={proxyUrl(secondImage, 160, 160)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.28)', border: '2px solid var(--pl-ink-soft)' }}>
+                  <img src={proxyUrl(secondImage, 160, 160)} alt="" className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
               )}
             </div>
@@ -424,15 +426,15 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
           <div>
             <MoodBadge mood={chapter.mood} />
             <div style={{ marginBottom: '0.6rem' }}>
-              <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700 }}>
                 {formatDateFull(chapter.date)}
               </span>
             </div>
-            <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '1.85rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--eg-fg)', lineHeight: 1.1, margin: '0 0 0.6rem', letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.85rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--pl-ink)', lineHeight: 1.1, margin: '0 0 0.6rem', letterSpacing: '-0.02em' }}>
               <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
             </h3>
             {chapter.subtitle && (
-              <p style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}>
+              <p style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '1rem', marginBottom: '1rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}>
                 <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
               </p>
             )}
@@ -491,13 +493,14 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                 y: imgY1,
                 left: isEven ? 0 : 'auto',
                 right: isEven ? 'auto' : 0,
-                boxShadow: '0 40px 80px rgba(0,0,0,0.13), 0 10px 20px rgba(0,0,0,0.06)',
+                boxShadow: '0 40px 80px rgba(0,0,0,0.13), 0 10px 20px rgba(43,30,20,0.05)',
               }}
             >
               <img
                 src={proxyUrl(mainImage, 1200, 1600)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block', background: 'var(--pl-olive-mist, #e8e4dc)' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'none'; }}
               />
@@ -523,7 +526,8 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
               <img
                 src={proxyUrl(secondImage, 800, 1000)}
                 alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block' }}
+                loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block', background: 'var(--pl-olive-mist, #e8e4dc)' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05) grayscale(0)'; }}
                 onMouseOut={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1)'; img.style.filter = 'grayscale(18%) brightness(0.97)'; }}
               />
@@ -546,7 +550,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
             <div style={{ position: 'relative', zIndex: 1 }}>
               <MoodBadge mood={chapter.mood} />
               <div style={{ marginBottom: '1rem' }}>
-                <span style={{ fontSize: '0.68rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700 }}>
+                <span style={{ fontSize: '0.68rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700 }}>
                   {formatDateFull(chapter.date)}
                 </span>
                 <motion.div
@@ -554,15 +558,15 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                   whileInView={{ scaleX: 1, opacity: 0.2 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                  style={{ width: '100%', height: '1px', background: 'var(--eg-accent)', marginTop: '0.5rem', transformOrigin: 'left' }}
+                  style={{ width: '100%', height: '1px', background: 'var(--pl-olive)', marginTop: '0.5rem', transformOrigin: 'left' }}
                 />
               </div>
               <h3 style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                 fontWeight: 600,
                 fontStyle: 'italic',
-                color: chapter.styleOverrides?.textColor || 'var(--eg-fg)',
+                color: chapter.styleOverrides?.textColor || 'var(--pl-ink)',
                 lineHeight: 1.05,
                 margin: '0 0 1rem 0',
                 letterSpacing: '-0.03em',
@@ -575,7 +579,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
                   whileInView={{ opacity: 1, y: 0, skewY: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
-                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                  style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '1.1rem', marginBottom: '1.5rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}
                 >
                   <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
@@ -642,7 +646,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             onClick={() => setVideoPlaying(false)}
             style={{
               position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
-              background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)',
+              background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid var(--pl-muted)',
               borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
               cursor: 'pointer', letterSpacing: '0.08em',
             }}
@@ -669,9 +673,9 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
                 zIndex: 15,
                 width: '72px', height: '72px',
                 borderRadius: '50%',
-                background: 'rgba(255,255,255,0.18)',
+                background: 'rgba(0,0,0,0.1)',
                 backdropFilter: 'blur(8px)',
-                border: '2px solid rgba(255,255,255,0.5)',
+                border: '2px solid var(--pl-ink-soft)',
                 color: '#fff',
                 fontSize: '1.5rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -679,7 +683,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
                 transition: 'background 0.2s, transform 0.2s',
               }}
               onMouseOver={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(255,255,255,0.28)'; b.style.transform = 'translate(-50%, -50%) scale(1.1)'; }}
-              onMouseOut={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(255,255,255,0.18)'; b.style.transform = 'translate(-50%, -50%) scale(1)'; }}
+              onMouseOut={e => { const b = e.currentTarget as HTMLButtonElement; b.style.background = 'rgba(0,0,0,0.1)'; b.style.transform = 'translate(-50%, -50%) scale(1)'; }}
               aria-label="Play video"
             >
               ▶
@@ -717,7 +721,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
               {formatDateFull(chapter.date)}
             </span>
             <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(3rem, 7vw, 5.5rem)',
               fontWeight: 600,
               fontStyle: 'italic',
@@ -732,7 +736,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             <div style={{ marginBottom: '2rem' }}>
               <MoodDecorator mood={chapter.mood} location={chapter.location?.label} light={true} />
             </div>
-            <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.2)', margin: '0 auto 2.5rem' }} />
+            <div style={{ width: '1px', height: '40px', background: 'var(--pl-muted)', margin: '0 auto 2.5rem' }} />
             <div style={{ maxWidth: '600px', margin: '0 auto 2rem', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }} data-pe-editable="true" data-pe-field="description">
               <EnhancedDescription text={chapter.description} light />
             </div>
@@ -788,7 +792,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
               onClick={() => setVideoPlaying(false)}
               style={{
                 position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 20,
-                background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)',
+                background: 'rgba(0,0,0,0.55)', color: '#fff', border: '1px solid var(--pl-muted)',
                 borderRadius: '6px', padding: '0.4rem 0.8rem', fontSize: '0.75rem',
                 cursor: 'pointer', letterSpacing: '0.08em',
               }}
@@ -807,7 +811,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                   filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
                   opacity: 0.35, zIndex: 0,
                 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'var(--eg-bg)', opacity: 0.82, zIndex: 1 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'var(--pl-cream)', opacity: 0.82, zIndex: 1 }} />
               </>
             )}
             {/* Play button for cinematic layout */}
@@ -818,7 +822,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                 style={{
                   position: 'absolute', top: '2rem', right: '2rem', zIndex: 15,
                   width: '52px', height: '52px', borderRadius: '50%',
-                  background: 'var(--eg-accent)', color: '#fff',
+                  background: 'var(--pl-olive)', color: '#fff',
                   border: 'none', fontSize: '1rem',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
@@ -840,15 +844,15 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
             <ChapterGhost number={index + 1} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <MoodBadge mood={chapter.mood} />
-              <span style={{ fontSize: '0.7rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--eg-accent)', display: 'block', marginBottom: '3rem', opacity: 0.8 }}>
+              <span style={{ fontSize: '0.7rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--pl-olive)', display: 'block', marginBottom: '3rem', opacity: 0.8 }}>
                 {formatDateFull(chapter.date)}
               </span>
               <h3 style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: 'clamp(2.5rem, 6vw, 4.8rem)',
                 fontWeight: 600,
                 fontStyle: 'italic',
-                color: chapter.styleOverrides?.textColor || 'var(--eg-fg)',
+                color: chapter.styleOverrides?.textColor || 'var(--pl-ink)',
                 lineHeight: 1.1,
                 margin: '0 0 2.5rem 0',
                 letterSpacing: '-0.03em',
@@ -864,7 +868,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                   whileInView={{ opacity: 1, y: 0, skewY: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
-                  style={{ fontStyle: 'italic', color: 'var(--eg-accent)', fontSize: '1rem', marginTop: '1.5rem' }}
+                  style={{ fontStyle: 'italic', color: 'var(--pl-olive)', fontSize: '1rem', marginTop: '1.5rem' }}
                 >
                   <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
@@ -938,7 +942,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
         <div style={{
           flex: 1,
           padding: isMobile ? '1.75rem 1.25rem 2rem' : '3rem 4rem',
-          background: 'var(--eg-card-bg)',
+          background: 'var(--pl-cream-card)',
           borderRadius: isMobile ? '0' : '8px',
           boxShadow: isMobile ? 'none' : '0 25px 60px rgba(0,0,0,0.07)',
           position: 'relative',
@@ -954,15 +958,15 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
             <ChapterGhost number={index + 1} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <MoodBadge mood={chapter.mood} />
-              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, marginBottom: '1rem', display: 'block' }}>
+              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700, marginBottom: '1rem', display: 'block' }}>
                 {formatDateFull(chapter.date)}
               </span>
               <h3 style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
                 fontWeight: 600,
                 fontStyle: 'italic',
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 lineHeight: 1.05,
                 margin: '0 0 1rem 0',
                 letterSpacing: '-0.03em',
@@ -975,7 +979,7 @@ function SplitLayout({ chapter, index }: TimelineItemProps) {
                   whileInView={{ opacity: 1, y: 0, skewY: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
-                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.05rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                  style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '1.05rem', marginBottom: '1.75rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}
                 >
                   <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
@@ -1026,15 +1030,15 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
           <ChapterGhost number={index + 1} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             <MoodBadge mood={chapter.mood} />
-            <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1.25rem' }}>
+            <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700, display: 'block', marginBottom: '1.25rem' }}>
               {formatDateFull(chapter.date)}
             </span>
             <h3 style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2rem, 5vw, 3.5rem)',
               fontWeight: 600,
               fontStyle: 'italic',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               lineHeight: 1.05,
               margin: '0 0 1.1rem 0',
               letterSpacing: '-0.03em',
@@ -1047,7 +1051,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
                 whileInView={{ opacity: 1, y: 0, skewY: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
-                style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}
               >
                 <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
               </motion.p>
@@ -1067,7 +1071,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {/* Mobile: lead image 4:3, remaining in 2-col row */}
             {images[0] && (
               <motion.div
-                style={{ position: 'relative', overflow: 'hidden', borderRadius: '8px', aspectRatio: '4/3', background: 'var(--eg-accent-light)' }}
+                style={{ position: 'relative', overflow: 'hidden', borderRadius: '8px', aspectRatio: '4/3', background: 'var(--pl-olive-mist)' }}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
                 <img src={proxyUrl(images[0].url, 900, 675)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
@@ -1076,7 +1080,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             {images.length > 1 && (
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(images.length - 1, 3)}, 1fr)`, gap: '0.5rem' }}>
                 {images.slice(1, 4).map((img, i) => (
-                  <motion.div key={img.id} style={{ position: 'relative', overflow: 'hidden', borderRadius: '6px', aspectRatio: '1/1', background: 'var(--eg-accent-light)' }}
+                  <motion.div key={img.id} style={{ position: 'relative', overflow: 'hidden', borderRadius: '6px', aspectRatio: '1/1', background: 'var(--pl-olive-mist)' }}
                     initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
@@ -1095,7 +1099,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
           }}>
             {images[0] && (
               <motion.div
-                style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
+                style={{ gridColumn: images.length >= 3 ? '1 / 8' : 'auto', gridRow: images.length >= 3 ? '1 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
                 onMouseOver={() => setHoveredIdx(0)} onMouseOut={() => setHoveredIdx(null)}
@@ -1106,7 +1110,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             )}
             {images[1] && (
               <motion.div
-                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '1 / 2' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
                 onMouseOver={() => setHoveredIdx(1)} onMouseOut={() => setHoveredIdx(null)}
@@ -1117,7 +1121,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             )}
             {images[2] && (
               <motion.div
-                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                style={{ gridColumn: images.length >= 3 ? '8 / 13' : 'auto', gridRow: images.length >= 3 ? '2 / 3' : 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.32 }}
                 onMouseOver={() => setHoveredIdx(2)} onMouseOut={() => setHoveredIdx(null)}
@@ -1128,7 +1132,7 @@ function GalleryLayout({ chapter, index }: TimelineItemProps) {
             )}
             {images[3] && (
               <motion.div
-                style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--eg-accent-light)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
+                style={{ gridColumn: 'auto', gridRow: 'auto', position: 'relative', overflow: 'hidden', borderRadius: '6px', background: 'var(--pl-olive-mist)', boxShadow: '0 12px 30px rgba(0,0,0,0.08)' }}
                 initial={{ opacity: 0, scale: 0.96, y: 20 }} whileInView={{ opacity: 1, scale: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1], delay: 0.46 }}
                 onMouseOver={() => setHoveredIdx(3)} onMouseOut={() => setHoveredIdx(null)}
@@ -1189,15 +1193,15 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
             <ChapterGhost number={index + 1} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <MoodBadge mood={chapter.mood} />
-              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
                 {formatDateFull(chapter.date)}
               </span>
               <h3 style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: 'clamp(2rem, 4vw, 3.5rem)',
                 fontWeight: 600,
                 fontStyle: 'italic',
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 lineHeight: 1.05,
                 margin: '0 0 1.25rem 0',
                 letterSpacing: '-0.03em',
@@ -1210,7 +1214,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   whileInView={{ opacity: 1, y: 0, skewY: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
-                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                  style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}
                 >
                   <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
@@ -1257,11 +1261,11 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   <div style={{
                     background: '#fff',
                     padding: '8px 8px 28px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(43,30,20,0.05)',
                     borderRadius: '2px',
                     position: 'relative',
                   }}>
-                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)', position: 'relative' }}>
+                    <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: 'var(--pl-olive-mist)', position: 'relative' }}>
                       <img src={proxyUrl(img.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
                       {img.caption && (
                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 8px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredMosaicIdx === i ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
@@ -1298,10 +1302,10 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                 <div style={{
                   background: '#fff',
                   padding: isFirst ? '10px 10px 36px' : '8px 8px 28px',
-                  boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(43,30,20,0.05)',
                   borderRadius: '2px',
                 }}>
-                  <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--eg-accent-light)', position: 'relative' }}>
+                  <div style={{ aspectRatio: isFirst ? '4/5' : '1/1', overflow: 'hidden', background: 'var(--pl-olive-mist)', position: 'relative' }}>
                     <img src={proxyUrl(img.url, 600, 800)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), display: 'block' }} />
                     {img.caption && (
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 12px', background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', color: '#fff', fontSize: '0.7rem', fontStyle: 'italic', letterSpacing: '0.03em', opacity: hoveredMosaicIdx === i ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
@@ -1327,15 +1331,15 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
             <ChapterGhost number={index + 1} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <MoodBadge mood={chapter.mood} />
-              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--eg-accent)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700, display: 'block', marginBottom: '1rem' }}>
                 {formatDateFull(chapter.date)}
               </span>
               <h3 style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: 'clamp(2rem, 4vw, 3.5rem)',
                 fontWeight: 600,
                 fontStyle: 'italic',
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 lineHeight: 1.05,
                 margin: '0 0 1.25rem 0',
                 letterSpacing: '-0.03em',
@@ -1348,7 +1352,7 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
                   whileInView={{ opacity: 1, y: 0, skewY: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.75, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
-                  style={{ fontStyle: 'italic', color: 'var(--eg-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--eg-font-heading)', fontWeight: 300 }}
+                  style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '1.1rem', marginBottom: '1.75rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}
                 >
                   <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
                 </motion.p>
@@ -1422,7 +1426,7 @@ export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps)
   ) : inner;
 
   const wrapped = (
-    <div data-pe-chapter={chapter.id} data-pe-section="chapter" data-pe-label={`Chapter ${index + 1}`}>
+    <div className="pl-scroll-fade-up" data-pe-chapter={chapter.id} data-pe-section="chapter" data-pe-label={`Chapter ${index + 1}`}>
       {withIcon}
     </div>
   );

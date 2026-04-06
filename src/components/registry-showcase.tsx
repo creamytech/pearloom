@@ -26,6 +26,8 @@ interface RegistryShowcaseProps {
   registries: RegistryEntry[];
   cashFundUrl?: string;
   cashFundMessage?: string;
+  cashFundGoal?: number;
+  cashFundRaised?: number;
   message?: string;
   title?: string;
 }
@@ -84,13 +86,13 @@ function getBrand(url: string, name: string) {
   }
   const firstChar = name.charAt(0).toUpperCase() || 'G';
   return {
-    accentColor: 'var(--eg-accent)',
+    accentColor: 'var(--pl-olive)',
     description: 'Gift Registry',
     letter: firstChar,
   };
 }
 
-function LetterAvatar({
+function BrandIcon({
   letter,
   accentColor,
 }: {
@@ -100,8 +102,8 @@ function LetterAvatar({
   return (
     <div
       style={{
-        width: '44px',
-        height: '44px',
+        width: '48px',
+        height: '48px',
         borderRadius: '50%',
         background: accentColor,
         display: 'flex',
@@ -109,13 +111,69 @@ function LetterAvatar({
         justifyContent: 'center',
         flexShrink: 0,
         color: '#fff',
-        fontFamily: 'var(--eg-font-heading)',
-        fontSize: '1.1rem',
-        fontWeight: 600,
-        letterSpacing: '-0.02em',
+        fontFamily: 'var(--pl-font-heading)',
+        fontSize: '1.35rem',
+        fontWeight: 800,
+        letterSpacing: '-0.03em',
+        boxShadow: `0 4px 14px color-mix(in srgb, ${accentColor} 35%, transparent)`,
       }}
     >
       {letter}
+    </div>
+  );
+}
+
+function CashFundProgressBar({
+  goal,
+  raised,
+}: {
+  goal: number;
+  raised: number;
+}) {
+  const pct = Math.min(Math.round((raised / goal) * 100), 100);
+  return (
+    <div style={{ marginTop: '1.5rem', width: '100%', maxWidth: '360px', marginInline: 'auto' }}>
+      <p
+        style={{
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase' as const,
+          color: 'var(--pl-plum)',
+          marginBottom: '0.6rem',
+        }}
+      >
+        Help us reach our goal
+      </p>
+      <div
+        style={{
+          width: '100%',
+          height: '8px',
+          borderRadius: '100px',
+          background: 'color-mix(in srgb, var(--pl-plum) 12%, transparent)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            borderRadius: '100px',
+            background: 'var(--pl-plum)',
+            transition: 'width 0.6s ease',
+          }}
+        />
+      </div>
+      <p
+        style={{
+          fontSize: '0.78rem',
+          color: 'var(--pl-muted)',
+          marginTop: '0.45rem',
+          fontStyle: 'italic',
+        }}
+      >
+        {pct}% funded &mdash; ${raised.toLocaleString()} of ${goal.toLocaleString()}
+      </p>
     </div>
   );
 }
@@ -131,20 +189,22 @@ function RegistryCard({
 
   return (
     <motion.div
+      className="pl-scroll-scale-in"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.75, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -4, boxShadow: '0 24px 60px rgba(43,43,43,0.1)' }}
       style={{
+        '--pl-stagger-delay': `${index * 100}ms`,
         display: 'flex',
         flexDirection: 'column',
-        background: '#ffffff',
+        background: 'var(--pl-cream-card, #ffffff)',
         borderRadius: '1.25rem',
         overflow: 'hidden',
         boxShadow: '0 4px 24px rgba(43,43,43,0.05)',
         transition: 'box-shadow 0.4s ease, transform 0.4s ease',
-      }}
+      } as React.CSSProperties}
     >
       {/* Top accent strip */}
       <div
@@ -157,7 +217,7 @@ function RegistryCard({
 
       <div
         style={{
-          padding: '2rem 2.25rem',
+          padding: 'clamp(1.25rem, 4vw, 2rem) clamp(1.25rem, 5vw, 2.25rem)',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -173,7 +233,7 @@ function RegistryCard({
             marginBottom: '1.5rem',
           }}
         >
-          <LetterAvatar letter={brand.letter} accentColor={brand.accentColor} />
+          <BrandIcon letter={brand.letter} accentColor={brand.accentColor} />
           <div>
             <div
               style={{
@@ -192,11 +252,11 @@ function RegistryCard({
 
         <h3
           style={{
-            fontFamily: 'var(--eg-font-heading)',
+            fontFamily: 'var(--pl-font-heading)',
             fontSize: 'clamp(1.2rem, 2.2vw, 1.45rem)',
             fontWeight: 500,
             fontStyle: 'italic',
-            color: 'var(--eg-fg)',
+            color: 'var(--pl-ink)',
             marginBottom: entry.note ? '0.6rem' : '0',
             lineHeight: 1.15,
             letterSpacing: '-0.015em',
@@ -208,7 +268,7 @@ function RegistryCard({
         {entry.note && (
           <p
             style={{
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               fontSize: '0.85rem',
               marginBottom: '1.5rem',
               lineHeight: 1.65,
@@ -231,7 +291,7 @@ function RegistryCard({
             gap: '0.5rem',
             padding: '0.7rem 1.5rem',
             borderRadius: '100px',
-            background: 'var(--eg-accent)',
+            background: 'var(--pl-olive)',
             color: '#fff',
             fontSize: '0.72rem',
             fontWeight: 700,
@@ -243,11 +303,11 @@ function RegistryCard({
             transition: 'background 0.2s ease, transform 0.2s ease',
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.background = 'var(--eg-accent-hover)';
+            e.currentTarget.style.background = 'var(--pl-olive-hover)';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.background = 'var(--eg-accent)';
+            e.currentTarget.style.background = 'var(--pl-olive)';
             e.currentTarget.style.transform = 'none';
           }}
         >
@@ -263,6 +323,8 @@ export function RegistryShowcase({
   registries,
   cashFundUrl,
   cashFundMessage,
+  cashFundGoal = 5000,
+  cashFundRaised = 0,
   message,
   title = 'Gifts & Registry',
 }: RegistryShowcaseProps) {
@@ -273,13 +335,13 @@ export function RegistryShowcase({
     <section
       data-pe-section="registry" data-pe-label="Registry"
       style={{
-        background: 'var(--eg-bg)',
+        background: 'var(--pl-cream)',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       {/* Wave divider at top */}
-      <SectionDivider color="var(--eg-bg-section)" />
+      <SectionDivider color="var(--pl-cream-deep)" />
 
       <div style={{ padding: '4rem 2rem 8rem' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -305,16 +367,16 @@ export function RegistryShowcase({
                 style={{
                   width: '48px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.3,
                 }}
               />
-              <GiftIcon size={20} color="var(--eg-accent)" style={{ opacity: 0.75 }} />
+              <GiftIcon size={20} color="var(--pl-olive)" style={{ opacity: 0.75 }} />
               <div
                 style={{
                   width: '48px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.3,
                 }}
               />
@@ -322,12 +384,12 @@ export function RegistryShowcase({
 
             <h2
               style={{
-                fontFamily: 'var(--eg-font-heading)',
+                fontFamily: 'var(--pl-font-heading)',
                 fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
                 fontWeight: 600,
                 fontStyle: 'italic',
                 letterSpacing: '-0.03em',
-                color: 'var(--eg-fg)',
+                color: 'var(--pl-ink)',
                 marginBottom: '1.5rem',
                 lineHeight: 1.05,
               }}
@@ -349,7 +411,7 @@ export function RegistryShowcase({
                 style={{
                   width: '24px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.35,
                 }}
               />
@@ -357,7 +419,7 @@ export function RegistryShowcase({
                 style={{
                   width: '4px',
                   height: '4px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   transform: 'rotate(45deg)',
                   opacity: 0.5,
                 }}
@@ -366,7 +428,7 @@ export function RegistryShowcase({
                 style={{
                   width: '24px',
                   height: '1px',
-                  background: 'var(--eg-accent)',
+                  background: 'var(--pl-olive)',
                   opacity: 0.35,
                 }}
               />
@@ -374,7 +436,7 @@ export function RegistryShowcase({
 
             <p
               style={{
-                color: 'var(--eg-muted)',
+                color: 'var(--pl-muted)',
                 fontSize: '1.05rem',
                 fontStyle: 'italic',
                 maxWidth: '500px',
@@ -407,14 +469,14 @@ export function RegistryShowcase({
                   opacity: 0.5,
                 }}
               >
-                <PearlDividerIcon size={10} color="var(--eg-accent)" />
+                <PearlDividerIcon size={10} color="var(--pl-olive)" />
               </div>
               <blockquote
                 style={{
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontSize: 'clamp(1rem, 2vw, 1.2rem)',
                   fontStyle: 'italic',
-                  color: 'var(--eg-fg)',
+                  color: 'var(--pl-ink)',
                   lineHeight: 1.75,
                   maxWidth: '600px',
                   margin: '0 auto',
@@ -433,7 +495,7 @@ export function RegistryShowcase({
                   opacity: 0.5,
                 }}
               >
-                <PearlDividerIcon size={10} color="var(--eg-accent)" />
+                <PearlDividerIcon size={10} color="var(--pl-olive)" />
               </div>
             </motion.div>
           )}
@@ -465,9 +527,9 @@ export function RegistryShowcase({
                 textAlign: 'center',
                 padding: '3.5rem 3rem',
                 background:
-                  'linear-gradient(135deg, var(--eg-plum-light) 0%, color-mix(in srgb, var(--eg-bg) 80%, var(--eg-plum-light) 20%) 100%)',
+                  'linear-gradient(135deg, var(--pl-plum-mist) 0%, color-mix(in srgb, var(--pl-cream) 80%, var(--pl-plum-mist) 20%) 100%)',
                 borderRadius: '1.25rem',
-                border: '1px solid color-mix(in srgb, var(--eg-plum) 18%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--pl-plum) 18%, transparent)',
                 position: 'relative',
                 overflow: 'hidden',
               }}
@@ -479,7 +541,7 @@ export function RegistryShowcase({
                   inset: 0,
                   pointerEvents: 'none',
                   backgroundImage:
-                    'radial-gradient(circle, color-mix(in srgb, var(--eg-plum) 10%, transparent) 1px, transparent 1px)',
+                    'radial-gradient(circle, color-mix(in srgb, var(--pl-plum) 10%, transparent) 1px, transparent 1px)',
                   backgroundSize: '20px 20px',
                   opacity: 0.4,
                 }}
@@ -487,14 +549,14 @@ export function RegistryShowcase({
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <ElegantHeartIcon
                   size={26}
-                  color="var(--eg-plum)"
+                  color="var(--pl-plum)"
                   style={{ marginBottom: '1.5rem', opacity: 0.7 }}
                 />
                 <p
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: 'clamp(1.2rem, 2.5vw, 1.5rem)',
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                     marginBottom: '0.75rem',
                     fontWeight: 400,
                     lineHeight: 1.35,
@@ -506,7 +568,7 @@ export function RegistryShowcase({
                 </p>
                 <p
                   style={{
-                    color: 'var(--eg-muted)',
+                    color: 'var(--pl-muted)',
                     fontSize: '0.88rem',
                     marginBottom: '2rem',
                     fontStyle: 'italic',
@@ -524,7 +586,7 @@ export function RegistryShowcase({
                     gap: '0.6rem',
                     padding: '0.9rem 2.5rem',
                     borderRadius: '100px',
-                    background: 'var(--eg-plum)',
+                    background: 'var(--pl-plum)',
                     color: '#fff',
                     fontWeight: 700,
                     letterSpacing: '0.08em',
@@ -532,23 +594,27 @@ export function RegistryShowcase({
                     textDecoration: 'none',
                     textTransform: 'uppercase' as const,
                     boxShadow:
-                      '0 8px 30px color-mix(in srgb, var(--eg-plum) 30%, transparent)',
+                      '0 8px 30px color-mix(in srgb, var(--pl-plum) 30%, transparent)',
                     transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                   }}
                   onMouseOver={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow =
-                      '0 14px 40px color-mix(in srgb, var(--eg-plum) 40%, transparent)';
+                      '0 14px 40px color-mix(in srgb, var(--pl-plum) 40%, transparent)';
                   }}
                   onMouseOut={(e) => {
                     e.currentTarget.style.transform = 'none';
                     e.currentTarget.style.boxShadow =
-                      '0 8px 30px color-mix(in srgb, var(--eg-plum) 30%, transparent)';
+                      '0 8px 30px color-mix(in srgb, var(--pl-plum) 30%, transparent)';
                   }}
                 >
                   <ElegantHeartIcon size={14} />
                   Contribute a Gift
                 </a>
+
+                {cashFundGoal > 0 && (
+                  <CashFundProgressBar goal={cashFundGoal} raised={cashFundRaised} />
+                )}
               </div>
             </motion.div>
           )}

@@ -33,6 +33,7 @@ import { ShareBar } from '@/components/site/ShareBar';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
+import { buildContext, resolveBlockConfig } from '@/lib/block-engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -207,6 +208,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const cardBg = pal.card;
   const accentLight = pal.accent2;
 
+  // When gradient mesh is active, make main transparent so the mesh shows through
+  const meshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
+  const mainBg = meshActive ? 'transparent' : bgColor;
+
   // Build theme dynamically from AI palette + fonts
   const dynamicTheme = {
     name: 'pearloom-ai',
@@ -234,7 +239,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     accent: pal.accent,
     bg: pal.background,
   });
-  const coverPhoto = rawCoverPhoto || `/api/hero-art?${heroArtParams.toString()}`;
+  // Hero image priority: 1) AI-generated Nano Banana art, 2) hero-art API fallback
+  const coverPhoto = vibeSkin.heroArtDataUrl || `/api/hero-art?${heroArtParams.toString()}`;
 
   // Memory Film: collect up to 6 chapter images for the cycling hero backdrop
   const filmPhotos = (manifest.chapters || [])
@@ -245,7 +251,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Build real nav pages from manifest content
   const hidden = new Set(manifest.hiddenPages || []);
   const sitePages = [
-    { id: 'story',    slug: 'our-story', label: 'Our Story', enabled: true,  order: 0 },
+    { id: 'story',    slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true,  order: 0 },
     (!hidden.has('schedule') && manifest.events?.length)
       ? { id: 'schedule', slug: 'schedule', label: 'Schedule',   enabled: true,  order: 1 } : null,
     (!hidden.has('rsvp') && manifest.events?.length)
@@ -260,16 +266,20 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
 
   const isPasswordProtected = manifest.comingSoon?.passwordProtected && manifest.comingSoon?.password;
 
+  // ── Binding context for template/binding resolution ──────────────
+  const bindingCtx = buildContext(manifest, safeNames, vibeSkin);
+
   // ── Block renderer: ordered by manifest.blocks ─────────────────
   const renderBlock = (type: string, key: string) => {
-    const blockCfg = (manifest.blocks || []).find((b: { id: string }) => b.id === key)?.config || {};
+    const rawCfg = (manifest.blocks || []).find((b: { id: string }) => b.id === key)?.config || {};
+    const blockCfg = resolveBlockConfig(rawCfg, bindingCtx);
     switch (type) {
       case 'hero':
         return (
           <div key={key} style={{ position: 'relative' }}>
             <Hero
               names={safeNames}
-              subtitle={siteConfig.tagline || 'A love story beautifully told.'}
+              subtitle={(blockCfg.subtitle as string) || siteConfig.tagline || ''}
               coverPhoto={coverPhoto}
               weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
               vibeSkin={vibeSkin}
@@ -295,7 +305,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
-            <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+            <WeddingEvents events={manifest.events} title={(blockCfg.title as string) || vibeSkin.sectionLabels.events} />
           </section>
         );
       case 'rsvp':
@@ -317,7 +327,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               registries={manifest.registry?.entries || []}
               cashFundUrl={manifest.registry?.cashFundUrl}
               cashFundMessage={manifest.registry?.cashFundMessage}
-              title={vibeSkin.sectionLabels.registry}
+              title={(blockCfg.title as string) || vibeSkin.sectionLabels.registry}
             />
           </section>
         );
@@ -358,11 +368,12 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         const eventDate = manifest.logistics?.date || manifest.events?.[0]?.date;
         if (!eventDate) return null;
         const occasion = manifest.occasion || 'wedding';
-        const countdownLabel = occasion === 'birthday' ? 'Until the celebration!'
+        const defaultCountdownLabel = occasion === 'birthday' ? 'Until the celebration!'
           : occasion === 'anniversary' ? 'Until our anniversary!'
           : occasion === 'engagement' ? 'Until the big day!'
           : occasion === 'story' ? 'The moment arrives'
           : 'Until we say I do';
+        const countdownLabel = (blockCfg.label as string) || defaultCountdownLabel;
         return (
           <CountdownBlock
             key={key}
@@ -392,10 +403,10 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'quote': {
         // Accept 'quote' (legacy) and 'text' (CanvasEditor saves as 'text')
         const customQuote = (blockCfg.quote || blockCfg.text) as string | undefined;
-        const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.';
+        const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || '';
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
-            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{(blockCfg.symbol as string) || vibeSkin.accentSymbol || '\u2726'}</div>
             <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: pal.foreground, opacity: 0.75 }}>
               &ldquo;{quoteText}&rdquo;
             </p>
@@ -446,14 +457,14 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         );
       }
       case 'divider':
-        return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
+        return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={(blockCfg.height as number) || 60} />;
       case 'photos': {
         const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: pal.accent, marginBottom: '0.6rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
-                {vibeSkin.sectionLabels.photos || 'Our Photos'}
+                {(blockCfg.title as string) || vibeSkin.sectionLabels.photos || 'Our Photos'}
               </div>
               <div style={{ width: '40px', height: '2px', background: pal.accent, margin: '0 auto', opacity: 0.5 }} />
             </div>
@@ -476,6 +487,106 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           </section>
         );
       }
+      case 'spotify':
+        if (!manifest.spotifyUrl) return null;
+        return (
+          <SpotifySection
+            key={key}
+            spotifyUrl={manifest.spotifyUrl}
+            playlistName={(blockCfg.title as string) || manifest.spotifyPlaylistName}
+            vibeSkin={vibeSkin}
+          />
+        );
+      case 'quiz': {
+        const quizChapters = (manifest.chapters || []).filter((ch: import('@/types').Chapter) => ch.quizQuestion);
+        if (quizChapters.length === 0) return null;
+        return (
+          <CoupleQuiz
+            key={key}
+            chapters={quizChapters}
+            vibeSkin={vibeSkin}
+            siteId={domain}
+            coupleNames={safeNames}
+          />
+        );
+      }
+      case 'photoWall':
+        return (
+          <GuestPhotoWall
+            key={key}
+            siteId={domain}
+            vibeSkin={vibeSkin}
+          />
+        );
+      case 'hashtag': {
+        if (!manifest.hashtags?.length) return null;
+        return (
+          <section key={key} style={{ padding: 'clamp(3rem,6vw,5rem) 2rem', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: pal.accent, marginBottom: '1rem', fontFamily: `"${vibeSkin.fonts.body}", sans-serif` }}>
+              {(blockCfg.title as string) || 'Share the Moment'}
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {manifest.hashtags.map((tag: string) => (
+                <span key={tag} style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 600, fontStyle: 'italic', color: pal.foreground }}>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </section>
+        );
+      }
+      case 'gallery':
+        return (
+          <SiteGallerySection key={key} siteId={domain} coupleNames={safeNames} />
+        );
+      case 'vibeQuote': {
+        const vqText = (blockCfg.text as string) || vibeSkin.dividerQuote || manifest.vibeString || '';
+        if (!vqText) return null;
+        return (
+          <section key={key} style={{ padding: 'clamp(3rem,6vw,6rem) 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+            <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{(blockCfg.symbol as string) || vibeSkin.accentSymbol || '\u2726'}</div>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.7, color: pal.foreground, opacity: 0.75 }}>
+              &ldquo;{vqText}&rdquo;
+            </p>
+          </section>
+        );
+      }
+      case 'welcome': {
+        const welcomeText = (blockCfg.text as string) || manifest.poetry?.welcomeStatement;
+        if (!welcomeText) return null;
+        return (
+          <section key={key} style={{ padding: 'clamp(3rem,6vw,5rem) 2rem', textAlign: 'center', maxWidth: '680px', margin: '0 auto' }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.05rem', lineHeight: 1.9, color: pal.foreground, opacity: 0.8 }}>
+              {welcomeText}
+            </p>
+          </section>
+        );
+      }
+      case 'anniversary':
+        if (!manifest.anniversaryMode) return null;
+        return (
+          <section key={key} style={{ textAlign: 'center', padding: '1.5rem', background: `${pal.accent}08` }}>
+            <p style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: pal.accent }}>
+              {(blockCfg.title as string) || 'Anniversary Edition'}
+            </p>
+          </section>
+        );
+      case 'footer':
+        return (
+          <footer key={key} style={{ background: pal.foreground, color: `${pal.background}B0`, padding: 'clamp(3rem,6vw,5rem) 2rem 2rem', textAlign: 'center' }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.2rem,3vw,1.8rem)', fontWeight: 600, fontStyle: 'italic', color: `${pal.background}F0`, marginBottom: '0.75rem' }}>
+              {safeNames[1]?.trim() ? `${safeNames[0]} & ${safeNames[1]}` : safeNames[0]}
+            </p>
+            {manifest.poetry?.closingLine && (
+              <p style={{ fontSize: '0.88rem', fontStyle: 'italic', opacity: 0.6, marginBottom: '2rem', maxWidth: '480px', margin: '0 auto 2rem' }}>
+                {(blockCfg.text as string) || manifest.poetry.closingLine}
+              </p>
+            )}
+            <p style={{ fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.3, marginTop: '2rem' }}>
+              {(blockCfg.subtitle as string) || 'Made with Pearloom'}
+            </p>
+          </footer>
+        );
       default:
         return null;
     }
@@ -536,19 +647,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           />
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '4rem' }}>
-          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-          <span style={{ fontSize: '1.75rem', color: 'var(--eg-accent)', opacity: 0.7 }}>{vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}</span>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.4 }}>{vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}</span>
+          <span style={{ fontSize: '1.25rem', color: 'var(--pl-olive)', opacity: 0.4 }}>{vibeSkin.decorIcons[1] || vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.75rem', color: 'var(--pl-olive)', opacity: 0.7 }}>{vibeSkin.accentSymbol || vibeSkin.decorIcons[0] || '✦'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.25rem', color: 'var(--pl-olive)', opacity: 0.4 }}>{vibeSkin.decorIcons[2] || vibeSkin.decorIcons[0] || '✦'}</span>
         </div>
-        <p style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: 'var(--eg-fg)', opacity: 0.75, letterSpacing: '-0.01em' }}>
+        <p style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 2.2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: 'var(--pl-ink)', opacity: 0.75, letterSpacing: '-0.01em' }}>
           &ldquo;{vibeSkin.aiGenerated ? vibeSkin.dividerQuote : manifest.vibeString}&rdquo;
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginTop: '4rem' }}>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
-          <span style={{ fontSize: '1.25rem', color: 'var(--eg-accent)', opacity: 0.5 }}>{vibeSkin.decorIcons[3] || '•'}</span>
-          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--eg-accent)', opacity: 0.2 }} />
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
+          <span style={{ fontSize: '1.25rem', color: 'var(--pl-olive)', opacity: 0.5 }}>{vibeSkin.decorIcons[3] || '•'}</span>
+          <div style={{ flex: 1, maxWidth: '80px', height: '1px', background: 'var(--pl-olive)', opacity: 0.2 }} />
         </div>
       </div>
     </div>
@@ -647,6 +758,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     if (!visibleBlocks) return null;
     const result: React.ReactNode[] = [];
     let prevExitColor = bgColor;
+    let dividerIdx = 0;
 
     visibleBlocks.forEach((block) => {
       const rendered = renderBlock(block.type, block.id);
@@ -666,16 +778,33 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       // Skip divider before hero (it's the first thing on the page)
       if (block.type !== 'hero') {
         const divAbove = block.blockEffects?.dividerAbove;
+        const globalDiv = manifest.theme?.effects?.sectionDivider;
+        const useGlobalDiv = globalDiv && globalDiv.style !== 'none';
         if (divAbove) {
-          // Custom SVG shape divider chosen in the editor
+          // Per-block custom SVG shape divider chosen in the editor
           result.push(
             <SectionDivider
               key={`divider-before-${block.id}`}
               style={divAbove.style}
               color={thisEntryColor}
+              bgColor={prevExitColor}
               height={divAbove.height}
             />
           );
+        } else if (useGlobalDiv) {
+          // Global section divider from design panel
+          const shouldFlip = globalDiv!.flip && dividerIdx % 2 === 1;
+          result.push(
+            <SectionDivider
+              key={`divider-before-${block.id}`}
+              style={globalDiv!.style}
+              color={thisEntryColor}
+              bgColor={prevExitColor}
+              height={globalDiv!.height}
+              flip={shouldFlip}
+            />
+          );
+          dividerIdx++;
         } else {
           result.push(
             <WaveDivider
@@ -689,11 +818,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         }
       }
 
-      // Wrap in scroll-reveal container if this block has a per-block entrance animation
+      // Wrap in scroll-reveal container — per-block overrides global
       const blockReveal = block.blockEffects?.scrollReveal;
-      if (blockReveal && blockReveal !== 'none') {
+      const globalReveal = manifest.theme?.effects?.scrollReveal;
+      const effectiveReveal = (blockReveal && blockReveal !== 'none') ? blockReveal : globalReveal;
+      if (effectiveReveal && effectiveReveal !== 'none' && block.type !== 'hero') {
         result.push(
-          <div key={block.id} data-pl-reveal={blockReveal}>
+          <div key={block.id} data-pl-reveal={effectiveReveal}>
             {rendered}
           </div>
         );
@@ -707,7 +838,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           ...(manifest.anniversaryMode ? [
             <div key="anniversary-banner" style={{
               textAlign: 'center', fontSize: '0.85rem',
-              color: 'var(--eg-accent, #A3B18A)',
+              color: 'var(--pl-olive, #A3B18A)',
               letterSpacing: '0.12em', textTransform: 'uppercase',
               marginTop: '0.5rem', opacity: 0.8,
             }}>
@@ -761,7 +892,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             {manifest.hashtags.map((tag: string) => (
               <span key={tag} style={{
                 fontSize: '0.9rem', fontWeight: 600,
-                color: 'var(--eg-accent, #A3B18A)',
+                color: 'var(--pl-olive, #A3B18A)',
                 background: 'rgba(163,177,138,0.08)',
                 padding: '0.3rem 0.75rem', borderRadius: '999px',
                 border: '1px solid rgba(163,177,138,0.2)',
@@ -827,7 +958,19 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           accentColor2={pal.accent2 || pal.highlight || pal.accent}
         />
 
-        <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: bgColor, position: 'relative', isolation: 'isolate' }}>
+        {meshActive && <style>{`body { background: ${bgColor}; }`}</style>}
+
+        {/* AI-generated bespoke background art from the Design panel */}
+        {manifest.backgroundPatternCss && (
+          <div aria-hidden="true" style={{
+            position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+            backgroundImage: manifest.backgroundPatternCss,
+            backgroundRepeat: 'repeat', backgroundSize: '400px 400px',
+            opacity: 0.12,
+          }} />
+        )}
+
+        <main style={{ minHeight: '100dvh', paddingBottom: '5rem', background: mainBg, position: 'relative', isolation: 'isolate' }}>
           {visibleBlocks ? (
             // ── BLOCK-DRIVEN layout (Canvas editor controls order) ──
             <>
@@ -900,7 +1043,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
               {manifest.anniversaryMode && (
                 <div style={{
                   textAlign: 'center', fontSize: '0.85rem',
-                  color: 'var(--eg-accent, #A3B18A)',
+                  color: 'var(--pl-olive, #A3B18A)',
                   letterSpacing: '0.12em', textTransform: 'uppercase',
                   marginTop: '0.5rem', opacity: 0.8,
                 }}>
@@ -962,7 +1105,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                     {manifest.hashtags.map((tag: string) => (
                       <span key={tag} style={{
                         fontSize: '0.9rem', fontWeight: 600,
-                        color: 'var(--eg-accent, #A3B18A)',
+                        color: 'var(--pl-olive, #A3B18A)',
                         background: 'rgba(163,177,138,0.08)',
                         padding: '0.3rem 0.75rem', borderRadius: '999px',
                         border: '1px solid rgba(163,177,138,0.2)',

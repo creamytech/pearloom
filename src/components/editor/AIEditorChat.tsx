@@ -33,9 +33,9 @@ const STARTER_CHIPS = [
 
 // ── Colour tokens (inline styles using CSS vars + literals) ───
 const CREAM = '#FAF7F2';
-const OLIVE = 'var(--eg-accent, #A3B18A)';
-const PLUM  = 'var(--eg-plum, #6D597A)';
-const DARK  = 'var(--eg-dark-2, #3D3530)';
+const OLIVE = 'var(--pl-olive, #A3B18A)';
+const PLUM  = 'var(--pl-plum, #6D597A)';
+const DARK  = 'var(--pl-ink-soft, #3D3530)';
 
 // ── Typing dots animation ──────────────────────────────────────
 function TypingIndicator() {
@@ -366,8 +366,8 @@ export function AIEditorChat({
                   padding: '0.5rem 0.75rem',
                   borderRadius: '0.6rem',
                   border: `1px solid rgba(163,177,138,0.35)`,
-                  background: '#fff',
-                  color: '#2B2B2B',
+                  background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
+                  color: 'var(--pl-ink)',
                   fontSize: '0.82rem',
                   outline: 'none',
                   fontFamily: 'inherit',

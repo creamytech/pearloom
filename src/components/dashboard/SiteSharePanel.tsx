@@ -38,7 +38,7 @@ export function SiteSharePanel({
   siteName,
   coupleNames,
   accentColor = '#A3B18A',
-  bgColor = '#2B2B2B',
+  bgColor = '#FAF7F2',
   tagline = '',
   dateStr = '',
   coverPhoto = '',
@@ -103,7 +103,7 @@ export function SiteSharePanel({
   const sectionLabel = (text: string) => (
     <div style={{
       fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.14em',
-      textTransform: 'uppercase', color: 'var(--eg-muted)', marginBottom: '1rem',
+      textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '1rem',
     }}>
       {text}
     </div>
@@ -111,7 +111,7 @@ export function SiteSharePanel({
 
   const card = (children: React.ReactNode, extraStyle?: React.CSSProperties) => (
     <div style={{
-      background: 'var(--eg-bg)', borderRadius: '1.25rem',
+      background: 'var(--pl-cream)', borderRadius: '1.25rem',
       border: '1px solid rgba(0,0,0,0.06)',
       padding: '1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
       ...extraStyle,
@@ -127,7 +127,7 @@ export function SiteSharePanel({
       padding: '0.7rem 0.9rem', border: '1px solid rgba(0,0,0,0.06)',
     }}>
       <code style={{
-        flex: 1, fontSize: '0.8rem', color: 'var(--eg-fg)',
+        flex: 1, fontSize: '0.8rem', color: 'var(--pl-ink)',
         fontFamily: 'ui-monospace, monospace',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
@@ -144,11 +144,11 @@ export function SiteSharePanel({
           style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.4rem 0.8rem', borderRadius: '0.4rem', flexShrink: 0,
-            background: copied === type ? 'rgba(34,197,94,0.1)' : 'var(--eg-fg)',
+            background: copied === type ? 'rgba(34,197,94,0.1)' : 'var(--pl-ink)',
             color:      copied === type ? '#16a34a'             : '#fff',
             border:     copied === type ? '1px solid rgba(34,197,94,0.2)' : 'none',
             cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
-            fontFamily: 'var(--eg-font-body)',
+            fontFamily: 'var(--pl-font-body)',
           }}
         >
           {copied === type ? <Check size={12} /> : <Copy size={12} />}
@@ -170,11 +170,11 @@ export function SiteSharePanel({
       style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem',
         padding: '0.55rem 1rem', borderRadius: '100px',
-        background: primary ? 'var(--eg-fg)' : 'rgba(0,0,0,0.04)',
-        color:      primary ? '#fff'         : 'var(--eg-fg)',
+        background: primary ? 'var(--pl-ink)' : 'rgba(0,0,0,0.04)',
+        color:      primary ? '#fff'         : 'var(--pl-ink)',
         border:     primary ? 'none'         : '1px solid rgba(0,0,0,0.08)',
         cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
-        fontFamily: 'var(--eg-font-body)', whiteSpace: 'nowrap',
+        fontFamily: 'var(--pl-font-body)', whiteSpace: 'nowrap',
       }}
     >
       {icon}
@@ -262,7 +262,7 @@ export function SiteSharePanel({
         <>
           {sectionLabel('RSVP Link')}
           <p style={{
-            fontSize: '0.8rem', color: 'var(--eg-muted)', margin: '0 0 0.875rem 0', lineHeight: 1.5,
+            fontSize: '0.8rem', color: 'var(--pl-muted)', margin: '0 0 0.875rem 0', lineHeight: 1.5,
           }}>
             Send this directly so guests can RSVP without scrolling through the whole site.
           </p>
@@ -296,10 +296,10 @@ export function SiteSharePanel({
                     background: qrTab === tab ? '#fff' : 'transparent',
                     border: 'none', cursor: 'pointer',
                     fontSize: '0.72rem', fontWeight: 600,
-                    color: qrTab === tab ? 'var(--eg-fg)' : 'var(--eg-muted)',
+                    color: qrTab === tab ? 'var(--pl-ink)' : 'var(--pl-muted)',
                     boxShadow: qrTab === tab ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                     transition: 'all 0.15s',
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                   }}
                 >
                   {tab === 'site' ? 'Site Link' : 'RSVP Link'}
@@ -327,7 +327,7 @@ export function SiteSharePanel({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', paddingTop: '0.25rem' }}>
-              <p style={{ fontSize: '0.78rem', color: 'var(--eg-muted)', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--pl-muted)', margin: 0, lineHeight: 1.5 }}>
                 {qrTab === 'rsvp'
                   ? 'Display at your venue — guests scan to RSVP instantly.'
                   : 'Add to save-the-dates, invitations, or venue displays.'}
@@ -342,7 +342,7 @@ export function SiteSharePanel({
                   cursor: activeSvg ? 'pointer' : 'not-allowed',
                   fontSize: '0.72rem', fontWeight: 600,
                   opacity: activeSvg ? 1 : 0.4,
-                  color: 'var(--eg-fg)', fontFamily: 'var(--eg-font-body)',
+                  color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)',
                   width: 'fit-content',
                 }}
               >

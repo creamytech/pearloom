@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 export interface RelationshipGraphInputProps {
   siteId: string;
@@ -34,7 +35,7 @@ const INPUT_STYLE: React.CSSProperties = {
   background: '#FDFBF6',
   fontFamily: 'inherit',
   fontSize: '0.9rem',
-  color: '#2B2B2B',
+  color: 'var(--pl-ink)',
   outline: 'none',
   boxSizing: 'border-box',
 };
@@ -109,7 +110,7 @@ export function RelationshipGraphInput({ siteId, coupleNames, onAdded }: Relatio
         }}
       >
         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🗺️</div>
-        <p style={{ fontFamily: 'Playfair Display, Georgia, serif', fontStyle: 'italic', fontSize: '1.2rem', color: '#2B2B2B', margin: 0 }}>
+        <p style={{ fontFamily: 'Playfair Display, Georgia, serif', fontStyle: 'italic', fontSize: '1.2rem', color: 'var(--pl-ink)', margin: 0 }}>
           You&apos;re on the map!
         </p>
         <p style={{ fontSize: '0.85rem', color: '#9A9488', marginTop: '0.4rem' }}>
@@ -136,7 +137,7 @@ export function RelationshipGraphInput({ siteId, coupleNames, onAdded }: Relatio
           fontStyle: 'italic',
           fontWeight: 400,
           fontSize: '1.25rem',
-          color: '#2B2B2B',
+          color: 'var(--pl-ink)',
           margin: '0 0 1.4rem',
           paddingRight: '1.5rem', // space for the close button if inline
         }}

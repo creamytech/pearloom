@@ -141,7 +141,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
     <div style={{ maxWidth: '720px', margin: '0 auto' }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '2rem', marginBottom: '0.5rem', color: C.ink }}>
+        <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '0.5rem', color: C.ink }}>
           Upload Your Photos
         </h2>
         <p style={{ color: C.muted, fontSize: text.md, lineHeight: 1.6 }}>

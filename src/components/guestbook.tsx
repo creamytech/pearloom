@@ -46,8 +46,8 @@ const inputBaseStyle: React.CSSProperties = {
   borderBottom: '1.5px solid rgba(0,0,0,0.12)',
   background: 'transparent',
   fontSize: 'max(16px, 0.9rem)',
-  fontFamily: 'var(--eg-font-body)',
-  color: 'var(--eg-fg)',
+  fontFamily: 'var(--pl-font-body)',
+  color: 'var(--pl-ink)',
   outline: 'none',
   transition: 'border-color 0.25s ease',
   borderRadius: 0,
@@ -90,18 +90,18 @@ function WishCard({ wish, index }: { wish: Wish; index: number }) {
     >
       {/* Decorative heart */}
       <div style={{ marginBottom: '1rem', opacity: 0.4 }}>
-        <ElegantHeartIcon size={16} color="var(--eg-accent)" />
+        <ElegantHeartIcon size={16} color="var(--pl-olive)" />
       </div>
 
       {/* Message */}
       <p
         style={{
           fontSize: '1rem',
-          color: 'var(--eg-muted)',
+          color: 'var(--pl-muted)',
           lineHeight: 1.7,
           fontStyle: 'italic',
           marginBottom: '1.25rem',
-          fontFamily: 'var(--eg-font-body)',
+          fontFamily: 'var(--pl-font-body)',
         }}
       >
         &ldquo;{wish.message}&rdquo;
@@ -128,13 +128,13 @@ function WishCard({ wish, index }: { wish: Wish; index: number }) {
               width: '26px',
               height: '26px',
               borderRadius: '50%',
-              background: 'var(--eg-accent-light)',
+              background: 'var(--pl-olive-mist)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '0.65rem',
               fontWeight: 700,
-              color: 'var(--eg-accent)',
+              color: 'var(--pl-olive)',
               flexShrink: 0,
             }}
           >
@@ -142,10 +142,10 @@ function WishCard({ wish, index }: { wish: Wish; index: number }) {
           </div>
           <span
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: '1.1rem',
               fontWeight: 400,
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               letterSpacing: '-0.01em',
             }}
           >
@@ -155,7 +155,7 @@ function WishCard({ wish, index }: { wish: Wish; index: number }) {
         <span
           style={{
             fontSize: '0.7rem',
-            color: 'var(--eg-muted)',
+            color: 'var(--pl-muted)',
             fontVariant: 'small-caps',
             letterSpacing: '0.06em',
             opacity: 0.7,
@@ -242,7 +242,7 @@ function WallOfLight({ wishes, vibeSkin }: { wishes: Wish[]; vibeSkin?: VibeSkin
               color: `rgba(245,241,232,${0.6 + depth * 0.25})`,
               lineHeight: 1.65,
               marginBottom: '0.85rem',
-              fontFamily: 'var(--eg-font-body, Georgia, serif)',
+              fontFamily: 'var(--pl-font-body, Georgia, serif)',
             }}>
               &ldquo;{wish.message}&rdquo;
             </p>
@@ -334,7 +334,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
   return (
     <section
       id="guestbook"
-      style={{ padding: '8rem 2rem', background: 'var(--eg-bg)', position: 'relative' }}
+      style={{ padding: '8rem 2rem', background: 'var(--pl-cream)', position: 'relative' }}
     >
       <div style={{ maxWidth: '820px', margin: '0 auto' }}>
         {/* Section header */}
@@ -359,28 +359,28 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                 flex: 1,
                 maxWidth: '80px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.2,
               }}
             />
-            <ElegantHeartIcon size={20} color="var(--eg-accent)" style={{ opacity: 0.7 }} />
+            <ElegantHeartIcon size={20} color="var(--pl-olive)" style={{ opacity: 0.7 }} />
             <div
               style={{
                 flex: 1,
                 maxWidth: '80px',
                 height: '1px',
-                background: 'var(--eg-accent)',
+                background: 'var(--pl-olive)',
                 opacity: 0.2,
               }}
             />
           </div>
           <h2
             style={{
-              fontFamily: 'var(--eg-font-heading)',
+              fontFamily: 'var(--pl-font-heading)',
               fontSize: 'clamp(2.5rem, 5vw, 4rem)',
               fontWeight: 400,
               letterSpacing: '-0.025em',
-              color: 'var(--eg-fg)',
+              color: 'var(--pl-ink)',
               marginBottom: '1rem',
             }}
           >
@@ -388,7 +388,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
           </h2>
           <p
             style={{
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
               fontSize: '1.05rem',
               fontStyle: 'italic',
             }}
@@ -404,7 +404,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           style={{
-            background: 'var(--eg-bg-section)',
+            background: 'var(--pl-cream-deep)',
             borderRadius: '1.25rem',
             border: '1px solid rgba(0,0,0,0.05)',
             padding: '2rem 2.25rem',
@@ -436,23 +436,23 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     height: '64px',
                     borderRadius: '50%',
                     background:
-                      'linear-gradient(135deg, var(--eg-accent-light), color-mix(in srgb, var(--eg-accent-light) 50%, #fff))',
-                    border: '2px solid color-mix(in srgb, var(--eg-accent) 25%, transparent)',
+                      'linear-gradient(135deg, var(--pl-olive-mist), color-mix(in srgb, var(--pl-olive-mist) 50%, #fff))',
+                    border: '2px solid color-mix(in srgb, var(--pl-olive) 25%, transparent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 1.5rem',
                   }}
                 >
-                  <ElegantHeartIcon size={24} color="var(--eg-accent)" />
+                  <ElegantHeartIcon size={24} color="var(--pl-olive)" />
                 </motion.div>
                 <h3
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: '1.65rem',
                     fontWeight: 400,
                     marginBottom: '0.6rem',
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                     letterSpacing: '-0.015em',
                   }}
                 >
@@ -460,7 +460,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                 </h3>
                 <p
                   style={{
-                    color: 'var(--eg-muted)',
+                    color: 'var(--pl-muted)',
                     fontSize: '0.95rem',
                     lineHeight: 1.6,
                   }}
@@ -493,13 +493,13 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                   >
                     <ElegantHeartIcon
                       size={28}
-                      color="var(--eg-accent)"
+                      color="var(--pl-olive)"
                       style={{ opacity: 0.4, marginBottom: '0.75rem' }}
                     />
                     <p
                       style={{
                         fontStyle: 'italic',
-                        color: 'var(--eg-muted)',
+                        color: 'var(--pl-muted)',
                         fontSize: '0.9rem',
                         lineHeight: 1.6,
                       }}
@@ -515,7 +515,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     style={{
                       fontSize: '0.72rem',
                       fontWeight: 600,
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       marginBottom: '0.6rem',
@@ -538,22 +538,22 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                         style={{
                           padding: '0.35rem 0.8rem',
                           borderRadius: '100px',
-                          border: '1px solid color-mix(in srgb, var(--eg-accent) 30%, transparent)',
-                          background: 'color-mix(in srgb, var(--eg-accent-light) 50%, transparent)',
-                          color: 'var(--eg-accent)',
+                          border: '1px solid color-mix(in srgb, var(--pl-olive) 30%, transparent)',
+                          background: 'color-mix(in srgb, var(--pl-olive-mist) 50%, transparent)',
+                          color: 'var(--pl-olive)',
                           fontSize: '0.78rem',
-                          fontFamily: 'var(--eg-font-body)',
+                          fontFamily: 'var(--pl-font-body)',
                           cursor: 'pointer',
                           transition: 'background 0.2s, border-color 0.2s',
                           whiteSpace: 'nowrap',
                         }}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLElement).style.background =
-                            'color-mix(in srgb, var(--eg-accent-light) 80%, transparent)';
+                            'color-mix(in srgb, var(--pl-olive-mist) 80%, transparent)';
                         }}
                         onMouseLeave={(e) => {
                           (e.currentTarget as HTMLElement).style.background =
-                            'color-mix(in srgb, var(--eg-accent-light) 50%, transparent)';
+                            'color-mix(in srgb, var(--pl-olive-mist) 50%, transparent)';
                         }}
                       >
                         {pill.label}
@@ -578,19 +578,19 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                       borderRadius: '100px',
                       border: '1.5px dashed rgba(0,0,0,0.15)',
                       background: 'transparent',
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       fontSize: '0.82rem',
-                      fontFamily: 'var(--eg-font-body)',
+                      fontFamily: 'var(--pl-font-body)',
                       cursor: 'pointer',
                       transition: 'border-color 0.2s, color 0.2s',
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = 'var(--eg-accent)';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--eg-accent)';
+                      (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive)';
+                      (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)';
                     }}
                     onMouseLeave={(e) => {
                       (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.15)';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--eg-muted)';
+                      (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)';
                     }}
                   >
                     <Mic size={13} />
@@ -607,8 +607,8 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                           position: 'absolute',
                           left: 0,
                           top: 'calc(100% + 0.5rem)',
-                          background: 'var(--eg-fg)',
-                          color: 'var(--eg-bg)',
+                          background: 'var(--pl-ink)',
+                          color: 'var(--pl-cream)',
                           fontSize: '0.75rem',
                           padding: '0.4rem 0.85rem',
                           borderRadius: '0.5rem',
@@ -617,7 +617,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                           zIndex: 10,
                         }}
                       >
-                        Voice messages coming soon ✨
+                        Voice messages coming soon
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -630,7 +630,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                       display: 'block',
                       fontSize: '0.72rem',
                       fontWeight: 600,
-                      color: 'var(--eg-muted)',
+                      color: 'var(--pl-muted)',
                       marginBottom: '0.35rem',
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
@@ -645,7 +645,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     placeholder="First and last name"
                     style={inputBaseStyle}
                     onFocus={(e) => {
-                      e.target.style.borderBottomColor = 'var(--eg-accent)';
+                      e.target.style.borderBottomColor = 'var(--pl-olive)';
                     }}
                     onBlur={(e) => {
                       e.target.style.borderBottomColor = 'rgba(0,0,0,0.12)';
@@ -667,7 +667,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                       style={{
                         fontSize: '0.72rem',
                         fontWeight: 600,
-                        color: 'var(--eg-muted)',
+                        color: 'var(--pl-muted)',
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
                       }}
@@ -683,7 +683,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                             ? '#ef4444'
                             : charsLeft <= 40
                             ? '#f59e0b'
-                            : 'var(--eg-muted)',
+                            : 'var(--pl-muted)',
                         transition: 'color 0.2s',
                       }}
                     >
@@ -706,7 +706,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     }}
                     onFocus={(e) => {
                       if (!isOverLimit)
-                        e.target.style.borderBottomColor = 'var(--eg-accent)';
+                        e.target.style.borderBottomColor = 'var(--pl-olive)';
                     }}
                     onBlur={(e) => {
                       e.target.style.borderBottomColor = isOverLimit
@@ -755,10 +755,10 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     background:
                       submitting || !name.trim() || !message.trim() || isOverLimit
                         ? 'rgba(0,0,0,0.08)'
-                        : 'var(--eg-accent)',
+                        : 'var(--pl-olive)',
                     color:
                       submitting || !name.trim() || !message.trim() || isOverLimit
-                        ? 'var(--eg-muted)'
+                        ? 'var(--pl-muted)'
                         : '#fff',
                     border: 'none',
                     fontWeight: 600,
@@ -768,7 +768,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                         ? 'not-allowed'
                         : 'pointer',
                     transition: 'all 0.25s ease',
-                    fontFamily: 'var(--eg-font-body)',
+                    fontFamily: 'var(--pl-font-body)',
                     alignSelf: 'flex-start',
                   }}
                 >
@@ -792,15 +792,15 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
               animate={{ opacity: 1, y: 0 }}
               style={{
                 background:
-                  'linear-gradient(135deg, var(--eg-accent-light), color-mix(in srgb, var(--eg-accent-light) 60%, #fff))',
+                  'linear-gradient(135deg, var(--pl-olive-mist), color-mix(in srgb, var(--pl-olive-mist) 60%, #fff))',
                 borderRadius: '1.25rem',
                 padding: '2.75rem 3rem',
                 marginBottom: '3rem',
                 position: 'relative',
                 border:
-                  '1.5px solid color-mix(in srgb, var(--eg-accent) 20%, transparent)',
+                  '1.5px solid color-mix(in srgb, var(--pl-olive) 20%, transparent)',
                 boxShadow:
-                  '0 12px 50px color-mix(in srgb, var(--eg-accent) 12%, transparent)',
+                  '0 12px 50px color-mix(in srgb, var(--pl-olive) 12%, transparent)',
                 overflow: 'hidden',
               }}
             >
@@ -815,14 +815,14 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                   alignItems: 'center',
                 }}
               >
-                <Sparkles size={13} color="var(--eg-accent)" style={{ opacity: 0.7 }} />
+                <Sparkles size={13} color="var(--pl-olive)" style={{ opacity: 0.7 }} />
                 <span
                   style={{
                     fontSize: '0.65rem',
                     fontWeight: 700,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
-                    color: 'var(--eg-accent)',
+                    color: 'var(--pl-olive)',
                     opacity: 0.7,
                   }}
                 >
@@ -839,7 +839,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                   fontFamily: 'Georgia, serif',
                   fontSize: '8rem',
                   lineHeight: 1,
-                  color: 'var(--eg-accent)',
+                  color: 'var(--pl-olive)',
                   opacity: 0.08,
                   pointerEvents: 'none',
                   userSelect: 'none',
@@ -850,11 +850,11 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
 
               <p
                 style={{
-                  fontFamily: 'var(--eg-font-heading)',
+                  fontFamily: 'var(--pl-font-heading)',
                   fontSize: 'clamp(1.15rem, 2.5vw, 1.6rem)',
                   fontWeight: 400,
                   fontStyle: 'italic',
-                  color: 'var(--eg-fg)',
+                  color: 'var(--pl-ink)',
                   lineHeight: 1.7,
                   marginBottom: '1.75rem',
                   position: 'relative',
@@ -875,7 +875,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: 'var(--eg-accent)',
+                    background: 'var(--pl-olive)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -889,11 +889,11 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                 </div>
                 <div
                   style={{
-                    fontFamily: 'var(--eg-font-heading)',
+                    fontFamily: 'var(--pl-font-heading)',
                     fontSize: '1.1rem',
                     fontWeight: 400,
                     letterSpacing: '-0.01em',
-                    color: 'var(--eg-fg)',
+                    color: 'var(--pl-ink)',
                   }}
                 >
                   {highlighted.guestName}
@@ -915,7 +915,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
               display: 'flex',
               justifyContent: 'center',
               padding: '3rem',
-              color: 'var(--eg-muted)',
+              color: 'var(--pl-muted)',
             }}
           >
             <Loader2

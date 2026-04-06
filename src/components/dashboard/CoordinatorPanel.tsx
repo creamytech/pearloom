@@ -120,12 +120,12 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
   const inputStyle: React.CSSProperties = {
     flex: 1,
     padding: '0.65rem 0.875rem',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'rgba(163,177,138,0.06)',
+    border: '1px solid rgba(0,0,0,0.06)',
     borderRadius: '0.625rem',
-    color: 'rgba(255,255,255,0.9)',
+    color: 'var(--pl-ink)',
     fontSize: '0.875rem',
-    fontFamily: 'var(--eg-font-body, Georgia, serif)',
+    fontFamily: 'var(--pl-font-body, Georgia, serif)',
     outline: 'none',
     transition: 'border-color 0.2s',
   };
@@ -139,8 +139,8 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
     >
       {/* Header */}
       <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(163,177,138,0.04)',
+        border: '1px solid rgba(0,0,0,0.05)',
         borderRadius: '1rem',
         padding: '1.5rem',
       }}>
@@ -148,8 +148,8 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
           <Users size={15} color="rgba(163,177,138,0.9)" />
           <h2 style={{
             margin: 0, fontSize: '0.95rem', fontWeight: 700,
-            color: 'rgba(255,255,255,0.9)',
-            fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+            color: 'var(--pl-ink)',
+            fontFamily: 'var(--pl-font-heading, Georgia, serif)',
           }}>
             Coordinator Access
           </h2>
@@ -161,8 +161,8 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
 
       {/* Invite Form */}
       <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(163,177,138,0.04)',
+        border: '1px solid rgba(0,0,0,0.05)',
         borderRadius: '1rem',
         padding: '1.5rem',
       }}>
@@ -183,7 +183,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
             required
             style={inputStyle}
             onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)'; }}
           />
 
           {/* Role selector */}
@@ -194,17 +194,17 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '0.65rem 0.875rem',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(163,177,138,0.06)',
+                border: '1px solid rgba(0,0,0,0.06)',
                 borderRadius: '0.625rem',
-                color: 'rgba(255,255,255,0.9)',
+                color: 'var(--pl-ink)',
                 fontSize: '0.875rem',
-                fontFamily: 'var(--eg-font-body, Georgia, serif)',
+                fontFamily: 'var(--pl-font-body, Georgia, serif)',
                 cursor: 'pointer', textAlign: 'left',
               }}
             >
               <span>{role === 'coordinator' ? 'Coordinator' : 'View Only'}</span>
-              <ChevronDown size={14} color="rgba(255,255,255,0.4)" style={{ transform: roleOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              <ChevronDown size={14} color="var(--pl-ink-soft)" style={{ transform: roleOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
             </button>
             <AnimatePresence>
               {roleOpen && (
@@ -215,7 +215,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                   transition={{ duration: 0.15 }}
                   style={{
                     position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                    background: '#2A2520', border: '1px solid rgba(255,255,255,0.12)',
+                    background: '#2A2520', border: '1px solid rgba(0,0,0,0.07)',
                     borderRadius: '0.625rem', zIndex: 50, overflow: 'hidden',
                   }}
                 >
@@ -229,7 +229,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                         padding: '0.75rem 0.875rem',
                         background: role === r ? 'rgba(163,177,138,0.1)' : 'transparent',
                         border: 'none', cursor: 'pointer',
-                        fontFamily: 'var(--eg-font-body, Georgia, serif)',
+                        fontFamily: 'var(--pl-font-body, Georgia, serif)',
                         transition: 'background 0.15s',
                       }}
                       onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.08)'; }}
@@ -238,7 +238,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                       <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.88)', marginBottom: '0.2rem' }}>
                         {r === 'coordinator' ? 'Coordinator' : 'View Only'}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft)', lineHeight: 1.4 }}>
                         {ROLE_DESCRIPTIONS[r]}
                       </div>
                     </button>
@@ -249,7 +249,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
           </div>
 
           {/* Role description hint */}
-          <p style={{ margin: 0, fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.4 }}>
+          <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.4 }}>
             {ROLE_DESCRIPTIONS[role]}
           </p>
 
@@ -266,7 +266,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                 : 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
               color: '#F5F1E8', cursor: sending || !email.trim() ? 'not-allowed' : 'pointer',
               fontSize: '0.85rem', fontWeight: 700,
-              fontFamily: 'var(--eg-font-body, Georgia, serif)',
+              fontFamily: 'var(--pl-font-body, Georgia, serif)',
               transition: 'background 0.2s',
             }}
           >
@@ -297,8 +297,8 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
 
       {/* Active Invites */}
       <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(163,177,138,0.04)',
+        border: '1px solid rgba(0,0,0,0.05)',
         borderRadius: '1rem',
         padding: '1.5rem',
       }}>
@@ -311,13 +311,13 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
         </span>
 
         {loading ? (
-          <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>
+          <div style={{ color: 'var(--pl-muted)', fontSize: '0.8rem', textAlign: 'center', padding: '1rem 0' }}>
             Loading...
           </div>
         ) : invites.length === 0 ? (
           <div style={{
             textAlign: 'center', padding: '1.5rem 1rem',
-            color: 'rgba(255,255,255,0.25)', fontSize: '0.8rem', lineHeight: 1.5,
+            color: 'var(--pl-muted)', fontSize: '0.8rem', lineHeight: 1.5,
           }}>
             No invites sent yet.<br />Invite your coordinator above.
           </div>
@@ -337,8 +337,8 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                     style={{
                       display: 'flex', alignItems: 'center', gap: '0.75rem',
                       padding: '0.875rem 1rem',
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      background: 'rgba(163,177,138,0.04)',
+                      border: '1px solid rgba(0,0,0,0.04)',
                       borderRadius: '0.75rem',
                     }}
                   >
@@ -347,21 +347,21 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                       background: isAccepted
                         ? 'rgba(134,239,172,0.12)'
                         : isExpired
-                          ? 'rgba(255,255,255,0.05)'
+                          ? 'rgba(163,177,138,0.06)'
                           : 'rgba(163,177,138,0.12)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       flexShrink: 0,
                     }}>
                       {isAccepted
                         ? <UserCheck size={14} color="#86efac" />
-                        : <Clock size={14} color={isExpired ? 'rgba(255,255,255,0.25)' : 'rgba(163,177,138,0.8)'} />
+                        : <Clock size={14} color={isExpired ? 'var(--pl-muted)' : 'rgba(163,177,138,0.8)'} />
                       }
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
                         fontSize: '0.82rem', fontWeight: 600,
-                        color: isExpired ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.85)',
+                        color: isExpired ? 'var(--pl-muted)' : 'var(--pl-ink)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
                         {invite.email}
@@ -373,10 +373,10 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                         }}>
                           {invite.role === 'coordinator' ? 'Coordinator' : 'View Only'}
                         </span>
-                        <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.25)' }}>·</span>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--pl-muted)' }}>·</span>
                         <span style={{
                           fontSize: '0.65rem',
-                          color: isAccepted ? '#86efac' : isExpired ? '#f87171' : 'rgba(255,255,255,0.35)',
+                          color: isAccepted ? '#86efac' : isExpired ? '#f87171' : 'var(--pl-muted)',
                         }}>
                           {isAccepted ? 'Accepted' : isExpired ? 'Expired' : formatExpiry(invite.expiresAt)}
                         </span>
@@ -391,11 +391,11 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
                           style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             width: '28px', height: '28px', borderRadius: '0.4rem',
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                            background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(0,0,0,0.06)',
                             cursor: 'pointer', transition: 'background 0.15s',
                           }}
-                          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; }}
-                          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.07)'; }}
+                          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(163,177,138,0.06)'; }}
                         >
                           {copiedId === invite.id
                             ? <Check size={12} color="#86efac" />

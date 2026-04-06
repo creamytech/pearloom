@@ -1,16 +1,16 @@
 // ─────────────────────────────────────────────────────────────
-// everglow / lib/theme.ts — dynamic theme injection
+// Pearloom / lib/theme.ts — dynamic theme injection
 // ─────────────────────────────────────────────────────────────
 
 import type { ThemeSchema } from '@/types';
 
 /**
- * The default Everglow theme.
+ * The default Pearloom theme.
  * Used when no AI-generated theme is available.
  * Boutique minimalist: warm ivory, charcoal, gold accent.
  */
 export const defaultTheme: ThemeSchema = {
-  name: 'everglow-ivory',
+  name: 'pearloom-ivory',
   fonts: {
     heading: 'Playfair Display',
     body: 'Inter',
@@ -29,11 +29,7 @@ export const defaultTheme: ThemeSchema = {
 /**
  * Converts a ThemeSchema into a flat Record of CSS custom properties.
  * These are injected into :root by the ThemeProvider.
- *
- * Example output:
- *   '--eg-bg': '#F5F1E8'
- *   '--eg-fg': '#2B2B2B'
- *   '--eg-font-heading': 'Playfair Display, serif'
+ * Uses --pl-* namespace (Pearloom) for all variables.
  */
 export function themeToCssVars(theme: ThemeSchema): Record<string, string> {
   const shapeMap: Record<string, string> = {
@@ -55,6 +51,19 @@ export function themeToCssVars(theme: ThemeSchema): Record<string, string> {
   const cardStyling = styleMap[theme.cardStyle || 'solid'] || styleMap['solid'];
 
   return {
+    // Primary --pl-* namespace
+    '--pl-cream': theme.colors.background,
+    '--pl-ink': theme.colors.foreground,
+    '--pl-olive': theme.colors.accent,
+    '--pl-olive-mist': theme.colors.accentLight,
+    '--pl-muted': theme.colors.muted,
+    '--pl-cream-card': cardStyling.bg,
+    '--pl-font-heading': `"${theme.fonts.heading}", serif`,
+    '--pl-font-body': `"${theme.fonts.body}", sans-serif`,
+    '--pl-radius-md': cssRadius,
+    '--pl-card-shadow': cardStyling.shadow,
+    '--pl-card-border': cardStyling.border,
+    // Legacy --eg-* aliases for any remaining references
     '--eg-bg': theme.colors.background,
     '--eg-fg': theme.colors.foreground,
     '--eg-accent': theme.colors.accent,

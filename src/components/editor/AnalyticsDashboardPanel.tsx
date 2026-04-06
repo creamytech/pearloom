@@ -53,9 +53,9 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
         <Icon size={15} color={c} />
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{label}</div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{label}</div>
         <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{value}</div>
-        {sub && <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.38)', marginTop: '1px' }}>{sub}</div>}
+        {sub && <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', marginTop: '1px' }}>{sub}</div>}
       </div>
     </div>
   );
@@ -66,14 +66,14 @@ function ProgressBar({ label, value, total, color }: { label: string; value: num
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', width: '64px', flexShrink: 0 }}>{label}</div>
-      <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+      <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', width: '64px', flexShrink: 0 }}>{label}</div>
+      <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: 'rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${pct}%`, borderRadius: '3px',
           background: color, transition: 'width 0.6s ease',
         }} />
       </div>
-      <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', width: '30px', textAlign: 'right' }}>{value}</div>
+      <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', width: '30px', textAlign: 'right' }}>{value}</div>
     </div>
   );
 }
@@ -133,7 +133,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
 
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
         Loading analytics…
       </div>
     );
@@ -175,12 +175,12 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
         {/* Device breakdown */}
         {visits && visits.visits > 0 && (
           <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ fontSize: '0.67rem', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '2px' }}>
+            <div style={{ fontSize: '0.67rem', color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '2px' }}>
               Device Split
             </div>
             <ProgressBar label={<><Smartphone size={9} style={{ display: 'inline' }} /> Mobile</>  as unknown as string} value={visits.mobile} total={visits.visits} color="#e87ab8" />
             <ProgressBar label={<><Monitor size={9} style={{ display: 'inline' }} /> Desktop</>  as unknown as string} value={visits.desktop} total={visits.visits} color="#A3B18A" />
-            <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)', marginTop: '2px' }}>
               {devicePct}% of visitors are on mobile
             </div>
           </div>
@@ -205,7 +205,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
           <div style={{
             marginTop: '10px', padding: '8px 10px', borderRadius: '8px',
             background: 'rgba(163,177,138,0.07)', border: '1px solid rgba(163,177,138,0.15)',
-            fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5,
+            fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.5,
           }}>
             <span style={{ color: '#A3B18A', fontWeight: 800 }}>{rsvpConversionRate}%</span> of visitors have RSVPed
           </div>
@@ -218,7 +218,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
           <div style={{
             padding: '10px 12px', borderRadius: '8px',
             background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.12)',
-            fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6,
+            fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.6,
           }}>
             Section analytics will appear once your site gets visitors.
           </div>
@@ -239,7 +239,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
                   <Layers size={15} color="#A3B18A" />
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
                     Most viewed section
                   </div>
                   <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
@@ -262,7 +262,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
                   return (
                     <div key={sec.sectionId} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{
-                        fontSize: '0.68rem', color: 'rgba(255,255,255,0.55)',
+                        fontSize: '0.68rem', color: 'var(--pl-ink-soft)',
                         width: '68px', flexShrink: 0,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }} title={label}>
@@ -270,7 +270,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
                       </div>
                       <div style={{
                         flex: 1, height: '6px', borderRadius: '3px',
-                        background: 'rgba(255,255,255,0.07)', overflow: 'hidden',
+                        background: 'rgba(0,0,0,0.05)', overflow: 'hidden',
                       }}>
                         <div style={{
                           height: '100%', width: `${pct}%`, borderRadius: '3px',
@@ -279,7 +279,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
                         }} />
                       </div>
                       <div style={{
-                        fontSize: '0.67rem', color: 'rgba(255,255,255,0.5)',
+                        fontSize: '0.67rem', color: 'var(--pl-ink-soft)',
                         width: '36px', textAlign: 'right', flexShrink: 0,
                       }}>
                         {sec.views.toLocaleString()}

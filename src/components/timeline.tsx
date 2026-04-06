@@ -8,6 +8,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+function proxyUrl(rawUrl: string, w: number, h: number): string {
+  if (!rawUrl) return '';
+  if (rawUrl.includes('googleusercontent.com')) {
+    return `/api/photos/proxy?url=${encodeURIComponent(rawUrl)}&w=${w}&h=${h}`;
+  }
+  return rawUrl;
+}
 import { TimelineItem } from './timeline-item';
 import { useTheme } from '@/components/theme-provider';
 import { getPatternStyle } from '@/lib/patterns';
@@ -35,18 +43,18 @@ function SectionHeader({ title, subtitle, eyebrowLabel }: { title: string; subti
         transition={{ duration: 0.8 }}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}
       >
-        <div style={{ width: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
-        <span style={{ fontSize: '0.62rem', letterSpacing: '0.32em', textTransform: 'uppercase', fontVariant: 'small-caps', color: 'var(--eg-accent)', fontWeight: 700, opacity: 0.85 }}>
+        <div style={{ width: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
+        <span style={{ fontSize: '0.62rem', letterSpacing: '0.32em', textTransform: 'uppercase', fontVariant: 'small-caps', color: 'var(--pl-olive)', fontWeight: 700, opacity: 0.85 }}>
           {eyebrowLabel}
         </span>
-        <div style={{ width: '60px', height: '1px', background: 'var(--eg-accent)', opacity: 0.3 }} />
+        <div style={{ width: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
       </motion.div>
       <motion.h2
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-60px' }}
         transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(2.25rem, 5.5vw, 3.75rem)', fontWeight: 600, fontStyle: 'italic', color: 'var(--eg-fg)', letterSpacing: '-0.03em', margin: '0 0 2rem 0', lineHeight: 1.05 }}
+        style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(2.25rem, 5.5vw, 3.75rem)', fontWeight: 600, fontStyle: 'italic', color: 'var(--pl-ink)', letterSpacing: '-0.03em', margin: '0 0 2rem 0', lineHeight: 1.05 }}
       >
         {title}
       </motion.h2>
@@ -57,16 +65,16 @@ function SectionHeader({ title, subtitle, eyebrowLabel }: { title: string; subti
         transition={{ duration: 0.9, delay: 0.25 }}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '2rem' }}
       >
-        <div style={{ width: '28px', height: '1px', background: 'var(--eg-accent)', opacity: 0.4 }} />
-        <div style={{ width: '4px', height: '4px', background: 'var(--eg-accent)', transform: 'rotate(45deg)', opacity: 0.6 }} />
-        <div style={{ width: '28px', height: '1px', background: 'var(--eg-accent)', opacity: 0.4 }} />
+        <div style={{ width: '28px', height: '1px', background: 'var(--pl-olive)', opacity: 0.4 }} />
+        <div style={{ width: '4px', height: '4px', background: 'var(--pl-olive)', transform: 'rotate(45deg)', opacity: 0.6 }} />
+        <div style={{ width: '28px', height: '1px', background: 'var(--pl-olive)', opacity: 0.4 }} />
       </motion.div>
       <motion.p
         initial={{ opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-60px' }}
         transition={{ duration: 0.9, delay: 0.3 }}
-        style={{ fontFamily: 'var(--eg-font-body)', fontSize: '1.05rem', color: 'var(--eg-muted)', letterSpacing: '0.04em', fontStyle: 'italic', lineHeight: 1.7 }}
+        style={{ fontFamily: 'var(--pl-font-body)', fontSize: '1.05rem', color: 'var(--pl-muted)', letterSpacing: '0.04em', fontStyle: 'italic', lineHeight: 1.7 }}
       >
         {subtitle}
       </motion.p>
@@ -80,8 +88,8 @@ function CascadeLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
       {chapters.map((chapter, i) => (
         <div key={chapter.id}>
-          {i > 0 && <div style={{ height: '1px', background: 'var(--eg-divider, rgba(0,0,0,0.07))', margin: '0 clamp(0.5rem, 4vw, 2rem)' }} />}
-          <div style={{ background: i % 2 === 0 ? 'var(--eg-bg)' : 'var(--eg-bg-section)', paddingTop: 'clamp(2rem, 5vw, 5rem)', paddingBottom: 'clamp(2rem, 5vw, 5rem)', position: 'relative' }}>
+          {i > 0 && <div style={{ height: '1px', background: 'var(--pl-divider, rgba(0,0,0,0.07))', margin: '0 clamp(0.5rem, 4vw, 2rem)' }} />}
+          <div style={{ background: i % 2 === 0 ? 'var(--pl-cream)' : 'var(--pl-cream-deep)', paddingTop: 'clamp(2rem, 5vw, 5rem)', paddingBottom: 'clamp(2rem, 5vw, 5rem)', position: 'relative' }}>
             {(chapter.ambientColor || vibeSkin?.chapterColors?.[i]) && (
               <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: chapter.ambientColor || vibeSkin?.chapterColors?.[i], opacity: 0.045 }} />
             )}
@@ -102,14 +110,14 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
       {/* Film reel strip */}
       <div style={{ position: 'relative', overflowX: 'auto', overflowY: 'visible', paddingBottom: '1rem', WebkitOverflowScrolling: 'touch' as unknown as undefined }}>
         {/* Film perforations — top */}
-        <div style={{ position: 'sticky', left: 0, display: 'flex', gap: 0, background: '#1a1713', padding: '8px 24px', minWidth: 'max-content' }}>
+        <div style={{ position: 'sticky', left: 0, display: 'flex', gap: 0, background: 'var(--pl-olive-mist)', padding: '8px 24px', minWidth: 'max-content' }}>
           {chapters.map((_, i) => (
-            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }} />
+            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
           ))}
         </div>
 
         {/* Frames */}
-        <div style={{ display: 'flex', gap: 'clamp(8px, 2vw, 16px)', padding: '0 24px', background: '#1a1713', minWidth: 'max-content' }}>
+        <div style={{ display: 'flex', gap: 'clamp(8px, 2vw, 16px)', padding: '0 24px', background: 'var(--pl-olive-mist)', minWidth: 'max-content' }}>
           {chapters.map((chapter, i) => {
             const coverImg = chapter.images?.[chapter.heroPhotoIndex ?? 0]?.url || chapter.images?.[0]?.url;
             const isActive = activeIdx === i;
@@ -121,8 +129,8 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   width: 'clamp(150px, 30vw, 220px)', flexShrink: 0, cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.15)' : 'rgba(255,255,255,0.04)',
-                  border: `2px solid ${isActive ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.08)'}`,
+                  background: isActive ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.05)',
+                  border: `2px solid ${isActive ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
                   borderRadius: '2px',
                   overflow: 'hidden',
                   boxShadow: isActive ? '0 20px 60px rgba(0,0,0,0.6)' : '0 4px 20px rgba(0,0,0,0.4)',
@@ -133,17 +141,17 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 <div style={{ position: 'relative', width: '100%', paddingBottom: '72%', background: '#111', overflow: 'hidden' }}>
                   {coverImg ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={coverImg} alt={chapter.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: isActive ? 'none' : 'brightness(0.7) saturate(0.85)', transition: 'filter 0.4s' }} />
+                    <img src={proxyUrl(coverImg, 600, 450)} alt={chapter.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: isActive ? 'none' : 'brightness(0.7) saturate(0.85)', transition: 'filter 0.4s', background: 'var(--pl-olive-mist, #e8e4dc)' }} />
                   ) : (
                     <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${vibeSkin?.chapterColors?.[i] || 'rgba(163,177,138,0.3)'}, rgba(0,0,0,0.5))` }} />
                   )}
                   {/* Frame number */}
-                  <div style={{ position: 'absolute', top: '8px', left: '10px', fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.08em' }}>
+                  <div style={{ position: 'absolute', top: '8px', left: '10px', fontFamily: 'monospace', fontSize: '0.65rem', color: 'var(--pl-ink-soft)', letterSpacing: '0.08em' }}>
                     {String(i + 1).padStart(2, '0')} ▸
                   </div>
                   {/* Mood badge */}
                   {chapter.mood && (
-                    <div style={{ position: 'absolute', bottom: '8px', right: '8px', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: '100px', backdropFilter: 'blur(4px)' }}>
+                    <div style={{ position: 'absolute', bottom: '8px', right: '8px', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-ink)', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: '100px', backdropFilter: 'blur(4px)' }}>
                       {chapter.mood}
                     </div>
                   )}
@@ -151,8 +159,8 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
 
                 {/* Caption */}
                 <div style={{ padding: '12px 14px 14px' }}>
-                  <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '0.85rem', fontWeight: 600, color: isActive ? '#A3B18A' : 'rgba(255,255,255,0.75)', marginBottom: '4px', lineHeight: 1.3, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{chapter.title}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{chapter.subtitle}</div>
+                  <div style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '0.85rem', fontWeight: 600, color: isActive ? '#A3B18A' : 'var(--pl-ink)', marginBottom: '4px', lineHeight: 1.3, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{chapter.title}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.5, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{chapter.subtitle}</div>
                 </div>
               </motion.div>
             );
@@ -160,9 +168,9 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
         </div>
 
         {/* Film perforations — bottom */}
-        <div style={{ display: 'flex', gap: 0, background: '#1a1713', padding: '8px 24px', minWidth: 'max-content' }}>
+        <div style={{ display: 'flex', gap: 0, background: 'var(--pl-olive-mist)', padding: '8px 24px', minWidth: 'max-content' }}>
           {chapters.map((_, i) => (
-            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }} />
+            <div key={i} style={{ width: '20px', height: '14px', marginRight: '80px', borderRadius: '2px', background: 'rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.04)', flexShrink: 0 }} />
           ))}
         </div>
       </div>
@@ -178,7 +186,7 @@ function FilmStripLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ background: 'var(--eg-bg)', paddingTop: '4rem', paddingBottom: '4rem' }}>
+            <div style={{ background: 'var(--pl-cream)', paddingTop: '4rem', paddingBottom: '4rem' }}>
               <TimelineItem chapter={chapters[activeIdx]} index={activeIdx} chapterIcon={vibeSkin?.chapterIcons?.[activeIdx]} />
             </div>
           </motion.div>
@@ -230,7 +238,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   width: isMobile ? 'calc(50% - 0.625rem)' : 'clamp(160px, 28vw, 220px)',
-                  background: '#faf9f6',
+                  background: 'var(--pl-cream, #faf9f6)',
                   padding: isMobile ? '10px 10px 36px' : '12px 12px 48px',
                   boxShadow: isActive
                     ? '0 30px 80px rgba(0,0,0,0.25), 0 0 0 3px rgba(163,177,138,0.5)'
@@ -245,7 +253,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
                 <div style={{ width: '100%', paddingBottom: '100%', position: 'relative', background: '#eee', overflow: 'hidden', marginBottom: '8px' }}>
                   {coverImg ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={coverImg} alt={chapter.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={proxyUrl(coverImg, 600, 450)} alt={chapter.title} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', background: 'var(--pl-olive-mist, #e8e4dc)' }} />
                   ) : (
                     <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${vibeSkin?.chapterColors?.[i] || 'rgba(163,177,138,0.4)'}, rgba(163,177,138,0.1))` }} />
                   )}
@@ -257,7 +265,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
 
                 {/* Caption strip */}
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: '0.85rem', fontStyle: 'italic', color: '#1a1713', lineHeight: 1.4 }}>{chapter.title}</div>
+                  <div style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '0.85rem', fontStyle: 'italic', color: '#1a1713', lineHeight: 1.4 }}>{chapter.title}</div>
                   {chapter.date && (
                     <div style={{ fontSize: '0.65rem', color: '#888', marginTop: '4px', fontFamily: 'Georgia, serif' }}>
                       {parseLocalDate(chapter.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -282,7 +290,7 @@ function ScrapbookLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            style={{ background: 'var(--eg-bg)', padding: '4rem 0', borderTop: '1px solid rgba(0,0,0,0.06)' }}
+            style={{ background: 'var(--pl-cream)', padding: '4rem 0', borderTop: '1px solid rgba(0,0,0,0.06)' }}
           >
             <TimelineItem chapter={chapters[activeIdx]} index={activeIdx} chapterIcon={vibeSkin?.chapterIcons?.[activeIdx]} />
           </motion.div>
@@ -321,7 +329,7 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
                 style={{ position: 'relative', height: isMobile ? 'clamp(280px, 60vw, 420px)' : 'clamp(360px, 55vw, 640px)', overflow: 'hidden' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={coverImg} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={proxyUrl(coverImg, 800, 600)} alt={chapter.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--pl-olive-mist, #e8e4dc)' }} />
                 {/* On mobile: gradient covers full bottom; on desktop: side gradient */}
                 <div style={{ position: 'absolute', inset: 0, background: isMobile
                   ? 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)'
@@ -335,13 +343,13 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
                     viewport={{ once: true }}
                     transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   >
-                    <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pl-ink-soft)', marginBottom: '1rem' }}>
                       {String(i + 1).padStart(2, '0')} — {chapter.mood || 'Chapter'}
                     </div>
-                    <h2 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 400, color: '#fff', lineHeight: 1.1, marginBottom: '1rem', letterSpacing: '-0.02em' }}>
+                    <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 400, color: '#fff', lineHeight: 1.1, marginBottom: '1rem', letterSpacing: '-0.02em' }}>
                       {chapter.title}
                     </h2>
-                    <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, maxWidth: '36ch' }}>
+                    <p style={{ fontSize: '1rem', color: 'var(--pl-ink)', lineHeight: 1.6, maxWidth: '36ch' }}>
                       {chapter.subtitle}
                     </p>
                   </motion.div>
@@ -356,7 +364,7 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                style={{ fontFamily: 'var(--eg-font-body)', fontSize: 'clamp(1rem, 1.5vw, 1.15rem)', color: 'var(--eg-fg)', lineHeight: 1.85, letterSpacing: '0.01em', maxWidth: '65ch', margin: '0 auto' }}
+                style={{ fontFamily: 'var(--pl-font-body)', fontSize: 'clamp(1rem, 1.5vw, 1.15rem)', color: 'var(--pl-ink)', lineHeight: 1.85, letterSpacing: '0.01em', maxWidth: '65ch', margin: '0 auto' }}
               >
                 {chapter.description}
               </motion.p>
@@ -404,27 +412,27 @@ function ChaptersLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
             >
               {/* Chapter number */}
               <span style={{
-                fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(2rem, 4vw, 3rem)',
-                fontWeight: 300, color: isOpen ? 'var(--eg-accent, #A3B18A)' : 'rgba(0,0,0,0.15)',
+                fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(2rem, 4vw, 3rem)',
+                fontWeight: 300, color: isOpen ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.15)',
                 lineHeight: 1, minWidth: '2.5rem', transition: 'color 0.3s',
               }}>
                 {String(i + 1).padStart(2, '0')}
               </span>
 
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: isOpen ? 'var(--eg-accent, #A3B18A)' : 'var(--eg-muted)', marginBottom: '0.4rem', transition: 'color 0.3s' }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: isOpen ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)', marginBottom: '0.4rem', transition: 'color 0.3s' }}>
                   {chapter.mood || 'Chapter'}
                 </div>
-                <h3 style={{ fontFamily: 'var(--eg-font-heading)', fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', fontWeight: 400, color: 'var(--eg-fg)', lineHeight: 1.2, margin: 0, letterSpacing: '-0.01em' }}>
+                <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', fontWeight: 400, color: 'var(--pl-ink)', lineHeight: 1.2, margin: 0, letterSpacing: '-0.01em' }}>
                   {chapter.title}
                 </h3>
               </div>
 
               {/* Thumbnail peek */}
               {coverImg && (
-                <div style={{ width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, opacity: isOpen ? 1 : 0.5, transition: 'opacity 0.3s', border: `2px solid ${isOpen ? 'var(--eg-accent, #A3B18A)' : 'transparent'}` }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, opacity: isOpen ? 1 : 0.5, transition: 'opacity 0.3s', border: `2px solid ${isOpen ? 'var(--pl-olive, #A3B18A)' : 'transparent'}` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={coverImg} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={proxyUrl(coverImg, 800, 600)} alt={chapter.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--pl-olive-mist, #e8e4dc)' }} />
                 </div>
               )}
 
@@ -432,7 +440,7 @@ function ChaptersLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
               <motion.span
                 animate={{ rotate: isOpen ? 90 : 0 }}
                 transition={{ duration: 0.25 }}
-                style={{ fontSize: '1.2rem', color: 'var(--eg-muted)', flexShrink: 0 }}
+                style={{ fontSize: '1.2rem', color: 'var(--pl-muted)', flexShrink: 0 }}
               >
                 ›
               </motion.span>
@@ -562,7 +570,7 @@ function StarmapLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
               >
                 {coverImg ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={coverImg} alt={chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={proxyUrl(coverImg, 800, 600)} alt={chapter.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--pl-olive-mist, #e8e4dc)' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', background: vibeSkin?.chapterColors?.[i] || 'rgba(163,177,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: '1rem' }}>{vibeSkin?.chapterIcons?.[i] || '★'}</span>
@@ -572,7 +580,7 @@ function StarmapLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
 
               {/* Star label */}
               <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', textAlign: 'center', maxWidth: isMobile ? '80px' : '160px' }}>
-                <div style={{ fontFamily: 'var(--eg-font-heading)', fontSize: isMobile ? '0.65rem' : '0.85rem', fontStyle: 'italic', color: isActive ? '#A3B18A' : 'rgba(220,235,255,0.88)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontFamily: 'var(--pl-font-heading)', fontSize: isMobile ? '0.65rem' : '0.85rem', fontStyle: 'italic', color: isActive ? '#A3B18A' : 'rgba(220,235,255,0.88)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {chapter.title}
                 </div>
               </div>
@@ -590,7 +598,7 @@ function StarmapLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?:
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            style={{ background: 'var(--eg-bg)', padding: '4rem 0', borderTop: '2px solid rgba(163,177,138,0.2)' }}
+            style={{ background: 'var(--pl-cream)', padding: '4rem 0', borderTop: '2px solid rgba(163,177,138,0.2)' }}
           >
             <TimelineItem chapter={chapters[activeIdx]} index={activeIdx} chapterIcon={vibeSkin?.chapterIcons?.[activeIdx]} />
           </motion.div>
@@ -608,8 +616,8 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
     <div style={{
       textAlign: 'center',
       padding: '4rem 2rem',
-      color: 'var(--eg-muted, rgba(0,0,0,0.4))',
-      fontFamily: 'var(--eg-font-heading, Georgia, serif)',
+      color: 'var(--pl-muted, rgba(0,0,0,0.4))',
+      fontFamily: 'var(--pl-font-heading, Georgia, serif)',
       fontStyle: 'italic',
       fontSize: '1.1rem',
     }}>
@@ -642,7 +650,7 @@ export function Timeline({ chapters, coupleNames, sectionTitle, sectionSubtitle,
   };
 
   return (
-    <section style={{ background: 'var(--eg-bg)', position: 'relative' }}>
+    <section style={{ background: 'var(--pl-cream)', position: 'relative' }}>
       <div style={{ padding: '2rem 0 8rem', position: 'relative' }}>
         {/* Dynamic Background Pattern */}
         {layoutFormat === 'cascade' || !layoutFormat ? (
