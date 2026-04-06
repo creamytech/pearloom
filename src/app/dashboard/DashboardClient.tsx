@@ -481,20 +481,12 @@ export default function DashboardClient() {
       ) : (
         /* ── Wizard steps: Photos, Clusters, Vibe, Generating, Guests ── */
         <>
-          {status !== 'unauthenticated' && (
-            <SiteNav
-              names={['Pearloom', 'Studio']}
-              pages={[]}
-              user={session?.user || undefined}
-              onGoToDashboard={session ? () => goTo('dashboard') : undefined}
-              onStartNew={session ? () => goTo('photos') : undefined}
-            />
-          )}
           <WizardLayout
             step={state.step}
             title={meta.title}
             subtitle={meta.subtitle}
             onStepClick={(stepId) => goTo(stepId as WizardStep)}
+            onClose={() => goTo('dashboard')}
             rightPanel={
               state.step !== 'generating' && previewState.progress > 0 ? (
                 <LivePreview state={previewState} names={state.coupleNames} occasion={state.step === 'vibe' ? 'wedding' : undefined} />
