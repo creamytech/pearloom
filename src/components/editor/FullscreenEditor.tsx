@@ -55,6 +55,7 @@ import { BlockConfigEditor } from './BlockConfigEditor';
 import { BlockStyleEditor } from './BlockStyleEditor';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CustomCSSEditor } from './CustomCSSEditor';
+import { CustomizationPanel } from './CustomizationPanel';
 import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
 import {
@@ -758,6 +759,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                       />
                     )}
                     {/* Version history */}
+                    <CustomizationPanel
+                      customization={manifest.customization || {}}
+                      onChange={(c) => { const updated = { ...manifest, customization: c }; onChange(updated); pushToPreview(updated); }}
+                      names={coupleNames}
+                      accentColor={manifest.vibeSkin?.palette?.accent}
+                    />
                     <VersionHistoryPanel
                       manifest={manifest}
                       onRestore={(restored) => {
