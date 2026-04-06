@@ -704,9 +704,16 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
           style={{
             position: 'fixed',
             bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            left: '0',
+            right: '0',
             zIndex: 50,
+            display: 'flex',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          } as React.CSSProperties}
+        >
+          <div style={{
+            pointerEvents: 'auto',
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
@@ -752,6 +759,7 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
               {item.icon} {item.label}
             </button>
           ))}
+          </div>
         </motion.div>
       )}
 
