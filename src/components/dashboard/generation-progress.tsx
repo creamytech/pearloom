@@ -77,28 +77,46 @@ export function GenerationProgress({
   const pct = isComplete ? 100 : pass.pct;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col bg-[var(--pl-cream)]" style={{ fontFamily: 'var(--pl-font-body)' }}>
+    <div className="fixed inset-0 z-[9999] flex flex-col" style={{
+      fontFamily: 'var(--pl-font-body)',
+      background: 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 20%, #D4B8A0 40%, #E8CDB8 60%, #F0DFD0 80%, #DCC4AE 100%)',
+    }}>
+      {/* Ambient overlay */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse 80% 60% at 30% 40%, rgba(255,240,220,0.4) 0%, transparent 60%)',
+      }} />
 
-      {/* ── Top bar ── */}
-      <header className="h-[52px] shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white z-10">
+      {/* ── Top bar — glass ── */}
+      <header className="h-[52px] shrink-0 flex items-center justify-between px-4 md:px-6 z-10 relative" style={{
+        background: 'rgba(255,255,255,0.5)',
+        backdropFilter: 'blur(20px) saturate(1.3)',
+        WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
+        borderBottom: '1px solid rgba(255,255,255,0.6)',
+      } as React.CSSProperties}>
         <span className="font-heading italic text-[1rem] font-semibold text-[var(--pl-ink-soft)]">
           Pearloom
         </span>
-        <span className="text-[0.82rem] text-[var(--pl-ink)]">The Loom</span>
+        <span className="text-[0.82rem] text-[var(--pl-ink-soft)] font-medium">The Loom</span>
         <motion.span
           animate={{ rotate: [0, 360] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
           className="text-[16px]"
+          style={{ color: 'var(--pl-olive)' }}
         >
           ✦
         </motion.span>
       </header>
 
       {/* ── Main content ── */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
 
-        {/* ── Left sidebar — hidden on mobile ── */}
-        <aside className="hidden md:flex w-[220px] shrink-0 flex-col p-5 pt-6 border-r border-[var(--pl-divider)] bg-[var(--pl-cream)]">
+        {/* ── Left sidebar — glass, hidden on mobile ── */}
+        <aside className="hidden md:flex w-[220px] shrink-0 flex-col p-5 pt-6 relative" style={{
+          background: 'rgba(255,255,255,0.35)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderRight: '1px solid rgba(255,255,255,0.5)',
+        } as React.CSSProperties}>
           <h2 className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)] mb-1">
             The Loom
           </h2>

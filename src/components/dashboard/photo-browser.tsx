@@ -19,15 +19,17 @@ interface PhotoBrowserProps {
 }
 
 const cardStyle: React.CSSProperties = {
-  padding: '2rem 1.5rem',
+  padding: '2.5rem 2rem',
   textAlign: 'center',
   maxWidth: '600px',
   margin: '0 auto',
-  borderRadius: card.radius,
-  background: card.bg,
-  border: `1px solid ${C.divider}`,
-  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-};
+  borderRadius: '20px',
+  background: 'rgba(255,255,255,0.45)',
+  backdropFilter: 'blur(20px) saturate(1.2)',
+  WebkitBackdropFilter: 'blur(20px) saturate(1.2)',
+  border: '1px solid rgba(255,255,255,0.6)',
+  boxShadow: '0 4px 24px rgba(43,30,20,0.06), inset 0 1px 0 rgba(255,255,255,0.4)',
+} as React.CSSProperties;
 
 
 type BrowserState = 'idle' | 'creating-session' | 'waiting-for-picker' | 'fetching' | 'done' | 'error' | 'session-expired' | 'device-selecting' | 'device-uploading';
@@ -305,51 +307,75 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
   if (state === 'idle') {
     return (
       <div style={cardStyle}>
-        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', marginBottom: '0.5rem', color: 'var(--pl-ink-soft)', fontWeight: 400 }}>
           Add your photos
         </h3>
-        <p style={{ color: C.muted, fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '420px', margin: '0 auto 2rem' }}>
+        <p style={{ color: 'var(--pl-muted)', fontSize: '0.92rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '420px', margin: '0 auto 2.5rem' }}>
           Select the memories you want to feature — from Google Photos or straight from your device.
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 400, margin: '0 auto' }}>
-          {/* Google Photos option */}
-          <Button variant="primary" size="lg" onClick={startPickerFlow} className="justify-start px-5 gap-4 h-auto">
-            <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 420, margin: '0 auto' }}>
+          {/* Google Photos — organic glass card */}
+          <motion.button
+            onClick={startPickerFlow}
+            whileHover={{ scale: 1.01, y: -2 }}
+            whileTap={{ scale: 0.99 }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px',
+              padding: '16px 20px', borderRadius: '16px', border: 'none',
+              background: 'rgba(255,255,255,0.5)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              boxShadow: '0 2px 12px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
+              cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+              borderBottom: '1px solid rgba(255,255,255,0.6)',
+            } as React.CSSProperties}
+          >
+            <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
                 <path d="M24 4L29.5 14.5H18.5L24 4Z" fill="#EA4335"/>
                 <path d="M4 34.5L14.5 29V40L4 34.5Z" fill="#4285F4"/>
                 <path d="M44 34.5L33.5 40V29L44 34.5Z" fill="#34A853"/>
                 <path d="M24 44L18.5 33.5H29.5L24 44Z" fill="#FBBC05"/>
               </svg>
             </span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Google Photos</div>
-              <div style={{ fontSize: '0.78rem', opacity: 0.65, fontWeight: 400 }}>Browse your synced library</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--pl-ink)', letterSpacing: '0.02em' }}>GOOGLE PHOTOS</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 400, marginTop: '2px' }}>Browse your synced library</div>
             </div>
-            <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
-          </Button>
+            <ExternalLink size={14} style={{ color: 'var(--pl-muted)', opacity: 0.4 }} />
+          </motion.button>
 
           {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.07)' }} />
-            <span style={{ fontSize: '0.78rem', color: C.muted }}>or</span>
-            <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.07)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.25rem 0' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontStyle: 'italic' }}>or</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
           </div>
 
-          {/* Device upload option */}
-          <Button
-            variant="primary" size="lg"
+          {/* Device upload — organic glass card */}
+          <motion.button
             onClick={() => deviceInputRef.current?.click()}
-            className="justify-start px-5 gap-4 h-auto"
+            whileHover={{ scale: 1.01, y: -2 }}
+            whileTap={{ scale: 0.99 }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px',
+              padding: '16px 20px', borderRadius: '16px', border: 'none',
+              background: 'rgba(255,255,255,0.5)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              boxShadow: '0 2px 12px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
+              cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+              borderBottom: '1px solid rgba(255,255,255,0.6)',
+            } as React.CSSProperties}
           >
-            <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Upload size={16} color={C.ink} />
+            <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Upload size={18} color="var(--pl-olive)" />
             </span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Upload from device</div>
-              <div style={{ fontSize: '0.78rem', opacity: 0.65, fontWeight: 400 }}>iPhone, Android, computer — any photos</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--pl-ink)', letterSpacing: '0.02em' }}>UPLOAD FROM DEVICE</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 400, marginTop: '2px' }}>iPhone, Android, computer — any photos</div>
             </div>
-          </Button>
+          </motion.button>
           <input
             ref={deviceInputRef}
             type="file"

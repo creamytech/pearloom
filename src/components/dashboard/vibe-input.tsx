@@ -101,13 +101,15 @@ function AccordionSection({ title, icon, children, defaultOpen = true }: {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{
-      background: '#fff',
-      borderRadius: '14px 14px 32px 32px',
-      border: '1px solid rgba(0,0,0,0.06)',
-      boxShadow: '0 2px 16px rgba(0,0,0,0.05), 0 8px 24px rgba(163,177,138,0.08)',
+      background: 'rgba(255,255,255,0.5)',
+      backdropFilter: 'blur(16px) saturate(1.2)',
+      WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+      borderRadius: '16px',
+      border: '1px solid rgba(255,255,255,0.6)',
+      boxShadow: '0 2px 16px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
       overflow: 'hidden',
       position: 'relative',
-    }}>
+    } as React.CSSProperties}>
       {/* Pear watermark — ghost silhouette at bottom-right */}
       <div style={{ position: 'absolute', bottom: -24, right: -16, pointerEvents: 'none', zIndex: 0 }} aria-hidden="true">
         <PearBackground color="var(--pl-olive, #A3B18A)" opacity={0.055} size={110} />
