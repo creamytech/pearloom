@@ -647,6 +647,7 @@ function PreviewContent() {
           pages={sitePages}
           logoIcon={manifest.logoIcon}
           logoSvg={manifest.logoSvg}
+          navStyle={manifest.navStyle}
           pageHrefOverride={(slug) => {
             const params = new URLSearchParams(searchParams.toString());
             if (!slug || slug === 'our-story') { params.delete('page'); }

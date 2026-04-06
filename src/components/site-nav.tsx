@@ -73,6 +73,7 @@ interface SiteNavProps {
   pages: SitePage[];
   logoIcon?: LogoIconId;
   logoSvg?: string;
+  navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
   currentPage?: string;
   /** When provided, overrides the default path-based href generation for page links. */
   pageHrefOverride?: (slug: string) => string;
@@ -86,6 +87,7 @@ export function SiteNav({
   pages,
   logoIcon,
   logoSvg,
+  navStyle = 'glass',
   currentPage,
   pageHrefOverride,
   user,
@@ -143,15 +145,39 @@ export function SiteNav({
       {/* ── Nav bar ── */}
       <motion.nav
         className={cn(
-          'fixed top-0 left-0 right-0 z-[100]',
-          'pt-[env(safe-area-inset-top,0px)]',
-          'transition-[background,box-shadow,border-color,padding] duration-300',
-          atTop && !isStudio
-            ? 'bg-transparent border-b border-transparent shadow-none'
-            : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]',
-          scrolled ? 'py-2' : 'py-4',
+          'z-[100] pt-[env(safe-area-inset-top,0px)]',
+          'transition-[background,box-shadow,border-color,padding,margin,border-radius] duration-300',
+          // Position: floating is inset, others are edge-to-edge
+          navStyle === 'floating'
+            ? 'fixed top-2 left-4 right-4 rounded-full'
+            : 'fixed top-0 left-0 right-0',
+          // Padding
+          scrolled ? 'py-2' : navStyle === 'floating' ? 'py-1' : 'py-4',
+          // Style-specific backgrounds
+          navStyle === 'minimal'
+            ? (atTop && !isStudio
+              ? 'bg-transparent border-b border-transparent shadow-none'
+              : 'bg-transparent border-b border-[rgba(0,0,0,0.06)] shadow-none')
+            : navStyle === 'solid'
+              ? 'bg-white border-b border-[rgba(0,0,0,0.05)] shadow-[0_2px_12px_rgba(43,30,20,0.04)]'
+              : navStyle === 'editorial'
+                ? (atTop && !isStudio
+                  ? 'bg-transparent border-b border-transparent'
+                  : 'bg-[var(--pl-cream)]/98 border-b border-[rgba(0,0,0,0.04)]')
+                : navStyle === 'floating'
+                  ? 'bg-white/90 border border-[rgba(255,255,255,0.6)] shadow-[0_4px_24px_rgba(43,30,20,0.08)]'
+                  : (atTop && !isStudio
+                    ? 'bg-transparent border-b border-transparent shadow-none'
+                    : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
         )}
-        style={{ backdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)', WebkitBackdropFilter: atTop && !isStudio ? 'none' : 'blur(14px) saturate(1.6)' }}
+        style={{
+          backdropFilter: navStyle === 'minimal' ? 'none'
+            : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
+            : (atTop && !isStudio) ? 'none' : 'blur(14px) saturate(1.6)',
+          WebkitBackdropFilter: navStyle === 'minimal' ? 'none'
+            : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
+            : (atTop && !isStudio) ? 'none' : 'blur(14px) saturate(1.6)',
+        }}
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}

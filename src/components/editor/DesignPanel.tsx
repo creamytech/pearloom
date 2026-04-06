@@ -15,9 +15,202 @@ import { VisualEffectsPanel } from './VisualEffectsPanel';
 import { DesignAdvisor } from './DesignAdvisor';
 import { AccessibilityAuditPanel } from './AccessibilityAuditPanel';
 import { CORNER_PRESETS, renderCornerSvg, type CornerPreset } from '@/lib/corner-presets';
-import { Check } from 'lucide-react';
-import type { StoryManifest, ThemeSchema } from '@/types';
+import { Check, Navigation } from 'lucide-react';
+import {
+  PearIcon, PearlIcon, WeddingRingsIcon, BouquetIcon, ElegantHeartIcon,
+  EnvelopeIcon, ChampagneIcon, GiftIcon, MountainIcon, PawIcon,
+  MusicNoteIcon, CoffeeCupIcon, SuitcaseIcon, StarburstIcon,
+} from '@/components/icons/PearloomIcons';
+import type { StoryManifest, ThemeSchema, LogoIconId } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+
+// ── Logo Icon Options ─────────────────────────────────────────
+const LOGO_ICONS: Array<{ id: LogoIconId; label: string; Icon: React.ComponentType<{ size?: number; color?: string }> }> = [
+  { id: 'wedding-rings', label: 'Rings', Icon: WeddingRingsIcon },
+  { id: 'heart', label: 'Heart', Icon: ElegantHeartIcon },
+  { id: 'bouquet', label: 'Bouquet', Icon: BouquetIcon },
+  { id: 'champagne', label: 'Cheers', Icon: ChampagneIcon },
+  { id: 'envelope', label: 'Letter', Icon: EnvelopeIcon },
+  { id: 'gift', label: 'Gift', Icon: GiftIcon },
+  { id: 'pearl', label: 'Pearl', Icon: PearlIcon },
+  { id: 'pear', label: 'Pear', Icon: PearIcon },
+  { id: 'mountain', label: 'Mountain', Icon: MountainIcon },
+  { id: 'paw', label: 'Paw', Icon: PawIcon },
+  { id: 'music-note', label: 'Music', Icon: MusicNoteIcon },
+  { id: 'coffee', label: 'Coffee', Icon: CoffeeCupIcon },
+  { id: 'suitcase', label: 'Travel', Icon: SuitcaseIcon },
+  { id: 'starburst', label: 'Star', Icon: StarburstIcon },
+];
+
+// ── Nav Style Options ─────────────────────────────────────────
+const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: React.ReactNode }> = [
+  {
+    id: 'glass', label: 'Glass', desc: 'Frosted blur, floats over content',
+    preview: (
+      <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(4px)', borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
+            <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.6 }} />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'minimal', label: 'Minimal', desc: 'Clean line, no background',
+    preview: (
+      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
+            <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.4 }} />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'solid', label: 'Solid', desc: 'Opaque bar with shadow',
+    preview: (
+      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
+            <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.5 }} />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'editorial', label: 'Editorial', desc: 'Centered logo, wide spacing',
+    preview: (
+      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1px', paddingTop: '2px' }}>
+          <div style={{ width: '16px', height: '2.5px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.5 }} />
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {[0, 1, 2].map(i => <div key={i} style={{ width: '6px', height: '1.5px', background: 'var(--pl-muted)', borderRadius: '1px', opacity: 0.5 }} />)}
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'floating', label: 'Floating', desc: 'Pill-shaped, detached from edge',
+    preview: (
+      <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '100px', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
+            <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
+            <div style={{ width: '10px', height: '1.5px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.4 }} />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+];
+
+// ── Nav Customization Panel ───────────────────────────────────
+function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
+  const currentLogo = manifest.logoIcon || 'pear';
+  const currentNavStyle = manifest.navStyle || 'glass';
+  const accent = manifest.vibeSkin?.palette?.accent || manifest.theme?.colors?.accent || '#A3B18A';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* Logo icon picker */}
+      <div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+          Site Logo Icon
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+          {LOGO_ICONS.map(({ id, label, Icon }) => {
+            const isActive = currentLogo === id && !manifest.logoSvg;
+            return (
+              <button
+                key={id}
+                onClick={() => onChange({ ...manifest, logoIcon: id, logoSvg: undefined })}
+                title={label}
+                style={{
+                  aspectRatio: '1',
+                  borderRadius: '10px',
+                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                  background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  transition: 'all 0.15s',
+                  position: 'relative',
+                } as React.CSSProperties}
+              >
+                <Icon size={18} color={isActive ? accent : 'var(--pl-muted)'} />
+              </button>
+            );
+          })}
+        </div>
+        {manifest.logoSvg && (
+          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.6rem', color: 'var(--pl-olive)', fontStyle: 'italic' }}>
+              ✦ Using AI-generated logo
+            </span>
+            <button
+              onClick={() => onChange({ ...manifest, logoSvg: undefined })}
+              style={{
+                fontSize: '0.55rem', color: 'var(--pl-muted)', background: 'rgba(0,0,0,0.04)',
+                border: 'none', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer',
+              }}
+            >
+              Use icon instead
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Nav bar style */}
+      <div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+          Nav Bar Style
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+          {NAV_STYLES.map(style => {
+            const isActive = currentNavStyle === style.id;
+            return (
+              <button
+                key={style.id}
+                onClick={() => onChange({ ...manifest, navStyle: style.id as StoryManifest['navStyle'] })}
+                style={{
+                  display: 'flex', flexDirection: 'column',
+                  borderRadius: '10px', overflow: 'hidden',
+                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                  background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
+                  cursor: 'pointer', padding: 0,
+                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.12)' : 'none',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ height: '32px', overflow: 'hidden' }}>
+                  {style.preview}
+                </div>
+                <div style={{ padding: '4px 6px', textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: '0.58rem', fontWeight: 700,
+                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                  }}>
+                    {style.label}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Corner Decoration Picker ──────────────────────────────────
 function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
@@ -299,6 +492,11 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             </button>
           </div>
         )}
+      </SidebarSection>
+
+      {/* ── Navigation — logo + nav style ── */}
+      <SidebarSection title="Navigation" defaultOpen={true}>
+        <NavCustomizationPanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
 
       {/* ── Corner Decorations — swappable presets ── */}
