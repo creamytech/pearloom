@@ -136,7 +136,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
             <div className="flex items-stretch border-b border-[var(--pl-divider)]">
               {[
                 { icon: LayoutDashboard, label: 'Dashboard', action: () => { setIsOpen(false); if (onDashboard) onDashboard(); else window.location.href = '/dashboard'; } },
-                { icon: BarChart2,       label: 'Analytics', action: () => { setIsOpen(false); /* analytics panel opens when in editor */ } },
+                { icon: BarChart2,       label: 'Analytics', action: () => { setIsOpen(false); window.location.href = '/dashboard'; } },
                 { icon: LayoutGrid,      label: 'Seating',   action: () => { setIsOpen(false); window.open('/seating', '_blank'); } },
               ].map(({ icon: Icon, label, action }) => (
                 <button
@@ -196,7 +196,7 @@ export function UserNav({ user, onDashboard }: UserNavProps) {
                   </p>
                 </div>
                 <button
-                  onClick={() => window.open('mailto:hello@pearloom.com?subject=Pro%20Plan', '_blank')}
+                  onClick={() => window.location.href = '/dashboard/profile'}
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--pl-radius-sm)] border-0 bg-[var(--pl-ink)] text-white text-[0.68rem] font-bold cursor-pointer hover:opacity-85 transition-opacity flex-shrink-0"
                 >
                   Upgrade <ExternalLink size={9} />

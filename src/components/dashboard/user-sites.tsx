@@ -316,7 +316,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10">
           {[
             { icon: <Pencil size={24} />, title: 'New Story', desc: 'Upload photos and let The Loom craft your story.', action: onStartNew },
-            { icon: <Image size={24} />, title: 'Photo Site', desc: 'Create a beautiful photo-driven celebration site.', action: onStartNew },
+            { icon: <Image size={24} />, title: 'Photo Site', desc: 'Create a photo-driven site from your gallery.', action: onStartNew },
             { icon: <Sparkles size={24} />, title: 'From Template', desc: 'Pick a template and customize every detail.', action: onQuickStart || onStartNew },
           ].map((card, i) => (
             <motion.button
@@ -401,7 +401,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         {/* Recent Looms heading */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-heading italic text-[clamp(1.4rem,2.5vw,1.8rem)] text-[var(--pl-ink-soft)]">Recent Looms</h2>
-          <a href="#" className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-colors flex items-center gap-1">
+          <a href="/marketplace" className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-colors flex items-center gap-1">
             View Archive <ExternalLink size={10} />
           </a>
         </div>
@@ -741,8 +741,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           </button>
           {[
             { label: 'Templates', icon: <Globe size={14} />, onClick: onOpenTemplates || onQuickStart },
-            { label: 'Import', icon: <ExternalLink size={14} />, onClick: onStartNew },
-            { label: 'Insights', icon: <BarChart2 size={14} />, onClick: undefined as (() => void) | undefined },
+            { label: 'New Site', icon: <ExternalLink size={14} />, onClick: onStartNew },
+            { label: 'Insights', icon: <BarChart2 size={14} />, onClick: (() => {}) as (() => void) | undefined },
           ].map((item) => (
             <button
               key={item.label}

@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Users, Image, ExternalLink, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Users, Image, ExternalLink, BarChart2, Settings } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/rsvps', label: 'Guests', icon: Users },
   { href: '/dashboard/gallery', label: 'Gallery', icon: Image },
+  { href: '/dashboard/profile', label: 'Settings', icon: Settings },
 ];
 
 export function DashboardSidebar() {
@@ -81,9 +82,12 @@ export function DashboardSidebar() {
           <p className="text-[0.72rem] text-[rgba(245,241,232,0.5)] leading-relaxed mb-3">
             Advanced analysis for your sites.
           </p>
-          <button className="w-full py-2 rounded-lg bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold uppercase tracking-[0.08em] border-none cursor-pointer hover:bg-[var(--pl-olive-hover)] transition-colors">
-            Launch AI
-          </button>
+          <Link
+            href="/marketplace"
+            className="block w-full py-2 rounded-lg bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold uppercase tracking-[0.08em] text-center no-underline hover:bg-[var(--pl-olive-hover)] transition-colors"
+          >
+            Explore AI Tools
+          </Link>
         </div>
       </div>
     </aside>
