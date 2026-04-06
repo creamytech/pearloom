@@ -111,6 +111,33 @@ export function EditorCanvas() {
       if (event.data?.type === 'pearloom-photo-ai-regen') {
         dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
       }
+
+      // ── Inline text editing ──────────────────────────────────
+      if (event.data?.type === 'pearloom-inline-edit-commit') {
+        const { elementId, newText } = event.data;
+        if (!elementId || !newText) return;
+        // Parse inline edit element ID (format: "chapterId:field" or "block:blockId:field")
+        let parsed: { type: 'chapter' | 'block'; id: string; field: string } | null = null;
+        if (elementId.startsWith('block:')) {
+          const parts = elementId.split(':');
+          if (parts.length >= 3) parsed = { type: 'block', id: parts[1], field: parts.slice(2).join(':') };
+        } else {
+          const colonIdx = elementId.indexOf(':');
+          if (colonIdx > 0) parsed = { type: 'chapter', id: elementId.slice(0, colonIdx), field: elementId.slice(colonIdx + 1) };
+        }
+        if (!parsed) return;
+
+        if (parsed.type === 'chapter') {
+          const chapter = chapters.find(c => c.id === parsed.id);
+          if (chapter) {
+            actions.updateChapter(parsed.id, { [parsed.field]: newText });
+          }
+        }
+        // Block inline edits update block config
+        if (parsed.type === 'block') {
+          dispatch({ type: 'SET_ACTIVE_ID', id: parsed.id });
+        }
+      }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);

@@ -52,6 +52,13 @@ import { AnniversaryNudgePanel } from './AnniversaryNudgePanel';
 import { VendorPanel } from './VendorPanel';
 import { PropertiesPanel } from './PropertiesPanel';
 import { BlockConfigEditor } from './BlockConfigEditor';
+import { BlockStyleEditor } from './BlockStyleEditor';
+import { VersionHistoryPanel } from './VersionHistoryPanel';
+import {
+  duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
+  setBlockStyle, saveSnapshot, parseElementId,
+  mapKeyToAction, applyBlockAction, type BlockStyleOverrides,
+} from '@/lib/block-engine';
 
 // ── State ─────────────────────────────────────────────────────
 import {
@@ -200,7 +207,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = setTimeout(() => dispatch({ type: 'SET_SAVE_STATE', state: 'saved' }), 2500);
       } catch {}
-    }, 600);
+    }, 100); // Fast preview updates — 100ms debounce
   }, [previewKey, coupleNames]);
 
   useEffect(() => { pushToPreviewRef.current = pushToPreview; }, [pushToPreview]);
@@ -514,6 +521,31 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         pushHistory(newManifest);
         onChange(newManifest);
         pushToPreviewRef.current(newManifest);
+        return;
+      }
+      // ── Block keyboard shortcuts (Delete, Arrow Up/Down for blocks) ──
+      const blockAction = mapKeyToAction(e, state.activeId);
+      if (blockAction) {
+        if (blockAction.type === 'saveSnapshot') {
+          saveSnapshot(manifest, `Snapshot ${new Date().toLocaleTimeString()}`);
+          return;
+        }
+        if (blockAction.type === 'deselect') {
+          dispatch({ type: 'SET_ACTIVE_ID', id: null });
+          return;
+        }
+        if (manifest.blocks) {
+          const updatedBlocks = applyBlockAction(manifest.blocks, blockAction);
+          if (updatedBlocks) {
+            const updated = { ...manifest, blocks: updatedBlocks };
+            pushHistory(updated);
+            onChange(updated);
+            pushToPreviewRef.current(updated);
+            if (blockAction.type === 'delete') {
+              dispatch({ type: 'SET_ACTIVE_ID', id: null });
+            }
+          }
+        }
       }
     };
     window.addEventListener('keydown', handler);
@@ -702,6 +734,29 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                   <>
                     <DesignPanel manifest={manifest} onChange={handleDesignChange} coupleNames={coupleNames} />
                     <PropertiesPanel manifest={manifest} onChange={handleDesignChange} />
+                    {/* Per-block style editor — shown when a block is selected */}
+                    {state.activeId && manifest.blocks?.find(b => b.id === state.activeId) && (
+                      <BlockStyleEditor
+                        block={manifest.blocks.find(b => b.id === state.activeId)!}
+                        onChange={(style) => {
+                          const updated = {
+                            ...manifest,
+                            blocks: setBlockStyle(manifest.blocks || [], state.activeId!, style),
+                          };
+                          onChange(updated);
+                          pushToPreview(updated);
+                        }}
+                      />
+                    )}
+                    {/* Version history */}
+                    <VersionHistoryPanel
+                      manifest={manifest}
+                      onRestore={(restored) => {
+                        onChange(restored);
+                        pushToPreview(restored);
+                        dispatch({ type: 'SET_CHAPTERS', chapters: restored.chapters || [] });
+                      }}
+                    />
                   </>
                 )}
 
