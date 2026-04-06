@@ -157,18 +157,18 @@ export function PhotoReposition({
             border: '2px solid var(--pl-ink)',
             borderRadius: '50%',
             position: 'relative',
-            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+            boxShadow: '0 0 10px rgba(43,30,20,0.1)',
           }}>
             <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--pl-ink)', transform: 'translateY(-50%)' }} />
             <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: '1px', background: 'var(--pl-ink)', transform: 'translateX(-50%)' }} />
           </div>
           <span style={{
             fontSize: '0.65rem', fontWeight: 700, color: '#fff',
-            letterSpacing: '0.05em', textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+            letterSpacing: '0.05em', textShadow: '0 1px 4px rgba(43,30,20,0.12)',
           }}>
             Drag to reposition
           </span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--pl-ink-soft)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
+          <span style={{ fontSize: '0.62rem', color: 'var(--pl-ink-soft)', textShadow: '0 1px 4px rgba(43,30,20,0.12)' }}>
             {Math.round(posX)}% · {Math.round(posY)}%
           </span>
 
@@ -197,13 +197,13 @@ export function PhotoReposition({
             position: 'absolute', bottom: '6px', right: '6px',
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '4px 8px', borderRadius: '5px',
-            background: 'rgba(0,0,0,0.6)', border: '1px solid var(--pl-muted)',
+            background: 'rgba(43,30,20,0.12)', border: '1px solid var(--pl-muted)',
             color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
             backdropFilter: 'blur(6px)',
             transition: 'background 0.15s',
           }}
           onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.8)'; }}
-          onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.6)'; }}
+          onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(43,30,20,0.12)'; }}
         >
           <Move size={9} /> Reposition
         </button>

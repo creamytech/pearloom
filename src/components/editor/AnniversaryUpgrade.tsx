@@ -72,7 +72,7 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
         transition={{ duration: 1.2, delay: 2.5, repeat: Infinity, repeatDelay: 6 }}
         style={{ fontSize: '0.8rem', display: 'inline-block' }}
       >
-        ✨
+
       </motion.span>
     </motion.div>
   );

@@ -9,26 +9,39 @@
 
 import { useMemo } from 'react';
 import { motion, Reorder } from 'framer-motion';
-import { Eye, EyeOff, GripVertical, Plus, Trash2 } from 'lucide-react';
+import {
+  Eye, EyeOff, GripVertical, Plus, Trash2,
+  Image, BookOpen, CalendarDays, Mail, Gift, Plane,
+  HelpCircle, Timer, FileText, Quote, Video, MapPin,
+  Camera, MessageSquare, Minus, Package, type LucideIcon,
+} from 'lucide-react';
 import type { StoryManifest, PageBlock } from '@/types';
 
-// Block type display labels + icons
-const BLOCK_LABELS: Record<string, { label: string; emoji: string }> = {
-  hero: { label: 'Hero', emoji: '🖼️' },
-  story: { label: 'Story', emoji: '📖' },
-  event: { label: 'Events', emoji: '📅' },
-  rsvp: { label: 'RSVP', emoji: '💌' },
-  registry: { label: 'Registry', emoji: '🎁' },
-  travel: { label: 'Travel', emoji: '✈️' },
-  faq: { label: 'FAQ', emoji: '❓' },
-  countdown: { label: 'Countdown', emoji: '⏱️' },
-  text: { label: 'Text Block', emoji: '📝' },
-  quote: { label: 'Quote', emoji: '✨' },
-  video: { label: 'Video', emoji: '🎬' },
-  map: { label: 'Map', emoji: '📍' },
-  photos: { label: 'Photo Gallery', emoji: '📸' },
-  guestbook: { label: 'Guestbook', emoji: '📔' },
-  divider: { label: 'Divider', emoji: '〰️' },
+// Block type display labels + Lucide icons
+const BLOCK_ICONS: Record<string, LucideIcon> = {
+  hero: Image, story: BookOpen, event: CalendarDays,
+  rsvp: Mail, registry: Gift, travel: Plane,
+  faq: HelpCircle, countdown: Timer, text: FileText,
+  quote: Quote, video: Video, map: MapPin,
+  photos: Camera, guestbook: MessageSquare, divider: Minus,
+};
+
+const BLOCK_LABELS: Record<string, { label: string }> = {
+  hero: { label: 'Hero' },
+  story: { label: 'Story' },
+  event: { label: 'Events' },
+  rsvp: { label: 'RSVP' },
+  registry: { label: 'Registry' },
+  travel: { label: 'Travel' },
+  faq: { label: 'FAQ' },
+  countdown: { label: 'Countdown' },
+  text: { label: 'Text Block' },
+  quote: { label: 'Quote' },
+  video: { label: 'Video' },
+  map: { label: 'Map' },
+  photos: { label: 'Photo Gallery' },
+  guestbook: { label: 'Guestbook' },
+  divider: { label: 'Divider' },
 };
 
 const ADDABLE_TYPES = ['countdown', 'text', 'quote', 'video', 'map', 'photos', 'guestbook', 'divider'];
@@ -93,7 +106,8 @@ export function SectionsPanel({ manifest, onChange }: {
         style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}
       >
         {blocks.map((block, idx) => {
-          const meta = BLOCK_LABELS[block.type] || { label: block.type, emoji: '📦' };
+          const meta = BLOCK_LABELS[block.type] || { label: block.type };
+              const BlockIcon = BLOCK_ICONS[block.type] || Package;
           const isHidden = block.visible === false;
 
           return (
@@ -114,8 +128,8 @@ export function SectionsPanel({ manifest, onChange }: {
               {/* Drag handle */}
               <GripVertical size={14} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
 
-              {/* Emoji + label */}
-              <span style={{ fontSize: '1rem', flexShrink: 0 }}>{meta.emoji}</span>
+              {/* Icon + label */}
+              <BlockIcon size={16} style={{ flexShrink: 0, color: isHidden ? 'var(--pl-muted)' : 'var(--pl-olive)' }} />
               <span style={{
                 flex: 1, fontSize: '0.82rem', fontWeight: 600,
                 color: isHidden ? 'var(--pl-muted)' : 'var(--pl-ink)',
@@ -183,7 +197,8 @@ export function SectionsPanel({ manifest, onChange }: {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {ADDABLE_TYPES.map(type => {
-            const meta = BLOCK_LABELS[type] || { label: type, emoji: '📦' };
+            const meta = BLOCK_LABELS[type] || { label: type };
+            const AddIcon = BLOCK_ICONS[type] || Package;
             return (
               <button
                 key={type}
@@ -198,7 +213,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   transition: 'all 0.15s',
                 }}
               >
-                <span>{meta.emoji}</span>
+                <AddIcon size={13} style={{ color: 'var(--pl-olive)' }} />
                 <span>{meta.label}</span>
               </button>
             );

@@ -617,7 +617,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                           zIndex: 10,
                         }}
                       >
-                        Voice messages coming soon ✨
+                        Voice messages coming soon
                       </motion.div>
                     )}
                   </AnimatePresence>

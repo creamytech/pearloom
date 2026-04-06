@@ -89,7 +89,7 @@ function ViewportPopover({
               width: '200px', padding: '8px',
               background: 'var(--pl-cream-card)',
               border: '1px solid var(--pl-divider)',
-              borderRadius: '10px',
+              borderRadius: '16px',
               boxShadow: 'var(--pl-shadow-md)',
               zIndex: 100,
             }}

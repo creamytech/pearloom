@@ -19,7 +19,7 @@ import type { StoryManifest, ThemeSchema } from '@/types';
 // ── Curated preset palettes ────────────────────────────────────
 interface PresetPalette {
   name: string;
-  emoji: string;
+  accent: string;
   description: string;
   colors: ThemeSchema['colors'];
   fonts: ThemeSchema['fonts'];
@@ -29,7 +29,7 @@ interface PresetPalette {
 const PRESET_PALETTES: PresetPalette[] = [
   {
     name: 'Warm Ivory',
-    emoji: '🕯️',
+    accent: '#D4A574',
     description: 'Classic, romantic, timeless',
     colors: { background: '#faf9f6', foreground: '#1a1a1a', accent: 'var(--pl-olive, #A3B18A)', accentLight: '#f3e8d8', muted: '#8c8c8c', cardBg: '#ffffff' },
     fonts: { heading: 'Playfair Display', body: 'Inter' },
@@ -37,7 +37,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Dark Romance',
-    emoji: '🌹',
+    accent: '#c9706a',
     description: 'Moody, dramatic, luxurious',
     colors: { background: '#0f0e0d', foreground: '#f5f0ea', accent: '#c9706a', accentLight: '#2a1515', muted: '#7a7068', cardBg: '#1a1815' },
     fonts: { heading: 'Cormorant Garamond', body: 'Raleway' },
@@ -45,7 +45,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Garden Sage',
-    emoji: '🌿',
+    accent: '#6a8f5a',
     description: 'Botanical, organic, serene',
     colors: { background: '#f4f7f1', foreground: '#1e2a1a', accent: '#6a8f5a', accentLight: '#ddebd4', muted: '#7a8c72', cardBg: '#ffffff' },
     fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
@@ -53,7 +53,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Coastal Blue',
-    emoji: '🌊',
+    accent: '#3a7ca8',
     description: 'Fresh, breezy, nautical',
     colors: { background: '#f0f5fa', foreground: '#0c1f2e', accent: '#3a7ca8', accentLight: '#cce3f5', muted: '#6a8fa8', cardBg: '#ffffff' },
     fonts: { heading: 'Libre Baskerville', body: 'Source Sans Pro' },
@@ -61,7 +61,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Desert Gold',
-    emoji: '🏔️',
+    accent: '#c97c30',
     description: 'Earthy, warm, Southwest boho',
     colors: { background: '#fdf8f0', foreground: '#2c1a0a', accent: '#c97c30', accentLight: '#faebd7', muted: '#9a7a55', cardBg: '#fffaf4' },
     fonts: { heading: 'Josefin Sans', body: 'Lato' },
@@ -69,7 +69,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Midnight Lavender',
-    emoji: '🌙',
+    accent: '#9b7fd9',
     description: 'Dreamy, celestial, ethereal',
     colors: { background: '#0d0b14', foreground: '#f0eeff', accent: '#9b7fd9', accentLight: '#1e1a30', muted: '#7a6ea0', cardBg: '#131020' },
     fonts: { heading: 'Cormorant Garamond', body: 'Inter' },
@@ -77,7 +77,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Blush & Champagne',
-    emoji: '🥂',
+    accent: '#d4829a',
     description: 'Soft, feminine, glamorous',
     colors: { background: '#fdf8f5', foreground: '#2a1a18', accent: '#d4829a', accentLight: '#fce8ef', muted: '#b0889a', cardBg: '#fff9f7' },
     fonts: { heading: 'Playfair Display', body: 'Poppins' },
@@ -85,7 +85,7 @@ const PRESET_PALETTES: PresetPalette[] = [
   },
   {
     name: 'Minimalist White',
-    emoji: '◻️',
+    accent: '#111111',
     description: 'Clean, modern, editorial',
     colors: { background: '#ffffff', foreground: '#111111', accent: '#111111', accentLight: '#f5f5f5', muted: '#888888', cardBg: '#f8f8f8' },
     fonts: { heading: 'DM Serif Display', body: 'DM Sans' },
@@ -584,7 +584,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             fontSize: '0.62rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0,
             borderTop: '1px solid rgba(163,177,138,0.06)', paddingTop: '8px',
           }}>
-            💡 The more specific you are — place, story details, style — the more unique and tailored the artwork becomes. Hit Regenerate for a fresh interpretation.
+            The more specific you are — place, story details, style — the more unique and tailored the artwork becomes. Hit Regenerate for a fresh interpretation.
           </p>
         </div>
       )}

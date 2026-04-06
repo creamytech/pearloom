@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import type { StoryManifest } from '@/types';
 
 const SUGGESTED_QUESTIONS = [
-  { icon: '📍', label: 'Where is parking?' },
+  { icon: '•', label: 'Where is parking?' },
   { icon: '👗', label: 'Dress code?' },
   { icon: '🕐', label: 'What time?' },
   { icon: '🚌', label: 'Shuttle info?' },

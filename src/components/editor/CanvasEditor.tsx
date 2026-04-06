@@ -1028,7 +1028,7 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
               position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 100,
               background: 'var(--pl-cream)', border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '12px', overflow: 'hidden', marginTop: '4px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+              boxShadow: '0 20px 60px rgba(43,30,20,0.1)',
             }}
           >
             {/* Search */}
@@ -1539,7 +1539,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               background: `${ghostColor}18`,
               border: `1px solid ${ghostColor}55`,
               borderLeft: `3px solid ${ghostColor}`,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3)',
+              boxShadow: '0 12px 40px rgba(43,30,20,0.1), 0 4px 12px rgba(0,0,0,0.3)',
               transform: 'rotate(1.5deg) scale(1.03)',
               opacity: 0.95,
               backdropFilter: 'blur(8px)',

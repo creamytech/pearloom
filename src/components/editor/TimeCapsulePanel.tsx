@@ -219,7 +219,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
             >
               <div style={styles.capsuleInfo}>
                 <div style={styles.capsuleNames}>
-                  <span>💌</span>
+                  <span style={{ color: 'var(--pl-olive)' }}>◆</span>
                   <strong style={styles.capsuleNameText}>
                     From: {capsule.fromName} → To: {capsule.toName}
                   </strong>

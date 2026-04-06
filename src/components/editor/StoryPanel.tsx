@@ -99,7 +99,7 @@ function SectionItem({
       dragListener={false}
       dragControls={controls}
       as="div"
-      whileDrag={{ scale: 1.03, zIndex: 50, boxShadow: '0 16px 40px rgba(0,0,0,0.5)' }}
+      whileDrag={{ scale: 1.03, zIndex: 50, boxShadow: '0 16px 40px rgba(43,30,20,0.1)' }}
       layout
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}

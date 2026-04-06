@@ -45,16 +45,16 @@ interface TimelineItem {
 // ── Constants ──────────────────────────────────────────────────
 
 const CATEGORY_OPTIONS: { value: VendorCategory; label: string; icon: string }[] = [
-  { value: 'venue',        label: 'Venue',         icon: '🏛' },
-  { value: 'catering',     label: 'Catering',      icon: '🍽' },
-  { value: 'photography',  label: 'Photography',   icon: '📷' },
-  { value: 'videography',  label: 'Videography',   icon: '🎥' },
-  { value: 'flowers',      label: 'Flowers',       icon: '💐' },
-  { value: 'music',        label: 'Music',         icon: '🎵' },
-  { value: 'hair_makeup',  label: 'Hair & Makeup', icon: '💄' },
-  { value: 'cake',         label: 'Cake',          icon: '🎂' },
-  { value: 'transport',    label: 'Transport',     icon: '🚗' },
-  { value: 'other',        label: 'Other',         icon: '✦' },
+  { value: 'venue',        label: 'Venue',         icon: 'V' },
+  { value: 'catering',     label: 'Catering',      icon: 'C' },
+  { value: 'photography',  label: 'Photography',   icon: 'P' },
+  { value: 'videography',  label: 'Videography',   icon: 'Vi' },
+  { value: 'flowers',      label: 'Flowers',       icon: 'F' },
+  { value: 'music',        label: 'Music',         icon: 'M' },
+  { value: 'hair_makeup',  label: 'Hair & Makeup', icon: 'HM' },
+  { value: 'cake',         label: 'Cake',          icon: 'Ck' },
+  { value: 'transport',    label: 'Transport',     icon: 'T' },
+  { value: 'other',        label: 'Other',         icon: '+'  },
 ];
 
 const STATUS_OPTIONS: { value: VendorStatus; label: string; color: string; bg: string }[] = [
@@ -358,7 +358,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           >
             <div style={{
               display: 'flex', flexDirection: 'column', gap: '8px',
-              padding: '12px', borderRadius: '10px',
+              padding: '12px', borderRadius: '14px',
               background: 'rgba(163,177,138,0.05)', border: '1px solid rgba(0,0,0,0.06)',
             }}>
               <input

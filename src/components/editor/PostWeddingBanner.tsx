@@ -141,7 +141,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             color: 'rgba(214,198,168,0.95)',
             fontFamily: 'var(--pl-font-heading, Georgia, serif)',
           }}>
-            Your wedding day has passed ✨
+            Your wedding day has passed
           </h3>
           <p style={{
             margin: 0,

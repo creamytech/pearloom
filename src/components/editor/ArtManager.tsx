@@ -70,7 +70,7 @@ function ArtSlotCard({
             />
             {/* Hover overlay with actions */}
             <div style={{
-              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)',
+              position: 'absolute', inset: 0, background: 'rgba(43,30,20,0.1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
               opacity: 0, transition: 'opacity 0.2s ease',
             }}

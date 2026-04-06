@@ -147,7 +147,7 @@ export function MobileChapterActionSheet({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1200 }}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(43,30,20,0.08)', zIndex: 1200 }}
       />
       <motion.div
         key="mobile-action-sheet"
@@ -174,7 +174,7 @@ export function MobileChapterActionSheet({
           borderRadius: '20px 20px 0 0',
           borderTop: '1px solid rgba(0,0,0,0.07)',
           display: 'flex', flexDirection: 'column',
-          boxShadow: '0 -12px 48px rgba(0,0,0,0.5)',
+          boxShadow: '0 -12px 48px rgba(43,30,20,0.1)',
           overflow: 'hidden',
         }}
       >
