@@ -1371,8 +1371,165 @@ function MosaicLayout({ chapter, index }: TimelineItemProps) {
   );
 }
 
+// ─── BENTO LAYOUT ────────────────────────────────────────────
+// Magazine-style asymmetric grid with mixed photo sizes + text card
+function BentoLayout({ chapter, index }: TimelineItemProps) {
+  const images = chapter.images.slice(0, 6);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check(); window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Build bento grid areas based on image count
+  const gridTemplate = images.length >= 4
+    ? '"hero hero text" "a b text" "a b c"'
+    : images.length >= 2
+      ? '"hero hero text" "a b text"'
+      : '"hero text text"';
+
+  const gridCols = isMobile ? '1fr' : '1fr 1fr 1fr';
+  const gridRows = images.length >= 4 ? 'auto auto auto' : images.length >= 2 ? 'auto auto' : 'auto';
+
+  return (
+    <>
+      <ChapterDivider />
+      <motion.article
+        data-pe-chapter={chapter.id}
+        data-pe-section="chapter"
+        style={applyOverrides(chapter, {
+          maxWidth: '1200px', margin: isMobile ? '2rem auto' : '4rem auto',
+          padding: isMobile ? '1.5rem 1rem' : '3rem 2rem',
+        })}
+        {...moodEntrance(chapter.mood, chapter.emotionalIntensity)}
+        whileInView={moodEntrance(chapter.mood, chapter.emotionalIntensity).animate}
+        initial={moodEntrance(chapter.mood, chapter.emotionalIntensity).initial}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={moodEntrance(chapter.mood, chapter.emotionalIntensity).transition}
+      >
+        {isMobile ? (
+          /* Mobile: simple stack */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Text card */}
+            <div style={{
+              background: 'rgba(255,255,255,0.5)',
+              backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+              borderRadius: '20px', padding: '1.5rem',
+              border: '1px solid rgba(255,255,255,0.6)',
+              boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
+            } as React.CSSProperties}>
+              <MoodBadge mood={chapter.mood} />
+              <span style={{ fontSize: '0.62rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700, display: 'block', marginBottom: '0.75rem' }}>
+                {formatDateFull(chapter.date)}
+              </span>
+              <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 600, fontStyle: 'italic', color: 'var(--pl-ink)', lineHeight: 1.1, margin: '0 0 0.75rem', letterSpacing: '-0.02em' }}>
+                <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
+              </h3>
+              {chapter.subtitle && (
+                <p style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '0.95rem', marginBottom: '1rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}>
+                  <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
+                </p>
+              )}
+              <div data-pe-editable="true" data-pe-field="description"><EnhancedDescription text={chapter.description} /></div>
+              {chapter.location && <div style={{ marginTop: '1.5rem' }}><LocationPill label={chapter.location.label} /></div>}
+            </div>
+            {/* Photo grid — 2 columns on mobile */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {images.slice(0, 4).map((img, i) => (
+                <motion.div
+                  key={img.id || i}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, duration: 0.5 }}
+                  style={{
+                    borderRadius: '16px', overflow: 'hidden',
+                    aspectRatio: i === 0 ? '4/5' : '1',
+                    gridColumn: i === 0 ? 'span 2' : undefined,
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={proxyUrl(img.url, 600, 500)} alt={img.alt || chapter.title} loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Desktop: bento grid */
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: gridCols,
+            gridTemplateAreas: gridTemplate,
+            gridAutoRows: 'minmax(160px, auto)',
+            gap: '12px',
+          }}>
+            {/* Hero image — large, top-left, spans 2 cols */}
+            {images[0] && (
+              <motion.div
+                style={{ gridArea: 'hero', borderRadius: '20px', overflow: 'hidden', minHeight: '280px' }}
+                initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }} transition={{ duration: 0.6 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={proxyUrl(images[0].url, 900, 600)} alt={images[0].alt || chapter.title} loading="lazy"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </motion.div>
+            )}
+
+            {/* Text card — frosted glass, right column */}
+            <div style={{
+              gridArea: 'text',
+              background: 'rgba(255,255,255,0.5)',
+              backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '20px', padding: '2rem',
+              border: '1px solid rgba(255,255,255,0.6)',
+              boxShadow: '0 4px 20px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            } as React.CSSProperties}>
+              <ChapterGhost number={index + 1} />
+              <MoodBadge mood={chapter.mood} />
+              <span style={{ fontSize: '0.62rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pl-olive)', fontWeight: 700, display: 'block', marginBottom: '0.75rem' }}>
+                {formatDateFull(chapter.date)}
+              </span>
+              <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.4rem, 2.5vw, 2.2rem)', fontWeight: 600, fontStyle: 'italic', color: 'var(--pl-ink)', lineHeight: 1.1, margin: '0 0 0.75rem', letterSpacing: '-0.02em' }}>
+                <span data-pe-editable="true" data-pe-field="title">{chapter.title}</span>
+              </h3>
+              {chapter.subtitle && (
+                <p style={{ fontStyle: 'italic', color: 'var(--pl-muted)', fontSize: '0.95rem', marginBottom: '1rem', fontFamily: 'var(--pl-font-heading)', fontWeight: 300 }}>
+                  <span data-pe-editable="true" data-pe-field="subtitle">{chapter.subtitle}</span>
+                </p>
+              )}
+              <div data-pe-editable="true" data-pe-field="description"><EnhancedDescription text={chapter.description} /></div>
+              {chapter.location && <div style={{ marginTop: '1.5rem' }}><LocationPill label={chapter.location.label} /></div>}
+            </div>
+
+            {/* Remaining photos — fill grid areas a, b, c */}
+            {images.slice(1, 4).map((img, i) => {
+              const areas = ['a', 'b', 'c'];
+              return (
+                <motion.div
+                  key={img.id || i}
+                  style={{ gridArea: areas[i], borderRadius: '16px', overflow: 'hidden' }}
+                  initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ delay: 0.1 + i * 0.1, duration: 0.5 }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={proxyUrl(img.url, 500, 400)} alt={img.alt || ''} loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </motion.article>
+    </>
+  );
+}
+
 // ─── MAIN ROUTER ─────────────────────────────────────────────
-const LAYOUT_CYCLE: Array<Chapter['layout']> = ['editorial', 'fullbleed', 'split', 'mosaic', 'cinematic', 'gallery'];
+const LAYOUT_CYCLE: Array<Chapter['layout']> = ['editorial', 'fullbleed', 'split', 'bento', 'cinematic', 'gallery', 'mosaic'];
 
 export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps) {
   const hasImages = (chapter.images?.length ?? 0) > 0;
@@ -1398,6 +1555,7 @@ export function TimelineItem({ chapter, index, chapterIcon }: TimelineItemProps)
       case 'cinematic': return <CinematicLayout chapter={chapter} index={index} />;
       case 'gallery': return <GalleryLayout chapter={chapter} index={index} />;
       case 'mosaic': return <MosaicLayout chapter={chapter} index={index} />;
+      case 'bento': return <BentoLayout chapter={chapter} index={index} />;
       case 'editorial':
       default: return <EditorialLayout chapter={chapter} index={index} />;
     }

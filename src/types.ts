@@ -139,7 +139,7 @@ export interface Chapter {
   images: ChapterImage[];
   location: GeoLocation | null;
   mood: string; // AI-generated mood tag (e.g. "golden hour", "cozy winter")
-  layout?: 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery' | 'mosaic'; // visual layout variant
+  layout?: 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery' | 'mosaic' | 'bento'; // visual layout variant
   order: number;
   /** Object-position for the cover image (percentages 0–100). Default: { x: 50, y: 50 } */
   imagePosition?: { x: number; y: number };

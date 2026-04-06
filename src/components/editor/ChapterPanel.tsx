@@ -18,7 +18,7 @@ import type { Chapter } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
 import type { SectionStyleOverrides } from './SectionStyleEditor';
 
-const LAYOUT_OPTS = ['editorial', 'fullbleed', 'split', 'cinematic', 'gallery', 'mosaic'] as const;
+const LAYOUT_OPTS = ['editorial', 'fullbleed', 'split', 'bento', 'cinematic', 'gallery', 'mosaic'] as const;
 
 // Visual layout mini-previews
 const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode }> = {
@@ -70,6 +70,20 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
         {[0.25, 0.18, 0.2, 0.15].map((o, i) => (
           <div key={i} style={{ background: `rgba(163,177,138,${o})`, borderRadius: '2px' }} />
         ))}
+      </div>
+    ),
+  },
+  bento: {
+    label: 'Bento',
+    preview: (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '2px', padding: '3px', height: '100%' }}>
+        <div style={{ gridColumn: 'span 2', background: 'rgba(163,177,138,0.25)', borderRadius: '2px' }} />
+        <div style={{ background: 'rgba(255,255,255,0.6)', borderRadius: '2px', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '60%', height: '3px', background: 'rgba(0,0,0,0.12)', borderRadius: '1px' }} />
+        </div>
+        <div style={{ background: 'rgba(163,177,138,0.15)', borderRadius: '2px' }} />
+        <div style={{ background: 'rgba(163,177,138,0.2)', borderRadius: '2px' }} />
+        <div style={{ background: 'rgba(163,177,138,0.12)', borderRadius: '2px' }} />
       </div>
     ),
   },
