@@ -8,7 +8,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Plus, Trash2, Sparkles, Check } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Sparkles, Check, Cpu } from 'lucide-react';
+import { trainVoiceProfile, type VoiceProfile } from '@/lib/voice-engine/trainer';
 
 interface VoiceTrainerPanelProps {
   voiceSamples: string[];
@@ -24,6 +25,21 @@ const EXAMPLE_SAMPLES = [
 export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelProps) {
   const [newSample, setNewSample] = useState('');
   const [saved, setSaved] = useState(false);
+  const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
+  const [training, setTraining] = useState(false);
+
+  const handleTrain = () => {
+    if (voiceSamples.length === 0) return;
+    setTraining(true);
+    setTimeout(() => {
+      const profile = trainVoiceProfile(
+        voiceSamples.map(text => ({ text, source: 'freeform' as const })),
+        'current-user',
+      );
+      setVoiceProfile(profile);
+      setTraining(false);
+    }, 800);
+  };
 
   const addSample = () => {
     const trimmed = newSample.trim();
@@ -149,6 +165,60 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
         >
           Load example samples (demo)
         </button>
+      )}
+
+      {/* Train Voice button */}
+      {voiceSamples.length >= 2 && (
+        <button
+          onClick={handleTrain}
+          disabled={training}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            padding: '10px', borderRadius: '10px', border: 'none',
+            background: training ? 'rgba(163,177,138,0.2)' : 'var(--pl-olive-deep)',
+            color: training ? 'var(--pl-ink-soft)' : '#fff',
+            cursor: training ? 'not-allowed' : 'pointer',
+            fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const,
+          }}
+        >
+          <Cpu size={13} />
+          {training ? 'Training...' : voiceProfile ? 'Retrain Voice' : 'Train Voice Model'}
+        </button>
+      )}
+
+      {/* Voice Profile Results */}
+      {voiceProfile && (
+        <div className="pl-panel-section" style={{ marginTop: '8px' }}>
+          <div className="pl-panel-label">Voice Profile</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            {[
+              { label: 'Formality', value: voiceProfile.formality },
+              { label: 'Warmth', value: voiceProfile.warmth },
+              { label: 'Humor', value: voiceProfile.humor },
+              { label: 'Expressiveness', value: voiceProfile.expressiveness },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ padding: '6px 8px', borderRadius: '8px', background: 'rgba(163,177,138,0.06)', textAlign: 'center' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--pl-olive-deep)' }}>{Math.round(value)}</div>
+                <div style={{ fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)' }}>{label}</div>
+              </div>
+            ))}
+          </div>
+          {voiceProfile.signaturePhrases.length > 0 && (
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Signature Phrases</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {voiceProfile.signaturePhrases.slice(0, 5).map(phrase => (
+                  <span key={phrase} style={{ padding: '2px 8px', borderRadius: '100px', background: 'var(--pl-olive-mist)', color: 'var(--pl-olive-deep)', fontSize: '0.62rem', fontWeight: 600 }}>
+                    {phrase}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{ fontSize: '0.58rem', color: 'var(--pl-olive)', marginTop: '8px', fontStyle: 'italic' }}>
+            Pronouns: {voiceProfile.pronounPreference} · Contractions: {voiceProfile.usesContractions ? 'yes' : 'no'}
+          </div>
+        </div>
       )}
 
       <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', textAlign: 'center', opacity: 0.7 }}>

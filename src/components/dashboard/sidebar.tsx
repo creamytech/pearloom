@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Users, Image, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Users, Image, ExternalLink, BarChart2 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -70,6 +70,22 @@ export function DashboardSidebar() {
           </Link>
         </div>
       </nav>
+
+      {/* AI Curator card */}
+      <div className="px-3 pb-4 mt-auto">
+        <div className="rounded-[var(--pl-radius-lg)] bg-[var(--pl-ink)] p-4 text-white">
+          <div className="w-8 h-8 rounded-lg bg-[rgba(163,177,138,0.2)] flex items-center justify-center mb-3">
+            <BarChart2 size={14} color="var(--pl-olive)" />
+          </div>
+          <h4 className="font-heading text-[0.92rem] font-semibold mb-1">AI Curator</h4>
+          <p className="text-[0.72rem] text-[rgba(245,241,232,0.5)] leading-relaxed mb-3">
+            Advanced analysis for your sites.
+          </p>
+          <button className="w-full py-2 rounded-lg bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold uppercase tracking-[0.08em] border-none cursor-pointer hover:bg-[var(--pl-olive-hover)] transition-colors">
+            Launch AI
+          </button>
+        </div>
+      </div>
     </aside>
   );
 }

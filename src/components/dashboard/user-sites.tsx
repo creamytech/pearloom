@@ -196,6 +196,7 @@ interface UserSite {
 interface UserSitesProps {
   onStartNew: () => void;
   onQuickStart?: () => void;
+  onOpenTemplates?: () => void;
   onEditSite: (site: UserSite) => void;
   onManageGuests: (site: UserSite) => void;
   userName?: string;
@@ -211,7 +212,7 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 
 // ─────────────────────────────────────────────────────────────
 
-export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests, userName }: UserSitesProps) {
+export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSite, onManageGuests, userName }: UserSitesProps) {
   const router = useRouter();
   const goToEditor = (site: UserSite) => router.push(`/editor/${site.domain}`);
   const [sites, setSites]                   = useState<UserSite[]>([]);
@@ -739,12 +740,13 @@ export function UserSites({ onStartNew, onQuickStart, onEditSite, onManageGuests
             <Plus size={14} /> New Loom
           </button>
           {[
-            { label: 'Templates', icon: <Globe size={14} /> },
-            { label: 'Import', icon: <ExternalLink size={14} /> },
-            { label: 'Insights', icon: <BarChart2 size={14} /> },
+            { label: 'Templates', icon: <Globe size={14} />, onClick: onOpenTemplates || onQuickStart },
+            { label: 'Import', icon: <ExternalLink size={14} />, onClick: onStartNew },
+            { label: 'Insights', icon: <BarChart2 size={14} />, onClick: undefined as (() => void) | undefined },
           ].map((item) => (
             <button
               key={item.label}
+              onClick={item.onClick}
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '10px 14px', borderRadius: '100px', border: 'none',

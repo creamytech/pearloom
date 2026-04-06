@@ -9,8 +9,9 @@
 
 import { useMemo } from 'react';
 import { motion, Reorder } from 'framer-motion';
+import { suggestMissingBlocks } from '@/lib/block-engine/ai-blocks';
 import {
-  Eye, EyeOff, GripVertical, Plus, Trash2,
+  Eye, EyeOff, GripVertical, Plus, Trash2, Sparkles,
   Image, BookOpen, CalendarDays, Mail, Gift, Plane,
   HelpCircle, Timer, FileText, Quote, Video, MapPin,
   Camera, MessageSquare, Minus, Package, Music, Hash, Star,
@@ -233,6 +234,41 @@ export function SectionsPanel({ manifest, onChange }: {
           })}
         </div>
       </div>
+
+      {/* AI Suggestions — missing sections */}
+      {(() => {
+        const suggestions = suggestMissingBlocks(blocks, manifest);
+        if (suggestions.length === 0) return null;
+        return (
+          <div style={{ padding: '0 12px', marginTop: '8px' }}>
+            <div className="pl-panel-label" style={{ marginBottom: '6px' }}>
+              <Sparkles size={10} /> Suggested Sections
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {suggestions.slice(0, 3).map((s) => {
+                const SuggestIcon = BLOCK_ICONS[s.type] || Package;
+                return (
+                  <button
+                    key={s.type}
+                    onClick={() => addBlock(s.type)}
+                    className="pl-panel-card"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', border: 'none', textAlign: 'left', width: '100%' }}
+                  >
+                    <SuggestIcon size={14} style={{ color: 'var(--pl-gold)', flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', display: 'block' }}>
+                        {BLOCK_LABELS[s.type]?.label || s.type}
+                      </span>
+                      <span style={{ fontSize: '0.62rem', color: 'var(--pl-muted)' }}>{s.reason}</span>
+                    </div>
+                    <Plus size={12} style={{ color: 'var(--pl-olive)', flexShrink: 0 }} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
