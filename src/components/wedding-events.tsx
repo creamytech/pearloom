@@ -132,6 +132,9 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         </div>
         <div>
           <h3
+            data-pe-editable="true"
+            data-pe-path={`events.${index}.name`}
+            data-pe-field="name"
             style={{
               fontFamily: headingFont,
               fontSize: '1.4rem',
@@ -236,6 +239,8 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           />
           <div>
             <div
+              data-pe-editable="true"
+              data-pe-path={`events.${index}.time`}
               style={{
                 fontSize: '0.88rem',
                 fontWeight: 600,
@@ -269,6 +274,8 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           />
           <div>
             <div
+              data-pe-editable="true"
+              data-pe-path={`events.${index}.venue`}
               style={{
                 fontSize: '0.88rem',
                 fontWeight: 600,
@@ -280,6 +287,8 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             </div>
             {event.address && (
               <div
+                data-pe-editable="true"
+                data-pe-path={`events.${index}.address`}
                 style={{
                   fontSize: '0.78rem',
                   color: 'var(--pl-muted)',

@@ -115,6 +115,24 @@ export function EditorCanvas() {
         dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
       }
 
+      // ── Manifest path edit (non-chapter fields: events, FAQ, etc.) ──
+      if (event.data?.type === 'pearloom-manifest-edit') {
+        const { path, value } = event.data;
+        if (!path || value === undefined) return;
+        // path format: "events.0.name", "faqs.2.question", "poetry.heroTagline", etc.
+        const parts = path.split('.');
+        const updated = JSON.parse(JSON.stringify(manifest));
+        let target: Record<string, unknown> = updated;
+        for (let i = 0; i < parts.length - 1; i++) {
+          const key = /^\d+$/.test(parts[i]) ? parseInt(parts[i]) : parts[i];
+          if (target[key as string] === undefined) return; // invalid path
+          target = target[key as string] as Record<string, unknown>;
+        }
+        const lastKey = /^\d+$/.test(parts[parts.length - 1]) ? parseInt(parts[parts.length - 1]) : parts[parts.length - 1];
+        (target as Record<string | number, unknown>)[lastKey] = value;
+        actions.handleDesignChange(updated);
+      }
+
       // ── Inline text editing ──────────────────────────────────
       if (event.data?.type === 'pearloom-inline-edit-commit') {
         const { elementId, newText } = event.data;

@@ -144,10 +144,29 @@ export function EditBridge({ enabled }: EditBridgeProps) {
           }
 
           const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter');
+          const sectionId = htmlEl.closest('[data-pe-section]')?.getAttribute('data-pe-section');
           const field = htmlEl.getAttribute('data-pe-field');
+          const manifestPath = htmlEl.getAttribute('data-pe-path');
           const value = htmlEl.innerText.trim();
           if (chapterId && field) {
             window.parent.postMessage({ type: 'pearloom-edit-commit', chapterId, field, value }, '*');
+          } else if (manifestPath) {
+            // Non-chapter field: events, FAQ, registry, etc.
+            window.parent.postMessage({ type: 'pearloom-manifest-edit', path: manifestPath, value }, '*');
+          } else if (sectionId === 'hero' && field) {
+            // Hero section fields: heroTagline, subtitle, names
+            const pathMap: Record<string, string> = {
+              heroTagline: 'poetry.heroTagline',
+              subtitle: 'chapters.0.subtitle',
+              names: '__names__',
+            };
+            const path = pathMap[field];
+            if (path === '__names__') {
+              // Names are stored as coupleNames, not in manifest — send special message
+              window.parent.postMessage({ type: 'pearloom-hero-names-edit', value }, '*');
+            } else if (path) {
+              window.parent.postMessage({ type: 'pearloom-manifest-edit', path, value }, '*');
+            }
           }
         });
 

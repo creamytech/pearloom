@@ -59,6 +59,8 @@ function FaqAccordionItem({
         aria-expanded={open}
       >
         <span
+          data-pe-editable="true"
+          data-pe-path={`faqs.${index}.question`}
           style={{
             fontFamily: 'var(--pl-font-body)',
             fontSize: '1rem',
@@ -118,6 +120,8 @@ function FaqAccordionItem({
               }}
             >
               <p
+                data-pe-editable="true"
+                data-pe-path={`faqs.${index}.answer`}
                 style={{
                   color: 'var(--pl-muted)',
                   fontSize: '0.95rem',
