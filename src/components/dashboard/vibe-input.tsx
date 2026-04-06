@@ -338,6 +338,7 @@ const OCCASIONS = [
 ];
 
 const COLOR_PALETTES = [
+  { id: 'from-photos', name: 'From Your Photos', colors: ['#FAF7F2', '#A3B18A', '#C4A96A', '#3D3530', '#6D597A'] },
   { id: 'warm-earth',    name: 'Warm Earth',       colors: ['#8B4513', '#D2691E', '#DEB887', '#FAEBD7', '#2F1B14'] },
   { id: 'ocean-breeze',  name: 'Ocean Breeze',      colors: ['#1B4965', '#5FA8D3', '#BEE9E8', '#CAE9FF', '#0B2545'] },
   { id: 'golden-hour',   name: 'Golden Hour',       colors: ['#B8860B', '#DAA520', '#FFD700', '#FFF8DC', '#1A1A1A'] },
