@@ -110,11 +110,9 @@ function SectionItem({
       <motion.div
         whileHover={!isActive ? { backgroundColor: 'rgba(163,177,138,0.04)', borderColor: 'var(--pl-olive, #A3B18A)' } : {}}
         transition={{ duration: 0.15 }}
+        className={isActive ? 'pl-panel-card active' : 'pl-panel-card'}
         style={{
-          borderRadius: '10px',
-          background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
-          border: isActive ? '1.5px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
-          borderLeft: isActive ? '3px solid var(--pl-olive, #A3B18A)' : '3px solid rgba(163,177,138,0.2)',
+          borderLeft: isActive ? '3px solid var(--pl-olive)' : '3px solid rgba(163,177,138,0.15)',
           position: 'relative',
           overflow: 'hidden',
           boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.1)' : '0 1px 3px rgba(0,0,0,0.03)',

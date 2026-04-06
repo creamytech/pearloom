@@ -130,13 +130,10 @@ export function SectionsPanel({ manifest, onChange }: {
             <Reorder.Item
               key={block.id}
               value={block}
+              className="pl-panel-card"
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '10px 12px', borderRadius: '10px',
-                background: isHidden ? 'rgba(163,177,138,0.03)' : 'rgba(163,177,138,0.06)',
-                border: `1px solid ${isHidden ? 'rgba(163,177,138,0.05)' : 'rgba(0,0,0,0.06)'}`,
                 opacity: isHidden ? 0.45 : 1,
-                transition: 'all 0.15s',
                 cursor: 'grab',
                 touchAction: 'none',
               }}
