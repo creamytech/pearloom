@@ -11,6 +11,8 @@ import { motion } from 'framer-motion';
 import { Palette, Type, Maximize2, Eye } from 'lucide-react';
 import { type BlockStyleOverrides, getBlockStyle, setBlockStyle } from '@/lib/block-engine/block-actions';
 import { ColorPicker } from '@/components/ui/color-picker';
+import { CustomSelect } from '@/components/ui/custom-select';
+import { RangeSlider } from '@/components/ui/range-slider';
 import type { PageBlock } from '@/types';
 
 const SPACING_OPTIONS = [
@@ -141,41 +143,31 @@ export function BlockStyleEditor({ block, onChange }: BlockStyleEditorProps) {
 
       {/* Opacity */}
       <div style={{ marginBottom: '16px' }}>
-        <span style={labelStyle}>Opacity</span>
-        <input
-          type="range"
+        <RangeSlider
+          label="Opacity"
+          value={Math.round((style.opacity ?? 1) * 100)}
+          onChange={(val) => update('opacity', val / 100)}
           min={10}
           max={100}
           step={5}
-          value={(style.opacity ?? 1) * 100}
-          onChange={(e) => update('opacity', parseInt(e.target.value) / 100)}
-          style={{ width: '100%', accentColor: 'var(--pl-olive)' }}
+          suffix="%"
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: 'var(--pl-muted)' }}>
-          <span>10%</span>
-          <span style={{ fontWeight: 600, color: 'var(--pl-ink-soft)' }}>{Math.round((style.opacity ?? 1) * 100)}%</span>
-          <span>100%</span>
-        </div>
       </div>
 
       {/* Max Width */}
       <div style={{ marginBottom: '16px' }}>
-        <span style={labelStyle}>Max Width</span>
-        <select
+        <CustomSelect
+          label="Max Width"
           value={style.maxWidth || ''}
-          onChange={(e) => update('maxWidth', e.target.value || undefined)}
-          style={{
-            width: '100%', padding: '6px 10px', borderRadius: '6px',
-            border: '1.5px solid var(--pl-divider)', fontSize: '0.82rem',
-            background: 'white', color: 'var(--pl-ink)', cursor: 'pointer',
-          }}
-        >
-          <option value="">Full width</option>
-          <option value="640px">Narrow (640px)</option>
-          <option value="800px">Medium (800px)</option>
-          <option value="1080px">Standard (1080px)</option>
-          <option value="1200px">Wide (1200px)</option>
-        </select>
+          onChange={(val) => update('maxWidth', val || undefined)}
+          options={[
+            { value: '', label: 'Full width' },
+            { value: '640px', label: 'Narrow (640px)' },
+            { value: '800px', label: 'Medium (800px)' },
+            { value: '1080px', label: 'Standard (1080px)' },
+            { value: '1200px', label: 'Wide (1200px)' },
+          ]}
+        />
       </div>
     </div>
   );
