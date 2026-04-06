@@ -86,14 +86,13 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
     : [colors.background, colors.foreground, colors.accent, colors.accentLight, colors.muted].filter(Boolean);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
 
-      {/* ── Quick AI regenerate — prominent at top ── */}
-      <div style={{
+      {/* ── Quick AI regenerate ── */}
+      <div className="pl-panel-section" style={{
         display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '10px 12px', borderRadius: '14px',
         background: 'linear-gradient(135deg, rgba(163,177,138,0.06), rgba(196,169,106,0.04))',
-        border: '1px solid rgba(163,177,138,0.2)',
+        border: '1px solid rgba(163,177,138,0.15)',
       }}>
         {vibeSkin?.tone && (
           <span style={{
