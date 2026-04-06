@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Sparkles,

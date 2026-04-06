@@ -242,6 +242,7 @@ export function VibeStep({ coupleNames, vibeString, onSubmit, onBack }: VibeStep
           icon={<ArrowLeft size={14} />}
           onClick={() => {
             const hasData = coupleNames[0] || coupleNames[1] || vibeString;
+            // TODO: Replace with useDialog().confirm()
             if (hasData && !confirm('You\'ll lose your progress. Go back anyway?')) return;
             onBack();
           }}

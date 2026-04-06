@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef } from 'react';
+import { ColorPicker } from '@/components/ui/color-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   RefreshCw, Check, Sparkles, Loader2, Wand2,

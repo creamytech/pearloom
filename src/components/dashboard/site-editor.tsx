@@ -7,6 +7,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { ColorPicker } from '@/components/ui/color-picker';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pencil, Check, GripVertical, Trash2, Plus, Lock, Unlock, Eye, LayoutDashboard } from 'lucide-react';

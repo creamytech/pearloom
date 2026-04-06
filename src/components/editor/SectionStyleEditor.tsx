@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { ColorPicker } from '@/components/ui/color-picker';
 
 export interface SectionStyleOverrides {
   backgroundColor?: string;

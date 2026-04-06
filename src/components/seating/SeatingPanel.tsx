@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useMemo } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { CustomSelect } from '@/components/ui/custom-select';
 import type { Guest, SeatingTable, SeatingConstraint, ConstraintType } from '@/types';
 import { GuestChip } from './GuestChip';
 import { Search, X, Trash2, ChevronDown, Users, Sliders, MessageSquare } from 'lucide-react';

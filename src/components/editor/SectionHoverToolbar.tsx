@@ -84,6 +84,7 @@ export function SectionHoverToolbar() {
     if (hovered.chapterId) actions.handleAIRewrite(hovered.chapterId);
   };
   const handleDelete = () => {
+    // TODO: Replace with useDialog().confirm()
     if (chapter && window.confirm(`Delete "${chapter.title}"?`)) {
       actions.deleteChapter(hovered.chapterId);
       setHovered(null);

@@ -8,6 +8,9 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
+import { RangeSlider } from '@/components/ui/range-slider';
+import { ColorPicker } from '@/components/ui/color-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDragSort } from './useDragSort';
 import type { DragHandleProps } from './useDragSort';

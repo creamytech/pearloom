@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Trash2, ChevronDown, Calendar } from 'lucide-react';
 import { CalendarHeartIcon } from '@/components/icons/PearloomIcons';

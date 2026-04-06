@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, X, ChevronDown } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';

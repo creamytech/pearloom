@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { motion } from 'framer-motion';
 import { Loader2, Sparkles } from 'lucide-react';
 import { Field, lbl, inp } from './editor-utils';

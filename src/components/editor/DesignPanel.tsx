@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { RangeSlider } from '@/components/ui/range-slider';
 import { Loader2 } from 'lucide-react';
 import { lbl } from './editor-utils';
 import { ColorPalettePanel } from './ColorPalettePanel';

@@ -27,6 +27,7 @@ export function MultiSelectToolbar({
   if (selectedIds.length < 2) return null;
 
   const handleDeleteAll = () => {
+    // TODO: Replace with useDialog().confirm()
     if (!confirm(`Delete ${selectedIds.length} blocks? This cannot be undone.`)) return;
     onUpdate(deleteBlocks(blocks, selectedIds));
     onClearSelection();

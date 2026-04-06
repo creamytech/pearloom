@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import { RangeSlider } from '@/components/ui/range-slider';
+import { ColorPicker } from '@/components/ui/color-picker';
 import type { ThemeSchema } from '@/types';
 import {
   IconFilmGrain, IconVignette, IconColorTemp, IconMesh,

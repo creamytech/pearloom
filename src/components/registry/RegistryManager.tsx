@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
 import type { RegistrySource } from '@/types';
 import { RegistryCard } from './RegistryCard';
 
@@ -398,6 +399,7 @@ export function RegistryManager({ siteId }: RegistryManagerProps) {
   // ── Delete ─────────────────────────────────────────────────
 
   const handleDelete = async (id: string) => {
+    // TODO: Replace with useDialog().confirm()
     if (!confirm('Remove this registry?')) return;
 
     // Optimistic

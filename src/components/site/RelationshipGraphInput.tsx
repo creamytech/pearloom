@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
 
 export interface RelationshipGraphInputProps {
   siteId: string;

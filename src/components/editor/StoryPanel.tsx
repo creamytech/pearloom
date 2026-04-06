@@ -186,6 +186,7 @@ function SectionItem({
           <motion.button
             onClick={e => {
               e.stopPropagation();
+              // TODO: Replace with useDialog().confirm()
               if (window.confirm(`Delete "${chapter.title}"? This cannot be undone.`)) {
                 onDelete(chapter.id);
               }

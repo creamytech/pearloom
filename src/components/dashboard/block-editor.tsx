@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef } from 'react';
+import { CustomSelect } from '@/components/ui/custom-select';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import {
   GripVertical, Plus, Trash2, Pencil, Sparkles, Loader2,
