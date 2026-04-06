@@ -113,14 +113,14 @@ function MorningIcon({ size = 32 }: { size?: number }) {
 // ── Mood card data ───────────────────────────────────────────
 
 const MOOD_CARDS = [
-  { id: 'golden', label: 'Golden Hour & Film Grain', words: 'warm golden analog nostalgic', Icon: SunriseIcon, gradient: 'linear-gradient(135deg, #D4A574 0%, #C4854A 50%, #8B5E3C 100%)', bg: 'rgba(212,165,116,0.06)' },
-  { id: 'minimal', label: 'Clean Lines & Morning Light', words: 'minimal modern crisp airy', Icon: MorningIcon, gradient: 'linear-gradient(135deg, #F5F5F0 0%, #E8E8E0 50%, #D0D0C8 100%)', bg: 'rgba(200,200,192,0.06)' },
-  { id: 'botanical', label: 'Wildflowers & Handwriting', words: 'botanical organic wild romantic', Icon: LeafMinimalIcon, gradient: 'linear-gradient(135deg, #8B9B6A 0%, #6B8B5E 50%, #4A6B45 100%)', bg: 'rgba(139,155,106,0.06)' },
-  { id: 'moody', label: 'Velvet & Candlelight', words: 'moody dramatic intimate dark', Icon: CandleIcon, gradient: 'linear-gradient(135deg, #4A3060 0%, #6B4080 50%, #3A2050 100%)', bg: 'rgba(74,48,96,0.06)' },
-  { id: 'coastal', label: 'Sea Glass & Driftwood', words: 'coastal breezy natural earthy', Icon: WaveIcon, gradient: 'linear-gradient(135deg, #7BA7BC 0%, #5B8FA8 50%, #3D6E80 100%)', bg: 'rgba(123,167,188,0.06)' },
-  { id: 'editorial', label: 'Black & White Editorial', words: 'editorial graphic bold classic', Icon: DiamondIcon, gradient: 'linear-gradient(135deg, #2A2A2A 0%, #4A4A4A 50%, #1A1A1A 100%)', bg: 'rgba(42,42,42,0.04)' },
-  { id: 'garden', label: 'English Garden Party', words: 'garden romantic soft pastel', Icon: FloralIcon, gradient: 'linear-gradient(135deg, #E8B4C0 0%, #D49AB0 50%, #C080A0 100%)', bg: 'rgba(232,180,192,0.06)' },
-  { id: 'rustic', label: 'Barn & Timber & Twine', words: 'rustic earthy warm handcrafted', Icon: WoodIcon, gradient: 'linear-gradient(135deg, #8B7355 0%, #6B5540 50%, #4A3828 100%)', bg: 'rgba(139,115,85,0.06)' },
+  { id: 'golden', label: 'Warm & Nostalgic', words: 'warm golden analog nostalgic', Icon: SunriseIcon, gradient: 'linear-gradient(135deg, #D4A574 0%, #C4854A 50%, #8B5E3C 100%)', bg: 'rgba(212,165,116,0.06)' },
+  { id: 'minimal', label: 'Clean & Modern', words: 'minimal modern crisp airy', Icon: MorningIcon, gradient: 'linear-gradient(135deg, #F5F5F0 0%, #E8E8E0 50%, #D0D0C8 100%)', bg: 'rgba(200,200,192,0.06)' },
+  { id: 'botanical', label: 'Organic & Natural', words: 'botanical organic wild romantic', Icon: LeafMinimalIcon, gradient: 'linear-gradient(135deg, #8B9B6A 0%, #6B8B5E 50%, #4A6B45 100%)', bg: 'rgba(139,155,106,0.06)' },
+  { id: 'moody', label: 'Moody & Intimate', words: 'moody dramatic intimate dark', Icon: CandleIcon, gradient: 'linear-gradient(135deg, #4A3060 0%, #6B4080 50%, #3A2050 100%)', bg: 'rgba(74,48,96,0.06)' },
+  { id: 'coastal', label: 'Fresh & Breezy', words: 'coastal breezy natural earthy', Icon: WaveIcon, gradient: 'linear-gradient(135deg, #7BA7BC 0%, #5B8FA8 50%, #3D6E80 100%)', bg: 'rgba(123,167,188,0.06)' },
+  { id: 'editorial', label: 'Bold & Editorial', words: 'editorial graphic bold classic', Icon: DiamondIcon, gradient: 'linear-gradient(135deg, #2A2A2A 0%, #4A4A4A 50%, #1A1A1A 100%)', bg: 'rgba(42,42,42,0.04)' },
+  { id: 'garden', label: 'Soft & Romantic', words: 'garden romantic soft pastel', Icon: FloralIcon, gradient: 'linear-gradient(135deg, #E8B4C0 0%, #D49AB0 50%, #C080A0 100%)', bg: 'rgba(232,180,192,0.06)' },
+  { id: 'rustic', label: 'Earthy & Handcrafted', words: 'rustic earthy warm handcrafted', Icon: WoodIcon, gradient: 'linear-gradient(135deg, #8B7355 0%, #6B5540 50%, #4A3828 100%)', bg: 'rgba(139,115,85,0.06)' },
 ];
 
 // ── Component ────────────────────────────────────────────────
@@ -180,10 +180,10 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
             marginBottom: '0.5rem',
           }}
         >
-          {hasChosen ? 'Your aesthetic is taking shape' : "We'll learn as you go"}
+          {hasChosen ? 'Your tone is set' : "We'll learn as you go"}
         </motion.p>
         <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: '2rem' }}>
-          {hasChosen ? `${chosen.length} vibes selected` : 'No worries — you can refine later'}
+          {hasChosen ? `${chosen.length} style signals chosen` : 'No worries — you can refine later'}
         </p>
 
         {hasChosen && (
@@ -212,7 +212,7 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
         )}
 
         <Button variant="primary" size="lg" onClick={() => onComplete(vibeWords)} icon={<ArrowRight size={15} />}>
-          Continue with this vibe
+          Continue
         </Button>
       </motion.div>
     );
@@ -231,7 +231,7 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
           color: 'var(--pl-olive-deep)',
           marginBottom: '8px',
         }}>
-          Mood Discovery
+          Style Mood Discovery Tone
         </p>
         <h3 style={{
           fontFamily: 'var(--pl-font-heading)',
@@ -241,10 +241,10 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
           color: 'var(--pl-ink-soft)',
           marginBottom: '4px',
         }}>
-          Swipe to choose your aesthetic
+          What feeling should your site have?
         </h3>
         <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)' }}>
-          Right = love it, Left = skip it
+          Swipe right for yes, left to skip
         </p>
       </div>
 

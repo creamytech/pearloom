@@ -13,11 +13,11 @@ import type { GooglePhotoMetadata } from '@/types';
 // ── Loom passes ──────────────────────────────────────────────
 const PASSES = [
   { headline: 'Semantic Anchoring', copy: 'Scanning dates, places, and faces.', pct: 2 },
-  { headline: 'Atmospheric Synthesis', copy: 'Turning memories into chapters.', pct: 15 },
+  { headline: 'Atmospheric Synthesis', copy: 'Turning your moments into narrative.', pct: 15 },
   { headline: 'Chromatic Weaving', copy: 'Colors, fonts, shapes from your vibe.', pct: 40 },
-  { headline: 'Memory Granulation', copy: 'The inside moments that make you, you.', pct: 55 },
+  { headline: 'Memory Granulation', copy: 'Finding the moments that matter most.', pct: 55 },
   { headline: 'Ethereal Depth Pass', copy: 'Designing your world with care.', pct: 68 },
-  { headline: 'Textural Cohesion', copy: 'One-of-a-kind artwork for your site.', pct: 82 },
+  { headline: 'Textural Cohesion', copy: 'Crafting unique artwork for your site.', pct: 82 },
   { headline: 'Final Polish', copy: 'The tagline and the closing line.', pct: 96 },
 ];
 
@@ -103,7 +103,7 @@ export function GenerationProgress({
             The Loom
           </h2>
           <p className="text-[0.62rem] font-semibold tracking-[0.1em] uppercase text-[var(--pl-muted)] mb-6">
-            Building your celebration site...
+            Building something beautiful...
           </p>
 
           <nav className="flex flex-col gap-1 flex-1">
