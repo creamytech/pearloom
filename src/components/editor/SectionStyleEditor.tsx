@@ -87,24 +87,10 @@ export function SectionStyleEditor({
             />
           ))}
           {/* Custom color picker */}
-          <label
-            title="Custom color"
-            style={{
-              width: '28px', height: '28px', borderRadius: '50%',
-              background: 'conic-gradient(red, yellow, lime, cyan, blue, magenta, red)',
-              border: '1px solid var(--pl-muted)',
-              cursor: 'pointer', flexShrink: 0, display: 'flex',
-              alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-              position: 'relative',
-            }}
-          >
-            <input
-              type="color"
-              value={currentBg}
-              onChange={e => upd({ backgroundColor: e.target.value })}
-              style={{ width: '100%', height: '100%', opacity: 0, cursor: 'pointer', position: 'absolute', top: 0, left: 0 }}
-            />
-          </label>
+          <ColorPicker
+            value={currentBg}
+            onChange={(color) => upd({ backgroundColor: color })}
+          />
         </div>
       </div>
 

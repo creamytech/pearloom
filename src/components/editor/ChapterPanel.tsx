@@ -167,14 +167,10 @@ export function ChapterPanel({
       {/* Date + Subtitle — compact row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
         <div>
-          <label style={{ ...lbl, fontSize: '0.62rem' }}>Date</label>
-          <input
-            type="date"
+          <DatePicker
+            label="Date"
             value={chapter.date ? chapter.date.slice(0, 10) : ''}
-            onChange={e => upd({ date: e.target.value })}
-            style={{ ...inp, colorScheme: 'light', fontSize: '0.82rem', padding: '6px 8px' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+            onChange={(d) => upd({ date: d })}
           />
         </div>
         <Field label="Subtitle" value={chapter.subtitle || ''} onChange={v => upd({ subtitle: v })} placeholder="in all the best ways" />

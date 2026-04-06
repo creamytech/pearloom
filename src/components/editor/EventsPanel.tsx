@@ -167,14 +167,10 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                       <Field label="Event Name" value={evt.name} onChange={v => updateEvent(evt.id, { name: v })} placeholder="Ceremony" />
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div>
-                          <label style={lbl}>Date</label>
-                          <input
-                            type="date"
+                          <DatePicker
+                            label="Date"
                             value={evt.date || ''}
-                            onChange={e => updateEvent(evt.id, { date: e.target.value })}
-                            style={{ ...inp, colorScheme: 'light' }}
-                            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-                            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+                            onChange={(d) => updateEvent(evt.id, { date: d })}
                           />
                         </div>
                         <Field label="Time" value={evt.time} onChange={v => updateEvent(evt.id, { time: v })} placeholder="5:00 PM" />

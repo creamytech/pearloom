@@ -110,14 +110,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
       <Section id="theday" label={occasion === 'birthday' ? 'The Party' : occasion === 'anniversary' ? 'The Celebration' : 'The Day'}>
         <div>
-          <label style={lbl}>{occasion === 'birthday' ? 'Party Date' : occasion === 'anniversary' ? 'Anniversary Date' : 'Wedding Date'}</label>
-          <input
-            type="date"
+          <DatePicker
+            label={occasion === 'birthday' ? 'Party Date' : occasion === 'anniversary' ? 'Anniversary Date' : 'Wedding Date'}
             value={logistics.date || ''}
-            onChange={e => upd({ date: e.target.value })}
-            style={{ ...inp, width: '100%', colorScheme: 'light' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+            onChange={(d) => upd({ date: d })}
           />
         </div>
         <Field
@@ -203,14 +199,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
       <Section id="rsvp" label="RSVP">
         <div>
-          <label style={lbl}>RSVP Deadline</label>
-          <input
-            type="date"
+          <DatePicker
+            label="RSVP Deadline"
             value={logistics.rsvpDeadline || ''}
-            onChange={e => upd({ rsvpDeadline: e.target.value })}
-            style={{ ...inp, colorScheme: 'light' }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+            onChange={(d) => upd({ rsvpDeadline: d })}
           />
         </div>
       </Section>

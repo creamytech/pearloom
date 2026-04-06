@@ -115,19 +115,7 @@ function Swatch({ color, onChange, label }: { color: string; onChange: (c: strin
         letterSpacing: '0.12em', textTransform: 'uppercase',
         color: 'var(--pl-muted)', marginBottom: '6px',
       }}>{label}</label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <input
-          type="color"
-          value={color}
-          onChange={e => onChange(e.target.value)}
-          style={{
-            width: '36px', height: '36px', borderRadius: '8px',
-            border: '1px solid rgba(0,0,0,0.07)',
-            cursor: 'pointer', padding: '2px', background: 'transparent',
-          }}
-        />
-        <span style={{ fontSize: '0.72rem', fontFamily: 'monospace', color: 'var(--pl-ink-soft)' }}>{color}</span>
-      </div>
+      <ColorPicker value={color} onChange={onChange} />
     </div>
   );
 }

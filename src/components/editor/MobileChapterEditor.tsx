@@ -404,23 +404,10 @@ export function MobileChapterEditor({
 
           {/* ── Date ── */}
           <div>
-            <label style={labelStyle}>Date</label>
-            <input
-              type="date"
-              key={`date-${chapter.id}`}
-              defaultValue={chapter.date?.slice(0, 10) || ''}
-              onChange={e => scheduleUpdate({ date: e.target.value })}
-              style={{
-                padding: '9px 14px',
-                borderRadius: 10,
-                border: '1px solid rgba(0,0,0,0.07)',
-                background: 'rgba(163,177,138,0.04)',
-                color: 'rgba(214,198,168,0.75)',
-                fontSize: '0.88rem',
-                outline: 'none',
-                WebkitAppearance: 'none',
-                boxSizing: 'border-box',
-              } as React.CSSProperties}
+            <DatePicker
+              label="Date"
+              value={chapter.date?.slice(0, 10) || ''}
+              onChange={(d) => scheduleUpdate({ date: d })}
             />
           </div>
 

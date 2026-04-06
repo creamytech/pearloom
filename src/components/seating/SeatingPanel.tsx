@@ -266,16 +266,11 @@ function TableTab({
       </div>
 
       {/* Reserved toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <input
-          type="checkbox"
-          id="reserved-toggle"
-          checked={table.isReserved}
-          onChange={e => onUpdate({ isReserved: e.target.checked })}
-          style={{ accentColor: 'var(--pl-olive)' }}
-        />
-        <label htmlFor="reserved-toggle" style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }}>Reserved table</label>
-      </div>
+      <Switch
+        checked={table.isReserved}
+        onChange={(checked) => onUpdate({ isReserved: checked })}
+        label="Reserved table"
+      />
 
       {/* Notes */}
       <div>

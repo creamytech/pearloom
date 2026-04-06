@@ -1085,15 +1085,16 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     </div>
                   </div>
                   <div>
-                    <label style={fieldLabel}>Original wedding / anniversary date <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                    <input
-                      type="date"
-                      value={detailsData.originalDate ?? ''}
-                      onChange={e => setDetail('originalDate', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
-                    />
+                    <DatePicker value={detailsData.originalDate ?? ""} onChange={(d) => setDetail("originalDate", d)} label="Original wedding / anniversary date" />
+
+
+
+
+
+
+
+
+
                   </div>
                   <div>
                     <label style={fieldLabel}>What&apos;s something that has changed about you as a couple? <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>

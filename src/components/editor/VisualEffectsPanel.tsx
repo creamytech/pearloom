@@ -57,19 +57,13 @@ function SliderRow({
 }) {
   return (
     <div style={{ marginBottom: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--pl-ink)', fontWeight: 600 }}>{label}</span>
-        <span style={{ fontSize: '0.75rem', color: 'rgba(214,198,168,0.7)', fontWeight: 700, minWidth: '38px', textAlign: 'right' }}>
-          {value > 0 && unit === 'temp' ? `+${value}` : value}{unit !== 'temp' ? unit : ''}
-        </span>
-      </div>
-      <input
-        type="range"
+      <RangeSlider
+        label={label}
+        value={value}
+        onChange={onChange}
         min={min}
         max={max}
-        value={value}
-        onChange={e => onChange(Number(e.target.value))}
-        style={{ width: '100%', accentColor: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', height: '6px', WebkitAppearance: 'none', appearance: 'none' } as React.CSSProperties}
+        suffix={unit !== 'temp' ? unit : ''}
       />
       {hint && <div style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', marginTop: '3px' }}>{hint}</div>}
     </div>
@@ -289,15 +283,10 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
         {(effects.customCursor ?? 'none') !== 'none' && (
           <div style={{ marginTop: '10px' }}>
             <SectionLabel>Color</SectionLabel>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ position: 'relative', width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.08)', cursor: 'pointer', overflow: 'hidden', background: effects.cursorColor || accentColor || '#A3B18A' }}>
-                <input type="color" value={effects.cursorColor || accentColor || '#A3B18A'} onChange={e => set('cursorColor', e.target.value)} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
-              </label>
-              <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace' }}>{effects.cursorColor || accentColor || '#A3B18A'}</span>
-              {effects.cursorColor && (
-                <button onClick={() => set('cursorColor', undefined)} style={{ background: 'none', border: 'none', color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.65rem', textDecoration: 'underline' }}>Reset</button>
-              )}
-            </div>
+            <ColorPicker
+              value={effects.cursorColor || accentColor || '#A3B18A'}
+              onChange={(color) => set('cursorColor', color)}
+            />
           </div>
         )}
         <div style={{ marginTop: '8px', fontSize: '0.65rem', color: 'var(--pl-muted)' }}>
