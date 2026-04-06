@@ -2,30 +2,32 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/marketplace/page.tsx
-// Community Marketplace — browse, search, filter, preview,
-// and install templates, themes, and block presets.
+// Marketplace — browse templates, themes, and block presets.
+// Integrated into the dashboard layout with sidebar navigation.
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
-  Search, Filter, Star, Download, Heart, ArrowRight,
-  ChevronDown, Sparkles, Grid, List, ArrowLeft,
+  Search, Star, Heart, ArrowRight, ArrowLeft,
+  Sparkles, Grid, List, Check, Copy, Palette,
+  LayoutTemplate, Blocks, Users,
 } from 'lucide-react';
-import { BLOCK_TEMPLATES, searchTemplates as searchBlockTemplates, instantiateTemplate } from '@/lib/block-engine/templates';
+import { BLOCK_TEMPLATES, searchTemplates as searchBlockTemplates } from '@/lib/block-engine/templates';
 import { SITE_TEMPLATES, searchTemplates as searchSiteTemplates } from '@/lib/templates/wedding-templates';
 import { COLOR_THEMES, searchColorThemes } from '@/lib/templates/color-themes';
 import { MARKETPLACE_CATEGORIES } from '@/lib/marketplace';
 import { Button } from '@/components/ui/button';
+import { DashboardSidebar } from '@/components/dashboard/sidebar';
 
 type TabId = 'templates' | 'themes' | 'blocks' | 'community';
 
-const TABS: Array<{ id: TabId; label: string }> = [
-  { id: 'templates', label: 'Site Templates' },
-  { id: 'blocks', label: 'Block Presets' },
-  { id: 'themes', label: 'Themes' },
-  { id: 'community', label: 'Community' },
+const TABS: Array<{ id: TabId; label: string; icon: React.ElementType; count: number }> = [
+  { id: 'templates', label: 'Templates', icon: LayoutTemplate, count: SITE_TEMPLATES.length },
+  { id: 'themes', label: 'Themes', icon: Palette, count: COLOR_THEMES.length },
+  { id: 'blocks', label: 'Block Presets', icon: Blocks, count: BLOCK_TEMPLATES.length },
+  { id: 'community', label: 'Community', icon: Users, count: 0 },
 ];
 
 export default function MarketplacePage() {
@@ -33,8 +35,8 @@ export default function MarketplacePage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Template results
   const siteResults = useMemo(() => {
     let items = search ? searchSiteTemplates(search) : [...SITE_TEMPLATES];
     if (category !== 'all') {
@@ -47,293 +49,345 @@ export default function MarketplacePage() {
     return search ? searchBlockTemplates(search) : BLOCK_TEMPLATES;
   }, [search]);
 
-  return (
-    <div className="min-h-dvh bg-[var(--pl-cream)]">
-      {/* ── Header ── */}
-      <header className="border-b border-[var(--pl-divider)] bg-white">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8">
-          {/* Top bar */}
-          <div className="flex items-center justify-between h-16">
-            <Link href="/dashboard" className="flex items-center gap-2 no-underline">
-              <ArrowLeft size={16} className="text-[var(--pl-muted)]" />
-              <span className="font-heading italic text-lg text-[var(--pl-ink-soft)]">Pearloom</span>
-            </Link>
-            <h1 className="font-heading italic text-xl text-[var(--pl-ink)]">Marketplace</h1>
-            <Link href="/dashboard" className="text-[0.75rem] font-semibold text-[var(--pl-muted)] no-underline hover:text-[var(--pl-ink)]">
-              Dashboard
-            </Link>
-          </div>
+  const handleCopyTheme = (themeId: string) => {
+    setCopiedId(themeId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
-          {/* Search + tabs */}
-          <div className="pb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex-1 min-w-[240px] flex items-center gap-2 px-4 py-2.5 rounded-full bg-[var(--pl-cream)] border border-[var(--pl-divider)]">
-              <Search size={15} className="text-[var(--pl-muted)]" />
+  return (
+    <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
+      {/* Dashboard header */}
+      <header className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white/80 backdrop-blur-md z-10">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="font-heading italic text-[1.05rem] font-semibold text-[var(--pl-ink-soft)] no-underline hover:opacity-75 transition-opacity">
+            Pearloom
+          </Link>
+          <span className="hidden sm:block text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
+            Marketplace
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Search bar */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--pl-cream)] border border-[var(--pl-divider)] w-[280px]">
+            <Search size={13} className="text-[var(--pl-muted)] shrink-0" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="flex-1 bg-transparent border-none outline-none text-[0.82rem] text-[var(--pl-ink)] placeholder:text-[var(--pl-muted)]"
+            />
+          </div>
+          <Link href="/dashboard" className="text-[0.72rem] text-[var(--pl-muted)] no-underline flex items-center gap-1 hover:text-[var(--pl-ink)] transition-colors">
+            <ArrowLeft size={12} /> Dashboard
+          </Link>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <div className="hidden md:block">
+          <DashboardSidebar />
+        </div>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-auto">
+          {/* Hero banner */}
+          <div className="px-6 md:px-10 py-8 md:py-10 bg-gradient-to-br from-[var(--pl-cream)] to-white border-b border-[var(--pl-divider)]">
+            <p className="text-[0.62rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-2">
+              Marketplace
+            </p>
+            <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2.2rem)] text-[var(--pl-ink-soft)] leading-tight mb-2">
+              Templates, themes & presets
+            </h1>
+            <p className="text-[0.88rem] text-[var(--pl-muted)] max-w-[500px]">
+              Start with a beautifully designed foundation and make it completely yours.
+            </p>
+
+            {/* Mobile search */}
+            <div className="sm:hidden mt-4 flex items-center gap-2 px-3 py-2.5 rounded-full bg-white border border-[var(--pl-divider)]">
+              <Search size={14} className="text-[var(--pl-muted)]" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search templates, themes, blocks..."
-                className="flex-1 bg-transparent border-none outline-none text-[0.88rem] text-[var(--pl-ink)] placeholder:text-[var(--pl-muted)] placeholder:opacity-50"
+                placeholder="Search templates, themes..."
+                className="flex-1 bg-transparent border-none outline-none text-[0.85rem] text-[var(--pl-ink)]"
               />
             </div>
-            <div className="flex gap-1">
-              {TABS.map((tab) => (
+          </div>
+
+          {/* Tabs */}
+          <div className="px-6 md:px-10 pt-5 pb-3 border-b border-[var(--pl-divider)] flex items-center gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 py-1.5 rounded-full text-[0.72rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
-                    activeTab === tab.id
-                      ? 'bg-[var(--pl-olive-deep)] text-white'
-                      : 'bg-transparent text-[var(--pl-muted)] hover:text-[var(--pl-ink)]'
+                  onClick={() => { setActiveTab(tab.id); setCategory('all'); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-[0.75rem] font-semibold border-none cursor-pointer transition-all shrink-0 ${
+                    isActive
+                      ? 'bg-[var(--pl-olive)] text-white shadow-sm'
+                      : 'bg-transparent text-[var(--pl-muted)] hover:bg-[rgba(0,0,0,0.03)] hover:text-[var(--pl-ink)]'
                   }`}
                 >
+                  <Icon size={14} />
                   {tab.label}
+                  {tab.count > 0 && (
+                    <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded-full ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Category filters (templates & themes only) */}
+          {(activeTab === 'templates' || activeTab === 'themes') && (
+            <div className="px-6 md:px-10 pt-4 flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              <button
+                onClick={() => setCategory('all')}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-[0.65rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
+                  category === 'all' ? 'bg-[var(--pl-ink)] text-white' : 'bg-white text-[var(--pl-muted)] border border-[var(--pl-divider)]'
+                }`}
+              >
+                All
+              </button>
+              {MARKETPLACE_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategory(cat.id)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-[0.65rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
+                    category === cat.id ? 'bg-[var(--pl-ink)] text-white' : 'bg-white text-[var(--pl-muted)]'
+                  }`}
+                >
+                  {cat.label}
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      </header>
+          )}
 
-      {/* ── Main content ── */}
-      <main className="max-w-[1200px] mx-auto px-4 md:px-8 py-8">
-        {/* Category filters */}
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
-            <button
-              onClick={() => setCategory('all')}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-[0.68rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer ${
-                category === 'all' ? 'bg-[var(--pl-ink)] text-white' : 'bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]'
-              }`}
-            >
-              All
-            </button>
-            {MARKETPLACE_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setCategory(cat.id)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-[0.68rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer ${
-                  category === cat.id ? 'bg-[var(--pl-ink)] text-white' : 'bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1">
-            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md border-none cursor-pointer ${viewMode === 'grid' ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive)]' : 'bg-transparent text-[var(--pl-muted)]'}`}>
-              <Grid size={16} />
-            </button>
-            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md border-none cursor-pointer ${viewMode === 'list' ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive)]' : 'bg-transparent text-[var(--pl-muted)]'}`}>
-              <List size={16} />
-            </button>
-          </div>
-        </div>
+          {/* Content area */}
+          <div className="px-6 md:px-10 py-6">
 
-        {/* ── Site Templates tab ── */}
-        {activeTab === 'templates' && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading italic text-[1.4rem] text-[var(--pl-ink)]">Site Templates</h2>
-              <span className="text-[0.72rem] text-[var(--pl-muted)]">{siteResults.length} templates</span>
-            </div>
+            {/* ── Site Templates ── */}
+            {activeTab === 'templates' && (
+              <>
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="font-heading italic text-[1.2rem] text-[var(--pl-ink)]">
+                    {siteResults.length} Site Template{siteResults.length !== 1 ? 's' : ''}
+                  </h2>
+                  <div className="flex gap-1">
+                    <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md border-none cursor-pointer ${viewMode === 'grid' ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive)]' : 'bg-transparent text-[var(--pl-muted)]'}`}><Grid size={15} /></button>
+                    <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md border-none cursor-pointer ${viewMode === 'list' ? 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive)]' : 'bg-transparent text-[var(--pl-muted)]'}`}><List size={15} /></button>
+                  </div>
+                </div>
 
-            <div className={viewMode === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'
-              : 'flex flex-col gap-3'
-            }>
-              {siteResults.map((template, i) => (
-                <motion.div
-                  key={template.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04, duration: 0.3 }}
-                  className="group"
-                >
-                  <div className={`rounded-[20px] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white transition-all duration-200 hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 ${
-                    viewMode === 'list' ? 'flex' : ''
-                  }`}>
-                    {/* Preview */}
-                    <div
-                      className={viewMode === 'list' ? 'w-[200px] shrink-0' : ''}
-                      style={{
-                        height: viewMode === 'list' ? '100%' : '160px',
-                        minHeight: viewMode === 'list' ? '120px' : undefined,
-                        background: template.previewGradient,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        position: 'relative',
-                      }}
+                <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5' : 'flex flex-col gap-3'}>
+                  {siteResults.map((template, i) => (
+                    <motion.div
+                      key={template.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.3 }}
                     >
-                      <span style={{
-                        fontFamily: `"${template.theme.fonts.heading}", serif`,
-                        fontSize: viewMode === 'list' ? '1rem' : '1.3rem',
-                        fontStyle: 'italic', fontWeight: 600,
-                        color: template.theme.colors.foreground,
-                        opacity: 0.7,
-                        textShadow: template.theme.colors.background.startsWith('#0') ? '0 2px 8px rgba(0,0,0,0.3)' : 'none',
-                      }}>
-                        {template.name}
-                      </span>
-                      {template.popularity >= 90 && (
-                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]">
-                          <Sparkles size={9} /> Popular
+                      <div className={`rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white transition-all duration-200 hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 ${viewMode === 'list' ? 'flex' : ''}`}>
+                        {/* Preview gradient */}
+                        <div
+                          className={viewMode === 'list' ? 'w-[180px] shrink-0' : ''}
+                          style={{
+                            height: viewMode === 'list' ? '100%' : '150px',
+                            minHeight: viewMode === 'list' ? '110px' : undefined,
+                            background: template.previewGradient,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            position: 'relative',
+                          }}
+                        >
+                          <span style={{
+                            fontFamily: `"${template.theme.fonts.heading}", serif`,
+                            fontSize: viewMode === 'list' ? '0.92rem' : '1.2rem',
+                            fontStyle: 'italic', fontWeight: 600,
+                            color: template.theme.colors.foreground, opacity: 0.6,
+                          }}>{template.name}</span>
+                          {template.popularity >= 90 && (
+                            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.52rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]">
+                              <Sparkles size={8} /> Popular
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Info */}
-                    <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex items-center gap-4' : ''}`}>
-                      <div className={viewMode === 'list' ? 'flex-1' : ''}>
-                        <h3 className="text-[0.92rem] font-semibold text-[var(--pl-ink)] mb-0.5">{template.name}</h3>
-                        <p className="text-[0.75rem] text-[var(--pl-muted)] leading-relaxed mb-2">{template.tagline}</p>
-                        <div className="flex gap-1 flex-wrap">
-                          {template.tags.slice(0, 4).map(tag => (
-                            <span key={tag} className="text-[0.55rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">
-                              {tag}
-                            </span>
-                          ))}
+                        <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex items-center' : ''}`}>
+                          <div className={viewMode === 'list' ? 'flex-1' : ''}>
+                            <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)] mb-0.5">{template.name}</h3>
+                            <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed mb-2">{template.tagline}</p>
+                            <div className="flex gap-1 flex-wrap mb-3">
+                              {template.tags.slice(0, 3).map(tag => (
+                                <span key={tag} className="text-[0.52rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">{tag}</span>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href="/dashboard"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold no-underline hover:bg-[var(--pl-olive-hover)] transition-colors"
+                              >
+                                Use Template <ArrowRight size={11} />
+                              </Link>
+                              <span className="text-[0.62rem] text-[var(--pl-muted)]">{template.blocks.length} blocks · Free</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className={`flex items-center gap-2 ${viewMode === 'list' ? '' : 'mt-3'}`}>
-                        <span className="text-[0.68rem] font-bold text-[var(--pl-olive-deep)]">Free</span>
-                        <span className="text-[0.62rem] text-[var(--pl-muted)]">{template.blocks.length} blocks</span>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </>
-        )}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            )}
 
-        {/* ── Block Presets tab ── */}
-        {activeTab === 'blocks' && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading italic text-[1.4rem] text-[var(--pl-ink)]">Block Presets</h2>
-              <span className="text-[0.72rem] text-[var(--pl-muted)]">{blockResults.length} presets</span>
-            </div>
+            {/* ── Block Presets ── */}
+            {activeTab === 'blocks' && (
+              <>
+                <div className="mb-5">
+                  <h2 className="font-heading italic text-[1.2rem] text-[var(--pl-ink)]">
+                    {blockResults.length} Block Preset{blockResults.length !== 1 ? 's' : ''}
+                  </h2>
+                  <p className="text-[0.78rem] text-[var(--pl-muted)] mt-1">
+                    Pre-configured section combos you can add to any site.
+                  </p>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {blockResults.map((preset, i) => (
-                <motion.div
-                  key={preset.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="pl-panel-section"
-                  style={{ margin: 0, cursor: 'pointer' }}
-                >
-                  <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)] mb-1">{preset.name}</h3>
-                  <p className="text-[0.75rem] text-[var(--pl-muted)] mb-2">{preset.description}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-1">
-                      {preset.tags.slice(0, 3).map(tag => (
-                        <span key={tag} className="text-[0.52rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)]">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-[0.62rem] text-[var(--pl-muted)]">{preset.blocks.length} blocks</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ── Themes tab ── */}
-        {activeTab === 'themes' && (() => {
-          const themeResults = search ? searchColorThemes(search) : [...COLOR_THEMES];
-          const filtered = category === 'all' ? themeResults : themeResults.filter(t => t.tags.includes(category) || t.occasions.includes(category));
-          return (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-heading italic text-[1.4rem] text-[var(--pl-ink)]">Color Themes</h2>
-                <span className="text-[0.72rem] text-[var(--pl-muted)]">{filtered.length} themes</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filtered.map((theme, i) => (
-                  <motion.div
-                    key={theme.id}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    className="rounded-[20px] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 transition-all duration-200"
-                  >
-                    {/* Color preview */}
-                    <div style={{ height: '100px', background: theme.previewGradient, position: 'relative' }}>
-                      {/* Font preview text */}
-                      <div style={{
-                        position: 'absolute', bottom: '12px', left: '14px',
-                        fontFamily: `"${theme.fonts.heading}", serif`,
-                        fontSize: '1rem', fontStyle: 'italic', fontWeight: 600,
-                        color: theme.colors.background.startsWith('#0') || theme.colors.background.startsWith('#1') ? theme.colors.foreground : theme.colors.foreground,
-                        opacity: 0.7,
-                      }}>
-                        Aa
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {blockResults.map((preset, i) => (
+                    <motion.div
+                      key={preset.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      className="p-5 rounded-[var(--pl-radius-lg)] bg-white border border-[rgba(0,0,0,0.05)] hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--pl-olive-mist)] flex items-center justify-center shrink-0">
+                          <Blocks size={18} className="text-[var(--pl-olive)]" />
+                        </div>
+                        <div>
+                          <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)]">{preset.name}</h3>
+                          <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed mt-0.5">{preset.description}</p>
+                        </div>
                       </div>
-                      {/* Season badge */}
-                      <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.52rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-muted)]">
-                        {theme.season === 'all-season' ? 'All Year' : theme.season}
-                      </div>
-                    </div>
-                    {/* Color swatch strip */}
-                    <div className="flex h-2">
-                      {[theme.colors.background, theme.colors.accent, theme.colors.accentLight, theme.colors.muted, theme.colors.foreground].map((c, ci) => (
-                        <div key={ci} className="flex-1" style={{ background: c }} />
-                      ))}
-                    </div>
-                    {/* Info */}
-                    <div className="p-4">
-                      <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)] mb-0.5">{theme.name}</h3>
-                      <p className="text-[0.72rem] text-[var(--pl-muted)] mb-2">{theme.description}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex gap-1">
-                          {theme.tags.slice(0, 3).map(tag => (
-                            <span key={tag} className="text-[0.52rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">{tag}</span>
+                          {preset.tags.slice(0, 3).map(tag => (
+                            <span key={tag} className="text-[0.5rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)]">{tag}</span>
                           ))}
                         </div>
-                        <span className="text-[0.62rem] font-semibold text-[var(--pl-olive-deep)]">
-                          {theme.fonts.heading}
-                        </span>
+                        <span className="text-[0.62rem] text-[var(--pl-muted)]">{preset.blocks.length} blocks</span>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* ── Themes ── */}
+            {activeTab === 'themes' && (() => {
+              const themeResults = search ? searchColorThemes(search) : [...COLOR_THEMES];
+              const filtered = category === 'all' ? themeResults : themeResults.filter(t => t.tags.includes(category) || t.occasions.includes(category));
+              return (
+                <>
+                  <div className="mb-5">
+                    <h2 className="font-heading italic text-[1.2rem] text-[var(--pl-ink)]">
+                      {filtered.length} Color Theme{filtered.length !== 1 ? 's' : ''}
+                    </h2>
+                    <p className="text-[0.78rem] text-[var(--pl-muted)] mt-1">
+                      Apply a complete color palette and font pairing to your site.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {filtered.map((theme, i) => (
+                      <motion.div
+                        key={theme.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white hover:shadow-md hover:-translate-y-0.5 transition-all"
+                      >
+                        <div style={{ height: '90px', background: theme.previewGradient, position: 'relative' }}>
+                          <div style={{
+                            position: 'absolute', bottom: '10px', left: '12px',
+                            fontFamily: `"${theme.fonts.heading}", serif`,
+                            fontSize: '0.95rem', fontStyle: 'italic', fontWeight: 600,
+                            color: theme.colors.foreground, opacity: 0.6,
+                          }}>Aa Bb</div>
+                          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.5rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-muted)]">
+                            {theme.season === 'all-season' ? 'All Year' : theme.season}
+                          </div>
+                        </div>
+                        {/* Color swatches */}
+                        <div className="flex h-1.5">
+                          {[theme.colors.background, theme.colors.accent, theme.colors.accentLight, theme.colors.muted, theme.colors.foreground].map((c, ci) => (
+                            <div key={ci} className="flex-1" style={{ background: c }} />
+                          ))}
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{theme.name}</h3>
+                              <p className="text-[0.68rem] text-[var(--pl-muted)] mt-0.5">{theme.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mt-3">
+                            <div className="flex gap-1">
+                              {theme.tags.slice(0, 2).map(tag => (
+                                <span key={tag} className="text-[0.5rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">{tag}</span>
+                              ))}
+                            </div>
+                            <button
+                              onClick={() => handleCopyTheme(theme.id)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.62rem] font-bold border-none cursor-pointer transition-all bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)] hover:bg-[var(--pl-olive)] hover:text-white"
+                            >
+                              {copiedId === theme.id ? <><Check size={10} /> Applied</> : <><Copy size={10} /> Copy Theme</>}
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+
+            {/* ── Community ── */}
+            {activeTab === 'community' && (
+              <div className="text-center py-20">
+                <div className="w-16 h-16 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mx-auto mb-5">
+                  <Heart size={24} className="text-[var(--pl-olive)]" />
+                </div>
+                <h2 className="font-heading italic text-xl text-[var(--pl-ink)] mb-2">Community Creations</h2>
+                <p className="text-[0.88rem] text-[var(--pl-muted)] max-w-[420px] mx-auto mb-2 leading-relaxed">
+                  Share your custom templates and earn revenue when others use them.
+                </p>
+                <p className="text-[0.75rem] text-[var(--pl-muted)] max-w-[380px] mx-auto mb-8">
+                  Creators keep 70% of template sales. Join the program to start selling.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button variant="accent" size="md" icon={<ArrowRight size={14} />}>
+                    Apply as Creator
+                  </Button>
+                  <Link
+                    href="/partners"
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[0.82rem] font-semibold text-[var(--pl-muted)] border border-[var(--pl-divider)] no-underline hover:text-[var(--pl-ink)] hover:border-[var(--pl-ink)] transition-all"
+                  >
+                    Partner Program
+                  </Link>
+                </div>
               </div>
-            </>
-          );
-        })()}
-
-        {/* ── Community tab ── */}
-        {activeTab === 'community' && (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-[var(--pl-gold-mist)] flex items-center justify-center mx-auto mb-4">
-              <Heart size={24} className="text-[var(--pl-gold)]" />
-            </div>
-            <h2 className="font-heading italic text-xl text-[var(--pl-ink)] mb-2">Community Creations</h2>
-            <p className="text-[0.88rem] text-[var(--pl-muted)] max-w-[400px] mx-auto mb-6">
-              Share your custom templates and earn revenue when others use them. Join the creator program.
-            </p>
-            <Button variant="primary" size="md" icon={<ArrowRight size={14} />}>
-              Apply as Creator
-            </Button>
+            )}
           </div>
-        )}
-      </main>
-
-      {/* ── Footer ── */}
-      <footer className="border-t border-[var(--pl-divider)] bg-white py-8 px-4 md:px-8">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-          <span className="font-heading italic text-[var(--pl-ink-soft)]">Pearloom Marketplace</span>
-          <div className="flex gap-4 text-[0.75rem] text-[var(--pl-muted)]">
-            <Link href="/dashboard" className="no-underline hover:text-[var(--pl-ink)]">Dashboard</Link>
-            <Link href="/partners" className="no-underline hover:text-[var(--pl-ink)]">Partners</Link>
-            <Link href="/" className="no-underline hover:text-[var(--pl-ink)]">Home</Link>
-          </div>
-        </div>
-      </footer>
+        </main>
+      </div>
     </div>
   );
 }

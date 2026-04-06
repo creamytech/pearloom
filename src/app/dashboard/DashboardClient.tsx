@@ -50,6 +50,133 @@ const FullscreenEditor = nextDynamic(
   { ssr: false },
 );
 
+// ── Template Personalize Modal ─────────────────────────────────
+const OCCASIONS = [
+  { id: 'wedding', label: 'Wedding' },
+  { id: 'engagement', label: 'Engagement' },
+  { id: 'anniversary', label: 'Anniversary' },
+  { id: 'birthday', label: 'Birthday' },
+  { id: 'story', label: 'Other / Story' },
+];
+
+function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
+  template: SiteTemplate;
+  onConfirm: (names: [string, string], occasion: string) => void;
+  onClose: () => void;
+}) {
+  const [name1, setName1] = useState('');
+  const [name2, setName2] = useState('');
+  const [occasion, setOccasion] = useState(template.occasions[0] || 'wedding');
+
+  const canSubmit = name1.trim().length > 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-full max-w-[440px] bg-white rounded-[var(--pl-radius-xl)] shadow-[0_24px_80px_rgba(0,0,0,0.15)] overflow-hidden"
+      >
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-[var(--pl-divider)]">
+          <p className="text-[0.6rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-1">
+            Using template: {template.name}
+          </p>
+          <h2 className="font-heading italic text-[1.4rem] text-[var(--pl-ink-soft)] leading-tight">
+            Personalize your site
+          </h2>
+          <p className="text-[0.82rem] text-[var(--pl-muted)] mt-1">
+            Tell us who this celebration is for.
+          </p>
+        </div>
+
+        {/* Form */}
+        <div className="px-6 py-5 flex flex-col gap-4">
+          {/* Occasion */}
+          <div>
+            <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-2">
+              Occasion
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {OCCASIONS.map(o => (
+                <button
+                  key={o.id}
+                  onClick={() => setOccasion(o.id)}
+                  className="px-3.5 py-1.5 rounded-full border text-[0.75rem] font-semibold transition-all cursor-pointer"
+                  style={{
+                    background: occasion === o.id ? 'var(--pl-olive)' : 'transparent',
+                    color: occasion === o.id ? 'white' : 'var(--pl-muted)',
+                    borderColor: occasion === o.id ? 'var(--pl-olive)' : 'var(--pl-divider)',
+                  }}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Names */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-1.5">
+                {occasion === 'birthday' ? 'Name' : 'First Name'}
+              </label>
+              <input
+                autoFocus
+                value={name1}
+                onChange={e => setName1(e.target.value)}
+                placeholder={occasion === 'birthday' ? 'Celebrant' : 'Partner 1'}
+                className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.88rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] transition-colors"
+              />
+            </div>
+            {occasion !== 'birthday' && (
+              <div>
+                <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-1.5">
+                  Second Name
+                </label>
+                <input
+                  value={name2}
+                  onChange={e => setName2(e.target.value)}
+                  placeholder="Partner 2"
+                  className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.88rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] transition-colors"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-[var(--pl-divider)] flex justify-between items-center bg-[var(--pl-cream)]">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-[0.82rem] text-[var(--pl-muted)] bg-transparent border-none cursor-pointer hover:text-[var(--pl-ink)] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => canSubmit && onConfirm([name1.trim(), name2.trim()] as [string, string], occasion)}
+            disabled={!canSubmit}
+            className="px-6 py-2.5 rounded-full text-[0.82rem] font-bold text-white border-none cursor-pointer transition-all"
+            style={{
+              background: canSubmit ? 'var(--pl-olive)' : 'var(--pl-divider)',
+              opacity: canSubmit ? 1 : 0.5,
+            }}
+          >
+            Start Building
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 const STEP_META: Record<WizardStep, { title: string; subtitle: string }> = {
   dashboard: { title: '', subtitle: '' },
   photos: { title: 'Select Your Memories', subtitle: 'Choose the photos that capture the feeling.' },
@@ -70,6 +197,7 @@ export default function DashboardClient() {
   const [lastVibeData, setLastVibeData] = useState<VibeFormData | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState<SiteTemplate | null>(null);
   const [mobileTab, setMobileTab] = useState<'feed' | 'build' | 'aiscout' | 'profile'>('feed');
   const [progressiveSession] = useState(() => createProgressiveSession());
   const [previewState, setPreviewState] = useState<ProgressiveState>(progressiveSession.state);
@@ -281,11 +409,16 @@ export default function DashboardClient() {
 
   // ── Main wizard render ──────────────────────────────────────
   const handleTemplateSelect = (template: SiteTemplate) => {
-    const slug = template.id + '-' + Date.now().toString(36);
-    const manifest = applyTemplate(template, {} as import('@/types').StoryManifest, ['', '']);
-    // Go straight to editor — template already has blocks, theme, poetry
-    dispatch({ type: 'EDIT_SITE', manifest, subdomain: slug, names: ['', ''] });
+    setPendingTemplate(template);
     setShowTemplates(false);
+  };
+
+  const handleTemplatePersonalize = (names: [string, string], occasion: string) => {
+    if (!pendingTemplate) return;
+    const slug = pendingTemplate.id + '-' + Date.now().toString(36);
+    const manifest = applyTemplate(pendingTemplate, { occasion } as import('@/types').StoryManifest, names);
+    dispatch({ type: 'EDIT_SITE', manifest, subdomain: slug, names });
+    setPendingTemplate(null);
   };
 
   return (
@@ -544,6 +677,15 @@ export default function DashboardClient() {
           onSelect={handleTemplateSelect}
           onClose={() => setShowTemplates(false)}
           occasion={'wedding'}
+        />
+      )}
+
+      {/* Template Personalization — names & occasion before entering editor */}
+      {pendingTemplate && (
+        <TemplatePersonalizeModal
+          template={pendingTemplate}
+          onConfirm={handleTemplatePersonalize}
+          onClose={() => setPendingTemplate(null)}
         />
       )}
 
