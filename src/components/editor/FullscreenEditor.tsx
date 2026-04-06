@@ -56,6 +56,7 @@ import { BlockStyleEditor } from './BlockStyleEditor';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CustomCSSEditor } from './CustomCSSEditor';
 import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
+import { WeddingPartyEditor } from './WeddingPartyEditor';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
   setBlockStyle, saveSnapshot, parseElementId,
@@ -695,6 +696,12 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               >
                 {state.activeTab === 'story' && <AnniversaryNudgePanel />}
                 {state.activeTab === 'story' && <StoryPanel />}
+                {state.activeTab === 'story' && manifest.occasion !== 'birthday' && (
+                  <WeddingPartyEditor
+                    members={manifest.weddingParty || []}
+                    onChange={(members) => { const updated = { ...manifest, weddingParty: members }; onChange(updated); pushToPreview(updated); }}
+                  />
+                )}
 
                 {state.activeTab === 'canvas' && (
                   <>

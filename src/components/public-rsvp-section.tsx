@@ -20,10 +20,9 @@ interface PublicRsvpSectionProps {
   siteId: string;
   events: WeddingEvent[];
   deadline?: string;
-  // Poetry pass — warm RSVP intro from AI
   rsvpIntro?: string;
-  // Section heading override
   title?: string;
+  mealOptions?: Array<{ id: string; name: string; dietaryTags?: string[] }>;
 }
 
 export function PublicRsvpSection({
@@ -32,6 +31,7 @@ export function PublicRsvpSection({
   deadline,
   rsvpIntro,
   title,
+  mealOptions,
 }: PublicRsvpSectionProps) {
   const headingText = title || rsvpIntro || 'Join us';
 
@@ -474,7 +474,7 @@ export function PublicRsvpSection({
 
               {/* RSVP form embedded in invitation */}
               <div style={{ padding: '2.5rem' }}>
-                <RsvpForm events={events} siteId={siteId} />
+                <RsvpForm events={events} siteId={siteId} mealOptions={mealOptions} />
               </div>
             </motion.div>
           )}

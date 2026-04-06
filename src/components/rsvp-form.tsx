@@ -138,6 +138,8 @@ function StepDots({ current, total }: { current: number; total: number }) {
 interface RsvpFormProps {
   events: WeddingEvent[];
   siteId: string;
+  /** Custom meal options from manifest — if provided, replaces defaults */
+  mealOptions?: Array<{ id: string; name: string; dietaryTags?: string[] }>;
 }
 
 // ── Shared input style ───────────────────────────────────────────
@@ -174,7 +176,7 @@ function blurBorder(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement |
   e.target.style.borderBottomColor = 'rgba(0,0,0,0.1)';
 }
 
-export function RsvpForm({ events, siteId }: RsvpFormProps) {
+export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
   // Multi-step state
   const [step, setStep] = useState(0);
 
@@ -577,13 +579,16 @@ export function RsvpForm({ events, siteId }: RsvpFormProps) {
                   marginTop: '0.5rem',
                 }}
               >
-                {([
-                  { label: 'Chicken', emoji: '🍗' },
-                  { label: 'Fish', emoji: '🐟' },
-                  { label: 'Beef', emoji: '🥩' },
-                  { label: 'Vegetarian', emoji: '🥬' },
-                  { label: 'Vegan', emoji: '🌱' },
-                ] as const).map(({ label: m, emoji }) => {
+                {(mealOptions && mealOptions.length > 0
+                  ? mealOptions.map(o => ({ label: o.name, emoji: '' }))
+                  : [
+                    { label: 'Chicken', emoji: '' },
+                    { label: 'Fish', emoji: '' },
+                    { label: 'Beef', emoji: '' },
+                    { label: 'Vegetarian', emoji: '' },
+                    { label: 'Vegan', emoji: '' },
+                  ]
+                ).map(({ label: m, emoji }) => {
                   const selected = mealPreference === m;
                   return (
                     <button

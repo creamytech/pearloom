@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Zap } from 'lucide-react';
 import type { StoryManifest } from '@/types';
+import { sendBroadcast, BROADCAST_TEMPLATES } from '@/lib/guest-services';
 
 interface MessagingPanelProps {
   siteId: string;
@@ -126,6 +128,28 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
         minHeight: '100%',
       }}
     >
+      {/* Quick Broadcast */}
+      <div className="pl-panel-section">
+        <div className="pl-panel-label"><Zap size={10} /> Quick Broadcast</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {Object.entries(BROADCAST_TEMPLATES).map(([key, tmpl]) => (
+            <button
+              key={key}
+              onClick={async () => {
+                const result = await sendBroadcast(siteId, tmpl.message, tmpl.type, 'site-banner');
+                if (result) alert(`Broadcast sent to ${result.recipientCount} guests`);
+              }}
+              className="pl-panel-card"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', border: 'none', textAlign: 'left', width: '100%', background: 'rgba(255,255,255,0.6)' }}
+            >
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', flex: 1 }}>
+                {key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              </span>
+              <Zap size={11} style={{ color: 'var(--pl-olive)', flexShrink: 0 }} />
+            </button>
+          ))}
+        </div>
+      </div>
       {/* Title */}
       <div>
         <h2

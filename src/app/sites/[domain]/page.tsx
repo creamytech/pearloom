@@ -1090,7 +1090,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
                   <WaveDivider skin={vibeSkin} fromColor={cardBg} toColor={bgColor} height={70} inverted />
                 </>
               ) : null}
-              {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId={domain} events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
+              {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId={domain} events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} mealOptions={manifest.mealOptions} /></section> : null}
               {(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl) ? (
                 <>
                   <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={accentLight} height={80} />

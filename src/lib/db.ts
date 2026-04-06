@@ -763,3 +763,25 @@ export async function deleteSiteInvite(id: string): Promise<void> {
   const supabase = getSupabase();
   await supabase.from('site_invites').delete().eq('id', id);
 }
+
+/**
+ * Get all published sites for sitemap generation.
+ */
+export async function getPublishedSites(): Promise<Array<{ domain: string; created_at: string; updated_at?: string }>> {
+  const supabase = getSupabase();
+  try {
+    const { data, error } = await supabase
+      .from('sites')
+      .select('subdomain, created_at, updated_at')
+      .not('ai_manifest', 'is', null)
+      .limit(5000);
+    if (error || !data) return [];
+    return data.map((row: Record<string, string>) => ({
+      domain: row.subdomain,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    }));
+  } catch {
+    return [];
+  }
+}

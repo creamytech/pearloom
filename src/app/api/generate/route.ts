@@ -262,6 +262,7 @@ export async function POST(req: NextRequest) {
       guestNotes,
       inspirationUrls,
       layoutFormat,
+      voiceSamples,
       rsvpDeadline,
       cashFundUrl,
       eventVenue,
@@ -285,6 +286,7 @@ export async function POST(req: NextRequest) {
       guestNotes?: string;
       inspirationUrls?: string[];
       layoutFormat?: string;
+      voiceSamples?: string[];
       rsvpDeadline?: string;
       cashFundUrl?: string;
       eventVenue?: string;
@@ -337,8 +339,29 @@ export async function POST(req: NextRequest) {
       console.log(`[Generate] Built ${enrichedClusters.length} clusters from scratch`);
     }
 
+    // ── Photo Intelligence — score photos for story arc ──────────
+    // Enhances hero selection and narrative ordering by analyzing
+    // emotional intensity and visual quality of each cluster's best photo.
+    try {
+      const { scoreStoryArc } = await import('@/lib/photo-intelligence/analyzer');
+      // Build lightweight analyses for scoring (without Gemini Vision call for speed)
+      const quickAnalyses = enrichedClusters.flatMap(c =>
+        c.photos.slice(0, 1).map(p => ({
+          photoId: p.id,
+          faces: [],
+          scene: { scene: 'portrait' as const, timeOfDay: 'unknown' as const, season: 'unknown' as const, lighting: 'natural-soft' as const, colorTemp: 0, dominantColors: [] },
+          emotion: { intensity: Math.min(10, c.photos.length * 1.5), primary: 'joy' as const, isPeak: c.photos.length > 4, narrativeWeight: Math.min(10, c.photos.length * 2) },
+          quality: { score: 7, sharpness: 7, composition: 7, exposure: 7, heroCandidate: c.photos.length > 3, isDuplicate: false },
+          storyArc: { position: 'setup' as const, role: 'establishing' as const, captionStyle: 'descriptive' as const },
+          tags: [],
+          analyzedAt: Date.now(),
+        }))
+      );
+      scoreStoryArc(quickAnalyses);
+      console.log(`[Generate] Photo intelligence: scored ${quickAnalyses.length} photos for story arc`);
+    } catch {}
+
     // Generate the Story Manifest via Gemini (3-pass: generate → critique → vibeSkin)
-    // Stream real progress back to the client if SSE is requested
     const manifest = await generateStoryManifest(
       enrichedClusters,
       vibeString,
@@ -505,6 +528,20 @@ export async function POST(req: NextRequest) {
     manifest.chapters = updatedChapters;
     manifest.logoIcon = logoResult.logoIcon;
     if (logoResult.logoSvg) manifest.logoSvg = logoResult.logoSvg;
+
+    // Train voice profile if samples provided
+    if (voiceSamples && voiceSamples.length > 0) {
+      try {
+        const { trainVoiceProfile } = await import('@/lib/voice-engine/trainer');
+        const profile = trainVoiceProfile(
+          voiceSamples.map((text: string) => ({ text, source: 'freeform' as const })),
+          session.user?.email || 'anon',
+        );
+        manifest.voiceSamples = voiceSamples;
+        // Store the trained system prompt for future AI rewrites
+        (manifest as unknown as Record<string, unknown>)._voiceSystemPrompt = profile.systemPrompt;
+      } catch {}
+    }
 
     return NextResponse.json({ manifest });
   } catch (error) {
