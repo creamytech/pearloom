@@ -1302,16 +1302,12 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     <p style={{ fontSize: '0.78rem', color: 'var(--pl-muted)', marginTop: '0.3rem', textAlign: 'right' }}>{(detailsData.proposalStory ?? '').length}/500</p>
                   </div>
                   <div>
-                    <label style={fieldLabel}>When did it happen? <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                    <input
-                      type="date"
-                      value={detailsData.proposalDate ?? ''}
-                      onChange={e => setDetail('proposalDate', e.target.value)}
-                      style={detailInputStyle}
-                      onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; e.target.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none'; }}
+                    <DatePicker
+                      label="When did it happen? (optional)"
+                      value={detailsData.proposalDate ?? ""}
+                      onChange={(d) => setDetail("proposalDate", d)}
                     />
-                  </div>
+</div>
                   <div>
                     <label style={fieldLabel}>Ring details <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                     <input
@@ -1997,17 +1993,10 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                    'When is the big day?'}
                   {' '}<span style={{ color: 'var(--pl-muted)', fontWeight: 400 }}>(optional)</span>
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={eventDate}
-                  onChange={e => setEventDate(e.target.value)}
-                  style={{
-                    ...inputStyle,
-                    fontSize: 'max(16px, 0.9rem)',
-                    boxSizing: 'border-box',
-                  }}
-                  onFocus={getFocusStyle}
-                  onBlur={getBlurStyle}
+                  onChange={(d) => setEventDate(d)}
+                  placeholder="Select date"
                 />
               </div>
             )}

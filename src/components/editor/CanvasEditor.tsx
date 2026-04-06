@@ -585,11 +585,9 @@ function SectionStylePanel({
         </div>
         {/* Custom hex input */}
         <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-          <input
-            type="color"
-            value={config.bgColor as string || '#ffffff'}
-            onChange={e => updateConfig({ bgColor: e.target.value })}
-            style={{ width: '28px', height: '28px', border: 'none', borderRadius: '4px', cursor: 'pointer', background: 'transparent', padding: 0 }}
+          <ColorPicker
+            value={(config.bgColor as string) || '#ffffff'}
+            onChange={(c) => updateConfig({ bgColor: c })}
           />
           <input
             value={config.bgColor as string || ''}

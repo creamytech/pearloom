@@ -91,34 +91,7 @@ function ColorField({
       }}>
         {label}
       </label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <div style={{
-          position: 'relative', width: '40px', height: '40px',
-          borderRadius: '50%', border: '2px solid rgba(0,0,0,0.08)',
-          overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        }}>
-          <div style={{ background: value, width: '100%', height: '100%' }} />
-          <input
-            type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            style={{ position: 'absolute', inset: 0, width: '200%', height: '200%', top: '-50%', left: '-50%', opacity: 0, cursor: 'pointer' }}
-          />
-        </div>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            flex: 1, padding: '0.65rem 1rem', borderRadius: '0.6rem',
-            border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none',
-            fontSize: '0.85rem', fontFamily: 'monospace', background: 'rgba(0,0,0,0.02)',
-          }}
-          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--pl-olive)'}
-          onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'}
-        />
-      </div>
+      <ColorPicker value={value} onChange={onChange} />
     </div>
   );
 }
@@ -381,8 +354,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                           <div>
                             <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Date</label>
-                            <input type="date" value={chapter.date.slice(0, 10)} onChange={(e) => updateChapter(chapter.id, { date: e.target.value })}
-                              style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.85rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }} />
+                            <DatePicker value={chapter.date.slice(0, 10)} onChange={(d) => updateChapter(chapter.id, { date: d })} />
                           </div>
                           <div>
                             <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Mood</label>
@@ -615,12 +587,10 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.5rem' }}>Reveal Date (Optional)</label>
-                  <input
-                    type="date"
+                  <DatePicker
+                    label="Reveal Date (Optional)"
                     value={manifest.comingSoon?.revealDate?.slice(0, 10) || ''}
-                    onChange={(e) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, revealDate: e.target.value, title: manifest.comingSoon?.title || 'The Next Chapter', enabled: true, passwordProtected: false, subtitle: manifest.comingSoon?.subtitle || '' } })}
-                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.6rem', border: '1.5px solid rgba(0,0,0,0.08)', outline: 'none', fontSize: '0.9rem', background: 'rgba(0,0,0,0.02)', boxSizing: 'border-box' }}
+                    onChange={(d) => onChange({ ...manifest, comingSoon: { ...manifest.comingSoon, revealDate: d, title: manifest.comingSoon?.title || 'The Next Chapter', enabled: true, passwordProtected: false, subtitle: manifest.comingSoon?.subtitle || '' } })}
                   />
                 </div>
               </div>
