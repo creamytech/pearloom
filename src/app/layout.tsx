@@ -11,9 +11,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Pearloom — Our Story",
+  title: "Pearloom — AI-Powered Celebration Sites",
   description:
-    "A cinematic timeline of love, built with Pearloom. Every photo, every moment, every chapter.",
+    "Create beautiful, AI-powered celebration sites for weddings, anniversaries, and special moments. Every photo, every moment, every chapter.",
 };
 
 import { AuthProvider } from '@/components/auth-provider';

@@ -3,7 +3,13 @@
 // Per-guest animated invitation page
 // ─────────────────────────────────────────────────────────────
 
+import type { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
+
+export const metadata: Metadata = {
+  title: 'You\'re Invited | Pearloom',
+  description: 'You have received a special invitation.',
+};
 import { InviteReveal } from '@/components/invite/InviteReveal';
 import type { StoryManifest } from '@/types';
 

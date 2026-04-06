@@ -6,7 +6,13 @@
 
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: 'Site Editor | Pearloom',
+  description: 'Edit and customize your celebration site.',
+};
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getSiteConfig } from '@/lib/db';
