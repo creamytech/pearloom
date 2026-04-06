@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Plus } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
 import { ThemeProvider } from '@/components/theme-provider';
 import { colors as C, card } from '@/lib/design-tokens';
@@ -29,6 +29,7 @@ import type { StoryManifest } from '@/types';
 import { WizardLayout } from '@/components/wizard/WizardLayout';
 import { DashboardStep } from '@/components/wizard/DashboardStep';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
+import { UserNav } from '@/components/dashboard/user-nav';
 import { PhotosStep } from '@/components/wizard/PhotosStep';
 import { UploadStep } from '@/components/wizard/UploadStep';
 import { ClustersStep } from '@/components/wizard/ClustersStep';
@@ -296,22 +297,38 @@ export default function DashboardClient() {
       borderRadius: '1rem',
     }}>
       {status === 'loading' ? null : state.step === 'dashboard' ? (
-        /* ── Dashboard: own layout with sidebar, no wizard chrome ── */
-        <>
-          <SiteNav
-            names={['Pearloom', 'Studio']}
-            pages={[]}
-            user={session?.user || undefined}
-            onGoToDashboard={session ? () => goTo('dashboard') : undefined}
-            onStartNew={session ? () => goTo('photos') : undefined}
-          />
-          <div className="flex min-h-[calc(100dvh-4rem)]">
+        /* ── Dashboard: own layout with sidebar, no SiteNav ── */
+        <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
+          {/* Dashboard top bar — minimal, not the heavy SiteNav */}
+          <header className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-[var(--pl-divider)] bg-white/80 backdrop-blur-md z-10">
+            <div className="flex items-center gap-3">
+              <span className="font-heading italic text-[1.05rem] font-semibold text-[var(--pl-ink-soft)]">
+                Pearloom
+              </span>
+              <span className="hidden sm:block text-[0.6rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)]">
+                The Atelier
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => goTo('photos')}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[0.72rem] font-bold text-white bg-[var(--pl-olive-deep)] border-none cursor-pointer hover:opacity-90 transition-opacity"
+              >
+                <Plus size={13} /> New Site
+              </button>
+              {session?.user && (
+                <UserNav user={session.user} onDashboard={() => goTo('dashboard')} />
+              )}
+            </div>
+          </header>
+
+          <div className="flex flex-1 overflow-hidden">
             {/* Desktop sidebar */}
             <div className="hidden md:block">
               <DashboardSidebar />
             </div>
             {/* Main content */}
-            <main className="flex-1 overflow-auto bg-[var(--pl-cream)] p-4 md:p-8 lg:p-12">
+            <main className="flex-1 overflow-auto p-4 md:p-8 lg:p-12">
               <DashboardStep
                 draftBanner={getDraft()}
                 onResumeDraft={() => {
@@ -327,7 +344,7 @@ export default function DashboardClient() {
               />
             </main>
           </div>
-        </>
+        </div>
       ) : (
         /* ── Wizard steps: Photos, Clusters, Vibe, Generating, Guests ── */
         <>
