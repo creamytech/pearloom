@@ -223,7 +223,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '22px',
     fontWeight: 600,
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     lineHeight: 1.3,
   },
   sub: {
@@ -232,7 +232,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     color: 'rgba(214,198,168,0.65)',
   },
   name: {
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
   },
   dateLine: {
     margin: 0,
@@ -244,7 +244,7 @@ const envelopeStyles: Record<string, React.CSSProperties> = {
     background: 'rgba(214,198,168,0.08)',
     border: '1px solid rgba(214,198,168,0.3)',
     borderRadius: '8px',
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     fontSize: '15px',
     fontWeight: 500,
     padding: '12px 32px',

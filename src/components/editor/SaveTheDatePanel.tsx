@@ -239,7 +239,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             padding: '9px', borderRadius: '9px',
             border: '1px solid rgba(214,198,168,0.2)',
-            background: 'rgba(214,198,168,0.07)', color: '#D6C6A8',
+            background: 'rgba(214,198,168,0.07)', color: 'var(--pl-muted)',
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
           }}
         >

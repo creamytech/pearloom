@@ -81,7 +81,7 @@ const lbl: React.CSSProperties = {
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.65rem 0.8rem', borderRadius: '0.5rem',
   border: '1px solid rgba(0,0,0,0.07)', background: 'rgba(163,177,138,0.06)',
-  color: '#fff', fontSize: '0.82rem', outline: 'none', fontFamily: 'inherit',
+  color: 'var(--pl-ink)', fontSize: '0.82rem', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s', boxSizing: 'border-box',
 };
 

@@ -163,7 +163,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     margin: '0 0 16px 0',
     fontSize: '22px',
     fontWeight: 600,
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     lineHeight: 1.3,
   },
   body: {
@@ -178,7 +178,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     margin: '0 0 28px 0',
   },
   highlight: {
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     fontWeight: 600,
   },
   calBtn: {
@@ -186,7 +186,7 @@ const sealedStyles: Record<string, React.CSSProperties> = {
     background: 'rgba(214,198,168,0.1)',
     border: '1px solid rgba(214,198,168,0.25)',
     borderRadius: '8px',
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     textDecoration: 'none',
     fontSize: '14px',
     fontWeight: 500,

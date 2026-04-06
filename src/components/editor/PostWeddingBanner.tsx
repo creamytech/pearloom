@@ -162,7 +162,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             background: loading
               ? 'rgba(109,89,122,0.3)'
               : 'linear-gradient(135deg, #A3B18A 0%, #6D597A 100%)',
-            color: '#F5F1E8',
+            color: 'var(--pl-ink-soft)',
             border: 'none',
             borderRadius: '0.625rem',
             cursor: loading ? 'not-allowed' : 'pointer',

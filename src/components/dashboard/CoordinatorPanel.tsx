@@ -264,7 +264,7 @@ export function CoordinatorPanel({ siteId, subdomain }: CoordinatorPanelProps) {
               background: sending || !email.trim()
                 ? 'rgba(163,177,138,0.3)'
                 : 'linear-gradient(135deg, #A3B18A 0%, #8a9d72 100%)',
-              color: '#F5F1E8', cursor: sending || !email.trim() ? 'not-allowed' : 'pointer',
+              color: 'var(--pl-ink-soft)', cursor: sending || !email.trim() ? 'not-allowed' : 'pointer',
               fontSize: '0.85rem', fontWeight: 700,
               fontFamily: 'var(--pl-font-body, Georgia, serif)',
               transition: 'background 0.2s',

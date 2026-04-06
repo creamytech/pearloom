@@ -177,7 +177,7 @@ function StatCard({
           {label}
         </span>
       </div>
-      <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#F5F1E8', lineHeight: 1 }}>
+      <div style={{ fontSize: '2.25rem', fontWeight: 700, color: 'var(--pl-ink-soft)', lineHeight: 1 }}>
         {value}
       </div>
     </motion.div>
@@ -315,7 +315,7 @@ export function RsvpDashboard({
   const root: React.CSSProperties = {
     minHeight: '100vh',
     background: '#1C1916',
-    color: '#F5F1E8',
+    color: 'var(--pl-ink-soft)',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     padding: '2rem',
   };
@@ -323,7 +323,7 @@ export function RsvpDashboard({
   const headingStyle: React.CSSProperties = {
     fontSize: '1.75rem',
     fontWeight: 700,
-    color: '#F5F1E8',
+    color: 'var(--pl-ink-soft)',
     margin: 0,
     letterSpacing: '-0.02em',
   };
@@ -462,7 +462,7 @@ export function RsvpDashboard({
                 background: 'rgba(214,198,168,0.05)',
                 border: '1px solid rgba(214,198,168,0.12)',
                 borderRadius: '0.6rem',
-                color: '#F5F1E8', fontSize: '0.84rem',
+                color: 'var(--pl-ink-soft)', fontSize: '0.84rem',
                 outline: 'none', boxSizing: 'border-box',
               }}
             />
@@ -563,7 +563,7 @@ export function RsvpDashboard({
                           (e.currentTarget as HTMLTableRowElement).style.background = '';
                         }}
                       >
-                        <td style={{ ...tdStyle, fontWeight: 600, color: '#F5F1E8' }}>
+                        <td style={{ ...tdStyle, fontWeight: 600, color: 'var(--pl-ink-soft)' }}>
                           {guest.name}
                         </td>
                         <td style={tdStyle}>
@@ -651,7 +651,7 @@ function EmptyState() {
         <Users size={28} color="#A3B18A" />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <h2 style={{ margin: 0, color: '#F5F1E8', fontSize: '1.25rem', fontWeight: 600 }}>
+        <h2 style={{ margin: 0, color: 'var(--pl-ink-soft)', fontSize: '1.25rem', fontWeight: 600 }}>
           No RSVPs yet
         </h2>
         <p style={{ margin: 0, color: 'var(--pl-muted)', fontSize: '0.9rem', maxWidth: 380 }}>

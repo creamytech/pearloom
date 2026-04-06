@@ -197,7 +197,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
         {[
           { label: 'Tables', value: stats.tables, color: '#A3B18A' },
-          { label: 'Total seats', value: stats.totalSeats, color: '#D6C6A8' },
+          { label: 'Total seats', value: stats.totalSeats, color: 'var(--pl-muted)' },
           { label: 'Assigned', value: stats.assignedSeats, color: '#A3B18A' },
           { label: 'Unassigned', value: stats.unassignedGuests, color: stats.unassignedGuests > 0 ? '#fbbf24' : '#A3B18A' },
         ].map(({ label, value, color }) => (
@@ -238,7 +238,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
           padding: '10px', borderRadius: '9px',
           border: '1px solid rgba(214,198,168,0.15)',
           background: 'rgba(214,198,168,0.05)',
-          color: '#D6C6A8', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+          color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
         }}
       >
         <LayoutGrid size={13} /> Open Full Seating Editor <ExternalLink size={11} />
@@ -261,7 +261,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {table.label}
-                      {table.isReserved && <span style={{ color: '#D6C6A8', marginLeft: '4px', fontSize: '0.62rem' }}>Reserved</span>}
+                      {table.isReserved && <span style={{ color: 'var(--pl-muted)', marginLeft: '4px', fontSize: '0.62rem' }}>Reserved</span>}
                     </div>
                   </div>
                   <div style={{ fontSize: '0.68rem', color: assigned === table.capacity ? '#A3B18A' : 'var(--pl-muted)', flexShrink: 0 }}>

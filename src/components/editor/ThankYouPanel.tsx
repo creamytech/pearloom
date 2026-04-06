@@ -67,7 +67,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
       }}>
         <span style={{
           fontSize: '0.78rem', fontWeight: 700,
-          color: '#D6C6A8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          color: 'var(--pl-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {note.guestName}
         </span>
@@ -425,7 +425,7 @@ export function ThankYouPanel() {
               padding: '10px', borderRadius: '9px',
               border: '1px solid rgba(214,198,168,0.15)',
               background: 'rgba(214,198,168,0.05)',
-              color: '#D6C6A8', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+              color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
             }}
           >
             <Download size={12} /> Export all as text

@@ -900,7 +900,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {/* Drag Overlay */}
       <DragOverlay dropAnimation={null}>
         {state.canvasDragId && (
-          <div style={{ padding: '10px 14px', background: 'var(--pl-olive, #A3B18A)', color: '#F5F1E8', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 700, boxShadow: '0 12px 40px rgba(43,30,20,0.08)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none', border: '1px solid var(--pl-muted)', whiteSpace: 'nowrap' }}>
+          <div style={{ padding: '10px 14px', background: 'var(--pl-olive, #A3B18A)', color: 'var(--pl-ink-soft)', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 700, boxShadow: '0 12px 40px rgba(43,30,20,0.08)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none', border: '1px solid var(--pl-muted)', whiteSpace: 'nowrap' }}>
             <span style={{ fontSize: '1.2rem' }}>{state.canvasDragId.startsWith('chapter:') ? '⌖' : '✦'}</span>
             {state.canvasDragLabel}
           </div>

@@ -117,7 +117,7 @@ function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
             fontFamily: 'Georgia, serif',
             fontSize: '1.5rem',
             fontWeight: 400,
-            color: '#F5F1E8',
+            color: 'var(--pl-ink-soft)',
             margin: '0 0 12px',
           }}
         >
@@ -231,7 +231,7 @@ function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
               background: 'rgba(163,177,138,0.05)',
               border: '1px solid rgba(196,169,106,0.2)',
               borderRadius: 8,
-              color: '#F5F1E8',
+              color: 'var(--pl-ink-soft)',
               fontSize: '0.95rem',
               fontFamily: 'Georgia, serif',
               outline: 'none',
@@ -252,7 +252,7 @@ function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
             background: 'rgba(163,177,138,0.05)',
             border: '1px solid rgba(196,169,106,0.2)',
             borderRadius: 8,
-            color: '#F5F1E8',
+            color: 'var(--pl-ink-soft)',
             fontSize: '0.9rem',
             fontFamily: 'Georgia, serif',
             outline: 'none',

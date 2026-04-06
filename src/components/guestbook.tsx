@@ -881,7 +881,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
                     justifyContent: 'center',
                     fontSize: '0.75rem',
                     fontWeight: 700,
-                    color: '#F5F1E8',
+                    color: 'var(--pl-ink-soft)',
                     flexShrink: 0,
                   }}
                 >

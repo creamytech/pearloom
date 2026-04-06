@@ -426,7 +426,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
           gap: '6px', padding: '0 16px',
         }}>
           {[
-            { label: 'Total Budget', value: formatCents(totalCents), color: '#D6C6A8' },
+            { label: 'Total Budget', value: formatCents(totalCents), color: 'var(--pl-muted)' },
             { label: 'Paid', value: formatCents(paidCents), color: '#6bcb77' },
             { label: 'Remaining', value: formatCents(remainingCents), color: '#A3B18A' },
           ].map(s => (

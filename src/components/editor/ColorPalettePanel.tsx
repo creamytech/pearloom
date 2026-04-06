@@ -368,7 +368,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: '7px',
                   border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
-                  color: '#fff', fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
+                  color: 'var(--pl-ink)', fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
@@ -423,7 +423,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: '7px',
                   border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
-                  color: '#fff', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
+                  color: 'var(--pl-ink)', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}

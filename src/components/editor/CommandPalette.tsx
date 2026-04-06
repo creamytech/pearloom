@@ -210,7 +210,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 placeholder="Search actions, tabs, chapters…"
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  color: '#fff', fontSize: '0.95rem', fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                  color: 'var(--pl-ink)', fontSize: '0.95rem', fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
                   caretColor: 'var(--pl-olive, #A3B18A)',
                 }}
               />

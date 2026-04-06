@@ -98,7 +98,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     gap: '0.45rem',
     fontSize: '0.85rem',
     fontWeight: 700,
-    color: '#F5F1E8',
+    color: 'var(--pl-ink-soft)',
     letterSpacing: '0.02em',
   };
 

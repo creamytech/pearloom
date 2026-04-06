@@ -410,7 +410,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '20px',
     fontWeight: 600,
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     letterSpacing: '0.01em',
   },
   subtitle: {
@@ -456,7 +456,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '14px',
   },
   capsuleNameText: {
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     fontWeight: 500,
   },
   capsuleMeta: {
@@ -508,7 +508,7 @@ const styles: Record<string, React.CSSProperties> = {
   unlockLink: {
     fontFamily: 'monospace',
     fontSize: '13px',
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     background: 'rgba(214,198,168,0.06)',
     border: '1px solid rgba(214,198,168,0.14)',
     borderRadius: '4px',
@@ -540,7 +540,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(214,198,168,0.06)',
     border: '1px solid rgba(214,198,168,0.18)',
     borderRadius: '6px',
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     fontSize: '14px',
     padding: '9px 12px',
     outline: 'none',
@@ -556,7 +556,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(214,198,168,0.06)',
     border: '1px solid rgba(214,198,168,0.18)',
     borderRadius: '6px',
-    color: '#D6C6A8',
+    color: 'var(--pl-muted)',
     fontSize: '14px',
     padding: '9px 12px',
     outline: 'none',

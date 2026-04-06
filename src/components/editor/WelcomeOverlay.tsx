@@ -70,7 +70,7 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
           fontSize: 'clamp(2rem, 5vw, 3rem)',
           fontStyle: 'italic',
           fontWeight: 400,
-          color: '#F5F1E8',
+          color: 'var(--pl-ink-soft)',
           letterSpacing: '-0.02em',
           textAlign: 'center',
         }}

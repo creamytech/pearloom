@@ -151,7 +151,7 @@ const lbl: React.CSSProperties = {
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
   border: '1px solid rgba(0,0,0,0.07)', background: 'rgba(163,177,138,0.06)',
-  color: '#fff', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
+  color: 'var(--pl-ink)', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
   boxSizing: 'border-box', transition: 'border-color 0.15s',
 };
 
@@ -293,7 +293,7 @@ function EventBlockConfig({ events, onChange }: {
               <select
                 value={activeEvent.type}
                 onChange={e => upd(activeEvent.id, { type: e.target.value as WeddingEvent['type'] })}
-                style={{ ...inp, color: '#fff' }}
+                style={{ ...inp, color: 'var(--pl-ink)' }}
               >
                 {Object.entries(EVENT_TYPES).map(([t, d]) => (
                   <option key={t} value={t} style={{ background: '#1a1a18' }}>{d.label}</option>
@@ -336,7 +336,7 @@ function EventBlockConfig({ events, onChange }: {
                         <select
                           value={String(sectionData[field.key] || '')}
                           onChange={e => updSpecific(activeEvent.id, sectionKey as 'ceremony', { [field.key]: e.target.value })}
-                          style={{ ...inp, color: '#fff' }}
+                          style={{ ...inp, color: 'var(--pl-ink)' }}
                         >
                           <option value="" style={{ background: '#1a1a18' }}>Select…</option>
                           {field.options?.map(opt => (
