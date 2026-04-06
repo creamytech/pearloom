@@ -54,6 +54,7 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { BlockConfigEditor } from './BlockConfigEditor';
 import { BlockStyleEditor } from './BlockStyleEditor';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
+import { CustomCSSEditor } from './CustomCSSEditor';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
   setBlockStyle, saveSnapshot, parseElementId,
@@ -757,6 +758,22 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                         dispatch({ type: 'SET_CHAPTERS', chapters: restored.chapters || [] });
                       }}
                     />
+                    {/* Custom CSS — shown when a block is selected */}
+                    {state.activeId && manifest.blocks?.find(b => b.id === state.activeId) && (
+                      <CustomCSSEditor
+                        block={manifest.blocks.find(b => b.id === state.activeId)!}
+                        onChange={(css) => {
+                          const updated = {
+                            ...manifest,
+                            blocks: (manifest.blocks || []).map(b =>
+                              b.id === state.activeId ? { ...b, config: { ...(b.config || {}), _customCSS: css } } : b
+                            ),
+                          };
+                          onChange(updated);
+                          pushToPreview(updated);
+                        }}
+                      />
+                    )}
                   </>
                 )}
 

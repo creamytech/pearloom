@@ -35,6 +35,10 @@ import { VibeStep } from '@/components/wizard/VibeStep';
 import { GeneratingStep } from '@/components/wizard/GeneratingStep';
 import { GuestsStep } from '@/components/wizard/GuestsStep';
 import { PublishModal } from '@/components/shared/PublishModal';
+import { TemplateGallery } from '@/components/dashboard/TemplateGallery';
+import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav';
+import { DialogProvider } from '@/components/ui/confirm-dialog';
+import { applyTemplate, type SiteTemplate } from '@/lib/templates/wedding-templates';
 
 // Full-screen editor — SSR disabled (uses browser APIs + framer Reorder)
 const FullscreenEditor = nextDynamic(
@@ -61,6 +65,8 @@ export default function DashboardClient() {
   const generationControllerRef = useRef<AbortController | null>(null);
   const [lastVibeData, setLastVibeData] = useState<VibeFormData | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'feed' | 'build' | 'aiscout' | 'profile'>('feed');
 
   // ── URL tracking — keep address bar in sync with current step ──
   useEffect(() => {
@@ -259,7 +265,15 @@ export default function DashboardClient() {
   }
 
   // ── Main wizard render ──────────────────────────────────────
+  const handleTemplateSelect = (template: SiteTemplate) => {
+    const manifest = applyTemplate(template, {} as import('@/types').StoryManifest, ['', '']);
+    dispatch({ type: 'SET_MANIFEST', manifest, subdomain: 'my-site-' + Date.now() });
+    setShowTemplates(false);
+    goTo('vibe');
+  };
+
   return (
+    <DialogProvider>
     <ThemeProvider theme={{
       name: 'pearloom-ivory',
       fonts: { heading: 'Playfair Display', body: 'Inter' },
@@ -388,7 +402,7 @@ export default function DashboardClient() {
               }}
               onDismissDraft={() => { clearDraft(); goTo('photos'); }}
               onStartNew={() => goTo('photos')}
-              onQuickStart={() => goTo('vibe')}
+              onQuickStart={() => setShowTemplates(true)}
               onEditSite={(site) => dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] })}
               onManageGuests={(site) => { dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] }); dispatch({ type: 'NAVIGATE', step: 'guests' }); }}
             />
@@ -458,6 +472,25 @@ export default function DashboardClient() {
         coupleNames={state.coupleNames}
         initialSubdomain={state.subdomain}
       />
+
+      {/* Template Gallery */}
+      {showTemplates && (
+        <TemplateGallery
+          onSelect={handleTemplateSelect}
+          onClose={() => setShowTemplates(false)}
+          occasion={'wedding'}
+        />
+      )}
+
+      {/* Mobile Bottom Nav (shown on dashboard step only) */}
+      {state.step === 'dashboard' && (
+        <MobileBottomNav
+          activeTab={mobileTab}
+          onTabChange={setMobileTab}
+          onBuild={() => goTo('photos')}
+        />
+      )}
     </ThemeProvider>
+    </DialogProvider>
   );
 }

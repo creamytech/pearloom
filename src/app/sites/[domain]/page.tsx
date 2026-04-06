@@ -208,6 +208,18 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   const cardBg = pal.card;
   const accentLight = pal.accent2;
 
+  // ── Manifest feature fields ──────────────────────────────────
+  const parchmentFilter = manifest.parchmentTint && manifest.parchmentTint !== 'none'
+    ? { ivory: 'sepia(0.08) saturate(1.1)', linen: 'sepia(0.15) saturate(0.95)', parchment: 'sepia(0.25) saturate(0.85)', sepia: 'sepia(0.4) saturate(0.8)' }[manifest.parchmentTint] || 'none'
+    : 'none';
+  const showWatermark = manifest.watermark === true;
+  const isPrivateGallery = manifest.privateGallery === true;
+  const typoPair = manifest.typographyPair;
+  const typoPairFonts = typoPair === 'mono-serif' ? { heading: 'JetBrains Mono', body: 'Lora' }
+    : typoPair === 'display-body' ? { heading: 'Cormorant Garamond', body: 'Source Sans 3' }
+    : typoPair === 'editorial' ? { heading: 'Newsreader', body: 'Newsreader' }
+    : null; // null = use vibeSkin fonts (default)
+
   // When gradient mesh is active, make main transparent so the mesh shows through
   const meshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
   const mainBg = meshActive ? 'transparent' : bgColor;
@@ -459,6 +471,7 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       case 'divider':
         return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={(blockCfg.height as number) || 60} />;
       case 'photos': {
+        if (isPrivateGallery) return null; // Private gallery — hide photos from visitors
         const allPhotos = (manifest.chapters || []).flatMap((ch: import('@/types').Chapter) => ch.images || []).slice(0, 9);
         return (
           <section key={key} style={{ paddingTop: '5rem', paddingBottom: '5rem', paddingLeft: '2rem', paddingRight: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
@@ -1158,6 +1171,33 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
           <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Made with Pearloom</div>
         </footer>
         <AnalyticsBeacon siteId={domain} />
+
+        {/* Parchment tint filter — applies to all images */}
+        {parchmentFilter !== 'none' && (
+          <style>{`[data-pl-site-root] img { filter: ${parchmentFilter}; }`}</style>
+        )}
+
+        {/* Typography pair override */}
+        {typoPairFonts && (
+          <style>{`
+            [data-pl-site-root] h1, [data-pl-site-root] h2, [data-pl-site-root] h3 { font-family: "${typoPairFonts.heading}", serif !important; }
+            [data-pl-site-root] p, [data-pl-site-root] span { font-family: "${typoPairFonts.body}", sans-serif !important; }
+          `}</style>
+        )}
+
+        {/* Watermark */}
+        {showWatermark && (
+          <div style={{
+            position: 'fixed', bottom: '12px', right: '12px', zIndex: 40,
+            padding: '4px 10px', borderRadius: '100px',
+            background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)',
+            fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'rgba(0,0,0,0.3)',
+            pointerEvents: 'none',
+          }}>
+            Hand-curated with Pearloom
+          </div>
+        )}
       </div>
     </ThemeProvider>
   );

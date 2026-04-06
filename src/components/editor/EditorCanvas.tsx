@@ -12,6 +12,7 @@ import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, stripArtForStorage, type DeviceMode } from '@/lib/editor-state';
 import { StickerOverlay } from './StickerOverlay';
 import { SectionHoverToolbar } from './SectionHoverToolbar';
+import { INLINE_EDIT_SCRIPT } from '@/lib/block-engine/inline-edit';
 
 // ── Skeleton Loading Screen ───────────────────────────────────
 function SkeletonLoading({ slow }: { slow: boolean }) {
@@ -147,6 +148,13 @@ export function EditorCanvas() {
     if (iframeReady && iframeRef.current) {
       try {
         iframeRef.current.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
+        // Inject inline editing script into iframe
+        const iframeDoc = iframeRef.current.contentDocument;
+        if (iframeDoc) {
+          const script = iframeDoc.createElement('script');
+          script.textContent = INLINE_EDIT_SCRIPT;
+          iframeDoc.body.appendChild(script);
+        }
       } catch {}
     }
   }, [iframeReady, iframeRef]);
