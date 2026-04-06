@@ -70,7 +70,7 @@ export function GenerationProgress({
     return () => clearTimeout(t);
   }, [isComplete, onComplete]);
 
-  const displayName = names[1]?.trim()
+  const displayName = names[1]?.trim() && occasion !== 'birthday'
     ? `${names[0]} & ${names[1]}`
     : names[0] || 'your site';
 
@@ -144,7 +144,7 @@ export function GenerationProgress({
               Active Generation
             </p>
             <h1 className="font-heading italic text-[clamp(1.3rem,4vw,2.2rem)] font-medium text-[var(--pl-ink)] m-0">
-              Building: {displayName}
+              {occasion === 'birthday' ? `Crafting ${displayName}'s celebration` : occasion === 'anniversary' ? `Celebrating ${displayName}` : `Building: ${displayName}`}
             </h1>
           </div>
 
