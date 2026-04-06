@@ -17,7 +17,7 @@ import type { DragHandleProps } from './useDragSort';
 import { BlockPresetsPanel } from './BlockPresetsPanel';
 import { SidebarSection } from './EditorSidebar';
 import {
-  Plus, Eye, EyeOff, Trash2, Copy,
+  Plus, Eye, EyeOff, Trash2, Copy, ChevronUp,
   ChevronDown, ChevronRight, X,
   Sparkles, LayoutTemplate,
   Music, Hash, ImageIcon, PartyPopper,
@@ -379,8 +379,8 @@ function EventBlockConfig({ events, onChange }: {
 
 // ── Block Row ──────────────────────────────────────────────────
 function BlockRow({
-  block, def, isActive, onSelect, onToggle, onDelete, onDuplicate, dragHandleProps,
-  isMobile,
+  block, def, isActive, onSelect, onToggle, onDelete, onDuplicate, onMoveUp, onMoveDown, dragHandleProps,
+  isMobile, isFirst, isLast,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
@@ -389,8 +389,12 @@ function BlockRow({
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onMoveUp: (id: string) => void;
+  onMoveDown: (id: string) => void;
   dragHandleProps: DragHandleProps;
   isMobile?: boolean;
+  isFirst?: boolean;
+  isLast?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const Icon = def?.icon || LayoutTemplate;
@@ -473,6 +477,28 @@ function BlockRow({
               transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
               style={{ display: 'flex', gap: '2px', alignItems: 'center' }}
             >
+              {!isFirst && (
+                <button
+                  onClick={e => { e.stopPropagation(); onMoveUp(block.id); }}
+                  title="Move up"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '28px', minHeight: '28px' }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
+                >
+                  <ChevronUp size={13} />
+                </button>
+              )}
+              {!isLast && (
+                <button
+                  onClick={e => { e.stopPropagation(); onMoveDown(block.id); }}
+                  title="Move down"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '28px', minHeight: '28px' }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
+                >
+                  <ChevronDown size={13} />
+                </button>
+              )}
               <button
                 onClick={e => { e.stopPropagation(); onToggle(block.id); }}
                 title={block.visible ? 'Hide section' : 'Show section'}
@@ -1226,6 +1252,22 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
     if (activeBlockId === id) setActiveBlockId(null);
   }, [blocks, commit, activeBlockId]);
 
+  const moveBlockUp = useCallback((id: string) => {
+    const idx = blocks.findIndex(b => b.id === id);
+    if (idx <= 0) return;
+    const updated = [...blocks];
+    [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+    commit(updated);
+  }, [blocks, commit]);
+
+  const moveBlockDown = useCallback((id: string) => {
+    const idx = blocks.findIndex(b => b.id === id);
+    if (idx < 0 || idx >= blocks.length - 1) return;
+    const updated = [...blocks];
+    [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+    commit(updated);
+  }, [blocks, commit]);
+
   const duplicateBlock = useCallback((id: string) => {
     const source = blocks.find(b => b.id === id);
     if (!source) return;
@@ -1559,8 +1601,12 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   onToggle={toggleVisible}
                   onDelete={deleteBlock}
                   onDuplicate={duplicateBlock}
+                  onMoveUp={moveBlockUp}
+                  onMoveDown={moveBlockDown}
                   dragHandleProps={handleProps}
                   isMobile={isMobile}
+                  isFirst={idx === 0}
+                  isLast={idx === N - 1}
                 />
                 {/* Drop indicator line — after the last item */}
                 {showDropLineAfter && (
