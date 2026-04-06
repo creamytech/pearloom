@@ -112,7 +112,7 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
             position: 'absolute', top: '0.875rem', right: '0.875rem',
             background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'rgba(214,198,168,0.4)',
+            color: 'var(--pl-muted)',
             transition: 'color 0.2s',
           }}
           onMouseOver={(e) => { e.currentTarget.style.color = 'rgba(214,198,168,0.8)'; }}
@@ -138,14 +138,14 @@ export function PostWeddingBanner({ manifest, subdomain, onUpdate }: PostWedding
           <h3 style={{
             margin: '0 0 0.3rem',
             fontSize: '0.95rem', fontWeight: 700,
-            color: 'rgba(214,198,168,0.95)',
+            color: 'var(--pl-ink)',
             fontFamily: 'var(--pl-font-heading, Georgia, serif)',
           }}>
             Your wedding day has passed
           </h3>
           <p style={{
             margin: 0,
-            fontSize: '0.8rem', color: 'rgba(214,198,168,0.6)', lineHeight: 1.5,
+            fontSize: '0.8rem', color: 'var(--pl-muted)', lineHeight: 1.5,
           }}>
             Transform your site into a permanent memory archive. The Loom will rewrite your story in past tense and highlight your most emotional moments.
           </p>

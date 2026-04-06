@@ -128,7 +128,7 @@ function RsvpForm({ manifest, guestName, token, coupleNames }: RsvpFormProps) {
         <p
           style={{
             fontSize: '0.9rem',
-            color: 'rgba(245,241,232,0.55)',
+            color: 'var(--pl-muted)',
             margin: 0,
             lineHeight: 1.7,
           }}
@@ -584,7 +584,7 @@ export function InviteReveal({
                 fontSize: '0.85rem',
                 letterSpacing: '1.5px',
                 textTransform: 'uppercase',
-                color: 'rgba(245,241,232,0.5)',
+                color: 'var(--pl-muted)',
                 margin: '0 0 28px',
               }}
             >
@@ -621,7 +621,7 @@ export function InviteReveal({
                     style={{
                       margin: 0,
                       fontSize: '0.9rem',
-                      color: 'rgba(245,241,232,0.65)',
+                      color: 'var(--pl-ink-soft)',
                     }}
                   >
                     {logistics.venue}
@@ -631,7 +631,7 @@ export function InviteReveal({
                         <span
                           style={{
                             fontSize: '0.8rem',
-                            color: 'rgba(245,241,232,0.4)',
+                            color: 'var(--pl-muted)',
                           }}
                         >
                           {logistics.venueAddress}
@@ -649,7 +649,7 @@ export function InviteReveal({
                 style={{
                   margin: '0 0 28px',
                   fontSize: '1rem',
-                  color: 'rgba(245,241,232,0.7)',
+                  color: 'var(--pl-ink-soft)',
                   fontFamily: 'Georgia, serif',
                   fontStyle: 'italic',
                 }}
@@ -691,7 +691,7 @@ export function InviteReveal({
             textAlign: 'center',
             marginTop: 24,
             fontSize: '0.75rem',
-            color: 'rgba(245,241,232,0.2)',
+            color: 'var(--pl-muted)',
             letterSpacing: 1,
           }}
         >

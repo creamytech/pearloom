@@ -104,7 +104,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '7px 10px', borderRadius: '8px',
             border: '1px dashed rgba(214,198,168,0.2)',
-            background: 'transparent', color: 'rgba(214,198,168,0.5)',
+            background: 'transparent', color: 'var(--pl-muted)',
             cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
             letterSpacing: '0.06em', textTransform: 'uppercase',
             width: '100%', justifyContent: 'center',

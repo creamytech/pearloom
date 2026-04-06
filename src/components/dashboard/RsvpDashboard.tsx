@@ -173,7 +173,7 @@ function StatCard({
         }}>
           <Icon size={16} color={color} />
         </div>
-        <span style={{ fontSize: '0.75rem', color: 'rgba(214,198,168,0.55)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           {label}
         </span>
       </div>
@@ -330,7 +330,7 @@ export function RsvpDashboard({
 
   const subStyle: React.CSSProperties = {
     fontSize: '0.9rem',
-    color: 'rgba(214,198,168,0.5)',
+    color: 'var(--pl-muted)',
     margin: 0,
   };
 
@@ -341,7 +341,7 @@ export function RsvpDashboard({
     fontWeight: 600,
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
-    color: 'rgba(214,198,168,0.45)',
+    color: 'var(--pl-muted)',
     background: 'rgba(214,198,168,0.03)',
     userSelect: 'none',
     cursor: 'pointer',
@@ -350,7 +350,7 @@ export function RsvpDashboard({
   const tdStyle: React.CSSProperties = {
     padding: '0.875rem 1rem',
     fontSize: '0.85rem',
-    color: 'rgba(214,198,168,0.8)',
+    color: 'var(--pl-ink-soft)',
     borderTop: '1px solid rgba(214,198,168,0.06)',
     verticalAlign: 'middle',
   };
@@ -368,7 +368,7 @@ export function RsvpDashboard({
     fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
     background: 'rgba(214,198,168,0.08)',
     border: '1px solid rgba(214,198,168,0.15)',
-    color: 'rgba(214,198,168,0.8)',
+    color: 'var(--pl-ink-soft)',
     transition: 'all 0.15s ease',
   };
 
@@ -450,7 +450,7 @@ export function RsvpDashboard({
           }}>
             <Search size={14} style={{
               position: 'absolute', left: '0.75rem', top: '50%',
-              transform: 'translateY(-50%)', color: 'rgba(214,198,168,0.35)',
+              transform: 'translateY(-50%)', color: 'var(--pl-muted)',
             }} />
             <input
               type="text"
@@ -568,24 +568,24 @@ export function RsvpDashboard({
                         </td>
                         <td style={tdStyle}>
                           {guest.email
-                            ? <a href={`mailto:${guest.email}`} style={{ color: 'rgba(214,198,168,0.6)', textDecoration: 'none' }}>{guest.email}</a>
-                            : <span style={{ color: 'rgba(214,198,168,0.25)' }}>—</span>}
+                            ? <a href={`mailto:${guest.email}`} style={{ color: 'var(--pl-muted)', textDecoration: 'none' }}>{guest.email}</a>
+                            : <span style={{ color: 'var(--pl-divider)' }}>—</span>}
                         </td>
                         <td style={tdStyle}>
                           <StatusBadge status={guest.status} />
                         </td>
                         <td style={tdStyle}>
-                          {guest.mealPreference || <span style={{ color: 'rgba(214,198,168,0.25)' }}>—</span>}
+                          {guest.mealPreference || <span style={{ color: 'var(--pl-divider)' }}>—</span>}
                         </td>
                         <td style={tdStyle}>
                           {guest.plusOne
                             ? <span style={{ color: '#A3B18A' }}>+1{guest.plusOneName ? ` (${guest.plusOneName})` : ''}</span>
-                            : <span style={{ color: 'rgba(214,198,168,0.25)' }}>—</span>}
+                            : <span style={{ color: 'var(--pl-divider)' }}>—</span>}
                         </td>
                         <td style={tdStyle}>
-                          {guest.dietaryRestrictions || <span style={{ color: 'rgba(214,198,168,0.25)' }}>—</span>}
+                          {guest.dietaryRestrictions || <span style={{ color: 'var(--pl-divider)' }}>—</span>}
                         </td>
-                        <td style={{ ...tdStyle, color: 'rgba(214,198,168,0.5)', fontSize: '0.8rem' }}>
+                        <td style={{ ...tdStyle, color: 'var(--pl-muted)', fontSize: '0.8rem' }}>
                           {formatDate(guest.respondedAt)}
                         </td>
                       </motion.tr>
@@ -593,7 +593,7 @@ export function RsvpDashboard({
                   </AnimatePresence>
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', padding: '2.5rem', color: 'rgba(214,198,168,0.35)' }}>
+                      <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', padding: '2.5rem', color: 'var(--pl-muted)' }}>
                         No guests match your filters
                       </td>
                     </tr>
@@ -607,7 +607,7 @@ export function RsvpDashboard({
               padding: '0.75rem 1.25rem',
               borderTop: '1px solid rgba(214,198,168,0.06)',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              fontSize: '0.75rem', color: 'rgba(214,198,168,0.35)',
+              fontSize: '0.75rem', color: 'var(--pl-muted)',
             }}>
               <span>Showing {filtered.length} of {guests.length} guests</span>
             </div>
@@ -654,7 +654,7 @@ function EmptyState() {
         <h2 style={{ margin: 0, color: '#F5F1E8', fontSize: '1.25rem', fontWeight: 600 }}>
           No RSVPs yet
         </h2>
-        <p style={{ margin: 0, color: 'rgba(214,198,168,0.5)', fontSize: '0.9rem', maxWidth: 380 }}>
+        <p style={{ margin: 0, color: 'var(--pl-muted)', fontSize: '0.9rem', maxWidth: 380 }}>
           Share your wedding site or QR code so guests can start responding. Their answers will appear here in real time.
         </p>
       </div>

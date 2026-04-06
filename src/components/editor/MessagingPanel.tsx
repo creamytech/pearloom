@@ -59,7 +59,7 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
               width: '100%', padding: '10px 12px', borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.06)',
               background: 'rgba(163,177,138,0.06)',
-              color: 'rgba(214,198,168,0.92)', fontSize: '0.88rem',
+              color: 'var(--pl-ink)', fontSize: '0.88rem',
               outline: 'none', boxSizing: 'border-box',
             }}
           />
@@ -82,7 +82,7 @@ export function MessagingPanel({ manifest, siteId, subdomain }: MessagingPanelPr
               width: '100%', padding: '10px 12px', borderRadius: 10,
               border: '1px solid rgba(0,0,0,0.06)',
               background: 'rgba(163,177,138,0.06)',
-              color: 'rgba(214,198,168,0.92)', fontSize: '0.88rem',
+              color: 'var(--pl-ink)', fontSize: '0.88rem',
               outline: 'none', resize: 'vertical', boxSizing: 'border-box',
               fontFamily: 'inherit',
             }}

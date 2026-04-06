@@ -60,7 +60,7 @@ export function CuratorAICard({ onLaunch }: CuratorAICardProps) {
       </h3>
       <p style={{
         fontSize: '0.85rem',
-        color: 'rgba(245,241,232,0.6)',
+        color: 'var(--pl-ink-soft)',
         lineHeight: 1.6,
         marginBottom: '20px',
       }}>

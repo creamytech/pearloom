@@ -73,7 +73,7 @@ export function AIContextBar() {
             {/* Chapter breadcrumb */}
             <div style={{
               fontSize: '0.75rem', fontWeight: 600,
-              color: 'rgba(214,198,168,0.75)',
+              color: 'var(--pl-ink-soft)',
               fontFamily: 'var(--pl-font-heading)',
               fontStyle: 'italic',
               letterSpacing: '-0.01em',

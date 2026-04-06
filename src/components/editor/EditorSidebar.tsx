@@ -335,7 +335,7 @@ export function EditorSidebar({
           title={collapsed ? 'Expand panel' : 'Collapse panel'}
           aria-label={collapsed ? 'Expand panel' : 'Collapse panel'}
           onClick={() => onCollapsedChange(!collapsed)}
-          whileHover={{ backgroundColor: 'rgba(214,198,168,0.08)', color: 'rgba(214,198,168,0.65)', scale: 1.08 }}
+          whileHover={{ backgroundColor: 'rgba(214,198,168,0.08)', color: 'var(--pl-muted)', scale: 1.08 }}
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 420, damping: 22 }}
           style={{
@@ -349,7 +349,7 @@ export function EditorSidebar({
             borderRadius: '6px',
             margin: '2px',
             background: 'transparent',
-            color: 'rgba(214,198,168,0.25)',
+            color: 'var(--pl-divider)',
           }}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -393,7 +393,7 @@ export function EditorSidebar({
                   fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                   fontStyle: 'italic',
                   letterSpacing: '-0.01em',
-                  color: 'rgba(214,198,168,0.88)',
+                  color: 'var(--pl-ink)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -407,7 +407,7 @@ export function EditorSidebar({
                 title={isAtMax ? 'Restore width' : 'Expand to full width'}
                 aria-label={isAtMax ? 'Restore panel width' : 'Expand panel to full width'}
                 onClick={handleExpandToggle}
-                whileHover={!isAtMax ? { backgroundColor: 'rgba(214,198,168,0.09)', color: 'rgba(214,198,168,0.65)', scale: 1.12 } : { scale: 1.08 }}
+                whileHover={!isAtMax ? { backgroundColor: 'rgba(214,198,168,0.09)', color: 'var(--pl-muted)', scale: 1.12 } : { scale: 1.08 }}
                 whileTap={{ scale: 0.86 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{

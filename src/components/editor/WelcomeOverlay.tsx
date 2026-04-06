@@ -85,7 +85,7 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         style={{
           fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
           fontSize: '1rem',
-          color: 'rgba(245,241,232,0.55)',
+          color: 'var(--pl-muted)',
           letterSpacing: '0.04em',
           textAlign: 'center',
         }}

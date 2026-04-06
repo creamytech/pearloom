@@ -144,7 +144,7 @@ export function AnniversaryNudgePanel() {
             right: 12,
             background: 'none',
             border: 'none',
-            color: 'rgba(245,241,232,0.3)',
+            color: 'var(--pl-muted)',
             cursor: 'pointer',
             fontSize: 14,
             lineHeight: 1,
@@ -197,7 +197,7 @@ export function AnniversaryNudgePanel() {
               style={{
                 margin: '0 0 12px',
                 fontSize: '0.88rem',
-                color: 'rgba(245,241,232,0.75)',
+                color: 'var(--pl-ink-soft)',
                 lineHeight: 1.6,
               }}
             >

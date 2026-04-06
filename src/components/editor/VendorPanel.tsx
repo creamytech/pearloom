@@ -330,7 +330,7 @@ Write a short 3-4 sentence email suitable for initial outreach or a status check
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: 'rgba(214,198,168,0.5)',
+          textTransform: 'uppercase', color: 'var(--pl-muted)',
         }}>
           <Briefcase size={11} /> Vendors
         </div>

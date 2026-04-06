@@ -263,7 +263,7 @@ function WallOfLight({ wishes, vibeSkin }: { wishes: Wish[]; vibeSkin?: VibeSkin
 
       {/* Empty state */}
       {wishes.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'rgba(245,241,232,0.35)' }}>
+        <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--pl-muted)' }}>
           <p style={{ fontStyle: 'italic', fontSize: '1rem' }}>Be the first to leave a wish...</p>
         </div>
       )}

@@ -158,7 +158,7 @@ export function MessagingPanel({ siteId, manifest }: MessagingPanelProps) {
             fontWeight: 500,
             fontStyle: 'italic',
             fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
-            color: 'rgba(245,241,232,0.92)',
+            color: 'var(--pl-ink)',
             margin: '0 0 6px',
           }}
         >

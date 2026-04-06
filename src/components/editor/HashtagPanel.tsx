@@ -149,7 +149,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     cursor: 'pointer',
     background: 'rgba(163,177,138,0.12)',
     border: '1px solid rgba(163,177,138,0.2)',
-    color: 'rgba(214,198,168,0.7)',
+    color: 'var(--pl-muted)',
     transition: 'all 0.15s ease',
   };
 
@@ -159,7 +159,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     gap: '0.3rem',
     fontSize: '0.78rem',
     fontWeight: 600,
-    color: 'rgba(214,198,168,0.45)',
+    color: 'var(--pl-muted)',
     cursor: 'pointer',
     background: 'none',
     border: 'none',
@@ -279,7 +279,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
         <p style={{
           margin: 0,
           fontSize: '0.8rem',
-          color: 'rgba(214,198,168,0.35)',
+          color: 'var(--pl-muted)',
           fontStyle: 'italic',
           textAlign: 'center',
           paddingBottom: '0.25rem',

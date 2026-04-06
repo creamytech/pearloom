@@ -105,7 +105,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'rgba(214,198,168,0.5)',
+        textTransform: 'uppercase', color: 'var(--pl-muted)',
       }}>
         <Mail size={11} /> Send Invitations
       </div>

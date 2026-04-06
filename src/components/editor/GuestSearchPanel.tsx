@@ -143,7 +143,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'rgba(214,198,168,0.5)',
+        textTransform: 'uppercase', color: 'var(--pl-muted)',
       }}>
         <Users size={11} /> Guest List
       </div>
@@ -309,7 +309,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '8px', borderRadius: '8px',
               border: '1px dashed rgba(214,198,168,0.2)',
-              background: 'transparent', color: 'rgba(214,198,168,0.5)',
+              background: 'transparent', color: 'var(--pl-muted)',
               cursor: csvLoading ? 'wait' : 'pointer', fontSize: '0.75rem', fontWeight: 700,
             }}
           >

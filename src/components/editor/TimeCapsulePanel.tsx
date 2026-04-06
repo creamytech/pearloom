@@ -383,7 +383,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
 const styles: Record<string, React.CSSProperties> = {
   container: {
     background: '#1C1916',
-    color: 'rgba(214,198,168,0.9)',
+    color: 'var(--pl-ink)',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     padding: '24px',
     borderRadius: '12px',
@@ -416,7 +416,7 @@ const styles: Record<string, React.CSSProperties> = {
   subtitle: {
     margin: '4px 0 0 32px',
     fontSize: '13px',
-    color: 'rgba(214,198,168,0.55)',
+    color: 'var(--pl-muted)',
     lineHeight: 1.5,
   },
 
@@ -430,7 +430,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
-    color: 'rgba(214,198,168,0.5)',
+    color: 'var(--pl-muted)',
   },
 
   // Capsule card
@@ -461,7 +461,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   capsuleMeta: {
     fontSize: '12px',
-    color: 'rgba(214,198,168,0.5)',
+    color: 'var(--pl-muted)',
     paddingLeft: '24px',
   },
   capsuleStatus: {
@@ -478,7 +478,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid rgba(214,198,168,0.18)',
     borderRadius: '6px',
-    color: 'rgba(214,198,168,0.45)',
+    color: 'var(--pl-muted)',
     fontSize: '12px',
     padding: '5px 12px',
     cursor: 'pointer',
@@ -534,7 +534,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
-    color: 'rgba(214,198,168,0.55)',
+    color: 'var(--pl-muted)',
   },
   input: {
     background: 'rgba(214,198,168,0.06)',
@@ -564,7 +564,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   unlockPreview: {
     fontSize: '12px',
-    color: 'rgba(214,198,168,0.45)',
+    color: 'var(--pl-muted)',
     fontStyle: 'italic',
   },
   textarea: {
@@ -617,7 +617,7 @@ const styles: Record<string, React.CSSProperties> = {
   // Misc
   dimText: {
     fontSize: '13px',
-    color: 'rgba(214,198,168,0.4)',
+    color: 'var(--pl-muted)',
     fontStyle: 'italic',
   },
 };

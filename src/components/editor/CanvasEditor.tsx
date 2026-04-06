@@ -970,7 +970,7 @@ function BlockEffectsEditor({
               <div style={{ marginTop: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft)' }}>Height</span>
-                  <span style={{ fontSize: '0.72rem', color: 'rgba(214,198,168,0.7)', fontWeight: 700 }}>{divHeight}px</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontWeight: 700 }}>{divHeight}px</span>
                 </div>
                 <RangeSlider min={30} max={200} value={divHeight} suffix="px"
                   onChange={v => onUpdate({ dividerAbove: { style: divStyle, height: v } })}
@@ -1364,8 +1364,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             textAlign: 'center',
           }}>
             <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginBottom: '4px' }} />
-            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'rgba(214,198,168,0.65)', letterSpacing: '-0.01em' }}>Canvas is empty</div>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(214,198,168,0.28)', lineHeight: 1.6 }}>Add your first section below</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--pl-muted)', letterSpacing: '-0.01em' }}>Canvas is empty</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.6 }}>Add your first section below</div>
             <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginTop: '4px' }} />
             <button
               onClick={() => addBlock('hero')}

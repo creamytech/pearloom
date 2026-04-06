@@ -140,7 +140,7 @@ export function AccessibilityAuditPanel({ manifest }: AccessibilityAuditPanelPro
       <div style={{
         display: 'flex', alignItems: 'center', gap: '6px',
         fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', color: 'rgba(214,198,168,0.45)',
+        textTransform: 'uppercase', color: 'var(--pl-muted)',
         marginBottom: '2px',
       }}>
         <IconAccessibility size={12} /> Accessibility

@@ -577,7 +577,7 @@ export function MobileEditorSheet() {
                   animation: 'spin 0.8s linear infinite',
                 }} />
                 <span style={{
-                  fontSize: '0.75rem', color: 'rgba(214,198,168,0.4)',
+                  fontSize: '0.75rem', color: 'var(--pl-muted)',
                   fontWeight: 600, letterSpacing: '0.06em',
                 }}>
                   Loading your site…
@@ -740,7 +740,7 @@ export function MobileEditorSheet() {
                   fontSize: '0.9rem',
                   fontWeight: 700,
                   fontStyle: 'italic',
-                  color: 'rgba(214,198,168,0.85)',
+                  color: 'var(--pl-ink-soft)',
                   letterSpacing: '0.01em',
                 }}
               >
@@ -844,7 +844,7 @@ export function MobileEditorSheet() {
                 borderRadius: 20,
                 border: 'none',
                 background: 'rgba(0,0,0,0.05)',
-                color: 'rgba(214,198,168,0.75)',
+                color: 'var(--pl-ink-soft)',
                 cursor: 'pointer',
                 fontSize: '0.82rem',
                 fontWeight: 600,
@@ -859,7 +859,7 @@ export function MobileEditorSheet() {
                 textAlign: 'center',
                 fontSize: '0.82rem',
                 fontWeight: 700,
-                color: 'rgba(214,198,168,0.75)',
+                color: 'var(--pl-ink-soft)',
                 fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
                 fontStyle: 'italic',
               }}
@@ -936,7 +936,7 @@ export function MobileEditorSheet() {
                       position: 'absolute', right: 12, top: 10,
                       background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%',
                       width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer', color: 'rgba(214,198,168,0.6)',
+                      cursor: 'pointer', color: 'var(--pl-muted)',
                     }}
                   >
                     <X size={14} />
@@ -1130,7 +1130,7 @@ export function MobileEditorSheet() {
                         borderRadius: 14,
                         border: '1px solid rgba(0,0,0,0.05)',
                         background: 'rgba(163,177,138,0.04)',
-                        color: 'rgba(214,198,168,0.65)',
+                        color: 'var(--pl-muted)',
                         cursor: 'pointer',
                       }}
                     >
