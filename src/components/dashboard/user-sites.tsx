@@ -697,21 +697,15 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
       {/* ── Floating bottom nav (desktop only — mobile uses MobileBottomNav) ── */}
       {!loading && !fetchError && (
+        <div className="hidden md:block fixed bottom-6 left-0 right-0 z-50 pointer-events-none">
         <motion.div
-          className="hidden md:flex"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
           style={{
-            position: 'fixed',
-            bottom: '24px',
-            left: '0',
-            right: '0',
-            zIndex: 50,
             display: 'flex',
             justifyContent: 'center',
-            pointerEvents: 'none',
-          } as React.CSSProperties}
+          }}
         >
           <div style={{
             pointerEvents: 'auto',
@@ -763,6 +757,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           ))}
           </div>
         </motion.div>
+        </div>
       )}
 
       {/* Delete Modal */}
