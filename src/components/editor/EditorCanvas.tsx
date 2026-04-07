@@ -189,6 +189,12 @@ export function EditorCanvas() {
       }
       return;
     }
+    if (path === '__removeSticker__') {
+      const index = parseInt(value);
+      const stickers = (manifest.stickers || []).filter((_, i) => i !== index);
+      actions.handleDesignChange({ ...manifest, stickers });
+      return;
+    }
 
     if (path.startsWith('chapter:')) {
       const [, chapterId, field] = path.split(':');

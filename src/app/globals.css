@@ -251,6 +251,11 @@
   display: none !important;
 }
 
+/* ── Sticker delete button — visible on sticker hover ── */
+.pl-site-scope [data-sticker]:hover button {
+  opacity: 1 !important;
+}
+
 /* ── Editor clickable areas — hover outlines ── */
 .pl-site-scope .pl-site-nav-editor:hover {
   outline: 2px solid rgba(163,177,138,0.35);
