@@ -203,7 +203,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
                 key={photoIdx}
                 src={photoList[photoIdx]}
                 alt=""
-                initial={{ opacity: 0 }}
+                initial={isEditor ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1.2 }}
@@ -295,16 +295,16 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           width: '100%',
           maxWidth: '1300px',
         }}
-        initial={{ opacity: 0, y: 40 }}
+        initial={isEditor ? false : { opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: isEditor ? 0 : 1.6, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Eyebrow label */}
         {anniversaryLabel && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={isEditor ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            transition={{ duration: isEditor ? 0 : 1, delay: isEditor ? 0 : 0.2 }}
             style={{
               fontSize: '0.72rem',
               letterSpacing: '0.45em',
@@ -346,7 +346,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           {names[1] && (
             <>
               <motion.div
-                initial={{ opacity: 0, scale: 0.3, rotate: -15 }}
+                initial={isEditor ? false : { opacity: 0, scale: 0.3, rotate: -15 }}
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 120, damping: 18, delay: 0.9 }}
                 style={{
@@ -375,7 +375,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         {/* Date + venue pill badge */}
         {hasBadge && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={isEditor ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.6 }}
             style={{ marginTop: '3.5rem', display: 'flex', justifyContent: 'center' }}
@@ -440,7 +440,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         {/* Legacy subtitle */}
         {subtitle && !heroTagline && (
           <motion.p
-            initial={{ opacity: 0, y: 12 }}
+            initial={isEditor ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.9 }}
             style={{
@@ -460,7 +460,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         {/* Ornamental divider — shown if any text below names */}
         {(hasBadge || heroTagline || subtitle) && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={isEditor ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 2.1 }}
             style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', marginTop: '2rem' }}
@@ -498,7 +498,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
 
       {/* ── Animated Scroll Indicator ── */}
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={isEditor ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.8, duration: 1.2 }}
         style={{

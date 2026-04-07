@@ -234,16 +234,32 @@
 }
 
 /* ── Editor site scope — override fixed positioning for site content ── */
-.pl-site-nav-editor nav {
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
+.pl-site-nav-editor nav,
+.pl-site-nav-editor nav[class] {
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
   right: auto !important;
-  z-index: 5 !important;
+  width: 100% !important;
+  z-index: 10 !important;
 }
-/* Hide mobile-only elements in editor desktop view */
-.pl-site-scope .safe-bottom {
+/* Hide mobile-only fixed bottom elements in editor */
+.pl-site-scope .safe-bottom,
+.pl-site-scope nav[class*="fixed"][class*="bottom"] {
   display: none !important;
+}
+
+/* ── Editor section hover/selection outlines ── */
+.pl-site-scope [data-block-id] {
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  transition: outline-color 0.15s ease;
+}
+.pl-site-scope [data-block-id]:hover {
+  outline-color: rgba(163,177,138,0.35);
+}
+.pl-site-scope [data-block-id].pl-block-selected {
+  outline-color: var(--pl-olive, #A3B18A);
 }
 
 /* ── Editor site scope — ensure content is visible in direct-DOM canvas ── */
