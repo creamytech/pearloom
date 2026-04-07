@@ -647,11 +647,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', ...blockStyle }}>
             <Hero
               names={names}
-              subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters`}
+              subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
               coverPhoto={proxiedCover}
               weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
               vibeSkin={vibeSkin}
               heroTagline={manifest.poetry?.heroTagline}
+              photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url.includes('googleusercontent.com') ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1200&h=800` : img.url)).filter(Boolean).slice(0, 6)}
             />
             <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
           </div>
@@ -665,7 +666,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'event':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="schedule" data-pe-section="events" style={blockStyle}>
+          <section key={key} id="schedule" data-pe-section="events" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
+            {vibeSkin.accentBlobSvg && (
+              <div
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
+              />
+            )}
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
           </section>
         );
@@ -1092,28 +1100,41 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           minHeight: '100dvh', paddingBottom: '5rem',
           background: bgColor, position: 'relative', isolation: 'isolate',
         }}>
-          {/* Ambient art */}
-          {vibeSkin.ambientArtDataUrl && (
+          {/* Ambient art overlay */}
+          {vibeSkin.ambientArtDataUrl ? (
             <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={vibeSkin.ambientArtDataUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.28, mixBlendMode: 'multiply' }} />
             </div>
-          )}
+          ) : vibeSkin.heroPatternSvg ? (
+            <div aria-hidden="true" style={{
+              position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+              backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
+              backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.22,
+            }} />
+          ) : null}
 
           {/* Block sequence with drop zones */}
           {visibleBlocks ? (
             <>
               <DropZone index={0} />
-              {visibleBlocks.map((block, i) => (
-                <React.Fragment key={block.id}>
-                  {renderSectionWrap(block, i, visibleBlocks.length, renderBlock(block))}
-                  <DropZone index={i + 1} />
-                </React.Fragment>
-              ))}
+              {visibleBlocks.map((block, i) => {
+                const prevType = i > 0 ? visibleBlocks[i - 1].type : null;
+                // Add wave divider between major section transitions
+                const needsDivider = prevType === 'hero' || (prevType === 'story' && block.type !== 'divider') || (prevType === 'event' && block.type !== 'divider');
+                return (
+                  <React.Fragment key={block.id}>
+                    {needsDivider && <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />}
+                    {renderSectionWrap(block, i, visibleBlocks.length, renderBlock(block))}
+                    <DropZone index={i + 1} />
+                  </React.Fragment>
+                );
+              })}
             </>
           ) : (
             <>
-              <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} />
+              <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url)).filter(Boolean).slice(0, 6)} />
+              <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
               <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
               {manifest.events?.length ? <section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section> : null}
               {manifest.events?.length ? <section id="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section> : null}
