@@ -744,40 +744,130 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   }, [manifest, names, vibeSkin, pal, bgColor, cardBg, proxiedCover, editMode, handleTextBlur]);
 
   // ── Drop zone between blocks ──
-  const DropZone = ({ index }: { index: number }) => (
-    <div
-      onDragOver={e => {
-        if (e.dataTransfer.types.includes('pearloom/block-type')) {
+  // ── Add Section Line — visible between every block ──
+  const [addMenuIdx, setAddMenuIdx] = useState<number | null>(null);
+
+  const DropZone = ({ index }: { index: number }) => {
+    const [hovered, setHoveredZone] = useState(false);
+    const isDropTarget = dropTargetIdx === index;
+    const showLine = hovered || isDropTarget;
+
+    return (
+      <div
+        onDragOver={e => {
+          if (e.dataTransfer.types.includes('pearloom/block-type') || e.dataTransfer.types.includes('pearloom/reorder')) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = e.dataTransfer.types.includes('pearloom/reorder') ? 'move' : 'copy';
+            setDropTargetIdx(index);
+          }
+        }}
+        onDragLeave={() => setDropTargetIdx(null)}
+        onDrop={e => {
           e.preventDefault();
-          e.dataTransfer.dropEffect = 'copy';
-          setDropTargetIdx(index);
-        }
-      }}
-      onDragLeave={() => setDropTargetIdx(null)}
-      onDrop={e => {
-        e.preventDefault();
-        const blockType = e.dataTransfer.getData('pearloom/block-type');
-        if (blockType && onBlockDrop) {
-          onBlockDrop(blockType, index);
-        }
-        setDropTargetIdx(null);
-      }}
-      style={{
-        height: dropTargetIdx === index ? '8px' : '20px',
-        transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        position: 'relative',
-      }}
-    >
-      {dropTargetIdx === index && (
-        <div style={{
-          position: 'absolute', left: '10%', right: '10%', top: '50%', transform: 'translateY(-50%)',
-          height: '4px', borderRadius: '4px',
-          background: 'var(--pl-olive, #A3B18A)',
-          boxShadow: '0 0 16px rgba(163,177,138,0.5)',
-        }} />
-      )}
-    </div>
-  );
+          const blockType = e.dataTransfer.getData('pearloom/block-type');
+          const reorderFrom = e.dataTransfer.getData('pearloom/reorder');
+          if (blockType && onBlockDrop) {
+            onBlockDrop(blockType, index);
+          } else if (reorderFrom && onBlockReorder) {
+            onBlockReorder(parseInt(reorderFrom), index);
+          }
+          setDropTargetIdx(null);
+        }}
+        onMouseEnter={() => setHoveredZone(true)}
+        onMouseLeave={() => setHoveredZone(false)}
+        style={{
+          position: 'relative',
+          height: showLine ? '24px' : '8px',
+          transition: 'height 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        {/* Line */}
+        {showLine && (
+          <div style={{
+            position: 'absolute', left: '5%', right: '5%', top: '50%', transform: 'translateY(-50%)',
+            height: isDropTarget ? '3px' : '1px',
+            background: isDropTarget ? 'var(--pl-olive)' : 'rgba(163,177,138,0.3)',
+            borderRadius: '2px',
+            transition: 'all 0.15s',
+            boxShadow: isDropTarget ? '0 0 12px rgba(163,177,138,0.4)' : 'none',
+          }} />
+        )}
+
+        {/* + button */}
+        {editMode && hovered && !isDropTarget && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setAddMenuIdx(addMenuIdx === index ? null : index);
+            }}
+            style={{
+              position: 'relative', zIndex: 10,
+              width: '28px', height: '28px', borderRadius: '50%',
+              border: '1.5px solid rgba(163,177,138,0.4)',
+              background: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+              color: 'var(--pl-olive)',
+              cursor: 'pointer', fontSize: '1rem', fontWeight: 300,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(43,30,20,0.06)',
+              transition: 'all 0.15s',
+            } as React.CSSProperties}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive)';
+              (e.currentTarget as HTMLElement).style.color = 'white';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.85)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)';
+            }}
+          >
+            +
+          </button>
+        )}
+
+        {/* Quick add menu */}
+        {addMenuIdx === index && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 98 }} onClick={() => setAddMenuIdx(null)} />
+            <div style={{
+              position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+              zIndex: 99, padding: '8px', minWidth: '200px', maxHeight: '320px', overflowY: 'auto',
+              background: 'rgba(250,247,242,0.95)',
+              backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+              borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)',
+              boxShadow: '0 12px 40px rgba(43,30,20,0.12)',
+              display: 'flex', flexDirection: 'column', gap: '2px',
+            } as React.CSSProperties}>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '4px 8px' }}>
+                Add Section
+              </div>
+              {Object.entries(BLOCK_LABELS).map(([type, def]) => (
+                <button
+                  key={type}
+                  onClick={() => { onBlockDrop?.(type, index); setAddMenuIdx(null); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '6px 10px', borderRadius: '8px', border: 'none',
+                    background: 'transparent', cursor: 'pointer', textAlign: 'left',
+                    fontSize: '0.78rem', color: 'var(--pl-ink)',
+                    transition: 'background 0.1s', width: '100%',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.5)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: def.color, flexShrink: 0 }} />
+                  {def.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <ThemeProvider theme={{ ...dynamicTheme, ...manifest.theme, colors: { ...dynamicTheme.colors, ...(manifest.theme?.colors || {}) }, effects: manifest.theme?.effects }}>
