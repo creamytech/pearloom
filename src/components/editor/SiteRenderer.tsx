@@ -397,8 +397,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const btn = (ev.target as HTMLElement).closest('[data-icon]') as HTMLElement | null;
         if (!btn) return;
         const newIcon = btn.getAttribute('data-icon') || '✦';
+        // Only update this specific element, not the global manifest
         target.textContent = newIcon;
-        if (onTextEdit) onTextEdit('vibeSkin.accentSymbol', newIcon);
+        // Check if user wants to apply to all (via data attribute)
+        const scope = target.getAttribute('data-pe-icon-scope');
+        if (scope === 'global' && onTextEdit) {
+          onTextEdit('vibeSkin.accentSymbol', newIcon);
+        }
         picker.remove();
       });
 
