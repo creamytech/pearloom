@@ -94,7 +94,7 @@ export function SpotifyPanel() {
               gap: '6px',
               width: '100%',
               padding: '9px 14px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid rgba(163,177,138,0.35)',
               background: loading ? 'rgba(163,177,138,0.06)' : 'rgba(163,177,138,0.12)',
               color: loading ? 'rgba(163,177,138,0.5)' : 'var(--pl-olive, #A3B18A)',
@@ -143,7 +143,7 @@ export function SpotifyPanel() {
                     padding: '8px 10px',
                     borderRadius: '7px',
                     background: 'rgba(163,177,138,0.04)',
-                    border: '1px solid rgba(0,0,0,0.04)',
+                    border: '1px solid rgba(255,255,255,0.15)',
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -189,7 +189,7 @@ export function SpotifyPanel() {
                       width: '26px',
                       height: '26px',
                       borderRadius: '6px',
-                      background: 'rgba(0,0,0,0.04)',
+                      background: 'rgba(255,255,255,0.15)',
                       color: 'var(--pl-ink-soft)',
                       flexShrink: 0,
                       textDecoration: 'none',
@@ -200,7 +200,7 @@ export function SpotifyPanel() {
                       (e.currentTarget as HTMLElement).style.color = '#1ED760';
                     }}
                     onMouseOut={e => {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)';
                       (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)';
                     }}
                   >
@@ -222,7 +222,7 @@ export function SpotifyPanel() {
       {/* Embed preview */}
       {embedUrl && (
         <SidebarSection title="Preview" defaultOpen={false}>
-          <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
             <iframe
               src={embedUrl}
               width="100%"

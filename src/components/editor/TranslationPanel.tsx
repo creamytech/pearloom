@@ -108,7 +108,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
             {LOCALES.filter(l => done.has(l.code)).map(locale => (
               <div key={locale.code} style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '7px 10px', borderRadius: '8px',
+                padding: '7px 10px', borderRadius: '12px',
                 background: 'rgba(163,177,138,0.08)',
                 border: '1px solid rgba(163,177,138,0.2)',
               }}>
@@ -159,8 +159,8 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                 whileTap={{ scale: 0.97 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
-                  width: '100%', padding: '8px 10px', borderRadius: '8px',
-                  border: '1px solid rgba(0,0,0,0.04)',
+                  width: '100%', padding: '8px 10px', borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.15)',
                   background: 'rgba(163,177,138,0.04)',
                   cursor: generating ? 'wait' : 'pointer',
                   textAlign: 'left',
@@ -191,7 +191,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
 
       {chapters.length === 0 && (
         <div style={{
-          padding: '10px 12px', borderRadius: '8px',
+          padding: '10px 12px', borderRadius: '12px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
           fontSize: '0.72rem', color: 'var(--pl-ink-soft)',
         }}>

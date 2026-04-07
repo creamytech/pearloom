@@ -112,7 +112,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
 
       {guestsWithEmail.length === 0 ? (
         <div style={{
-          padding: '12px', borderRadius: '8px',
+          padding: '12px', borderRadius: '12px',
           background: 'rgba(234,179,8,0.07)', border: '1px solid rgba(234,179,8,0.2)',
           fontSize: '0.75rem', color: 'var(--pl-ink-soft)',
         }}>
@@ -191,8 +191,8 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               placeholder="We are delighted to invite you to celebrate our special day…"
               rows={3}
               style={{
-                width: '100%', padding: '8px 10px', borderRadius: '8px',
-                border: '1px solid rgba(0,0,0,0.06)',
+                width: '100%', padding: '8px 10px', borderRadius: '12px',
+                border: '1px solid rgba(255,255,255,0.2)',
                 background: 'rgba(163,177,138,0.05)',
                 color: 'var(--pl-ink)', fontSize: '0.78rem',
                 outline: 'none', resize: 'vertical', boxSizing: 'border-box',
@@ -223,7 +223,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                 exit={{ opacity: 0, height: 0 }}
                 style={{
                   borderRadius: '9px', overflow: 'hidden',
-                  border: '1px solid rgba(0,0,0,0.05)',
+                  border: '1px solid rgba(255,255,255,0.2)',
                   background: '#FAF8F4',
                 }}
               >
@@ -247,7 +247,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           {/* Result banner */}
           {result && (
             <div style={{
-              padding: '10px 12px', borderRadius: '8px',
+              padding: '10px 12px', borderRadius: '12px',
               background: result.failed === 0 ? 'rgba(163,177,138,0.1)' : 'rgba(248,81,73,0.1)',
               border: `1px solid ${result.failed === 0 ? 'rgba(163,177,138,0.3)' : 'rgba(248,81,73,0.3)'}`,
               fontSize: '0.75rem',

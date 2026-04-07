@@ -101,7 +101,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
               onClick={() => setCardStyle(s.id)}
               style={{
                 padding: '5px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 700,
-                border: `1px solid ${cardStyle === s.id ? s.accent : 'rgba(0,0,0,0.06)'}`,
+                border: `1px solid ${cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.2)'}`,
                 background: cardStyle === s.id ? `${s.accent}22` : 'transparent',
                 color: cardStyle === s.id ? s.accent : 'rgba(255,255,255,0.45)',
                 cursor: 'pointer',
@@ -120,7 +120,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           placeholder="Please save the date"
           style={{
             width: '100%', padding: '7px 10px', borderRadius: '7px',
-            border: '1px solid rgba(0,0,0,0.06)',
+            border: '1px solid rgba(255,255,255,0.2)',
             background: 'rgba(163,177,138,0.05)',
             color: 'var(--pl-ink)', fontSize: '0.78rem',
             outline: 'none', boxSizing: 'border-box',
@@ -146,7 +146,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
             padding: '24px',
             boxSizing: 'border-box',
             position: 'relative',
-            border: '1px solid rgba(0,0,0,0.06)',
+            border: '1px solid rgba(255,255,255,0.2)',
           }}
         >
           {/* Decorative top line */}
