@@ -660,7 +660,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       {!state.isMobile && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40 }}>
           <EditorToolbar onExit={onExit} />
-          <AIContextBar />
+          {/* AIContextBar removed — chapter actions now in inline canvas toolbar + panel */}
           <PostWeddingBanner manifest={manifest} subdomain={state.subdomain} onUpdate={(m) => { onChange(m); pushToPreview(m); }} />
         </div>
       )}
