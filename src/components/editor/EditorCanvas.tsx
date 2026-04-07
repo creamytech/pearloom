@@ -82,12 +82,12 @@ export function EditorCanvas() {
       return;
     }
 
-    // Map every section type to the exact panel
-    const sectionToTab: Record<string, { tab: string; selectBlock?: boolean }> = {
-      // Nav bar → design panel (navigation section)
-      'nav': { tab: 'design' },
-      'navigation': { tab: 'design' },
-      // Hero → story (hero/names editing)
+    // Map every section type to the exact panel + sub-section
+    const sectionToTab: Record<string, { tab: string; selectBlock?: boolean; contextSection?: string }> = {
+      // Nav bar → design panel → navigation section
+      'nav': { tab: 'design', contextSection: 'navigation' },
+      'navigation': { tab: 'design', contextSection: 'navigation' },
+      // Hero → story (auto-select first chapter)
       'hero': { tab: 'story' },
       // Story chapters → story tab
       'story': { tab: 'story' },
@@ -96,21 +96,21 @@ export function EditorCanvas() {
       'events': { tab: 'events' },
       'schedule': { tab: 'events' },
       'event': { tab: 'events' },
-      // RSVP → events tab
-      'rsvp': { tab: 'events' },
+      // RSVP → details → rsvp section
+      'rsvp': { tab: 'details', contextSection: 'rsvp' },
       // Countdown → events tab
       'countdown': { tab: 'events' },
-      // Registry → details tab
-      'registry': { tab: 'details' },
-      // Travel → details tab
-      'travel': { tab: 'details' },
-      // FAQ → details tab
-      'faq': { tab: 'details' },
-      // Design/theme → design tab
-      'design': { tab: 'design' },
-      'theme': { tab: 'design' },
-      // Footer → details tab
-      'footer': { tab: 'details' },
+      // Registry → details → registry section
+      'registry': { tab: 'details', contextSection: 'registry' },
+      // Travel → details → travel section
+      'travel': { tab: 'details', contextSection: 'travel' },
+      // FAQ → details → faq section
+      'faq': { tab: 'details', contextSection: 'faq' },
+      // Design/theme → design tab → theme section
+      'design': { tab: 'design', contextSection: 'theme' },
+      'theme': { tab: 'design', contextSection: 'theme' },
+      // Footer → details → couple section (footer settings)
+      'footer': { tab: 'details', contextSection: 'seo' },
       // Guestbook → canvas with block selected
       'guestbook': { tab: 'canvas', selectBlock: true },
       // Spotify → spotify tab
@@ -134,16 +134,25 @@ export function EditorCanvas() {
       'hashtag': { tab: 'canvas', selectBlock: true },
     };
 
+    // Hero special case: auto-select first chapter
+    if (sectionId === 'hero' && manifest.chapters?.length) {
+      dispatch({ type: 'SET_ACTIVE_ID', id: manifest.chapters[0].id });
+      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
+      return;
+    }
+
     const mapping = sectionToTab[sectionId];
     if (mapping) {
       dispatch({ type: 'SET_ACTIVE_TAB', tab: mapping.tab as import('@/lib/editor-state').EditorTab });
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: mapping.contextSection || null });
       if (mapping.selectBlock) {
         const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
         window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType } }));
       }
     } else {
-      // Default: open canvas tab
       dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
       window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType: sectionId } }));
     }
   }, [dispatch]);

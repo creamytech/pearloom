@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useEditor } from '@/lib/editor-state';
 import { RangeSlider } from '@/components/ui/range-slider';
 import { Loader2 } from 'lucide-react';
 import { lbl } from './editor-utils';
@@ -330,8 +331,19 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
 }
 
 export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; coupleNames?: [string, string] }) {
+  const { state, dispatch } = useEditor();
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenError, setRegenError] = useState('');
+  const [forceOpenSection, setForceOpenSection] = useState<string | null>(null);
+
+  // Auto-open section from contextual click
+  useEffect(() => {
+    if (state.contextSection && state.activeTab === 'design') {
+      setForceOpenSection(state.contextSection);
+      // Clear after applying
+      dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
+    }
+  }, [state.contextSection, state.activeTab, dispatch]);
 
   const handleRegenerateDesign = async () => {
     setIsRegenerating(true);
@@ -440,7 +452,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       )}
 
       {/* ── Theme — presets ── */}
-      <SidebarSection title="Theme" defaultOpen>
+      <SidebarSection title="Theme" defaultOpen={forceOpenSection === 'theme' || !forceOpenSection} key={forceOpenSection === 'theme' ? 'theme-open' : 'theme'}>
         <ThemeSwitcher
           currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
           manifest={manifest}
@@ -560,7 +572,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* ── Navigation — logo + nav style ── */}
-      <SidebarSection title="Navigation" defaultOpen={false}>
+      <SidebarSection title="Navigation" defaultOpen={forceOpenSection === 'navigation'} key={forceOpenSection === 'navigation' ? 'nav-open' : 'nav'}>
         <NavCustomizationPanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
 

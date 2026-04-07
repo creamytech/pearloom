@@ -83,6 +83,9 @@ export interface EditorState {
 
   // Multi-select blocks
   selectedBlockIds: string[];
+
+  // Contextual section — tells panels which sub-section to auto-expand
+  contextSection: string | null;
 }
 
 export type EditorAction =
@@ -127,7 +130,8 @@ export type EditorAction =
   | { type: 'SET_CHAPTER_ALTERNATES'; id: string; alternates: string[] }
   | { type: 'SET_ALTERNATES_LOADING'; id: string | null }
   | { type: 'SET_SELECTED_BLOCKS'; ids: string[] }
-  | { type: 'TOGGLE_BLOCK_SELECTION'; id: string };
+  | { type: 'TOGGLE_BLOCK_SELECTION'; id: string }
+  | { type: 'SET_CONTEXT_SECTION'; section: string | null };
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
@@ -219,6 +223,8 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
         : [...state.selectedBlockIds, action.id];
       return { ...state, selectedBlockIds: ids };
     }
+    case 'SET_CONTEXT_SECTION':
+      return { ...state, contextSection: action.section };
     default:
       return state;
   }
@@ -330,6 +336,7 @@ export function createInitialEditorState(
     chapterAlternates: {},
     alternatesLoadingId: null,
     selectedBlockIds: [],
+    contextSection: null,
   };
 }
 

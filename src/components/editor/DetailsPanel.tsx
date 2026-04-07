@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useEditor } from '@/lib/editor-state';
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, X, ChevronDown } from 'lucide-react';
@@ -12,10 +13,18 @@ import type { VenuePartial } from '@/components/venue/VenueSearch';
 import { SeatingCanvas } from '@/components/seating/SeatingCanvas';
 
 export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
+  const { state } = useEditor();
   const logistics = manifest.logistics || {};
   const occasion = manifest.occasion || 'wedding';
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
   const [openSection, setOpenSection] = useState<string | null>('couple');
+
+  // Auto-open section from contextual click
+  useEffect(() => {
+    if (state.contextSection && state.activeTab === 'details') {
+      setOpenSection(state.contextSection);
+    }
+  }, [state.contextSection, state.activeTab]);
 
   const upd = (data: Partial<typeof logistics>) =>
     onChange({ ...manifest, logistics: { ...logistics, ...data } });
