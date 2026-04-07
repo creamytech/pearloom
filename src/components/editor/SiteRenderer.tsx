@@ -60,7 +60,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
   blockId: string; blockType: string; isSelected: boolean;
   index: number; total: number; editMode: boolean;
   children: React.ReactNode;
-  onSectionClick?: (sectionId: string) => void;
+  onSectionClick?: (sectionId: string, chapterId?: string, blockId?: string) => void;
   onBlockAction?: (action: 'moveUp' | 'moveDown' | 'duplicate' | 'delete' | 'toggleVisibility', blockId: string) => void;
   onBlockReorder?: (from: number, to: number) => void;
   onBlockCopy?: (blockId: string) => void;
@@ -158,7 +158,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
       ref={wrapRef}
       data-block-id={blockId}
       className={isSelected ? 'pl-block-selected' : ''}
-      onClick={(e) => { e.stopPropagation(); onSectionClick?.(blockType); }}
+      onClick={(e) => { e.stopPropagation(); onSectionClick?.(blockType, undefined, blockId); }}
       onContextMenu={(e) => {
         if (!editMode) return;
         e.preventDefault();
@@ -266,7 +266,7 @@ interface SiteRendererProps {
   /** Called when user clicks editable text — provides path and current value */
   onTextEdit?: (path: string, value: string) => void;
   /** Called when user clicks a section — provides section type */
-  onSectionClick?: (sectionId: string, chapterId?: string) => void;
+  onSectionClick?: (sectionId: string, chapterId?: string, blockId?: string) => void;
   /** Called when a block is dropped at a position */
   onBlockDrop?: (blockType: string, position: number) => void;
   /** Called when blocks are reordered via canvas drag */

@@ -74,7 +74,7 @@ export function EditorCanvas() {
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
 
   // ── Section click → open matching panel contextually ──────
-  const handleSectionClick = useCallback((sectionId: string, chapterId?: string) => {
+  const handleSectionClick = useCallback((sectionId: string, chapterId?: string, blockId?: string) => {
     // Chapter-specific: open story tab with chapter selected
     if (chapterId) {
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
@@ -92,14 +92,14 @@ export function EditorCanvas() {
       // Story chapters → story tab
       'story': { tab: 'story' },
       'chapter': { tab: 'story' },
-      // Events & schedule → events tab
-      'events': { tab: 'events' },
-      'schedule': { tab: 'events' },
-      'event': { tab: 'events' },
-      // RSVP → details → rsvp section
-      'rsvp': { tab: 'details', contextSection: 'rsvp' },
-      // Countdown → events tab
-      'countdown': { tab: 'events' },
+      // Events & schedule → canvas with block selected (these are page blocks)
+      'events': { tab: 'canvas', selectBlock: true },
+      'schedule': { tab: 'canvas', selectBlock: true },
+      'event': { tab: 'canvas', selectBlock: true },
+      // RSVP → canvas with block selected
+      'rsvp': { tab: 'canvas', selectBlock: true },
+      // Countdown → canvas with block selected
+      'countdown': { tab: 'canvas', selectBlock: true },
       // Registry → details → registry section
       'registry': { tab: 'details', contextSection: 'registry' },
       // Travel → details → travel section
@@ -132,6 +132,12 @@ export function EditorCanvas() {
       'quiz': { tab: 'canvas', selectBlock: true },
       // Hashtag → canvas
       'hashtag': { tab: 'canvas', selectBlock: true },
+      // Previously unmapped — all canvas blocks
+      'divider': { tab: 'canvas', selectBlock: true },
+      'storymap': { tab: 'canvas', selectBlock: true },
+      'vibeQuote': { tab: 'canvas', selectBlock: true },
+      'welcome': { tab: 'canvas', selectBlock: true },
+      'anniversary': { tab: 'canvas', selectBlock: true },
     };
 
     // Hero special case: auto-select first chapter
@@ -147,13 +153,18 @@ export function EditorCanvas() {
       dispatch({ type: 'SET_ACTIVE_TAB', tab: mapping.tab as import('@/lib/editor-state').EditorTab });
       dispatch({ type: 'SET_CONTEXT_SECTION', section: mapping.contextSection || null });
       if (mapping.selectBlock) {
+        // Set activeId directly for BlockConfigEditor
+        if (blockId) {
+          dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
+        }
         const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
-        window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType } }));
+        window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType, blockId } }));
       }
     } else {
       dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
       dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
-      window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType: sectionId } }));
+      if (blockId) dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
+      window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType: sectionId, blockId } }));
     }
   }, [dispatch]);
 

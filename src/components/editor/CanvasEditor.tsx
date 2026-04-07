@@ -1378,10 +1378,16 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
   // ── Listen for section-click events from preview ──────────────
   useEffect(() => {
     const handler = (e: Event) => {
-      const blockType = (e as CustomEvent).detail?.blockType;
-      if (!blockType) return;
-      const match = blocks.find(b => b.type === blockType);
-      if (match) setActiveBlockId(match.id);
+      const { blockType, blockId } = (e as CustomEvent).detail || {};
+      // Prefer exact blockId match, fall back to first of type
+      if (blockId) {
+        const exact = blocks.find(b => b.id === blockId);
+        if (exact) { setActiveBlockId(exact.id); return; }
+      }
+      if (blockType) {
+        const match = blocks.find(b => b.type === blockType);
+        if (match) setActiveBlockId(match.id);
+      }
     };
     window.addEventListener('pearloom-select-block', handler);
     return () => window.removeEventListener('pearloom-select-block', handler);
