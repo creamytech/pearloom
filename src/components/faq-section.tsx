@@ -28,6 +28,8 @@ function FaqAccordionItem({
   return (
     <motion.div
       className="pl-scroll-fade-up"
+      data-pe-faq-id={item.id}
+      data-pe-faq-index={index}
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}

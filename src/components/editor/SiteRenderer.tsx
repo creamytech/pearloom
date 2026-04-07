@@ -329,11 +329,57 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     if (!editMode || !onSectionClick) return;
     const target = e.target as HTMLElement;
     if (target.closest('[contenteditable="true"]')) return;
+
+    // Check sub-elements FIRST (most specific to least specific)
+
+    // Chapter click — inside timeline
+    const chapter = target.closest('[data-pe-chapter]');
+    if (chapter) {
+      const chapterId = chapter.getAttribute('data-pe-chapter') || undefined;
+      onSectionClick('chapter', chapterId);
+      return;
+    }
+
+    // Event card click
+    const eventCard = target.closest('[data-pe-event-id]');
+    if (eventCard) {
+      onSectionClick('events');
+      return;
+    }
+
+    // FAQ item click
+    const faqItem = target.closest('[data-pe-faq-id]');
+    if (faqItem) {
+      onSectionClick('faq');
+      return;
+    }
+
+    // Hero date badge click
+    if (target.closest('[data-pe-badge-date]')) {
+      onSectionClick('countdown');
+      return;
+    }
+
+    // Hero venue badge click
+    if (target.closest('[data-pe-badge-venue]')) {
+      onSectionClick('event');
+      return;
+    }
+
+    // Registry link — prevent navigation in edit mode
+    const registryLink = target.closest('a[href]');
+    if (registryLink && target.closest('[data-pe-section="registry"]')) {
+      e.preventDefault();
+      onSectionClick('registry');
+      return;
+    }
+
+    // Default: section-level click
     const section = target.closest('[data-pe-section]');
     if (section) {
       const sectionId = section.getAttribute('data-pe-section') || '';
-      const chapterId = section.getAttribute('data-pe-chapter') || undefined;
-      onSectionClick(sectionId, chapterId);
+      const chapterId2 = section.getAttribute('data-pe-chapter') || undefined;
+      onSectionClick(sectionId, chapterId2);
     }
   }, [editMode, onSectionClick]);
 

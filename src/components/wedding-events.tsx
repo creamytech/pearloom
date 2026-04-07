@@ -70,6 +70,8 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
   return (
     <motion.div
       className="pl-scroll-scale-in"
+      data-pe-event-id={event.id}
+      data-pe-event-index={index}
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}

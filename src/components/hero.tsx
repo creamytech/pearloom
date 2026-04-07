@@ -396,8 +396,8 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               color: hasPhoto ? 'var(--pl-ink)' : 'var(--pl-ink)',
               fontFamily: 'var(--pl-font-body)',
             }}>
-              {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> {formatDateBadge(badgeDateStr)} </>}
-              {venue && <><span style={{ opacity: 0.5 }}>·</span> {venue} </>}
+              {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> <span data-pe-badge-date="true">{formatDateBadge(badgeDateStr)}</span> </>}
+              {venue && <><span style={{ opacity: 0.5 }}>·</span> <span data-pe-badge-venue="true">{venue}</span> </>}
               {(badgeDateStr || venue) && <span style={{ opacity: 0.5 }}>·</span>}
             </span>
           </motion.div>
