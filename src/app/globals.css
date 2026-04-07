@@ -233,6 +233,14 @@
   transform: scale(1.02);
 }
 
+/* ── Editor site scope — disables scroll animations in direct-DOM canvas ── */
+.pl-site-scope [style*="opacity: 0"],
+.pl-site-scope .pl-scroll-fade-up,
+.pl-site-scope .pl-scroll-scale-in {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 /* ── Panel internals ─── */
 /* Glass section card — used inside editor panels for grouping controls */
 .pl-panel-section {

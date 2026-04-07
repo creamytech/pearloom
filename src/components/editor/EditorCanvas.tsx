@@ -160,15 +160,22 @@ export function EditorCanvas() {
 
   const handleBlockCopy = useCallback((blockId: string) => {
     const block = manifest.blocks?.find(b => b.id === blockId);
-    if (block) setClipboardBlock({ ...block });
+    if (block) {
+      setClipboardBlock({ ...block });
+      setUndoToast('Copied: ' + (block.type || 'section'));
+      setTimeout(() => setUndoToast(null), 2000);
+    }
   }, [manifest]);
 
   const handleBlockPaste = useCallback((position: number) => {
     if (!clipboardBlock) return;
     const blocks = [...(manifest.blocks || [])];
-    const pasted = { ...clipboardBlock, id: `${clipboardBlock.type}-paste-${Date.now()}` };
-    blocks.splice(position, 0, pasted);
+    const clampedPos = Math.max(0, Math.min(position, blocks.length));
+    const pasted = { ...clipboardBlock, id: `${clipboardBlock.type}-paste-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, config: clipboardBlock.config ? { ...clipboardBlock.config } : undefined };
+    blocks.splice(clampedPos, 0, pasted);
     actions.handleDesignChange({ ...manifest, blocks: blocks.map((b, i) => ({ ...b, order: i })) });
+    setUndoToast('Pasted: ' + (clipboardBlock.type || 'section'));
+    setTimeout(() => setUndoToast(null), 2000);
   }, [manifest, clipboardBlock, actions]);
 
   // ── Block drop → insert at position ──────────────────────

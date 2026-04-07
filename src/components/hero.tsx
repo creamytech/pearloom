@@ -79,7 +79,19 @@ function formatDateBadge(dateStr: string): string {
 
 export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
+
+  // Detect if we're inside the editor (pl-site-scope class on ancestor)
+  const [isEditor, setIsEditor] = useState(false);
+  useEffect(() => {
+    if (ref.current?.closest('.pl-site-scope')) setIsEditor(true);
+  }, []);
+
+  // Scroll-based parallax — only works outside editor (viewport scroll)
+  // In editor, the scroll container is different, so we disable parallax
+  const { scrollYProgress } = useScroll({
+    target: isEditor ? undefined : ref,
+    offset: ['start start', 'end start'],
+  });
 
   // Memory Film: multi-photo cycling
   const [photoIdx, setPhotoIdx] = useState(0);
@@ -91,12 +103,13 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   }, [photoList.length]);
 
   // Cover photo parallax: moves at ~0.4x scroll speed
-  const yImage = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
-  const opacityImage = useTransform(scrollYProgress, [0, 1], [1, 0.1]);
+  // In editor mode, use static values (no parallax)
+  const yImage = useTransform(scrollYProgress, [0, 1], isEditor ? ['0%', '0%'] : ['0%', '40%']);
+  const opacityImage = useTransform(scrollYProgress, [0, 1], isEditor ? [1, 1] : [1, 0.1]);
 
   // Text layer fades out as user scrolls
-  const yText = useTransform(scrollYProgress, [0, 1], ['0%', '45%']);
-  const opacityText = useTransform(scrollYProgress, [0, 0.45], [1, 0]);
+  const yText = useTransform(scrollYProgress, [0, 1], isEditor ? ['0%', '0%'] : ['0%', '45%']);
+  const opacityText = useTransform(scrollYProgress, [0, 0.45], isEditor ? [1, 1] : [1, 0]);
 
   const hasBadge = !!(date || weddingDate || venue);
   const badgeDateStr = weddingDate || date;

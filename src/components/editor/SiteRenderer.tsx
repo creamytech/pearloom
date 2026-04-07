@@ -203,12 +203,14 @@ const SectionOverlay = React.memo(function SectionOverlay({
           </span>
           <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.25)' }} />
           {[
-            ...(index > 0 ? [{ icon: '↑', action: 'moveUp' as const }] : []),
-            ...(index < total - 1 ? [{ icon: '↓', action: 'moveDown' as const }] : []),
-            { icon: '⧉', action: 'duplicate' as const },
-            { icon: '✕', action: 'delete' as const, danger: true },
+            ...(index > 0 ? [{ icon: '↑', action: 'moveUp' as const, handler: () => onBlockAction?.('moveUp', blockId) }] : []),
+            ...(index < total - 1 ? [{ icon: '↓', action: 'moveDown' as const, handler: () => onBlockAction?.('moveDown', blockId) }] : []),
+            { icon: '⎘', action: 'copy' as const, handler: () => onBlockCopy?.(blockId) },
+            { icon: '⧉', action: 'duplicate' as const, handler: () => onBlockAction?.('duplicate', blockId) },
+            { icon: '✕', action: 'delete' as const, handler: () => onBlockAction?.('delete', blockId), danger: true },
           ].map(a => (
-            <button key={a.action} onClick={(e) => { e.stopPropagation(); onBlockAction?.(a.action, blockId); }}
+            <button key={a.action} onClick={(e) => { e.stopPropagation(); a.handler(); }}
+              title={a.action.charAt(0).toUpperCase() + a.action.slice(1)}
               style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: '6px', background: 'transparent', color: (a as { danger?: boolean }).danger ? '#d06060' : 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.72rem' }}
             >{a.icon}</button>
           ))}

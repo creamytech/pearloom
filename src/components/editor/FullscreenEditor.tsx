@@ -115,7 +115,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
   // ── Mobile detection ─────────────────────────────────────────
   useEffect(() => {
-    const check = () => dispatch({ type: 'SET_MOBILE', isMobile: window.innerWidth < 768 });
+    const check = () => dispatch({ type: 'SET_MOBILE', isMobile: window.innerWidth < 640 });
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
