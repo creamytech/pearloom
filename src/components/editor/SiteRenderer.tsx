@@ -585,6 +585,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       blockStyle.paddingTop = blockCfg.verticalPadding as string;
       blockStyle.paddingBottom = blockCfg.verticalPadding as string;
     }
+    // Section style presets
+    if (blockCfg.backdropFilter) blockStyle.backdropFilter = blockCfg.backdropFilter as string;
+    if (blockCfg.borderRadius) blockStyle.borderRadius = blockCfg.borderRadius as string;
+    if (blockCfg.border) blockStyle.border = blockCfg.border as string;
+    if (blockCfg.boxShadow) blockStyle.boxShadow = blockCfg.boxShadow as string;
+    if (blockCfg.maxWidth) blockStyle.maxWidth = blockCfg.maxWidth as string;
+    if (blockCfg.margin) blockStyle.margin = blockCfg.margin as string;
+    if (blockCfg.overflow) blockStyle.overflow = blockCfg.overflow as string;
+    if (blockCfg.color) blockStyle.color = blockCfg.color as string;
 
     switch (block.type) {
       case 'hero':

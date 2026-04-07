@@ -696,6 +696,38 @@ function SectionStylePanel({
           })}
         </div>
       </div>
+
+      {/* Section Style Preset */}
+      <div>
+        <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Section Style</label>
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {[
+            { id: 'default', label: 'Default', style: {} },
+            { id: 'glass', label: 'Glass', style: { backdropFilter: 'blur(20px)', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '24px' } },
+            { id: 'rounded', label: 'Rounded', style: { borderRadius: '32px', overflow: 'hidden' } },
+            { id: 'card', label: 'Card', style: { background: 'rgba(255,255,255,0.8)', borderRadius: '20px', boxShadow: '0 8px 32px rgba(43,30,20,0.06)', maxWidth: '900px', margin: '2rem auto' } },
+            { id: 'dark', label: 'Dark', style: { background: '#1a1814', color: '#F5F1E8', borderRadius: '0' } },
+            { id: 'accent', label: 'Accent', style: { background: 'var(--pl-olive)', color: 'white', borderRadius: '0' } },
+          ].map(preset => {
+            const isActive = (config.sectionStyle || 'default') === preset.id;
+            return (
+              <button
+                key={preset.id}
+                onClick={() => updateConfig({ sectionStyle: preset.id, ...preset.style })}
+                style={{
+                  padding: '5px 10px', borderRadius: '100px', border: 'none',
+                  background: isActive ? 'var(--pl-olive)' : 'rgba(255,255,255,0.2)',
+                  color: isActive ? 'white' : 'var(--pl-muted)',
+                  fontSize: '0.62rem', fontWeight: 600, cursor: 'pointer',
+                  transition: 'all 0.12s',
+                }}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
