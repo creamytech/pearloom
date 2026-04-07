@@ -129,23 +129,17 @@ export function EditorWing({
     <AnimatePresence>
       {open && (
         <motion.div
-          drag
-          dragMomentum={false}
-          dragElastic={0}
-          dragConstraints={{ top: 0, left: -600, right: 0, bottom: 0 }}
           initial={{ opacity: 0, x: 30, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 30, scale: 0.96 }}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-          whileDrag={{ scale: 1.01, boxShadow: '0 16px 60px rgba(43,30,20,0.15), 0 4px 16px rgba(43,30,20,0.08)' }}
           style={{
             position: 'absolute',
-            top: '8px',
+            top: '52px',
             right: '8px',
             bottom: '72px',
             width: panelW,
             zIndex: 60,
-            cursor: 'grab',
             display: 'flex',
             flexDirection: 'column',
             borderRadius: '24px',
@@ -157,13 +151,13 @@ export function EditorWing({
             overflow: 'hidden',
           } as React.CSSProperties}
         >
-          {/* Panel header — organic glass with drag hint */}
+          {/* Panel header */}
           <div style={{
-            padding: '16px 16px 12px',
+            padding: '14px 16px 10px',
             borderBottom: '1px solid rgba(255,255,255,0.3)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'rgba(255,255,255,0.15)',
-            cursor: 'grab',
+            background: 'rgba(255,255,255,0.1)',
+            flexShrink: 0,
           }}>
             <div style={{ minWidth: 0 }}>
               <AnimatePresence mode="wait">

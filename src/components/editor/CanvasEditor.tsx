@@ -163,7 +163,7 @@ const lbl: React.CSSProperties = {
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(0,0,0,0.07)', background: 'rgba(163,177,138,0.06)',
+  border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(163,177,138,0.06)',
   color: 'var(--pl-ink)', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
   boxSizing: 'border-box', transition: 'border-color 0.15s',
 };
@@ -178,7 +178,7 @@ function MiniInput({ label, value, onChange, placeholder, type = 'text' }: {
         type={type} value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} style={inp}
         onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
       />
     </div>
   );
@@ -192,7 +192,7 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
         onClick={() => onChange(!value)}
         style={{
           width: '36px', height: '20px', borderRadius: '100px',
-          background: value ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+          background: value ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.3)',
           border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
         }}
       >
@@ -249,7 +249,7 @@ function EventBlockConfig({ events, onChange }: {
               onClick={() => setActiveId(e.id)}
               style={{
                 padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
-                background: activeId === e.id ? def.color : 'rgba(0,0,0,0.05)',
+                background: activeId === e.id ? def.color : 'rgba(255,255,255,0.25)',
                 color: activeId === e.id ? '#fff' : 'var(--pl-ink-soft)',
                 transition: 'all 0.15s',
               }}
@@ -419,8 +419,8 @@ function BlockRow({
         background: isActive ? `rgba(255,255,255,0.8)` : hovered ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
-        border: `1px solid ${isActive ? `${color}40` : hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
-        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
+        border: `1px solid ${isActive ? `${color}40` : hovered ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)'}`,
+        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)'}`,
         cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
         userSelect: 'none',
         boxShadow: isActive ? `0 2px 12px ${color}18, 0 0 0 1px ${color}08` : hovered ? '0 2px 8px rgba(43,30,20,0.04)' : 'none',
@@ -605,7 +605,7 @@ function SectionStylePanel({
   const ALIGN_OPTS = ['left', 'center', 'right'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '12px', marginTop: '4px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '12px', marginTop: '4px' }}>
       <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
         Section Style
       </div>
@@ -623,7 +623,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ bgColor: bg.value })}
                 style={{
                   width: '24px', height: '24px', borderRadius: '6px',
-                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(0,0,0,0.08)',
+                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(255,255,255,0.3)',
                   background: bg.value === 'accent' ? 'linear-gradient(135deg, #A3B18A, #8FA876)' : bg.value || 'transparent',
                   cursor: 'pointer', position: 'relative', transition: 'border 0.15s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -661,7 +661,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ verticalPadding: p.value })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(0,0,0,0.04)',
+                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.2)',
                   color: isActive ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
                   transition: 'all 0.15s',
@@ -686,7 +686,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textAlign: a })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(0,0,0,0.04)',
+                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.2)',
                   color: isActive ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
                 }}
@@ -710,7 +710,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textColor: c })}
                 style={{
                   width: '28px', height: '28px', borderRadius: '6px',
-                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(0,0,0,0.08)',
+                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(255,255,255,0.3)',
                   background: c || 'transparent', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
@@ -928,7 +928,7 @@ function BlockEffectsEditor({
   const hasEffects = reveal !== 'none' || divStyle !== null;
 
   return (
-    <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', marginTop: '6px', paddingTop: '6px' }}>
+    <div style={{ borderTop: '1px solid rgba(255,255,255,0.25)', marginTop: '6px', paddingTop: '6px' }}>
       <button
         onClick={() => setOpen(v => !v)}
         style={{
@@ -970,7 +970,7 @@ function BlockEffectsEditor({
                   onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : (opt.value as 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in') })}
                   style={{
                     padding: '5px 9px', borderRadius: '7px',
-                    border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
+                    border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.25)'}`,
                     background: reveal === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(163,177,138,0.05)',
                     color: reveal === opt.value ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
                     cursor: 'pointer', fontSize: '0.72rem', fontWeight: reveal === opt.value ? 700 : 400,
@@ -1003,7 +1003,7 @@ function BlockEffectsEditor({
                   }}
                   style={{
                     padding: '5px 9px', borderRadius: '7px',
-                    border: `1px solid ${divStyle === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
+                    border: `1px solid ${divStyle === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(255,255,255,0.25)'}`,
                     background: divStyle === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(163,177,138,0.05)',
                     color: divStyle === opt.value ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
                     cursor: 'pointer', fontSize: '0.72rem', fontWeight: divStyle === opt.value ? 700 : 400,
@@ -1082,7 +1082,7 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
             }}
           >
             {/* Search */}
-            <div style={{ padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+            <div style={{ padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.25)' }}>
               <input
                 autoFocus
                 value={search}
@@ -1390,7 +1390,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
 
         {/* ── Page Selector ── */}
-        <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(0,0,0,0.04)', marginBottom: '4px' }}>
+        <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.25)', marginBottom: '4px' }}>
           <label style={{ ...lbl, marginBottom: '6px' }}>Editing Page</label>
           <select
             value={activePage}
@@ -1401,11 +1401,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               color: 'var(--pl-olive, #A3B18A)', padding: '8px 10px',
             }}
           >
-            <option value="main" style={{ background: 'var(--pl-ink-soft, #3D3530)', color: '#fff' }}>
+            <option value="main" style={{ background: 'var(--pl-ink-soft)', color: '#fff' }}>
               Main Page
             </option>
             {customPages.map(p => (
-              <option key={p.id} value={p.id} style={{ background: 'var(--pl-ink-soft, #3D3530)', color: '#fff' }}>
+              <option key={p.id} value={p.id} style={{ background: 'var(--pl-ink-soft)', color: '#fff' }}>
                 {p.title}
               </option>
             ))}
@@ -1461,7 +1461,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                       disabled={!newPageTitle.trim()}
                       style={{
                         padding: '6px 12px', borderRadius: '5px', border: 'none',
-                        background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.06)',
+                        background: newPageTitle.trim() ? 'var(--pl-olive)' : 'rgba(255,255,255,0.2)',
                         color: newPageTitle.trim() ? '#fff' : 'var(--pl-muted)',
                         fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                       }}
@@ -1660,7 +1660,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           >
             <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {/* Panel header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
                 <div style={{
                   width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
                   background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1674,7 +1674,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 </div>
                 <button
                   onClick={() => setActiveBlockId(null)}
-                  style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
+                  style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
                 >
                   <X size={13} />
                 </button>
