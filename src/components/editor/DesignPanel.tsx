@@ -546,7 +546,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#fff', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
                     Size

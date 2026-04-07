@@ -348,8 +348,9 @@ export function StoryPanel() {
                 style={{
                   display: 'flex', flexDirection: 'column',
                   borderRadius: '8px', border: 'none', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
-                  outline: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
+                  background: isActive ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.35)',
+                  backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+                  outline: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(255,255,255,0.3)',
                   overflow: 'hidden', padding: 0,
                   boxShadow: isActive ? '0 2px 6px rgba(163,177,138,0.12)' : '0 1px 2px rgba(0,0,0,0.03)',
                 }}
