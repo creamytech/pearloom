@@ -54,37 +54,55 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
 
   type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection';
-  const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
-    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.25)', position: 'relative', zIndex: openSection === id ? 10 : 1 }}>
-      <button
-        onClick={() => setOpenSection(openSection === id ? null : id)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',
-          color: openSection === id ? 'var(--pl-gold, #D6C6A8)' : 'var(--pl-ink-soft)',
-        }}
-      >
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          {label}
-        </span>
-        <ChevronDown size={12} style={{ transform: openSection === id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-      </button>
-      <AnimatePresence initial={false}>
-        {openSection === id && (
+  const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => {
+    const isOpen = openSection === id;
+    return (
+      <div style={{
+        borderRadius: '14px', marginBottom: '4px',
+        background: isOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
+        border: isOpen ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
+        transition: 'all 0.15s',
+        position: 'relative', zIndex: isOpen ? 10 : 1,
+      }}>
+        <button
+          onClick={() => setOpenSection(isOpen ? null : id)}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer',
+            color: isOpen ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
+            borderRadius: '14px',
+          }}
+        >
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.06em' }}>
+            {label}
+          </span>
           <motion.div
-            key={id}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1, overflow: 'visible', transitionEnd: { overflow: 'visible' } }}
-            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            style={{ overflow: 'hidden' }}
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ color: 'var(--pl-muted)', display: 'flex' }}
           >
-            <div style={{ paddingBottom: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>{children}</div>
+            <ChevronDown size={13} />
           </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+        </button>
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              key={id}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{ padding: '0 12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {children}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
 
   // Section heading divider style
   const sectionHead = (label: string) => (
