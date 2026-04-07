@@ -51,13 +51,16 @@ export function EditorCanvas() {
       const chapter = manifest.chapters?.find(c => c.id === chapterId);
       if (chapter) actions.updateChapter(chapterId, { [field]: value });
     } else {
-      // Manifest path edit (e.g., "events.0.name", "poetry.heroTagline")
+      // Manifest path edit (e.g., "events.0.name", "poetry.heroTagline", "vibeSkin.accentSymbol")
       const parts = path.split('.');
       const updated = JSON.parse(JSON.stringify(manifest));
       let target: Record<string, unknown> = updated;
       for (let i = 0; i < parts.length - 1; i++) {
         const key = /^\d+$/.test(parts[i]) ? parseInt(parts[i]) : parts[i];
-        if (target[key as string] === undefined) return;
+        // Create intermediate objects if they don't exist
+        if (target[key as string] === undefined || target[key as string] === null) {
+          target[key as string] = {};
+        }
         target = target[key as string] as Record<string, unknown>;
       }
       const lastKey = /^\d+$/.test(parts[parts.length - 1]) ? parseInt(parts[parts.length - 1]) : parts[parts.length - 1];

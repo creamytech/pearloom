@@ -116,6 +116,136 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     }
   }, [editMode, onTextEdit]);
 
+  // ── Make all data-pe-editable elements contentEditable ──
+  const siteRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+
+    const makeEditable = () => {
+      if (!siteRef.current) return;
+      siteRef.current.querySelectorAll('[data-pe-editable="true"]').forEach(el => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.contentEditable === 'true') return;
+        htmlEl.contentEditable = 'true';
+        htmlEl.spellcheck = false;
+        htmlEl.style.outline = 'none';
+        htmlEl.style.cursor = 'text';
+
+        // Olive underline hint on hover
+        htmlEl.addEventListener('mouseenter', () => {
+          if (document.activeElement !== htmlEl) {
+            htmlEl.style.textDecoration = 'underline';
+            htmlEl.style.textDecorationColor = 'rgba(163,177,138,0.3)';
+            htmlEl.style.textUnderlineOffset = '4px';
+            htmlEl.style.textDecorationStyle = 'dotted';
+          }
+        });
+        htmlEl.addEventListener('mouseleave', () => {
+          if (document.activeElement !== htmlEl) {
+            htmlEl.style.textDecoration = 'none';
+          }
+        });
+
+        // Focus: subtle glow
+        htmlEl.addEventListener('focus', () => {
+          htmlEl.style.textDecoration = 'none';
+          htmlEl.style.boxShadow = '0 0 0 2px rgba(163,177,138,0.2)';
+          htmlEl.style.borderRadius = '4px';
+        });
+
+        // Blur: commit edit
+        htmlEl.addEventListener('blur', () => {
+          htmlEl.style.boxShadow = 'none';
+          htmlEl.style.borderRadius = '';
+
+          const path = htmlEl.getAttribute('data-pe-path');
+          const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter');
+          const field = htmlEl.getAttribute('data-pe-field');
+          const sectionId = htmlEl.closest('[data-pe-section]')?.getAttribute('data-pe-section');
+          const value = htmlEl.innerText.trim();
+
+          if (path && onTextEdit) {
+            onTextEdit(path, value);
+          } else if (chapterId && field && onTextEdit) {
+            onTextEdit(`chapter:${chapterId}:${field}`, value);
+          } else if (sectionId === 'hero' && field && onTextEdit) {
+            const pathMap: Record<string, string> = {
+              heroTagline: 'poetry.heroTagline',
+              subtitle: 'chapters.0.subtitle',
+            };
+            if (pathMap[field]) onTextEdit(pathMap[field], value);
+          }
+        });
+
+        // Enter = commit, Escape = blur
+        htmlEl.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); htmlEl.blur(); }
+          if (e.key === 'Escape') htmlEl.blur();
+        });
+      });
+    };
+
+    makeEditable();
+    const observer = new MutationObserver(makeEditable);
+    observer.observe(siteRef.current, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [editMode, onTextEdit]);
+
+  // ── Make icon elements clickable for swap ──
+  useEffect(() => {
+    if (!editMode || !siteRef.current) return;
+
+    const ICON_OPTIONS = ['✦', '♡', '❋', '✿', '◆', '☆', '✧', '♢', '❀', '✻', '❖', '△', '◎', '⟡', '✶', '❁', '♤', '⚘', '✽', '⟐'];
+
+    const handleIconClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('[data-pe-icon]') as HTMLElement | null;
+      if (!target) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const rect = target.getBoundingClientRect();
+      document.getElementById('pe-icon-picker')?.remove();
+
+      const picker = document.createElement('div');
+      picker.id = 'pe-icon-picker';
+      picker.style.cssText = `
+        position: fixed; z-index: 99999;
+        top: ${Math.min(rect.bottom + 8, window.innerHeight - 260)}px;
+        left: ${Math.max(8, Math.min(rect.left - 80, window.innerWidth - 240))}px;
+        width: 220px; padding: 12px;
+        background: rgba(250,247,242,0.95);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        border-radius: 16px; border: 1px solid rgba(255,255,255,0.5);
+        box-shadow: 0 12px 40px rgba(43,30,20,0.12);
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+      `;
+      picker.innerHTML = ICON_OPTIONS.map(icon => `
+        <button style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid rgba(255,255,255,0.3);background:${target.textContent?.trim() === icon ? 'rgba(163,177,138,0.15)' : 'transparent'};cursor:pointer;font-size:1.1rem;" data-icon="${icon}">${icon}</button>
+      `).join('');
+
+      picker.addEventListener('click', (ev) => {
+        const btn = (ev.target as HTMLElement).closest('[data-icon]') as HTMLElement | null;
+        if (!btn) return;
+        const newIcon = btn.getAttribute('data-icon') || '✦';
+        target.textContent = newIcon;
+        if (onTextEdit) onTextEdit('vibeSkin.accentSymbol', newIcon);
+        picker.remove();
+      });
+
+      document.body.appendChild(picker);
+      const close = (ev: MouseEvent) => {
+        if (!picker.contains(ev.target as Node) && ev.target !== target) {
+          picker.remove();
+          document.removeEventListener('mousedown', close);
+        }
+      };
+      setTimeout(() => document.addEventListener('mousedown', close), 50);
+    };
+
+    siteRef.current.addEventListener('click', handleIconClick);
+    return () => siteRef.current?.removeEventListener('click', handleIconClick);
+  }, [editMode, onTextEdit]);
+
   // ── Hover state ──
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
 
@@ -357,6 +487,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
 
       {/* CSS scoping — site content lives inside .pl-site-scope */}
       <div
+        ref={siteRef}
         className="pl-site-scope"
         onClick={handleSectionClick}
         style={{ position: 'relative', minHeight: '100%' }}
