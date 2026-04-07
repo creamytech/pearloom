@@ -662,27 +662,33 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         />
       )}
 
-      {/* Top Bar (desktop only — mobile has its own header in MobileEditorSheet) */}
-      {!state.isMobile && <EditorToolbar onExit={onExit} />}
+      {/* ── Edge-to-edge canvas with all panels floating ── */}
 
-      {/* AI Context Bar (desktop only) */}
-      {!state.isMobile && <AIContextBar />}
+      {/* Canvas fills the entire screen */}
+      {!state.isMobile && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+          <EditorCanvas />
+        </div>
+      )}
 
-      {/* Body: Rail + Panel + Canvas */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      {/* Floating toolbar at top — glass overlay */}
+      {!state.isMobile && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 40 }}>
+          <EditorToolbar onExit={onExit} />
+          <AIContextBar />
+          <PostWeddingBanner manifest={manifest} subdomain={state.subdomain} onUpdate={(m) => { onChange(m); pushToPreview(m); }} />
+        </div>
+      )}
 
-        {/* Canvas area (desktop only — mobile uses MobileEditorSheet with iframe preview) */}
-        {!state.isMobile && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, position: 'relative' }}>
-            {/* Floating glass navigation rail — overlaid on canvas */}
+      {/* Floating panels — all absolute, overlaid on canvas */}
+      {!state.isMobile && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 50, pointerEvents: 'none' }}>
+          {/* Glass navigation rail — left side */}
+          <div style={{ pointerEvents: 'auto' }}>
             <EditorRail onOpen={() => setPanelOpen(true)} />
-            <PostWeddingBanner
-              manifest={manifest}
-              subdomain={state.subdomain}
-              onUpdate={(m) => { onChange(m); pushToPreview(m); }}
-            />
-            <EditorCanvas />
-            {/* Floating glass inspector — overlaid on canvas */}
+          </div>
+          {/* Floating glass inspector — overlaid on canvas */}
+          <div style={{ pointerEvents: 'auto' }}>
             <EditorWing
               open={panelOpen}
               onToggle={() => setPanelOpen(v => !v)}
@@ -851,14 +857,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               </motion.div>
             </AnimatePresence>
           </EditorWing>
-            {/* Floating bottom toolbar */}
+          </div>
+
+          {/* Floating bottom toolbar */}
+          <div style={{ pointerEvents: 'auto' }}>
             <FloatingToolbar />
           </div>
-        )}
-      </div>
-
-      {/* Status Bar (desktop only) */}
-      {!state.isMobile && <EditorStatusBar />}
+        </div>
+      )}
 
       {/* Mobile */}
       {state.isMobile && <MobileEditorSheet />}

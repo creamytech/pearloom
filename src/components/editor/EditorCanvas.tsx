@@ -215,14 +215,14 @@ export function EditorCanvas() {
 
   return (
     <div style={{
-      flex: 1,
+      width: '100%', height: '100%',
       background: 'var(--pl-cream-deep)',
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden',
       position: 'relative',
     }}>
 
-      {/* ── Contextual editing label ── */}
+      {/* ── Contextual editing label — below the floating toolbar ── */}
       {state.activeTab && (
         <motion.div
           key={state.activeTab}
@@ -230,7 +230,7 @@ export function EditorCanvas() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           style={{
-          position: 'absolute', top: '8px',
+          position: 'absolute', top: '52px',
           left: '0', right: '0',
           display: 'flex', justifyContent: 'center',
           zIndex: 41,
@@ -253,7 +253,7 @@ export function EditorCanvas() {
 
       {/* ── Floating device switcher ── */}
       <div style={{
-        position: 'absolute', top: '32px',
+        position: 'absolute', top: '74px',
         left: '0', right: '0',
         display: 'flex', justifyContent: 'center',
         zIndex: 40,
@@ -318,7 +318,7 @@ export function EditorCanvas() {
           display: 'flex', flexDirection: 'column',
           alignItems: 'center',
           justifyContent: isFramed ? 'center' : undefined,
-          padding: isFramed ? '60px 20px 20px' : '56px 8px 8px',
+          padding: isFramed ? '60px 20px 20px' : '0',
           zIndex: 1,
           overflow: 'auto',
         }}
@@ -354,14 +354,12 @@ export function EditorCanvas() {
             </div>
           </motion.div>
         ) : (
-          /* ── Full-bleed desktop — rounded card with soft shadow ── */
+          /* ── Full-bleed desktop — edge-to-edge canvas ── */
           <div style={{
-            width: previewZoom !== 1 ? `${100 / previewZoom}%` : '100%',
-            maxWidth: previewZoom !== 1 ? `${1120 / previewZoom}px` : '1120px',
+            width: '100%',
+            height: '100%',
             flex: 1,
-            borderRadius: '20px',
             overflow: 'hidden',
-            boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
             position: 'relative',
             background: 'white',
             minHeight: 0,

@@ -129,10 +129,15 @@ export function EditorWing({
     <AnimatePresence>
       {open && (
         <motion.div
+          drag
+          dragMomentum={false}
+          dragElastic={0}
+          dragConstraints={{ top: 0, left: -600, right: 0, bottom: 0 }}
           initial={{ opacity: 0, x: 30, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 30, scale: 0.96 }}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+          whileDrag={{ scale: 1.01, boxShadow: '0 16px 60px rgba(43,30,20,0.15), 0 4px 16px rgba(43,30,20,0.08)' }}
           style={{
             position: 'absolute',
             top: '8px',
@@ -140,6 +145,7 @@ export function EditorWing({
             bottom: '72px',
             width: panelW,
             zIndex: 60,
+            cursor: 'grab',
             display: 'flex',
             flexDirection: 'column',
             borderRadius: '20px',
