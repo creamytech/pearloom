@@ -396,155 +396,109 @@ function BlockRow({
   isFirst?: boolean;
   isLast?: boolean;
 }) {
-  const [hovered, setHovered] = useState(false);
   const Icon = def?.icon || LayoutTemplate;
   const color = def?.color || 'var(--pl-olive, #A3B18A)';
-  const showActions = isActive || hovered;
+  const label = def?.label || block.type.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: block.visible ? 1 : 0.38 }}
-      whileHover={{ y: isActive ? 0 : -1 }}
-      transition={{ duration: 0.15 }}
-      onClick={() => onSelect(block.id)}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '13px 10px 13px 8px',
-        minHeight: '68px',
-        borderRadius: '10px',
-        background: isActive ? `rgba(255,255,255,0.8)` : hovered ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        border: `1px solid ${isActive ? `${color}40` : hovered ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)'}`,
-        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)'}`,
-        cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
-        userSelect: 'none',
-        boxShadow: isActive ? `0 2px 12px ${color}18, 0 0 0 1px ${color}08` : hovered ? '0 2px 8px rgba(43,30,20,0.04)' : 'none',
-      }}
-    >
-      {/* Drag handle — unified for mobile and desktop */}
-      <div
-        {...dragHandleProps}
-        onClick={e => e.stopPropagation()}
-        onTouchStart={e => e.stopPropagation()}
-        aria-label="Hold and drag to reorder"
+    <div>
+      {/* Main row — clean: drag handle, icon, name, chevron */}
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: block.visible ? 1 : 0.4 }}
+        whileHover={{ background: 'rgba(255,255,255,0.45)' }}
+        transition={{ duration: 0.15 }}
+        onClick={() => onSelect(block.id)}
         style={{
-          ...dragHandleProps.style,
-          color: 'var(--pl-muted)',
-          display: 'flex',
-          flexShrink: 0,
-          padding: isMobile ? '8px 10px' : '4px',
-          borderRadius: '4px',
-          transition: 'color 0.15s',
+          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '10px 10px 10px 4px',
+          borderRadius: '14px',
+          background: isActive ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
+          border: isActive ? `1.5px solid ${color}35` : '1px solid rgba(255,255,255,0.2)',
+          cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
+          userSelect: 'none',
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
       >
-        <GripIcon size={isMobile ? 16 : 14} />
-      </div>
-
-      {/* Icon */}
-      <div style={{
-        width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
-        background: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        border: `1px solid ${color}30`,
-      }}>
-        <Icon size={15} color={color} />
-      </div>
-
-      {/* Label */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: block.visible ? 'var(--pl-ink)' : 'var(--pl-muted)', lineHeight: 1.3 }}>
-          {def?.label || block.type.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()}
+        {/* Drag handle */}
+        <div
+          {...dragHandleProps}
+          onClick={e => e.stopPropagation()}
+          style={{ ...dragHandleProps.style, color: 'rgba(0,0,0,0.15)', display: 'flex', flexShrink: 0, padding: '4px' }}
+        >
+          <GripIcon size={13} />
         </div>
-        <div style={{ fontSize: '0.65rem', color: 'var(--pl-ink-soft)', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {def?.description}
-        </div>
-      </div>
 
-      {/* Actions — reveal on hover or active */}
-      <div style={{ display: 'flex', gap: '2px', alignItems: 'center', flexShrink: 0 }}>
-        <AnimatePresence>
-          {showActions && (
-            <motion.div
-              initial={{ opacity: 0, x: 6 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 6 }}
-              transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              style={{ display: 'flex', gap: '2px', alignItems: 'center' }}
-            >
-              {!isFirst && (
-                <button
-                  onClick={e => { e.stopPropagation(); onMoveUp(block.id); }}
-                  title="Move up"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '28px', minHeight: '28px' }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
-                >
-                  <ChevronUp size={13} />
-                </button>
-              )}
-              {!isLast && (
-                <button
-                  onClick={e => { e.stopPropagation(); onMoveDown(block.id); }}
-                  title="Move down"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '28px', minHeight: '28px' }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
-                >
-                  <ChevronDown size={13} />
-                </button>
-              )}
-              <button
-                onClick={e => { e.stopPropagation(); onToggle(block.id); }}
-                title={block.visible ? 'Hide section' : 'Show section'}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: block.visible ? 'var(--pl-muted)' : '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
-              >
-                {block.visible ? <Eye size={14} /> : <EyeOff size={14} />}
-              </button>
-              <button
-                onClick={e => { e.stopPropagation(); onDuplicate(block.id); }}
-                title="Duplicate block"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive)'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
-              >
-                <Copy size={14} />
-              </button>
-              <button
-                onClick={e => { e.stopPropagation(); onDelete(block.id); }}
-                title="Remove block"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s', minWidth: '36px', minHeight: '36px' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
-              >
-                <Trash2 size={14} />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {/* Expand chevron — always visible */}
+        {/* Block icon */}
+        <div style={{
+          width: '28px', height: '28px', borderRadius: '8px', flexShrink: 0,
+          background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={14} color={color} />
+        </div>
+
+        {/* Name */}
+        <span style={{
+          flex: 1, fontSize: '0.82rem', fontWeight: 600,
+          color: block.visible ? 'var(--pl-ink)' : 'var(--pl-muted)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {label}
+        </span>
+
+        {/* Chevron */}
         <motion.div
           animate={{ rotate: isActive ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          style={{ color: isActive ? color : 'var(--pl-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', minWidth: '36px', minHeight: '36px' }}
+          style={{ color: 'var(--pl-muted)', display: 'flex', padding: '4px' }}
         >
-          <ChevronDown size={14} />
+          <ChevronDown size={13} />
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* Active indicator bar */}
-      {isActive && (
-        <div style={{
-          position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
-          width: '3px', height: '65%', borderRadius: '0 3px 3px 0', background: color,
-        }} />
-      )}
-    </motion.div>
+      {/* Expanded actions — only when active */}
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{
+              display: 'flex', gap: '4px', padding: '6px 8px',
+              justifyContent: 'center', flexWrap: 'wrap',
+            }}>
+              {[
+                { icon: <ChevronUp size={13} />, label: 'Up', action: () => onMoveUp(block.id), disabled: isFirst },
+                { icon: <ChevronDown size={13} />, label: 'Down', action: () => onMoveDown(block.id), disabled: isLast },
+                { icon: block.visible ? <Eye size={13} /> : <EyeOff size={13} />, label: block.visible ? 'Hide' : 'Show', action: () => onToggle(block.id) },
+                { icon: <Copy size={13} />, label: 'Copy', action: () => onDuplicate(block.id) },
+                { icon: <Trash2 size={13} />, label: 'Delete', action: () => onDelete(block.id), danger: true },
+              ].filter(a => !a.disabled).map(a => (
+                <button
+                  key={a.label}
+                  onClick={e => { e.stopPropagation(); a.action(); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                    padding: '5px 10px', borderRadius: '8px', border: 'none',
+                    background: 'rgba(255,255,255,0.25)',
+                    color: (a as { danger?: boolean }).danger ? '#e87171' : 'var(--pl-muted)',
+                    cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600,
+                    transition: 'all 0.12s',
+                  }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.5)'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.25)'; }}
+                >
+                  {a.icon} {a.label}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
