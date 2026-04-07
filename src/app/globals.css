@@ -233,12 +233,25 @@
   transform: scale(1.02);
 }
 
-/* ── Editor site scope — disables scroll animations in direct-DOM canvas ── */
-.pl-site-scope [style*="opacity: 0"],
+/* ── Editor site scope — override fixed positioning for site content ── */
+.pl-site-nav-editor nav {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  z-index: 5 !important;
+}
+/* Hide mobile-only elements in editor desktop view */
+.pl-site-scope .safe-bottom {
+  display: none !important;
+}
+
+/* ── Editor site scope — ensure content is visible in direct-DOM canvas ── */
 .pl-site-scope .pl-scroll-fade-up,
 .pl-site-scope .pl-scroll-scale-in {
   opacity: 1 !important;
   transform: none !important;
+  transition: none !important;
 }
 
 /* ── Panel internals ─── */

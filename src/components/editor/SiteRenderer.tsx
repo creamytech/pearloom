@@ -968,8 +968,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         onClick={handleSectionClick}
         style={{ position: 'relative', minHeight: '100%' }}
       >
-        {/* Site navigation — constrained z-index in editor, sticky instead of fixed */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 20 }}>
+        {/* Site navigation — override fixed positioning in editor */}
+        <div className="pl-site-nav-editor" style={{ position: 'relative', zIndex: 5 }}>
           <SiteNav
             names={safeNames}
             pages={sitePages}
