@@ -246,9 +246,10 @@ export function EditorCanvas() {
             />
           </motion.div>
         ) : (
-          /* Desktop — full bleed with zoom support */
+          /* Desktop — full bleed with zoom support, padded for toolbar */
           <div ref={scrollContainerRef} style={{
             width: '100%', height: '100%', overflow: 'auto',
+            paddingTop: '40px',
             cursor: isPanning ? 'grab' : 'default',
             transform: zoom !== 1 ? `scale(${zoom})` : undefined,
             transformOrigin: 'center center',

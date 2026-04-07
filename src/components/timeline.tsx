@@ -6,7 +6,7 @@
 // Layouts: cascade | filmstrip | scrapbook | magazine | chapters | starmap
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
@@ -34,29 +34,33 @@ interface TimelineProps {
 
 // ── Section header shared across all layouts ──────────────────
 function SectionHeader({ title, subtitle, eyebrowLabel }: { title: string; subtitle: string; eyebrowLabel: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inEditor, setInEditor] = useState(false);
+  useEffect(() => { if (ref.current?.closest('.pl-site-scope')) setInEditor(true); }, []);
+
   return (
-    <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 5vw, 5rem)', padding: '0 clamp(1rem, 4vw, 2rem)' }}>
+    <div ref={ref} style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 5vw, 5rem)', padding: '0 clamp(1rem, 4vw, 2rem)' }}>
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={inEditor ? false : { opacity: 0, y: 12 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.8 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: inEditor ? 0 : 0.8 }}
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}
       >
         <div style={{ width: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
-        <span style={{ fontSize: '0.62rem', letterSpacing: '0.32em', textTransform: 'uppercase', fontVariant: 'small-caps', color: 'var(--pl-olive)', fontWeight: 700, opacity: 0.85 }}>
+        <span data-pe-editable="true" data-pe-path="vibeSkin.sectionLabels.timeline" style={{ fontSize: '0.62rem', letterSpacing: '0.32em', textTransform: 'uppercase', fontVariant: 'small-caps', color: 'var(--pl-olive)', fontWeight: 700, opacity: 0.85 }}>
           {eyebrowLabel}
         </span>
         <div style={{ width: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
       </motion.div>
       <motion.h2
-        initial={{ opacity: 0, y: 24 }}
+        initial={inEditor ? false : { opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: inEditor ? 0 : 1, delay: inEditor ? 0 : 0.1, ease: [0.16, 1, 0.3, 1] }}
         style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(2.25rem, 5.5vw, 3.75rem)', fontWeight: 600, fontStyle: 'italic', color: 'var(--pl-ink)', letterSpacing: '-0.03em', margin: '0 0 2rem 0', lineHeight: 1.05 }}
       >
-        {title}
+        <span data-pe-editable="true" data-pe-path="vibeSkin.sectionLabels.story">{title}</span>
       </motion.h2>
       <motion.div
         initial={{ opacity: 0, scaleX: 0 }}

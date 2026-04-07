@@ -528,7 +528,7 @@ export function WeddingEvents({
                 lineHeight: 1.05,
               }}
             >
-              {title}
+              <span data-pe-editable="true" data-pe-path="vibeSkin.sectionLabels.events">{title}</span>
             </h2>
 
             {/* Accent symbol ornamental divider */}
@@ -554,7 +554,7 @@ export function WeddingEvents({
                 lineHeight: 1.65,
               }}
             >
-              {subtitle}
+              <span data-pe-editable="true" data-pe-path="vibeSkin.sectionLabels.eventsSubtitle">{subtitle}</span>
             </p>
           </motion.div>
 

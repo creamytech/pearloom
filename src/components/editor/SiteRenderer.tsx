@@ -588,10 +588,18 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </div>
         );
       case 'story':
-        return <section key={key} id="our-story" data-pe-section="story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>;
+        return (
+          <section key={key} id="our-story" data-pe-section="story">
+            <Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} />
+          </section>
+        );
       case 'event':
         if (!manifest.events?.length) return null;
-        return <section key={key} id="schedule" data-pe-section="events"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section>;
+        return (
+          <section key={key} id="schedule" data-pe-section="events">
+            <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+          </section>
+        );
       case 'rsvp':
         if (!manifest.events?.length) return null;
         return <section key={key} id="rsvp" data-pe-section="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section>;
