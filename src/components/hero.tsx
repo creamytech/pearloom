@@ -80,11 +80,14 @@ function formatDateBadge(dateStr: string): string {
 export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Detect if we're inside the editor (pl-site-scope class on ancestor)
-  const [isEditor, setIsEditor] = useState(false);
-  useEffect(() => {
-    if (ref.current?.closest('.pl-site-scope')) setIsEditor(true);
-  }, []);
+  // Detect editor mode synchronously — check if parent has pl-site-scope
+  // This MUST be true on first render for animation skipping to work
+  const isEditorRef = useRef<boolean | null>(null);
+  if (isEditorRef.current === null && typeof document !== 'undefined') {
+    // Check if any ancestor has the editor scope class
+    isEditorRef.current = !!document.querySelector('.pl-site-scope');
+  }
+  const isEditor = isEditorRef.current ?? false;
 
   // Scroll-based parallax — only works outside editor (viewport scroll)
   // In editor, the scroll container is different, so we disable parallax

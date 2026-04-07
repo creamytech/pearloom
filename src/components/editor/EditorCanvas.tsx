@@ -140,10 +140,14 @@ export function EditorCanvas() {
       'anniversary': { tab: 'canvas', selectBlock: true },
     };
 
-    // Hero special case: auto-select first chapter
-    if (sectionId === 'hero' && manifest.chapters?.length) {
-      dispatch({ type: 'SET_ACTIVE_ID', id: manifest.chapters[0].id });
-      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+    // Hero special case
+    if (sectionId === 'hero') {
+      if (manifest.chapters?.length) {
+        dispatch({ type: 'SET_ACTIVE_ID', id: manifest.chapters[0].id });
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
+      } else {
+        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+      }
       dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
       return;
     }
