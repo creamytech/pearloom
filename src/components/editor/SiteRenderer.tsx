@@ -1021,8 +1021,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         onClick={handleSectionClick}
         style={{ position: 'relative', minHeight: '100%' }}
       >
-        {/* Site navigation — override fixed positioning in editor */}
-        <div className="pl-site-nav-editor" style={{ position: 'relative', zIndex: 5 }}>
+        {/* Site navigation — click opens design panel (nav settings) */}
+        <div
+          className="pl-site-nav-editor"
+          onClick={(e) => { e.stopPropagation(); onSectionClick?.('nav'); }}
+          style={{ position: 'relative', zIndex: 5, cursor: editMode ? 'pointer' : 'default' }}
+        >
           <SiteNav
             names={safeNames}
             pages={sitePages}
@@ -1075,7 +1079,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         </main>
 
         {/* Footer */}
-        <footer style={{
+        <footer onClick={(e) => { e.stopPropagation(); onSectionClick?.('footer'); }} style={{
+          cursor: editMode ? 'pointer' : 'default',
           padding: '3rem 2rem', textAlign: 'center',
           background: pal.foreground, color: `${pal.background}cc`,
           fontSize: '0.75rem', letterSpacing: '0.05em', position: 'relative',

@@ -73,22 +73,78 @@ export function EditorCanvas() {
   const isFramed = isPhone || isTablet;
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
 
-  // ── Section click → open matching panel ──────────────────
+  // ── Section click → open matching panel contextually ──────
   const handleSectionClick = useCallback((sectionId: string, chapterId?: string) => {
+    // Chapter-specific: open story tab with chapter selected
     if (chapterId) {
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
       dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-    } else if (sectionId === 'hero' || sectionId === 'story') {
-      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-    } else if (sectionId === 'events' || sectionId === 'schedule' || sectionId === 'rsvp' || sectionId === 'countdown') {
-      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'events' });
-    } else if (sectionId === 'design' || sectionId === 'theme') {
-      dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
+      return;
+    }
+
+    // Map every section type to the exact panel
+    const sectionToTab: Record<string, { tab: string; selectBlock?: boolean }> = {
+      // Nav bar → design panel (navigation section)
+      'nav': { tab: 'design' },
+      'navigation': { tab: 'design' },
+      // Hero → story (hero/names editing)
+      'hero': { tab: 'story' },
+      // Story chapters → story tab
+      'story': { tab: 'story' },
+      'chapter': { tab: 'story' },
+      // Events & schedule → events tab
+      'events': { tab: 'events' },
+      'schedule': { tab: 'events' },
+      'event': { tab: 'events' },
+      // RSVP → events tab
+      'rsvp': { tab: 'events' },
+      // Countdown → events tab
+      'countdown': { tab: 'events' },
+      // Registry → details tab
+      'registry': { tab: 'details' },
+      // Travel → details tab
+      'travel': { tab: 'details' },
+      // FAQ → details tab
+      'faq': { tab: 'details' },
+      // Design/theme → design tab
+      'design': { tab: 'design' },
+      'theme': { tab: 'design' },
+      // Footer → details tab
+      'footer': { tab: 'details' },
+      // Guestbook → canvas with block selected
+      'guestbook': { tab: 'canvas', selectBlock: true },
+      // Spotify → spotify tab
+      'spotify': { tab: 'spotify' },
+      // Photos/gallery → canvas with block selected
+      'photos': { tab: 'canvas', selectBlock: true },
+      'photoWall': { tab: 'canvas', selectBlock: true },
+      'gallery': { tab: 'canvas', selectBlock: true },
+      // Map → canvas with block selected
+      'map': { tab: 'canvas', selectBlock: true },
+      // Video → canvas with block selected
+      'video': { tab: 'canvas', selectBlock: true },
+      // Text/quote → canvas with block selected
+      'text': { tab: 'canvas', selectBlock: true },
+      'quote': { tab: 'canvas', selectBlock: true },
+      // Wedding party → story tab
+      'weddingParty': { tab: 'story' },
+      // Quiz → canvas
+      'quiz': { tab: 'canvas', selectBlock: true },
+      // Hashtag → canvas
+      'hashtag': { tab: 'canvas', selectBlock: true },
+    };
+
+    const mapping = sectionToTab[sectionId];
+    if (mapping) {
+      dispatch({ type: 'SET_ACTIVE_TAB', tab: mapping.tab as import('@/lib/editor-state').EditorTab });
+      if (mapping.selectBlock) {
+        const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
+        window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType } }));
+      }
     } else {
+      // Default: open canvas tab
       dispatch({ type: 'SET_ACTIVE_TAB', tab: 'canvas' });
-      // Auto-select the matching block
-      const blockType = sectionId === 'gallery' ? 'photos' : sectionId;
-      window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType } }));
+      window.dispatchEvent(new CustomEvent('pearloom-select-block', { detail: { blockType: sectionId } }));
     }
   }, [dispatch]);
 
