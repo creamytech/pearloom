@@ -7,7 +7,9 @@
 // click-to-edit, and real glass blur transparency.
 // ─────────────────────────────────────────────────────────────
 
-import React, { useMemo, useCallback, useRef, useState } from 'react';
+import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical } from 'lucide-react';
 import { Hero } from '@/components/hero';
 import { Timeline } from '@/components/timeline';
 import { WeddingEvents } from '@/components/wedding-events';
@@ -42,9 +44,13 @@ interface SiteRendererProps {
   onBlockDrop?: (blockType: string, position: number) => void;
   /** Is editor in edit mode? Enables click handlers and visual hints */
   editMode?: boolean;
+  /** Currently selected block ID */
+  selectedBlockId?: string | null;
+  /** Called when a block action is triggered */
+  onBlockAction?: (action: 'moveUp' | 'moveDown' | 'duplicate' | 'delete' | 'toggleVisibility', blockId: string) => void;
 }
 
-export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, editMode = true }: SiteRendererProps) {
+export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, editMode = true, selectedBlockId, onBlockAction }: SiteRendererProps) {
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
@@ -109,6 +115,107 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       onTextEdit(`chapter:${chapterId}:${field}`, value);
     }
   }, [editMode, onTextEdit]);
+
+  // ── Hover state ──
+  const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
+
+  // ── Section wrapper — hover outline + selection + inline toolbar ──
+  const SectionWrap = useCallback(({ block, children, index, total }: { block: PageBlock; children: React.ReactNode; index: number; total: number }) => {
+    const isSelected = selectedBlockId === block.id;
+    const isHovered = hoveredBlockId === block.id;
+    const def = BLOCK_CATALOGUE_MAP[block.type];
+    const color = def?.color || '#A3B18A';
+
+    return (
+      <div
+        data-block-id={block.id}
+        onMouseEnter={() => setHoveredBlockId(block.id)}
+        onMouseLeave={() => setHoveredBlockId(null)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSectionClick?.(block.type, undefined);
+        }}
+        style={{
+          position: 'relative',
+          outline: isSelected ? `2px solid ${color}` : isHovered ? '2px solid rgba(163,177,138,0.4)' : '2px solid transparent',
+          outlineOffset: '-2px',
+          borderRadius: '4px',
+          transition: 'outline-color 0.15s',
+          cursor: editMode ? 'pointer' : 'default',
+        }}
+      >
+        {/* Floating section toolbar — shows on hover/select */}
+        <AnimatePresence>
+          {editMode && (isSelected || isHovered) && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.12 }}
+              style={{
+                position: 'absolute', top: '-36px', left: '50%', transform: 'translateX(-50%)',
+                zIndex: 100, display: 'flex', alignItems: 'center', gap: '2px',
+                padding: '4px 6px', borderRadius: '10px',
+                background: 'rgba(250,247,242,0.92)',
+                backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255,255,255,0.5)',
+                boxShadow: '0 4px 16px rgba(43,30,20,0.1)',
+                pointerEvents: 'auto',
+              } as React.CSSProperties}
+            >
+              {/* Section label */}
+              <span style={{ fontSize: '0.58rem', fontWeight: 700, color, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0 6px' }}>
+                {def?.label || block.type}
+              </span>
+              <div style={{ width: '1px', height: '14px', background: 'rgba(0,0,0,0.06)' }} />
+              {/* Actions */}
+              {[
+                { icon: <ChevronUp size={12} />, action: 'moveUp' as const, disabled: index === 0 },
+                { icon: <ChevronDown size={12} />, action: 'moveDown' as const, disabled: index === total - 1 },
+                { icon: <Copy size={12} />, action: 'duplicate' as const },
+                { icon: <Trash2 size={12} />, action: 'delete' as const, danger: true },
+              ].filter(a => !a.disabled).map(a => (
+                <button
+                  key={a.action}
+                  onClick={(e) => { e.stopPropagation(); onBlockAction?.(a.action, block.id); }}
+                  style={{
+                    width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: 'none', borderRadius: '6px', background: 'transparent',
+                    color: (a as { danger?: boolean }).danger ? '#e07070' : 'var(--pl-muted)',
+                    cursor: 'pointer', transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                >
+                  {a.icon}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {children}
+      </div>
+    );
+  }, [editMode, selectedBlockId, hoveredBlockId, onSectionClick, onBlockAction]);
+
+  // Simple block type → def mapping for labels/colors
+  const BLOCK_CATALOGUE_MAP: Record<string, { label: string; color: string }> = {
+    hero: { label: 'Hero', color: '#A3B18A' },
+    story: { label: 'Story', color: '#7c5cbf' },
+    event: { label: 'Events', color: '#e8927a' },
+    countdown: { label: 'Countdown', color: '#4a9b8a' },
+    rsvp: { label: 'RSVP', color: '#e87ab8' },
+    registry: { label: 'Registry', color: '#c4774a' },
+    travel: { label: 'Travel', color: '#4a7a9b' },
+    faq: { label: 'FAQ', color: '#8b7a4a' },
+    photos: { label: 'Photos', color: '#4a8b6a' },
+    guestbook: { label: 'Guestbook', color: '#7a4a8b' },
+    text: { label: 'Text', color: '#6a8b4a' },
+    quote: { label: 'Quote', color: '#8b4a6a' },
+    video: { label: 'Video', color: '#4a4a8b' },
+    divider: { label: 'Divider', color: '#8b8b4a' },
+    map: { label: 'Map', color: '#4a6a8b' },
+  };
 
   // ── Block drop zone ──
   const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
@@ -282,7 +389,9 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <DropZone index={0} />
               {visibleBlocks.map((block, i) => (
                 <React.Fragment key={block.id}>
-                  {renderBlock(block)}
+                  <SectionWrap block={block} index={i} total={visibleBlocks.length}>
+                    {renderBlock(block)}
+                  </SectionWrap>
                   <DropZone index={i + 1} />
                 </React.Fragment>
               ))}

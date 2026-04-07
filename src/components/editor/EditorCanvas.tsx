@@ -16,8 +16,9 @@ import type { BlockType } from '@/types';
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions } = useEditor();
-  const { device } = state;
+  const { device, previewZoom } = state;
   const canvasRef = useRef<HTMLDivElement>(null);
+  const zoom = previewZoom || 1;
 
   const isPhone = device === 'mobile';
   const isTablet = device === 'tablet';
@@ -63,6 +64,35 @@ export function EditorCanvas() {
       (target as Record<string | number, unknown>)[lastKey] = value;
       actions.handleDesignChange(updated);
     }
+  }, [manifest, actions]);
+
+  // ── Block actions from inline toolbar ─────────────────────
+  const handleBlockAction = useCallback((action: 'moveUp' | 'moveDown' | 'duplicate' | 'delete' | 'toggleVisibility', blockId: string) => {
+    const blocks = manifest.blocks || [];
+    const idx = blocks.findIndex(b => b.id === blockId);
+    if (idx === -1) return;
+
+    let updated = [...blocks];
+    switch (action) {
+      case 'moveUp':
+        if (idx > 0) [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+        break;
+      case 'moveDown':
+        if (idx < updated.length - 1) [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+        break;
+      case 'duplicate': {
+        const dup = { ...blocks[idx], id: `${blocks[idx].type}-dup-${Date.now()}` };
+        updated.splice(idx + 1, 0, dup);
+        break;
+      }
+      case 'delete':
+        updated = updated.filter(b => b.id !== blockId);
+        break;
+      case 'toggleVisibility':
+        updated = updated.map(b => b.id === blockId ? { ...b, visible: !b.visible } : b);
+        break;
+    }
+    actions.handleDesignChange({ ...manifest, blocks: updated.map((b, i) => ({ ...b, order: i })) });
   }, [manifest, actions]);
 
   // ── Block drop → insert at position ──────────────────────
@@ -159,18 +189,27 @@ export function EditorCanvas() {
               onTextEdit={handleTextEdit}
               onSectionClick={handleSectionClick}
               onBlockDrop={handleBlockDrop}
+              onBlockAction={handleBlockAction}
+              selectedBlockId={state.activeId}
               editMode
             />
           </motion.div>
         ) : (
-          /* Desktop — full bleed, edge to edge */
-          <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+          /* Desktop — full bleed with zoom support */
+          <div style={{
+            width: '100%', height: '100%', overflow: 'auto',
+            transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+            transformOrigin: 'center top',
+            transition: 'transform 0.2s ease',
+          }}>
             <SiteRenderer
               manifest={manifest}
               names={coupleNames}
               onTextEdit={handleTextEdit}
               onSectionClick={handleSectionClick}
               onBlockDrop={handleBlockDrop}
+              onBlockAction={handleBlockAction}
+              selectedBlockId={state.activeId}
               editMode
             />
           </div>
