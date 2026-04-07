@@ -87,26 +87,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const [state, dispatch] = useReducer(editorReducer, undefined, () => createInitialEditorState(manifest, initialSubdomain));
   const [previewKey] = useState(() => `${PREVIEW_KEY_PREFIX}-${Date.now()}`);
   const [panelOpen, setPanelOpen] = useState(true);
+  // previewKey + iframeRef kept for mobile editor sheet + external preview window
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const contentPanelRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rewriteControllerRef = useRef<AbortController | null>(null);
   const tabScrollPositions = useRef<Record<string, number>>({});
   const preDragSplitView = useRef(false);
   const hintShownRef = useRef(false);
 
-  // ── Canvas resize when panel opens/closes ────────────────────
-  // Framer Motion spring (stiffness:320, damping:34) settles in ~380ms.
-  // Dispatch a synthetic resize event into the iframe so the preview
-  // re-lays out after the animation completes.
+  // ── Panel open/close tracking ────────────────────────────────
   useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        iframeRef.current?.contentWindow?.dispatchEvent(new Event('resize'));
-      } catch {}
-    }, 400);
-    return () => clearTimeout(timer);
+    // Direct DOM rendering auto-adjusts; no iframe resize needed
+    return () => {};
   }, [panelOpen]);
 
   // ── History ──────────────────────────────────────────────────
