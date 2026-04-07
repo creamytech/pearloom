@@ -350,6 +350,121 @@ export function EditBridge({ enabled }: EditBridgeProps) {
     return () => document.removeEventListener('click', handler, true);
   }, [enabled]);
 
+  // ── Drag-to-canvas drop zones ──────────────────────────────
+  // Parent sends pearloom-drag-highlight when user is dragging a block
+  // over the canvas. We show drop zone indicators between sections.
+  useEffect(() => {
+    if (!enabled) return;
+
+    const DROP_ZONE_CLASS = 'pe-drop-zone';
+    let activeZones: HTMLElement[] = [];
+    let highlightedIdx = -1;
+
+    const createDropZones = () => {
+      removeDropZones();
+      const sections = document.querySelectorAll('[data-pe-section]');
+      const positions: Array<{ top: number; sectionId: string }> = [];
+
+      sections.forEach((section, i) => {
+        const rect = section.getBoundingClientRect();
+        positions.push({ top: rect.top, sectionId: section.getAttribute('data-pe-section') || '' });
+
+        // Create a drop zone div above each section
+        const zone = document.createElement('div');
+        zone.className = DROP_ZONE_CLASS;
+        zone.dataset.dropIndex = String(i);
+        zone.style.cssText = `
+          position: absolute; left: 10%; right: 10%;
+          top: ${rect.top + window.scrollY - 2}px;
+          height: 4px; border-radius: 4px; z-index: 9998;
+          background: transparent; pointer-events: none;
+          transition: background 0.15s, box-shadow 0.15s, height 0.15s;
+        `;
+        document.body.appendChild(zone);
+        activeZones.push(zone);
+      });
+
+      // Also add one at the very bottom
+      const lastSection = sections[sections.length - 1];
+      if (lastSection) {
+        const rect = lastSection.getBoundingClientRect();
+        const zone = document.createElement('div');
+        zone.className = DROP_ZONE_CLASS;
+        zone.dataset.dropIndex = String(sections.length);
+        zone.style.cssText = `
+          position: absolute; left: 10%; right: 10%;
+          top: ${rect.bottom + window.scrollY - 2}px;
+          height: 4px; border-radius: 4px; z-index: 9998;
+          background: transparent; pointer-events: none;
+          transition: background 0.15s, box-shadow 0.15s, height 0.15s;
+        `;
+        document.body.appendChild(zone);
+        activeZones.push(zone);
+      }
+
+      // Send positions to parent
+      window.parent.postMessage({
+        type: 'pearloom-drop-zones-ready',
+        zones: positions.map((p, i) => ({ index: i, top: p.top, sectionId: p.sectionId })),
+        totalSections: sections.length,
+      }, '*');
+    };
+
+    const removeDropZones = () => {
+      activeZones.forEach(z => z.remove());
+      activeZones = [];
+      highlightedIdx = -1;
+    };
+
+    const highlightZone = (index: number) => {
+      activeZones.forEach((z, i) => {
+        if (i === index) {
+          z.style.background = '#A3B18A';
+          z.style.height = '6px';
+          z.style.boxShadow = '0 0 12px rgba(163,177,138,0.5)';
+        } else {
+          z.style.background = 'transparent';
+          z.style.height = '4px';
+          z.style.boxShadow = 'none';
+        }
+      });
+      highlightedIdx = index;
+    };
+
+    const messageHandler = (event: MessageEvent) => {
+      if (event.data?.type === 'pearloom-drag-start') {
+        createDropZones();
+      }
+      if (event.data?.type === 'pearloom-drag-end') {
+        removeDropZones();
+      }
+      if (event.data?.type === 'pearloom-drag-highlight') {
+        const { yPercent } = event.data;
+        // Find which zone is closest to the y position
+        const scrollTop = window.scrollY;
+        const pageHeight = document.documentElement.scrollHeight;
+        const yAbsolute = yPercent * pageHeight / 100;
+        let closestIdx = 0;
+        let closestDist = Infinity;
+        activeZones.forEach((z, i) => {
+          const zoneTop = parseFloat(z.style.top);
+          const dist = Math.abs(yAbsolute - zoneTop);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closestIdx = i;
+          }
+        });
+        if (closestIdx !== highlightedIdx) highlightZone(closestIdx);
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+    return () => {
+      window.removeEventListener('message', messageHandler);
+      removeDropZones();
+    };
+  }, [enabled]);
+
   // ── Photo click → show action overlay ────────────────────────
   useEffect(() => {
     if (!enabled) return;

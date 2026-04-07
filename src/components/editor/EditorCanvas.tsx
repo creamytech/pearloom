@@ -6,7 +6,7 @@
 // floating glass overlays for contextual editing.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, stripArtForStorage, type DeviceMode } from '@/lib/editor-state';
@@ -44,6 +44,9 @@ export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
   const { device, iframeReady, previewSlow, activeId, chapters, previewPage, previewZoom } = state;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [dragYPercent, setDragYPercent] = useState(0);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   // ── Listen for edit messages from iframe ──────────────────
   useEffect(() => {
@@ -199,6 +202,63 @@ export function EditorCanvas() {
   const isFramed = isPhone || isTablet;
   const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
 
+  // ── Drag-to-canvas overlay handlers ──────────────────────
+  const handleCanvasDragEnter = useCallback((e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes('pearloom/block-type')) return;
+    e.preventDefault();
+    setIsDraggingOver(true);
+    // Tell iframe to show drop zones
+    iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-drag-start' }, '*');
+  }, [iframeRef]);
+
+  const handleCanvasDragOver = useCallback((e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes('pearloom/block-type')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    // Calculate Y position as percentage of overlay height
+    const rect = overlayRef.current?.getBoundingClientRect();
+    if (rect) {
+      const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+      setDragYPercent(yPct);
+      iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-drag-highlight', yPercent: yPct }, '*');
+    }
+  }, [iframeRef]);
+
+  const handleCanvasDragLeave = useCallback((e: React.DragEvent) => {
+    // Only trigger if leaving the overlay entirely
+    if (overlayRef.current && !overlayRef.current.contains(e.relatedTarget as Node)) {
+      setIsDraggingOver(false);
+      iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-drag-end' }, '*');
+    }
+  }, [iframeRef]);
+
+  const handleCanvasDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const blockType = e.dataTransfer.getData('pearloom/block-type');
+    if (!blockType) return;
+    setIsDraggingOver(false);
+    iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-drag-end' }, '*');
+
+    // Insert the block — for now at the position proportional to Y
+    const blocks = manifest.blocks || [];
+    const insertIdx = Math.round((dragYPercent / 100) * blocks.length);
+    const clampedIdx = Math.max(0, Math.min(insertIdx, blocks.length));
+
+    const newBlock = {
+      id: `block-${blockType}-${Date.now()}`,
+      type: blockType as import('@/types').BlockType,
+      order: clampedIdx,
+      visible: true,
+    };
+
+    const updated = [...blocks];
+    updated.splice(clampedIdx, 0, newBlock);
+    const sorted = updated.map((b, i) => ({ ...b, order: i }));
+
+    const newManifest = { ...manifest, blocks: sorted };
+    actions.handleDesignChange(newManifest);
+  }, [manifest, dragYPercent, iframeRef, actions]);
+
   const iframeSrc = `/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`;
   const handleIframeLoad = () => {
     dispatch({ type: 'SET_IFRAME_READY', ready: true });
@@ -309,9 +369,54 @@ export function EditorCanvas() {
       </div>
       </div>
 
+      {/* ── Drag-to-canvas overlay — captures drag events above iframe ── */}
+      {isDraggingOver && (
+        <div
+          ref={overlayRef}
+          onDragOver={handleCanvasDragOver}
+          onDragLeave={handleCanvasDragLeave}
+          onDrop={handleCanvasDrop}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 30,
+            background: 'rgba(163,177,138,0.04)',
+            cursor: 'copy',
+          }}
+        >
+          {/* Visual drop position indicator */}
+          <motion.div
+            animate={{ top: `${dragYPercent}%` }}
+            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            style={{
+              position: 'absolute', left: '10%', right: '10%',
+              height: '4px', borderRadius: '4px',
+              background: 'var(--pl-olive)',
+              boxShadow: '0 0 16px rgba(163,177,138,0.5), 0 0 4px rgba(163,177,138,0.8)',
+              transform: 'translateY(-50%)',
+              pointerEvents: 'none',
+            }}
+          />
+          {/* Label */}
+          <motion.div
+            animate={{ top: `${dragYPercent}%` }}
+            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            style={{
+              position: 'absolute', left: '50%', transform: 'translate(-50%, -24px)',
+              padding: '3px 12px', borderRadius: '100px',
+              background: 'var(--pl-olive)',
+              color: 'white', fontSize: '0.62rem', fontWeight: 700,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+              whiteSpace: 'nowrap', pointerEvents: 'none',
+            }}
+          >
+            Drop here
+          </motion.div>
+        </div>
+      )}
+
       {/* ── Main canvas area ── */}
       <div
         ref={canvasContainerRef}
+        onDragEnter={handleCanvasDragEnter}
         style={{
           width: '100%', height: '100%',
           position: 'relative',
