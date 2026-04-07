@@ -440,7 +440,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       )}
 
       {/* ── Theme — presets ── */}
-      <SidebarSection title="Theme" defaultOpen={true}>
+      <SidebarSection title="Theme" defaultOpen>
         <ThemeSwitcher
           currentVibeSkin={manifest.vibeSkin ?? ({} as VibeSkin)}
           manifest={manifest}
@@ -448,8 +448,73 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         />
       </SidebarSection>
 
-      {/* ── Colors — tweak individual colors or generate AI background art ── */}
-      <SidebarSection title="Colors" defaultOpen={true}>
+      {/* ── Page Background ── */}
+      <SidebarSection title="Page Background" defaultOpen={false}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Background Color</label>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+            {[
+              { label: 'Theme', value: '' },
+              { label: 'White', value: '#ffffff' },
+              { label: 'Cream', value: '#FAF7F2' },
+              { label: 'Warm', value: '#F5EFE6' },
+              { label: 'Blush', value: '#FDF0F3' },
+              { label: 'Sage', value: '#EEF2ED' },
+              { label: 'Dark', value: '#1a1814' },
+              { label: 'Navy', value: '#1a2332' },
+            ].map(bg => {
+              const current = manifest.theme?.colors?.background || '';
+              const isActive = bg.value ? current === bg.value : !current || current === colors.background;
+              return (
+                <button
+                  key={bg.label}
+                  onClick={() => {
+                    const newColors = { ...colors, background: bg.value || (vibeSkin?.palette?.background || '#FAF7F2') };
+                    onChange({ ...manifest, theme: { ...manifest.theme, colors: newColors } });
+                  }}
+                  title={bg.label}
+                  style={{
+                    width: '28px', height: '28px', borderRadius: '8px',
+                    border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
+                    background: bg.value || 'linear-gradient(135deg, #FAF7F2, #E8D5C4)',
+                    cursor: 'pointer', transition: 'border 0.15s',
+                  }}
+                />
+              );
+            })}
+          </div>
+          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Background Pattern</label>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+            {[
+              { label: 'None', value: '' },
+              { label: 'Dots', value: 'radial-gradient(circle, rgba(163,177,138,0.08) 1px, transparent 1px)' },
+              { label: 'Lines', value: 'repeating-linear-gradient(0deg, rgba(163,177,138,0.04) 0px, transparent 1px, transparent 40px)' },
+              { label: 'Grid', value: 'linear-gradient(rgba(163,177,138,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(163,177,138,0.03) 1px, transparent 1px)' },
+            ].map(p => {
+              const current = (manifest as unknown as Record<string, unknown>).backgroundPatternCss as string || '';
+              const isActive = p.value === current;
+              return (
+                <button
+                  key={p.label}
+                  onClick={() => onChange({ ...manifest, backgroundPatternCss: p.value } as StoryManifest)}
+                  style={{
+                    padding: '4px 10px', borderRadius: '100px',
+                    border: isActive ? '1.5px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
+                    background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.2)',
+                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                    cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600,
+                  }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </SidebarSection>
+
+      {/* ── Colors — tweak individual colors ── */}
+      <SidebarSection title="Colors" defaultOpen={false}>
         <ColorPalettePanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
 
@@ -468,7 +533,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* Typography — full font pair picker */}
-      <SidebarSection title="Typography" defaultOpen={true}>
+      <SidebarSection title="Typography" defaultOpen={false}>
         <FontPicker
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
@@ -477,7 +542,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* AI Art Manager — hero, ambient, art strip */}
-      <SidebarSection title="AI Art" defaultOpen={true}>
+      <SidebarSection title="AI Art" defaultOpen={false}>
         {manifest.vibeSkin ? (
           <ArtManager
             manifest={manifest}
@@ -495,12 +560,12 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* ── Navigation — logo + nav style ── */}
-      <SidebarSection title="Navigation" defaultOpen={true}>
+      <SidebarSection title="Navigation" defaultOpen={false}>
         <NavCustomizationPanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
 
       {/* ── Corner Decorations — swappable presets ── */}
-      <SidebarSection title="Corner Decorations" defaultOpen={true}>
+      <SidebarSection title="Corner Decorations" defaultOpen={false}>
         <CornerDecorationPicker manifest={manifest} onChange={onChange} />
       </SidebarSection>
 
@@ -511,7 +576,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* Asset Library */}
-      <SidebarSection title="Asset Library" defaultOpen={true}>
+      <SidebarSection title="Asset Library" defaultOpen={false}>
         <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted, #7A756E)', marginBottom: '10px', lineHeight: 1.5 }}>
           Dividers, illustrations & accents to add to your pages.
         </p>
