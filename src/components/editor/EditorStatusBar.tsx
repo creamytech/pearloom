@@ -40,7 +40,7 @@ export function EditorStatusBar() {
     return sum + words + titleWords;
   }, 0);
 
-  const sep = <span style={{ color: 'var(--pl-divider)' }}>·</span>;
+  const sep = <span style={{ color: 'rgba(255,255,255,0.25)' }}>·</span>;
 
   return (
     <div style={{
@@ -48,7 +48,7 @@ export function EditorStatusBar() {
       display: 'flex', alignItems: 'center',
       padding: '0 14px', gap: '10px',
       background: 'var(--pl-cream)',
-      borderTop: '1px solid var(--pl-divider)',
+      borderTop: '1px solid rgba(255,255,255,0.25)',
       fontSize: '0.65rem', fontWeight: 600,
       color: 'var(--pl-muted)', letterSpacing: '0.03em',
       userSelect: 'none',

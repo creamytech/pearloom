@@ -93,8 +93,8 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
           >
             <div style={{
               display: 'flex', gap: '8px', padding: '12px',
-              borderRadius: '10px', background: 'var(--pl-cream-deep)',
-              border: '1px solid var(--pl-divider)',
+              borderRadius: '10px', background: 'rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.25)',
             }}>
               <input
                 type="text"
@@ -104,7 +104,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                 className="pl-focus-glow"
                 style={{
                   flex: 1, padding: '6px 10px', borderRadius: '6px',
-                  border: '1.5px solid var(--pl-divider)', fontSize: '0.82rem',
+                  border: '1.5px solid rgba(255,255,255,0.25)', fontSize: '0.82rem',
                   background: 'white', color: 'var(--pl-ink)',
                 }}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
@@ -139,7 +139,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
               style={{
                 padding: '10px 12px',
                 borderRadius: '10px',
-                border: '1px solid var(--pl-divider)',
+                border: '1px solid rgba(255,255,255,0.25)',
                 background: confirmRestore === snap.id ? 'rgba(163,177,138,0.08)' : 'white',
                 transition: 'background 0.15s',
               }}
@@ -178,7 +178,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                         title="Restore this version"
                         style={{
                           width: '28px', height: '28px', borderRadius: '6px',
-                          border: '1px solid var(--pl-divider)', background: 'transparent',
+                          border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: 'var(--pl-olive)',
                         }}
@@ -190,7 +190,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                         title="Delete snapshot"
                         style={{
                           width: '28px', height: '28px', borderRadius: '6px',
-                          border: '1px solid var(--pl-divider)', background: 'transparent',
+                          border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: 'var(--pl-muted)',
                         }}

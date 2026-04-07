@@ -75,7 +75,7 @@ function PropControl({
             title={`Use binding: ${schema.bindingHint}`}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: isBinding ? 'var(--pl-olive)' : 'var(--pl-divider)',
+              color: isBinding ? 'var(--pl-olive)' : 'rgba(255,255,255,0.25)',
               display: 'flex', alignItems: 'center',
               padding: '1px 4px', borderRadius: '4px',
               fontSize: '0.55rem',

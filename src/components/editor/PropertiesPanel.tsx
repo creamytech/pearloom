@@ -44,7 +44,7 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
   return (
     <div>
       {/* Quick actions */}
-      <div style={{ padding: '16px', borderBottom: '1px solid var(--pl-divider)' }}>
+      <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.25)' }}>
         <h4 style={{
           fontSize: '0.65rem', fontWeight: 700,
           letterSpacing: '0.12em', textTransform: 'uppercase',
@@ -76,7 +76,7 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
       </div>
 
       {/* Typography Pair selector */}
-      <div style={{ borderBottom: '1px solid var(--pl-divider)' }}>
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.25)' }}>
         <TypographyPairSelector
           value={manifest.typographyPair || 'serif-sans'}
           onChange={handleTypographyChange}
@@ -84,7 +84,7 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
       </div>
 
       {/* Parchment Tint */}
-      <div style={{ borderBottom: '1px solid var(--pl-divider)' }}>
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.25)' }}>
         <ParchmentTintPanel
           currentTint={manifest.parchmentTint || 'none'}
           onApply={handleTintChange}
@@ -94,7 +94,7 @@ export function PropertiesPanel({ manifest, onChange }: PropertiesPanelProps) {
       {/* Watermark toggle */}
       <div style={{
         padding: '16px',
-        borderBottom: '1px solid var(--pl-divider)',
+        borderBottom: '1px solid rgba(255,255,255,0.25)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>

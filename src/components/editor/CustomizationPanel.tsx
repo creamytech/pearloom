@@ -171,7 +171,7 @@ export function CustomizationPanel({ customization, onChange, names, accentColor
             url: e.target.value,
           })}
           placeholder="Spotify or YouTube URL"
-          className="w-full px-3 py-2 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[var(--pl-divider)] bg-white text-[0.82rem] text-[var(--pl-ink)] outline-none pl-focus-glow mb-2"
+          className="w-full px-3 py-2 rounded-[var(--pl-radius-sm)] border-[1.5px] border-[rgba(255,255,255,0.25)] bg-white text-[0.82rem] text-[var(--pl-ink)] outline-none pl-focus-glow mb-2"
         />
         {customization.backgroundMusic?.url && (
           <RangeSlider

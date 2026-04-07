@@ -65,7 +65,7 @@ function ViewportPopover({
         style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           padding: '5px 10px', borderRadius: '6px',
-          border: '1px solid var(--pl-divider)',
+          border: '1px solid rgba(255,255,255,0.25)',
           background: open ? 'var(--pl-olive-mist)' : 'transparent',
           color: open ? 'var(--pl-ink)' : 'var(--pl-muted)',
           cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
@@ -126,7 +126,7 @@ function ViewportPopover({
               })}
             </div>
             {/* Divider */}
-            <div style={{ height: '1px', background: 'var(--pl-divider)', margin: '4px 0 8px' }} />
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.25)', margin: '4px 0 8px' }} />
             {/* Zoom */}
             <ZoomControls zoom={zoom} onZoomChange={onZoomChange} />
           </motion.div>
@@ -187,7 +187,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       </div>
 
       {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
-      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'var(--pl-divider)', margin: '0 12px', flexShrink: 0 }} />}
+      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.25)', margin: '0 12px', flexShrink: 0 }} />}
 
       {/* ═══ CENTER ZONE: Breadcrumb + Cmd Palette (desktop only) ═══ */}
       <div style={{ flex: 1, display: isMobile ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minWidth: 0 }}>
@@ -201,8 +201,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           style={{
             display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px',
             padding: '3px 9px', borderRadius: '6px',
-            border: '1px solid var(--pl-divider)',
-            background: 'var(--pl-cream-deep)', color: 'var(--pl-muted)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(255,255,255,0.2)', color: 'var(--pl-muted)',
             cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
             letterSpacing: '0.04em', minHeight: '32px',
           }}
@@ -213,7 +213,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       </div>
 
       {/* ═══ ZONE DIVIDER (desktop only) ═══ */}
-      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'var(--pl-divider)', margin: '0 12px', flexShrink: 0 }} />}
+      {!isMobile && <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.25)', margin: '0 12px', flexShrink: 0 }} />}
 
       {/* ═══ RIGHT ZONE ═══ */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
@@ -227,7 +227,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               padding: isMobile ? '4px 6px' : '5px 8px', borderRadius: '6px', border: 'none',
-              background: 'var(--pl-cream-deep)',
+              background: 'rgba(255,255,255,0.2)',
               color: canUndo ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
               cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
               justifyContent: 'center', minHeight: '36px', minWidth: '36px',
@@ -242,7 +242,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               padding: isMobile ? '4px 6px' : '5px 8px', borderRadius: '6px', border: 'none',
-              background: 'var(--pl-cream-deep)',
+              background: 'rgba(255,255,255,0.2)',
               color: canRedo ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
               cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center',
               justifyContent: 'center', minHeight: '36px', minWidth: '36px',
@@ -313,7 +313,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               actions.handleDesignChange(next);
             }}
             style={{
-              background: 'var(--pl-cream-deep)', border: '1px solid var(--pl-divider)',
+              background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)',
               color: 'var(--pl-ink-soft)', borderRadius: '0.5rem', padding: '0.3rem 0.5rem',
               fontSize: '0.75rem', cursor: 'pointer',
             }}
@@ -356,13 +356,13 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             <motion.button
               onClick={actions.storePreviewForOpen}
               title="Preview site (Cmd+P)"
-              whileHover={{ scale: 1.04, backgroundColor: 'var(--pl-cream-deep)' }}
+              whileHover={{ scale: 1.04, backgroundColor: 'rgba(255,255,255,0.2)' }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 400, damping: 22 }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '5px',
                 padding: '6px 13px', borderRadius: '6px',
-                border: '1px solid var(--pl-divider)',
+                border: '1px solid rgba(255,255,255,0.25)',
                 background: 'transparent', color: 'var(--pl-ink-soft)',
                 cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
               }}

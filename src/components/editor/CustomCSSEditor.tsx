@@ -61,7 +61,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           fontSize: '0.55rem', fontWeight: 600,
           color: 'var(--pl-muted)',
           padding: '2px 6px', borderRadius: '4px',
-          background: 'var(--pl-cream-deep)',
+          background: 'rgba(255,255,255,0.2)',
         }}>
           Advanced
         </span>
@@ -78,8 +78,8 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           minHeight: '120px',
           padding: '12px',
           borderRadius: 'var(--pl-radius-sm)',
-          border: error ? '1.5px solid var(--pl-warning)' : '1.5px solid var(--pl-divider)',
-          background: 'var(--pl-cream-deep)',
+          border: error ? '1.5px solid var(--pl-warning)' : '1.5px solid rgba(255,255,255,0.25)',
+          background: 'rgba(255,255,255,0.2)',
           fontFamily: '"JetBrains Mono", "Fira Code", monospace',
           fontSize: '0.78rem',
           lineHeight: 1.6,
@@ -126,7 +126,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
         fontSize: '0.62rem', color: 'var(--pl-muted)',
         marginTop: '8px', lineHeight: 1.4,
       }}>
-        CSS is scoped to this block. Use <code style={{ fontSize: '0.58rem', background: 'var(--pl-cream-deep)', padding: '1px 4px', borderRadius: '3px' }}>.block</code> to target the wrapper.
+        CSS is scoped to this block. Use <code style={{ fontSize: '0.58rem', background: 'rgba(255,255,255,0.2)', padding: '1px 4px', borderRadius: '3px' }}>.block</code> to target the wrapper.
       </p>
     </div>
   );

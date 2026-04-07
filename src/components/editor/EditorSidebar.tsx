@@ -349,7 +349,7 @@ export function EditorSidebar({
             borderRadius: '6px',
             margin: '2px',
             background: 'transparent',
-            color: 'var(--pl-divider)',
+            color: 'rgba(255,255,255,0.25)',
           }}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}

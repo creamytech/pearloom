@@ -79,7 +79,7 @@ export function MultiSelectToolbar({
           padding: '6px 12px',
           fontSize: '0.72rem', fontWeight: 700,
           color: 'var(--pl-olive-deep)',
-          borderRight: '1px solid var(--pl-divider)',
+          borderRight: '1px solid rgba(255,255,255,0.25)',
           marginRight: '4px',
         }}>
           {selectedIds.length} selected
@@ -121,7 +121,7 @@ export function MultiSelectToolbar({
           whileTap={{ scale: 0.9 }}
           style={{
             width: '28px', height: '28px', borderRadius: '50%',
-            border: '1px solid var(--pl-divider)', background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.25)', background: 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--pl-muted)', marginLeft: '4px',
           }}

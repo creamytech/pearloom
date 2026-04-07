@@ -57,7 +57,7 @@ function MenuItem({
 }
 
 const Divider = () => (
-  <div style={{ height: 1, background: 'var(--pl-divider)', margin: '4px 0' }} />
+  <div style={{ height: 1, background: 'rgba(255,255,255,0.25)', margin: '4px 0' }} />
 );
 
 export function ChapterContextMenu({

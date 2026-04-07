@@ -55,7 +55,7 @@ export function WeddingPartyEditor({ members, onChange }: WeddingPartyEditorProp
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '7px 10px', borderRadius: '8px',
-    border: '1.5px solid var(--pl-divider)', background: 'white',
+    border: '1.5px solid rgba(255,255,255,0.25)', background: 'white',
     fontSize: '0.82rem', color: 'var(--pl-ink)', outline: 'none',
   };
 

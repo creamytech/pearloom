@@ -62,7 +62,7 @@ export function ParchmentTintPanel({ currentTint = 'none', onApply }: ParchmentT
               borderRadius: '50%',
               border: selected === tint.id
                 ? '3px solid var(--pl-olive-deep)'
-                : '2px solid var(--pl-divider)',
+                : '2px solid rgba(255,255,255,0.25)',
               background: tint.color,
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
