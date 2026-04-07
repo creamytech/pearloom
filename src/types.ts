@@ -101,7 +101,13 @@ export interface StoryManifest {
   logoSvg?: string;
   // Navigation bar style variant
   navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
-  // Page ids to hide from nav: 'schedule' | 'rsvp' | 'registry' | 'travel' | 'faq' | 'venue'
+  // SEO
+  seoTitle?: string;
+  seoDescription?: string;
+  ogImage?: string;
+  // Site protection
+  sitePassword?: string;
+  // Page ids to hide from nav
   hiddenPages?: string[];
   // Feature flags for optional site sections
   features?: {
@@ -246,10 +252,11 @@ export interface ThemeSchema {
  */
 export interface ComingSoonConfig {
   enabled: boolean;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
+  message?: string;
   revealDate?: string; // ISO 8601
-  passwordProtected: boolean;
+  passwordProtected?: boolean;
   password?: string;
 }
 

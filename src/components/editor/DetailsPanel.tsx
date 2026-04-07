@@ -53,7 +53,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const delHotel = (i: number) =>
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
 
-  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating';
+  type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection';
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
     <div style={{ borderBottom: '1px solid rgba(0,0,0,0.04)', position: 'relative', zIndex: openSection === id ? 10 : 1 }}>
       <button
@@ -421,6 +421,65 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
         </div>
       )}
+      {/* ── SEO & Sharing ── */}
+      <Section id="seo" label="SEO & Sharing">
+        <Field
+          label="Page Title"
+          value={manifest.seoTitle || ''}
+          onChange={v => onChange({ ...manifest, seoTitle: v })}
+          placeholder={`${manifest.chapters?.[0]?.title || 'Our Celebration'} — Pearloom`}
+        />
+        <Field
+          label="Meta Description"
+          value={manifest.seoDescription || ''}
+          onChange={v => onChange({ ...manifest, seoDescription: v })}
+          placeholder="A celebration site crafted with love..."
+        />
+        <Field
+          label="OG Image URL"
+          value={manifest.ogImage || ''}
+          onChange={v => onChange({ ...manifest, ogImage: v })}
+          placeholder="https://... (shown when shared on social)"
+        />
+      </Section>
+
+      {/* ── Site Protection ── */}
+      <Section id="protection" label="Access & Protection">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+            <span style={{ fontSize: '0.82rem', color: 'var(--pl-ink-soft)' }}>Coming Soon Mode</span>
+            <input
+              type="checkbox"
+              checked={manifest.comingSoon?.enabled || false}
+              onChange={e => onChange({ ...manifest, comingSoon: { ...(manifest.comingSoon || {}), enabled: e.target.checked } })}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--pl-olive)' }}
+            />
+          </label>
+          <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', margin: 0, lineHeight: 1.5 }}>
+            Shows a teaser page to visitors instead of the full site.
+          </p>
+          {manifest.comingSoon?.enabled && (
+            <Field
+              label="Coming Soon Message"
+              value={manifest.comingSoon?.message || ''}
+              onChange={v => onChange({ ...manifest, comingSoon: { ...(manifest.comingSoon || {}), enabled: true, message: v } })}
+              placeholder="Our site is coming soon..."
+            />
+          )}
+
+          <Field
+            label="Site Password (optional)"
+            value={manifest.sitePassword || ''}
+            onChange={v => onChange({ ...manifest, sitePassword: v })}
+            placeholder="Leave blank for public access"
+          />
+          {manifest.sitePassword && (
+            <p style={{ fontSize: '0.68rem', color: 'var(--pl-olive)', margin: 0 }}>
+              ✦ Visitors will need to enter this password to view your site
+            </p>
+          )}
+        </div>
+      </Section>
     </div>
   );
 }
