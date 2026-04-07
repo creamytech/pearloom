@@ -18,7 +18,55 @@ export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions } = useEditor();
   const { device, previewZoom } = state;
   const canvasRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const zoom = previewZoom || 1;
+  const [isPanning, setIsPanning] = useState(false);
+  const [undoToast, setUndoToast] = useState<string | null>(null);
+
+  // ── Spacebar to pan ─────────────────────────────────────
+  useEffect(() => {
+    let panStartX = 0, panStartY = 0, scrollStartX = 0, scrollStartY = 0;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !(e.target as HTMLElement).closest('[contenteditable]')) {
+        e.preventDefault();
+        setIsPanning(true);
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space') setIsPanning(false);
+    };
+    const onMouseDown = (e: MouseEvent) => {
+      if (!isPanning || !scrollContainerRef.current) return;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      scrollStartX = scrollContainerRef.current.scrollLeft;
+      scrollStartY = scrollContainerRef.current.scrollTop;
+      document.body.style.cursor = 'grabbing';
+    };
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isPanning || !scrollContainerRef.current || !panStartX) return;
+      scrollContainerRef.current.scrollLeft = scrollStartX - (e.clientX - panStartX);
+      scrollContainerRef.current.scrollTop = scrollStartY - (e.clientY - panStartY);
+    };
+    const onMouseUp = () => {
+      panStartX = 0;
+      document.body.style.cursor = '';
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [isPanning]);
 
   const isPhone = device === 'mobile';
   const isTablet = device === 'tablet';
@@ -228,8 +276,9 @@ export function EditorCanvas() {
           </motion.div>
         ) : (
           /* Desktop — full bleed with zoom support */
-          <div style={{
+          <div ref={scrollContainerRef} style={{
             width: '100%', height: '100%', overflow: 'auto',
+            cursor: isPanning ? 'grab' : 'default',
             transform: zoom !== 1 ? `scale(${zoom})` : undefined,
             transformOrigin: 'center top',
             transition: 'transform 0.2s ease',
@@ -251,6 +300,40 @@ export function EditorCanvas() {
           </div>
         )}
       </div>
+
+      {/* Undo toast */}
+      {undoToast && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          style={{
+            position: 'absolute', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 200, pointerEvents: 'none',
+            padding: '6px 16px', borderRadius: '100px',
+            background: 'rgba(250,247,242,0.92)',
+            backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 4px 16px rgba(43,30,20,0.1)',
+            fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink)',
+            whiteSpace: 'nowrap',
+          } as React.CSSProperties}
+        >
+          {undoToast}
+        </motion.div>
+      )}
+
+      {/* Pan mode indicator */}
+      {isPanning && (
+        <div style={{
+          position: 'absolute', top: '56px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 200, padding: '4px 12px', borderRadius: '100px',
+          background: 'var(--pl-olive)', color: 'white',
+          fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
+        }}>
+          Panning — release Space to stop
+        </div>
+      )}
     </div>
   );
 }
