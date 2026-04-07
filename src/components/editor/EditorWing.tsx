@@ -148,7 +148,7 @@ export function EditorWing({
             cursor: 'grab',
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '20px',
+            borderRadius: '24px',
             background: 'rgba(250,247,242,0.82)',
             backdropFilter: 'blur(32px) saturate(1.6)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
@@ -157,11 +157,13 @@ export function EditorWing({
             overflow: 'hidden',
           } as React.CSSProperties}
         >
-          {/* Panel header */}
+          {/* Panel header — organic glass with drag hint */}
           <div style={{
-            padding: '14px 14px 10px',
-            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            padding: '16px 16px 12px',
+            borderBottom: '1px solid rgba(255,255,255,0.3)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'rgba(255,255,255,0.15)',
+            cursor: 'grab',
           }}>
             <div style={{ minWidth: 0 }}>
               <AnimatePresence mode="wait">
@@ -230,27 +232,38 @@ export function EditorWing({
             </motion.button>
           </div>
 
-          {/* Scrollable content area */}
+          {/* Scrollable content area — organic glass interior */}
           <div
             ref={contentRef}
             style={{
               flex: 1,
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
-              padding: '2px 0',
+              padding: '4px 0',
             } as React.CSSProperties}
           >
             {children}
           </div>
 
-          {/* Left-edge resize handle */}
+          {/* Left-edge resize handle — visible on hover */}
           <div
             onMouseDown={startResize}
+            className="group/resize"
             style={{
-              position: 'absolute', left: -3, top: 20, bottom: 20,
-              width: 6, cursor: 'col-resize', zIndex: 10,
+              position: 'absolute', left: -4, top: 40, bottom: 40,
+              width: 8, cursor: 'col-resize', zIndex: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
-          />
+          >
+            <div style={{
+              width: '3px', height: '40px', borderRadius: '3px',
+              background: 'rgba(163,177,138,0.2)',
+              transition: 'background 0.2s, height 0.2s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.5)'; (e.currentTarget as HTMLElement).style.height = '60px'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; (e.currentTarget as HTMLElement).style.height = '40px'; }}
+            />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
