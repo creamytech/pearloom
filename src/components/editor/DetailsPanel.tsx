@@ -55,7 +55,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
   type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection';
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
-    <div style={{ borderBottom: '1px solid rgba(0,0,0,0.04)', position: 'relative', zIndex: openSection === id ? 10 : 1 }}>
+    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.25)', position: 'relative', zIndex: openSection === id ? 10 : 1 }}>
       <button
         onClick={() => setOpenSection(openSection === id ? null : id)}
         style={{
@@ -90,7 +90,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const sectionHead = (label: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
       <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>{label}</span>
-      <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.3)' }} />
     </div>
   );
 
@@ -160,7 +160,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
             style={{
               width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: manifest.registry?.enabled !== false ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+              background: manifest.registry?.enabled !== false ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -180,7 +180,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
         </div>
         {entries.map((entry, i) => (
-          <div key={i} style={{ background: 'rgba(163,177,138,0.04)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(0,0,0,0.04)' }}>
+          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Registry {i + 1}</span>
               <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
@@ -234,7 +234,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
         </div>
         {(travel.hotels || []).map((hotel, i) => (
-          <div key={i} style={{ background: 'rgba(163,177,138,0.04)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(0,0,0,0.04)' }}>
+          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Hotel {i + 1}</span>
               <button onClick={() => delHotel(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
@@ -259,7 +259,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </button>
         </div>
         {faqs.map(faq => (
-          <div key={faq.id} style={{ background: 'rgba(163,177,138,0.04)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(0,0,0,0.04)' }}>
+          <div key={faq.id} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button onClick={() => delFaq(faq.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
@@ -284,7 +284,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             placeholder="intimate, golden hour, wildflower meadow..."
             style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
             onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
           />
           <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', marginTop: '0.4rem', lineHeight: 1.5 }}>
             Used by the AI when rewriting chapters and generating art.
@@ -294,7 +294,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {/* ── Site Features ── */}
         <div style={{ marginTop: '0.5rem' }}>
           {/* Guestbook toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Wishes Wall</div>
               <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests leave messages on your site</div>
@@ -306,7 +306,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.guestbook ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+                background: (manifest.features?.guestbook ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -322,7 +322,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </div>
 
           {/* Live Updates toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Live Updates Feed</div>
               <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Enable live updates feed for day-of announcements</div>
@@ -334,7 +334,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.liveUpdates ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+                background: (manifest.features?.liveUpdates ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -350,7 +350,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </div>
 
           {/* Photo Wall toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Photo Wall</div>
               <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests upload photos from the celebration</div>
@@ -362,7 +362,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.photoWall ?? false) ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+                background: (manifest.features?.photoWall ?? false) ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.2)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -385,7 +385,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '10px', lineHeight: 1.5 }}>
             Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
           </div>
-          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.3)' }}>
             <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
           </div>
         </Section>

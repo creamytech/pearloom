@@ -1076,7 +1076,7 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
             transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 100,
-              background: 'var(--pl-cream)', border: '1px solid rgba(0,0,0,0.06)',
+              background: 'rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.3)',
               borderRadius: '12px', overflow: 'hidden', marginTop: '4px',
               boxShadow: '0 20px 60px rgba(43,30,20,0.1)',
             }}

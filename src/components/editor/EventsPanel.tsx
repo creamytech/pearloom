@@ -90,12 +90,10 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>
-          {manifest.occasion === 'birthday' ? 'Party Events' : manifest.occasion === 'anniversary' ? 'Anniversary Events' : 'Wedding Events'}
-        </span>
-        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+      <div style={{ padding: '0 4px', marginBottom: '4px' }}>
+        <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)' }}>
+          {manifest.occasion === 'birthday' ? 'Party Events' : manifest.occasion === 'anniversary' ? 'Anniversary Events' : 'Events'} · {events.length}
+        </div>
       </div>
 
       {events.length === 0 ? (
@@ -103,7 +101,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--pl-muted)', borderRadius: '10px', border: '1px dashed rgba(0,0,0,0.06)' }}
+          style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--pl-muted)', borderRadius: '16px', border: '1.5px dashed rgba(163,177,138,0.25)', background: 'rgba(255,255,255,0.15)' }}
         >
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
@@ -155,8 +153,9 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                               style={{
                                 padding: '5px 12px', borderRadius: '100px', border: 'none', cursor: 'pointer',
                                 fontSize: '0.82rem', fontWeight: 700,
-                                background: (evt.type || 'other') === opt.type ? opt.color : 'rgba(0,0,0,0.06)',
+                                background: (evt.type || 'other') === opt.type ? opt.color : 'rgba(255,255,255,0.3)',
                                 color: (evt.type || 'other') === opt.type ? '#fff' : 'var(--pl-ink-soft)',
+                                backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
                                 transition: 'all 0.15s',
                               }}
                             >{opt.label}</button>
@@ -183,7 +182,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
 
                       {/* Ceremony Details sub-section — shown for ceremony-type events */}
                       {evt.type === 'ceremony' && (
-                        <div style={{ marginTop: '0.25rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                        <div style={{ marginTop: '0.25rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.3)' }}>
                           <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', marginBottom: '0.6rem', opacity: 0.7 }}>
                             Ceremony Details
                           </div>
@@ -215,7 +214,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
       {/* Add event button */}
       <button
         onClick={addEvent}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.4)', background: 'transparent', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s' }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '14px', border: '1.5px dashed rgba(163,177,138,0.3)', background: 'transparent', color: 'var(--pl-olive)', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, transition: 'all 0.15s' }}
         onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; }}
         onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
@@ -227,7 +226,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
         <div style={{
           marginTop: '8px',
           paddingTop: '16px',
-          borderTop: '1px solid rgba(0,0,0,0.05)',
+          borderTop: '1px solid rgba(255,255,255,0.3)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',

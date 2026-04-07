@@ -2,41 +2,51 @@
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/editor/editor-utils.tsx
-// Shared styles, helpers, and small components used across
-// the editor panel modules.
-// Light cream theme — matches marketing site aesthetic.
+// Shared styles and components for editor panels
+// Organic glass design system
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react';
 import { parseLocalDate } from '@/lib/date';
 
-// ── Shared label/input styles ──────────────────────────────────
+// ── Shared label style ────────────────────────────────────────
 export const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.68rem', fontWeight: 700,
-  letterSpacing: '0.08em', textTransform: 'uppercase',
-  color: 'var(--pl-muted, #7A756E)', marginBottom: '0.35rem',
+  display: 'block', fontSize: '0.62rem', fontWeight: 700,
+  letterSpacing: '0.1em', textTransform: 'uppercase',
+  color: 'var(--pl-muted, #7A756E)', marginBottom: '0.4rem',
 };
 
+// ── Shared input style — glass with white glow border ─────────
 export const inp: React.CSSProperties = {
-  width: '100%', padding: '0.55rem 0.7rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
-  color: 'var(--pl-ink, #1A1A1A)', fontSize: 'max(16px, 0.88rem)', outline: 'none', fontFamily: 'inherit',
-  transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
-  minHeight: '36px',
-};
+  width: '100%', padding: '0.6rem 0.75rem',
+  borderRadius: '12px',
+  border: '1px solid rgba(255,255,255,0.4)',
+  background: 'rgba(255,255,255,0.35)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  color: 'var(--pl-ink, #1A1A1A)',
+  fontSize: 'max(16px, 0.85rem)',
+  outline: 'none', fontFamily: 'inherit',
+  transition: 'border-color 0.15s, box-shadow 0.15s, background 0.15s',
+  boxSizing: 'border-box',
+  minHeight: '38px',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+} as React.CSSProperties;
 
-// ── Reusable form field ────────────────────────────────────────
+// ── Reusable form field — glass input with label ──────────────
 export function Field({ label, value, onChange, rows, placeholder }: {
   label: string; value: string; onChange: (v: string) => void;
   rows?: number; placeholder?: string;
 }) {
   const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'var(--pl-olive, #A3B18A)';
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
+    e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)';
+    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1), inset 0 1px 0 rgba(255,255,255,0.3)';
+    e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
   };
   const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'var(--pl-divider, #E0D8CA)';
-    e.currentTarget.style.boxShadow = 'none';
+    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
+    e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.2)';
+    e.currentTarget.style.background = 'rgba(255,255,255,0.35)';
   };
 
   if (rows) return (
