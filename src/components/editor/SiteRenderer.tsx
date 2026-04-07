@@ -572,8 +572,174 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       }
+      case 'video': {
+        const videoUrl = blockCfg.url as string | undefined;
+        const embedUrl = videoUrl?.includes('youtube') ? videoUrl.replace('watch?v=', 'embed/') : videoUrl?.includes('vimeo') ? videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/') : null;
+        return (
+          <section key={key} data-pe-section="video" style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
+            {embedUrl ? (
+              <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden' }}>
+                <iframe src={embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen />
+              </div>
+            ) : (
+              <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)' }}>
+                <p data-pe-editable="true" data-pe-path={`blocks.${block.id}.config.url`} style={{ fontSize: '0.88rem' }}>
+                  {videoUrl || 'Paste a YouTube or Vimeo URL'}
+                </p>
+              </div>
+            )}
+          </section>
+        );
+      }
+      case 'map': {
+        const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venueAddress;
+        return (
+          <section key={key} data-pe-section="map" style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
+            {mapAddress ? (
+              <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden' }}>
+                <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`} style={{ width: '100%', height: '100%', border: 'none' }} loading="lazy" title="Venue" />
+              </div>
+            ) : (
+              <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)', fontSize: '0.88rem' }}>
+                Add an event address to show the map
+              </div>
+            )}
+          </section>
+        );
+      }
+      case 'guestbook':
+        return (
+          <section key={key} data-pe-section="guestbook" style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: pal.foreground, marginBottom: '1rem' }}>
+              Leave Your Wishes
+            </h2>
+            <p style={{ color: pal.muted, fontSize: '0.95rem', marginBottom: '2rem' }}>Share your love and well wishes</p>
+            <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.card}40`, border: `1px solid ${pal.accent}20` }}>
+              <p style={{ color: pal.muted, fontStyle: 'italic' }}>Guestbook messages will appear here</p>
+            </div>
+          </section>
+        );
+      case 'spotify': {
+        const spotifyUrl = blockCfg.url as string | undefined;
+        const embedSrc = spotifyUrl?.replace('open.spotify.com/', 'open.spotify.com/embed/');
+        return (
+          <section key={key} data-pe-section="spotify" style={{ padding: '3rem 2rem', maxWidth: '700px', margin: '0 auto' }}>
+            {embedSrc ? (
+              <iframe src={embedSrc} style={{ width: '100%', height: '352px', borderRadius: '12px', border: 'none' }} allow="encrypted-media" />
+            ) : (
+              <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)', fontSize: '0.88rem' }}>
+                Add a Spotify playlist URL in the Music panel
+              </div>
+            )}
+          </section>
+        );
+      }
+      case 'hashtag':
+        return (
+          <section key={key} data-pe-section="hashtag" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+            <div style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontWeight: 600, color: pal.accent }}>
+              #{(blockCfg.hashtag as string) || `${names[0]}And${names[1]}`.replace(/\s/g, '')}
+            </div>
+            <p style={{ color: pal.muted, fontSize: '0.88rem', marginTop: '0.5rem' }}>Share your photos with our hashtag</p>
+          </section>
+        );
+      case 'weddingParty':
+        return (
+          <section key={key} data-pe-section="weddingParty" style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: pal.foreground, textAlign: 'center', marginBottom: '2rem' }}>
+              The Wedding Party
+            </h2>
+            {(manifest.weddingParty?.length || 0) > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1.5rem', textAlign: 'center' }}>
+                {manifest.weddingParty!.map((m, i) => (
+                  <div key={i}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 0.75rem', background: `${pal.accent}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', color: pal.accent }}>
+                      {m.name?.[0] || '?'}
+                    </div>
+                    <div style={{ fontWeight: 600, color: pal.foreground, fontSize: '0.88rem' }}>{m.name}</div>
+                    <div style={{ color: pal.muted, fontSize: '0.75rem' }}>{m.role}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ textAlign: 'center', color: pal.muted }}>Add wedding party members in the Story panel</p>
+            )}
+          </section>
+        );
+      case 'vibeQuote':
+      case 'welcome': {
+        const statement = block.type === 'welcome' ? manifest.poetry?.welcomeStatement : (vibeSkin.dividerQuote || manifest.vibeString);
+        if (!statement) return null;
+        return (
+          <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+            <p data-pe-editable="true" data-pe-path={block.type === 'welcome' ? 'poetry.welcomeStatement' : 'poetry.vibeQuote'} style={{
+              fontFamily: `"${block.type === 'welcome' ? vibeSkin.fonts.body : vibeSkin.fonts.heading}", ${block.type === 'welcome' ? 'sans-serif' : 'serif'}`,
+              fontSize: block.type === 'welcome' ? '1.05rem' : 'clamp(1.2rem, 2.5vw, 1.8rem)',
+              fontStyle: 'italic', fontWeight: 400, lineHeight: 1.7, color: pal.foreground, opacity: 0.75,
+            }}>
+              {statement}
+            </p>
+          </section>
+        );
+      }
+      case 'quiz':
+        return (
+          <section key={key} data-pe-section="quiz" style={{ padding: '4rem 2rem', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, marginBottom: '1rem' }}>
+              How Well Do You Know Us?
+            </h2>
+            <p style={{ color: pal.muted, marginBottom: '2rem' }}>Take the couple quiz and see how you score!</p>
+            <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20` }}>
+              <p style={{ color: pal.muted, fontStyle: 'italic' }}>Quiz questions will appear here for your guests</p>
+            </div>
+          </section>
+        );
+      case 'photoWall':
+      case 'gallery': {
+        const photos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 12) || [];
+        return (
+          <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground }}>
+                {block.type === 'photoWall' ? 'Photo Wall' : 'Gallery'}
+              </h2>
+            </div>
+            {photos.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '8px', maxWidth: '1000px', margin: '0 auto' }}>
+                {photos.map((p, i) => (
+                  <div key={i} style={{ aspectRatio: '1', borderRadius: '8px', overflow: 'hidden' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={proxyUrl(p.url, 400, 400)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ textAlign: 'center', color: pal.muted }}>Photos from your chapters will appear here</p>
+            )}
+          </section>
+        );
+      }
+      case 'footer':
+        return null; // Footer is rendered separately below
+      case 'anniversary':
+      case 'storymap':
+        return (
+          <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, marginBottom: '1rem' }}>
+              {block.type === 'anniversary' ? 'Anniversary Milestones' : 'Our Journey Map'}
+            </h2>
+            <p style={{ color: pal.muted }}>This section will be fully rendered on your published site</p>
+          </section>
+        );
       default:
-        return null;
+        // Unknown block type — show placeholder instead of nothing
+        return (
+          <section key={key} data-pe-section={block.type} style={{ padding: '2rem', margin: '1rem auto', maxWidth: '700px', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.2)' }}>
+            <p style={{ color: 'var(--pl-muted)', fontSize: '0.82rem' }}>
+              {String(block.type).replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()} section
+            </p>
+          </section>
+        );
     }
   }, [manifest, names, vibeSkin, pal, bgColor, cardBg, proxiedCover, editMode, handleTextBlur]);
 
