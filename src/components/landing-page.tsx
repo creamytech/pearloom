@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence, type Variants } from 'framer-motion';
 import { ArrowRight, Menu, X, Sparkles, ChevronRight } from 'lucide-react';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 import { MarketingHero } from './marketing/MarketingHero';
 import { SocialProofBar } from './marketing/SocialProofBar';
@@ -150,6 +151,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
   const testRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Wrap handleSignIn to show modal instead of direct Google sign-in
+  const openAuth = () => setShowAuthModal(true);
 
   const occasionInView = useInView(occasionRef, { once: true, amount: 0.08 });
   const testInView = useInView(testRef, { once: true, amount: 0.1 });
@@ -182,7 +187,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           <Button
             variant="accent"
             size="sm"
-            onClick={handleSignIn}
+            onClick={openAuth}
             className="hidden sm:inline-flex"
           >
             Get Started Free
@@ -243,7 +248,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                   variant="accent"
                   size="lg"
                   className="w-full justify-center"
-                  onClick={() => { setMobileMenuOpen(false); handleSignIn(); }}
+                  onClick={() => { setMobileMenuOpen(false); openAuth(); }}
                   icon={<Sparkles size={15} />}
                 >
                   Get Started Free
@@ -258,7 +263,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       </AnimatePresence>
 
       {/* ══════════════ HERO ══════════════ */}
-      <MarketingHero handleSignIn={handleSignIn} status={status} />
+      <MarketingHero handleSignIn={openAuth} status={status} />
 
       {/* ══════════════ SOCIAL PROOF ══════════════ */}
       <SocialProofBar />
@@ -309,7 +314,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             initial="hidden" whileInView="show" viewport={{ once: true }}
             variants={fadeUp} custom={3}
           >
-            <TryItLivePlayground onGetStarted={handleSignIn} />
+            <TryItLivePlayground onGetStarted={openAuth} />
           </motion.div>
         </div>
       </section>
@@ -493,7 +498,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 variant="gold"
                 size="lg"
                 className="w-full justify-center bg-[var(--pl-gold)] text-[var(--pl-ink)] hover:bg-[#d4b87a] border-0 shadow-[0_4px_24px_rgba(196,169,106,0.35)] text-[1rem] py-3.5"
-                onClick={handleSignIn}
+                onClick={openAuth}
                 disabled={status === 'loading'}
               >
                 Begin Your Story <ArrowRight size={16} strokeWidth={2.2} />
@@ -511,6 +516,9 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
 
       {/* ══════════════ FOOTER ══════════════ */}
       <MarketingFooter />
+
+      {/* Auth Modal */}
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }

@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2, ImageOff, RefreshCw, AlertCircle, ExternalLink, Clock, Upload, X } from 'lucide-react';
 import type { GooglePhotoMetadata } from '@/types';
@@ -41,6 +41,8 @@ const GRACE_PERIOD_MS = 5 * 60 * 1000; // 5 minutes — photo libraries are larg
 const MAX_POLL_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 
 export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrowserProps) {
+  const { data: session } = useSession();
+  const isGoogleUser = session?.provider === 'google' || !!session?.accessToken;
   const [photos, setPhotos] = useState<GooglePhotoMetadata[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [state, setState] = useState<BrowserState>('idle');
@@ -314,8 +316,8 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
           Select the memories you want to feature — from Google Photos or straight from your device.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 420, margin: '0 auto' }}>
-          {/* Google Photos — organic glass card */}
-          <motion.button
+          {/* Google Photos — only shown for Google-signed-in users */}
+          {isGoogleUser && (<motion.button
             onClick={startPickerFlow}
             whileHover={{ scale: 1.01, y: -2 }}
             whileTap={{ scale: 0.99 }}
@@ -345,12 +347,16 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             <ExternalLink size={14} style={{ color: 'var(--pl-muted)', opacity: 0.4 }} />
           </motion.button>
 
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.25rem 0' }}>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
-            <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontStyle: 'italic' }}>or</span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
-          </div>
+          )}
+
+          {/* Divider — only if both options shown */}
+          {isGoogleUser && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.25rem 0' }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
+              <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontStyle: 'italic' }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
+            </div>
+          )}
 
           {/* Device upload — organic glass card */}
           <motion.button
