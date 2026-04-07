@@ -603,6 +603,27 @@ function SectionStylePanel({
         </div>
       </div>
 
+      {/* Background Image */}
+      <div>
+        <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Background Image</label>
+        <input
+          value={(config.bgImage as string) || ''}
+          onChange={e => updateConfig({ bgImage: e.target.value })}
+          placeholder="Paste image URL..."
+          style={{ ...inp, fontSize: '0.72rem', padding: '6px 8px' }}
+        />
+        {(config.bgImage as string) && (
+          <div style={{ marginTop: '4px', display: 'flex', gap: '4px' }}>
+            <button onClick={() => updateConfig({ bgImage: '' })} style={{ padding: '3px 8px', borderRadius: '6px', border: 'none', background: 'rgba(255,255,255,0.2)', color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.62rem' }}>Remove</button>
+            <select value={(config.bgSize as string) || 'cover'} onChange={e => updateConfig({ bgSize: e.target.value })} style={{ ...inp, flex: 1, fontSize: '0.65rem', padding: '3px 6px' }}>
+              <option value="cover">Cover</option>
+              <option value="contain">Contain</option>
+              <option value="repeat">Tile</option>
+            </select>
+          </div>
+        )}
+      </div>
+
       {/* Padding */}
       <div>
         <label style={lbl}>Vertical Padding</label>

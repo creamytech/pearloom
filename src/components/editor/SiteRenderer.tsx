@@ -572,10 +572,24 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     const blockCfg = block.config || {};
     const key = block.id;
 
+    // Apply per-block style overrides from config
+    const blockStyle: React.CSSProperties = {};
+    if (blockCfg.bgColor) blockStyle.background = blockCfg.bgColor as string;
+    if (blockCfg.bgImage) {
+      blockStyle.backgroundImage = `url(${blockCfg.bgImage as string})`;
+      blockStyle.backgroundSize = (blockCfg.bgSize as string) || 'cover';
+      blockStyle.backgroundPosition = 'center';
+      blockStyle.backgroundRepeat = (blockCfg.bgSize as string) === 'repeat' ? 'repeat' : 'no-repeat';
+    }
+    if (blockCfg.verticalPadding) {
+      blockStyle.paddingTop = blockCfg.verticalPadding as string;
+      blockStyle.paddingBottom = blockCfg.verticalPadding as string;
+    }
+
     switch (block.type) {
       case 'hero':
         return (
-          <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative' }}>
+          <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative', ...blockStyle }}>
             <Hero
               names={names}
               subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters`}
@@ -589,29 +603,29 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'story':
         return (
-          <section key={key} id="our-story" data-pe-section="story">
+          <section key={key} id="our-story" data-pe-section="story" style={blockStyle}>
             <Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} />
           </section>
         );
       case 'event':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="schedule" data-pe-section="events">
+          <section key={key} id="schedule" data-pe-section="events" style={blockStyle}>
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
           </section>
         );
       case 'rsvp':
         if (!manifest.events?.length) return null;
-        return <section key={key} id="rsvp" data-pe-section="rsvp"><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section>;
+        return <section key={key} id="rsvp" data-pe-section="rsvp" style={blockStyle}><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section>;
       case 'registry':
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
-        return <section key={key} id="registry" data-pe-section="registry"><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section>;
+        return <section key={key} id="registry" data-pe-section="registry" style={blockStyle}><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section>;
       case 'travel':
         if (!manifest.travelInfo) return null;
-        return <section key={key} id="travel" data-pe-section="travel"><TravelSection info={manifest.travelInfo} /></section>;
+        return <section key={key} id="travel" data-pe-section="travel" style={blockStyle}><TravelSection info={manifest.travelInfo} /></section>;
       case 'faq':
         if (!manifest.faqs?.length) return null;
-        return <section key={key} id="faq" data-pe-section="faq"><FaqSection faqs={manifest.faqs} /></section>;
+        return <section key={key} id="faq" data-pe-section="faq" style={blockStyle}><FaqSection faqs={manifest.faqs} /></section>;
       case 'countdown':
         return (
           <section key={key} data-pe-section="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
