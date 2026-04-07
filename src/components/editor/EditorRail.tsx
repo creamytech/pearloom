@@ -28,11 +28,12 @@ const PRIMARY_ITEMS: RailItem[] = [
   { id: 'sections', tab: 'canvas',   Icon: LayoutGrid,   label: 'Layout' },
   { id: 'story',    tab: 'story',    Icon: BookOpen,     label: 'Chapters' },
   { id: 'events',   tab: 'events',   Icon: CalendarDays, label: 'Events' },
-  { id: 'blocks',   tab: 'blocks',   Icon: Sparkles,     label: 'AI Blocks' },
+  { id: 'pages',    tab: 'pages',    Icon: FileText,     label: 'Pages' },
 ];
 
 // Overflow tabs — shown in "More" popover
 const MORE_ITEMS: RailItem[] = [
+  { id: 'blocks',     tab: 'blocks',     Icon: Sparkles,     label: 'AI Blocks' },
   { id: 'guests',     tab: 'guests',     Icon: Users,        label: 'Guests' },
   { id: 'messaging',  tab: 'messaging',  Icon: MessageSquare, label: 'Messages' },
   { id: 'analytics',  tab: 'analytics',  Icon: BarChart2,    label: 'Analytics' },
