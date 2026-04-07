@@ -53,7 +53,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
 
   return (
     <div style={{
-      borderRadius: '10px',
+      borderRadius: '12px',
       border: '1px solid rgba(163,177,138,0.18)',
       background: 'rgba(163,177,138,0.05)',
       overflow: 'hidden',
@@ -63,7 +63,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '8px 12px',
         borderBottom: '1px solid rgba(0,0,0,0.04)',
-        background: 'rgba(163,177,138,0.04)',
+        background: 'rgba(255,255,255,0.15)',
       }}>
         <span style={{
           fontSize: '0.78rem', fontWeight: 700,
@@ -278,9 +278,9 @@ export function ThankYouPanel() {
               key={entry.id}
               style={{
                 display: 'flex', flexDirection: 'column', gap: '4px',
-                padding: '8px 10px', borderRadius: '9px',
+                padding: '8px 10px', borderRadius: '14px',
                 border: '1px solid rgba(0,0,0,0.06)',
-                background: 'rgba(163,177,138,0.04)',
+                background: 'rgba(255,255,255,0.15)',
                 position: 'relative',
               }}
             >
@@ -367,7 +367,7 @@ export function ThankYouPanel() {
           whileTap={canGenerate ? { scale: 0.97 } : {}}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            padding: '11px', borderRadius: '10px',
+            padding: '11px', borderRadius: '12px',
             border: '1px solid rgba(163,177,138,0.3)',
             background: canGenerate
               ? 'linear-gradient(135deg, rgba(163,177,138,0.18) 0%, rgba(143,200,122,0.12) 100%)'
@@ -422,7 +422,7 @@ export function ThankYouPanel() {
             style={{
               marginTop: '10px', width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-              padding: '10px', borderRadius: '9px',
+              padding: '10px', borderRadius: '14px',
               border: '1px solid rgba(214,198,168,0.15)',
               background: 'rgba(214,198,168,0.05)',
               color: 'var(--pl-muted)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,

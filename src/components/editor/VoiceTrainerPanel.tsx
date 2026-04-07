@@ -174,7 +174,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           disabled={training}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '10px', borderRadius: '10px', border: 'none',
+            padding: '10px', borderRadius: '12px', border: 'none',
             background: training ? 'rgba(163,177,138,0.2)' : 'var(--pl-olive-deep)',
             color: training ? 'var(--pl-ink-soft)' : '#fff',
             cursor: training ? 'not-allowed' : 'pointer',

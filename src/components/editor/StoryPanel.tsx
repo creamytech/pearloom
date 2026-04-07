@@ -202,7 +202,7 @@ export function StoryPanel() {
       {/* ── Story Style ── */}
       <div style={{ padding: '4px 14px 12px' }}>
         <div style={{
-          fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em',
+          fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
           textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px',
         }}>
           Story Style
@@ -237,7 +237,7 @@ export function StoryPanel() {
       {/* ── Chapter count ── */}
       <div style={{
         padding: '8px 14px',
-        fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em',
+        fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
         textTransform: 'uppercase', color: 'var(--pl-muted)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>

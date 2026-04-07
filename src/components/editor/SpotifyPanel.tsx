@@ -141,7 +141,7 @@ export function SpotifyPanel() {
                     justifyContent: 'space-between',
                     gap: '8px',
                     padding: '8px 10px',
-                    borderRadius: '7px',
+                    borderRadius: '14px',
                     background: 'rgba(163,177,138,0.04)',
                     border: '1px solid rgba(255,255,255,0.15)',
                   }}

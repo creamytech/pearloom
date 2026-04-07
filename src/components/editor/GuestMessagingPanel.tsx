@@ -36,7 +36,7 @@ const FILTERS: Array<{ value: RecipientFilter; label: string }> = [
 // ── Styles (organic glass + olive accents) ───────────────────
 
 const glassCard: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.5)',
+  background: 'rgba(255,255,255,0.2)',
   backdropFilter: 'blur(16px)',
   WebkitBackdropFilter: 'blur(16px)',
   borderRadius: '1rem',
