@@ -194,25 +194,17 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, []);
 
   // ── Push to preview (debounced) ──────────────────────────────
+  // pushToPreview — with direct DOM rendering, changes propagate automatically
+  // via React re-renders. We keep this for save state tracking.
   const pushToPreview = useCallback((m: StoryManifest) => {
     dispatch({ type: 'SET_SAVE_STATE', state: 'unsaved' });
     dispatch({ type: 'SET_DIRTY', dirty: true });
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      try {
-        storePreview(previewKey, m, coupleNames);
-        if (iframeRef.current?.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({
-            type: 'pearloom-preview-update',
-            manifest: stripArtForStorage(m),
-            names: coupleNames,
-          }, '*');
-        }
-        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = setTimeout(() => dispatch({ type: 'SET_SAVE_STATE', state: 'saved' }), 2500);
-      } catch {}
-    }, 100); // Fast preview updates — 100ms debounce
+    try {
+      storePreview(previewKey, m, coupleNames);
+    } catch {}
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => dispatch({ type: 'SET_SAVE_STATE', state: 'saved' }), 1500);
   }, [previewKey, coupleNames]);
 
   useEffect(() => { pushToPreviewRef.current = pushToPreview; }, [pushToPreview]);
