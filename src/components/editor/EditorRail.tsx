@@ -119,11 +119,11 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
         zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center',
         gap: '4px', padding: '12px 8px', borderRadius: '24px',
-        background: 'rgba(255,255,255,0.88)',
-        backdropFilter: 'blur(24px) saturate(1.4)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-        border: '1px solid rgba(0,0,0,0.06)',
-        boxShadow: '0 4px 24px rgba(43,30,20,0.08), 0 1px 4px rgba(43,30,20,0.04)',
+        background: 'rgba(250,247,242,0.78)',
+        backdropFilter: 'blur(32px) saturate(1.5)',
+        WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
+        border: '1px solid rgba(255,255,255,0.5)',
+        boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
       } as React.CSSProperties}
     >
       {/* Logo */}

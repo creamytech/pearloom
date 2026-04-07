@@ -149,11 +149,11 @@ export function EditorWing({
             display: 'flex',
             flexDirection: 'column',
             borderRadius: '20px',
-            background: 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(24px) saturate(1.4)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-            border: '1px solid rgba(0,0,0,0.06)',
-            boxShadow: '0 8px 40px rgba(43,30,20,0.1), 0 2px 8px rgba(43,30,20,0.05)',
+            background: 'rgba(250,247,242,0.82)',
+            backdropFilter: 'blur(32px) saturate(1.6)',
+            WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 8px 40px rgba(43,30,20,0.12), 0 2px 8px rgba(43,30,20,0.06), inset 0 1px 0 rgba(255,255,255,0.4)',
             overflow: 'hidden',
           } as React.CSSProperties}
         >

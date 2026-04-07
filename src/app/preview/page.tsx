@@ -641,8 +641,8 @@ function PreviewContent() {
       <link rel="stylesheet" href={fontUrl} />
 
       <EditBridge enabled={editMode} />
-      {!editMode && (
-        <SiteNav
+      {/* SiteNav shown in both edit and preview modes so users see the full site */}
+      <SiteNav
           names={names}
           pages={sitePages}
           logoIcon={manifest.logoIcon}
@@ -655,7 +655,6 @@ function PreviewContent() {
             return `/preview?${params.toString()}`;
           }}
         />
-      )}
 
       <CelebrationOverlay
         occasion={(manifest.occasion as 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story') || 'wedding'}

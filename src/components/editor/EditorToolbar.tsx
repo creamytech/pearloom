@@ -154,12 +154,12 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
       height: '44px', flexShrink: 0,
       display: 'flex', alignItems: 'center',
       borderBottom: '1px solid rgba(0,0,0,0.06)',
-      background: 'rgba(255,255,255,0.85)',
-      backdropFilter: 'blur(20px) saturate(1.3)',
-      WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
+      background: 'rgba(250,247,242,0.78)',
+      backdropFilter: 'blur(32px) saturate(1.5)',
+      WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
       padding: '0 1rem', gap: '0',
       zIndex: 10,
-      boxShadow: '0 1px 4px rgba(43,30,20,0.04)',
+      boxShadow: '0 1px 6px rgba(43,30,20,0.06), inset 0 -1px 0 rgba(255,255,255,0.3)',
     } as React.CSSProperties}>
 
       {/* ═══ LEFT ZONE: Pearloom branding + Exit ═══ */}
