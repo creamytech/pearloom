@@ -8,9 +8,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Palette, PanelTop, Image, CalendarDays, Sparkles, Settings,
+  Palette, LayoutGrid, BookOpen, CalendarDays, Sparkles, Settings,
   MoreHorizontal, Users, MessageSquare, BarChart2, Globe,
-  Music, ShoppingBag, Mail, Heart, X,
+  Music, ShoppingBag, Mail, Heart, FileText, X,
 } from 'lucide-react';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
@@ -25,10 +25,10 @@ type RailItem = {
 // Primary tabs — always visible on the rail
 const PRIMARY_ITEMS: RailItem[] = [
   { id: 'design',   tab: 'design',   Icon: Palette,      label: 'Design' },
-  { id: 'sections', tab: 'canvas',   Icon: PanelTop,     label: 'Sections' },
-  { id: 'story',    tab: 'story',    Icon: Image,        label: 'Story' },
+  { id: 'sections', tab: 'canvas',   Icon: LayoutGrid,   label: 'Layout' },
+  { id: 'story',    tab: 'story',    Icon: BookOpen,     label: 'Chapters' },
   { id: 'events',   tab: 'events',   Icon: CalendarDays, label: 'Events' },
-  { id: 'blocks',   tab: 'blocks',   Icon: Sparkles,     label: 'AI' },
+  { id: 'blocks',   tab: 'blocks',   Icon: Sparkles,     label: 'AI Blocks' },
 ];
 
 // Overflow tabs — shown in "More" popover
@@ -36,7 +36,7 @@ const MORE_ITEMS: RailItem[] = [
   { id: 'guests',     tab: 'guests',     Icon: Users,        label: 'Guests' },
   { id: 'messaging',  tab: 'messaging',  Icon: MessageSquare, label: 'Messages' },
   { id: 'analytics',  tab: 'analytics',  Icon: BarChart2,    label: 'Analytics' },
-  { id: 'seating',    tab: 'seating',    Icon: PanelTop,     label: 'Seating' },
+  { id: 'seating',    tab: 'seating',    Icon: Users,        label: 'Seating' },
   { id: 'translate',  tab: 'translate',  Icon: Globe,        label: 'Translate' },
   { id: 'spotify',    tab: 'spotify',    Icon: Music,        label: 'Music' },
   { id: 'vendors',    tab: 'vendors',    Icon: ShoppingBag,  label: 'Vendors' },
@@ -44,7 +44,7 @@ const MORE_ITEMS: RailItem[] = [
   { id: 'savethedate', tab: 'savethedate', Icon: Heart,      label: 'Save the Date' },
   { id: 'thankyou',   tab: 'thankyou',   Icon: Heart,        label: 'Thank You' },
   { id: 'voice',      tab: 'voice',      Icon: Sparkles,     label: 'Voice AI' },
-  { id: 'pages',      tab: 'pages',      Icon: PanelTop,     label: 'Pages' },
+  { id: 'pages',      tab: 'pages',      Icon: FileText,     label: 'Pages' },
 ];
 
 function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boolean; onClick: () => void }) {

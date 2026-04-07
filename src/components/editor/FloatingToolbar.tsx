@@ -11,9 +11,9 @@ import { GripVertical, Paintbrush, Plus, Undo2, Redo2 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 
 const TOOLS = [
-  { id: 'move',  Icon: GripVertical, label: 'Move',  tab: 'canvas' as const },
-  { id: 'style', Icon: Paintbrush, label: 'Style', tab: 'design' as const },
-  { id: 'add',   Icon: Plus,       label: 'Add',   tab: 'canvas' as const, primary: true },
+  { id: 'move',  Icon: GripVertical, label: 'Reorder',  tab: 'canvas' as const },
+  { id: 'style', Icon: Paintbrush, label: 'Design', tab: 'design' as const },
+  { id: 'add',   Icon: Plus,       label: 'Section', tab: 'canvas' as const, primary: true },
   { id: 'undo',  Icon: Undo2,      label: 'Undo',  tab: null },
   { id: 'redo',  Icon: Redo2,      label: 'Redo',  tab: null },
 ] as const;

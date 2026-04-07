@@ -19,8 +19,8 @@ const MAX_W = 460;
 const DEFAULT_W = 340;
 
 const TAB_LABEL: Partial<Record<EditorTab, string>> = {
-  story:       'Story',
-  canvas:      'Sections',
+  story:       'Chapters',
+  canvas:      'Page Layout',
   events:      'Events',
   design:      'Design',
   details:     'Details',
@@ -40,8 +40,8 @@ const TAB_LABEL: Partial<Record<EditorTab, string>> = {
 };
 
 const TAB_HINT: Partial<Record<EditorTab, string>> = {
-  story:       'Edit chapters & narrative',
-  canvas:      'Arrange & add sections',
+  story:       'Edit your story chapters',
+  canvas:      'Add, reorder & configure sections',
   events:      'Ceremony & schedule',
   design:      'Colors, fonts & effects',
   details:     'URL, SEO & settings',
