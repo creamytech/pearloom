@@ -197,43 +197,7 @@ export function EditorCanvas() {
         background: 'var(--pl-cream-deep)',
       }}
     >
-      {/* ── Device switcher ── */}
-      <div style={{
-        position: 'absolute', top: '56px', left: '0', right: '0',
-        display: 'flex', justifyContent: 'center', zIndex: 40, pointerEvents: 'none',
-      }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '2px', padding: '4px',
-          borderRadius: '100px', pointerEvents: 'auto',
-          background: 'rgba(250,247,242,0.78)',
-          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,255,255,0.5)',
-          boxShadow: '0 2px 12px rgba(43,30,20,0.08)',
-        } as React.CSSProperties}>
-          {([
-            { mode: 'desktop' as DeviceMode, Icon: Monitor },
-            { mode: 'tablet' as DeviceMode, Icon: Tablet },
-            { mode: 'mobile' as DeviceMode, Icon: Smartphone },
-          ]).map(({ mode, Icon }) => (
-            <motion.button
-              key={mode}
-              onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.85 }}
-              style={{
-                width: '32px', height: '32px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: '50%', border: 'none',
-                background: device === mode ? 'var(--pl-ink)' : 'transparent',
-                color: device === mode ? 'white' : 'var(--pl-muted)',
-                cursor: 'pointer', position: 'relative', zIndex: 1,
-              }}
-            >
-              <Icon size={14} />
-            </motion.button>
-          ))}
-        </div>
-      </div>
+      {/* Device switcher moved to toolbar */}
 
       {/* ── Canvas content — direct DOM rendering ── */}
       <div style={{

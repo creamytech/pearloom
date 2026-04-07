@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Eye, Command } from 'lucide-react';
+import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone } from 'lucide-react';
 import {
   UndoIcon, RedoIcon, PublishIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
@@ -65,9 +65,19 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         </span>
       </div>
 
-      {/* Center: Undo/Redo + Cmd+K (desktop) */}
+      {/* Center: Device switcher + Undo/Redo + Cmd+K */}
       {!isMobile && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          {/* Device switcher */}
+          {(['desktop', 'tablet', 'mobile'] as const).map(mode => {
+            const Icon = mode === 'desktop' ? Monitor : mode === 'tablet' ? Tablet : Smartphone;
+            return (
+              <ToolBtn key={mode} onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })} title={`${mode} view`}>
+                <Icon size={13} style={{ opacity: state.device === mode ? 1 : 0.4 }} />
+              </ToolBtn>
+            );
+          })}
+          <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
           <ToolBtn onClick={actions.undo} disabled={!canUndo} title="Undo (⌘Z)">
             <UndoIcon size={13} />
           </ToolBtn>
