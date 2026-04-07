@@ -1020,6 +1020,11 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             logoIcon={manifest.logoIcon}
             logoSvg={manifest.logoSvg}
             navStyle={manifest.navStyle}
+            pageHrefOverride={(slug) => {
+              // In editor: scroll to section instead of navigating
+              const sectionId = slug === '' || slug === 'our-story' ? 'our-story' : slug;
+              return `#${sectionId}`;
+            }}
           />
         </div>
 
