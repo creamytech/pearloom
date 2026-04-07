@@ -72,32 +72,91 @@ const SectionOverlay = React.memo(function SectionOverlay({
   const wrapRef = useRef<HTMLDivElement>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragGhostRef = useRef<HTMLDivElement | null>(null);
+  const dragStartY = useRef(0);
+
+  // Pointer-based smooth drag
+  const handleDragStart = useCallback((e: React.PointerEvent) => {
+    if (!editMode) return;
+    // Only start drag from the grab handle area (first 40px)
+    const rect = wrapRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    dragStartY.current = e.clientY;
+
+    // Create ghost
+    const ghost = document.createElement('div');
+    ghost.style.cssText = `
+      position: fixed; z-index: 99999; pointer-events: none;
+      padding: 10px 20px; border-radius: 14px;
+      background: rgba(250,247,242,0.92);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid ${color}40;
+      box-shadow: 0 12px 40px rgba(43,30,20,0.12);
+      font-size: 0.78rem; font-weight: 600; color: ${color};
+      display: flex; align-items: center; gap: 8px;
+      transform: rotate(1deg) scale(1.02);
+      transition: top 50ms ease-out;
+      left: ${e.clientX - 60}px; top: ${e.clientY - 20}px;
+    `;
+    ghost.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${color}"></span> ${def?.label || blockType}`;
+    document.body.appendChild(ghost);
+    dragGhostRef.current = ghost;
+
+    // Dim the original
+    if (wrapRef.current) {
+      wrapRef.current.style.opacity = '0.3';
+      wrapRef.current.style.transition = 'opacity 0.15s';
+    }
+
+    const onMove = (ev: PointerEvent) => {
+      if (ghost) {
+        ghost.style.top = `${ev.clientY - 20}px`;
+        ghost.style.left = `${ev.clientX - 60}px`;
+      }
+    };
+
+    const onUp = (ev: PointerEvent) => {
+      // Find which drop zone we're over
+      const dropZones = document.querySelectorAll('[data-drop-index]');
+      let closestIdx = -1;
+      let closestDist = Infinity;
+      dropZones.forEach(zone => {
+        const zRect = zone.getBoundingClientRect();
+        const dist = Math.abs(ev.clientY - (zRect.top + zRect.height / 2));
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestIdx = parseInt(zone.getAttribute('data-drop-index') || '-1');
+        }
+      });
+
+      if (closestIdx >= 0 && closestIdx !== index && onBlockReorder) {
+        onBlockReorder(index, closestIdx);
+      }
+
+      // Cleanup
+      ghost.remove();
+      dragGhostRef.current = null;
+      setIsDragging(false);
+      if (wrapRef.current) {
+        wrapRef.current.style.opacity = '1';
+      }
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }, [editMode, index, blockType, color, def, onBlockReorder]);
 
   return (
     <div
       ref={wrapRef}
       data-block-id={blockId}
-      draggable={editMode}
-      onDragStart={(e) => {
-        e.dataTransfer.setData('pearloom/reorder', String(index));
-        e.dataTransfer.effectAllowed = 'move';
-      }}
-      onDragOver={(e) => {
-        if (e.dataTransfer.types.includes('pearloom/reorder')) {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          if (wrapRef.current) wrapRef.current.style.borderTopColor = 'var(--pl-olive)';
-        }
-      }}
-      onDragLeave={() => { if (wrapRef.current) wrapRef.current.style.borderTopColor = 'transparent'; }}
-      onDrop={(e) => {
-        const fromStr = e.dataTransfer.getData('pearloom/reorder');
-        if (fromStr && onBlockReorder) {
-          e.preventDefault();
-          onBlockReorder(parseInt(fromStr), index);
-        }
-        if (wrapRef.current) wrapRef.current.style.borderTopColor = 'transparent';
-      }}
       onMouseEnter={() => { if (wrapRef.current && !isSelected) wrapRef.current.style.outlineColor = 'rgba(163,177,138,0.35)'; }}
       onMouseLeave={() => { if (wrapRef.current && !isSelected) wrapRef.current.style.outlineColor = 'transparent'; }}
       onClick={(e) => { e.stopPropagation(); onSectionClick?.(blockType); }}
@@ -112,26 +171,37 @@ const SectionOverlay = React.memo(function SectionOverlay({
         outline: isSelected ? `2px solid ${color}` : '2px solid transparent',
         outlineOffset: '-2px',
         borderRadius: '4px',
-        transition: 'outline-color 0.15s',
-        cursor: editMode ? 'grab' : 'default',
-        borderTop: '3px solid transparent',
+        transition: 'outline-color 0.15s, opacity 0.15s',
+        cursor: editMode ? 'default' : 'default',
       }}
     >
       {/* Inline toolbar — selected only */}
       {editMode && isSelected && (
         <div style={{
-          position: 'absolute', top: '-34px', left: '50%', transform: 'translateX(-50%)',
+          position: 'absolute', top: '-36px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 100, display: 'flex', alignItems: 'center', gap: '2px',
-          padding: '4px 6px', borderRadius: '10px',
+          padding: '4px 6px', borderRadius: '12px',
           background: 'rgba(250,247,242,0.92)',
-          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           border: '1px solid rgba(255,255,255,0.5)',
-          boxShadow: '0 4px 16px rgba(43,30,20,0.1)',
+          boxShadow: '0 4px 20px rgba(43,30,20,0.1)',
         } as React.CSSProperties}>
-          <span style={{ fontSize: '0.55rem', fontWeight: 700, color, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0 6px' }}>
+          {/* Drag handle — grab to reorder */}
+          <div
+            onPointerDown={handleDragStart}
+            style={{
+              cursor: 'grab', padding: '4px 2px', display: 'flex',
+              alignItems: 'center', color: 'rgba(0,0,0,0.2)',
+              touchAction: 'none',
+            }}
+            title="Drag to reorder"
+          >
+            <GripVertical size={12} />
+          </div>
+          <span style={{ fontSize: '0.55rem', fontWeight: 700, color, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0 4px' }}>
             {def?.label || blockType}
           </span>
-          <div style={{ width: '1px', height: '14px', background: 'rgba(0,0,0,0.06)' }} />
+          <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.25)' }} />
           {[
             ...(index > 0 ? [{ icon: '↑', action: 'moveUp' as const }] : []),
             ...(index < total - 1 ? [{ icon: '↓', action: 'moveDown' as const }] : []),
@@ -179,6 +249,19 @@ const SectionOverlay = React.memo(function SectionOverlay({
   );
 });
 
+// ── Global drag state for smooth canvas dragging ──
+export interface CanvasDragState {
+  active: boolean;
+  sourceType: 'canvas' | 'panel';
+  blockType: string;
+  blockId?: string;
+  fromIndex?: number;
+  ghostLabel: string;
+  ghostColor: string;
+  pointerX: number;
+  pointerY: number;
+}
+
 interface SiteRendererProps {
   manifest: StoryManifest;
   names: [string, string];
@@ -202,9 +285,11 @@ interface SiteRendererProps {
   onBlockAction?: (action: 'moveUp' | 'moveDown' | 'duplicate' | 'delete' | 'toggleVisibility', blockId: string) => void;
   /** Clipboard has a copied block */
   hasClipboard?: boolean;
+  /** External drag state (from panel) */
+  externalDrag?: CanvasDragState | null;
 }
 
-export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, onBlockReorder, onBlockCopy, onBlockPaste, editMode = true, selectedBlockId, onBlockAction, hasClipboard }: SiteRendererProps) {
+export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, onBlockReorder, onBlockCopy, onBlockPaste, editMode = true, selectedBlockId, onBlockAction, hasClipboard, externalDrag }: SiteRendererProps) {
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
@@ -754,6 +839,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
 
     return (
       <div
+        data-drop-index={index}
         onDragOver={e => {
           if (e.dataTransfer.types.includes('pearloom/block-type') || e.dataTransfer.types.includes('pearloom/reorder')) {
             e.preventDefault();
