@@ -61,7 +61,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'minimal', label: 'Minimal', desc: 'Clean line, no background',
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.4 }} />
           </div>
@@ -73,7 +73,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'solid', label: 'Solid', desc: 'Opaque bar with shadow',
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'white', boxShadow: '0 1px 3px rgba(43,30,20,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
             <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.5 }} />
@@ -99,7 +99,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'floating', label: 'Floating', desc: 'Pill-shaped, detached from edge',
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '100px', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
             <div style={{ width: '10px', height: '1.5px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.4 }} />
@@ -134,7 +134,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 style={{
                   aspectRatio: '1',
                   borderRadius: '10px',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                   background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
                   backdropFilter: 'blur(8px)',
                   WebkitBackdropFilter: 'blur(8px)',
@@ -160,7 +160,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
             <button
               onClick={() => onChange({ ...manifest, logoSvg: undefined })}
               style={{
-                fontSize: '0.55rem', color: 'var(--pl-muted)', background: 'rgba(0,0,0,0.04)',
+                fontSize: '0.55rem', color: 'var(--pl-muted)', background: 'rgba(255,255,255,0.2)',
                 border: 'none', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer',
               }}
             >
@@ -185,7 +185,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 style={{
                   display: 'flex', flexDirection: 'column',
                   borderRadius: '10px', overflow: 'hidden',
-                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                   background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
                   cursor: 'pointer', padding: 0,
                   boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.12)' : 'none',
@@ -254,7 +254,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
               padding: '3px 10px', borderRadius: '100px', border: 'none',
               fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
               textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s',
-              background: filter === cat ? 'var(--pl-olive)' : 'rgba(0,0,0,0.03)',
+              background: filter === cat ? 'var(--pl-olive)' : 'rgba(255,255,255,0.2)',
               color: filter === cat ? 'white' : 'var(--pl-muted)',
             }}
           >
@@ -277,7 +277,7 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 position: 'relative',
                 aspectRatio: '1',
                 borderRadius: '12px',
-                border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                 background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
@@ -540,7 +540,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
         {/* Active stickers list with controls */}
         {(manifest.stickers?.length ?? 0) > 0 && (
-          <div style={{ marginTop: '12px', borderTop: '1px solid var(--pl-divider, #E0D8CA)', paddingTop: '10px' }}>
+          <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '10px' }}>
             <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted, #7A756E)', marginBottom: '8px' }}>
               Active ({manifest.stickers!.length})
             </div>
@@ -573,7 +573,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* Live preview — compact, no extra nesting */}
-      <div style={{ borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
+      <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(43,30,20,0.05)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
           <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, var(--pl-ink-soft))', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}
