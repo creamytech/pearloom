@@ -840,6 +840,194 @@ function BlockConfigPanel({
           />
         );
 
+      case 'spotify':
+        return (
+          <MiniInput
+            label="Spotify playlist URL"
+            value={String(block.config?.url || '')}
+            onChange={v => updateBlockConfig({ url: v })}
+            placeholder="https://open.spotify.com/playlist/..."
+          />
+        );
+
+      case 'hashtag':
+        return (
+          <MiniInput
+            label="Hashtag"
+            value={String(block.config?.hashtag || '')}
+            onChange={v => updateBlockConfig({ hashtag: v })}
+            placeholder={`${manifest.chapters?.[0]?.title || 'OurWedding'}2026`}
+          />
+        );
+
+      case 'guestbook':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <MiniInput
+              label="Heading"
+              value={String(block.config?.heading || 'Leave Your Wishes')}
+              onChange={v => updateBlockConfig({ heading: v })}
+              placeholder="Leave Your Wishes"
+            />
+            <MiniInput
+              label="Prompt text"
+              value={String(block.config?.prompt || 'Share your love and well wishes')}
+              onChange={v => updateBlockConfig({ prompt: v })}
+              placeholder="Share your love and well wishes"
+            />
+          </div>
+        );
+
+      case 'registry':
+        return noConfig; // Edited in Details → Registry
+
+      case 'travel':
+        return noConfig; // Edited in Details → Travel
+
+      case 'faq':
+        return noConfig; // Edited in Details → FAQ
+
+      case 'rsvp':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <MiniInput
+              label="RSVP deadline"
+              value={String(block.config?.deadline || manifest.logistics?.rsvpDeadline || '')}
+              onChange={v => updateBlockConfig({ deadline: v })}
+              placeholder="2026-05-01"
+            />
+            <Toggle
+              label="Show meal preferences"
+              value={block.config?.showMeals !== false}
+              onChange={v => updateBlockConfig({ showMeals: v })}
+            />
+          </div>
+        );
+
+      case 'hero':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <MiniInput
+              label="Tagline"
+              value={String(manifest.poetry?.heroTagline || '')}
+              onChange={v => {
+                const poetry = { ...(manifest.poetry || {}), heroTagline: v };
+                onChange({ ...manifest, poetry: poetry as StoryManifest['poetry'] });
+              }}
+              placeholder="captured in your warmest light"
+            />
+            <MiniInput
+              label="Cover photo URL"
+              value={String(manifest.coverPhoto || '')}
+              onChange={v => onChange({ ...manifest, coverPhoto: v })}
+              placeholder="https://... or leave blank for AI art"
+            />
+          </div>
+        );
+
+      case 'photos':
+      case 'photoWall':
+      case 'gallery':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <MiniInput
+              label="Section title"
+              value={String(block.config?.title || block.type === 'photoWall' ? 'Photo Wall' : 'Gallery')}
+              onChange={v => updateBlockConfig({ title: v })}
+              placeholder="Our Photos"
+            />
+            <Toggle
+              label="Show captions"
+              value={block.config?.showCaptions !== false}
+              onChange={v => updateBlockConfig({ showCaptions: v })}
+            />
+          </div>
+        );
+
+      case 'weddingParty':
+        return (
+          <p style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', lineHeight: 1.6 }}>
+            Edit wedding party members in the <strong>Chapters</strong> tab.
+          </p>
+        );
+
+      case 'vibeQuote':
+      case 'welcome':
+        return (
+          <MiniInput
+            label={block.type === 'welcome' ? 'Welcome statement' : 'Quote text'}
+            value={String(block.type === 'welcome' ? (manifest.poetry?.welcomeStatement || '') : (manifest.vibeSkin?.dividerQuote || manifest.vibeString || ''))}
+            onChange={v => {
+              if (block.type === 'welcome') {
+                onChange({ ...manifest, poetry: { ...(manifest.poetry || {}), welcomeStatement: v } as StoryManifest['poetry'] });
+              } else {
+                onChange({ ...manifest, vibeSkin: manifest.vibeSkin ? { ...manifest.vibeSkin, dividerQuote: v } : manifest.vibeSkin });
+              }
+            }}
+            placeholder={block.type === 'welcome' ? 'A personal note to your guests...' : 'A beautiful quote...'}
+          />
+        );
+
+      case 'anniversary':
+        return (
+          <MiniInput
+            label="Anniversary title"
+            value={String(block.config?.title || 'Anniversary Milestones')}
+            onChange={v => updateBlockConfig({ title: v })}
+            placeholder="Anniversary Milestones"
+          />
+        );
+
+      case 'storymap':
+        return (
+          <MiniInput
+            label="Map title"
+            value={String(block.config?.title || 'Our Journey')}
+            onChange={v => updateBlockConfig({ title: v })}
+            placeholder="Our Journey"
+          />
+        );
+
+      case 'divider':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label style={lbl}>Divider Height</label>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              {[{ label: 'S', value: '40' }, { label: 'M', value: '60' }, { label: 'L', value: '80' }, { label: 'XL', value: '120' }].map(h => (
+                <button
+                  key={h.value}
+                  onClick={() => updateBlockConfig({ height: h.value })}
+                  style={{
+                    flex: 1, padding: '6px', borderRadius: '8px', border: 'none',
+                    background: String(block.config?.height || '60') === h.value ? 'rgba(163,177,138,0.25)' : 'rgba(255,255,255,0.2)',
+                    color: String(block.config?.height || '60') === h.value ? 'var(--pl-olive)' : 'var(--pl-muted)',
+                    fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+                  }}
+                >
+                  {h.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'story':
+        return (
+          <p style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', lineHeight: 1.6 }}>
+            Edit chapters in the <strong>Chapters</strong> tab. Change story style in the story style pills above.
+          </p>
+        );
+
+      case 'quiz':
+        return (
+          <MiniInput
+            label="Quiz title"
+            value={String(block.config?.title || 'How Well Do You Know Us?')}
+            onChange={v => updateBlockConfig({ title: v })}
+            placeholder="How Well Do You Know Us?"
+          />
+        );
+
       default:
         return noConfig;
     }
