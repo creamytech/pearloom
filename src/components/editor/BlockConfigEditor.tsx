@@ -42,8 +42,10 @@ function PropControl({
     width: '100%',
     padding: '8px 12px',
     borderRadius: 'var(--pl-radius-sm)',
-    border: '1.5px solid var(--pl-divider)',
-    background: 'white',
+    border: '1px solid rgba(255,255,255,0.4)',
+    background: 'rgba(255,255,255,0.35)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
     fontSize: '0.88rem',
     fontFamily: 'var(--pl-font-body)',
     color: 'var(--pl-ink)',
@@ -255,7 +257,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         marginBottom: '20px', paddingBottom: '12px',
-        borderBottom: '1px solid var(--pl-divider)',
+        borderBottom: '1px solid rgba(255,255,255,0.3)',
       }}>
         <div style={{
           width: '36px', height: '36px', borderRadius: '10px',
@@ -292,7 +294,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
               color: 'var(--pl-muted)',
               marginBottom: '12px',
               paddingBottom: '6px',
-              borderBottom: '1px solid var(--pl-divider)',
+              borderBottom: '1px solid rgba(255,255,255,0.3)',
             }}>
               {groupName}
             </h4>

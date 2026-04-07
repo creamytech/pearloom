@@ -129,8 +129,8 @@ export default function FontPicker({
   return (
     <div
       style={{
-        background: 'var(--pl-cream-deep)',
-        color: '#FFFFFF',
+        background: 'rgba(255,255,255,0.15)',
+        color: 'var(--pl-ink)',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',

@@ -50,7 +50,7 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
         <div style={{ width: '45%', background: 'rgba(163,177,138,0.25)', borderRadius: '2px' }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center', padding: '2px' }}>
           <div style={{ height: '4px', background: 'var(--pl-muted)', borderRadius: '1px' }} />
-          <div style={{ height: '4px', width: '70%', background: 'rgba(0,0,0,0.07)', borderRadius: '1px' }} />
+          <div style={{ height: '4px', width: '70%', background: 'rgba(255,255,255,0.3)', borderRadius: '1px' }} />
         </div>
       </div>
     ),
@@ -245,7 +245,7 @@ export function ChapterPanel({
             ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}),
           }}
           onFocus={e => { if (streamingText == null) { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; } }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; e.currentTarget.style.boxShadow = 'none'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
 
@@ -349,7 +349,7 @@ export function ChapterPanel({
           placeholder="Or type your own mood..."
           style={{ ...inp, fontSize: '0.82rem', padding: '5px 8px' }}
           onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
         />
       </div>
 
