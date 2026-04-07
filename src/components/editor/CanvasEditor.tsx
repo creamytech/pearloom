@@ -1384,14 +1384,19 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
   const activeDef = activeBlock ? BLOCK_CATALOGUE.find(d => d.type === activeBlock.type) : null;
   const existingTypes = new Set(blocks.map(b => b.type));
 
+  // Available block types not yet added
+  const availableBlocks = BLOCK_CATALOGUE
+    .filter(b => b.occasions.includes((manifest.occasion || 'wedding') as OccasionTag))
+    .filter(b => !existingTypes.has(b.type));
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* ── Block list (scrollable) ── */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+      {/* ── Scrollable content ── */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 2px' } as React.CSSProperties}>
 
-        {/* ── Page Selector ── */}
-        <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.25)', marginBottom: '4px' }}>
-          <label style={{ ...lbl, marginBottom: '6px' }}>Editing Page</label>
+        {/* ── Page Selector (collapsed) ── */}
+        <div style={{ padding: '0 0 6px', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: '2px' }}>
+          <label style={{ ...lbl, marginBottom: '4px', fontSize: '0.55rem' }}>Page</label>
           <select
             value={activePage}
             onChange={e => setActivePage(e.target.value)}
@@ -1473,46 +1478,13 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           </AnimatePresence>
         </div>
 
-        {/* Section header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-          <span style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-ink-soft)' }}>
-            {isCustomPage ? `${currentCustomPage?.title || 'Page'} Sections` : 'Page Sections'}
-          </span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--pl-muted)' }}>
-            {isMobile ? 'tap to edit · hold to drag' : 'click to edit · drag to reorder'}
-          </span>
+        {/* ── ACTIVE SECTIONS — reorderable ── */}
+        <div style={{
+          fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
+          textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '4px 4px 6px',
+        }}>
+          Active · {blocks.length}
         </div>
-
-        {/* Empty state */}
-        {blocks.length === 0 && (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: '10px', padding: '3rem 1.5rem', borderRadius: '16px',
-            border: '1px solid rgba(214,198,168,0.08)',
-            background: 'linear-gradient(135deg, rgba(214,198,168,0.04) 0%, rgba(214,198,168,0.02) 100%)',
-            textAlign: 'center',
-          }}>
-            <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginBottom: '4px' }} />
-            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--pl-muted)', letterSpacing: '-0.01em' }}>Canvas is empty</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.6 }}>Add your first section below</div>
-            <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginTop: '4px' }} />
-            <button
-              onClick={() => addBlock('hero')}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                marginTop: '4px', padding: '0.5rem 1.25rem', borderRadius: '100px',
-                border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.1)',
-                color: 'rgba(163,177,138,0.85)', cursor: 'pointer',
-                fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.18)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.45)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)'; }}
-            >
-              + Add Hero
-            </button>
-          </div>
-        )}
 
         {/* ── Drag-sortable block list ── */}
         <div
@@ -1638,7 +1610,55 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           })()}
         </div>
 
-        <AddBlockPicker onAdd={addBlock} onDragType={setDraggingNewType} existingTypes={existingTypes} occasion={(manifest.occasion || 'wedding') as OccasionTag} />
+        {/* ── AVAILABLE SECTIONS — click to add ── */}
+        {availableBlocks.length > 0 && (
+          <>
+            <div style={{
+              fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
+              textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '12px 4px 6px',
+              borderTop: '1px solid rgba(255,255,255,0.2)', marginTop: '4px',
+            }}>
+              Add Sections
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {availableBlocks.map(b => (
+                <motion.button
+                  key={b.type}
+                  onClick={() => addBlock(b.type)}
+                  draggable
+                  onDragStart={(e) => {
+                    (e as unknown as React.DragEvent).dataTransfer?.setData('pearloom/block-type', b.type);
+                    setDraggingNewType(b.type);
+                  }}
+                  onDragEnd={() => setDraggingNewType(null)}
+                  whileHover={{ y: -1, background: 'rgba(255,255,255,0.4)' }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '10px 10px', borderRadius: '14px',
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    background: 'rgba(255,255,255,0.15)',
+                    cursor: 'grab', textAlign: 'left',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <div style={{
+                    width: '32px', height: '32px', borderRadius: '10px', flexShrink: 0,
+                    background: `${b.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${b.color}25`,
+                  }}>
+                    <b.icon size={15} color={b.color} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-ink)' }}>{b.label}</div>
+                    <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.description}</div>
+                  </div>
+                  <Plus size={14} style={{ color: 'var(--pl-olive)', flexShrink: 0, opacity: 0.5 }} />
+                </motion.button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Config panel (slides up from bottom) ── */}
