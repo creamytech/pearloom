@@ -120,7 +120,12 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
           return (
             <div
               key={name}
-              style={{ ...cellStyle(isSelected), position: 'relative' }}
+              style={{ ...cellStyle(isSelected), position: 'relative', cursor: 'grab' }}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('pearloom/asset', JSON.stringify({ id: name, type: 'illustrations', name }));
+                e.dataTransfer.effectAllowed = 'copy';
+              }}
               onClick={() => {
                 const asset = { id: name, type: 'illustrations' as AssetCategory, name };
                 onSelect(asset);
@@ -156,7 +161,12 @@ export function AssetPicker({ onSelect, onAddSticker, selectedId }: AssetPickerP
           return (
             <div
               key={name}
-              style={{ ...cellStyle(isSelected), position: 'relative' }}
+              style={{ ...cellStyle(isSelected), position: 'relative', cursor: 'grab' }}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('pearloom/asset', JSON.stringify({ id: name, type: 'accents', name }));
+                e.dataTransfer.effectAllowed = 'copy';
+              }}
               onClick={() => {
                 const asset = { id: name, type: 'accents' as AssetCategory, name };
                 onSelect(asset);

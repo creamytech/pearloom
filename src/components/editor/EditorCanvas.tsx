@@ -174,6 +174,22 @@ export function EditorCanvas() {
 
   // ── Inline text edit → update manifest ──────────────────
   const handleTextEdit = useCallback((path: string, value: string) => {
+    // Sticker operations
+    if (path === '__addSticker__') {
+      const sticker = JSON.parse(value);
+      actions.handleDesignChange({ ...manifest, stickers: [...(manifest.stickers || []), sticker] });
+      return;
+    }
+    if (path === '__moveSticker__') {
+      const { index, x, y } = JSON.parse(value);
+      const stickers = [...(manifest.stickers || [])];
+      if (stickers[index]) {
+        stickers[index] = { ...stickers[index], x, y };
+        actions.handleDesignChange({ ...manifest, stickers });
+      }
+      return;
+    }
+
     if (path.startsWith('chapter:')) {
       const [, chapterId, field] = path.split(':');
       const chapter = manifest.chapters?.find(c => c.id === chapterId);

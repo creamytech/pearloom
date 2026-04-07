@@ -1143,6 +1143,111 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Made with Pearloom</div>
         </footer>
 
+        {/* Global sticker overlay — all stickers render here, draggable in editor */}
+        {(manifest.stickers?.length ?? 0) > 0 && (
+          <div
+            style={{ position: 'fixed', inset: 0, pointerEvents: editMode ? 'auto' : 'none', zIndex: 15 }}
+            onDragOver={e => { if (e.dataTransfer.types.includes('pearloom/asset')) { e.preventDefault(); } }}
+            onDrop={e => {
+              const assetData = e.dataTransfer.getData('pearloom/asset');
+              if (!assetData) return;
+              e.preventDefault();
+              const asset = JSON.parse(assetData);
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * 100;
+              const y = ((e.clientY - rect.top) / rect.height) * 100;
+              const newSticker: import('@/types').StickerItem = {
+                id: `sticker-${Date.now()}`,
+                name: asset.name,
+                type: asset.type,
+                x, y, size: 80, rotation: 0, opacity: 0.85,
+              };
+              onTextEdit?.(`__addSticker__`, JSON.stringify(newSticker));
+            }}
+          >
+            {manifest.stickers!.map((s, i) => {
+              const module = s.type === 'illustrations'
+                ? require('@/components/asset-library/SvgIllustrations')
+                : s.type === 'accents'
+                  ? require('@/components/asset-library/SvgAccents')
+                  : require('@/components/asset-library/SvgDividers');
+              const Comp = module[s.name] as React.ComponentType<{ size?: number; color?: string }> | undefined;
+              if (!Comp) return null;
+              return (
+                <div
+                  key={s.id}
+                  style={{
+                    position: 'absolute',
+                    left: `${s.x}%`, top: `${s.y}%`,
+                    transform: `translate(-50%, -50%) rotate(${s.rotation}deg)`,
+                    opacity: s.opacity,
+                    cursor: editMode ? 'grab' : 'default',
+                    pointerEvents: editMode ? 'auto' : 'none',
+                  }}
+                  onPointerDown={editMode ? (e) => {
+                    e.preventDefault();
+                    const startX = e.clientX, startY = e.clientY;
+                    const startSX = s.x, startSY = s.y;
+                    const container = e.currentTarget.parentElement!;
+                    const rect = container.getBoundingClientRect();
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.cursor = 'grabbing';
+                    el.style.zIndex = '100';
+
+                    const onMove = (ev: PointerEvent) => {
+                      const dx = ((ev.clientX - startX) / rect.width) * 100;
+                      const dy = ((ev.clientY - startY) / rect.height) * 100;
+                      el.style.left = `${startSX + dx}%`;
+                      el.style.top = `${startSY + dy}%`;
+                    };
+                    const onUp = (ev: PointerEvent) => {
+                      const dx = ((ev.clientX - startX) / rect.width) * 100;
+                      const dy = ((ev.clientY - startY) / rect.height) * 100;
+                      el.style.cursor = 'grab';
+                      el.style.zIndex = '';
+                      // Save new position
+                      const newX = Math.max(0, Math.min(100, startSX + dx));
+                      const newY = Math.max(0, Math.min(100, startSY + dy));
+                      onTextEdit?.(`__moveSticker__`, JSON.stringify({ index: i, x: newX, y: newY }));
+                      window.removeEventListener('pointermove', onMove);
+                      window.removeEventListener('pointerup', onUp);
+                    };
+                    window.addEventListener('pointermove', onMove);
+                    window.addEventListener('pointerup', onUp);
+                  } : undefined}
+                >
+                  <Comp size={s.size} color={pal.accent} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Drop zone for new assets (when no stickers yet) */}
+        {editMode && !(manifest.stickers?.length) && (
+          <div
+            style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 15 }}
+            onDragOver={e => { if (e.dataTransfer.types.includes('pearloom/asset')) { e.preventDefault(); (e.currentTarget as HTMLElement).style.pointerEvents = 'auto'; } }}
+            onDragLeave={e => { (e.currentTarget as HTMLElement).style.pointerEvents = 'none'; }}
+            onDrop={e => {
+              const assetData = e.dataTransfer.getData('pearloom/asset');
+              if (!assetData) return;
+              e.preventDefault();
+              const asset = JSON.parse(assetData);
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * 100;
+              const y = ((e.clientY - rect.top) / rect.height) * 100;
+              const newSticker: import('@/types').StickerItem = {
+                id: `sticker-${Date.now()}`,
+                name: asset.name,
+                type: asset.type,
+                x, y, size: 80, rotation: 0, opacity: 0.85,
+              };
+              onTextEdit?.(`__addSticker__`, JSON.stringify(newSticker));
+            }}
+          />
+        )}
+
         {/* Context menu is now inside SectionOverlay */}
       </div>
     </ThemeProvider>
