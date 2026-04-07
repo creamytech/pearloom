@@ -844,10 +844,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
           </EditorWing>
           </div>
 
-          {/* Floating bottom toolbar */}
-          <div style={{ pointerEvents: 'auto' }}>
-            <FloatingToolbar />
-          </div>
+          {/* Bottom toolbar removed — functions now in top bar + rail + inline canvas toolbar */}
         </div>
       )}
 

@@ -56,10 +56,10 @@ function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boo
       whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
       whileTap={{ scale: 0.88 }}
       style={{
-        width: '44px', height: '44px',
+        width: '38px', height: '38px',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        gap: '3px', border: 'none', borderRadius: '14px',
+        gap: '2px', border: 'none', borderRadius: '12px',
         background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
         color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
         cursor: 'pointer', position: 'relative',
@@ -78,7 +78,7 @@ function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boo
         />
       )}
       <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
-      <span style={{ fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
+      <span style={{ fontSize: '0.42rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
         {item.label}
       </span>
     </motion.button>
@@ -116,29 +116,16 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+        position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
         zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: '4px', padding: '12px 8px', borderRadius: '24px',
-        background: 'rgba(250,247,242,0.78)',
+        gap: '2px', padding: '8px 6px', borderRadius: '18px',
+        background: 'rgba(250,247,242,0.72)',
         backdropFilter: 'blur(32px) saturate(1.5)',
         WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
-        border: '1px solid rgba(255,255,255,0.5)',
-        boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
+        border: '1px solid rgba(255,255,255,0.4)',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.08), inset 0 1px 0 rgba(255,255,255,0.3)',
       } as React.CSSProperties}
     >
-      {/* Logo */}
-      <motion.div
-        whileHover={{ scale: 1.1 }}
-        style={{
-          width: '40px', height: '40px', borderRadius: '50%',
-          background: 'var(--pl-olive-mist)', border: '2px solid var(--pl-olive)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          marginBottom: '8px', cursor: 'pointer',
-        }}
-      >
-        <ElegantHeartIcon size={16} color="var(--pl-olive-deep)" />
-      </motion.div>
-
       {/* Primary nav items */}
       {PRIMARY_ITEMS.map(item => (
         <RailButton key={item.id} item={item} isActive={activeTab === item.tab} onClick={() => handleClick(item.tab)} />

@@ -135,9 +135,9 @@ export function EditorWing({
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
           style={{
             position: 'absolute',
-            top: '52px',
-            right: '8px',
-            bottom: '72px',
+            top: '48px',
+            right: '12px',
+            bottom: '12px',
             width: panelW,
             zIndex: 60,
             display: 'flex',
