@@ -365,36 +365,76 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         </Card>
 
       ) : sites.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="flex flex-col items-center justify-center text-center py-28 px-8 rounded-[var(--pl-radius-xl)] border-2 border-dashed border-[var(--pl-divider)] max-w-[560px] mx-auto"
-        >
-          <div className="w-20 h-20 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mb-8">
-            <PearIcon size={48} color="var(--pl-olive)" />
-          </div>
-          <h3 className="font-heading text-[clamp(1.8rem,4vw,2.5rem)] italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
-            Start your story
-          </h3>
-          <div className="w-12 h-[2px] bg-[var(--pl-gold)] mx-auto mb-5 rounded-full" />
-          <p className="text-[var(--pl-muted)] max-w-[320px] leading-[1.8] text-[0.95rem] mb-10">
-            Build a stunning celebration site in minutes — AI-powered and completely yours.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
-            <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>
-              Create with AI
-            </Button>
-            {onQuickStart && (
-              <Button variant="secondary" size="lg" onClick={onQuickStart}>
-                Quick Start with Template
+        <div className="max-w-[640px] mx-auto">
+          {/* Hero empty state */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="flex flex-col items-center justify-center text-center py-16 px-8 rounded-[24px] mb-8"
+            style={{
+              background: 'rgba(255,255,255,0.5)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.6)',
+              boxShadow: '0 4px 24px rgba(43,30,20,0.04)',
+            } as React.CSSProperties}
+          >
+            <div className="w-20 h-20 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mb-6">
+              <PearIcon size={48} color="var(--pl-olive)" />
+            </div>
+            <h3 className="font-heading text-[clamp(1.6rem,4vw,2.2rem)] italic text-[var(--pl-ink-soft)] mb-2 tracking-tight leading-tight">
+              Welcome to Pearloom
+            </h3>
+            <p className="text-[var(--pl-muted)] max-w-[360px] leading-[1.7] text-[0.92rem] mb-8">
+              Create a beautiful, AI-powered celebration site in minutes. Upload photos, describe your vibe, and we&apos;ll craft something unforgettable.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>
+                Create with AI
               </Button>
-            )}
-          </div>
-          <p className="text-[var(--pl-muted)] text-[0.75rem] mt-4 opacity-70">
-            Quick Start skips photos — pick a template and start editing in seconds.
-          </p>
-        </motion.div>
+              {onQuickStart && (
+                <Button variant="secondary" size="lg" onClick={onQuickStart}>
+                  Start from Template
+                </Button>
+              )}
+            </div>
+          </motion.div>
+
+          {/* How it works — 3 steps */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+          >
+            {[
+              { num: '1', title: 'Add photos', desc: 'From Google Photos or your device — the moments that matter most.' },
+              { num: '2', title: 'Set your vibe', desc: 'Describe the feeling. AI crafts colors, fonts, and layout around it.' },
+              { num: '3', title: 'Share your site', desc: 'Get a beautiful link to send to your guests. Edit anytime.' },
+            ].map((step, i) => (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
+                className="p-5 rounded-[16px] text-center"
+                style={{
+                  background: 'rgba(255,255,255,0.4)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.5)',
+                } as React.CSSProperties}
+              >
+                <div className="w-8 h-8 rounded-full bg-[var(--pl-olive-mist)] flex items-center justify-center mx-auto mb-3 text-[0.72rem] font-bold text-[var(--pl-olive-deep)]">
+                  {step.num}
+                </div>
+                <h4 className="text-[0.82rem] font-semibold text-[var(--pl-ink)] mb-1">{step.title}</h4>
+                <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed">{step.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
 
       ) : (
         <>

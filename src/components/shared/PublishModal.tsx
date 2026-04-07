@@ -194,6 +194,30 @@ export function PublishModal({
             </div>
           )}
 
+          {/* Publish readiness warnings */}
+          {manifest && (() => {
+            const warnings: string[] = [];
+            const hasDate = !!(manifest.events?.[0]?.date || manifest.logistics?.date);
+            const hasPhotos = (manifest.chapters?.some(c => (c.images?.length ?? 0) > 0)) || !!manifest.coverPhoto;
+            const hasNames = !!(coupleNames?.[0]?.trim());
+            if (!hasNames) warnings.push('No names set — your hero will be empty');
+            if (!hasDate) warnings.push('No event date — countdown timer won\'t work');
+            if (!hasPhotos) warnings.push('No photos — your site will use placeholder art');
+            if (!manifest.events?.length) warnings.push('No events added — schedule section will be hidden');
+            return warnings.length > 0 ? (
+              <div className="mb-5 p-3 rounded-lg text-[0.78rem] leading-relaxed"
+                style={{ background: 'rgba(196,169,106,0.1)', border: '1px solid rgba(196,169,106,0.2)', color: 'var(--pl-ink-soft)' }}>
+                <div className="font-bold text-[0.65rem] uppercase tracking-[0.08em] text-[var(--pl-gold)] mb-1.5">Before you publish</div>
+                {warnings.map((w, i) => (
+                  <div key={i} className="flex items-start gap-1.5 mt-1">
+                    <span className="text-[var(--pl-gold)] shrink-0 mt-0.5">•</span>
+                    <span>{w}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null;
+          })()}
+
           <Input
             value={subdomain}
             onChange={(e) => handleSubdomainChange(e.target.value)}

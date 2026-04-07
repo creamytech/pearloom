@@ -514,11 +514,14 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             </div>
           </div>
         </div>
-        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.75rem', marginBottom: '0.75rem' }}>
-          Waiting for your selection...
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.4rem, 3vw, 1.8rem)', marginBottom: '0.75rem', color: 'var(--pl-ink-soft)', fontWeight: 400 }}>
+          Pick your favorites...
         </h3>
-        <p style={{ color: C.muted, fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '450px', margin: '0 auto 1.5rem' }}>
-          A Google Photos window is open. Browse your library, select photos, then close the window when done. <strong>Take your time</strong> — we&apos;ll wait up to 30 minutes.
+        <p style={{ color: 'var(--pl-muted)', fontSize: '0.92rem', lineHeight: 1.6, maxWidth: '420px', margin: '0 auto 0.75rem' }}>
+          A Google Photos window should be open. Browse your library, select the photos you love, then come back here.
+        </p>
+        <p style={{ color: 'var(--pl-olive)', fontSize: '0.78rem', fontWeight: 600, margin: '0 auto 1.5rem' }}>
+          ✦ Take your time — we&apos;ll wait as long as you need
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
