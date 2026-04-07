@@ -38,7 +38,7 @@ import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
 // import { AIEditorChat } from './AIEditorChat';
 import { AIContextBar } from './AIContextBar';
-import { MessagingPanel } from '@/components/dashboard/MessagingPanel';
+import { GuestMessagingPanel } from './GuestMessagingPanel';
 import { PostWeddingBanner } from './PostWeddingBanner';
 import { AnalyticsDashboardPanel } from './AnalyticsDashboardPanel';
 import { GuestSearchPanel } from './GuestSearchPanel';
@@ -810,7 +810,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                 )}
 
                 {state.activeTab === 'messaging' && (
-                  <MessagingPanel manifest={manifest} siteId={state.subdomain} subdomain={state.subdomain} />
+                  <GuestMessagingPanel />
                 )}
 
                 {state.activeTab === 'guests' && (

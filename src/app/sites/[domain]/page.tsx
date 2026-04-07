@@ -23,6 +23,7 @@ import { CelebrationOverlay } from '@/components/vibe/CelebrationOverlay';
 import { CountdownBlock } from '@/components/site/CountdownBlock';
 import { SitePasswordWrapper } from '@/components/site/SitePasswordWrapper';
 import { WeddingDayBanner } from '@/components/site/WeddingDayBanner';
+import { WeddingDayTimeline } from '@/components/site/WeddingDayTimeline';
 import { WeddingDayPhotoFeed } from '@/components/site/WeddingDayPhotoFeed';
 import { GuestbookSection } from '@/components/site/GuestbookSection';
 import { GuestPhotoWall } from '@/components/site/GuestPhotoWall';
@@ -979,6 +980,16 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
             vibeSkin={vibeSkin}
           />
         )}
+
+        {manifest.logistics?.date && manifest.events?.length ? (
+          <WeddingDayTimeline
+            events={manifest.events}
+            weddingDate={manifest.logistics.date}
+            accentColor={vibeSkin.palette.accent}
+            headingFont={vibeSkin.fonts.heading}
+            bodyFont={vibeSkin.fonts.body}
+          />
+        ) : null}
 
         <CelebrationOverlay
           occasion={(manifest.occasion as 'wedding' | 'engagement' | 'anniversary' | 'birthday' | 'story') || 'wedding'}
