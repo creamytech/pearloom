@@ -161,8 +161,9 @@ export function useDragSort<T>({
       if (e.pointerId !== dragStateRef.current.pointerId) return;
       const idx = computeDropIndex(e.clientY, dragStateRef.current.dragKey);
       setDropIndex(idx);
-      // Reposition ghost directly on the DOM element — no React re-render needed
+      // Smooth ghost follow — CSS transition for buttery feel
       if (ghostRef?.current && ghostOffsetRef) {
+        ghostRef.current.style.transition = 'top 60ms ease-out';
         ghostRef.current.style.top = `${e.clientY - ghostOffsetRef.current.y}px`;
       }
     };
@@ -220,12 +221,16 @@ export function useDragSort<T>({
         }
       },
       style: {
-        transition: isDraggingRef.current && !isBeingDragged ? 'transform 200ms ease' : 'none',
-        opacity: isBeingDragged ? 0 : 1,
+        // Spring-like cubic-bezier for elastic feel when items shift
+        transition: isDraggingRef.current && !isBeingDragged
+          ? 'transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease'
+          : 'none',
+        opacity: isBeingDragged ? 0.15 : 1,
         position: 'relative',
         zIndex: isBeingDragged ? 10 : 'auto',
-        // Keep a size-preserving placeholder — no shadow/box since item is invisible
         pointerEvents: isBeingDragged ? 'none' : 'auto',
+        // Slight scale-down on the placeholder to create a "gap" feel
+        transform: isBeingDragged ? 'scale(0.97)' : undefined,
       } as React.CSSProperties,
     };
   }, [dragId, getKey]);
