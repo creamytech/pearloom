@@ -2,30 +2,26 @@
 
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Trash2, Eye, EyeOff, MonitorPlay } from 'lucide-react';
-import { lbl, inp } from './editor-utils';
+import { Plus, Trash2, Eye, EyeOff, GripVertical, ChevronDown, ExternalLink } from 'lucide-react';
+import { inp } from './editor-utils';
 import type { StoryManifest } from '@/types';
 
-// ── Pages Panel ────────────────────────────────────────────────
-// Occasion-aware preset pages + user-created custom pages
 export type OccasionType = 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
 
 interface PresetPage {
-  id: string; slug: string; label: string; icon: string;
+  id: string; slug: string; label: string;
   alwaysOn: boolean;
-  occasions: OccasionType[]; // which occasion types this page applies to
+  occasions: OccasionType[];
 }
 
 export const ALL_SITE_PAGES: PresetPage[] = [
-  { id: 'home',     slug: '',         label: 'Home',     icon: '', alwaysOn: true,  occasions: ['wedding', 'anniversary', 'engagement', 'birthday', 'story'] },
-  { id: 'schedule', slug: 'schedule', label: 'Schedule', icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',     icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'travel',   slug: 'travel',   label: 'Travel',   icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'venue',    slug: 'venue',    label: 'Venue',    icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'registry',  slug: 'registry',  label: 'Registry',      icon: '', alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
-  { id: 'faq',       slug: 'faq',       label: 'FAQ',           icon: '', alwaysOn: false, occasions: ['wedding', 'engagement'] },
-  { id: 'guestbook', slug: 'guestbook', label: 'Guest Wishes',  icon: '', alwaysOn: false, occasions: ['wedding', 'anniversary', 'birthday'] },
-  { id: 'live',      slug: 'live',      label: 'Day-Of Updates', icon: '', alwaysOn: false, occasions: ['wedding'] },
+  { id: 'home',     slug: '',         label: 'Home',          alwaysOn: true,  occasions: ['wedding', 'anniversary', 'engagement', 'birthday', 'story'] },
+  { id: 'schedule', slug: 'schedule', label: 'Schedule',      alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'rsvp',     slug: 'rsvp',     label: 'RSVP',          alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'travel',   slug: 'travel',   label: 'Travel',        alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'registry', slug: 'registry', label: 'Registry',      alwaysOn: false, occasions: ['wedding', 'engagement', 'birthday'] },
+  { id: 'faq',      slug: 'faq',      label: 'FAQ',           alwaysOn: false, occasions: ['wedding', 'engagement'] },
+  { id: 'guestbook',slug: 'guestbook',label: 'Guest Wishes',  alwaysOn: false, occasions: ['wedding', 'anniversary', 'birthday'] },
 ];
 
 export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previewPage }: {
@@ -40,35 +36,23 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
 
   const occasion = (manifest.occasion || 'wedding') as OccasionType;
   const filteredPresets = ALL_SITE_PAGES.filter(p => p.occasions.includes(occasion));
+  const hidden = new Set(manifest.hiddenPages || []);
+  const customPages = manifest.customPages || [];
 
   const togglePageVisibility = (pageId: string) => {
-    const hidden = manifest.hiddenPages || [];
-    const isHidden = hidden.includes(pageId);
-    const next = isHidden ? hidden.filter(id => id !== pageId) : [...hidden, pageId];
-    onChange({ ...manifest, hiddenPages: next });
+    const hiddenList = manifest.hiddenPages || [];
+    const isHidden = hiddenList.includes(pageId);
+    onChange({ ...manifest, hiddenPages: isHidden ? hiddenList.filter(id => id !== pageId) : [...hiddenList, pageId] });
   };
-
-  const enabled = new Set<string>(
-    manifest.blocks?.flatMap(b =>
-      b.type === 'event' ? ['schedule', 'rsvp'] : [b.type]
-    ) || []
-  );
-  const baseUrl = subdomain ? `https://${subdomain}.pearloom.com` : '';
-  const customPages = manifest.customPages || [];
 
   const addCustomPage = () => {
     if (!newPageTitle.trim()) return;
     const slug = newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const newPage = {
-      id: `page-${Date.now()}`,
-      slug,
-      title: newPageTitle.trim(),
-      icon: '',
-      blocks: [
-        { id: `b-text-${Date.now()}`, type: 'text' as const, order: 0, visible: true },
-      ],
-      visible: true,
-      order: customPages.length,
+      id: `page-${Date.now()}`, slug,
+      title: newPageTitle.trim(), icon: '',
+      blocks: [{ id: `b-text-${Date.now()}`, type: 'text' as const, order: 0, visible: true }],
+      visible: true, order: customPages.length,
     };
     onChange({ ...manifest, customPages: [...customPages, newPage] });
     setNewPageTitle('');
@@ -81,176 +65,199 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)' }}>
-          Site Pages
-        </span>
-        <button
-          onClick={() => setShowAddPage(!showAddPage)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '5px 10px', borderRadius: '5px', border: 'none',
-            background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)',
-            cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
-          }}
-        >
-          <Plus size={11} /> Add Page
-        </button>
+
+      {/* ── Active Pages ── */}
+      <div style={{
+        fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
+        textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '4px 4px 6px',
+      }}>
+        Site Pages · {filteredPresets.filter(p => !hidden.has(p.id)).length + customPages.length}
       </div>
 
-      {/* Add page form */}
+      {/* Preset pages */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 2px' }}>
+        {filteredPresets.map(page => {
+          const isHidden = hidden.has(page.id);
+          return (
+            <div
+              key={page.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '10px 10px 10px 12px',
+                borderRadius: '14px',
+                background: isHidden ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                transition: 'all 0.15s',
+                opacity: isHidden ? 0.5 : 1,
+              }}
+            >
+              {/* Page name */}
+              <span style={{
+                flex: 1, fontSize: '0.82rem', fontWeight: 600,
+                color: isHidden ? 'var(--pl-muted)' : 'var(--pl-ink)',
+                textDecoration: isHidden ? 'line-through' : 'none',
+              }}>
+                {page.label}
+              </span>
+
+              {/* Preview button */}
+              {onPreviewPage && !isHidden && (
+                <button
+                  onClick={() => onPreviewPage(page.slug || null)}
+                  title="Preview this page"
+                  style={{
+                    width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                    background: previewPage === page.slug ? 'rgba(163,177,138,0.2)' : 'transparent',
+                    color: 'var(--pl-muted)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <ExternalLink size={12} />
+                </button>
+              )}
+
+              {/* Toggle visibility */}
+              {!page.alwaysOn && (
+                <button
+                  onClick={() => togglePageVisibility(page.id)}
+                  title={isHidden ? 'Show page' : 'Hide page'}
+                  style={{
+                    width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                    background: 'transparent',
+                    color: isHidden ? '#e87070' : 'var(--pl-muted)',
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Custom Pages ── */}
+      {customPages.length > 0 && (
+        <>
+          <div style={{
+            fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '12px 4px 6px',
+            borderTop: '1px solid rgba(255,255,255,0.2)', marginTop: '4px',
+          }}>
+            Custom Pages · {customPages.length}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 2px' }}>
+            {customPages.map(page => (
+              <div
+                key={page.id}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '10px 10px 10px 12px',
+                  borderRadius: '14px',
+                  background: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                }}
+              >
+                <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+                  {page.title}
+                </span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)' }}>
+                  /{page.slug}
+                </span>
+                <button
+                  onClick={() => deleteCustomPage(page.id)}
+                  style={{
+                    width: '24px', height: '24px', borderRadius: '6px', border: 'none',
+                    background: 'transparent', color: 'var(--pl-muted)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ── Add Custom Page ── */}
+      <motion.button
+        onClick={() => setShowAddPage(!showAddPage)}
+        whileHover={{ y: -1, borderColor: 'rgba(163,177,138,0.4)' }}
+        whileTap={{ scale: 0.98 }}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+          padding: '10px', borderRadius: '14px', marginTop: '4px',
+          border: '1.5px dashed rgba(163,177,138,0.25)',
+          background: 'transparent', color: 'var(--pl-olive)',
+          cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
+          transition: 'all 0.15s',
+        }}
+      >
+        <Plus size={13} /> Add Custom Page
+      </motion.button>
+
       <AnimatePresence>
         {showAddPage && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-            style={{ overflow: 'hidden', marginBottom: '8px' }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: 'hidden' }}
           >
-            <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(163,177,138,0.2)' }}>
-              <label style={lbl}>Page Name</label>
+            <div style={{
+              padding: '12px',
+              borderRadius: '14px',
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              display: 'flex', flexDirection: 'column', gap: '8px',
+            }}>
+              <input
+                value={newPageTitle}
+                onChange={e => setNewPageTitle(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addCustomPage()}
+                placeholder="Page name..."
+                autoFocus
+                style={{ ...inp, fontSize: '0.82rem' }}
+              />
               <div style={{ display: 'flex', gap: '6px' }}>
-                <input
-                  value={newPageTitle}
-                  onChange={e => setNewPageTitle(e.target.value)}
-                  placeholder="e.g. Our Engagement, The Venue"
-                  style={{ ...inp, flex: 1 }}
-                  onKeyDown={e => e.key === 'Enter' && addCustomPage()}
-                />
+                <button
+                  onClick={() => { setShowAddPage(false); setNewPageTitle(''); }}
+                  style={{
+                    flex: 1, padding: '6px', borderRadius: '8px', border: 'none',
+                    background: 'rgba(255,255,255,0.2)', color: 'var(--pl-muted)',
+                    cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
+                  }}
+                >
+                  Cancel
+                </button>
                 <button
                   onClick={addCustomPage}
                   disabled={!newPageTitle.trim()}
                   style={{
-                    padding: '6px 12px', borderRadius: '5px', border: 'none',
-                    background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.06)',
-                    color: newPageTitle.trim() ? '#fff' : 'var(--pl-muted)',
-                    fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
+                    flex: 1, padding: '6px', borderRadius: '8px', border: 'none',
+                    background: newPageTitle.trim() ? 'var(--pl-olive)' : 'rgba(255,255,255,0.1)',
+                    color: newPageTitle.trim() ? 'white' : 'var(--pl-muted)',
+                    cursor: newPageTitle.trim() ? 'pointer' : 'default',
+                    fontSize: '0.72rem', fontWeight: 600,
                   }}
-                >Add</button>
-              </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', marginTop: '4px' }}>
-                URL: {baseUrl}/{newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '...'}
+                >
+                  Create
+                </button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Preset pages */}
-      <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', marginBottom: '4px', marginTop: '8px' }}>
-        Built-in Pages
-      </div>
-      {filteredPresets.map(page => {
-        const isActive = page.alwaysOn || enabled.has(page.slug) ||
-          (page.slug === 'travel' && !!manifest.travelInfo?.hotels?.length) ||
-          (page.slug === 'registry' && !!(manifest.registry?.entries?.length || manifest.registry?.cashFundUrl)) ||
-          (page.slug === 'faq' && !!(manifest.faqs?.length)) ||
-          (page.slug === 'schedule' && !!(manifest.events?.length)) ||
-          (page.slug === 'rsvp' && !!(manifest.events?.length)) ||
-          (page.slug === 'venue' && !!(manifest.logistics?.venue));
-        const url = page.slug === '' ? baseUrl : `${baseUrl}/${page.slug}`;
-        const isHidden = !page.alwaysOn && (manifest.hiddenPages || []).includes(page.id);
-
-        return (
-          <div key={page.id} style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '8px 10px 8px 12px', borderRadius: '10px',
-            background: isActive && !isHidden ? 'rgba(163,177,138,0.1)' : 'rgba(163,177,138,0.04)',
-            border: `1px solid ${isActive && !isHidden ? 'rgba(163,177,138,0.3)' : 'rgba(0,0,0,0.04)'}`,
-            opacity: isHidden ? 0.4 : 1,
-          }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: isActive && !isHidden ? '#fff' : 'rgba(255,255,255,0.45)' }}>{page.label}</div>
-              {subdomain && <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
-            </div>
-            <span style={{
-              fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: isActive && !isHidden ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
-              background: isActive && !isHidden ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.06)',
-              padding: '3px 8px', borderRadius: '100px',
-            }}>{isActive && !isHidden ? 'Live' : 'Inactive'}</span>
-            {onPreviewPage && isActive && !isHidden && (
-              <button
-                onClick={() => onPreviewPage(previewPage === page.slug ? null : page.slug)}
-                title={previewPage === page.slug ? 'Back to homepage preview' : `Preview ${page.label} page`}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '2px', flexShrink: 0,
-                  color: previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
-                }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)'; }}
-              >
-                <MonitorPlay size={13} />
-              </button>
-            )}
-            {!page.alwaysOn && (
-              <button
-                onClick={() => togglePageVisibility(page.id)}
-                title={isHidden ? 'Show page' : 'Hide page'}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: isHidden ? '#f87171' : 'var(--pl-muted)', display: 'flex', padding: '2px', flexShrink: 0 }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#fca5a5' : 'var(--pl-ink)'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = isHidden ? '#f87171' : 'var(--pl-muted)'; }}
-              >
-                {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
-              </button>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Custom pages */}
-      {customPages.length > 0 && (
-        <>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', margin: '12px 0 4px' }}>
-            Custom Pages
-          </div>
-          {customPages.map(page => (
-            <div key={page.id} style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '8px 10px 8px 12px', borderRadius: '10px',
-              background: 'rgba(163,177,138,0.08)',
-              border: '1px solid rgba(163,177,138,0.2)',
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '2px' }}>{baseUrl}/{page.slug}</div>
-              </div>
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <span style={{
-                  fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: 'var(--pl-olive, #A3B18A)', background: 'rgba(163,177,138,0.15)', padding: '3px 8px', borderRadius: '100px',
-                }}>Live</span>
-                {onPreviewPage && (
-                  <button
-                    onClick={() => onPreviewPage(previewPage === page.slug ? null : page.slug)}
-                    title={previewPage === page.slug ? 'Back to homepage preview' : `Preview ${page.title} page`}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '2px',
-                      color: previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
-                    }}
-                    onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
-                    onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = previewPage === page.slug ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)'; }}
-                  >
-                    <MonitorPlay size={13} />
-                  </button>
-                )}
-                <button
-                  onClick={() => deleteCustomPage(page.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
-                >
-                  <Trash2 size={11} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </>
+      {/* URL hint */}
+      {subdomain && (
+        <div style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', padding: '4px', textAlign: 'center', opacity: 0.6 }}>
+          {subdomain}.pearloom.com
+        </div>
       )}
-
-      <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(163,177,138,0.06)', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.2)' }}>
-        <p style={{ fontSize: '0.82rem', color: 'rgba(163,177,138,0.8)', lineHeight: 1.5, margin: 0 }}>
-          To activate built-in pages, add content in the <strong style={{ color: 'var(--pl-olive, #A3B18A)' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: 'var(--pl-olive, #A3B18A)' }}>Canvas</strong> tab.
-        </p>
-      </div>
     </div>
   );
 }
