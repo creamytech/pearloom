@@ -620,10 +620,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         return (
           <section key={key} data-pe-section="text" style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
             <p
-              contentEditable={editMode} suppressContentEditableWarning
-              data-pe-editable="true" data-pe-path={`blocks.${block.id}.config.content`}
-              onBlur={handleTextBlur}
-              style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center', outline: 'none' }}
+              data-pe-editable="true" data-pe-path={`blocks.${manifest.blocks?.findIndex(b => b.id === block.id) ?? 0}.config.content`}
+              style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}
             >
               {textContent}
             </p>
@@ -757,7 +755,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!statement) return null;
         return (
           <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
-            <p data-pe-editable="true" data-pe-path={block.type === 'welcome' ? 'poetry.welcomeStatement' : 'poetry.vibeQuote'} style={{
+            <p data-pe-editable="true" data-pe-path={block.type === 'welcome' ? 'poetry.welcomeStatement' : 'poetry.dividerQuote'} style={{
               fontFamily: `"${block.type === 'welcome' ? vibeSkin.fonts.body : vibeSkin.fonts.heading}", ${block.type === 'welcome' ? 'sans-serif' : 'serif'}`,
               fontSize: block.type === 'welcome' ? '1.05rem' : 'clamp(1.2rem, 2.5vw, 1.8rem)',
               fontStyle: 'italic', fontWeight: 400, lineHeight: 1.7, color: pal.foreground, opacity: 0.75,
@@ -968,14 +966,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         onClick={handleSectionClick}
         style={{ position: 'relative', minHeight: '100%' }}
       >
-        {/* Site navigation */}
-        <SiteNav
-          names={safeNames}
-          pages={sitePages}
-          logoIcon={manifest.logoIcon}
-          logoSvg={manifest.logoSvg}
-          navStyle={manifest.navStyle}
-        />
+        {/* Site navigation — constrained z-index in editor, sticky instead of fixed */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 20 }}>
+          <SiteNav
+            names={safeNames}
+            pages={sitePages}
+            logoIcon={manifest.logoIcon}
+            logoSvg={manifest.logoSvg}
+            navStyle={manifest.navStyle}
+          />
+        </div>
 
         {/* Main content */}
         <main style={{

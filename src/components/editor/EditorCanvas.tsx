@@ -244,7 +244,7 @@ export function EditorCanvas() {
             width: '100%', height: '100%', overflow: 'auto',
             cursor: isPanning ? 'grab' : 'default',
             transform: zoom !== 1 ? `scale(${zoom})` : undefined,
-            transformOrigin: 'center top',
+            transformOrigin: 'center center',
             transition: 'transform 0.2s ease',
           }}>
             <SiteRenderer

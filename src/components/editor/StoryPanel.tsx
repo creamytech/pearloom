@@ -158,7 +158,7 @@ function ChapterCard({
             style={{
               padding: '6px', borderRadius: '8px', border: 'none',
               background: 'transparent', color: 'var(--pl-muted)', cursor: 'pointer',
-              display: 'flex', flexShrink: 0, opacity: 0.4,
+              display: 'flex', flexShrink: 0, opacity: 0.6,
             }}
           >
             <Trash2 size={12} />

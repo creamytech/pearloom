@@ -65,10 +65,10 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           style={{
             textAlign: 'center', padding: '2rem 1rem',
             borderRadius: '16px', border: '1.5px dashed rgba(163,177,138,0.25)',
-            background: 'rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.25)',
           }}
         >
-          <CalendarHeartIcon size={24} style={{ opacity: 0.4, marginBottom: '8px' }} />
+          <CalendarHeartIcon size={24} style={{ opacity: 0.7, marginBottom: '8px', color: 'var(--pl-olive)' }} />
           <div style={{ fontSize: '0.85rem', fontWeight: 600, fontStyle: 'italic', fontFamily: 'var(--pl-font-heading)', color: 'var(--pl-muted)' }}>
             No events yet
           </div>
