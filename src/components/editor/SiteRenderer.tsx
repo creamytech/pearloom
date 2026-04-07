@@ -313,13 +313,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   const [draggingBlockIdx, setDraggingBlockIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
-  // ── Hover state ──
+  // ── Hover state — use refs to avoid re-rendering entire site on hover ──
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
+  const hoveredRef = useRef<string | null>(null);
 
-  // ── Section wrapper — hover outline + selection + inline toolbar ──
+  // ── Section wrapper — hover handled via CSS, not React state ──
+  // This prevents full re-renders on every mouse move
   const SectionWrap = useCallback(({ block, children, index, total }: { block: PageBlock; children: React.ReactNode; index: number; total: number }) => {
     const isSelected = selectedBlockId === block.id;
-    const isHovered = hoveredBlockId === block.id;
     const def = BLOCK_CATALOGUE_MAP[block.type];
     const color = def?.color || '#A3B18A';
 
@@ -349,8 +350,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           setDraggingBlockIdx(null);
           setDragOverIdx(null);
         }}
-        onMouseEnter={() => setHoveredBlockId(block.id)}
-        onMouseLeave={() => setHoveredBlockId(null)}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.outlineColor = isSelected ? color : 'rgba(163,177,138,0.4)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.outlineColor = isSelected ? color : 'transparent'; }}
         onClick={(e) => {
           e.stopPropagation();
           onSectionClick?.(block.type, undefined);
@@ -362,7 +363,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         }}
         style={{
           position: 'relative',
-          outline: isSelected ? `2px solid ${color}` : isHovered ? '2px solid rgba(163,177,138,0.4)' : '2px solid transparent',
+          outline: isSelected ? `2px solid ${color}` : '2px solid transparent',
           outlineOffset: '-2px',
           borderRadius: '4px',
           transition: 'outline-color 0.15s, opacity 0.15s',
@@ -373,7 +374,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       >
         {/* Floating section toolbar — shows on hover/select */}
         <AnimatePresence>
-          {editMode && (isSelected || isHovered) && (
+          {editMode && isSelected && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -423,7 +424,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         {children}
       </div>
     );
-  }, [editMode, selectedBlockId, hoveredBlockId, onSectionClick, onBlockAction]);
+  }, [editMode, selectedBlockId, onSectionClick, onBlockAction, onBlockReorder, onBlockCopy, hasClipboard, onBlockPaste, draggingBlockIdx, dragOverIdx, manifest]);
 
   // Simple block type → def mapping for labels/colors
   const BLOCK_CATALOGUE_MAP: Record<string, { label: string; color: string }> = {
@@ -447,7 +448,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   // ── Block drop zone ──
   const [dropTargetIdx, setDropTargetIdx] = useState<number | null>(null);
 
-  // ── Render block by type ──
+  // ── Render block by type — memoized to prevent re-render on hover ──
   const renderBlock = useCallback((block: PageBlock) => {
     const blockCfg = block.config || {};
     const key = block.id;
