@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useRef, useCallback, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
@@ -75,6 +75,7 @@ export function EditorWing({
   const { dispatch } = useEditor();
   const [panelW, setPanelW] = useState(DEFAULT_W);
   const [resizing, setResizing] = useState(false);
+  const dragControls = useDragControls();
   const dragStartX = useRef(0);
   const dragStartW = useRef(DEFAULT_W);
 
@@ -133,16 +134,22 @@ export function EditorWing({
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 30, scale: 0.96 }}
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+          drag
+          dragControls={dragControls}
+          dragMomentum={false}
+          dragElastic={0}
+          dragListener={false}
           style={{
             position: 'absolute',
             top: '48px',
             right: '12px',
-            bottom: '12px',
+            maxHeight: 'calc(100vh - 80px)',
+            height: '75vh',
             width: panelW,
             zIndex: 60,
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: '24px',
+            borderRadius: '20px',
             background: 'rgba(250,247,242,0.82)',
             backdropFilter: 'blur(32px) saturate(1.6)',
             WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
@@ -151,14 +158,18 @@ export function EditorWing({
             overflow: 'hidden',
           } as React.CSSProperties}
         >
-          {/* Panel header */}
-          <div style={{
-            padding: '14px 16px 10px',
-            borderBottom: '1px solid rgba(255,255,255,0.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'rgba(255,255,255,0.1)',
-            flexShrink: 0,
-          }}>
+          {/* Panel header — drag handle */}
+          <div
+            onPointerDown={(e) => dragControls.start(e)}
+            style={{
+              padding: '12px 14px 8px',
+              borderBottom: '1px solid rgba(255,255,255,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'rgba(255,255,255,0.08)',
+              flexShrink: 0,
+              cursor: 'grab',
+              touchAction: 'none',
+            }}>
             <div style={{ minWidth: 0 }}>
               <AnimatePresence mode="wait">
                 <motion.div
@@ -256,6 +267,43 @@ export function EditorWing({
             }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.5)'; (e.currentTarget as HTMLElement).style.height = '60px'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; (e.currentTarget as HTMLElement).style.height = '40px'; }}
+            />
+          </div>
+
+          {/* Bottom resize handle */}
+          <div
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const startY = e.clientY;
+              const startH = e.currentTarget.parentElement?.getBoundingClientRect().height || 500;
+              const onMove = (ev: MouseEvent) => {
+                const newH = Math.max(300, Math.min(startH + (ev.clientY - startY), window.innerHeight - 80));
+                if (e.currentTarget.parentElement) {
+                  (e.currentTarget.parentElement as HTMLElement).style.height = `${newH}px`;
+                }
+              };
+              const onUp = () => {
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+                document.body.style.cursor = '';
+              };
+              document.body.style.cursor = 'row-resize';
+              window.addEventListener('mousemove', onMove);
+              window.addEventListener('mouseup', onUp);
+            }}
+            style={{
+              position: 'absolute', bottom: -4, left: 40, right: 40,
+              height: 8, cursor: 'row-resize', zIndex: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <div style={{
+              width: '40px', height: '3px', borderRadius: '3px',
+              background: 'rgba(163,177,138,0.2)',
+              transition: 'background 0.2s, width 0.2s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.5)'; (e.currentTarget as HTMLElement).style.width = '60px'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; (e.currentTarget as HTMLElement).style.width = '40px'; }}
             />
           </div>
         </motion.div>
