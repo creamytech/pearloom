@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
-import type { BlockType } from '@/types';
+import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions } = useEditor();
@@ -97,6 +97,31 @@ export function EditorCanvas() {
     }
     actions.handleDesignChange({ ...manifest, blocks: updated.map((b, i) => ({ ...b, order: i })) });
   }, [manifest, actions]);
+
+  // ── Canvas drag-to-reorder ──────────────────────────────
+  const handleBlockReorder = useCallback((fromIdx: number, toIdx: number) => {
+    const blocks = [...(manifest.blocks || [])].filter(b => b.visible).sort((a, b) => a.order - b.order);
+    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
+    const [moved] = blocks.splice(fromIdx, 1);
+    blocks.splice(toIdx > fromIdx ? toIdx - 1 : toIdx, 0, moved);
+    actions.handleDesignChange({ ...manifest, blocks: blocks.map((b, i) => ({ ...b, order: i })) });
+  }, [manifest, actions]);
+
+  // ── Copy/Paste ──────────────────────────────────────────
+  const [clipboardBlock, setClipboardBlock] = useState<PageBlock | null>(null);
+
+  const handleBlockCopy = useCallback((blockId: string) => {
+    const block = manifest.blocks?.find(b => b.id === blockId);
+    if (block) setClipboardBlock({ ...block });
+  }, [manifest]);
+
+  const handleBlockPaste = useCallback((position: number) => {
+    if (!clipboardBlock) return;
+    const blocks = [...(manifest.blocks || [])];
+    const pasted = { ...clipboardBlock, id: `${clipboardBlock.type}-paste-${Date.now()}` };
+    blocks.splice(position, 0, pasted);
+    actions.handleDesignChange({ ...manifest, blocks: blocks.map((b, i) => ({ ...b, order: i })) });
+  }, [manifest, clipboardBlock, actions]);
 
   // ── Block drop → insert at position ──────────────────────
   const handleBlockDrop = useCallback((blockType: string, position: number) => {
@@ -192,8 +217,12 @@ export function EditorCanvas() {
               onTextEdit={handleTextEdit}
               onSectionClick={handleSectionClick}
               onBlockDrop={handleBlockDrop}
+              onBlockReorder={handleBlockReorder}
+              onBlockCopy={handleBlockCopy}
+              onBlockPaste={handleBlockPaste}
               onBlockAction={handleBlockAction}
               selectedBlockId={state.activeId}
+              hasClipboard={!!clipboardBlock}
               editMode
             />
           </motion.div>
@@ -211,8 +240,12 @@ export function EditorCanvas() {
               onTextEdit={handleTextEdit}
               onSectionClick={handleSectionClick}
               onBlockDrop={handleBlockDrop}
+              onBlockReorder={handleBlockReorder}
+              onBlockCopy={handleBlockCopy}
+              onBlockPaste={handleBlockPaste}
               onBlockAction={handleBlockAction}
               selectedBlockId={state.activeId}
+              hasClipboard={!!clipboardBlock}
               editMode
             />
           </div>

@@ -42,15 +42,23 @@ interface SiteRendererProps {
   onSectionClick?: (sectionId: string, chapterId?: string) => void;
   /** Called when a block is dropped at a position */
   onBlockDrop?: (blockType: string, position: number) => void;
+  /** Called when blocks are reordered via canvas drag */
+  onBlockReorder?: (fromIndex: number, toIndex: number) => void;
+  /** Called when a block is copied */
+  onBlockCopy?: (blockId: string) => void;
+  /** Called when a block is pasted at position */
+  onBlockPaste?: (position: number) => void;
   /** Is editor in edit mode? Enables click handlers and visual hints */
   editMode?: boolean;
   /** Currently selected block ID */
   selectedBlockId?: string | null;
   /** Called when a block action is triggered */
   onBlockAction?: (action: 'moveUp' | 'moveDown' | 'duplicate' | 'delete' | 'toggleVisibility', blockId: string) => void;
+  /** Clipboard has a copied block */
+  hasClipboard?: boolean;
 }
 
-export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, editMode = true, selectedBlockId, onBlockAction }: SiteRendererProps) {
+export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, onBlockReorder, onBlockCopy, onBlockPaste, editMode = true, selectedBlockId, onBlockAction, hasClipboard }: SiteRendererProps) {
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
@@ -116,47 +124,63 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     }
   }, [editMode, onTextEdit]);
 
-  // ── Make all data-pe-editable elements contentEditable ──
+  // ── Double-click to edit text — NOT always contentEditable ──
   const siteRef = useRef<HTMLDivElement>(null);
+  const [editingElementId, setEditingElementId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!editMode || !siteRef.current) return;
 
-    const makeEditable = () => {
+    const setupEditableElements = () => {
       if (!siteRef.current) return;
       siteRef.current.querySelectorAll('[data-pe-editable="true"]').forEach(el => {
         const htmlEl = el as HTMLElement;
-        if (htmlEl.contentEditable === 'true') return;
-        htmlEl.contentEditable = 'true';
-        htmlEl.spellcheck = false;
-        htmlEl.style.outline = 'none';
-        htmlEl.style.cursor = 'text';
+        if (htmlEl.dataset.peSetup) return;
+        htmlEl.dataset.peSetup = '1';
+        htmlEl.style.cursor = 'pointer';
 
-        // Olive underline hint on hover
+        // Hover: dotted underline hint
         htmlEl.addEventListener('mouseenter', () => {
-          if (document.activeElement !== htmlEl) {
+          if (htmlEl.contentEditable !== 'true') {
             htmlEl.style.textDecoration = 'underline';
-            htmlEl.style.textDecorationColor = 'rgba(163,177,138,0.3)';
+            htmlEl.style.textDecorationColor = 'rgba(163,177,138,0.35)';
             htmlEl.style.textUnderlineOffset = '4px';
             htmlEl.style.textDecorationStyle = 'dotted';
           }
         });
         htmlEl.addEventListener('mouseleave', () => {
-          if (document.activeElement !== htmlEl) {
+          if (htmlEl.contentEditable !== 'true') {
             htmlEl.style.textDecoration = 'none';
           }
         });
 
-        // Focus: subtle glow
-        htmlEl.addEventListener('focus', () => {
+        // Double-click: enter edit mode
+        htmlEl.addEventListener('dblclick', (e) => {
+          e.stopPropagation();
+          htmlEl.contentEditable = 'true';
+          htmlEl.spellcheck = false;
+          htmlEl.style.outline = 'none';
+          htmlEl.style.cursor = 'text';
           htmlEl.style.textDecoration = 'none';
-          htmlEl.style.boxShadow = '0 0 0 2px rgba(163,177,138,0.2)';
+          htmlEl.style.boxShadow = '0 0 0 2px rgba(163,177,138,0.25)';
           htmlEl.style.borderRadius = '4px';
+          htmlEl.style.background = 'rgba(255,255,255,0.1)';
+          htmlEl.focus();
+          // Select all text
+          const range = document.createRange();
+          range.selectNodeContents(htmlEl);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
         });
 
-        // Blur: commit edit
+        // Blur: exit edit mode and commit
         htmlEl.addEventListener('blur', () => {
+          htmlEl.contentEditable = 'false';
+          htmlEl.style.cursor = 'pointer';
           htmlEl.style.boxShadow = 'none';
           htmlEl.style.borderRadius = '';
+          htmlEl.style.background = '';
 
           const path = htmlEl.getAttribute('data-pe-path');
           const chapterId = htmlEl.closest('[data-pe-chapter]')?.getAttribute('data-pe-chapter');
@@ -177,16 +201,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           }
         });
 
-        // Enter = commit, Escape = blur
         htmlEl.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (htmlEl.contentEditable !== 'true') return;
           if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); htmlEl.blur(); }
           if (e.key === 'Escape') htmlEl.blur();
         });
       });
     };
 
-    makeEditable();
-    const observer = new MutationObserver(makeEditable);
+    setupEditableElements();
+    const observer = new MutationObserver(setupEditableElements);
     observer.observe(siteRef.current, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [editMode, onTextEdit]);
@@ -246,6 +270,49 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => siteRef.current?.removeEventListener('click', handleIconClick);
   }, [editMode, onTextEdit]);
 
+  // ── Right-click context menu ──
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; blockId: string; blockIdx: number } | null>(null);
+
+  useEffect(() => {
+    const close = () => setContextMenu(null);
+    if (contextMenu) {
+      document.addEventListener('click', close);
+      document.addEventListener('scroll', close, true);
+      return () => { document.removeEventListener('click', close); document.removeEventListener('scroll', close, true); };
+    }
+  }, [contextMenu]);
+
+  // ── Keyboard: Copy (Cmd+C) / Paste (Cmd+V) / Delete ──
+  useEffect(() => {
+    if (!editMode) return;
+    const handler = (e: KeyboardEvent) => {
+      // Don't capture when editing text
+      if ((e.target as HTMLElement).contentEditable === 'true') return;
+
+      const meta = e.metaKey || e.ctrlKey;
+      if (meta && e.key === 'c' && selectedBlockId) {
+        e.preventDefault();
+        onBlockCopy?.(selectedBlockId);
+      }
+      if (meta && e.key === 'v' && hasClipboard) {
+        e.preventDefault();
+        const blocks = manifest.blocks || [];
+        const idx = selectedBlockId ? blocks.findIndex(b => b.id === selectedBlockId) + 1 : blocks.length;
+        onBlockPaste?.(idx);
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedBlockId && !(e.target as HTMLElement).closest('[contenteditable]')) {
+        e.preventDefault();
+        onBlockAction?.('delete', selectedBlockId);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editMode, selectedBlockId, hasClipboard, manifest, onBlockCopy, onBlockPaste, onBlockAction]);
+
+  // ── Canvas section drag-to-reorder state ──
+  const [draggingBlockIdx, setDraggingBlockIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+
   // ── Hover state ──
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
 
@@ -259,19 +326,49 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return (
       <div
         data-block-id={block.id}
+        draggable={editMode}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('pearloom/reorder', String(index));
+          e.dataTransfer.effectAllowed = 'move';
+          setDraggingBlockIdx(index);
+        }}
+        onDragEnd={() => { setDraggingBlockIdx(null); setDragOverIdx(null); }}
+        onDragOver={(e) => {
+          if (draggingBlockIdx !== null && draggingBlockIdx !== index) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            setDragOverIdx(index);
+          }
+        }}
+        onDrop={(e) => {
+          const fromStr = e.dataTransfer.getData('pearloom/reorder');
+          if (fromStr && onBlockReorder) {
+            e.preventDefault();
+            onBlockReorder(parseInt(fromStr), index);
+          }
+          setDraggingBlockIdx(null);
+          setDragOverIdx(null);
+        }}
         onMouseEnter={() => setHoveredBlockId(block.id)}
         onMouseLeave={() => setHoveredBlockId(null)}
         onClick={(e) => {
           e.stopPropagation();
           onSectionClick?.(block.type, undefined);
         }}
+        onContextMenu={(e) => {
+          if (!editMode) return;
+          e.preventDefault();
+          setContextMenu({ x: e.clientX, y: e.clientY, blockId: block.id, blockIdx: index });
+        }}
         style={{
           position: 'relative',
           outline: isSelected ? `2px solid ${color}` : isHovered ? '2px solid rgba(163,177,138,0.4)' : '2px solid transparent',
           outlineOffset: '-2px',
           borderRadius: '4px',
-          transition: 'outline-color 0.15s',
-          cursor: editMode ? 'pointer' : 'default',
+          transition: 'outline-color 0.15s, opacity 0.15s',
+          cursor: editMode ? 'grab' : 'default',
+          opacity: draggingBlockIdx === index ? 0.4 : 1,
+          borderTop: dragOverIdx === index && draggingBlockIdx !== null && draggingBlockIdx !== index ? '3px solid var(--pl-olive)' : '3px solid transparent',
         }}
       >
         {/* Floating section toolbar — shows on hover/select */}
@@ -557,6 +654,61 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           )}
           <div style={{ opacity: 0.35, fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '1rem' }}>Made with Pearloom</div>
         </footer>
+
+        {/* ── Right-click context menu ── */}
+        <AnimatePresence>
+          {contextMenu && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -4 }}
+              transition={{ duration: 0.12 }}
+              style={{
+                position: 'fixed', top: contextMenu.y, left: contextMenu.x,
+                zIndex: 9999, minWidth: '180px', padding: '6px',
+                background: 'rgba(250,247,242,0.95)',
+                backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+                borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)',
+                boxShadow: '0 12px 40px rgba(43,30,20,0.15), 0 4px 12px rgba(43,30,20,0.06)',
+              } as React.CSSProperties}
+              onClick={e => e.stopPropagation()}
+            >
+              {[
+                { label: 'Edit in Panel', action: () => onSectionClick?.(manifest.blocks?.find(b => b.id === contextMenu.blockId)?.type || '', undefined) },
+                { label: 'Move Up', action: () => onBlockAction?.('moveUp', contextMenu.blockId), disabled: contextMenu.blockIdx === 0 },
+                { label: 'Move Down', action: () => onBlockAction?.('moveDown', contextMenu.blockId), disabled: contextMenu.blockIdx === (visibleBlocks?.length || 1) - 1 },
+                { divider: true },
+                { label: 'Duplicate', action: () => onBlockAction?.('duplicate', contextMenu.blockId) },
+                { label: 'Copy', action: () => onBlockCopy?.(contextMenu.blockId) },
+                ...(hasClipboard ? [{ label: 'Paste Below', action: () => onBlockPaste?.(contextMenu.blockIdx + 1) }] : []),
+                { divider: true },
+                { label: 'Hide', action: () => onBlockAction?.('toggleVisibility', contextMenu.blockId) },
+                { label: 'Delete', action: () => onBlockAction?.('delete', contextMenu.blockId), danger: true },
+              ].filter(item => !(item as { disabled?: boolean }).disabled).map((item, i) => {
+                if ('divider' in item) return <div key={`d${i}`} style={{ height: '1px', background: 'rgba(255,255,255,0.3)', margin: '4px 8px' }} />;
+                const mi = item as { label: string; action: () => void; danger?: boolean };
+                return (
+                  <button
+                    key={mi.label}
+                    onClick={() => { mi.action(); setContextMenu(null); }}
+                    style={{
+                      display: 'block', width: '100%', padding: '7px 12px',
+                      borderRadius: '8px', border: 'none', textAlign: 'left',
+                      background: 'transparent', cursor: 'pointer',
+                      fontSize: '0.78rem', fontWeight: 500,
+                      color: mi.danger ? '#d05050' : 'var(--pl-ink)',
+                      transition: 'background 0.1s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.5)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  >
+                    {mi.label}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </ThemeProvider>
   );
