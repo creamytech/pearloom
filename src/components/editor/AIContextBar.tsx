@@ -42,8 +42,11 @@ export function AIContextBar() {
           style={{
             flexShrink: 0,
             overflow: 'hidden',
-            background: 'rgba(26,23,32,0.95)',
-            borderBottom: '1px solid rgba(0,0,0,0.04)',
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(16px) saturate(1.3)',
+            WebkitBackdropFilter: 'blur(16px) saturate(1.3)',
+            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            boxShadow: '0 1px 4px rgba(43,30,20,0.03)',
           }}
         >
           <div style={{
@@ -62,7 +65,7 @@ export function AIContextBar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 24, height: 24, borderRadius: 6, border: 'none',
                 background: 'transparent',
-                color: prevChapter ? 'rgba(214,198,168,0.55)' : 'rgba(214,198,168,0.18)',
+                color: prevChapter ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
                 cursor: prevChapter ? 'pointer' : 'not-allowed',
                 flexShrink: 0,
               }}
@@ -94,7 +97,7 @@ export function AIContextBar() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 24, height: 24, borderRadius: 6, border: 'none',
                 background: 'transparent',
-                color: nextChapter ? 'rgba(214,198,168,0.55)' : 'rgba(214,198,168,0.18)',
+                color: nextChapter ? 'var(--pl-ink-soft)' : 'var(--pl-muted)',
                 cursor: nextChapter ? 'pointer' : 'not-allowed',
                 flexShrink: 0,
               }}
@@ -150,7 +153,7 @@ function AIActionPill({
       disabled={disabled}
       whileHover={!disabled ? {
         backgroundColor: accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)',
-        color: accent ? '#A3B18A' : 'rgba(214,198,168,0.9)',
+        color: accent ? '#A3B18A' : 'var(--pl-ink-soft)',
       } : {}}
       whileTap={!disabled ? { scale: 0.94 } : {}}
       transition={{ duration: 0.12 }}
@@ -159,7 +162,7 @@ function AIActionPill({
         padding: '3px 9px', borderRadius: '100px',
         border: `1px solid ${accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)'}`,
         background: accent ? 'rgba(163,177,138,0.1)' : 'rgba(163,177,138,0.05)',
-        color: accent ? 'rgba(163,177,138,0.85)' : 'rgba(214,198,168,0.45)',
+        color: accent ? 'rgba(163,177,138,0.85)' : 'var(--pl-muted)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontSize: '0.72rem', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,
