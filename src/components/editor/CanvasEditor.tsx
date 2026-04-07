@@ -7,7 +7,8 @@
 // click to configure per-block in a floating right panel.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, memo } from 'react';
+import { useToast } from '@/components/ui/toast';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { RangeSlider } from '@/components/ui/range-slider';
 import { ColorPicker } from '@/components/ui/color-picker';
@@ -17,9 +18,10 @@ import type { DragHandleProps } from './useDragSort';
 import { BlockPresetsPanel } from './BlockPresetsPanel';
 import { SidebarSection } from './EditorSidebar';
 import {
-  Plus, Eye, EyeOff, Trash2,
+  Plus, Eye, EyeOff, Trash2, Package,
   ChevronDown, ChevronRight, X,
   Sparkles, LayoutTemplate,
+  Monitor, Tablet, Smartphone, RotateCcw,
 } from 'lucide-react';
 import {
   BlockHeroIcon, BlockStoryIcon, BlockEventIcon, BlockCountdownIcon,
@@ -33,6 +35,9 @@ import {
   IconRevealSlideLeft, IconRevealZoom, IconRevealBlur,
 } from './EditorIcons';
 import type { StoryManifest, PageBlock, BlockType, WeddingEvent } from '@/types';
+import { useEditor, type DeviceMode } from '@/lib/editor-state';
+import { resolveBreakpointConfig, getConfigKeyForDevice, hasBreakpointOverrides, deviceLabel } from '@/lib/breakpoint-utils';
+import { saveBlockAsComponent } from './ComponentLibrary';
 
 // ── Block Catalogue ────────────────────────────────────────────
 type OccasionTag = 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
@@ -65,6 +70,9 @@ const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'video',     label: 'Video',             icon: BlockVideoIcon,     description: 'YouTube or Vimeo embed',                      color: '#4a4a8b', occasions: ALL_OCCASIONS },
   { type: 'divider',   label: 'Divider',           icon: BlockDividerIcon,   description: 'Visual section separator',                    color: '#8b8b4a', occasions: ALL_OCCASIONS },
 ];
+
+// Pre-computed lookup map — avoids O(n) find on every render
+const BLOCK_DEF_MAP = new Map<string, BlockDef>(BLOCK_CATALOGUE.map(d => [d.type, d]));
 
 const DEFAULT_BLOCKS: PageBlock[] = [
   { id: 'b-hero',      type: 'hero',      order: 0,  visible: true },
@@ -365,8 +373,8 @@ function EventBlockConfig({ events, onChange }: {
 }
 
 // ── Block Row ──────────────────────────────────────────────────
-function BlockRow({
-  block, def, isActive, onSelect, onToggle, onDelete, dragHandleProps,
+const BlockRow = memo(function BlockRow({
+  block, def, isActive, onSelect, onToggle, onDelete, onSaveAsComponent, dragHandleProps,
   isMobile,
 }: {
   block: PageBlock;
@@ -375,6 +383,7 @@ function BlockRow({
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onSaveAsComponent?: (id: string) => void;
   dragHandleProps: DragHandleProps;
   isMobile?: boolean;
 }) {
@@ -464,6 +473,17 @@ function BlockRow({
               >
                 {block.visible ? <Eye size={14} /> : <EyeOff size={14} />}
               </button>
+              {onSaveAsComponent && (
+                <button
+                  onClick={e => { e.stopPropagation(); onSaveAsComponent(block.id); }}
+                  title="Save as Component"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-olive, #A3B18A)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s, background 0.15s', minWidth: '36px', minHeight: '36px' }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                >
+                  <Package size={14} />
+                </button>
+              )}
               <button
                 onClick={e => { e.stopPropagation(); onDelete(block.id); }}
                 title="Remove block"
@@ -495,40 +515,71 @@ function BlockRow({
       )}
     </motion.div>
   );
-}
+});
 
 // ── Section Styling Controls ────────────────────────────────────
 function SectionStylePanel({
-  block, blocksKey, manifest, onChange,
+  block, blocksKey, manifest, onChange, device: deviceProp,
 }: {
   block: PageBlock;
   blocksKey: 'blocks' | { customPageId: string };
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
+  device?: DeviceMode;
 }) {
-  const config = block.config || {};
+  const device = deviceProp || 'desktop';
+  const configKey = getConfigKeyForDevice(device);
+  const config = resolveBreakpointConfig(block, device);
 
   const updateConfig = (patch: Record<string, unknown>) => {
+    const updateBlock = (b: PageBlock): PageBlock => {
+      if (b.id !== block.id) return b;
+      return { ...b, [configKey]: { ...(b[configKey] || {}), ...patch } };
+    };
+
     if (typeof blocksKey === 'string') {
-      // Main page blocks
       onChange({
         ...manifest,
-        blocks: (manifest.blocks || []).map(b =>
-          b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b
-        ),
+        blocks: (manifest.blocks || []).map(updateBlock),
       });
     } else {
-      // Custom page blocks
       onChange({
         ...manifest,
         customPages: (manifest.customPages || []).map(p =>
           p.id === blocksKey.customPageId
-            ? { ...p, blocks: p.blocks.map(b => b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b) }
+            ? { ...p, blocks: p.blocks.map(updateBlock) }
             : p
         ),
       });
     }
   };
+
+  const resetToDesktop = () => {
+    if (configKey === 'config') return;
+    const updateBlock = (b: PageBlock): PageBlock => {
+      if (b.id !== block.id) return b;
+      const next = { ...b };
+      if (configKey === 'tabletConfig') delete next.tabletConfig;
+      if (configKey === 'mobileConfig') delete next.mobileConfig;
+      return next;
+    };
+    if (typeof blocksKey === 'string') {
+      onChange({ ...manifest, blocks: (manifest.blocks || []).map(updateBlock) });
+    } else {
+      onChange({
+        ...manifest,
+        customPages: (manifest.customPages || []).map(p =>
+          p.id === blocksKey.customPageId
+            ? { ...p, blocks: p.blocks.map(updateBlock) }
+            : p
+        ),
+      });
+    }
+  };
+
+  const isOverrideMode = device !== 'desktop';
+  const hasOverrides = hasBreakpointOverrides(block, device);
+  const DeviceIcon = device === 'mobile' ? Smartphone : device === 'tablet' ? Tablet : Monitor;
 
   const PRESET_BG_COLORS = [
     { label: 'None', value: '' },
@@ -555,8 +606,41 @@ function SectionStylePanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '12px', marginTop: '4px' }}>
-      <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
-        Section Style
+      {/* Breakpoint indicator and reset */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
+            Section Style
+          </div>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '4px',
+            padding: '2px 8px', borderRadius: '100px',
+            fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.06em',
+            background: isOverrideMode ? 'rgba(109,89,122,0.15)' : 'rgba(163,177,138,0.12)',
+            color: isOverrideMode ? '#6D597A' : 'rgba(163,177,138,0.9)',
+            border: `1px solid ${isOverrideMode ? 'rgba(109,89,122,0.25)' : 'rgba(163,177,138,0.25)'}`,
+          }}>
+            <DeviceIcon size={10} />
+            {deviceLabel(device)}
+          </span>
+        </div>
+        {isOverrideMode && hasOverrides && (
+          <button
+            onClick={resetToDesktop}
+            title="Reset to desktop defaults"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '3px',
+              padding: '2px 8px', borderRadius: '100px',
+              fontSize: '0.55rem', fontWeight: 700,
+              background: 'rgba(224,122,122,0.1)',
+              color: '#c06060',
+              border: '1px solid rgba(224,122,122,0.2)',
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}
+          >
+            <RotateCcw size={9} /> Reset
+          </button>
+        )}
       </div>
 
       {/* Background color */}
@@ -676,28 +760,37 @@ function SectionStylePanel({
 
 // ── Block Config Panel ──────────────────────────────────────────
 function BlockConfigPanel({
-  block, def, manifest, onChange, blocksKey,
+  block, def, manifest, onChange, blocksKey, device: deviceProp,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
   manifest: StoryManifest;
   onChange: (m: StoryManifest) => void;
   blocksKey: 'blocks' | { customPageId: string };
+  device?: DeviceMode;
 }) {
+  const device = deviceProp || 'desktop';
+  const configKey = getConfigKeyForDevice(device);
+  // Resolved config for reading values (merges desktop + breakpoint overrides)
+  const blockCfg = resolveBreakpointConfig(block, device);
+
   const updateBlockConfig = (patch: Record<string, unknown>) => {
+    const updateBlock = (b: PageBlock): PageBlock => {
+      if (b.id !== block.id) return b;
+      return { ...b, [configKey]: { ...(b[configKey] || {}), ...patch } };
+    };
+
     if (typeof blocksKey === 'string') {
       onChange({
         ...manifest,
-        blocks: (manifest.blocks || []).map(b =>
-          b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b
-        ),
+        blocks: (manifest.blocks || []).map(updateBlock),
       });
     } else {
       onChange({
         ...manifest,
         customPages: (manifest.customPages || []).map(p =>
           p.id === blocksKey.customPageId
-            ? { ...p, blocks: p.blocks.map(b => b.id === block.id ? { ...b, config: { ...b.config, ...patch } } : b) }
+            ? { ...p, blocks: p.blocks.map(updateBlock) }
             : p
         ),
       });
@@ -725,13 +818,13 @@ function BlockConfigPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <MiniInput
               label="Quote text"
-              value={String(block.config?.text || '')}
+              value={String(blockCfg.text || '')}
               onChange={v => updateBlockConfig({ text: v })}
               placeholder='"Two souls, one heart."'
             />
             <MiniInput
               label="Attribution (optional)"
-              value={String(block.config?.attribution || '')}
+              value={String(blockCfg.attribution || '')}
               onChange={v => updateBlockConfig({ attribution: v })}
               placeholder="— Pablo Neruda"
             />
@@ -743,7 +836,7 @@ function BlockConfigPanel({
           <div>
             <label style={lbl}>Content</label>
             <textarea
-              value={String(block.config?.text || '')}
+              value={String(blockCfg.text || '')}
               onChange={e => updateBlockConfig({ text: e.target.value })}
               rows={5}
               placeholder="Write anything here — a welcome message, a story, a note to guests..."
@@ -756,7 +849,7 @@ function BlockConfigPanel({
         return (
           <MiniInput
             label="YouTube or Vimeo URL"
-            value={String(block.config?.url || '')}
+            value={String(blockCfg.url || '')}
             onChange={v => updateBlockConfig({ url: v })}
             placeholder="https://www.youtube.com/watch?v=..."
           />
@@ -766,7 +859,7 @@ function BlockConfigPanel({
         return (
           <MiniInput
             label="Target date (YYYY-MM-DD)"
-            value={String(block.config?.date || manifest.events?.[0]?.date || '')}
+            value={String(blockCfg.date || manifest.events?.[0]?.date || '')}
             onChange={v => updateBlockConfig({ date: v })}
             placeholder={manifest.events?.[0]?.date || '2025-06-14'}
           />
@@ -776,7 +869,7 @@ function BlockConfigPanel({
         return (
           <MiniInput
             label="Address or venue name"
-            value={String(block.config?.address || manifest.events?.[0]?.address || manifest.logistics?.venue || '')}
+            value={String(blockCfg.address || manifest.events?.[0]?.address || manifest.logistics?.venue || '')}
             onChange={v => updateBlockConfig({ address: v })}
             placeholder={manifest.events?.[0]?.address || manifest.logistics?.venue || 'The Grand Ballroom, New York'}
           />
@@ -832,7 +925,7 @@ function BlockConfigPanel({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {blockContent}
-      <SectionStylePanel block={block} blocksKey={blocksKey} manifest={manifest} onChange={onChange} />
+      <SectionStylePanel block={block} blocksKey={blocksKey} manifest={manifest} onChange={onChange} device={device} />
       <BlockEffectsEditor blockEffects={block.blockEffects ?? {}} onUpdate={updateBlockEffects} />
       <SidebarSection title="Block Presets" defaultOpen={false}>
         <BlockPresetsPanel block={block} onApply={handleApplyPreset} />
@@ -1103,6 +1196,9 @@ interface CanvasEditorProps {
 }
 
 export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateChange }: CanvasEditorProps) {
+  const { state: editorState } = useEditor();
+  const device: DeviceMode = editorState.device;
+
   // 'main' = main page, otherwise a custom page ID
   const [activePage, setActivePage] = useState<string>('main');
   const [showAddPage, setShowAddPage] = useState(false);
@@ -1194,6 +1290,18 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
     if (activeBlockId === id) setActiveBlockId(null);
   }, [blocks, commit, activeBlockId]);
 
+  const { showToast } = useToast();
+
+  const saveAsComponent = useCallback((id: string) => {
+    const block = blocks.find(b => b.id === id);
+    if (!block) return;
+    const saved = saveBlockAsComponent(block, manifest, (m) => {
+      onChange(m);
+      pushToPreview(m);
+    });
+    showToast({ message: `Saved "${saved.name}" to component library`, type: 'success' });
+  }, [blocks, manifest, onChange, pushToPreview, showToast]);
+
   const addBlock = useCallback((type: BlockType) => {
     const id = `block-${type}-${Date.now()}`;
     const newBlock: PageBlock = { id, type, order: blocks.length, visible: true };
@@ -1251,9 +1359,9 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
     if (activePage === id) setActivePage('main');
   };
 
-  const activeBlock = blocks.find(b => b.id === activeBlockId);
-  const activeDef = activeBlock ? BLOCK_CATALOGUE.find(d => d.type === activeBlock.type) : null;
-  const existingTypes = new Set(blocks.map(b => b.type));
+  const activeBlock = useMemo(() => blocks.find(b => b.id === activeBlockId), [blocks, activeBlockId]);
+  const activeDef = useMemo(() => activeBlock ? BLOCK_DEF_MAP.get(activeBlock.type) ?? null : null, [activeBlock]);
+  const existingTypes = useMemo(() => new Set(blocks.map(b => b.type)), [blocks]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -1412,7 +1520,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             })();
 
             return dragOrderedBlocks.map((block, idx) => {
-            const def = BLOCK_CATALOGUE.find(d => d.type === block.type);
+            const def = BLOCK_DEF_MAP.get(block.type);
             const dragProps = getDragProps(block);
             const handleProps = getHandleProps(block);
             const showDropLine = typeof visualDropLine === 'number' && visualDropLine === idx;
@@ -1442,6 +1550,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   onSelect={id => setActiveBlockId(activeBlockId === id ? null : id)}
                   onToggle={toggleVisible}
                   onDelete={deleteBlock}
+                  onSaveAsComponent={saveAsComponent}
                   dragHandleProps={handleProps}
                   isMobile={isMobile}
                 />
@@ -1507,6 +1616,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 def={activeDef}
                 manifest={manifest}
                 blocksKey={blocksKey}
+                device={device}
                 onChange={m => {
                   onChange(m);
                   pushToPreview(m);
@@ -1520,7 +1630,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
       {/* ── Drag ghost — follows pointer via imperative DOM updates in useDragSort ── */}
       {(() => {
         const draggedBlock = dragId ? dragOrderedBlocks.find(b => b.id === dragId) : null;
-        const draggedDef = draggedBlock ? BLOCK_CATALOGUE.find(d => d.type === draggedBlock.type) : null;
+        const draggedDef = draggedBlock ? BLOCK_DEF_MAP.get(draggedBlock.type) ?? null : null;
         const ghostColor = draggedDef?.color ?? 'rgba(163,177,138,1)';
         const GhostIcon = draggedDef?.icon ?? LayoutTemplate;
         return (

@@ -1,25 +1,47 @@
 'use client';
 
-// ─────────────────────────────────────────────────────────────
-// Pearloom / ZoomControls.tsx — Preview zoom slider
-// Adds CSS transform scale to the preview pane for inspecting layouts
-// ─────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// Pearloom / ZoomControls.tsx --- Enhanced glassmorphic zoom panel
+// Floating pill with preset zoom levels, plus/minus, fit-to-screen,
+// and keyboard shortcuts. Spring animations between zoom levels.
+// -----------------------------------------------------------------
 
-import { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ZoomIn, ZoomOut, Maximize, ChevronDown } from 'lucide-react';
 
 interface ZoomControlsProps {
   zoom: number;
   onZoomChange: (zoom: number) => void;
+  /** Ref to the canvas container -- used by "Fit" to auto-calculate zoom */
+  canvasContainerRef?: React.RefObject<HTMLDivElement | null>;
   className?: string;
 }
 
 const MIN_ZOOM = 0.25;
-const MAX_ZOOM = 1.5;
+const MAX_ZOOM = 2;
 const STEP = 0.1;
 
-export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProps) {
+const PRESETS = [
+  { label: 'Fit', value: 'fit' as const },
+  { label: '50%', value: 0.5 },
+  { label: '75%', value: 0.75 },
+  { label: '100%', value: 1 },
+  { label: '125%', value: 1.25 },
+  { label: '150%', value: 1.5 },
+] as const;
+
+export function ZoomControls({
+  zoom,
+  onZoomChange,
+  canvasContainerRef,
+  className,
+}: ZoomControlsProps) {
+  const [presetsOpen, setPresetsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // ---- Handlers ------------------------------------------------
+
   const handleZoomIn = useCallback(() => {
     onZoomChange(Math.min(MAX_ZOOM, Math.round((zoom + STEP) * 10) / 10));
   }, [zoom, onZoomChange]);
@@ -28,91 +50,295 @@ export function ZoomControls({ zoom, onZoomChange, className }: ZoomControlsProp
     onZoomChange(Math.max(MIN_ZOOM, Math.round((zoom - STEP) * 10) / 10));
   }, [zoom, onZoomChange]);
 
-  const handleReset = useCallback(() => {
-    onZoomChange(1);
-  }, [onZoomChange]);
+  const handleFit = useCallback(() => {
+    if (!canvasContainerRef?.current) {
+      onZoomChange(1);
+      return;
+    }
+    const container = canvasContainerRef.current;
+    const cw = container.clientWidth - 40; // subtract padding
+    const ch = container.clientHeight - 80;
+    // The desktop preview card is max 1120px wide, ~100% tall
+    const fitW = cw / 1120;
+    const fitH = ch / 800; // approximate viewport height
+    const fit = Math.min(fitW, fitH, 1.5);
+    onZoomChange(Math.round(Math.max(MIN_ZOOM, fit) * 100) / 100);
+  }, [canvasContainerRef, onZoomChange]);
+
+  const handlePresetClick = useCallback(
+    (preset: (typeof PRESETS)[number]) => {
+      if (preset.value === 'fit') {
+        handleFit();
+      } else {
+        onZoomChange(preset.value);
+      }
+      setPresetsOpen(false);
+    },
+    [handleFit, onZoomChange],
+  );
+
+  // ---- Keyboard shortcuts (Cmd+= / Cmd+- / Cmd+0) -------------
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault();
+        handleZoomIn();
+      } else if (e.key === '-') {
+        e.preventDefault();
+        handleZoomOut();
+      } else if (e.key === '0') {
+        e.preventDefault();
+        onZoomChange(1);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleZoomIn, handleZoomOut, onZoomChange]);
+
+  // ---- Click outside to dismiss presets dropdown ----------------
+
+  useEffect(() => {
+    if (!presetsOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setPresetsOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', handler);
+    return () => window.removeEventListener('mousedown', handler);
+  }, [presetsOpen]);
 
   const pct = Math.round(zoom * 100);
 
   return (
-    <div
+    <motion.div
       className={className}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       style={{
+        position: 'absolute',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 55,
         display: 'flex',
         alignItems: 'center',
-        gap: '4px',
-        background: 'rgba(0,0,0,0.04)',
-        borderRadius: '8px',
-        padding: '3px',
-      }}
+        gap: '2px',
+        padding: '4px',
+        borderRadius: '100px',
+        background: 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(24px) saturate(1.5)',
+        WebkitBackdropFilter: 'blur(24px) saturate(1.5)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        boxShadow:
+          '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.06)',
+      } as React.CSSProperties}
     >
+      {/* Zoom out */}
       <motion.button
         onClick={handleZoomOut}
         disabled={zoom <= MIN_ZOOM}
-        whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.12, backgroundColor: 'rgba(0,0,0,0.06)' }}
+        whileTap={{ scale: 0.88 }}
         transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-        title="Zoom out"
+        title="Zoom out (Cmd+-)"
         style={{
-          padding: '4px 6px',
-          borderRadius: '5px',
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
           border: 'none',
           background: 'transparent',
-          color: zoom <= MIN_ZOOM ? 'rgba(0,0,0,0.08)' : 'var(--pl-ink-soft)',
+          color:
+            zoom <= MIN_ZOOM ? 'rgba(0,0,0,0.12)' : 'var(--pl-ink-soft)',
           cursor: zoom <= MIN_ZOOM ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
-        }}
-      >
-        <ZoomOut size={12} />
-      </motion.button>
-
-      <motion.button
-        onClick={handleReset}
-        whileHover={{ backgroundColor: 'rgba(0,0,0,0.06)' }}
-        whileTap={{ scale: 0.95 }}
-        title="Reset zoom to 100%"
-        style={{
-          padding: '3px 8px',
-          borderRadius: '4px',
-          border: 'none',
-          background: 'transparent',
-          color: zoom === 1 ? 'var(--pl-muted)' : 'var(--pl-olive, #A3B18A)',
-          cursor: 'pointer',
-          fontSize: '0.7rem',
-          fontWeight: 700,
-          letterSpacing: '0.02em',
-          minWidth: '42px',
-          textAlign: 'center',
-          display: 'flex',
-          alignItems: 'center',
           justifyContent: 'center',
-          gap: '3px',
         }}
       >
-        {zoom === 1 ? <Maximize2 size={10} /> : `${pct}%`}
+        <ZoomOut size={14} />
       </motion.button>
 
+      {/* Percentage display / preset dropdown toggle */}
+      <div ref={dropdownRef} style={{ position: 'relative' }}>
+        <motion.button
+          onClick={() => setPresetsOpen((v) => !v)}
+          whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
+          whileTap={{ scale: 0.95 }}
+          title="Zoom presets"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2px',
+            padding: '4px 10px',
+            borderRadius: '100px',
+            border: 'none',
+            background: presetsOpen ? 'rgba(0,0,0,0.06)' : 'transparent',
+            color: zoom === 1 ? 'var(--pl-muted)' : 'var(--pl-olive, #A3B18A)',
+            cursor: 'pointer',
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            minWidth: '52px',
+            textAlign: 'center',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          <motion.span
+            key={pct}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            {pct}%
+          </motion.span>
+          <ChevronDown
+            size={10}
+            style={{
+              transition: 'transform 0.2s',
+              transform: presetsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
+          />
+        </motion.button>
+
+        {/* Presets dropdown */}
+        <AnimatePresence>
+          {presetsOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 8px)',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                minWidth: '120px',
+                padding: '4px',
+                borderRadius: '12px',
+                background: 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                border: '1px solid rgba(0,0,0,0.06)',
+                boxShadow:
+                  '0 8px 32px rgba(43,30,20,0.12), 0 0 0 1px rgba(0,0,0,0.04)',
+                zIndex: 60,
+              } as React.CSSProperties}
+            >
+              {PRESETS.map((preset) => {
+                const isActive =
+                  preset.value !== 'fit' && zoom === preset.value;
+                return (
+                  <motion.button
+                    key={preset.label}
+                    onClick={() => handlePresetClick(preset)}
+                    whileHover={{
+                      backgroundColor: 'rgba(163,177,138,0.12)',
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: isActive
+                        ? 'rgba(163,177,138,0.1)'
+                        : 'transparent',
+                      cursor: 'pointer',
+                      color: isActive
+                        ? 'var(--pl-olive-deep)'
+                        : 'var(--pl-ink-soft)',
+                      fontSize: '0.72rem',
+                      fontWeight: isActive ? 700 : 600,
+                      textAlign: 'left',
+                    }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {preset.value === 'fit' && <Maximize size={11} />}
+                      {preset.label}
+                    </span>
+                    {isActive && (
+                      <div
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          borderRadius: '50%',
+                          background: 'var(--pl-olive)',
+                        }}
+                      />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Zoom in */}
       <motion.button
         onClick={handleZoomIn}
         disabled={zoom >= MAX_ZOOM}
-        whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.12, backgroundColor: 'rgba(0,0,0,0.06)' }}
+        whileTap={{ scale: 0.88 }}
         transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-        title="Zoom in"
+        title="Zoom in (Cmd+=)"
         style={{
-          padding: '4px 6px',
-          borderRadius: '5px',
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
           border: 'none',
           background: 'transparent',
-          color: zoom >= MAX_ZOOM ? 'rgba(0,0,0,0.08)' : 'var(--pl-ink-soft)',
+          color:
+            zoom >= MAX_ZOOM ? 'rgba(0,0,0,0.12)' : 'var(--pl-ink-soft)',
           cursor: zoom >= MAX_ZOOM ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        <ZoomIn size={12} />
+        <ZoomIn size={14} />
       </motion.button>
-    </div>
+
+      {/* Fit button */}
+      <div
+        style={{
+          width: '1px',
+          height: '18px',
+          background: 'rgba(0,0,0,0.08)',
+          margin: '0 2px',
+        }}
+      />
+      <motion.button
+        onClick={handleFit}
+        whileHover={{ scale: 1.12, backgroundColor: 'rgba(0,0,0,0.06)' }}
+        whileTap={{ scale: 0.88 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+        title="Fit to screen"
+        style={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          border: 'none',
+          background: 'transparent',
+          color: 'var(--pl-ink-soft)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Maximize size={14} />
+      </motion.button>
+    </motion.div>
   );
 }

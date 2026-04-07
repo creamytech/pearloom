@@ -26,8 +26,10 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { SectionDivider } from '@/components/effects/SectionDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
-import type { StoryManifest, SitePage } from '@/types';
+import type { StoryManifest, SitePage, PageBlock } from '@/types';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
+import { resolveBreakpointConfig } from '@/lib/breakpoint-utils';
+import type { DeviceMode } from '@/lib/editor-state';
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -158,6 +160,20 @@ function PreviewContent() {
 
   const [editMode, setEditMode] = useState(false);
 
+  // ── Detect device breakpoint from iframe width ──────────────
+  const [previewDevice, setPreviewDevice] = useState<DeviceMode>('desktop');
+  useEffect(() => {
+    const detectDevice = () => {
+      const w = window.innerWidth;
+      if (w <= 430) setPreviewDevice('mobile');
+      else if (w <= 820) setPreviewDevice('tablet');
+      else setPreviewDevice('desktop');
+    };
+    detectDevice();
+    window.addEventListener('resize', detectDevice);
+    return () => window.removeEventListener('resize', detectDevice);
+  }, []);
+
   // Listen for live editor updates via postMessage
   useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -255,7 +271,8 @@ function PreviewContent() {
 
   // ── Block renderer (mirrors live site) ────────────────────────
   const renderBlock = (type: string, key: string) => {
-    const blockCfg = visibleBlocks?.find(b => b.id === key)?.config || {};
+    const block = visibleBlocks?.find(b => b.id === key);
+    const blockCfg = block ? resolveBreakpointConfig(block, previewDevice) : {};
     switch (type) {
       case 'hero':
         return (

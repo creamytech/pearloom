@@ -126,6 +126,25 @@ export interface StoryManifest {
   typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
   /** Site customization options (borders, frames, transitions, etc.) */
   customization?: import("./types").SiteCustomization;
+  /** Saved reusable components (symbol system) */
+  savedComponents?: SavedComponent[];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Saved Component (Symbol System)
+// ─────────────────────────────────────────────────────────────
+
+export type ComponentCategory = 'layout' | 'content' | 'media' | 'interactive';
+
+export interface SavedComponent {
+  id: string;
+  name: string;
+  type: BlockType;
+  category: ComponentCategory;
+  config?: Record<string, unknown>;
+  blockEffects?: PageBlock['blockEffects'];
+  createdAt: string; // ISO 8601
+  builtIn?: boolean; // true for pre-built templates
 }
 
 export interface Chapter {
@@ -458,6 +477,10 @@ export interface PageBlock {
    *   label    — action label or countdown text
    */
   config?: Record<string, unknown>;
+  /** Per-breakpoint config overrides — merged on top of `config` for tablet view */
+  tabletConfig?: Record<string, unknown>;
+  /** Per-breakpoint config overrides — merged on top of `config` for mobile view */
+  mobileConfig?: Record<string, unknown>;
   /** Per-block visual effects — override or supplement global theme effects */
   blockEffects?: {
     /** Entrance animation when this section scrolls into view */

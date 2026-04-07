@@ -1,7 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PearloomMark } from '@/components/brand/PearloomMark';
+
+// ── Spring presets ────────────────────────────────────────────
+const SPRING_CARD = { type: 'spring' as const, stiffness: 320, damping: 22 };
+const SPRING_TEXT = { type: 'spring' as const, stiffness: 360, damping: 26 };
 
 interface WelcomeOverlayProps {
   onDismiss: () => void;
@@ -40,8 +44,8 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.7, ease: 'easeInOut' }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
       onClick={onDismiss}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
@@ -51,20 +55,37 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         gap: '1.5rem', cursor: 'pointer',
       }}
     >
+      {/* Warm blur backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2, ease: 'easeOut' }}
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at center, rgba(163,177,138,0.06) 0%, transparent 70%)',
+          backdropFilter: 'blur(2px)',
+          pointerEvents: 'none',
+        }}
+      />
+
       <WeaveFlash />
 
+      {/* Logo — spring scale with overshoot */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
+        initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        exit={{ opacity: 0, scale: 0.7 }}
+        transition={{ ...SPRING_CARD, delay: 0.7 }}
       >
         <PearloomMark size={80} color="#A3B18A" color2="#D6C6A8" animated />
       </motion.div>
 
+      {/* Title — stagger with spring */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, y: 24, scale: 0.92 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -8, scale: 0.97 }}
+        transition={{ ...SPRING_TEXT, delay: 1.1 }}
         style={{
           fontFamily: 'var(--pl-font-heading, Playfair Display, Georgia, serif)',
           fontSize: 'clamp(2rem, 5vw, 3rem)',
@@ -78,10 +99,12 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         Your site is ready.
       </motion.div>
 
+      {/* Subtitle — stagger with spring */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.45, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, y: 20, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -6, scale: 0.97 }}
+        transition={{ ...SPRING_TEXT, delay: 1.45 }}
         style={{
           fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
           fontSize: '1rem',
@@ -91,6 +114,22 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         }}
       >
         Click anywhere on your site to edit it.
+      </motion.div>
+
+      {/* Subtle pulsing hint at bottom */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 0.5, 0] }}
+        transition={{ duration: 2.5, delay: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', bottom: '40px',
+          fontSize: '0.7rem', fontWeight: 600,
+          color: 'var(--pl-muted)',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+        }}
+      >
+        Tap to begin
       </motion.div>
     </motion.div>
   );

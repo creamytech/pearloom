@@ -6,13 +6,17 @@
 // floating glass overlays for contextual editing.
 // ─────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Monitor, Tablet, Smartphone } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Monitor, Tablet, Smartphone, GripVertical } from 'lucide-react';
 import { useEditor, stripArtForStorage, type DeviceMode } from '@/lib/editor-state';
+import { BREAKPOINTS } from '@/lib/breakpoint-utils';
 import { StickerOverlay } from './StickerOverlay';
 import { SectionHoverToolbar } from './SectionHoverToolbar';
 import { CanvasCursors } from './CanvasCursors';
+import { ZoomControls } from './ZoomControls';
+import { CanvasContextMenu } from './CanvasContextMenu';
+import { SpacingOverlay } from './SpacingOverlay';
 import { INLINE_EDIT_SCRIPT } from '@/lib/block-engine/inline-edit';
 
 // ── Skeleton Loading Screen ───────────────────────────────────
@@ -40,9 +44,185 @@ function SkeletonLoading({ slow }: { slow: boolean }) {
   );
 }
 
+// ── Breakpoint indicator bar with drag handles ──────────────
+function BreakpointBar({
+  canvasWidth,
+  device,
+  onWidthChange,
+  onDeviceChange,
+}: {
+  canvasWidth: number;
+  device: DeviceMode;
+  onWidthChange: (w: number) => void;
+  onDeviceChange: (d: DeviceMode) => void;
+}) {
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const startWidth = useRef(0);
+  const [displayWidth, setDisplayWidth] = useState(canvasWidth);
+  const [dragging, setDragging] = useState(false);
+
+  // Sync displayWidth with prop when not dragging
+  useEffect(() => {
+    if (!isDragging.current) setDisplayWidth(canvasWidth);
+  }, [canvasWidth]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent, side: 'left' | 'right') => {
+    e.preventDefault();
+    isDragging.current = true;
+    setDragging(true);
+    startX.current = e.clientX;
+    startWidth.current = canvasWidth;
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!isDragging.current) return;
+      const dx = side === 'right'
+        ? (ev.clientX - startX.current) * 2
+        : (startX.current - ev.clientX) * 2;
+      const newWidth = Math.max(320, Math.min(1920, startWidth.current + dx));
+      setDisplayWidth(Math.round(newWidth));
+      onWidthChange(Math.round(newWidth));
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      setDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [canvasWidth, onWidthChange]);
+
+  // Determine which preset is closest
+  const closestDevice = (w: number): DeviceMode | null => {
+    if (Math.abs(w - BREAKPOINTS.mobile) < 20) return 'mobile';
+    if (Math.abs(w - BREAKPOINTS.tablet) < 20) return 'tablet';
+    if (Math.abs(w - BREAKPOINTS.desktop) < 20) return 'desktop';
+    return null;
+  };
+
+  const matched = closestDevice(displayWidth);
+
+  return (
+    <div style={{
+      position: 'absolute', top: '0', left: '0', right: '0',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 42, height: '28px', pointerEvents: 'none',
+    }}>
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '0',
+          pointerEvents: 'auto',
+          height: '24px',
+          borderRadius: '0 0 10px 10px',
+          background: 'rgba(255,255,255,0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(0,0,0,0.06)',
+          borderTop: 'none',
+          boxShadow: '0 2px 8px rgba(43,30,20,0.06)',
+          overflow: 'hidden',
+        } as React.CSSProperties}
+      >
+        {/* Left drag handle */}
+        <div
+          onMouseDown={(e) => handleMouseDown(e, 'left')}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '18px', height: '100%',
+            cursor: 'col-resize',
+            color: dragging ? 'var(--pl-olive)' : 'var(--pl-muted)',
+            opacity: dragging ? 1 : 0.5,
+            transition: 'color 0.15s, opacity 0.15s',
+          }}
+        >
+          <GripVertical size={10} />
+        </div>
+
+        {/* Breakpoint preset dots */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          padding: '0 4px',
+        }}>
+          {([
+            { mode: 'mobile' as DeviceMode, w: BREAKPOINTS.mobile },
+            { mode: 'tablet' as DeviceMode, w: BREAKPOINTS.tablet },
+            { mode: 'desktop' as DeviceMode, w: BREAKPOINTS.desktop },
+          ]).map(({ mode, w }) => (
+            <motion.button
+              key={mode}
+              onClick={() => {
+                onDeviceChange(mode);
+                onWidthChange(w);
+              }}
+              title={`${mode}: ${w}px`}
+              whileHover={{ scale: 1.3 }}
+              whileTap={{ scale: 0.8 }}
+              style={{
+                width: '6px', height: '6px',
+                borderRadius: '50%', border: 'none', padding: 0,
+                background: device === mode
+                  ? 'var(--pl-olive)'
+                  : 'var(--pl-divider)',
+                cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Width display */}
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={displayWidth}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.08 }}
+            style={{
+              fontSize: '0.6rem', fontWeight: 700,
+              color: matched ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
+              letterSpacing: '0.04em',
+              fontVariantNumeric: 'tabular-nums',
+              padding: '0 6px',
+              minWidth: '52px', textAlign: 'center',
+            }}
+          >
+            {displayWidth}px
+          </motion.span>
+        </AnimatePresence>
+
+        {/* Right drag handle */}
+        <div
+          onMouseDown={(e) => handleMouseDown(e, 'right')}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '18px', height: '100%',
+            cursor: 'col-resize',
+            color: dragging ? 'var(--pl-olive)' : 'var(--pl-muted)',
+            opacity: dragging ? 1 : 0.5,
+            transition: 'color 0.15s, opacity 0.15s',
+          }}
+        >
+          <GripVertical size={10} />
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export function EditorCanvas() {
   const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
-  const { device, iframeReady, previewSlow, activeId, chapters, previewPage, previewZoom } = state;
+  const { device, iframeReady, previewSlow, activeId, chapters, previewPage, previewZoom, canvasWidth } = state;
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Listen for edit messages from iframe ──────────────────
@@ -162,8 +342,10 @@ export function EditorCanvas() {
 
   const isPhone = device === 'mobile';
   const isTablet = device === 'tablet';
+  const isDesktop = device === 'desktop';
   const isFramed = isPhone || isTablet;
-  const frameWidth = isPhone ? 390 : isTablet ? 768 : undefined;
+  // Use canvasWidth from state (tracks dragging and device presets)
+  const frameWidth = isFramed ? canvasWidth : undefined;
 
   const iframeSrc = `/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`;
   const handleIframeLoad = () => {
@@ -187,6 +369,14 @@ export function EditorCanvas() {
       overflow: 'hidden',
       position: 'relative',
     }}>
+
+      {/* ── Breakpoint indicator bar ── */}
+      <BreakpointBar
+        canvasWidth={canvasWidth}
+        device={device}
+        onWidthChange={(w) => dispatch({ type: 'SET_CANVAS_WIDTH', width: w })}
+        onDeviceChange={(d) => dispatch({ type: 'SET_DEVICE', device: d })}
+      />
 
       {/* ── Contextual editing label ── */}
       {state.activeTab && (
@@ -289,15 +479,18 @@ export function EditorCanvas() {
           overflow: 'auto',
         }}
       >
-        {/* ── Device frame (tablet/phone) ── */}
+        {/* ── Device frame (tablet/phone) with smooth width animation ── */}
         {isFramed ? (
           <motion.div
-            key={device}
             initial={{ opacity: 0, scale: 0.97, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              width: frameWidth,
+            }}
             transition={{ type: 'spring', stiffness: 340, damping: 32 }}
             style={{
-              width: frameWidth,
               maxWidth: '100%',
               display: 'flex', flexDirection: 'column',
               borderRadius: 24,
@@ -321,20 +514,23 @@ export function EditorCanvas() {
           </motion.div>
         ) : (
           /* ── Full-bleed desktop — rounded card with soft shadow ── */
-          <div style={{
-            width: previewZoom !== 1 ? `${100 / previewZoom}%` : '100%',
-            maxWidth: previewZoom !== 1 ? `${1120 / previewZoom}px` : '1120px',
-            flex: 1,
-            borderRadius: '20px',
-            overflow: 'hidden',
-            boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
-            position: 'relative',
-            background: 'white',
-            minHeight: 0,
-            transform: previewZoom !== 1 ? `scale(${previewZoom})` : undefined,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease',
-          }}>
+          <motion.div
+            animate={{ maxWidth: canvasWidth }}
+            transition={{ type: 'spring', stiffness: 340, damping: 32 }}
+            style={{
+              width: previewZoom !== 1 ? `${100 / previewZoom}%` : '100%',
+              flex: 1,
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+              position: 'relative',
+              background: 'white',
+              minHeight: 0,
+              transform: previewZoom !== 1 ? `scale(${previewZoom})` : undefined,
+              transformOrigin: 'top center',
+              transition: 'transform 0.2s ease',
+            }}
+          >
             {!iframeReady && <SkeletonLoading slow={previewSlow} />}
             <iframe
               ref={iframeRef}
@@ -343,7 +539,7 @@ export function EditorCanvas() {
               title="Live Preview"
               onLoad={handleIframeLoad}
             />
-          </div>
+          </motion.div>
         )}
 
         {/* Sticker overlay */}
@@ -361,13 +557,26 @@ export function EditorCanvas() {
         {/* Section hover toolbar */}
         <SectionHoverToolbar />
 
+        {/* Spacing overlay between sections */}
+        <SpacingOverlay />
+
         {/* Collaborative cursors */}
         <CanvasCursors
           currentUserId={state.activeId || 'local'}
           siteId={state.previewPage || 'editor'}
           containerRef={canvasContainerRef}
         />
+
+        {/* Right-click context menu */}
+        <CanvasContextMenu containerRef={canvasContainerRef} />
       </div>
+
+      {/* Zoom controls — bottom-right, outside scroll area */}
+      <ZoomControls
+        zoom={previewZoom}
+        onZoomChange={(z) => dispatch({ type: 'SET_PREVIEW_ZOOM', zoom: z })}
+        canvasContainerRef={canvasContainerRef}
+      />
     </div>
   );
 }

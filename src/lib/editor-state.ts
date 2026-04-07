@@ -12,12 +12,29 @@ import {
 import type { StoryManifest, Chapter } from '@/types';
 import type { SectionStyleOverrides } from '@/components/editor/SectionStyleEditor';
 import type { CommandAction } from '@/components/editor/CommandPalette';
-
 // ── Types ──────────────────────────────────────────────────────
 export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors';
+export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors' | 'components' | 'history';
+
+/** Default pixel widths per device mode (mirrors BREAKPOINTS in breakpoint-utils) */
+const DEVICE_WIDTHS: Record<DeviceMode, number> = { desktop: 1280, tablet: 768, mobile: 375 };
 export type SaveState = 'saved' | 'unsaved';
 export type DraftBannerState = 'visible' | 'hidden' | null;
+
+/** Lightweight undo history entry for the timeline UI (no manifest snapshot) */
+export interface UndoHistoryEntry {
+  label: string;
+  timestamp: number;
+}
+
+const MAX_UNDO_ENTRIES = 50;
+
+/** A single entry in the undo/redo timeline */
+export interface HistoryEntry {
+  manifest: StoryManifest;
+  label: string;
+  timestamp: number;
+}
 
 export interface EditorState {
   // Content
@@ -83,6 +100,13 @@ export interface EditorState {
 
   // Multi-select blocks
   selectedBlockIds: string[];
+
+  // Responsive canvas width (exact pixel width, tracks device or custom resize)
+  canvasWidth: number;
+
+  // Undo timeline (lightweight entries for the UI)
+  undoHistory: UndoHistoryEntry[];
+  undoIndex: number;
 }
 
 export type EditorAction =
@@ -127,7 +151,11 @@ export type EditorAction =
   | { type: 'SET_CHAPTER_ALTERNATES'; id: string; alternates: string[] }
   | { type: 'SET_ALTERNATES_LOADING'; id: string | null }
   | { type: 'SET_SELECTED_BLOCKS'; ids: string[] }
-  | { type: 'TOGGLE_BLOCK_SELECTION'; id: string };
+  | { type: 'TOGGLE_BLOCK_SELECTION'; id: string }
+  | { type: 'SET_CANVAS_WIDTH'; width: number }
+  | { type: 'PUSH_UNDO_ENTRY'; label: string }
+  | { type: 'SET_UNDO_INDEX'; index: number }
+  | { type: 'CLEAR_UNDO_HISTORY' };
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
@@ -138,7 +166,7 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     case 'SET_ACTIVE_TAB':
       return { ...state, activeTab: action.tab };
     case 'SET_DEVICE':
-      return { ...state, device: action.device };
+      return { ...state, device: action.device, canvasWidth: DEVICE_WIDTHS[action.device] };
     case 'SET_SIDEBAR_WIDTH':
       return { ...state, sidebarWidth: action.width };
     case 'SET_SIDEBAR_COLLAPSED':
@@ -219,6 +247,18 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
         : [...state.selectedBlockIds, action.id];
       return { ...state, selectedBlockIds: ids };
     }
+    case 'SET_CANVAS_WIDTH':
+      return { ...state, canvasWidth: action.width };
+    case 'PUSH_UNDO_ENTRY': {
+      const trimmed = state.undoHistory.slice(0, state.undoIndex + 1);
+      trimmed.push({ label: action.label, timestamp: Date.now() });
+      if (trimmed.length > MAX_UNDO_ENTRIES) trimmed.shift();
+      return { ...state, undoHistory: trimmed, undoIndex: trimmed.length - 1 };
+    }
+    case 'SET_UNDO_INDEX':
+      return { ...state, undoIndex: Math.max(0, Math.min(action.index, state.undoHistory.length - 1)) };
+    case 'CLEAR_UNDO_HISTORY':
+      return { ...state, undoHistory: [], undoIndex: -1 };
     default:
       return state;
   }
@@ -242,6 +282,9 @@ export interface EditorActions {
   undo: () => void;
   redo: () => void;
   pushHistory: (m: StoryManifest) => void;
+  jumpToHistory: (index: number) => void;
+  getHistoryEntries: () => HistoryEntry[];
+  getHistoryIndex: () => number;
 
   // Preview
   pushToPreview: (m: StoryManifest) => void;
@@ -330,6 +373,9 @@ export function createInitialEditorState(
     chapterAlternates: {},
     alternatesLoadingId: null,
     selectedBlockIds: [],
+    canvasWidth: DEVICE_WIDTHS.desktop,
+    undoHistory: [{ label: 'Initial state', timestamp: Date.now() }],
+    undoIndex: 0,
   };
 }
 

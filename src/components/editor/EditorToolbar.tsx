@@ -9,7 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Monitor, Tablet, Smartphone, Settings2, Activity } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Settings2, Activity, Clock } from 'lucide-react';
 import {
   ExitIcon, PreviewIcon, PublishIcon, UndoIcon, RedoIcon, CommandIcon,
   SavedIcon, UnsavedIcon,
@@ -20,12 +20,18 @@ import { EditorBreadcrumb } from './EditorBreadcrumb';
 import { ZoomControls } from './ZoomControls';
 import { CollabPresence } from './CollabPresence';
 import type { Chapter } from '@/types';
+import { UndoTimeline } from './UndoTimeline';
+import { BREAKPOINTS } from '@/lib/breakpoint-utils';
 
 const DEVICE_ICONS: Record<DeviceMode, React.ElementType> = {
   desktop: Monitor,
   tablet: Tablet,
   mobile: Smartphone,
 };
+
+// ── Spring presets ────────────────────────────────────────────
+const SPRING_SNAPPY = { type: 'spring' as const, stiffness: 400, damping: 26 };
+const SPRING_BOUNCY = { type: 'spring' as const, stiffness: 380, damping: 20 };
 
 // ── Viewport Popover (Device + Zoom collapsed) ────────────────
 function ViewportPopover({
@@ -81,10 +87,10 @@ function ViewportPopover({
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -4, scale: 0.96 }}
+            initial={{ opacity: 0, y: -8, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: -6, scale: 0.95 }}
+            transition={SPRING_SNAPPY}
             style={{
               position: 'absolute', top: '100%', right: 0, marginTop: '6px',
               width: '200px', padding: '8px',
@@ -95,7 +101,7 @@ function ViewportPopover({
               zIndex: 100,
             }}
           >
-            {/* Device icons */}
+            {/* Device icons — shared layout animation for active indicator */}
             <div style={{ display: 'flex', gap: '2px', marginBottom: '8px' }}>
               {(Object.keys(DEVICE_DIMS) as DeviceMode[]).map((mode) => {
                 const Icon = DEVICE_ICONS[mode];
@@ -105,19 +111,43 @@ function ViewportPopover({
                     key={mode}
                     aria-label={`Switch to ${DEVICE_DIMS[mode].label} view`}
                     onClick={() => onDeviceChange(mode)}
-                    whileHover={{ backgroundColor: 'rgba(163,177,138,0.1)' }}
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.92 }}
+                    transition={SPRING_SNAPPY}
                     style={{
                       flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
                       cursor: 'pointer', display: 'flex', flexDirection: 'column',
                       alignItems: 'center', gap: '4px',
-                      background: isActive ? 'var(--pl-olive-mist)' : 'transparent',
+                      background: 'transparent',
                       color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                      position: 'relative',
                     }}
                   >
+                    {/* Sliding active background */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="device-switcher-active"
+                        style={{
+                          position: 'absolute', inset: 0,
+                          borderRadius: '6px',
+                          background: 'var(--pl-olive-mist)',
+                          zIndex: -1,
+                        }}
+                        transition={SPRING_SNAPPY}
+                      />
+                    )}
                     <Icon size={14} />
                     <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
-                      {DEVICE_DIMS[mode].label}
+                      {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                    </span>
+                    <span style={{
+                      fontSize: '0.55rem', fontWeight: 600,
+                      color: isActive ? 'var(--pl-olive)' : 'var(--pl-muted)',
+                      opacity: 0.7,
+                      letterSpacing: '0.02em',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}>
+                      {BREAKPOINTS[mode]}px
                     </span>
                   </motion.button>
                 );
@@ -146,6 +176,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
     isMobile, device, canUndo, canRedo, saveState, splitView,
     activeId, cmdPaletteOpen, previewZoom,
   } = state;
+  const [timelineOpen, setTimelineOpen] = useState(false);
 
   return (
     <div style={{
@@ -246,6 +277,23 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               transition: 'color 0.15s, filter 0.15s',
             }}
           ><RedoIcon size={isMobile ? 11 : 13} /></motion.button>
+          <motion.button
+            onClick={() => setTimelineOpen(v => !v)}
+            title="Edit timeline"
+            aria-label="Open edit timeline"
+            whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' }}
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+            style={{
+              padding: '5px 8px', borderRadius: '6px', border: 'none',
+              background: timelineOpen ? 'var(--pl-olive-mist)' : 'var(--pl-cream-deep)',
+              color: timelineOpen ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', minHeight: '36px', minWidth: '36px',
+              transition: 'color 0.15s, background 0.15s',
+            }}
+          ><Clock size={13} /></motion.button>
+          <UndoTimeline open={timelineOpen} onClose={() => setTimelineOpen(false)} />
         </div>
 
         {/* Save status pill — desktop: full, mobile: dot only */}
@@ -377,19 +425,23 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               />
             )}
 
-            {/* Publish — prominent primary CTA */}
+            {/* Publish — prominent primary CTA with glow pulse when unsaved */}
             <motion.button
               onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
               title="Publish your site"
               whileHover={{ scale: 1.06, boxShadow: '0 8px 28px rgba(163,177,138,0.5)' }}
               whileTap={{ scale: 0.94 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+              animate={saveState === 'unsaved'
+                ? { boxShadow: ['0 2px 12px rgba(110,140,92,0.3)', '0 4px 20px rgba(163,177,138,0.55)', '0 2px 12px rgba(110,140,92,0.3)'] }
+                : { boxShadow: '0 2px 12px rgba(110,140,92,0.3)' }}
+              transition={saveState === 'unsaved'
+                ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+                : SPRING_BOUNCY}
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 22px', borderRadius: '100px', border: 'none',
                 background: 'var(--pl-olive-deep)',
                 color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-                boxShadow: '0 2px 12px rgba(110,140,92,0.3)',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase' as const,
               }}

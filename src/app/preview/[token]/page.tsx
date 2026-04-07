@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useEffect, useState, useRef } from 'react';
-import type { StoryManifest } from '@/types';
+import type { StoryManifest, PageBlock } from '@/types';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
 import { Hero } from '@/components/hero';
@@ -14,6 +14,8 @@ import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
+import { resolveBreakpointConfig } from '@/lib/breakpoint-utils';
+import type { DeviceMode } from '@/lib/editor-state';
 import type { FaqItem } from '@/types';
 
 interface PreviewPageProps {
@@ -247,6 +249,20 @@ function getVideoEmbedUrl(url?: string): string | null {
 
 // ── Site Renderer ────────────────────────────────────────────────────────────
 function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
+  // ── Detect device breakpoint from window width ──────────────
+  const [currentDevice, setCurrentDevice] = useState<DeviceMode>('desktop');
+  useEffect(() => {
+    const detectDevice = () => {
+      const w = window.innerWidth;
+      if (w <= 430) setCurrentDevice('mobile');
+      else if (w <= 820) setCurrentDevice('tablet');
+      else setCurrentDevice('desktop');
+    };
+    detectDevice();
+    window.addEventListener('resize', detectDevice);
+    return () => window.removeEventListener('resize', detectDevice);
+  }, []);
+
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
   const pal = vibeSkin.palette;
   const bgColor = pal.background;
@@ -387,7 +403,8 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
         );
       }
       case 'text': {
-        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'text')?.config || {};
+        const textBlock = (manifest.blocks || []).find((b: PageBlock) => b.type === 'text');
+        const blockCfg = textBlock ? resolveBreakpointConfig(textBlock, currentDevice) : {};
         const textContent = (blockCfg.content || blockCfg.text) as string | undefined;
         if (!textContent) return null;
         return (
@@ -399,7 +416,8 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
         );
       }
       case 'quote': {
-        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'quote')?.config || {};
+        const quoteBlock = (manifest.blocks || []).find((b: PageBlock) => b.type === 'quote');
+        const blockCfg = quoteBlock ? resolveBreakpointConfig(quoteBlock, currentDevice) : {};
         const customQuote = (blockCfg.quote || blockCfg.text) as string | undefined;
         const quoteText = customQuote || vibeSkin.dividerQuote || manifest.vibeString || 'A love story beautifully told.';
         return (
@@ -412,7 +430,8 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
         );
       }
       case 'video': {
-        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'video')?.config || {};
+        const videoBlock = (manifest.blocks || []).find((b: PageBlock) => b.type === 'video');
+        const blockCfg = videoBlock ? resolveBreakpointConfig(videoBlock, currentDevice) : {};
         const videoEmbedUrl = getVideoEmbedUrl(blockCfg.url as string | undefined);
         return (
           <section key="video" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>
@@ -429,7 +448,8 @@ function SiteRenderer({ manifest }: { manifest: StoryManifest }) {
         );
       }
       case 'map': {
-        const blockCfg = (manifest.blocks || []).find((b: { type: string }) => b.type === 'map')?.config || {};
+        const mapBlock = (manifest.blocks || []).find((b: PageBlock) => b.type === 'map');
+        const blockCfg = mapBlock ? resolveBreakpointConfig(mapBlock, currentDevice) : {};
         const mapAddress = (blockCfg.address as string | undefined) || manifest.events?.[0]?.address || manifest.logistics?.venue;
         return (
           <section key="map" style={{ padding: 'clamp(2rem, 5vw, 5rem) clamp(1rem, 4vw, 2rem)', maxWidth: '1200px', margin: '0 auto' }}>

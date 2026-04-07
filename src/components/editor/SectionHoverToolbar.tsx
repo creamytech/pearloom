@@ -163,10 +163,10 @@ export function SectionHoverToolbar() {
             <AnimatePresence>
               {moreOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 4, scale: 0.96 }}
+                  initial={{ opacity: 0, y: 8, scale: 0.92 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.96 }}
-                  transition={{ duration: 0.14, ease: [0.16, 1, 0.3, 1] }}
+                  transition={SPRING_BTN}
                   style={{
                     position: 'absolute', top: 'calc(100% + 6px)', right: 0,
                     background: 'rgba(22,18,28,0.96)',
@@ -207,6 +207,9 @@ export function SectionHoverToolbar() {
   );
 }
 
+// ── Spring presets ─────────────────────────────────────────────
+const SPRING_BTN = { type: 'spring' as const, stiffness: 420, damping: 26 };
+
 // ── Sub-components ─────────────────────────────────────────────
 function ToolbarBtn({
   icon, label, onClick, disabled, accent,
@@ -221,9 +224,10 @@ function ToolbarBtn({
       whileHover={!disabled ? {
         backgroundColor: accent ? 'rgba(163,177,138,0.18)' : 'rgba(0,0,0,0.06)',
         color: accent ? '#A3B18A' : 'var(--pl-ink)',
+        y: -1,
       } : {}}
       whileTap={!disabled ? { scale: 0.9 } : {}}
-      transition={{ duration: 0.1 }}
+      transition={SPRING_BTN}
       style={{
         display: 'flex', alignItems: 'center', gap: '4px',
         padding: '0 10px', height: TOOLBAR_H,
@@ -253,8 +257,9 @@ function DropdownItem({
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ backgroundColor: danger ? 'rgba(248,113,113,0.12)' : 'rgba(0,0,0,0.06)' }}
-      whileTap={{ scale: 0.97 }}
+      whileHover={{ backgroundColor: danger ? 'rgba(248,113,113,0.12)' : 'rgba(0,0,0,0.06)', x: 2 }}
+      whileTap={{ scale: 0.95 }}
+      transition={SPRING_BTN}
       style={{
         display: 'flex', alignItems: 'center', gap: '8px',
         width: '100%', padding: '7px 10px', borderRadius: '8px',

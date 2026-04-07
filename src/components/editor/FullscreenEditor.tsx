@@ -50,15 +50,18 @@ import { ThankYouPanel } from './ThankYouPanel';
 import { SpotifyPanel } from './SpotifyPanel';
 import { AnniversaryNudgePanel } from './AnniversaryNudgePanel';
 import { VendorPanel } from './VendorPanel';
+import { ComponentLibrary } from './ComponentLibrary';
 import { PropertiesPanel } from './PropertiesPanel';
 import { BlockConfigEditor } from './BlockConfigEditor';
 import { BlockStyleEditor } from './BlockStyleEditor';
+import { getConfigKeyForDevice } from '@/lib/breakpoint-utils';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
 import { CustomCSSEditor } from './CustomCSSEditor';
 import { CustomizationPanel } from './CustomizationPanel';
 import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
 import { trackPublish, trackEdit } from '@/lib/intelligence';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
+import { UndoTimelinePanel } from './UndoTimeline';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
   setBlockStyle, saveSnapshot, parseElementId,
@@ -71,7 +74,7 @@ import {
   storePreview, stripArtForStorage,
   PREVIEW_KEY_PREFIX, AUTOSAVE_KEY,
   useEditor,
-  type EditorTab, type EditorActions,
+  type EditorTab, type EditorActions, type HistoryEntry,
 } from '@/lib/editor-state';
 
 interface FullscreenEditorProps {
@@ -110,8 +113,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [panelOpen]);
 
   // ── History ──────────────────────────────────────────────────
-  const historyRef = useRef<StoryManifest[]>([manifest]);
+  const historyRef = useRef<HistoryEntry[]>([{ manifest, label: 'Initial state', timestamp: Date.now() }]);
   const historyIndexRef = useRef(0);
+  const [, forceTimelineRender] = useState(0);
 
   // Stable refs for keyboard handler
   const activeIdRef = useRef(state.activeId);
@@ -183,15 +187,99 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   }, [state.isDirty]);
 
   // ── History helpers ──────────────────────────────────────────
+
+  /** Auto-generate a human-readable label by diffing two manifests */
+  const describeChange = useCallback((prev: StoryManifest, next: StoryManifest): string => {
+    // Theme / design changes
+    if (prev.theme?.name !== next.theme?.name) return 'Changed theme';
+    if (JSON.stringify(prev.theme) !== JSON.stringify(next.theme)) return 'Changed theme colors';
+    if (prev.layoutFormat !== next.layoutFormat) return `Switched layout to ${next.layoutFormat || 'default'}`;
+    if (prev.typographyPair !== next.typographyPair) return 'Changed typography';
+    if (prev.parchmentTint !== next.parchmentTint) return 'Changed parchment tint';
+    if (prev.spotifyUrl !== next.spotifyUrl) return 'Updated Spotify playlist';
+
+    // Block-level changes
+    const prevBlocks = prev.blocks || [];
+    const nextBlocks = next.blocks || [];
+    if (prevBlocks.length < nextBlocks.length) {
+      const added = nextBlocks.find(b => !prevBlocks.some(pb => pb.id === b.id));
+      if (added) return `Added ${added.type.charAt(0).toUpperCase() + added.type.slice(1)} section`;
+    }
+    if (prevBlocks.length > nextBlocks.length) {
+      const removed = prevBlocks.find(b => !nextBlocks.some(nb => nb.id === b.id));
+      if (removed) return `Deleted ${removed.type.charAt(0).toUpperCase() + removed.type.slice(1)} block`;
+    }
+    // Block reorder detection
+    if (prevBlocks.length === nextBlocks.length && prevBlocks.length > 0) {
+      const prevOrder = prevBlocks.map(b => b.id).join(',');
+      const nextOrder = nextBlocks.map(b => b.id).join(',');
+      if (prevOrder !== nextOrder) {
+        const moved = nextBlocks.find((b, i) => prevBlocks[i]?.id !== b.id);
+        if (moved) return `Moved ${moved.type.charAt(0).toUpperCase() + moved.type.slice(1)} section`;
+      }
+    }
+
+    // Chapter-level changes
+    const prevChs = prev.chapters || [];
+    const nextChs = next.chapters || [];
+    if (prevChs.length < nextChs.length) {
+      const added = nextChs.find(c => !prevChs.some(pc => pc.id === c.id));
+      return added ? `Added chapter: ${added.title}` : 'Added new chapter';
+    }
+    if (prevChs.length > nextChs.length) {
+      const removed = prevChs.find(c => !nextChs.some(nc => nc.id === c.id));
+      return removed ? `Deleted chapter: ${removed.title}` : 'Deleted chapter';
+    }
+    // Chapter reorder
+    if (prevChs.length === nextChs.length && prevChs.length > 0) {
+      const prevOrder = prevChs.map(c => c.id).join(',');
+      const nextOrder = nextChs.map(c => c.id).join(',');
+      if (prevOrder !== nextOrder) return 'Reordered chapters';
+    }
+    // Chapter content edits
+    for (let i = 0; i < nextChs.length; i++) {
+      const pc = prevChs.find(c => c.id === nextChs[i].id);
+      if (pc) {
+        if (pc.title !== nextChs[i].title || pc.description !== nextChs[i].description || pc.subtitle !== nextChs[i].subtitle) {
+          return `Edited chapter: ${nextChs[i].title}`;
+        }
+        if (pc.layout !== nextChs[i].layout) return `Changed layout: ${nextChs[i].title}`;
+        if (JSON.stringify(pc.images) !== JSON.stringify(nextChs[i].images)) return `Updated photos: ${nextChs[i].title}`;
+        if (JSON.stringify(pc.styleOverrides) !== JSON.stringify(nextChs[i].styleOverrides)) return `Styled chapter: ${nextChs[i].title}`;
+      }
+    }
+
+    // FAQ changes
+    if (JSON.stringify(prev.faqs) !== JSON.stringify(next.faqs)) return 'Updated FAQ section';
+    // Events
+    if (JSON.stringify(prev.events) !== JSON.stringify(next.events)) return 'Updated events';
+    // Logistics
+    if (JSON.stringify(prev.logistics) !== JSON.stringify(next.logistics)) return 'Updated logistics details';
+    // Registry
+    if (JSON.stringify(prev.registry) !== JSON.stringify(next.registry)) return 'Updated registry';
+    // Wedding party
+    if (JSON.stringify(prev.weddingParty) !== JSON.stringify(next.weddingParty)) return 'Updated wedding party';
+    // Customization
+    if (JSON.stringify(prev.customization) !== JSON.stringify(next.customization)) return 'Updated customization';
+    // VibeSkin
+    if (JSON.stringify(prev.vibeSkin) !== JSON.stringify(next.vibeSkin)) return 'Updated design skin';
+
+    return 'Made changes';
+  }, []);
+
   const pushHistory = useCallback((m: StoryManifest) => {
     const stack = historyRef.current.slice(0, historyIndexRef.current + 1);
-    stack.push(m);
+    const prevManifest = stack.length > 0 ? stack[stack.length - 1].manifest : m;
+    const label = stack.length === 0 ? 'Initial state' : describeChange(prevManifest, m);
+    stack.push({ manifest: m, label, timestamp: Date.now() });
     if (stack.length > 50) stack.shift();
     historyRef.current = stack;
     historyIndexRef.current = stack.length - 1;
     dispatch({ type: 'SET_CAN_UNDO', can: stack.length > 1 });
     dispatch({ type: 'SET_CAN_REDO', can: false });
-  }, []);
+    dispatch({ type: 'PUSH_UNDO_ENTRY', label });
+    forceTimelineRender(n => n + 1);
+  }, [describeChange]);
 
   // ── Push to preview (debounced) ──────────────────────────────
   const pushToPreview = useCallback((m: StoryManifest) => {
@@ -227,22 +315,41 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const undo = useCallback(() => {
     if (historyIndexRef.current <= 0) return;
     historyIndexRef.current -= 1;
-    const prev = historyRef.current[historyIndexRef.current];
+    const prev = historyRef.current[historyIndexRef.current].manifest;
     onChange(prev);
     pushToPreview(prev);
     dispatch({ type: 'SET_CAN_UNDO', can: historyIndexRef.current > 0 });
     dispatch({ type: 'SET_CAN_REDO', can: true });
+    dispatch({ type: 'SET_UNDO_INDEX', index: historyIndexRef.current });
+    forceTimelineRender(n => n + 1);
   }, [onChange, pushToPreview]);
 
   const redo = useCallback(() => {
     if (historyIndexRef.current >= historyRef.current.length - 1) return;
     historyIndexRef.current += 1;
-    const next = historyRef.current[historyIndexRef.current];
+    const next = historyRef.current[historyIndexRef.current].manifest;
     onChange(next);
     pushToPreview(next);
     dispatch({ type: 'SET_CAN_UNDO', can: true });
     dispatch({ type: 'SET_CAN_REDO', can: historyIndexRef.current < historyRef.current.length - 1 });
+    dispatch({ type: 'SET_UNDO_INDEX', index: historyIndexRef.current });
+    forceTimelineRender(n => n + 1);
   }, [onChange, pushToPreview]);
+
+  const jumpToHistory = useCallback((index: number) => {
+    if (index < 0 || index >= historyRef.current.length) return;
+    historyIndexRef.current = index;
+    const entry = historyRef.current[index];
+    onChange(entry.manifest);
+    pushToPreview(entry.manifest);
+    dispatch({ type: 'SET_CAN_UNDO', can: index > 0 });
+    dispatch({ type: 'SET_CAN_REDO', can: index < historyRef.current.length - 1 });
+    dispatch({ type: 'SET_UNDO_INDEX', index });
+    forceTimelineRender(n => n + 1);
+  }, [onChange, pushToPreview]);
+
+  const getHistoryEntries = useCallback(() => historyRef.current, []);
+  const getHistoryIndex = useCallback(() => historyIndexRef.current, []);
 
   // ── Core actions ─────────────────────────────────────────────
   const syncManifest = useCallback((newChapters: Chapter[]) => {
@@ -617,7 +724,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const actions: EditorActions = {
     updateChapter, deleteChapter, addChapter, handleReorder,
     syncManifest, handleDesignChange, handleChatManifestUpdate,
-    undo, redo, pushHistory, pushToPreview,
+    undo, redo, pushHistory, jumpToHistory, getHistoryEntries, getHistoryIndex, pushToPreview,
     handleTabChange, handleCommandAction,
     handleAIRewrite, cancelAIRewrite, handlePublishSubmit, handleRestoreDraft,
     storePreviewForOpen,
@@ -714,10 +821,11 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
                     <BlockConfigEditor
                       block={manifest.blocks.find(b => b.id === state.activeId)!}
                       onChange={(config) => {
+                        const configKey = getConfigKeyForDevice(state.device);
                         const updated = {
                           ...manifest,
                           blocks: (manifest.blocks || []).map(b =>
-                            b.id === state.activeId ? { ...b, config } : b
+                            b.id === state.activeId ? { ...b, [configKey]: config } : b
                           ),
                         };
                         onChange(updated);
@@ -847,6 +955,14 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
                 {state.activeTab === 'vendors' && (
                   <VendorPanel />
+                )}
+
+                {state.activeTab === 'components' && (
+                  <ComponentLibrary manifest={manifest} onChange={handleDesignChange} />
+                )}
+
+                {state.activeTab === 'history' && (
+                  <UndoTimelinePanel />
                 )}
               </motion.div>
             </AnimatePresence>

@@ -14,6 +14,10 @@ import { X } from 'lucide-react';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
+// ── Spring presets ────────────────────────────────────────────
+const SPRING_PANEL = { type: 'spring' as const, stiffness: 300, damping: 28 };
+const SPRING_SNAPPY = { type: 'spring' as const, stiffness: 400, damping: 28 };
+
 const MIN_W = 280;
 const MAX_W = 460;
 const DEFAULT_W = 340;
@@ -37,6 +41,7 @@ const TAB_LABEL: Partial<Record<EditorTab, string>> = {
   thankyou:    'Thank You Notes',
   spotify:     'Music',
   vendors:     'Vendors',
+  history:     'History',
 };
 
 const TAB_HINT: Partial<Record<EditorTab, string>> = {
@@ -55,6 +60,7 @@ const TAB_HINT: Partial<Record<EditorTab, string>> = {
   thankyou:    'Post-event thank you notes',
   spotify:     'Playlist & song requests',
   vendors:     'Vendor contacts & timeline',
+  history:     'Undo/redo timeline & restore',
 };
 
 interface EditorWingProps {
@@ -78,10 +84,23 @@ export function EditorWing({
   const dragStartX = useRef(0);
   const dragStartW = useRef(DEFAULT_W);
 
+  const [resizeHover, setResizeHover] = useState(false);
+  const prevTabRef = useRef(activeTab);
+  const [slideDirection, setSlideDirection] = useState(1); // 1 = right, -1 = left
+
   const title = TAB_LABEL[activeTab] ?? String(activeTab);
   const hint  = TAB_HINT[activeTab];
   const tier  = TAB_TIER[activeTab];
   const meta  = tier ? TIER_META[tier] : null;
+
+  // Track tab order for directional content transitions
+  const tabKeys = Object.keys(TAB_LABEL);
+  useEffect(() => {
+    const prevIdx = tabKeys.indexOf(prevTabRef.current);
+    const nextIdx = tabKeys.indexOf(activeTab);
+    setSlideDirection(nextIdx >= prevIdx ? 1 : -1);
+    prevTabRef.current = activeTab;
+  }, [activeTab]);
 
   // ── Resize handle ──────────────────────────────────────────
   const startResize = useCallback((e: React.MouseEvent) => {
@@ -129,10 +148,10 @@ export function EditorWing({
     <AnimatePresence>
       {open && (
         <motion.div
-          initial={{ opacity: 0, x: 30, scale: 0.96 }}
+          initial={{ opacity: 0, x: 40, scale: 0.94 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 30, scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+          transition={SPRING_PANEL}
           style={{
             position: 'absolute',
             top: '8px',
@@ -161,10 +180,10 @@ export function EditorWing({
               <AnimatePresence mode="wait">
                 <motion.div
                   key={title}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.14 }}
+                  initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={SPRING_SNAPPY}
                 >
                   <h3 style={{
                     fontSize: '0.92rem',
@@ -208,8 +227,9 @@ export function EditorWing({
             <motion.button
               onClick={onToggle}
               title="Close panel"
-              whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
-              whileTap={{ scale: 0.88 }}
+              whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)', rotate: 90 }}
+              whileTap={{ scale: 0.82 }}
+              transition={SPRING_SNAPPY}
               style={{
                 width: '28px', height: '28px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -224,7 +244,7 @@ export function EditorWing({
             </motion.button>
           </div>
 
-          {/* Scrollable content area */}
+          {/* Scrollable content area — crossfade with scale on tab change */}
           <div
             ref={contentRef}
             style={{
@@ -232,17 +252,40 @@ export function EditorWing({
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
               padding: '2px 0',
+              position: 'relative',
             } as React.CSSProperties}
           >
-            {children}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: slideDirection * 16, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: slideDirection * -10, scale: 0.98 }}
+                transition={SPRING_SNAPPY}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
-          {/* Left-edge resize handle */}
-          <div
+          {/* Left-edge resize handle with glow on hover */}
+          <motion.div
             onMouseDown={startResize}
+            onMouseEnter={() => setResizeHover(true)}
+            onMouseLeave={() => setResizeHover(false)}
+            animate={{
+              backgroundColor: resizeHover
+                ? 'rgba(163,177,138,0.5)'
+                : 'rgba(0,0,0,0)',
+              boxShadow: resizeHover
+                ? '0 0 8px rgba(163,177,138,0.4)'
+                : '0 0 0px rgba(0,0,0,0)',
+            }}
+            transition={{ duration: 0.2 }}
             style={{
-              position: 'absolute', left: -3, top: 20, bottom: 20,
-              width: 6, cursor: 'col-resize', zIndex: 10,
+              position: 'absolute', left: -2, top: 20, bottom: 20,
+              width: 4, cursor: 'col-resize', zIndex: 10,
+              borderRadius: '4px',
             }}
           />
         </motion.div>
