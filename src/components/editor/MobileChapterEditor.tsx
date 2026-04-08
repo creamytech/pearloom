@@ -116,8 +116,8 @@ export function MobileChapterEditor({
           alignItems: 'center',
           gap: 8,
           padding: '12px 12px 12px',
-          borderBottom: '1px solid rgba(0,0,0,0.05)',
-          background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
+          borderBottom: '1px solid var(--pl-black-4)',
+          background: 'var(--pl-glass-heavy)', backdropFilter: 'var(--pl-glass-blur)',
           paddingTop: 'calc(12px + env(safe-area-inset-top, 0px))',
         }}
       >
@@ -133,10 +133,10 @@ export function MobileChapterEditor({
             padding: '8px 12px',
             borderRadius: 20,
             border: 'none',
-            background: 'rgba(0,0,0,0.05)',
+            background: 'var(--pl-black-4)',
             color: 'var(--pl-ink-soft)',
             cursor: 'pointer',
-            fontSize: '0.85rem',
+            fontSize: 'var(--pl-text-md)',
             fontWeight: 600,
           }}
         >
@@ -175,7 +175,7 @@ export function MobileChapterEditor({
               height: 32,
               borderRadius: '50%',
               border: 'none',
-              background: 'rgba(0,0,0,0.04)',
+              background: 'var(--pl-black-4)',
               color: prevChapter ? 'rgba(214,198,168,0.7)' : 'rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
@@ -195,7 +195,7 @@ export function MobileChapterEditor({
               height: 32,
               borderRadius: '50%',
               border: 'none',
-              background: 'rgba(0,0,0,0.04)',
+              background: 'var(--pl-black-4)',
               color: nextChapter ? 'rgba(214,198,168,0.7)' : 'rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
@@ -235,7 +235,7 @@ export function MobileChapterEditor({
               style={{
                 width: '100%',
                 border: 'none',
-                borderBottom: '1px solid rgba(0,0,0,0.07)',
+                borderBottom: '1px solid var(--pl-black-6)',
                 background: 'transparent',
                 outline: 'none',
                 fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)',
@@ -303,9 +303,9 @@ export function MobileChapterEditor({
                   color:
                     isRewriting || isStreaming
                       ? 'var(--pl-olive-40)'
-                      : '#A3B18A',
+                      : 'var(--pl-olive)',
                   cursor: isRewriting || isStreaming ? 'wait' : 'pointer',
-                  fontSize: '0.78rem',
+                  fontSize: 'var(--pl-text-base)',
                   fontWeight: 700,
                   letterSpacing: '0.02em',
                 }}
@@ -326,9 +326,9 @@ export function MobileChapterEditor({
               rows={9}
               style={{
                 width: '100%',
-                border: '1px solid rgba(0,0,0,0.07)',
+                border: '1px solid var(--pl-black-6)',
                 borderRadius: 14,
-                background: 'rgba(255,255,255,0.025)',
+                background: 'var(--pl-olive-5)',
                 outline: 'none',
                 resize: 'none',
                 fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
@@ -377,7 +377,7 @@ export function MobileChapterEditor({
                         ? 'var(--pl-olive-12)'
                         : 'var(--pl-olive-5)',
                       color: active
-                        ? '#A3B18A'
+                        ? 'var(--pl-olive)'
                         : 'var(--pl-muted)',
                       cursor: 'pointer',
                       minWidth: 68,
@@ -387,7 +387,7 @@ export function MobileChapterEditor({
                     <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{glyph}</span>
                     <span
                       style={{
-                        fontSize: '0.63rem',
+                        fontSize: 'var(--pl-text-2xs)',
                         fontWeight: 700,
                         letterSpacing: '0.05em',
                         textTransform: 'uppercase',
@@ -423,7 +423,7 @@ export function MobileChapterEditor({
                 width: '100%',
                 padding: '9px 14px',
                 borderRadius: 10,
-                border: '1px solid rgba(0,0,0,0.07)',
+                border: '1px solid var(--pl-black-6)',
                 background: 'var(--pl-olive-5)',
                 color: 'var(--pl-ink-soft)',
                 fontSize: 'max(16px, 0.88rem)',
@@ -446,7 +446,7 @@ export function MobileChapterEditor({
                 width: '100%',
                 padding: '9px 14px',
                 borderRadius: 10,
-                border: '1px solid rgba(0,0,0,0.07)',
+                border: '1px solid var(--pl-black-6)',
                 background: 'var(--pl-olive-5)',
                 color: 'var(--pl-ink-soft)',
                 fontSize: 'max(16px, 0.88rem)',
@@ -478,7 +478,7 @@ export function MobileChapterEditor({
 // ── Shared label style ──
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: '0.62rem',
+  fontSize: 'var(--pl-text-2xs)',
   fontWeight: 800,
   letterSpacing: '0.14em',
   textTransform: 'uppercase',
