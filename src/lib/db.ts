@@ -772,15 +772,23 @@ export async function getPublishedSites(): Promise<Array<{ domain: string; creat
   try {
     const { data, error } = await supabase
       .from('sites')
-      .select('subdomain, created_at, updated_at')
+      .select('subdomain, created_at, updated_at, ai_manifest')
       .not('ai_manifest', 'is', null)
       .limit(5000);
     if (error || !data) return [];
-    return data.map((row: Record<string, string>) => ({
-      domain: row.subdomain,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    }));
+    // Filter out coming-soon sites (comingSoon.enabled is set in the manifest JSON)
+    return data
+      .filter((row: Record<string, unknown>) => {
+        const manifest = row.ai_manifest as Record<string, unknown> | null;
+        if (!manifest) return false;
+        const comingSoon = manifest.comingSoon as { enabled?: boolean } | undefined;
+        return !comingSoon?.enabled;
+      })
+      .map((row: Record<string, string>) => ({
+        domain: row.subdomain,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
   } catch {
     return [];
   }

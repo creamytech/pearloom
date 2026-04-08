@@ -20,9 +20,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    {
+      url: 'https://pearloom.com/marketplace',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: 'https://pearloom.com/faq',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
   ];
 
-  // Add all published sites
+  // Add all published (non-coming-soon) sites
   try {
     const sites = await getPublishedSites();
     for (const site of sites) {

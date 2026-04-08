@@ -62,20 +62,30 @@ export async function generateMetadata(
     ? new Date(eventDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : '';
 
-  const shortTitle = [displayNames, dateStr].filter(Boolean).join(' · ') || 'Our Wedding';
-  const fullTitle = `${shortTitle} | Pearloom`;
-
-  // Build description
-  const vibeString = manifest?.vibeString || '';
-  const chapterCount = manifest?.chapters?.length || 0;
   const occasion = manifest?.occasion || 'wedding';
   const occasionLabel: Record<string, string> = {
+    wedding: 'Wedding', anniversary: 'Anniversary',
+    birthday: 'Birthday', engagement: 'Engagement', story: 'Story',
+  };
+  const shortTitle = `${displayNames} — ${occasionLabel[occasion] || 'Celebration'}`;
+  const fullTitle = `${shortTitle} | Pearloom`;
+
+  // Build description — prefer heroTagline, then first chapter description, then vibeString
+  const vibeString = manifest?.vibeString || '';
+  const heroTagline = manifest?.poetry?.heroTagline || '';
+  const firstChapterDesc = manifest?.chapters?.[0]?.description || '';
+  const chapterCount = manifest?.chapters?.length || 0;
+  const occasionDescLabel: Record<string, string> = {
     wedding: 'wedding website', anniversary: 'anniversary celebration',
     birthday: 'birthday celebration', engagement: 'engagement celebration', story: 'personal story site',
   };
-  const description = vibeString
+  const description = heroTagline
+    ? `${displayNames} — ${heroTagline.slice(0, 150)}${heroTagline.length > 150 ? '...' : ''}`
+    : firstChapterDesc
+    ? `${displayNames}'s story — ${firstChapterDesc.slice(0, 140)}${firstChapterDesc.length > 140 ? '...' : ''}`
+    : vibeString
     ? `${displayNames}'s love story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
-    : `${displayNames}'s ${occasionLabel[occasion] || 'wedding website'}. ${chapterCount} chapters of their story.`;
+    : `${displayNames}'s ${occasionDescLabel[occasion] || 'wedding website'}. ${chapterCount} chapters of their story.`;
 
   // OG image: prefer the AI-generated OG route, fall back to first chapter photo
   const accent = manifest?.theme?.colors?.accent || '#A3B18A';
@@ -174,7 +184,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     engagement: `${title} Engagement`,
     story: title,
   };
-  const jsonLdType = occasion === 'birthday' ? 'BirthdayEvent'
+  const jsonLdType = occasion === 'wedding' ? 'WeddingEvent'
+    : occasion === 'birthday' ? 'SocialEvent'
     : occasion === 'story' ? 'Event'
     : 'SocialEvent';
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -183,9 +194,13 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
         .replace(/^(https?:\/\/)/, `$1${domain}.`)}`
     : `https://${domain}.pearloom.com`;
   const vibeString = manifest.vibeString || '';
-  const jsonLdDesc = vibeString
+  const heroTagline = manifest.poetry?.heroTagline || '';
+  const jsonLdDesc = heroTagline
+    ? `${title} — ${heroTagline}`
+    : vibeString
     ? `${title}'s story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
     : `${title}'s ${occasion} site.`;
+  const coverPhotoUrl = manifest.chapters?.[0]?.images?.[0]?.url || '';
   const jsonLd = manifest.events?.length ? {
     '@context': 'https://schema.org',
     '@type': jsonLdType,
@@ -196,12 +211,17 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
     location: manifest.events[0].venue ? {
       '@type': 'Place',
       name: manifest.events[0].venue,
-      address: manifest.events[0].address || '',
+      address: manifest.events[0].address || manifest.logistics?.venueAddress || '',
+    } : manifest.logistics?.venue ? {
+      '@type': 'Place',
+      name: manifest.logistics.venue,
+      address: manifest.logistics.venueAddress || '',
     } : undefined,
-    organizer: {
-      '@type': 'Person',
-      name: title,
-    },
+    organizer: [
+      { '@type': 'Person', name: safeNames[0] },
+      ...(safeNames[1]?.trim() ? [{ '@type': 'Person', name: safeNames[1] }] : []),
+    ],
+    ...(coverPhotoUrl ? { image: coverPhotoUrl.startsWith('/') ? `https://pearloom.com${coverPhotoUrl}` : coverPhotoUrl } : {}),
   } : null;
 
   // Use cached AI skin if available, fall back to deterministic
