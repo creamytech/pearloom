@@ -177,9 +177,9 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
       case 'hero':
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
-            <div style={{ width: '60%', height: '3px', borderRadius: '2px', background: 'rgba(163,177,138,0.4)' }} />
-            <div style={{ width: '40%', height: '2px', borderRadius: '2px', background: 'rgba(163,177,138,0.25)' }} />
-            <div style={{ width: '20%', height: '2px', borderRadius: '2px', background: 'rgba(163,177,138,0.15)', marginTop: '2px' }} />
+            <div style={{ width: '60%', height: '3px', borderRadius: '2px', background: 'var(--pl-olive-40)' }} />
+            <div style={{ width: '40%', height: '2px', borderRadius: '2px', background: 'var(--pl-olive-20)' }} />
+            <div style={{ width: '20%', height: '2px', borderRadius: '2px', background: 'var(--pl-olive-15)', marginTop: '2px' }} />
           </div>
         );
       case 'gallery': case 'photos': case 'photoWall':
@@ -196,7 +196,7 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
             <div style={{ width: '70%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.35)' }} />
             <div style={{ width: '100%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.2)' }} />
             <div style={{ width: '85%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.2)' }} />
-            <div style={{ width: '60%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.15)' }} />
+            <div style={{ width: '60%', height: '2px', borderRadius: '1px', background: 'var(--pl-olive-15)' }} />
           </div>
         );
       case 'faq':
@@ -204,7 +204,7 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '3px', padding: '5px 6px', justifyContent: 'center' }}>
             {[...Array(3)].map((_, i) => (
               <div key={i} style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-                <div style={{ width: '4px', height: '4px', borderRadius: '1px', background: 'rgba(163,177,138,0.4)', flexShrink: 0 }} />
+                <div style={{ width: '4px', height: '4px', borderRadius: '1px', background: 'var(--pl-olive-40)', flexShrink: 0 }} />
                 <div style={{ flex: 1, height: '2px', borderRadius: '1px', background: `rgba(163,177,138,${0.25 - i * 0.05})` }} />
               </div>
             ))}
@@ -222,14 +222,14 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
             <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid rgba(163,177,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(163,177,138,0.4)' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--pl-olive-40)' }} />
             </div>
           </div>
         );
       default:
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={18} style={{ color: 'rgba(163,177,138,0.4)' }} />
+            <Icon size={18} style={{ color: 'var(--pl-olive-40)' }} />
           </div>
         );
     }
@@ -651,7 +651,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                     {/* Insert button */}
                     <motion.button
                       onClick={(e) => { e.stopPropagation(); handleInsert(component); }}
-                      whileHover={{ backgroundColor: 'rgba(163,177,138,0.15)' }}
+                      whileHover={{ backgroundColor: 'var(--pl-olive-15)' }}
                       whileTap={{ scale: 0.96 }}
                       title="Insert on page"
                       style={{
