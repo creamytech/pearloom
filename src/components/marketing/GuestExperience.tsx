@@ -120,7 +120,7 @@ export function GuestExperience() {
               <em style={{ color: C.plum, fontStyle: 'italic' }}>Nothing bolted on.</em>
             </h2>
             <p style={{ fontSize: text.base, color: C.muted, lineHeight: 1.75, maxWidth: '340px' }}>
-              From your first photo upload to your anniversary ten years later, Pearloom handles every detail of your celebration.
+              Guest RSVPs, seating charts, photo sharing, and thank-you notes — every detail of your celebration, all in one place.
             </p>
           </motion.div>
 

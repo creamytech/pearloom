@@ -62,7 +62,7 @@ export function FAQSection() {
       <div style={{ maxWidth: layout.narrowWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="FAQ"
-          title="Questions? Woven answers."
+          title="Your questions, answered."
           inView={inView}
         />
 

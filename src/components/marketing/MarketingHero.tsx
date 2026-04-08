@@ -121,7 +121,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           className="mb-6 flex justify-center"
         >
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[var(--pl-muted)]">
-            The Pearloom Platform
+            AI-powered celebration sites
           </span>
         </motion.div>
 

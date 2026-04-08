@@ -15,6 +15,7 @@ import { EditorShowcase } from './marketing/EditorShowcase';
 import { PricingPreview } from './marketing/PricingPreview';
 import { Testimonials } from './marketing/Testimonials';
 import { FAQSection } from './marketing/FAQSection';
+import { TrustSignals } from './marketing/TrustSignals';
 import { MarketingFooter } from './marketing/MarketingFooter';
 import { C, EASE } from './marketing/colors';
 import { Button } from '@/components/ui/button';
@@ -433,11 +434,11 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
       {/* ══════════════ PRICING ══════════════ */}
       <PricingPreview />
 
-      {/* ══════════════ TESTIMONIALS ══════════════ */}
-      <Testimonials />
-
       {/* ══════════════ FAQ ══════════════ */}
       <FAQSection />
+
+      {/* ══════════════ TRUST SIGNALS ══════════════ */}
+      <TrustSignals />
 
       {/* ══════════════ FINAL CTA — split layout ══════════════ */}
       <section

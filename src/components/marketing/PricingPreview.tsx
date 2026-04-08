@@ -111,7 +111,7 @@ export function PricingPreview() {
           eyebrow="Pricing"
           eyebrowColor={C.gold}
           title={<>Simple, transparent pricing</>}
-          subtitle="Start free. Upgrade when you're ready. No surprise fees."
+          subtitle="Create your first site for free. One-time upgrade — no subscriptions, no hidden costs."
           inView={inView}
         />
 

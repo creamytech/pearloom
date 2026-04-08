@@ -138,8 +138,8 @@ export function Testimonials() {
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <SectionHeader
           eyebrow="Testimonials"
-          title={<>Echoes of Appreciation</>}
-          subtitle="Voices from our founding members on the transformative power of curated remembrance."
+          title={<>What our creators are saying</>}
+          subtitle="Real stories from couples and families who brought their celebrations to life with Pearloom."
           inView={inView}
           align="left"
         />

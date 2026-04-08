@@ -210,7 +210,7 @@ export function EditorShowcase() {
         <SectionHeader
           pill={{ label: 'The Editor', sparkle: true }}
           title="Design like a studio. Edit like a pro."
-          subtitle={<>A Webflow-grade visual editor that&rsquo;s actually easy to use. Drag blocks, tweak your Rind, preview on any device — no code required.</>}
+          subtitle={<>A studio-quality visual editor anyone can use. Drag sections, refine your design, and preview on every device — zero code needed.</>}
           inView={inView}
         />
 
