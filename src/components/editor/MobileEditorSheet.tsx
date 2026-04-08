@@ -245,6 +245,61 @@ export function MobileEditorSheet() {
     }
   }, [manifest.blocks, dispatch]);
 
+  // ── Context action handler (Edit Text, Change Photo, Style, etc.) ──
+  const handleContextAction = useCallback((actionId: string) => {
+    switch (actionId) {
+      case 'edit-text':
+      case 'edit':
+      case 'settings':
+        // Open the Edit tab with the current section's settings
+        setActiveTab('edit');
+        setSheetSnap(2); // full sheet
+        break;
+      case 'change-photo':
+      case 'photos':
+        // Open Edit tab — the MobileContextPanel shows photo/image controls
+        setActiveSection(activeSection === 'hero' ? 'hero' : activeSection);
+        setActiveTab('edit');
+        setSheetSnap(2);
+        break;
+      case 'style':
+        // Open More tools with design panel
+        setMoreToolOpen('sections');
+        setActiveTab('more');
+        setSheetSnap(2);
+        break;
+      case 'rewrite':
+        // Trigger AI rewrite on the active chapter
+        if (activeChapterId) {
+          actions.handleAIRewrite(activeChapterId);
+        }
+        break;
+      case 'delete':
+        // Delete the selected block
+        if (selectedBlockId) {
+          handleBlockAction('delete', selectedBlockId);
+          setSelectedBlockId(null);
+          setActiveSection(null);
+          setSheetSnap(0);
+        } else if (activeChapterId) {
+          actions.deleteChapter(activeChapterId);
+          setActiveChapterId(null);
+          setActiveSection(null);
+          setSheetSnap(0);
+        }
+        break;
+      case 'move-up':
+        if (selectedBlockId) handleBlockAction('moveUp', selectedBlockId);
+        break;
+      case 'move-down':
+        if (selectedBlockId) handleBlockAction('moveDown', selectedBlockId);
+        break;
+      case 'publish':
+        dispatch({ type: 'OPEN_PUBLISH' });
+        break;
+    }
+  }, [activeSection, activeChapterId, selectedBlockId, actions, dispatch, handleBlockAction]);
+
   // ── Add block ──
   const handleAddBlock = useCallback(() => {
     setActiveTab('blocks');
@@ -524,6 +579,7 @@ export function MobileEditorSheet() {
           onRedo={actions.redo}
           canUndo={canUndo}
           canRedo={canRedo}
+          onAction={handleContextAction}
         />
       </div>
 
