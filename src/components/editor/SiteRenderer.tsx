@@ -22,6 +22,7 @@ import { SiteNav } from '@/components/site-nav';
 import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
+import { getThemeArt } from '@/lib/theme-art';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { ensureContrast, enforcePaletteContrast } from '@/lib/color-utils';
 import { smartBlockOrder } from '@/lib/smart-features';
@@ -293,6 +294,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
   // Enforce contrast at render time — catches palettes saved before the update
   const pal = enforcePaletteContrast(vibeSkin.palette);
+
+  // ── Theme art: hand-crafted SVG decorations per theme ──
+  const art = useMemo(() => {
+    const themeArt = getThemeArt(manifest.vibeSkin?.tone || '');
+    const templateArt = getThemeArt(manifest.theme?.name || '');
+    return { ...themeArt, ...templateArt };
+  }, [manifest.vibeSkin?.tone, manifest.theme?.name]);
   const bgColor = pal.background;
   const cardBg = pal.card;
 
@@ -677,6 +685,21 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url.includes('googleusercontent.com') ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1200&h=800` : img.url)).filter(Boolean).slice(0, 6)}
               editMode={editMode}
             />
+            {/* Theme art: corner decorations (only if vibeSkin doesn't already provide cornerFlourishSvg) */}
+            {art.cornerSvg && !vibeSkin.cornerFlourishSvg && (
+              <>
+                <div
+                  aria-hidden="true"
+                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(25vw, 200px)', height: 'min(25vw, 200px)', pointerEvents: 'none', zIndex: 2 }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.cornerSvg) }}
+                />
+                <div
+                  aria-hidden="true"
+                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(25vw, 200px)', height: 'min(25vw, 200px)', pointerEvents: 'none', zIndex: 2, transform: 'scaleX(-1)' }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.cornerSvg) }}
+                />
+              </>
+            )}
             <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
           </div>
         );
@@ -737,6 +760,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'quote':
         return (
           <section key={key} data-pe-section="quote" style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+            {/* Theme art: decorative accent above quote */}
+            {art.accentSvg && (
+              <div
+                aria-hidden="true"
+                style={{ width: 40, height: 40, margin: '0 auto 0.75rem', opacity: 0.15 }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.accentSvg) }}
+              />
+            )}
             <div data-pe-icon="accentSymbol" data-pe-icon-scope="global" style={{ fontSize: '2rem', color: safeAccent, opacity: 0.4, marginBottom: '1rem', cursor: 'pointer' }}>{vibeSkin.accentSymbol || '✦'}</div>
             <p data-pe-editable="true" data-pe-path="poetry.dividerQuote" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: safeFg, opacity: 0.75 }}>
               {vibeSkin.dividerQuote || manifest.vibeString || 'Love is composed of a single soul inhabiting two bodies.'}
@@ -744,6 +775,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       case 'divider':
+        // TODO: Integration point for art.dividerPath — WaveDivider currently reads
+        // its path from skin.wavePath / skin.wavePathInverted and does not accept a
+        // custom path prop. To use theme-art divider paths, either extend WaveDivider
+        // with an optional `customPath` prop or inject art.dividerPath into the skin.
         return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
       case 'photos': {
         const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
@@ -861,6 +896,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!statement) return null;
         return (
           <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+            {/* Theme art: decorative accent above vibeQuote (not welcome) */}
+            {block.type === 'vibeQuote' && art.accentSvg && (
+              <div
+                aria-hidden="true"
+                style={{ width: 40, height: 40, margin: '0 auto 0.75rem', opacity: 0.15 }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.accentSvg) }}
+              />
+            )}
             <p data-pe-editable="true" data-pe-path={block.type === 'welcome' ? 'poetry.welcomeStatement' : 'poetry.dividerQuote'} style={{
               fontFamily: `"${block.type === 'welcome' ? vibeSkin.fonts.body : vibeSkin.fonts.heading}", ${block.type === 'welcome' ? 'sans-serif' : 'serif'}`,
               fontSize: block.type === 'welcome' ? '1.05rem' : 'clamp(1.2rem, 2.5vw, 1.8rem)',
@@ -956,7 +999,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
     }
-  }, [manifest, names, vibeSkin, pal, bgColor, cardBg, proxiedCover, editMode, handleTextBlur, onTextEdit]);
+  }, [manifest, names, vibeSkin, pal, bgColor, cardBg, proxiedCover, editMode, handleTextBlur, onTextEdit, art]);
 
   // ── Drop zone between blocks ──
   // ── Add Section Line — visible between every block ──
@@ -1129,10 +1172,10 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={vibeSkin.ambientArtDataUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.28, mixBlendMode: 'multiply' }} />
             </div>
-          ) : vibeSkin.heroPatternSvg ? (
+          ) : (vibeSkin.heroPatternSvg || art.heroPatternSvg) ? (
             <div aria-hidden="true" style={{
               position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
-              backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg)}")`,
+              backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(vibeSkin.heroPatternSvg || art.heroPatternSvg!)}")`,
               backgroundRepeat: 'repeat', backgroundSize: '220px 220px', opacity: 0.22,
             }} />
           ) : null}
