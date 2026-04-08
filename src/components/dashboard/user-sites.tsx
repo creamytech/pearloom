@@ -29,6 +29,7 @@ function LivingPortrait({ photos, coverPhoto, vibeSkin }: {
 }) {
   const allPhotos = [coverPhoto, ...photos].filter(Boolean) as string[];
   const [idx, setIdx] = useState(0);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (allPhotos.length <= 1) return;
@@ -46,19 +47,19 @@ function LivingPortrait({ photos, coverPhoto, vibeSkin }: {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-      <AnimatePresence>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <motion.img
-          key={idx}
-          src={src}
-          alt=""
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-      </AnimatePresence>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={idx}
+        src={src}
+        alt=""
+        onLoad={() => setLoaded(true)}
+        style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover',
+          opacity: loaded ? 1 : 0,
+          transition: 'opacity 0.5s ease',
+        }}
+      />
       {/* Gradient overlay for text readability */}
       <div style={{
         position: 'absolute', inset: 0,
@@ -459,12 +460,10 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)] bg-white group transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.14),0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-1.5 flex flex-col`}
                 >
                   {/* Cover — living portrait */}
-                  <motion.div
+                  <div
                     onClick={() => goToEditor(site)}
-                    className="h-56 relative overflow-hidden cursor-pointer flex-shrink-0"
+                    className="h-56 relative overflow-hidden cursor-pointer flex-shrink-0 transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                     style={{ background: `linear-gradient(150deg, ${accentColor} 0%, ${accentDark} 100%)` }}
-                    whileHover={{ scale: 1.03 }}
-                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   >
                     {/* Living portrait or fallback decoration */}
                     {chapterPhotos.length > 0 || coverPhotoUrl ? (
@@ -543,7 +542,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                         {heroTagline}
                       </motion.p>
                     )}
-                  </motion.div>
+                  </div>
 
                   {/* Body */}
                   <div className="flex-1 flex flex-col p-5 gap-4">
