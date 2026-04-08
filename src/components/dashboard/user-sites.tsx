@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -224,6 +224,13 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   const [copiedId, setCopiedId]             = useState<string | null>(null);
   const [expandedCompleteness, setExpandedCompleteness] = useState<string | null>(null);
 
+  // Prevent hydration flash: skip initial animation state until after mount.
+  // SSR renders content visible → without this, Framer sets opacity:0 on hydrate → flash.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const fadeIn = mounted ? { opacity: 0, y: 20 } : false;
+  const fadeInSmall = mounted ? { opacity: 0, y: 8 } : false;
+
   const loadSites = () => {
     setFetchError(false);
     setLoading(true);
@@ -283,7 +290,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
       {/* ── Header band ── */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={fadeIn}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="rounded-[var(--pl-radius-lg)] sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
@@ -322,9 +329,9 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             <motion.button
               key={card.title}
               onClick={card.action}
-              initial={{ opacity: 0, y: 16 }}
+              initial={fadeInSmall}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 + 0.3, duration: 0.5 }}
+              transition={{ delay: i * 0.08 + 0.15, duration: 0.4 }}
               whileHover={{ y: -3, boxShadow: '0 8px 32px rgba(43,30,20,0.08)' }}
               whileTap={{ scale: 0.98 }}
               className="flex flex-col items-center text-center p-5 sm:p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer"
@@ -368,7 +375,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         <div className="max-w-[640px] mx-auto">
           {/* Hero empty state */}
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={fadeIn}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             className="flex flex-col items-center justify-center text-center py-16 px-8 rounded-[24px] mb-8"
@@ -403,9 +410,9 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
           {/* How it works — 3 steps */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={fadeInSmall}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
             className="grid grid-cols-1 sm:grid-cols-3 gap-4"
           >
             {[
@@ -469,7 +476,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               return (
                 <motion.article
                   key={site.id}
-                  initial={{ opacity: 0, y: 28 }}
+                  initial={fadeIn}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-40px' }}
                   transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
@@ -712,7 +719,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
           {/* Create new card */}
           <motion.button
-            initial={{ opacity: 0, y: 28 }}
+            initial={fadeIn}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-40px' }}
             transition={{ duration: 0.5, delay: sites.length * 0.06, ease: [0.16, 1, 0.3, 1] }}
