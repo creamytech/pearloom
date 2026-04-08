@@ -57,7 +57,6 @@ export function BlockTypesGrid() {
     >
       <div style={{ maxWidth: layout.maxWidth, margin: '0 auto' }}>
         <SectionHeader
-          watermark="15"
           title="15 blocks. Infinite possibilities."
           subtitle="Mix and match blocks to build exactly the site you need — from intimate stories to full event management."
           inView={inView}
@@ -74,8 +73,8 @@ export function BlockTypesGrid() {
                 transition={{ delay: i * 0.04 + 0.2, duration: 0.4 }}
                 whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.15 } }}
               >
-                <Card variant="elevated" interactive padding="sm" className="text-center cursor-default transition-shadow duration-200 hover:shadow-[0_8px_32px_rgba(43,30,20,0.1)]">
-                  <div className="mx-auto mb-2.5">
+                <Card variant="elevated" interactive padding="sm" className="text-center cursor-default transition-shadow duration-200 hover:shadow-[0_8px_32px_rgba(43,30,20,0.1)] flex flex-col items-center">
+                  <div className="mb-2.5">
                     <IconCircle icon={Icon} accent={b.accent} size={44} iconSize={20} />
                   </div>
                   <div className="font-semibold mb-0.5" style={{ fontSize: text.md, color: C.ink }}>
