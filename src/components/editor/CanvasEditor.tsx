@@ -13,6 +13,7 @@ import { RangeSlider } from '@/components/ui/range-slider';
 import { ColorPicker } from '@/components/ui/color-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDragSort } from './useDragSort';
+import { useEditor } from '@/lib/editor-state';
 import type { DragHandleProps } from './useDragSort';
 import { BlockPresetsPanel } from './BlockPresetsPanel';
 import { SidebarSection } from './EditorSidebar';
@@ -1356,6 +1357,8 @@ interface CanvasEditorProps {
 }
 
 export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateChange }: CanvasEditorProps) {
+  const { state } = useEditor();
+
   // 'main' = main page, otherwise a custom page ID
   const [activePage, setActivePage] = useState<string>('main');
   const [showAddPage, setShowAddPage] = useState(false);
@@ -1372,6 +1375,16 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
 
   const [blocks, setBlocks] = useState<PageBlock[]>(currentBlocks);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+
+  // ── Sync activeBlockId from global editor state ──────────────
+  // When the user clicks a block in the preview (SiteRenderer), the global
+  // state.activeId is set before the canvas tab mounts. Sync it here so the
+  // config panel opens immediately.
+  useEffect(() => {
+    if (state.activeId && blocks.some(b => b.id === state.activeId)) {
+      setActiveBlockId(state.activeId);
+    }
+  }, [state.activeId, blocks]);
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');

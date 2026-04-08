@@ -130,10 +130,13 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   useEffect(() => {
     const sorted = [...(manifest.chapters || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     dispatch({ type: 'SET_CHAPTERS', chapters: sorted });
-    dispatch({ type: 'SET_ACTIVE_ID', id: (() => {
-      const ids = new Set((manifest.chapters || []).map(c => c.id));
-      return ids.has(state.activeId ?? '') ? state.activeId : manifest.chapters?.[0]?.id || null;
-    })() });
+    // Preserve activeId if it's a valid chapter OR a valid block ID
+    const chapterIds = new Set((manifest.chapters || []).map(c => c.id));
+    const blockIds = new Set((manifest.blocks || []).map(b => b.id));
+    const currentId = state.activeId ?? '';
+    if (!chapterIds.has(currentId) && !blockIds.has(currentId)) {
+      dispatch({ type: 'SET_ACTIVE_ID', id: manifest.chapters?.[0]?.id || null });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest.chapters]);
 

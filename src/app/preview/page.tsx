@@ -260,7 +260,7 @@ function PreviewContent() {
     switch (type) {
       case 'hero':
         return (
-          <div key={key} style={{ position: 'relative' }}>
+          <div key={key} data-pe-section="hero" data-pe-label="Hero" style={{ position: 'relative' }}>
             <Hero
               names={names}
               subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
@@ -273,11 +273,11 @@ function PreviewContent() {
           </div>
         );
       case 'story':
-        return <section key={key} id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>;
+        return <section key={key} id="our-story" data-pe-section="story" data-pe-label="Story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>;
       case 'event':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="schedule" style={{ position: 'relative', overflow: 'hidden' }}>
+          <section key={key} id="schedule" data-pe-section="events" data-pe-label="Events" style={{ position: 'relative', overflow: 'hidden' }}>
             {vibeSkin.accentBlobSvg && (
               <div
                 style={{ position: 'absolute', left: '-8%', bottom: '5%', width: '55%', height: '90%', zIndex: 0, pointerEvents: 'none', opacity: 0.16 }}
@@ -297,7 +297,7 @@ function PreviewContent() {
       case 'registry':
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
         return (
-          <section key={key} id="registry">
+          <section key={key} id="registry" data-pe-section="registry" data-pe-label="Registry">
             <RegistryShowcase
               registries={manifest.registry?.entries || []}
               cashFundUrl={manifest.registry?.cashFundUrl}
@@ -309,14 +309,14 @@ function PreviewContent() {
       case 'travel':
         if (!manifest.travelInfo) return null;
         return (
-          <section key={key} id="travel">
+          <section key={key} id="travel" data-pe-section="travel" data-pe-label="Travel">
             <TravelSection info={manifest.travelInfo} />
           </section>
         );
       case 'faq':
         if (!manifest.faqs?.length) return null;
         return (
-          <section key={key} id="faq">
+          <section key={key} id="faq" data-pe-section="faq" data-pe-label="FAQ">
             <FaqSection faqs={manifest.faqs} />
           </section>
         );
