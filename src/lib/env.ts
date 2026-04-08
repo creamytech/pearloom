@@ -82,10 +82,12 @@ export function validateEnv() {
   }
 
   if (missing.length > 0) {
-    throw new Error(
-      `[env] Missing required environment variables:\n` +
+    // Warn instead of throw — don't crash the app in dev/preview
+    console.warn(
+      `\n⚠️  [Pearloom] Missing required environment variables:\n` +
         missing.map((v) => `  - ${v}`).join('\n') +
-        `\n\nSet these in your .env.local file or deployment environment.`
+        `\n\n  Set these in your .env.local file or deployment environment.\n` +
+        `  Some features will be unavailable.\n`
     );
   }
 
