@@ -221,8 +221,8 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
         {/* Action buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {/* Auto-save indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: '#22c55e', fontWeight: 600, letterSpacing: '0.05em' }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: 'var(--pl-olive)', fontWeight: 600, letterSpacing: '0.05em' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--pl-olive)', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} />
             Auto-saved
           </div>
           {onPreview && (

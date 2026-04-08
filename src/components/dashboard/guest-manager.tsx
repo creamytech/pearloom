@@ -360,7 +360,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 />
               </div>
               {addError && (
-                <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.5rem', fontSize: '0.8rem', color: '#b91c1c' }}>
+                <div style={{ gridColumn: '1 / -1', padding: '0.6rem 0.8rem', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '12px', fontSize: '0.8rem', color: 'var(--pl-ink-soft)' } as React.CSSProperties}>
                   {addError}
                 </div>
               )}
