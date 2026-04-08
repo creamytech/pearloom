@@ -237,15 +237,10 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             </AnimatePresence>
           </motion.div>
 
-          {/* Dark gradient: transparent top → rgba(43,30,20,0.3) bottom — text readability */}
+          {/* Dark gradient overlay — ensures text readability on any photo */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(43,30,20,0.1) 0%, transparent 30%, rgba(43,30,20,0.3) 100%)',
-          }} />
-          {/* Top vignette */}
-          <div style={{
-            position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(43,30,20,0.45) 0%, transparent 22%)',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.45) 100%)',
           }} />
           {/* Radial vignette for cinematic frame */}
           <div style={{

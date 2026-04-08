@@ -168,7 +168,7 @@ export function SiteNav({
                 : navStyle === 'floating'
                   ? 'bg-white/90 border border-[rgba(255,255,255,0.6)] shadow-[0_4px_24px_rgba(43,30,20,0.08)]'
                   : (atTop && !isStudio
-                    ? 'bg-black/20 border-b border-transparent shadow-none'
+                    ? 'bg-black/40 border-b border-white/10 shadow-none'
                     : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
         )}
         style={{
@@ -322,7 +322,7 @@ export function SiteNav({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
               onClick={() => setDrawer(false)}
-              className="fixed inset-0 z-[48] bg-black/35 backdrop-blur-[4px]"
+              className="fixed inset-0 z-[101] bg-black/35 backdrop-blur-[4px]"
             />
 
             {/* Panel */}
@@ -332,7 +332,7 @@ export function SiteNav({
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                'fixed top-0 right-0 bottom-0 z-[49]',
+                'fixed top-0 right-0 bottom-0 z-[102]',
                 'w-[min(300px,100vw)]',
                 'flex flex-col',
                 'bg-[rgba(245,241,232,0.98)] border-l border-[rgba(0,0,0,0.05)]',
