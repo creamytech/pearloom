@@ -32,6 +32,7 @@ import { SpotifySection } from '@/components/site/SpotifySection';
 import { CoupleQuiz } from '@/components/site/CoupleQuiz';
 import { ShareBar } from '@/components/site/ShareBar';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
+import { enforcePaletteContrast } from '@/lib/color-utils';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { AnalyticsBeacon } from '@/components/analytics/AnalyticsBeacon';
 import { buildContext, resolveBlockConfig } from '@/lib/block-engine';
@@ -206,8 +207,8 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
   // Use cached AI skin if available, fall back to deterministic
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
 
-  // Derive ALL colors from the AI-generated palette
-  const pal = vibeSkin.palette;
+  // Derive ALL colors from the AI-generated palette (with contrast enforcement)
+  const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;
   const accentLight = pal.accent2;

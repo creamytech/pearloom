@@ -412,14 +412,14 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               gap: '0.5em',
               padding: '0.6rem 1.75rem',
               borderRadius: '100px',
-              background: hasPhoto ? 'rgba(0,0,0,0.07)' : 'rgba(163,177,138,0.12)',
+              background: hasPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(163,177,138,0.12)',
               backdropFilter: 'blur(12px)',
-              border: hasPhoto ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(163,177,138,0.22)',
+              border: hasPhoto ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(163,177,138,0.22)',
               fontSize: '0.7rem',
               fontWeight: 600,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color: hasPhoto ? 'var(--pl-ink)' : 'var(--pl-ink)',
+              color: heroTextColor,
               fontFamily: 'var(--pl-font-body)',
             }}>
               {badgeDateStr && <><span style={{ opacity: 0.5 }}>·</span> <span data-pe-badge-date="true">{formatDateBadge(badgeDateStr)}</span> </>}
@@ -440,7 +440,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               fontStyle: 'italic',
               fontSize: '1.1rem',
               lineHeight: 1.65,
-              color: coverPhoto ? 'var(--pl-ink)' : 'var(--pl-muted)',
+              color: heroSecondaryColor,
               marginTop: '1.25rem',
               letterSpacing: '0.02em',
             }}
@@ -474,7 +474,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               fontStyle: 'italic',
               fontSize: '1.1rem',
               lineHeight: 1.65,
-              color: coverPhoto ? 'var(--pl-ink)' : 'var(--pl-muted)',
+              color: heroSecondaryColor,
               marginTop: '1.25rem',
               letterSpacing: '0.02em',
             }}
@@ -495,7 +495,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.6, delay: 2.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ width: '40px', height: '1px', background: coverPhoto ? 'var(--pl-muted)' : 'var(--pl-olive)', opacity: 0.5, transformOrigin: 'right' }}
+              style={{ width: '40px', height: '1px', background: heroSecondaryColor, opacity: 0.5, transformOrigin: 'right' }}
             />
             <motion.div
               initial={{ scale: 0, rotate: 90 }}
@@ -503,7 +503,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 2.45 }}
               style={{
                 width: '5px', height: '5px', borderRadius: '0',
-                background: coverPhoto ? 'rgba(255,255,255,0.45)' : 'var(--pl-olive)',
+                background: heroSecondaryColor,
                 opacity: 0.65,
               }}
             />
@@ -511,7 +511,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 0.6, delay: 2.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ width: '40px', height: '1px', background: coverPhoto ? 'var(--pl-muted)' : 'var(--pl-olive)', opacity: 0.5, transformOrigin: 'left' }}
+              style={{ width: '40px', height: '1px', background: heroSecondaryColor, opacity: 0.5, transformOrigin: 'left' }}
             />
           </motion.div>
         )}
@@ -536,7 +536,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           flexDirection: 'column',
           alignItems: 'center',
           gap: '0.6rem',
-          color: coverPhoto ? 'var(--pl-muted)' : 'var(--pl-muted)',
+          color: heroSecondaryColor,
           zIndex: 20,
         }}
       >

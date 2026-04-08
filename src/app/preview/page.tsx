@@ -26,6 +26,7 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { SectionDivider } from '@/components/effects/SectionDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
+import { enforcePaletteContrast } from '@/lib/color-utils';
 import type { StoryManifest, SitePage } from '@/types';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 
@@ -61,7 +62,7 @@ function getVideoEmbedUrl(url?: string): string | null {
 // ── Subpage preview (mirrors [domain]/[page] route) ──────────
 function SubpagePreview({ page, manifest, names, rawParams }: { page: string; manifest: StoryManifest; names: [string, string]; rawParams?: string }) {
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const pal = vibeSkin.palette;
+  const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;
   const subMeshActive = manifest.theme?.effects?.gradientMesh && manifest.theme.effects.gradientMesh.preset !== 'none' && (manifest.theme.effects.gradientMesh.opacity ?? 0) > 0;
@@ -209,7 +210,7 @@ function PreviewContent() {
 
   // Derive visual skin
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const pal = vibeSkin.palette;
+  const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;
   const accentLight = pal.accent2;

@@ -23,7 +23,7 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
-import { ensureContrast } from '@/lib/color-utils';
+import { ensureContrast, enforcePaletteContrast } from '@/lib/color-utils';
 import { smartBlockOrder } from '@/lib/smart-features';
 import type { StoryManifest, SitePage, PageBlock, BlockType } from '@/types';
 
@@ -291,7 +291,8 @@ interface SiteRendererProps {
 
 export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBlockDrop, onBlockReorder, onBlockCopy, onBlockPaste, editMode = true, selectedBlockId, onBlockAction, hasClipboard, externalDrag }: SiteRendererProps) {
   const vibeSkin = manifest.vibeSkin || deriveVibeSkin(manifest.vibeString || '');
-  const pal = vibeSkin.palette;
+  // Enforce contrast at render time — catches palettes saved before the update
+  const pal = enforcePaletteContrast(vibeSkin.palette);
   const bgColor = pal.background;
   const cardBg = pal.card;
 
