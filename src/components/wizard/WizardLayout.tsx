@@ -218,9 +218,9 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
                 {/* Step label + progress */}
                 {title && step !== 'dashboard' && step !== 'generating' && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                    initial={{ y: 10 }}
+                    animate={{ y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-[0.6rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)]">
@@ -252,13 +252,13 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
                 )}
 
                 {/* Step content */}
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                   <motion.div
                     key={step}
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                   >
                     {children}
                   </motion.div>

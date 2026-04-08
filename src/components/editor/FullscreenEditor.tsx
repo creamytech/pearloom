@@ -696,7 +696,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
               activeTab={state.activeTab}
               contentRef={contentPanelRef}
             >
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               <motion.div
                 key={state.activeTab}
                 initial={{ opacity: 0, x: 12 }}
@@ -983,7 +983,7 @@ function PublishModalInline() {
             background: publishedUrl ? 'radial-gradient(circle, rgba(163,177,138,0.18) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(163,177,138,0.08) 0%, transparent 70%)',
             pointerEvents: 'none', transition: 'background 0.6s',
           }} />
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             {publishedUrl ? (
               <motion.div key="success" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'relative' }}>

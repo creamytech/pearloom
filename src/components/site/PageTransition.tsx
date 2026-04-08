@@ -102,7 +102,7 @@ export function PageTransition({ children, transitionKey, vibeSkin }: PageTransi
   const variants = buildVariants(vibeSkin?.tone);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout">
       <motion.div
         key={transitionKey ?? 'page'}
         variants={variants}

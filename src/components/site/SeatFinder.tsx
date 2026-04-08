@@ -157,7 +157,7 @@ export function SeatFinder({ siteId: _siteId, subdomain, vibeSkin: _vibeSkin }: 
         </form>
 
         {/* Result */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           {state === 'found' && result && (
             <motion.div
               key="found"

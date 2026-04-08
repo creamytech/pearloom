@@ -263,7 +263,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
       </div>
 
       {/* ── Builder Tab (DnD Block Editor) ── */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {activeTab === 'builder' && (
           <motion.div key="builder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <BlockEditor

@@ -27,7 +27,7 @@ function RotatingOccasion() {
   }, []);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="popLayout">
       <motion.span
         key={OCCASIONS[i]}
         initial={{ opacity: 0, y: 12 }}

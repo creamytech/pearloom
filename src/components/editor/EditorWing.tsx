@@ -171,7 +171,7 @@ export function EditorWing({
               touchAction: 'none',
             }}>
             <div style={{ minWidth: 0 }}>
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="popLayout">
                 <motion.div
                   key={title}
                   initial={{ opacity: 0, y: 4 }}

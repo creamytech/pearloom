@@ -412,7 +412,7 @@ export function Guestbook({ siteId, coupleNames, vibeSkin }: GuestbookProps) {
             marginBottom: '4rem',
           }}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             {submitStatus === 'success' ? (
               <motion.div
                 key="success"

@@ -340,7 +340,7 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
             )}
 
             {/* Image with swipe gestures */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               <motion.img
                 key={lightboxPhoto.id}
                 initial={{ scale: 0.88, opacity: 0 }}

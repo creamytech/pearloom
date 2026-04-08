@@ -305,7 +305,7 @@ export function RsvpForm({ events, siteId, mealOptions }: RsvpFormProps) {
       <StepDots current={step} total={totalSteps} />
 
       {/* Animated step content */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {/* ── Step 0: Name + Email + Attending toggle ── */}
         {step === 0 && (
           <motion.div

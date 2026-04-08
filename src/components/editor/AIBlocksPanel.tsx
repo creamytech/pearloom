@@ -633,7 +633,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       )}
 
       {/* Inline sub-editor for the active block */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {activeEdit && (
           <motion.div
             key={activeEdit}

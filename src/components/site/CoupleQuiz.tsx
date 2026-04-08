@@ -273,7 +273,7 @@ export function CoupleQuiz({ coupleNames, vibeSkin, chapters }: CoupleQuizProps)
         </motion.div>
 
         {/* Quiz card */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           {finished ? (
             /* Final score screen */
             <motion.div

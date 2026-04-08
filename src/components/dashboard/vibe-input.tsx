@@ -1813,7 +1813,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
       </div>
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-      <AnimatePresence mode="wait" custom={1}>
+      <AnimatePresence mode="popLayout" custom={1}>
         {/* ── STEP 2: Names ── */}
         {step === 2 && (
           <motion.div key="s1" custom={1} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>

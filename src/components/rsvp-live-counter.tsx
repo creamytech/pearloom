@@ -62,7 +62,7 @@ export function RsvpLiveCounter({ siteId, coupleNames }: RsvpLiveCounterProps) {
         transition: 'all 0.5s ease',
       }}
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {noAttendees ? (
           /* ── Zero / empty state ── */
           <motion.div

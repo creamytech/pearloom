@@ -186,7 +186,7 @@ export function ResponsiveControls<T>({
             transition: 'background 0.15s, color 0.15s',
           } as React.CSSProperties}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             <motion.span
               key={isLinked ? 'linked' : 'unlinked'}
               initial={{ opacity: 0, rotate: -90, scale: 0.5 }}

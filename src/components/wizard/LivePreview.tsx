@@ -50,7 +50,7 @@ export function LivePreview({ state, names, occasion }: LivePreviewProps) {
         </div>
 
         {/* Current task */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.p
             key={state.currentTask}
             initial={{ opacity: 0, y: 4 }}

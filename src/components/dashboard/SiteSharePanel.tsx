@@ -133,7 +133,7 @@ export function SiteSharePanel({
       }}>
         {url}
       </code>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         <motion.button
           key={copied === type ? 'ok' : 'copy'}
           initial={{ scale: 0.85, opacity: 0 }}

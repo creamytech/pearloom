@@ -281,7 +281,7 @@ export function StoryPanel() {
       </div>
 
       {/* ── Inline chapter editor ── */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         {activeChapter && (
           <motion.div
             key={activeChapter.id}

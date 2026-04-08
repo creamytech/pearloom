@@ -67,7 +67,7 @@ export function SiteMockup() {
         className="rounded-b-xl border overflow-hidden relative"
         style={{ borderColor: C.divider, height: 'clamp(280px, 45vw, 380px)' }}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.div
             key={rind.label}
             initial={{ opacity: 0 }}

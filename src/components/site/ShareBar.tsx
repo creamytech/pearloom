@@ -69,7 +69,7 @@ export function ShareBar({ url, title, accent, bgColor }: ShareBarProps) {
         style={{ ...btnBase, background: copied ? `${accent}25` : btnBase.background as string }}
         aria-label="Copy link"
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.span
             key={copied ? 'copied' : 'copy'}
             initial={{ opacity: 0, y: -4 }}

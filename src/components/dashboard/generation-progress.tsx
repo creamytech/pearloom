@@ -241,7 +241,7 @@ export function GenerationProgress({
                 <span className="text-[0.58rem] font-bold tracking-[0.1em] uppercase text-[var(--pl-muted)] block">
                   Weaving Progress
                 </span>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                   <motion.h3
                     key={idx}
                     initial={{ opacity: 0, y: 4 }}
