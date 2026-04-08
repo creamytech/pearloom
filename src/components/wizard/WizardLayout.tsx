@@ -211,7 +211,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
               } as React.CSSProperties}
             >
               {/* Inner content with padding */}
-              <div className="p-6 md:p-10">
+              <div className="p-4 sm:p-6 md:p-10">
                 {/* Step label + progress */}
                 {title && step !== 'dashboard' && step !== 'generating' && (
                   <div className="pl-enter pl-enter-d1">

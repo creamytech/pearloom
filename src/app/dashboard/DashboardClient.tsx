@@ -591,9 +591,6 @@ export default function DashboardClient() {
             {/* ── Step content ── */}
             {state.step === 'photos' && (
               <>
-                {state.photos.length === 0 && (
-                  <QuickStartBanner onQuickStart={() => setShowTemplates(true)} />
-                )}
                 <PhotosStep
                   selectedPhotos={state.photos}
                   onPhotosSelected={(photos) => {
@@ -601,6 +598,7 @@ export default function DashboardClient() {
                     progressiveSession.onPhotosReady(photos).then(() => setPreviewState({ ...progressiveSession.getState() }));
                   }}
                   onContinue={() => goTo('clusters')}
+                  onSkipToTemplate={() => setShowTemplates(true)}
                 />
               </>
             )}

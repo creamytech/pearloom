@@ -151,11 +151,9 @@ interface QuickStartProps {
 
 export function QuickStartBanner({ onQuickStart }: QuickStartProps) {
   return (
-    <motion.button
+    <button
       onClick={onQuickStart}
-      whileHover={{ scale: 1.01, y: -1 }}
-      whileTap={{ scale: 0.99 }}
-      className="w-full p-4 rounded-2xl cursor-pointer text-left transition-all"
+      className="w-full p-4 rounded-2xl cursor-pointer text-left transition-all hover:-translate-y-0.5 active:scale-[0.99]"
       style={{
         background: 'rgba(255,255,255,0.4)',
         backdropFilter: 'blur(12px)',
@@ -171,17 +169,17 @@ export function QuickStartBanner({ onQuickStart }: QuickStartProps) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[0.82rem] font-semibold text-[var(--pl-ink)] m-0">
-            Surprise Me
+            Start from a Template
           </p>
           <p className="text-[0.68rem] text-[var(--pl-muted)] m-0">
-            Skip the details — AI picks everything from your photos
+            Skip photos — pick a pre-designed theme and customize it
           </p>
         </div>
         <span className="text-[0.58rem] font-bold uppercase tracking-[0.08em] shrink-0 px-2 py-1 rounded-full text-[var(--pl-olive-deep)]"
           style={{ background: 'rgba(163,177,138,0.1)' }}>
-          90 sec
+          60 sec
         </span>
       </div>
-    </motion.button>
+    </button>
   );
 }

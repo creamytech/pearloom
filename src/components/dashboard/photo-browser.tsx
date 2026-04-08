@@ -16,10 +16,11 @@ import { Button } from '@/components/ui';
 interface PhotoBrowserProps {
   onSelectionChange: (photos: GooglePhotoMetadata[]) => void;
   maxSelection?: number;
+  onSkipToTemplate?: () => void;
 }
 
 const cardStyle: React.CSSProperties = {
-  padding: '2.5rem 2rem',
+  padding: 'clamp(1.25rem, 4vw, 2.5rem) clamp(1rem, 3vw, 2rem)',
   textAlign: 'center',
   maxWidth: '600px',
   margin: '0 auto',
@@ -40,7 +41,7 @@ const GRACE_PERIOD_MS = 5 * 60 * 1000; // 5 minutes — photo libraries are larg
 // Hard cap: stop polling after this long regardless (Google session expires ~1h)
 const MAX_POLL_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 
-export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrowserProps) {
+export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTemplate }: PhotoBrowserProps) {
   const { data: session } = useSession();
   const isGoogleUser = session?.provider === 'google' || !!session?.accessToken;
   const [photos, setPhotos] = useState<GooglePhotoMetadata[]>([]);
@@ -390,6 +391,35 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             style={{ display: 'none' }}
             onChange={e => handleDeviceFileSelect(e.target.files)}
           />
+
+          {/* Template option — skip photos entirely */}
+          {onSkipToTemplate && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0' }}>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
+                <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontStyle: 'italic' }}>or</span>
+                <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.06)' }} />
+              </div>
+              <button
+                onClick={onSkipToTemplate}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  padding: '14px 20px', borderRadius: '16px', border: 'none',
+                  background: 'rgba(163,177,138,0.06)',
+                  cursor: 'pointer', textAlign: 'left' as const, transition: 'all 0.2s',
+                  width: '100%',
+                }}
+              >
+                <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1.1rem', color: 'var(--pl-olive)' }}>
+                  ✦
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--pl-ink-soft)' }}>START FROM A TEMPLATE</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '2px' }}>Skip photos — pick a pre-designed theme</div>
+                </div>
+              </button>
+            </>
+          )}
         </div>
       </div>
     );

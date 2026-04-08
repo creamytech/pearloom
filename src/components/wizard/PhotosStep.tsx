@@ -83,9 +83,10 @@ interface PhotosStepProps {
   onPhotosSelected: (photos: GooglePhotoMetadata[]) => void;
   onContinue: () => void;
   onBack?: () => void;
+  onSkipToTemplate?: () => void;
 }
 
-export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBack }: PhotosStepProps) {
+export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBack, onSkipToTemplate }: PhotosStepProps) {
   const [attemptedContinue, setAttemptedContinue] = useState(false);
   const count = selectedPhotos.length;
 
@@ -104,6 +105,7 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBac
         <PhotoBrowser
           onSelectionChange={onPhotosSelected}
           maxSelection={MAX_PHOTOS}
+          onSkipToTemplate={onSkipToTemplate}
         />
       </div>
 
