@@ -136,6 +136,21 @@ export interface StoryManifest {
   typographyPair?: 'serif-sans' | 'mono-serif' | 'display-body' | 'editorial';
   /** Site customization options (borders, frames, transitions, etc.) */
   customization?: import("./types").SiteCustomization;
+  /** Saved reusable components (symbols) */
+  savedComponents?: SavedComponent[];
+}
+
+export type ComponentCategory = 'layout' | 'content' | 'media' | 'interactive';
+
+export interface SavedComponent {
+  id: string;
+  name: string;
+  type: BlockType;
+  category: ComponentCategory;
+  config?: Record<string, unknown>;
+  blockEffects?: PageBlock['blockEffects'];
+  createdAt: string;
+  builtIn?: boolean;
 }
 
 export interface Chapter {
@@ -469,6 +484,10 @@ export interface PageBlock {
    *   label    — action label or countdown text
    */
   config?: Record<string, unknown>;
+  /** Tablet-specific config overrides (layered on top of config) */
+  tabletConfig?: Record<string, unknown>;
+  /** Mobile-specific config overrides (layered on top of tabletConfig → config) */
+  mobileConfig?: Record<string, unknown>;
   /** Per-block visual effects — override or supplement global theme effects */
   blockEffects?: {
     /** Entrance animation when this section scrolls into view */

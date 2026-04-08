@@ -606,6 +606,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     handleTabChange, handleCommandAction,
     handleAIRewrite, cancelAIRewrite, handlePublishSubmit, handleRestoreDraft,
     storePreviewForOpen,
+    jumpToHistory: (index: number) => {
+      if (index >= 0 && index < historyRef.current.length) {
+        historyIndexRef.current = index;
+        const target = historyRef.current[index];
+        onChange(target);
+        pushToPreview(target);
+        dispatch({ type: 'SET_CAN_UNDO', can: index > 0 });
+        dispatch({ type: 'SET_CAN_REDO', can: index < historyRef.current.length - 1 });
+        dispatch({ type: 'SET_UNDO_INDEX', index });
+      }
+    },
+    getHistoryEntries: () => historyRef.current.map((m, i) => ({ manifest: m, label: `State ${i + 1}`, timestamp: Date.now() })),
+    getHistoryIndex: () => historyIndexRef.current,
   };
 
   const contextValue = {

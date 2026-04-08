@@ -16,6 +16,7 @@ const TAB_LABELS: Record<EditorTab, string> = {
   analytics: 'Analytics', guests: 'Guests', seating: 'Seating',
   translate: 'Translate', invite: 'Invite', savethedate: 'Save the Date',
   spotify: 'Music', vendors: 'Vendors', thankyou: 'Thank You',
+  components: 'Symbols', history: 'History',
 };
 
 export function EditorBreadcrumb() {

@@ -158,7 +158,7 @@ export async function startStyleGeneration(
       foreground: '#1A1A1A',
       accent: photoColors[0] || '#A3B18A',
       accentLight: '#EEE8DC',
-      muted: '#7A756E',
+      muted: '#6B665F',
       cardBg: '#FFFFFF',
     },
     fontPair: ['Playfair Display', 'Inter'],

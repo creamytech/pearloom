@@ -13,7 +13,7 @@ export const colors = {
   card:       '#FFFFFF',   // --pl-cream-card
   ink:        '#1A1A1A',   // --pl-ink
   inkSoft:    '#3D3530',   // --pl-ink-soft
-  muted:      '#7A756E',   // --pl-muted
+  muted:      '#6B665F',   // --pl-muted (WCAG AA on cream)
   divider:    '#E0D8CA',   // --pl-divider
 
   // Brand
@@ -29,7 +29,7 @@ export const colors = {
   // Dark surfaces (editor, generation)
   darkBg:      '#1E1B24',
   darkCard:    'rgba(255,255,255,0.09)',
-  darkBorder:  'rgba(255,255,255,0.12)',
+  darkBorder:  'rgba(255,255,255,0.08)',
   darkText:    'rgba(245,241,232,0.55)',
   darkHeading: '#F5F1E8',
 

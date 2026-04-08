@@ -15,7 +15,20 @@ import type { CommandAction } from '@/components/editor/CommandPalette';
 
 // ── Types ──────────────────────────────────────────────────────
 export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
-export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors';
+export type EditorTab = 'story' | 'events' | 'design' | 'details' | 'pages' | 'blocks' | 'voice' | 'canvas' | 'messaging' | 'analytics' | 'guests' | 'seating' | 'translate' | 'invite' | 'savethedate' | 'thankyou' | 'spotify' | 'vendors' | 'components' | 'history';
+
+export interface UndoHistoryEntry {
+  label: string;
+  timestamp: number;
+}
+
+export interface HistoryEntry {
+  manifest: import('@/types').StoryManifest;
+  label: string;
+  timestamp: number;
+}
+
+export const MAX_UNDO_ENTRIES = 50;
 export type SaveState = 'saved' | 'unsaved';
 export type DraftBannerState = 'visible' | 'hidden' | null;
 
@@ -86,6 +99,13 @@ export interface EditorState {
 
   // Contextual section — tells panels which sub-section to auto-expand
   contextSection: string | null;
+
+  // Undo history entries
+  undoHistory: UndoHistoryEntry[];
+  undoIndex: number;
+
+  // Canvas width for responsive editing
+  canvasWidth: number;
 }
 
 export type EditorAction =
@@ -131,7 +151,11 @@ export type EditorAction =
   | { type: 'SET_ALTERNATES_LOADING'; id: string | null }
   | { type: 'SET_SELECTED_BLOCKS'; ids: string[] }
   | { type: 'TOGGLE_BLOCK_SELECTION'; id: string }
-  | { type: 'SET_CONTEXT_SECTION'; section: string | null };
+  | { type: 'SET_CONTEXT_SECTION'; section: string | null }
+  | { type: 'PUSH_UNDO_ENTRY'; label: string }
+  | { type: 'SET_UNDO_INDEX'; index: number }
+  | { type: 'CLEAR_UNDO_HISTORY' }
+  | { type: 'SET_CANVAS_WIDTH'; width: number };
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
@@ -225,6 +249,18 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
     }
     case 'SET_CONTEXT_SECTION':
       return { ...state, contextSection: action.section };
+    case 'PUSH_UNDO_ENTRY': {
+      const history = state.undoHistory.slice(0, state.undoIndex + 1);
+      history.push({ label: action.label, timestamp: Date.now() });
+      if (history.length > MAX_UNDO_ENTRIES) history.shift();
+      return { ...state, undoHistory: history, undoIndex: history.length - 1 };
+    }
+    case 'SET_UNDO_INDEX':
+      return { ...state, undoIndex: Math.max(0, Math.min(action.index, state.undoHistory.length - 1)) };
+    case 'CLEAR_UNDO_HISTORY':
+      return { ...state, undoHistory: [{ label: 'Initial state', timestamp: Date.now() }], undoIndex: 0 };
+    case 'SET_CANVAS_WIDTH':
+      return { ...state, canvasWidth: action.width };
     default:
       return state;
   }
@@ -268,6 +304,11 @@ export interface EditorActions {
 
   // Store preview for external use
   storePreviewForOpen: () => void;
+
+  // History (for UndoTimeline)
+  jumpToHistory: (index: number) => void;
+  getHistoryEntries: () => HistoryEntry[];
+  getHistoryIndex: () => number;
 }
 
 export interface EditorContextValue {
@@ -337,6 +378,9 @@ export function createInitialEditorState(
     alternatesLoadingId: null,
     selectedBlockIds: [],
     contextSection: null,
+    undoHistory: [{ label: 'Initial state', timestamp: Date.now() }],
+    undoIndex: 0,
+    canvasWidth: 1280,
   };
 }
 
