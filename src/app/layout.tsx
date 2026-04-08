@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 import { AuthProvider } from '@/components/auth-provider';
 import { ToastProvider } from '@/components/ui/toast';
 import { OfflineIndicator } from '@/components/shared/OfflineIndicator';
+import { SharedScrollProvider } from '@/lib/shared-scroll';
 
 export default function RootLayout({
   children,
@@ -41,8 +42,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <ToastProvider>
-            <OfflineIndicator />
-            {children}
+            <SharedScrollProvider>
+              <OfflineIndicator />
+              {children}
+            </SharedScrollProvider>
           </ToastProvider>
         </AuthProvider>
       </body>

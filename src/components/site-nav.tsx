@@ -12,6 +12,7 @@ import { Menu, X, LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useSharedScroll } from '@/lib/shared-scroll';
 import type { SitePage, LogoIconId } from '@/types';
 import { layout } from '@/lib/design-tokens';
 import { UserNav } from '@/components/dashboard/user-nav';
@@ -110,11 +111,11 @@ export function SiteNav({
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 32, restDelta: 0.001 });
 
+  // Use shared scroll context for scrollY (avoids duplicate listener)
+  const sharedScroll = useSharedScroll();
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    setScrollY(sharedScroll.scrollY);
+  }, [sharedScroll.scrollY]);
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
