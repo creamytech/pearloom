@@ -208,6 +208,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               className="md:hidden fixed inset-0 z-[998] bg-black/60 backdrop-blur-sm"
               onClick={() => setMobileMenuOpen(false)}
             />
@@ -229,18 +230,15 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               </div>
               <div className="flex-1 p-4 flex flex-col gap-1 overflow-y-auto">
                 {NAV_LINKS.map((label, i) => (
-                  <motion.a
+                  <a
                     key={label}
                     href={`#${label.toLowerCase().replace(/ /g, '-')}`}
                     onClick={() => setMobileMenuOpen(false)}
-                    initial={{ opacity: 0, x: 16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.08 + i * 0.05 }}
-                    className="text-[1.05rem] font-semibold text-white/75 no-underline px-4 py-3.5 rounded-xl flex items-center justify-between hover:bg-white/08 hover:text-white transition-all duration-150"
+                    className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} text-[1.05rem] font-semibold text-white/75 no-underline px-4 py-3.5 rounded-xl flex items-center justify-between hover:bg-white/08 hover:text-white transition-all duration-150`}
                   >
                     {label}
                     <ChevronRight size={15} className="opacity-40" />
-                  </motion.a>
+                  </a>
                 ))}
               </div>
               <div className="p-5 border-t border-white/10">

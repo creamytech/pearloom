@@ -320,7 +320,7 @@ export function SiteNav({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.22 }}
+              transition={{ duration: 0.12 }}
               onClick={() => setDrawer(false)}
               className="fixed inset-0 z-[48] bg-black/35 backdrop-blur-[4px]"
             />
@@ -360,28 +360,22 @@ export function SiteNav({
               {isStudio && user && (
                 <div className="py-1.5 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0">
                   {onGoToDashboard && (
-                    <motion.button
-                      initial={{ opacity: 0, x: 16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.05 }}
+                    <button
                       onClick={() => { onGoToDashboard(); setDrawer(false); }}
-                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
+                      className="pl-enter pl-enter-d1 flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
                     >
                       <LayoutDashboard size={17} className="text-[var(--pl-olive)]" />
                       My Sites
-                    </motion.button>
+                    </button>
                   )}
                   {onStartNew && (
-                    <motion.button
-                      initial={{ opacity: 0, x: 16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.08 }}
+                    <button
                       onClick={() => { onStartNew(); setDrawer(false); }}
-                      className="flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
+                      className="pl-enter pl-enter-d2 flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
                     >
                       <Plus size={17} className="text-[var(--pl-olive)]" />
                       New Site
-                    </motion.button>
+                    </button>
                   )}
                 </div>
               )}
@@ -391,11 +385,9 @@ export function SiteNav({
                 {enabledPages.map((page, i) => {
                   const active = isActive(page.slug);
                   return (
-                    <motion.div
+                    <div
                       key={page.id}
-                      initial={{ opacity: 0, x: 16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 + 0.06 }}
+                      className={`pl-enter pl-enter-d${Math.min(i + 1, 8)}`}
                     >
                       <Link
                         href={getHref(page.slug)}
@@ -412,7 +404,7 @@ export function SiteNav({
                         <PageIcon slug={page.slug} size={17} />
                         <span className="flex-1">{page.label}</span>
                       </Link>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </nav>
@@ -420,12 +412,8 @@ export function SiteNav({
               {/* Account row + powered-by */}
               <div className="flex-shrink-0 border-t border-[rgba(0,0,0,0.06)] px-5 py-4">
                 {user && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.28 }}
-                    className="flex items-center gap-2.5 mb-3.5"
-                  >
+                  <div className="pl-enter-fade pl-enter-d3 flex items-center gap-2.5 mb-3.5">
+
                     {user.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -452,7 +440,7 @@ export function SiteNav({
                     >
                       <LogOut size={13} />
                     </button>
-                  </motion.div>
+                  </div>
                 )}
                 <p className="text-[0.65rem] uppercase tracking-[0.12em] text-[var(--pl-muted)] opacity-60 m-0">
                   Powered by Pearloom

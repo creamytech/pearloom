@@ -444,14 +444,15 @@ export function MobileEditorSheet() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.1 }}
                   onClick={() => setShowMenu(false)}
                   style={{ position: 'fixed', inset: 0, zIndex: 99 }}
                 />
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: -4 }}
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -4 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
                   style={{
                     position: 'absolute', top: '100%', right: 0,
                     marginTop: 4, width: 180, zIndex: 100,
