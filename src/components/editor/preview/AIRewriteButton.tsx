@@ -114,7 +114,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                   style={{
                     padding: '0.35rem 0.65rem', borderRadius: '100px',
                     border: `1.5px solid ${activeStyle === s.id ? '#A3B18A' : 'rgba(0,0,0,0.08)'}`,
-                    background: activeStyle === s.id ? 'rgba(163,177,138,0.1)' : '#fff',
+                    background: activeStyle === s.id ? 'rgba(163,177,138,0.1)' : 'var(--pl-cream-card)',
                     fontSize: '0.78rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
                     color: 'var(--pl-ink)', transition: 'all 0.15s',
                   }}
@@ -147,7 +147,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     onClick={() => { setOpen(false); setResult(null); setActiveStyle(null); }}
                     style={{
                       padding: '0.35rem 0.75rem', borderRadius: '100px',
-                      border: '1px solid rgba(0,0,0,0.08)', background: '#fff',
+                      border: '1px solid rgba(0,0,0,0.08)', background: 'var(--pl-cream-card)',
                       fontSize: '0.78rem', cursor: 'pointer', color: '#9A9488',
                     }}
                   >Dismiss</button>
@@ -160,7 +160,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                     }}
                     style={{
                       padding: '0.35rem 0.75rem', borderRadius: '100px',
-                      border: 'none', background: '#A3B18A', color: '#fff',
+                      border: 'none', background: '#A3B18A', color: 'white',
                       fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
                     }}
                   >Use this</button>

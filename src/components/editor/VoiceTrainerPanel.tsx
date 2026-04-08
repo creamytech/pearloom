@@ -141,7 +141,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
             padding: '0.65rem 1rem', borderRadius: '0.6rem',
-            background: 'var(--pl-olive)', color: '#fff',
+            background: 'var(--pl-olive)', color: 'white',
             border: 'none', cursor: newSample.trim() ? 'pointer' : 'not-allowed',
             fontSize: '0.8rem', fontWeight: 700, opacity: newSample.trim() ? 1 : 0.4,
             transition: 'all 0.2s',

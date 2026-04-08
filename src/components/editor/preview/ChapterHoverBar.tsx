@@ -46,7 +46,7 @@ function BarButton({
       style={{ ...barBtnStyle, color }}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = 'rgba(0,0,0,0.08)';
-        if (!danger) e.currentTarget.style.color = '#fff';
+        if (!danger) e.currentTarget.style.color = 'white';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = 'transparent';

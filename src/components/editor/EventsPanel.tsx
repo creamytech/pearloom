@@ -92,7 +92,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
         <div style={{ flex: 1, height: '1px', background: 'var(--pl-black-4)' }} />
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: 'var(--pl-text-base)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>
           {manifest.occasion === 'birthday' ? 'Party Events' : manifest.occasion === 'anniversary' ? 'Anniversary Events' : 'Wedding Events'}
         </span>
         <div style={{ flex: 1, height: '1px', background: 'var(--pl-black-4)' }} />
@@ -154,7 +154,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                               onClick={() => updateEvent(evt.id, { type: opt.type })}
                               style={{
                                 padding: '5px 12px', borderRadius: '100px', border: 'none', cursor: 'pointer',
-                                fontSize: '0.82rem', fontWeight: 700,
+                                fontSize: 'var(--pl-text-base)', fontWeight: 700,
                                 background: (evt.type || 'other') === opt.type ? opt.color : 'var(--pl-black-6)',
                                 color: (evt.type || 'other') === opt.type ? '#fff' : 'var(--pl-ink-soft)',
                                 transition: 'all 0.15s',
@@ -199,7 +199,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                       {/* Remove button */}
                       <button
                         onClick={() => removeEvent(evt.id)}
-                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(109,89,122,0.2)', background: 'rgba(109,89,122,0.06)', color: 'var(--pl-plum, #6D597A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}
+                        style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(109,89,122,0.2)', background: 'rgba(109,89,122,0.06)', color: 'var(--pl-plum, #6D597A)', cursor: 'pointer', fontSize: 'var(--pl-text-base)', fontWeight: 700 }}
                       >
                         <Trash2 size={11} /> Remove Event
                       </button>
@@ -249,16 +249,16 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
               padding: '10px 14px', borderRadius: '8px',
-              border: '1px solid rgba(163,177,138,0.35)',
-              background: 'rgba(163,177,138,0.10)',
+              border: '1px solid var(--pl-olive-30)',
+              background: 'var(--pl-olive-10)',
               color: 'var(--pl-olive, #A3B18A)',
               fontSize: '0.84rem', fontWeight: 700,
               letterSpacing: '0.03em',
               textDecoration: 'none',
               transition: 'all 0.15s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.20)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.10)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-20)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-10)'; }}
           >
             <Calendar size={13} />
             Download .ics (Apple / Outlook)
