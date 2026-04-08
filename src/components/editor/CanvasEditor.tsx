@@ -457,7 +457,7 @@ function BlockRow({
         </motion.div>
       </motion.div>
 
-      {/* Expanded actions — only when active */}
+      {/* Expanded actions — icon strip with labels */}
       <AnimatePresence>
         {isActive && (
           <motion.div
@@ -468,31 +468,32 @@ function BlockRow({
             style={{ overflow: 'hidden' }}
           >
             <div style={{
-              display: 'flex', gap: '4px', padding: '6px 8px',
-              justifyContent: 'center', flexWrap: 'wrap',
+              display: 'flex', gap: '6px', padding: '8px 12px',
+              justifyContent: 'center',
             }}>
               {[
-                { icon: <ChevronUp size={13} />, label: 'Up', action: () => onMoveUp(block.id), disabled: isFirst },
-                { icon: <ChevronDown size={13} />, label: 'Down', action: () => onMoveDown(block.id), disabled: isLast },
-                { icon: block.visible ? <Eye size={13} /> : <EyeOff size={13} />, label: block.visible ? 'Hide' : 'Show', action: () => onToggle(block.id) },
-                { icon: <Copy size={13} />, label: 'Copy', action: () => onDuplicate(block.id) },
-                { icon: <Trash2 size={13} />, label: 'Delete', action: () => onDelete(block.id), danger: true },
+                { icon: <ChevronUp size={14} />, tip: 'Move up', action: () => onMoveUp(block.id), disabled: isFirst },
+                { icon: <ChevronDown size={14} />, tip: 'Move down', action: () => onMoveDown(block.id), disabled: isLast },
+                { icon: block.visible ? <Eye size={14} /> : <EyeOff size={14} />, tip: block.visible ? 'Hide' : 'Show', action: () => onToggle(block.id) },
+                { icon: <Copy size={14} />, tip: 'Duplicate', action: () => onDuplicate(block.id) },
+                { icon: <Trash2 size={14} />, tip: 'Delete', action: () => onDelete(block.id), danger: true },
               ].filter(a => !a.disabled).map(a => (
                 <button
-                  key={a.label}
+                  key={a.tip}
                   onClick={e => { e.stopPropagation(); a.action(); }}
+                  title={a.tip}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                    padding: '5px 10px', borderRadius: '8px', border: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: '32px', height: '32px', borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     background: 'rgba(255,255,255,0.25)',
                     color: (a as { danger?: boolean }).danger ? '#e87171' : 'var(--pl-muted)',
-                    cursor: 'pointer', fontSize: '0.62rem', fontWeight: 600,
-                    transition: 'all 0.12s',
+                    cursor: 'pointer', transition: 'all 0.12s',
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.5)'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.25)'; }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.55)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.4)'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.25)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.2)'; }}
                 >
-                  {a.icon} {a.label}
+                  {a.icon}
                 </button>
               ))}
             </div>
@@ -1713,7 +1714,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
 
         {/* ── Drag-sortable block list ── */}
         <div
-          style={{ display: 'flex', flexDirection: 'column', gap: '5px', position: 'relative' }}
+          style={{ display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative' }}
           onDragOver={(e) => {
             if (e.dataTransfer.types.includes('pearloom/block-type')) {
               e.preventDefault();

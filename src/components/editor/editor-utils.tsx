@@ -3,17 +3,44 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / components/editor/editor-utils.tsx
 // Shared styles and components for editor panels
-// Organic glass design system
+// Organic glass design system with consistent spacing
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react';
 import { parseLocalDate } from '@/lib/date';
 
+// ── Spacing system (4px base unit) ───────────────────────────
+export const spacing = {
+  xs: '4px',
+  sm: '8px',
+  md: '12px',
+  lg: '16px',
+  xl: '24px',
+  '2xl': '32px',
+} as const;
+
+// ── Font size hierarchy ──────────────────────────────────────
+export const fontSize = {
+  '2xs': '0.55rem',  // Badges, meta
+  xs: '0.62rem',     // Labels, captions
+  sm: '0.72rem',     // Descriptions, hints
+  md: '0.82rem',     // Body text, inputs
+  lg: '0.92rem',     // Sub-headings
+  xl: '1rem',        // Headings
+} as const;
+
 // ── Shared label style ────────────────────────────────────────
 export const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.62rem', fontWeight: 700,
+  display: 'block', fontSize: fontSize.xs, fontWeight: 700,
   letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: 'var(--pl-muted, #7A756E)', marginBottom: '0.4rem',
+  color: 'var(--pl-muted, #7A756E)', marginBottom: spacing.sm,
+};
+
+// ── Section heading (bigger than field labels) ────────────────
+export const sectionHeading: React.CSSProperties = {
+  fontSize: fontSize.sm, fontWeight: 800,
+  letterSpacing: '0.08em', textTransform: 'uppercase',
+  color: 'var(--pl-ink-soft, #4A4A4A)', marginBottom: spacing.md,
 };
 
 // ── Shared input style — glass with white glow border ─────────
@@ -33,22 +60,23 @@ export const inp: React.CSSProperties = {
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
 } as React.CSSProperties;
 
-// ── Reusable form field — glass input with label ──────────────
-export function Field({ label, value, onChange, rows, placeholder }: {
-  label: string; value: string; onChange: (v: string) => void;
-  rows?: number; placeholder?: string;
-}) {
-  const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)';
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1), inset 0 1px 0 rgba(255,255,255,0.3)';
-    e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
-  };
-  const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
-    e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.2)';
-    e.currentTarget.style.background = 'rgba(255,255,255,0.35)';
-  };
+// ── Focus/blur handlers ──────────────────────────────────────
+const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)';
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1), inset 0 1px 0 rgba(255,255,255,0.3)';
+  e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
+};
+const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
+  e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.2)';
+  e.currentTarget.style.background = 'rgba(255,255,255,0.35)';
+};
 
+// ── Reusable form field — glass input with label ──────────────
+export function Field({ label, value, onChange, rows, placeholder, hint }: {
+  label: string; value: string; onChange: (v: string) => void;
+  rows?: number; placeholder?: string; hint?: string;
+}) {
   if (rows) return (
     <div>
       <label style={lbl}>{label}</label>
@@ -58,6 +86,7 @@ export function Field({ label, value, onChange, rows, placeholder }: {
         style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
         onFocus={focusStyle} onBlur={blurStyle}
       />
+      {hint && <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-muted)', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
     </div>
   );
   return (
@@ -69,6 +98,127 @@ export function Field({ label, value, onChange, rows, placeholder }: {
         style={inp}
         onFocus={focusStyle} onBlur={blurStyle}
       />
+      {hint && <p style={{ fontSize: fontSize['2xs'], color: 'var(--pl-muted)', marginTop: spacing.xs, lineHeight: 1.4 }}>{hint}</p>}
+    </div>
+  );
+}
+
+// ── Field group — visual card container for related fields ────
+export function FieldGroup({ title, children, columns }: {
+  title?: string; children: React.ReactNode; columns?: number;
+}) {
+  return (
+    <div style={{
+      padding: spacing.md,
+      borderRadius: '12px',
+      background: 'rgba(255,255,255,0.2)',
+      border: '1px solid rgba(255,255,255,0.15)',
+      display: 'flex', flexDirection: 'column',
+      gap: spacing.lg,
+    }}>
+      {title && <div style={sectionHeading}>{title}</div>}
+      {columns ? (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: spacing.sm }}>
+          {children}
+        </div>
+      ) : children}
+    </div>
+  );
+}
+
+// ── Inline action button — consistent across panels ──────────
+export function ActionButton({ label, icon, onClick, variant = 'default', size = 'sm' }: {
+  label: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  variant?: 'default' | 'danger' | 'accent';
+  size?: 'sm' | 'md';
+}) {
+  const colors = {
+    default: { bg: 'rgba(255,255,255,0.3)', border: 'rgba(255,255,255,0.25)', color: 'var(--pl-ink-soft)' },
+    danger: { bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)', color: '#e87a7a' },
+    accent: { bg: 'rgba(163,177,138,0.1)', border: 'rgba(163,177,138,0.3)', color: 'var(--pl-olive)' },
+  }[variant];
+
+  const padding = size === 'sm' ? `${spacing.xs} ${spacing.sm}` : `${spacing.sm} ${spacing.md}`;
+
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: spacing.xs,
+        padding, borderRadius: '8px', cursor: 'pointer',
+        border: `1px solid ${colors.border}`,
+        background: colors.bg, color: colors.color,
+        fontSize: size === 'sm' ? fontSize.xs : fontSize.sm,
+        fontWeight: 600, transition: 'all 0.15s',
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+// ── Pill toggle — for on/off options ─────────────────────────
+export function PillToggle({ label, value, onChange }: {
+  label: string; value: boolean; onChange: (v: boolean) => void;
+}) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: `${spacing.sm} 0`,
+    }}>
+      <span style={{ fontSize: fontSize.sm, color: 'var(--pl-ink-soft)', fontWeight: 500 }}>{label}</span>
+      <button
+        onClick={() => onChange(!value)}
+        style={{
+          width: '36px', height: '20px', borderRadius: '100px',
+          background: value ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.3)',
+          border: value ? '1px solid rgba(163,177,138,0.5)' : '1px solid rgba(255,255,255,0.3)',
+          cursor: 'pointer', position: 'relative', transition: 'all 0.2s',
+        }}
+      >
+        <span style={{
+          position: 'absolute', top: '2px', left: value ? '18px' : '2px',
+          width: '14px', height: '14px', borderRadius: '50%', background: '#fff',
+          transition: 'left 0.2s', display: 'block',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        }} />
+      </button>
+    </div>
+  );
+}
+
+// ── Empty state — for sections with no content yet ───────────
+export function EmptyState({ icon, title, description, action, onAction }: {
+  icon?: string; title: string; description?: string;
+  action?: string; onAction?: () => void;
+}) {
+  return (
+    <div style={{
+      padding: spacing.xl, textAlign: 'center',
+      borderRadius: '12px',
+      border: '1.5px dashed rgba(163,177,138,0.25)',
+      background: 'rgba(255,255,255,0.15)',
+    }}>
+      {icon && <div style={{ fontSize: '1.5rem', marginBottom: spacing.sm, opacity: 0.5 }}>{icon}</div>}
+      <div style={{ fontSize: fontSize.sm, fontWeight: 700, color: 'var(--pl-ink-soft)', marginBottom: spacing.xs }}>{title}</div>
+      {description && <div style={{ fontSize: fontSize.xs, color: 'var(--pl-muted)', lineHeight: 1.5 }}>{description}</div>}
+      {action && onAction && (
+        <button
+          onClick={onAction}
+          style={{
+            marginTop: spacing.md, padding: `${spacing.sm} ${spacing.lg}`,
+            borderRadius: '100px', border: '1px solid rgba(163,177,138,0.3)',
+            background: 'rgba(163,177,138,0.08)', color: 'var(--pl-olive)',
+            fontSize: fontSize.xs, fontWeight: 700, cursor: 'pointer',
+            letterSpacing: '0.06em',
+          }}
+        >
+          {action}
+        </button>
+      )}
     </div>
   );
 }

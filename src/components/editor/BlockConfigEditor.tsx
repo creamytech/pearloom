@@ -66,7 +66,7 @@ function PropControl({
   };
 
   return (
-    <div style={{ marginBottom: '16px' }}>
+    <div style={{ marginBottom: '20px' }}>
       <div style={labelStyle}>
         {schema.label}
         {schema.bindingHint && (
@@ -284,17 +284,22 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
         </div>
       </div>
 
-      {/* Grouped props */}
+      {/* Grouped props — visual card containers */}
       {Object.entries(groups).map(([groupName, props]) => (
-        <div key={groupName} style={{ marginBottom: '20px' }}>
+        <div key={groupName} style={{
+          marginBottom: '16px', padding: '12px',
+          borderRadius: '12px',
+          background: Object.keys(groups).length > 1 ? 'rgba(255,255,255,0.15)' : 'transparent',
+          border: Object.keys(groups).length > 1 ? '1px solid rgba(255,255,255,0.12)' : 'none',
+        }}>
           {Object.keys(groups).length > 1 && (
             <h4 style={{
-              fontSize: '0.62rem', fontWeight: 700,
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: 'var(--pl-muted)',
-              marginBottom: '12px',
-              paddingBottom: '6px',
-              borderBottom: '1px solid rgba(255,255,255,0.3)',
+              fontSize: '0.68rem', fontWeight: 800,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: 'var(--pl-ink-soft)',
+              marginBottom: '16px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid rgba(255,255,255,0.2)',
             }}>
               {groupName}
             </h4>
