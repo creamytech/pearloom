@@ -112,7 +112,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     fontWeight: 700,
     cursor: generating ? 'not-allowed' : 'pointer',
     opacity: generating ? 0.7 : 1,
-    background: generating ? 'rgba(163,177,138,0.25)' : '#A3B18A',
+    background: generating ? 'var(--pl-olive-20)' : '#A3B18A',
     color: '#1E1B16',
     border: 'none',
     transition: 'all 0.15s ease',
@@ -125,8 +125,8 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     justifyContent: 'space-between',
     padding: '0.55rem 0.75rem',
     borderRadius: '0.55rem',
-    background: 'rgba(163,177,138,0.06)',
-    border: '1px solid rgba(163,177,138,0.12)',
+    background: 'var(--pl-olive-5)',
+    border: '1px solid var(--pl-olive-12)',
     transition: 'background 0.15s ease',
   };
 
@@ -147,8 +147,8 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
     fontSize: '0.72rem',
     fontWeight: 600,
     cursor: 'pointer',
-    background: 'rgba(163,177,138,0.12)',
-    border: '1px solid rgba(163,177,138,0.2)',
+    background: 'var(--pl-olive-12)',
+    border: '1px solid var(--pl-olive-20)',
     color: 'var(--pl-muted)',
     transition: 'all 0.15s ease',
   };
@@ -236,9 +236,9 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
                       style={{
                         ...copyBtnStyle,
                         ...(isCopied ? {
-                          background: 'rgba(163,177,138,0.2)',
+                          background: 'var(--pl-olive-20)',
                           color: '#A3B18A',
-                          borderColor: 'rgba(163,177,138,0.35)',
+                          borderColor: 'var(--pl-olive-30)',
                         } : {}),
                       }}
                       onClick={() => copyTag(tag)}

@@ -136,7 +136,7 @@ export function SectionsPanel({ manifest, onChange }: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div>
-        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginBottom: '0.3rem' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--pl-olive)', marginBottom: '0.3rem' }}>
           Page Sections
         </div>
         <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
@@ -214,7 +214,7 @@ export function SectionsPanel({ manifest, onChange }: {
                 style={{
                   all: 'unset', cursor: 'pointer', display: 'flex',
                   padding: '4px', borderRadius: '6px',
-                  color: isHidden ? 'var(--pl-muted)' : 'rgba(163,177,138,0.8)',
+                  color: isHidden ? 'var(--pl-muted)' : 'var(--pl-olive)',
                 }}
               >
                 {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -259,7 +259,7 @@ export function SectionsPanel({ manifest, onChange }: {
                   display: 'flex', alignItems: 'center', gap: '5px',
                   padding: '6px 10px', borderRadius: '8px',
                   border: '1px solid rgba(0,0,0,0.06)',
-                  background: 'rgba(163,177,138,0.04)',
+                  background: 'var(--pl-olive-5)',
                   color: 'var(--pl-ink-soft)',
                   fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
                   transition: 'all 0.15s',

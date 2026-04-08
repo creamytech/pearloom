@@ -140,7 +140,7 @@ export function VersionHistoryPanel({ manifest, onRestore }: VersionHistoryPanel
                 padding: '10px 12px',
                 borderRadius: '10px',
                 border: '1px solid var(--pl-divider)',
-                background: confirmRestore === snap.id ? 'rgba(163,177,138,0.08)' : 'white',
+                background: confirmRestore === snap.id ? 'var(--pl-olive-8)' : 'white',
                 transition: 'background 0.15s',
               }}
             >

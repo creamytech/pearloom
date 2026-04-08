@@ -169,7 +169,7 @@ export function ImageManager({
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '28px', height: '28px', borderRadius: '5px', border: 'none',
-                  background: viewMode === 'grid' ? 'rgba(163,177,138,0.15)' : 'transparent',
+                  background: viewMode === 'grid' ? 'var(--pl-olive-15)' : 'transparent',
                   color: viewMode === 'grid' ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                 }}
@@ -182,7 +182,7 @@ export function ImageManager({
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '28px', height: '28px', borderRadius: '5px', border: 'none',
-                  background: viewMode === 'constellation' ? 'rgba(163,177,138,0.15)' : 'transparent',
+                  background: viewMode === 'constellation' ? 'var(--pl-olive-15)' : 'transparent',
                   color: viewMode === 'constellation' ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   cursor: 'pointer', transition: 'background 0.15s, color 0.15s',
                 }}
@@ -213,8 +213,8 @@ export function ImageManager({
             disabled={uploading}
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
-              padding: '5px 12px', borderRadius: '5px', border: '1px solid rgba(163,177,138,0.4)',
-              background: 'rgba(163,177,138,0.15)', color: 'var(--pl-olive, #A3B18A)',
+              padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--pl-olive-40)',
+              background: 'var(--pl-olive-15)', color: 'var(--pl-olive, #A3B18A)',
               fontSize: '0.82rem', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer',
               opacity: uploading ? 0.6 : 1, minHeight: '32px',
             }}
@@ -248,8 +248,8 @@ export function ImageManager({
         }}
         style={{
           borderRadius: '10px',
-          border: isDragging ? '2px dashed rgba(163,177,138,0.7)' : '2px dashed transparent',
-          background: isDragging ? 'rgba(163,177,138,0.08)' : 'transparent',
+          border: isDragging ? '2px dashed var(--pl-olive)' : '2px dashed transparent',
+          background: isDragging ? 'var(--pl-olive-8)' : 'transparent',
           transition: 'border-color 0.2s, background 0.2s',
           padding: isDragging ? '4px' : '0',
         }}
@@ -263,7 +263,7 @@ export function ImageManager({
               border: '2px dashed rgba(0,0,0,0.06)', borderRadius: '10px',
               background: 'transparent', cursor: 'pointer', color: 'var(--pl-muted)',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive-40)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
           >
             <Camera size={20} />
@@ -309,7 +309,7 @@ export function ImageManager({
                 {i === 0 && (
                   <div style={{
                     position: 'absolute', bottom: '4px', left: '4px',
-                    background: 'rgba(163,177,138,0.9)', color: '#fff',
+                    background: 'var(--pl-olive)', color: '#fff',
                     fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '2px 5px', borderRadius: '3px',
                     zIndex: 2,
@@ -326,7 +326,7 @@ export function ImageManager({
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--pl-muted)', transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive-40)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
             >
               <Plus size={16} />
@@ -366,7 +366,7 @@ export function ImageManager({
                         y1={`${y1}%`}
                         x2={`${x2}%`}
                         y2={`${y2}%`}
-                        stroke="rgba(163,177,138,0.08)"
+                        stroke="var(--pl-olive-8)"
                         strokeWidth={4}
                       />
                       {/* Sharp line */}
@@ -375,7 +375,7 @@ export function ImageManager({
                         y1={`${y1}%`}
                         x2={`${x2}%`}
                         y2={`${y2}%`}
-                        stroke="rgba(163,177,138,0.2)"
+                        stroke="var(--pl-olive-20)"
                         strokeWidth={1}
                       />
                     </g>
@@ -407,8 +407,8 @@ export function ImageManager({
                         height: '56px',
                         borderRadius: '50%',
                         objectFit: 'cover',
-                        border: '2px solid rgba(163,177,138,0.6)',
-                        boxShadow: '0 2px 12px rgba(163,177,138,0.3)',
+                        border: '2px solid var(--pl-olive)',
+                        boxShadow: '0 2px 12px var(--pl-olive-30)',
                         cursor: 'pointer',
                         display: 'block',
                       }}
@@ -454,7 +454,7 @@ export function ImageManager({
                 border: '2px dashed rgba(0,0,0,0.06)', background: 'transparent',
                 cursor: 'pointer', color: 'var(--pl-muted)', transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.4)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive-40)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-olive, #A3B18A)'; }}
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
             >
               <Plus size={14} />
@@ -484,14 +484,14 @@ export function ImageManager({
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               width: '100%', padding: '7px 12px', borderRadius: '6px',
-              border: '1px solid rgba(163,177,138,0.3)',
-              background: generatingCaptions ? 'rgba(163,177,138,0.05)' : 'rgba(163,177,138,0.1)',
+              border: '1px solid var(--pl-olive-30)',
+              background: generatingCaptions ? 'var(--pl-olive-5)' : 'var(--pl-olive-10)',
               color: generatingCaptions ? 'var(--pl-ink-soft)' : 'var(--pl-olive, #A3B18A)',
               fontSize: '0.82rem', fontWeight: 700, cursor: generatingCaptions ? 'not-allowed' : 'pointer',
               letterSpacing: '0.04em', transition: 'all 0.15s',
             }}
-            onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
-            onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
+            onMouseOver={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-20)'; }}
+            onMouseOut={e => { if (!generatingCaptions) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-10)'; }}
           >
             {generatingCaptions
               ? <><Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Generating captions…</>

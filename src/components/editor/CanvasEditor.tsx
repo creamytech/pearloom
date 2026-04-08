@@ -605,7 +605,7 @@ function SectionStylePanel({
   const ALIGN_OPTS = ['left', 'center', 'right'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '12px', marginTop: '4px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--pl-black-4)', paddingTop: '12px', marginTop: '4px' }}>
       {/* Breakpoint indicator and reset */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -970,7 +970,7 @@ function BlockEffectsEditor({
   const hasEffects = reveal !== 'none' || divStyle !== null;
 
   return (
-    <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', marginTop: '6px', paddingTop: '6px' }}>
+    <div style={{ borderTop: '1px solid var(--pl-black-4)', marginTop: '6px', paddingTop: '6px' }}>
       <button
         onClick={() => setOpen(v => !v)}
         style={{
@@ -1118,13 +1118,13 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
             transition={{ duration: 0.15 }}
             style={{
               position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 100,
-              background: 'var(--pl-cream)', border: '1px solid rgba(0,0,0,0.06)',
+              background: 'var(--pl-cream)', border: '1px solid var(--pl-black-6)',
               borderRadius: '12px', overflow: 'hidden', marginTop: '4px',
               boxShadow: '0 20px 60px rgba(43,30,20,0.1)',
             }}
           >
             {/* Search */}
-            <div style={{ padding: '8px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+            <div style={{ padding: '8px', borderBottom: '1px solid var(--pl-black-4)' }}>
               <input
                 autoFocus
                 value={search}
@@ -1369,7 +1369,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
 
         {/* ── Page Selector ── */}
-        <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(0,0,0,0.04)', marginBottom: '4px' }}>
+        <div style={{ padding: '0 0 8px', borderBottom: '1px solid var(--pl-black-4)', marginBottom: '4px' }}>
           <label style={{ ...lbl, marginBottom: '6px' }}>Editing Page</label>
           <select
             value={activePage}
@@ -1590,7 +1590,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           >
             <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {/* Panel header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid var(--pl-black-4)' }}>
                 <div style={{
                   width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
                   background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1600,11 +1600,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 'var(--pl-text-base)', fontWeight: 800, color: '#fff' }}>{activeDef.label}</div>
-                  <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings · Section style</div>
+                  <div style={{ fontSize: 'var(--pl-text-2xs)', color: 'var(--pl-ink-soft)' }}>Block settings · Section style</div>
                 </div>
                 <button
                   onClick={() => setActiveBlockId(null)}
-                  style={{ background: 'var(--pl-black-4)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
+                  style={{ background: 'var(--pl-black-4)', border: '1px solid var(--pl-black-6)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
                 >
                   <X size={13} />
                 </button>

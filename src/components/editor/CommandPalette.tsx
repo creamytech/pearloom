@@ -297,7 +297,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                               {cmd.shortcut}
                             </kbd>
                           ) : isSelected ? (
-                            <ArrowRight size={14} color="rgba(163,177,138,0.6)" />
+                            <ArrowRight size={14} color="var(--pl-olive)" />
                           ) : null}
                         </motion.button>
                       );

@@ -95,9 +95,9 @@ export function SpotifyPanel() {
               width: '100%',
               padding: '9px 14px',
               borderRadius: '8px',
-              border: '1px solid rgba(163,177,138,0.35)',
-              background: loading ? 'rgba(163,177,138,0.06)' : 'rgba(163,177,138,0.12)',
-              color: loading ? 'rgba(163,177,138,0.5)' : 'var(--pl-olive, #A3B18A)',
+              border: '1px solid var(--pl-olive-30)',
+              background: loading ? 'var(--pl-olive-5)' : 'var(--pl-olive-12)',
+              color: loading ? 'var(--pl-olive-50)' : 'var(--pl-olive, #A3B18A)',
               cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: '0.82rem',
               fontWeight: 700,
@@ -105,10 +105,10 @@ export function SpotifyPanel() {
               transition: 'background 0.18s',
             }}
             onMouseOver={e => {
-              if (!loading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)';
+              if (!loading) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-20)';
             }}
             onMouseOut={e => {
-              if (!loading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)';
+              if (!loading) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-12)';
             }}
           >
             {loading ? (
@@ -142,7 +142,7 @@ export function SpotifyPanel() {
                     gap: '8px',
                     padding: '8px 10px',
                     borderRadius: '7px',
-                    background: 'rgba(163,177,138,0.04)',
+                    background: 'var(--pl-olive-5)',
                     border: '1px solid rgba(0,0,0,0.04)',
                   }}
                 >
@@ -167,9 +167,9 @@ export function SpotifyPanel() {
                         fontWeight: 700,
                         letterSpacing: '0.06em',
                         textTransform: 'uppercase',
-                        color: 'rgba(163,177,138,0.8)',
-                        background: 'rgba(163,177,138,0.12)',
-                        border: '1px solid rgba(163,177,138,0.2)',
+                        color: 'var(--pl-olive)',
+                        background: 'var(--pl-olive-12)',
+                        border: '1px solid var(--pl-olive-20)',
                         borderRadius: '4px',
                         padding: '1px 5px',
                       }}

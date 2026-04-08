@@ -1175,7 +1175,7 @@ function PublishModalInline() {
                   {/* RSVP link hint */}
                   {rsvpUrl && (
                     <div style={{ marginTop: '0.75rem', fontSize: 'var(--pl-text-sm)', color: 'rgba(255,255,255,0.28)', textAlign: 'left' }}>
-                      RSVP link: <span style={{ color: 'rgba(163,177,138,0.7)', fontFamily: 'ui-monospace, monospace' }}>{rsvpUrl}</span>
+                      RSVP link: <span style={{ color: 'var(--pl-olive)', fontFamily: 'ui-monospace, monospace' }}>{rsvpUrl}</span>
                     </div>
                   )}
                 </motion.div>

@@ -298,11 +298,11 @@ export function MobileChapterEditor({
                   gap: 5,
                   padding: '6px 12px',
                   borderRadius: 20,
-                  border: '1px solid rgba(163,177,138,0.35)',
-                  background: 'rgba(163,177,138,0.09)',
+                  border: '1px solid var(--pl-olive-30)',
+                  background: 'var(--pl-olive-8)',
                   color:
                     isRewriting || isStreaming
-                      ? 'rgba(163,177,138,0.4)'
+                      ? 'var(--pl-olive-40)'
                       : '#A3B18A',
                   cursor: isRewriting || isStreaming ? 'wait' : 'pointer',
                   fontSize: '0.78rem',
@@ -371,11 +371,11 @@ export function MobileChapterEditor({
                       padding: '12px 14px',
                       borderRadius: 13,
                       border: active
-                        ? '1px solid rgba(163,177,138,0.55)'
+                        ? '1px solid var(--pl-olive-50)'
                         : '1px solid rgba(0,0,0,0.05)',
                       background: active
-                        ? 'rgba(163,177,138,0.13)'
-                        : 'rgba(163,177,138,0.04)',
+                        ? 'var(--pl-olive-12)'
+                        : 'var(--pl-olive-5)',
                       color: active
                         ? '#A3B18A'
                         : 'var(--pl-muted)',
@@ -424,7 +424,7 @@ export function MobileChapterEditor({
                 padding: '9px 14px',
                 borderRadius: 10,
                 border: '1px solid rgba(0,0,0,0.07)',
-                background: 'rgba(163,177,138,0.04)',
+                background: 'var(--pl-olive-5)',
                 color: 'var(--pl-ink-soft)',
                 fontSize: 'max(16px, 0.88rem)',
                 outline: 'none',
@@ -447,7 +447,7 @@ export function MobileChapterEditor({
                 padding: '9px 14px',
                 borderRadius: 10,
                 border: '1px solid rgba(0,0,0,0.07)',
-                background: 'rgba(163,177,138,0.04)',
+                background: 'var(--pl-olive-5)',
                 color: 'var(--pl-ink-soft)',
                 fontSize: 'max(16px, 0.88rem)',
                 outline: 'none',

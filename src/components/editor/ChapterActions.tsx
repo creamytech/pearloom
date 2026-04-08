@@ -160,13 +160,13 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
           padding: '4px 7px', height: '26px', borderRadius: '5px',
-          border: `1px solid ${open ? 'rgba(163,177,138,0.5)' : 'rgba(0,0,0,0.07)'}`,
-          background: open ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.06)',
+          border: `1px solid ${open ? 'var(--pl-olive-50)' : 'rgba(0,0,0,0.07)'}`,
+          background: open ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
           color: open ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
           cursor: 'pointer', transition: 'all 0.15s',
         }}
         onMouseOver={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}}
-        onMouseOut={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.06)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)'; }}}
+        onMouseOut={e => { if (!open) { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-5)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)'; }}}
       >
         <span style={{ display: 'flex', alignItems: 'center' }}>{active.icon}</span>
         <svg width="7" height="5" viewBox="0 0 7 5" fill="none" style={{ opacity: 0.4, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
@@ -195,10 +195,10 @@ function LayoutSwitcher({ current, onChange }: { current: string; onChange: (l: 
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
                   padding: '8px 6px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.18)' : isHov ? 'rgba(0,0,0,0.06)' : 'transparent',
+                  background: isActive ? 'var(--pl-olive-20)' : isHov ? 'rgba(0,0,0,0.06)' : 'transparent',
                   color: isActive ? 'var(--pl-olive, #A3B18A)' : isHov ? 'var(--pl-ink)' : 'var(--pl-ink-soft)',
                   transition: 'all 0.12s',
-                  outline: isActive ? '1.5px solid rgba(163,177,138,0.4)' : 'none',
+                  outline: isActive ? '1.5px solid var(--pl-olive-40)' : 'none',
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center' }}>{opt.icon}</span>
@@ -347,16 +347,16 @@ export function ChapterActions({
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '4px 8px', borderRadius: '5px',
-            border: '1px solid rgba(163,177,138,0.3)',
-            background: rewriting ? 'rgba(163,177,138,0.05)' : 'rgba(163,177,138,0.1)',
+            border: '1px solid var(--pl-olive-30)',
+            background: rewriting ? 'var(--pl-olive-5)' : 'var(--pl-olive-10)',
             color: rewriting ? 'var(--pl-muted)' : 'var(--pl-olive, #A3B18A)',
             fontSize: '0.65rem', fontWeight: 700,
             cursor: rewriting ? 'not-allowed' : 'pointer',
             letterSpacing: '0.03em', transition: 'all 0.15s',
             whiteSpace: 'nowrap', height: '26px',
           }}
-          onMouseOver={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
-          onMouseOut={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
+          onMouseOver={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-20)'; }}
+          onMouseOut={e => { if (!rewriting) (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-10)'; }}
         >
           {rewriting
             ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
@@ -383,7 +383,7 @@ export function ChapterActions({
                   border: 'none', background: 'transparent', cursor: 'pointer',
                   textAlign: 'left', transition: 'background 0.1s',
                 }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-12)'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
               >
                 <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>{label}</span>
@@ -403,7 +403,7 @@ export function ChapterActions({
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '4px 8px', borderRadius: '5px',
             border: '1px solid rgba(0,0,0,0.06)',
-            background: sortingPhotos ? 'rgba(163,177,138,0.03)' : 'rgba(163,177,138,0.06)',
+            background: sortingPhotos ? 'var(--pl-olive-5)' : 'var(--pl-olive-5)',
             color: sortingPhotos ? 'var(--pl-muted)' : 'rgba(255,255,255,0.45)',
             fontSize: '0.65rem', fontWeight: 700,
             cursor: sortingPhotos ? 'not-allowed' : 'pointer',
@@ -411,7 +411,7 @@ export function ChapterActions({
             whiteSpace: 'nowrap', height: '26px',
           }}
           onMouseOver={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink)'; }}}
-          onMouseOut={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.06)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)'; }}}
+          onMouseOut={e => { if (!sortingPhotos) { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-5)'; (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)'; }}}
         >
           {sortingPhotos
             ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />

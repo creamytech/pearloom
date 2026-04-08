@@ -177,7 +177,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
           style={{
             width: '100%', padding: '7px 10px 7px 30px', borderRadius: '8px',
             border: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(163,177,138,0.05)',
+            background: 'var(--pl-olive-5)',
             color: 'var(--pl-ink)', fontSize: '0.78rem',
             outline: 'none', boxSizing: 'border-box',
           }}
@@ -207,8 +207,8 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             <div key={guest.id} style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '6px 8px', borderRadius: '7px',
-              background: 'rgba(163,177,138,0.04)',
-              border: '1px solid rgba(163,177,138,0.06)',
+              background: 'var(--pl-olive-5)',
+              border: '1px solid var(--pl-olive-5)',
             }}>
               <div style={{
                 width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
@@ -255,7 +255,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             style={{
               padding: '7px 10px', borderRadius: '7px',
               border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(163,177,138,0.05)',
+              background: 'var(--pl-olive-5)',
               color: 'var(--pl-ink)', fontSize: '0.78rem',
               outline: 'none',
             }}
@@ -268,7 +268,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             style={{
               padding: '7px 10px', borderRadius: '7px',
               border: '1px solid rgba(0,0,0,0.06)',
-              background: 'rgba(163,177,138,0.05)',
+              background: 'var(--pl-olive-5)',
               color: 'var(--pl-ink)', fontSize: '0.78rem',
               outline: 'none',
             }}
@@ -278,7 +278,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
             disabled={adding || !addName.trim()}
             style={{
               padding: '7px', borderRadius: '7px',
-              border: 'none', background: addName.trim() ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.06)',
+              border: 'none', background: addName.trim() ? 'var(--pl-olive-20)' : 'var(--pl-olive-5)',
               color: addName.trim() ? '#A3B18A' : 'var(--pl-muted)',
               cursor: addName.trim() ? 'pointer' : 'default',
               fontSize: '0.78rem', fontWeight: 700,
@@ -319,7 +319,7 @@ export function GuestSearchPanel({ siteId }: GuestSearchPanelProps) {
           {csvResult && (
             <div style={{
               fontSize: '0.7rem', padding: '6px 10px', borderRadius: '6px',
-              background: csvResult.includes('failed') ? 'rgba(248,81,73,0.1)' : 'rgba(163,177,138,0.1)',
+              background: csvResult.includes('failed') ? 'rgba(248,81,73,0.1)' : 'var(--pl-olive-10)',
               color: csvResult.includes('failed') ? '#f87171' : '#A3B18A',
             }}>
               {csvResult}

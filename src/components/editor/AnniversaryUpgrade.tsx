@@ -45,7 +45,7 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
         zIndex: 9000,
         background: 'var(--pl-glass-dark)',
         backdropFilter: 'blur(8px)',
-        border: '1px solid rgba(163,177,138,0.35)',
+        border: '1px solid var(--pl-olive-30)',
         borderRadius: '2rem',
         padding: '0.5rem 1rem',
         display: 'flex',
@@ -149,8 +149,8 @@ export function AnniversaryUpgrade({ manifest, onChange }: AnniversaryUpgradePro
   }
 
   const panelStyle: React.CSSProperties = {
-    background: 'rgba(163,177,138,0.08)',
-    border: '1px solid rgba(163,177,138,0.2)',
+    background: 'var(--pl-olive-8)',
+    border: '1px solid var(--pl-olive-20)',
     borderRadius: '0.875rem',
     padding: '1.25rem',
     marginTop: '1rem',

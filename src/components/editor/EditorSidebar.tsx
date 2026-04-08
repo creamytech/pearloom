@@ -73,7 +73,7 @@ export function SidebarSection({
     <div className="pl-panel-section" style={{ marginBottom: '2px', padding: '0' }}>
       <motion.button
         onClick={() => setOpen(!open)}
-        whileHover={{ backgroundColor: 'rgba(163,177,138,0.06)' }}
+        whileHover={{ backgroundColor: 'var(--pl-olive-5)' }}
         whileTap={{ scale: 0.97 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
         style={{
@@ -103,7 +103,7 @@ export function SidebarSection({
         {badge !== undefined && (
           <span style={{
             fontSize: '0.58rem', padding: '2px 7px', borderRadius: '100px',
-            background: 'rgba(163,177,138,0.12)', color: 'var(--pl-olive-deep)',
+            background: 'var(--pl-olive-12)', color: 'var(--pl-olive-deep)',
             fontWeight: 700,
           }}>
             {badge}
@@ -419,7 +419,7 @@ export function EditorSidebar({
                   border: 'none',
                   cursor: 'pointer',
                   borderRadius: '4px',
-                  background: isAtMax ? 'rgba(163,177,138,0.15)' : 'transparent',
+                  background: isAtMax ? 'var(--pl-olive-15)' : 'transparent',
                   color: isAtMax ? '#A3B18A' : 'rgba(214,198,168,0.25)',
                   fontSize: '14px',
                   lineHeight: 1,
@@ -489,7 +489,7 @@ export function EditorSidebar({
               height: '40px',
               borderRadius: '1px',
               background: isResizing || isResizeHover
-                ? 'rgba(163,177,138,0.6)'
+                ? 'var(--pl-olive)'
                 : 'rgba(214,198,168,0.1)',
               transition: 'background 0.15s',
               pointerEvents: 'none',

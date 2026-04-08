@@ -140,7 +140,7 @@ function SectionItem({
           <div style={{
             width: '44px', height: '44px', borderRadius: '7px', flexShrink: 0,
             background: thumb ? 'transparent' : 'var(--pl-black-6)',
-            overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)',
+            overflow: 'hidden', border: '1px solid var(--pl-black-6)',
           }}>
             {thumb
               // eslint-disable-next-line @next/next/no-img-element

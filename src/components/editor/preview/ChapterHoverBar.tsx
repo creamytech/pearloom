@@ -116,7 +116,7 @@ export function ChapterHoverBar({
               {LAYOUT_OPTS.map((opt) => (
                 <DropdownMenuItem
                   key={opt.id}
-                  className={currentLayout === opt.id ? 'bg-[rgba(163,177,138,0.12)] text-[var(--pl-olive)]' : ''}
+                  className={currentLayout === opt.id ? 'bg-[var(--pl-olive-12)] text-[var(--pl-olive)]' : ''}
                   onSelect={() => onLayoutChange(opt.id)}
                 >
                   <span style={{ width: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

@@ -152,8 +152,8 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
                       style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '6px 8px', borderRadius: '7px',
-                        background: isSelected ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.03)',
-                        border: `1px solid ${isSelected ? 'rgba(163,177,138,0.2)' : 'transparent'}`,
+                        background: isSelected ? 'var(--pl-olive-8)' : 'var(--pl-olive-5)',
+                        border: `1px solid ${isSelected ? 'var(--pl-olive-20)' : 'transparent'}`,
                         cursor: 'pointer', textAlign: 'left',
                       }}
                     >
@@ -193,7 +193,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
               style={{
                 width: '100%', padding: '8px 10px', borderRadius: '8px',
                 border: '1px solid rgba(0,0,0,0.06)',
-                background: 'rgba(163,177,138,0.05)',
+                background: 'var(--pl-olive-5)',
                 color: 'var(--pl-ink)', fontSize: '0.78rem',
                 outline: 'none', resize: 'vertical', boxSizing: 'border-box',
                 lineHeight: 1.5,
@@ -248,8 +248,8 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
           {result && (
             <div style={{
               padding: '10px 12px', borderRadius: '8px',
-              background: result.failed === 0 ? 'rgba(163,177,138,0.1)' : 'rgba(248,81,73,0.1)',
-              border: `1px solid ${result.failed === 0 ? 'rgba(163,177,138,0.3)' : 'rgba(248,81,73,0.3)'}`,
+              background: result.failed === 0 ? 'var(--pl-olive-10)' : 'rgba(248,81,73,0.1)',
+              border: `1px solid ${result.failed === 0 ? 'var(--pl-olive-30)' : 'rgba(248,81,73,0.3)'}`,
               fontSize: '0.75rem',
               color: result.failed === 0 ? '#A3B18A' : '#f87171',
             }}>
@@ -268,7 +268,7 @@ export function BulkInvitePanel({ manifest, siteId, subdomain }: BulkInvitePanel
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
               padding: '11px', borderRadius: '10px', border: 'none',
-              background: selectedGuests.length > 0 ? 'rgba(163,177,138,0.25)' : 'rgba(163,177,138,0.06)',
+              background: selectedGuests.length > 0 ? 'var(--pl-olive-20)' : 'var(--pl-olive-5)',
               color: selectedGuests.length > 0 ? '#A3B18A' : 'var(--pl-muted)',
               cursor: selectedGuests.length > 0 && !sending ? 'pointer' : 'default',
               fontSize: '0.82rem', fontWeight: 800,

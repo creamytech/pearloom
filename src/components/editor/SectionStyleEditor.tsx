@@ -61,7 +61,7 @@ export function SectionStyleEditor({
 
   return (
     <div style={{
-      background: 'rgba(163,177,138,0.05)', borderRadius: '10px', padding: '14px',
+      background: 'var(--pl-olive-5)', borderRadius: '10px', padding: '14px',
       border: '1px solid rgba(0,0,0,0.06)',
       display: 'flex', flexDirection: 'column', gap: '12px',
     }}>
@@ -81,7 +81,7 @@ export function SectionStyleEditor({
                   ? '2px solid var(--pl-olive, #A3B18A)'
                   : '1px solid rgba(0,0,0,0.08)',
                 cursor: 'pointer', flexShrink: 0,
-                boxShadow: currentBg === color ? '0 0 0 2px rgba(163,177,138,0.3)' : 'none',
+                boxShadow: currentBg === color ? '0 0 0 2px var(--pl-olive-30)' : 'none',
                 transition: 'all 0.15s',
               }}
             />

@@ -285,7 +285,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
       {/* Tab strip */}
       <div style={{
         display: 'flex', gap: '2px',
-        background: 'rgba(163,177,138,0.05)', padding: '3px', borderRadius: '8px',
+        background: 'var(--pl-olive-5)', padding: '3px', borderRadius: '8px',
       }}>
         {tabs.map(t => (
           <button
@@ -293,7 +293,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
             onClick={() => setActiveTab(t.id)}
             style={{
               flex: 1, padding: '5px 0', borderRadius: '6px', border: 'none',
-              background: activeTab === t.id ? 'rgba(163,177,138,0.2)' : 'transparent',
+              background: activeTab === t.id ? 'var(--pl-olive-20)' : 'transparent',
               color: activeTab === t.id ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
               cursor: 'pointer', fontSize: '0.65rem', fontWeight: 700,
               transition: 'all 0.15s', whiteSpace: 'nowrap',
@@ -335,8 +335,8 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
 
           {/* Explainer */}
           <div style={{
-            background: 'linear-gradient(135deg, rgba(155,127,217,0.1), rgba(163,177,138,0.08))',
-            border: '1px solid rgba(163,177,138,0.2)',
+            background: 'linear-gradient(135deg, rgba(155,127,217,0.1), var(--pl-olive-8))',
+            border: '1px solid var(--pl-olive-20)',
             borderRadius: '10px', padding: '10px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
@@ -367,11 +367,11 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 placeholder="Santorini, Japanese garden, Tuscany vineyard, the Alps…"
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: '7px',
-                  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
+                  border: '1px solid rgba(0,0,0,0.06)', background: 'var(--pl-olive-5)',
                   color: 'var(--pl-ink)', fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
-                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)'; }}
               />
             </div>
@@ -394,7 +394,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     style={{
                       padding: '5px 4px', borderRadius: '6px',
                       border: `1px solid ${artStyle === s.id ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.05)'}`,
-                      background: artStyle === s.id ? 'rgba(163,177,138,0.15)' : 'transparent',
+                      background: artStyle === s.id ? 'var(--pl-olive-15)' : 'transparent',
                       color: artStyle === s.id ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                       cursor: 'pointer', fontSize: '0.6rem', fontWeight: 700,
                       textAlign: 'center', transition: 'all 0.15s', lineHeight: 1.3,
@@ -422,11 +422,11 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                 placeholder="We met hiking in the mountains, we love jazz, our dog is a golden retriever…"
                 style={{
                   width: '100%', padding: '8px 10px', borderRadius: '7px',
-                  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
+                  border: '1px solid rgba(0,0,0,0.06)', background: 'var(--pl-olive-5)',
                   color: 'var(--pl-ink)', fontSize: '0.75rem', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', resize: 'vertical', lineHeight: 1.5,
                 }}
-                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.06)'; }}
               />
             </div>
@@ -516,7 +516,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
                     style={{
                       flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       gap: '4px', padding: '7px', borderRadius: '6px',
-                      border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.08)',
+                      border: '1px solid var(--pl-olive-30)', background: 'var(--pl-olive-8)',
                       color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
                     }}
                   >
@@ -571,7 +571,7 @@ export function ColorPalettePanel({ manifest, onChange, names }: ColorPalettePan
           {/* Tip */}
           <p style={{
             fontSize: '0.62rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0,
-            borderTop: '1px solid rgba(163,177,138,0.06)', paddingTop: '8px',
+            borderTop: '1px solid var(--pl-olive-5)', paddingTop: '8px',
           }}>
             The more specific you are — place, story details, style — the more unique and tailored the artwork becomes. Hit Regenerate for a fresh interpretation.
           </p>

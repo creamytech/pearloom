@@ -54,8 +54,8 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
   return (
     <div style={{
       borderRadius: '10px',
-      border: '1px solid rgba(163,177,138,0.18)',
-      background: 'rgba(163,177,138,0.05)',
+      border: '1px solid var(--pl-olive-20)',
+      background: 'var(--pl-olive-5)',
       overflow: 'hidden',
     }}>
       {/* Card header */}
@@ -63,7 +63,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '8px 12px',
         borderBottom: '1px solid rgba(0,0,0,0.04)',
-        background: 'rgba(163,177,138,0.04)',
+        background: 'var(--pl-olive-5)',
       }}>
         <span style={{
           fontSize: '0.78rem', fontWeight: 700,
@@ -77,7 +77,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             style={{
               fontSize: '0.65rem', fontWeight: 700, padding: '2px 7px',
               borderRadius: '5px', border: '1px solid rgba(0,0,0,0.07)',
-              background: editing ? 'rgba(163,177,138,0.18)' : 'transparent',
+              background: editing ? 'var(--pl-olive-20)' : 'transparent',
               color: editing ? '#A3B18A' : 'rgba(255,255,255,0.45)',
               cursor: 'pointer',
             }}
@@ -91,7 +91,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '24px', height: '24px', borderRadius: '5px',
               border: '1px solid rgba(0,0,0,0.07)',
-              background: copied ? 'rgba(163,177,138,0.18)' : 'transparent',
+              background: copied ? 'var(--pl-olive-20)' : 'transparent',
               color: copied ? '#A3B18A' : 'rgba(255,255,255,0.45)',
               cursor: 'pointer',
             }}
@@ -108,7 +108,7 @@ function NoteCard({ note, onNoteChange }: { note: GeneratedNote; onNoteChange: (
             onChange={e => setDraft(e.target.value)}
             style={{
               width: '100%', minHeight: '90px', resize: 'vertical',
-              background: 'rgba(163,177,138,0.05)', border: '1px solid rgba(0,0,0,0.06)',
+              background: 'var(--pl-olive-5)', border: '1px solid rgba(0,0,0,0.06)',
               borderRadius: '6px', padding: '7px', color: 'var(--pl-ink)',
               fontSize: '0.75rem', lineHeight: 1.6, fontFamily: 'inherit', outline: 'none',
               boxSizing: 'border-box',
@@ -280,7 +280,7 @@ export function ThankYouPanel() {
                 display: 'flex', flexDirection: 'column', gap: '4px',
                 padding: '8px 10px', borderRadius: '9px',
                 border: '1px solid rgba(0,0,0,0.06)',
-                background: 'rgba(163,177,138,0.04)',
+                background: 'var(--pl-olive-5)',
                 position: 'relative',
               }}
             >
@@ -368,10 +368,10 @@ export function ThankYouPanel() {
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             padding: '11px', borderRadius: '10px',
-            border: '1px solid rgba(163,177,138,0.3)',
+            border: '1px solid var(--pl-olive-30)',
             background: canGenerate
-              ? 'linear-gradient(135deg, rgba(163,177,138,0.18) 0%, rgba(143,200,122,0.12) 100%)'
-              : 'rgba(163,177,138,0.05)',
+              ? 'linear-gradient(135deg, var(--pl-olive-20) 0%, rgba(143,200,122,0.12) 100%)'
+              : 'var(--pl-olive-5)',
             color: canGenerate ? '#A3B18A' : 'var(--pl-muted)',
             cursor: canGenerate ? 'pointer' : 'default',
             fontSize: '0.78rem', fontWeight: 700,

@@ -123,7 +123,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             style={{
               flex: 1, padding: '6px 10px', borderRadius: '7px',
               border: '1px solid rgba(214,198,168,0.2)',
-              background: 'rgba(163,177,138,0.06)',
+              background: 'var(--pl-olive-5)',
               color: 'var(--pl-ink)', fontSize: '0.78rem',
               outline: 'none',
             }}
@@ -133,7 +133,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             disabled={!saveName.trim()}
             style={{
               padding: '6px 10px', borderRadius: '7px',
-              border: 'none', background: 'rgba(163,177,138,0.25)',
+              border: 'none', background: 'var(--pl-olive-20)',
               color: '#A3B18A', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem',
               opacity: saveName.trim() ? 1 : 0.4,
             }}
@@ -163,7 +163,7 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               padding: '8px 10px', borderRadius: '8px',
-              background: hoveredId === preset.id ? 'rgba(214,198,168,0.06)' : 'rgba(163,177,138,0.04)',
+              background: hoveredId === preset.id ? 'rgba(214,198,168,0.06)' : 'var(--pl-olive-5)',
               border: '1px solid rgba(0,0,0,0.04)',
               transition: 'background 0.15s',
             }}
@@ -181,8 +181,8 @@ export function BlockPresetsPanel({ block, onApply }: BlockPresetsPanelProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: '3px',
                 padding: '4px 8px', borderRadius: '6px',
-                border: '1px solid rgba(163,177,138,0.25)',
-                background: 'rgba(163,177,138,0.08)',
+                border: '1px solid var(--pl-olive-20)',
+                background: 'var(--pl-olive-8)',
                 color: '#A3B18A', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 700,
                 flexShrink: 0,
               }}

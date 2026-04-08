@@ -109,8 +109,8 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
               <div key={locale.code} style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '7px 10px', borderRadius: '8px',
-                background: 'rgba(163,177,138,0.08)',
-                border: '1px solid rgba(163,177,138,0.2)',
+                background: 'var(--pl-olive-8)',
+                border: '1px solid var(--pl-olive-20)',
               }}>
                 <span style={{ fontSize: '1rem' }}>{locale.flag}</span>
                 <div style={{ flex: 1, fontSize: '0.78rem', fontWeight: 600, color: '#A3B18A' }}>
@@ -161,7 +161,7 @@ export function TranslationPanel({ manifest, onChange }: TranslationPanelProps) 
                   display: 'flex', alignItems: 'center', gap: '10px',
                   width: '100%', padding: '8px 10px', borderRadius: '8px',
                   border: '1px solid rgba(0,0,0,0.04)',
-                  background: 'rgba(163,177,138,0.04)',
+                  background: 'var(--pl-olive-5)',
                   cursor: generating ? 'wait' : 'pointer',
                   textAlign: 'left',
                 }}

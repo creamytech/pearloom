@@ -45,7 +45,7 @@ function MenuItem({
         transition: 'background 0.12s',
         textAlign: 'left',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = danger ? 'rgba(239,68,68,0.08)' : 'rgba(163,177,138,0.12)'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = danger ? 'rgba(239,68,68,0.08)' : 'var(--pl-olive-12)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
     >
       <span style={{ width: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: danger ? '#ef4444' : 'var(--pl-muted)' }}>
@@ -131,7 +131,7 @@ export function ChapterContextMenu({
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               padding: '6px 4px', border: 'none', borderRadius: 6, cursor: 'pointer',
-              background: currentLayout === opt.id ? 'rgba(163,177,138,0.15)' : 'transparent',
+              background: currentLayout === opt.id ? 'var(--pl-olive-15)' : 'transparent',
               color: currentLayout === opt.id ? 'var(--pl-olive)' : 'var(--pl-muted)',
               fontSize: '0.65rem', fontWeight: 600, transition: 'background 0.12s',
             }}

@@ -167,11 +167,11 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           padding: '10px', borderRadius: '9px',
-          border: '1px solid rgba(163,177,138,0.3)',
+          border: '1px solid var(--pl-olive-30)',
           background: optimizing
-            ? 'rgba(163,177,138,0.06)'
-            : 'linear-gradient(135deg, rgba(163,177,138,0.18) 0%, rgba(143,200,122,0.12) 100%)',
-          color: optimizing ? 'rgba(163,177,138,0.5)' : '#A3B18A',
+            ? 'var(--pl-olive-5)'
+            : 'linear-gradient(135deg, var(--pl-olive-20) 0%, rgba(143,200,122,0.12) 100%)',
+          color: optimizing ? 'var(--pl-olive-50)' : '#A3B18A',
           cursor: optimizing ? 'default' : 'pointer',
           fontSize: '0.78rem', fontWeight: 700,
           transition: 'all 0.15s',
@@ -255,7 +255,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                 <div key={table.id} style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   padding: '6px 8px', borderRadius: '7px',
-                  background: 'rgba(163,177,138,0.04)',
+                  background: 'var(--pl-olive-5)',
                 }}>
                   <ShapeIcon size={11} color={table.isReserved ? '#D6C6A8' : 'var(--pl-muted)'} />
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -286,7 +286,7 @@ export function SeatingEditorPanel({ siteId }: SeatingEditorPanelProps) {
                 display: 'flex', alignItems: 'center', gap: '8px',
                 padding: '7px 10px', borderRadius: '7px',
                 border: '1px solid rgba(0,0,0,0.05)',
-                background: 'rgba(163,177,138,0.04)',
+                background: 'var(--pl-olive-5)',
                 color: 'var(--pl-ink-soft)', cursor: 'pointer', fontSize: '0.75rem',
                 textAlign: 'left',
               }}

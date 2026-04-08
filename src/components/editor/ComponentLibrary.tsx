@@ -193,9 +193,9 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
       case 'story': case 'text':
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '2px', padding: '6px 8px', justifyContent: 'center' }}>
-            <div style={{ width: '70%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.35)' }} />
-            <div style={{ width: '100%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.2)' }} />
-            <div style={{ width: '85%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.2)' }} />
+            <div style={{ width: '70%', height: '2px', borderRadius: '1px', background: 'var(--pl-olive-30)' }} />
+            <div style={{ width: '100%', height: '2px', borderRadius: '1px', background: 'var(--pl-olive-20)' }} />
+            <div style={{ width: '85%', height: '2px', borderRadius: '1px', background: 'var(--pl-olive-20)' }} />
             <div style={{ width: '60%', height: '2px', borderRadius: '1px', background: 'var(--pl-olive-15)' }} />
           </div>
         );
@@ -213,15 +213,15 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
       case 'rsvp':
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '3px', padding: '5px 8px', justifyContent: 'center' }}>
-            <div style={{ width: '50%', height: '2px', borderRadius: '1px', background: 'rgba(163,177,138,0.3)', margin: '0 auto' }} />
-            <div style={{ width: '80%', height: '6px', borderRadius: '3px', border: '1px solid rgba(163,177,138,0.2)', margin: '1px auto 0' }} />
-            <div style={{ width: '40%', height: '5px', borderRadius: '3px', background: 'rgba(163,177,138,0.3)', margin: '1px auto 0' }} />
+            <div style={{ width: '50%', height: '2px', borderRadius: '1px', background: 'var(--pl-olive-30)', margin: '0 auto' }} />
+            <div style={{ width: '80%', height: '6px', borderRadius: '3px', border: '1px solid var(--pl-olive-20)', margin: '1px auto 0' }} />
+            <div style={{ width: '40%', height: '5px', borderRadius: '3px', background: 'var(--pl-olive-30)', margin: '1px auto 0' }} />
           </div>
         );
       case 'event': case 'countdown':
         return (
           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid rgba(163,177,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid var(--pl-olive-30)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--pl-olive-40)' }} />
             </div>
           </div>
@@ -238,7 +238,7 @@ function BlockPreview({ type, config }: { type: string; config?: Record<string, 
   return (
     <div style={{
       width: '100%', height: '48px', borderRadius: '8px 8px 0 0',
-      background: 'rgba(255,255,255,0.08)',
+      background: 'var(--pl-glass-dark-border)',
       border: 'none',
       overflow: 'hidden',
       position: 'relative',
@@ -381,7 +381,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
         {/* Header description */}
         <div style={{
           padding: '0 12px 10px',
-          fontSize: '0.72rem',
+          fontSize: 'var(--pl-text-sm)',
           color: 'var(--pl-muted)',
           lineHeight: 1.5,
         }}>
@@ -393,7 +393,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
           <div style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '7px 10px', borderRadius: '10px',
-            background: 'rgba(255,255,255,0.2)',
+            background: 'var(--pl-white-20)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             border: '1px solid var(--pl-glass-dark-border)',
@@ -407,7 +407,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 flex: 1, border: 'none', background: 'transparent',
-                fontSize: '0.72rem', color: 'var(--pl-ink)',
+                fontSize: 'var(--pl-text-sm)', color: 'var(--pl-ink)',
                 outline: 'none',
               }}
             />
@@ -453,7 +453,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
 
         {/* Show built-ins toggle */}
         <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.65rem', color: 'var(--pl-muted)', fontWeight: 600 }}>
+          <span style={{ fontSize: 'var(--pl-text-xs)', color: 'var(--pl-muted)', fontWeight: 600 }}>
             {userCount} saved{builtInCount > 0 && showBuiltIns ? ` + ${builtInCount} templates` : ''}
           </span>
           <motion.button
@@ -461,10 +461,10 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
             style={{
-              background: showBuiltIns ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(163,177,138,0.2)',
+              background: showBuiltIns ? 'var(--pl-olive-12)' : 'var(--pl-glass-dark-border)',
+              border: '1px solid var(--pl-olive-20)',
               borderRadius: '6px', padding: '3px 8px',
-              fontSize: '0.6rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
               color: showBuiltIns ? 'var(--pl-olive)' : 'var(--pl-muted)',
               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
               transition: 'all 0.15s',
@@ -482,7 +482,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
           }}>
             <div style={{
               width: '48px', height: '48px', borderRadius: '14px',
-              background: 'rgba(255,255,255,0.2)',
+              background: 'var(--pl-white-20)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
               border: '1px solid var(--pl-glass-dark-border)',
@@ -493,14 +493,14 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
               <Package size={20} style={{ color: 'var(--pl-muted)' }} />
             </div>
             <div style={{
-              fontSize: '0.78rem', fontWeight: 600,
+              fontSize: 'var(--pl-text-base)', fontWeight: 600,
               color: 'var(--pl-ink-soft)', marginBottom: '4px',
               fontFamily: 'var(--pl-font-heading)',
             }}>
               No saved components yet
             </div>
             <div style={{
-              fontSize: '0.68rem', color: 'var(--pl-muted)',
+              fontSize: 'var(--pl-text-xs)', color: 'var(--pl-muted)',
               lineHeight: 1.5,
             }}>
               Select any section on the canvas and click the save button in the toolbar to create a reusable component.
@@ -533,11 +533,11 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                   transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                   style={{
                     borderRadius: '14px',
-                    background: 'rgba(255,255,255,0.25)',
+                    background: 'var(--pl-white-20)',
                     backdropFilter: 'blur(8px)',
                     WebkitBackdropFilter: 'blur(8px)',
                     border: isBuiltIn
-                      ? '1px solid rgba(163,177,138,0.25)'
+                      ? '1px solid var(--pl-olive-20)'
                       : '1px solid var(--pl-glass-dark-border)',
                     boxShadow: '0 2px 8px rgba(43,30,20,0.08)',
                     overflow: 'hidden',
@@ -554,7 +554,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                     <div style={{
                       position: 'absolute', top: '4px', right: '4px',
                       padding: '1px 5px', borderRadius: '4px',
-                      background: 'rgba(163,177,138,0.85)',
+                      background: 'var(--pl-olive)',
                       backdropFilter: 'blur(4px)',
                       fontSize: '0.5rem', fontWeight: 800,
                       color: 'white', letterSpacing: '0.05em',
@@ -580,7 +580,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                           onBlur={handleCommitRename}
                           style={{
                             flex: 1, minWidth: 0, border: 'none', borderBottom: '1px solid var(--pl-olive)',
-                            background: 'transparent', fontSize: '0.72rem', fontWeight: 600,
+                            background: 'transparent', fontSize: 'var(--pl-text-sm)', fontWeight: 600,
                             color: 'var(--pl-ink)', outline: 'none', padding: '0 0 1px',
                           }}
                         />
@@ -596,7 +596,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                     ) : (
                       <div
                         style={{
-                          fontSize: '0.72rem', fontWeight: 600,
+                          fontSize: 'var(--pl-text-sm)', fontWeight: 600,
                           color: 'var(--pl-ink)', lineHeight: 1.3,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           cursor: isBuiltIn ? 'default' : 'pointer',
@@ -646,7 +646,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
 
                   {/* Actions */}
                   <div style={{
-                    display: 'flex', borderTop: '1px solid rgba(255,255,255,0.1)',
+                    display: 'flex', borderTop: '1px solid var(--pl-glass-dark-border)',
                   }}>
                     {/* Insert button */}
                     <motion.button
@@ -656,11 +656,11 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                       title="Insert on page"
                       style={{
                         flex: 1, padding: '6px 0',
-                        border: 'none', background: 'rgba(163,177,138,0.06)',
+                        border: 'none', background: 'var(--pl-olive-5)',
                         color: 'var(--pl-olive)', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                        fontSize: '0.6rem', fontWeight: 700,
-                        borderRight: '1px solid rgba(255,255,255,0.1)',
+                        fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
+                        borderRight: '1px solid var(--pl-glass-dark-border)',
                         transition: 'background 0.15s',
                       }}
                     >
@@ -726,7 +726,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
         {searchQuery && filtered.length === 0 && allComponents.length > 0 && (
           <div style={{
             padding: '16px', textAlign: 'center',
-            fontSize: '0.72rem', color: 'var(--pl-muted)',
+            fontSize: 'var(--pl-text-sm)', color: 'var(--pl-muted)',
           }}>
             No components matching &ldquo;{searchQuery}&rdquo;
           </div>
@@ -753,10 +753,10 @@ function CategoryChip({ label, count, active, color, onClick }: {
         padding: '3px 8px',
         borderRadius: '8px',
         border: `1px solid ${active ? color : 'var(--pl-glass-dark-border)'}`,
-        background: active ? `${color}18` : 'rgba(255,255,255,0.08)',
+        background: active ? `${color}18` : 'var(--pl-glass-dark-border)',
         color: active ? color : 'var(--pl-muted)',
         cursor: 'pointer',
-        fontSize: '0.6rem',
+        fontSize: 'var(--pl-text-2xs)',
         fontWeight: 700,
         display: 'flex',
         alignItems: 'center',
@@ -768,7 +768,7 @@ function CategoryChip({ label, count, active, color, onClick }: {
       {count > 0 && (
         <span style={{
           fontSize: '0.5rem',
-          background: active ? `${color}25` : 'rgba(255,255,255,0.08)',
+          background: active ? `${color}25` : 'var(--pl-glass-dark-border)',
           padding: '0px 4px',
           borderRadius: '4px',
           fontWeight: 800,

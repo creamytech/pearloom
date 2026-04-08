@@ -121,7 +121,7 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           style={{
             width: '100%', padding: '7px 10px', borderRadius: '7px',
             border: '1px solid rgba(0,0,0,0.06)',
-            background: 'rgba(163,177,138,0.05)',
+            background: 'var(--pl-olive-5)',
             color: 'var(--pl-ink)', fontSize: '0.78rem',
             outline: 'none', boxSizing: 'border-box',
           }}
@@ -222,8 +222,8 @@ export function SaveTheDatePanel({ manifest, subdomain }: SaveTheDatePanelProps)
           style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             padding: '9px', borderRadius: '9px',
-            border: '1px solid rgba(163,177,138,0.3)',
-            background: 'rgba(163,177,138,0.1)', color: '#A3B18A',
+            border: '1px solid var(--pl-olive-30)',
+            background: 'var(--pl-olive-10)', color: '#A3B18A',
             cursor: downloading ? 'wait' : 'pointer', fontSize: '0.75rem', fontWeight: 700,
           }}
         >

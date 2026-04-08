@@ -80,7 +80,7 @@ const lbl: React.CSSProperties = {
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.65rem 0.8rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(0,0,0,0.07)', background: 'rgba(163,177,138,0.06)',
+  border: '1px solid rgba(0,0,0,0.07)', background: 'var(--pl-olive-5)',
   color: 'var(--pl-ink)', fontSize: '0.82rem', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s', boxSizing: 'border-box',
 };
@@ -96,7 +96,7 @@ function MiniField({ label, value, onChange, placeholder, rows }: {
         value={value} onChange={e => onChange(e.target.value)}
         rows={rows} placeholder={placeholder}
         style={{ ...inp, resize: 'vertical', lineHeight: 1.55 }}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
       />
     </div>
@@ -107,7 +107,7 @@ function MiniField({ label, value, onChange, placeholder, rows }: {
       <input
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
       />
     </div>
@@ -129,7 +129,7 @@ function EventsEditor({ events, onChange }: { events: WeddingEvent[]; onChange: 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {events.map(evt => (
-        <div key={evt.id} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+        <div key={evt.id} style={{ background: 'var(--pl-olive-5)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
           <button
             onClick={() => setExpanded(expanded === evt.id ? null : evt.id)}
             style={{ width: '100%', display: 'flex', alignItems: 'center', padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer', color: '#fff', gap: '8px' }}
@@ -189,7 +189,7 @@ function FaqEditor({ faqs, onChange }: { faqs: FaqItem[]; onChange: (f: FaqItem[
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       {faqs.map((faq, i) => (
-        <div key={faq.id} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div key={faq.id} style={{ background: 'var(--pl-olive-5)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 700, letterSpacing: '0.1em' }}>FAQ {i + 1}</span>
           <MiniField label="Question" value={faq.question} onChange={v => upd(faq.id, { question: v })} placeholder="What is the dress code?" />
           <MiniField label="Answer" value={faq.answer} onChange={v => upd(faq.id, { answer: v })} rows={2} placeholder="We'd love for you to..." />
@@ -221,9 +221,9 @@ function TravelEditor({ travel, onChange }: { travel: TravelInfo; onChange: (t: 
       <MiniField label="Directions" value={travel.directions || ''} onChange={v => onChange({ ...travel, directions: v })} rows={2} placeholder="Take I-95 North to Exit 12..." />
       <MiniField label="Parking Info" value={travel.parkingInfo || ''} onChange={v => onChange({ ...travel, parkingInfo: v })} placeholder="Complimentary valet available" />
 
-      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginTop: '4px' }}>Hotels</div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--pl-olive)', marginTop: '4px' }}>Hotels</div>
       {(travel.hotels || []).map((h, i) => (
-        <div key={i} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div key={i} style={{ background: 'var(--pl-olive-5)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <span style={{ fontSize: '0.6rem', color: 'var(--pl-muted)', fontWeight: 700, letterSpacing: '0.1em' }}>Hotel {i + 1}</span>
           <MiniField label="Hotel Name" value={h.name} onChange={v => updHotel(i, { name: v })} placeholder="The Marriott Newport" />
           <MiniField label="Address" value={h.address} onChange={v => updHotel(i, { address: v })} />
@@ -260,9 +260,9 @@ function RegistryEditor({ registry, onChange }: {
       <MiniField label="Cash Fund URL (Honeyfund, etc.)" value={registry.cashFundUrl || ''} onChange={v => onChange({ ...registry, cashFundUrl: v })} placeholder="https://www.honeyfund.com/..." />
       <MiniField label="Cash Fund Message" value={registry.cashFundMessage || ''} onChange={v => onChange({ ...registry, cashFundMessage: v })} placeholder="Contribute to our honeymoon in Italy" />
 
-      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginTop: '4px' }}>Registry Links</div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--pl-olive)', marginTop: '4px' }}>Registry Links</div>
       {entries.map((entry, i) => (
-        <div key={i} style={{ background: 'rgba(163,177,138,0.05)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div key={i} style={{ background: 'var(--pl-olive-5)', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <MiniField label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Zola" />
           <MiniField label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://www.zola.com/registry/..." />
           <MiniField label="Note" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our main registry..." />
@@ -314,7 +314,7 @@ function BlockCard({
     <motion.div
       layout
       style={{
-        background: 'rgba(163,177,138,0.05)', borderRadius: '12px',
+        background: 'var(--pl-olive-5)', borderRadius: '12px',
         border: `1px solid ${isApplied ? `${block.color}50` : 'rgba(0,0,0,0.05)'}`,
         overflow: 'hidden',
         boxShadow: isApplied ? `0 0 0 1px ${block.color}30` : 'none',
@@ -423,7 +423,7 @@ function BlockCard({
 function SkeletonCard() {
   return (
     <div style={{
-      background: 'rgba(163,177,138,0.05)', borderRadius: '12px',
+      background: 'var(--pl-olive-5)', borderRadius: '12px',
       border: '1px solid rgba(0,0,0,0.05)', padding: '12px',
       display: 'flex', flexDirection: 'column', gap: '8px',
       animation: 'skeletonPulse 1.4s ease-in-out infinite',
@@ -432,7 +432,7 @@ function SkeletonCard() {
         <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(0,0,0,0.06)' }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px' }}>
           <div style={{ height: '11px', borderRadius: '4px', background: 'rgba(0,0,0,0.06)', width: '55%' }} />
-          <div style={{ height: '9px', borderRadius: '4px', background: 'rgba(163,177,138,0.06)', width: '80%' }} />
+          <div style={{ height: '9px', borderRadius: '4px', background: 'var(--pl-olive-5)', width: '80%' }} />
         </div>
       </div>
     </div>
@@ -528,7 +528,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
       {/* Header with Regenerate button */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div>
-          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.8)', marginBottom: '0.3rem' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--pl-olive)', marginBottom: '0.3rem' }}>
             Auto-Fill Sections
           </div>
           <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
@@ -540,8 +540,8 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
           style={{
             display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
             padding: '6px 10px', borderRadius: '7px',
-            border: '1px solid rgba(163,177,138,0.25)',
-            background: 'rgba(163,177,138,0.1)',
+            border: '1px solid var(--pl-olive-20)',
+            background: 'var(--pl-olive-10)',
             color: 'var(--pl-olive, #A3B18A)',
             fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
             transition: 'all 0.15s', whiteSpace: 'nowrap',
@@ -623,7 +623,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           padding: '8px 12px', borderRadius: '8px',
-          background: 'rgba(163,177,138,0.08)', border: '1px solid rgba(163,177,138,0.15)',
+          background: 'var(--pl-olive-8)', border: '1px solid var(--pl-olive-15)',
         }}>
           <Check size={12} color="#4ade80" />
           <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>
@@ -642,7 +642,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.22 }}
             style={{
-              background: 'rgba(163,177,138,0.04)', borderRadius: '12px',
+              background: 'var(--pl-olive-5)', borderRadius: '12px',
               border: '1px solid rgba(0,0,0,0.06)', padding: '1rem',
             }}
           >

@@ -115,7 +115,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             background: isRegenerating ? 'var(--pl-olive-20)' : 'var(--pl-olive)',
             color: isRegenerating ? 'var(--pl-ink-soft)' : '#fff',
             cursor: isRegenerating ? 'not-allowed' : 'pointer',
-            fontSize: '0.75rem', fontWeight: 700, transition: 'all 0.15s',
+            fontSize: 'var(--pl-text-sm)', fontWeight: 700, transition: 'all 0.15s',
             boxShadow: isRegenerating ? 'none' : '0 2px 8px var(--pl-olive-30)',
           }}
         >
@@ -226,7 +226,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               {manifest.stickers!.map((s, i) => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '8px', background: '#fff', border: '1px solid var(--pl-divider, #E0D8CA)' }}>
                   <span style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: 'var(--pl-text-2xs)', color: 'var(--pl-muted)' }}>
                     Size
                     <RangeSlider min={30} max={200} value={s.size} onChange={v => {
                       const updated = [...manifest.stickers!];
@@ -234,7 +234,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                       onChange({ ...manifest, stickers: updated });
                     }} />
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: 'var(--pl-text-2xs)', color: 'var(--pl-muted)' }}>
                     Op.
                     <RangeSlider min={10} max={100} value={Math.round(s.opacity * 100)} onChange={v => {
                       const updated = [...manifest.stickers!];

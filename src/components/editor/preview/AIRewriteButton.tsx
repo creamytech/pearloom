@@ -76,7 +76,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
         whileTap={{ scale: 0.9 }}
         style={{
           width: '24px', height: '24px', borderRadius: '50%',
-          background: 'rgba(163,177,138,0.15)', border: 'none',
+          background: 'var(--pl-olive-15)', border: 'none',
           cursor: 'pointer', display: 'flex', alignItems: 'center',
           justifyContent: 'center', color: '#A3B18A',
           transition: 'background 0.15s',
@@ -114,7 +114,7 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
                   style={{
                     padding: '0.35rem 0.65rem', borderRadius: '100px',
                     border: `1.5px solid ${activeStyle === s.id ? '#A3B18A' : 'rgba(0,0,0,0.08)'}`,
-                    background: activeStyle === s.id ? 'rgba(163,177,138,0.1)' : 'var(--pl-cream-card)',
+                    background: activeStyle === s.id ? 'var(--pl-olive-10)' : 'var(--pl-cream-card)',
                     fontSize: '0.78rem', fontWeight: 500, cursor: loading ? 'wait' : 'pointer',
                     color: 'var(--pl-ink)', transition: 'all 0.15s',
                   }}
@@ -136,8 +136,8 @@ export function AIRewriteButton({ text, context, onAccept }: AIRewriteButtonProp
             {result && !loading && (
               <div>
                 <div style={{
-                  padding: '0.6rem', borderRadius: '0.5rem', background: 'rgba(163,177,138,0.06)',
-                  border: '1px solid rgba(163,177,138,0.15)', fontSize: '0.85rem', lineHeight: 1.5,
+                  padding: '0.6rem', borderRadius: '0.5rem', background: 'var(--pl-olive-5)',
+                  border: '1px solid var(--pl-olive-15)', fontSize: '0.85rem', lineHeight: 1.5,
                   color: 'var(--pl-ink)', marginBottom: '0.5rem',
                 }}>
                   {result}

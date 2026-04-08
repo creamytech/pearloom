@@ -82,7 +82,7 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: 'var(--pl-olive, #A3B18A)',
-              background: 'rgba(163,177,138,0.1)',
+              background: 'var(--pl-olive-10)',
               borderRadius: '100px',
               padding: '3px 8px',
               alignSelf: 'flex-start',
@@ -107,8 +107,8 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
               style={{
                 padding: '8px 14px',
                 borderRadius: '7px',
-                border: '1px solid rgba(163,177,138,0.35)',
-                background: 'rgba(163,177,138,0.12)',
+                border: '1px solid var(--pl-olive-30)',
+                background: 'var(--pl-olive-12)',
                 color: 'var(--pl-olive, #A3B18A)',
                 fontSize: '0.8rem',
                 fontWeight: 700,
@@ -116,8 +116,8 @@ export function AlternatesCarousel({ alternates, onSelect, onClose }: Alternates
                 letterSpacing: '0.03em',
                 transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.22)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-20)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-12)'; }}
             >
               Use this version
             </button>

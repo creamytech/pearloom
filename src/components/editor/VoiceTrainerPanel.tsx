@@ -61,7 +61,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
   const textareaStyle: React.CSSProperties = {
     width: '100%', padding: '0.75rem', borderRadius: '0.6rem',
     border: '1.5px solid rgba(0,0,0,0.06)', fontSize: '0.85rem',
-    background: 'rgba(163,177,138,0.05)', fontFamily: 'var(--pl-font-body)',
+    background: 'var(--pl-olive-5)', fontFamily: 'var(--pl-font-body)',
     color: 'var(--pl-ink)', outline: 'none', resize: 'none',
     lineHeight: 1.6, boxSizing: 'border-box',
     transition: 'border-color 0.2s',
@@ -71,9 +71,9 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* Explainer */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(163,177,138,0.08), rgba(163,177,138,0.03))',
+        background: 'linear-gradient(135deg, var(--pl-olive-8), var(--pl-olive-5))',
         borderRadius: '0.75rem', padding: '1rem 1.25rem',
-        border: '1px solid rgba(163,177,138,0.15)',
+        border: '1px solid var(--pl-olive-15)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <Sparkles size={15} color="var(--pl-olive)" />
@@ -133,7 +133,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           placeholder={'Paste a real text you\'ve sent, a caption from a post, a voice note transcript — anything that sounds like you...'}
           style={textareaStyle}
           onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; e.target.style.background = 'rgba(0,0,0,0.06)'; }}
-          onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.background = 'rgba(163,177,138,0.05)'; }}
+          onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.background = 'var(--pl-olive-5)'; }}
         />
         <button
           onClick={addSample}
@@ -175,7 +175,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             padding: '10px', borderRadius: '10px', border: 'none',
-            background: training ? 'rgba(163,177,138,0.2)' : 'var(--pl-olive-deep)',
+            background: training ? 'var(--pl-olive-20)' : 'var(--pl-olive-deep)',
             color: training ? 'var(--pl-ink-soft)' : '#fff',
             cursor: training ? 'not-allowed' : 'pointer',
             fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const,
@@ -197,7 +197,7 @@ export function VoiceTrainerPanel({ voiceSamples, onChange }: VoiceTrainerPanelP
               { label: 'Humor', value: voiceProfile.humor },
               { label: 'Expressiveness', value: voiceProfile.expressiveness },
             ].map(({ label, value }) => (
-              <div key={label} style={{ padding: '6px 8px', borderRadius: '8px', background: 'rgba(163,177,138,0.06)', textAlign: 'center' }}>
+              <div key={label} style={{ padding: '6px 8px', borderRadius: '8px', background: 'var(--pl-olive-5)', textAlign: 'center' }}>
                 <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--pl-olive-deep)' }}>{Math.round(value)}</div>
                 <div style={{ fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)' }}>{label}</div>
               </div>

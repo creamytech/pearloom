@@ -230,7 +230,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                 fontSize: '0.7rem',
                 fontWeight: 600,
                 color: 'var(--pl-muted)',
-                background: 'rgba(163,177,138,0.13)',
+                background: 'var(--pl-olive-12)',
                 borderRadius: 10,
                 padding: '1px 7px',
                 marginLeft: 2,

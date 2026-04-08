@@ -81,7 +81,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 const fieldStyle: React.CSSProperties = {
   width: '100%', padding: '12px 14px', borderRadius: 10,
   border: '1.5px solid rgba(0,0,0,0.06)',
-  background: 'rgba(163,177,138,0.05)',
+  background: 'var(--pl-olive-5)',
   color: 'var(--pl-ink)',
   fontSize: '15px', fontFamily: 'var(--pl-font-body)',
   outline: 'none', transition: 'border-color 0.15s',
@@ -89,7 +89,7 @@ const fieldStyle: React.CSSProperties = {
 
 const fieldFocusStyle: React.CSSProperties = {
   borderColor: 'var(--pl-olive, #A3B18A)',
-  boxShadow: '0 0 0 3px rgba(163,177,138,0.15)',
+  boxShadow: '0 0 0 3px var(--pl-olive-15)',
 };
 
 // ── Main Component ──────────────────────────────────────────────
@@ -295,11 +295,11 @@ export function MobileChapterActionSheet({
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                     padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: chapter.layout === opt.id ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.05)',
+                    background: chapter.layout === opt.id ? 'var(--pl-olive-20)' : 'var(--pl-olive-5)',
                     color: chapter.layout === opt.id ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
                     fontSize: '0.65rem', fontWeight: 600,
                     minHeight: 44,
-                    outline: chapter.layout === opt.id ? '1.5px solid rgba(163,177,138,0.4)' : '1.5px solid transparent',
+                    outline: chapter.layout === opt.id ? '1.5px solid var(--pl-olive-40)' : '1.5px solid transparent',
                   }}
                 >
                   {opt.icon}

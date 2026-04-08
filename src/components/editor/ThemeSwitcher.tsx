@@ -507,7 +507,7 @@ export function ThemeSwitcher({ currentVibeSkin, onApply }: ThemeSwitcherProps) 
                 flex: '0 0 auto', width: '120px',
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                 padding: 0, borderRadius: '8px', border: 'none', cursor: 'pointer',
-                background: 'rgba(163,177,138,0.05)',
+                background: 'var(--pl-olive-5)',
                 outline: isSelected
                   ? '2px solid #6b7c3f'
                   : isHovered ? '1px solid var(--pl-muted)' : '1px solid rgba(0,0,0,0.05)',

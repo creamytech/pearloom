@@ -79,9 +79,9 @@ function ToggleChip({
     <button
       onClick={onClick}
       style={{
-        padding: '6px 10px', borderRadius: '8px', border: `1px solid ${active ? (color ?? 'rgba(163,177,138,0.6)') : 'rgba(0,0,0,0.06)'}`,
-        background: active ? `${color ?? 'rgba(163,177,138,1)'}22` : 'rgba(163,177,138,0.05)',
-        color: active ? (color ?? 'rgba(163,177,138,1)') : 'var(--pl-ink-soft)',
+        padding: '6px 10px', borderRadius: '8px', border: `1px solid ${active ? (color ?? 'var(--pl-olive)') : 'rgba(0,0,0,0.06)'}`,
+        background: active ? `${color ?? 'rgba(163,177,138,1)'}22` : 'var(--pl-olive-5)',
+        color: active ? (color ?? 'var(--pl-olive)') : 'var(--pl-ink-soft)',
         cursor: 'pointer', fontSize: '0.75rem', fontWeight: active ? 700 : 500,
         display: 'flex', alignItems: 'center', gap: '5px',
         transition: 'all 0.15s',
@@ -118,8 +118,8 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
             title={p.label}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-              padding: '6px 8px', borderRadius: '10px', border: `2px solid ${active ? 'rgba(163,177,138,0.8)' : 'transparent'}`,
-              background: active ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
+              padding: '6px 8px', borderRadius: '10px', border: `2px solid ${active ? 'var(--pl-olive)' : 'transparent'}`,
+              background: active ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
@@ -130,7 +130,7 @@ function MeshPresetPicker({ value, onChange }: { value: MeshPreset; onChange: (v
                 : `linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]}, ${p.colors[2]})`,
               opacity: p.id === 'none' ? 0.4 : 1,
             }} />
-            <span style={{ fontSize: '0.6rem', color: active ? 'rgba(163,177,138,1)' : 'rgba(255,255,255,0.45)', fontWeight: active ? 700 : 400 }}>
+            <span style={{ fontSize: '0.6rem', color: active ? 'var(--pl-olive)' : 'rgba(255,255,255,0.45)', fontWeight: active ? 700 : 400 }}>
               {p.label}
             </span>
           </button>
@@ -310,9 +310,9 @@ export function VisualEffectsPanel({ effects, accentColor, onChange }: VisualEff
               onClick={() => set('sectionDivider', { ...divider, style: d.id })}
               style={{
                 padding: '6px 10px', borderRadius: '8px',
-                border: `1px solid ${divider.style === d.id ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
-                background: divider.style === d.id ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.05)',
-                color: divider.style === d.id ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
+                border: `1px solid ${divider.style === d.id ? 'var(--pl-olive)' : 'rgba(0,0,0,0.06)'}`,
+                background: divider.style === d.id ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
+                color: divider.style === d.id ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
                 cursor: 'pointer', fontSize: '0.72rem', fontWeight: divider.style === d.id ? 700 : 400,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                 transition: 'all 0.15s',
@@ -418,8 +418,8 @@ function EffectBlock({
         {active && (
           <span style={{
             fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-            color: 'rgba(163,177,138,0.9)', background: 'rgba(163,177,138,0.12)',
-            padding: '2px 7px', borderRadius: '100px', border: '1px solid rgba(163,177,138,0.25)',
+            color: 'var(--pl-olive)', background: 'var(--pl-olive-12)',
+            padding: '2px 7px', borderRadius: '100px', border: '1px solid var(--pl-olive-20)',
           }}>
             ON
           </span>

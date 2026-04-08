@@ -152,10 +152,10 @@ function ChapterReorderRow({
           style={{
             x: rowX,
             borderRadius: 12,
-            background: isActive ? 'rgba(163,177,138,0.11)' : 'rgba(163,177,138,0.05)',
+            background: isActive ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
             borderLeft: isActive
-              ? '3px solid rgba(163,177,138,0.75)'
-              : '3px solid rgba(163,177,138,0.12)',
+              ? '3px solid var(--pl-olive)'
+              : '3px solid var(--pl-olive-12)',
             display: 'flex',
             alignItems: 'center',
             gap: 10,
@@ -185,7 +185,7 @@ function ChapterReorderRow({
               e.stopPropagation();
               controls.start(e);
             }}
-            whileHover={{ color: 'rgba(163,177,138,0.8)' }}
+            whileHover={{ color: 'var(--pl-olive)' }}
             style={{
               cursor: 'grab',
               padding: '0 8px',
@@ -207,9 +207,9 @@ function ChapterReorderRow({
               width: 20,
               height: 20,
               borderRadius: '50%',
-              background: isActive ? 'rgba(163,177,138,0.28)' : 'rgba(0,0,0,0.05)',
+              background: isActive ? 'var(--pl-olive-20)' : 'rgba(0,0,0,0.05)',
               border: isActive
-                ? '1px solid rgba(163,177,138,0.45)'
+                ? '1px solid var(--pl-olive-40)'
                 : '1px solid rgba(0,0,0,0.07)',
               display: 'flex',
               alignItems: 'center',
@@ -572,7 +572,7 @@ export function MobileEditorSheet() {
               }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: '50%',
-                  border: '2px solid rgba(163,177,138,0.25)',
+                  border: '2px solid var(--pl-olive-20)',
                   borderTopColor: '#A3B18A',
                   animation: 'spin 0.8s linear infinite',
                 }} />
@@ -633,8 +633,8 @@ export function MobileEditorSheet() {
                 padding: '11px 0',
                 marginBottom: 12,
                 borderRadius: 12,
-                border: '1px dashed rgba(163,177,138,0.35)',
-                background: 'rgba(163,177,138,0.05)',
+                border: '1px dashed var(--pl-olive-30)',
+                background: 'var(--pl-olive-5)',
                 color: 'var(--pl-olive)',
                 cursor: 'pointer',
                 fontSize: '0.82rem',
@@ -1001,8 +1001,8 @@ export function MobileEditorSheet() {
                         position: 'absolute',
                         inset: '4px 6px',
                         borderRadius: 10,
-                        background: 'rgba(163,177,138,0.14)',
-                        border: '1px solid rgba(163,177,138,0.25)',
+                        background: 'var(--pl-olive-15)',
+                        border: '1px solid var(--pl-olive-20)',
                       }}
                       transition={{ type: 'spring', stiffness: 420, damping: 38 }}
                     />
@@ -1129,7 +1129,7 @@ export function MobileEditorSheet() {
                         padding: '14px 8px',
                         borderRadius: 14,
                         border: '1px solid rgba(0,0,0,0.05)',
-                        background: 'rgba(163,177,138,0.04)',
+                        background: 'var(--pl-olive-5)',
                         color: 'var(--pl-muted)',
                         cursor: 'pointer',
                       }}

@@ -51,7 +51,7 @@ export function BlockDropZone({ index, isDragging, onDrop }: BlockDropZoneProps)
               height: '3px',
               borderRadius: '2px',
               background: 'var(--pl-olive)',
-              boxShadow: '0 0 8px rgba(163,177,138,0.4)',
+              boxShadow: '0 0 8px var(--pl-olive-40)',
             }}
           />
         )}

@@ -204,7 +204,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
         {rsvpConversionRate !== null && (
           <div style={{
             marginTop: '10px', padding: '8px 10px', borderRadius: '8px',
-            background: 'rgba(163,177,138,0.07)', border: '1px solid rgba(163,177,138,0.15)',
+            background: 'var(--pl-olive-8)', border: '1px solid var(--pl-olive-15)',
             fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.5,
           }}>
             <span style={{ color: '#A3B18A', fontWeight: 800 }}>{rsvpConversionRate}%</span> of visitors have RSVPed
@@ -217,7 +217,7 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
         {(!sections || sections.length === 0) ? (
           <div style={{
             padding: '10px 12px', borderRadius: '8px',
-            background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.12)',
+            background: 'var(--pl-olive-5)', border: '1px solid var(--pl-olive-12)',
             fontSize: '0.7rem', color: 'var(--pl-ink-soft)', lineHeight: 1.6,
           }}>
             Section analytics will appear once your site gets visitors.
@@ -228,12 +228,12 @@ export function AnalyticsDashboardPanel({ siteId }: AnalyticsDashboardPanelProps
             {sections[0] && (
               <div style={{
                 padding: '10px 12px', borderRadius: '10px', marginBottom: '10px',
-                background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.22)',
+                background: 'var(--pl-olive-10)', border: '1px solid var(--pl-olive-20)',
                 display: 'flex', alignItems: 'center', gap: '10px',
               }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '8px',
-                  background: 'rgba(163,177,138,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'var(--pl-olive-20)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
                   <Layers size={15} color="#A3B18A" />
