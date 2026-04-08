@@ -42,6 +42,8 @@ export interface SiteTemplate {
   };
   /** Default vibe string */
   vibeString: string;
+  /** Hero cover photo URL */
+  coverPhoto?: string;
   /** Layout format */
   layoutFormat: string;
   /** Poetry defaults */
@@ -79,6 +81,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     occasions: ['wedding', 'engagement'],
     tags: ['garden', 'botanical', 'outdoor', 'romantic', 'sage', 'green'],
     popularity: 95,
+    coverPhoto: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2000&auto=format&fit=crop',
     blocks: [
       makeBlock('hero', 0, { subtitle: '{{ poetry.heroTagline }}', layout: 'editorial' }),
       makeBlock('vibeQuote', 1, { text: 'In the garden of our love, every season brings new beauty.', symbol: '✿' }),
@@ -116,6 +119,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     tagline: 'Dark elegance with gold accents',
     description: 'Sophisticated dark palette with antique gold details. Ideal for evening galas, ballroom receptions, and glamorous celebrations.',
     previewGradient: 'linear-gradient(135deg, #1A1510 0%, #2D2618 50%, #C4A96A 100%)',
+    coverPhoto: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=2000&auto=format&fit=crop',
     occasions: ['wedding', 'anniversary', 'engagement'],
     tags: ['dark', 'gold', 'luxe', 'glamorous', 'evening', 'elegant', 'moody'],
     popularity: 88,
@@ -150,6 +154,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   // ── 3. Coastal Breeze ───────────────────────────────────────
   {
     id: 'coastal-breeze',
+    coverPhoto: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop',
     name: 'Coastal Breeze',
     tagline: 'Seaside serenity with ocean blues',
     description: 'Fresh ocean blues, driftwood textures, and salt-kissed air. Perfect for beach ceremonies and waterfront venues.',
@@ -189,6 +194,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   // ── 4. Rustic Romance ───────────────────────────────────────
   {
     id: 'rustic-romance',
+    coverPhoto: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=2000&auto=format&fit=crop',
     name: 'Rustic Romance',
     tagline: 'Barn wood and wildflowers',
     description: 'Warm earth tones, hand-lettered charm, and rustic textures. Ideal for barn weddings, farm celebrations, and countryside charm.',
@@ -228,6 +234,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   // ── 5. Blush & Bloom ────────────────────────────────────────
   {
     id: 'blush-bloom',
+    coverPhoto: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=2000&auto=format&fit=crop',
     name: 'Blush & Bloom',
     tagline: 'Soft pinks and delicate florals',
     description: 'Romantic blush palette with champagne accents and soft petal textures. Perfect for spring and summer celebrations.',
@@ -267,6 +274,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   // ── 6. Minimalist White ─────────────────────────────────────
   {
     id: 'minimalist-white',
+    coverPhoto: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=2000&auto=format&fit=crop',
     name: 'Minimalist White',
     tagline: 'Clean lines, pure simplicity',
     description: 'Ultra-clean white space with sharp typography and no distractions. For couples who believe less is more.',
@@ -298,6 +306,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   // ── 7. Golden Hour ──────────────────────────────────────────
   {
     id: 'golden-hour',
+    coverPhoto: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2000&auto=format&fit=crop',
     name: 'Golden Hour',
     tagline: 'Warm light and analog nostalgia',
     description: 'Sun-drenched warmth with film grain textures and golden tones. Captures the magic of that perfect sunset moment.',
@@ -338,6 +347,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
   // ── 8. Lavender Dreams ──────────────────────────────────────
   {
     id: 'lavender-dreams',
+    coverPhoto: 'https://images.unsplash.com/photo-1503516459261-40c66117780a?q=80&w=2000&auto=format&fit=crop',
     name: 'Lavender Dreams',
     tagline: 'Ethereal purple haze',
     description: 'Dreamy lavender palette with celestial accents. Ethereal and otherworldly, perfect for evening ceremonies under the stars.',
@@ -397,6 +407,7 @@ export function applyTemplate(
     } as StoryManifest['theme'],
     vibeString: template.vibeString,
     layoutFormat: template.layoutFormat as StoryManifest['layoutFormat'],
+    coverPhoto: template.coverPhoto || manifest.coverPhoto,
     poetry: {
       ...manifest.poetry,
       ...template.poetry,
