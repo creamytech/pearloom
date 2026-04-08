@@ -168,16 +168,16 @@ export function SiteNav({
                 : navStyle === 'floating'
                   ? 'bg-white/90 border border-[rgba(255,255,255,0.6)] shadow-[0_4px_24px_rgba(43,30,20,0.08)]'
                   : (atTop && !isStudio
-                    ? 'bg-transparent border-b border-transparent shadow-none'
+                    ? 'bg-black/20 border-b border-transparent shadow-none'
                     : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
         )}
         style={{
           backdropFilter: navStyle === 'minimal' ? 'none'
             : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
-            : (atTop && !isStudio) ? 'none' : 'blur(14px) saturate(1.6)',
+            : 'blur(14px) saturate(1.6)',
           WebkitBackdropFilter: navStyle === 'minimal' ? 'none'
             : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
-            : (atTop && !isStudio) ? 'none' : 'blur(14px) saturate(1.6)',
+            : 'blur(14px) saturate(1.6)',
         }}
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

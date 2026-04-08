@@ -38,7 +38,7 @@ function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--pl-olive)
 
 function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: number; vibeSkin?: VibeSkin }) {
   const accentColor = vibeSkin?.palette.accent ?? 'var(--pl-olive)';
-  const cardBg = vibeSkin?.palette.card ?? 'var(--pl-ink)';
+  const cardBg = vibeSkin?.palette.card ?? 'var(--pl-cream-card, #FDFAF4)';
   const headingFont = vibeSkin?.fonts.heading ?? 'var(--pl-font-heading)';
   const bodyFont = vibeSkin?.fonts.body ?? 'var(--pl-font-body)';
   const dateObj = (() => {

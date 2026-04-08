@@ -122,7 +122,7 @@ const CHAPTERS: Chapter[] = [
     title: 'The Proposal',
     subtitle: 'Under the Tuscan Sun',
     description: 'He took me back to Florence — to the exact bench in the Boboli Gardens where we met. This time, he wasn\'t sketching. He was kneeling. Through my tears I managed one word: yes.',
-    images: [{ id: 'img-4', url: 'https://images.unsplash.com/photo-1583008911326-fde557761043?q=80&w=1200&auto=format&fit=crop', alt: 'The proposal', width: 1200, height: 800 }],
+    images: [{ id: 'img-4', url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=1200&auto=format&fit=crop', alt: 'The proposal', width: 1200, height: 800 }],
     location: { lat: 43.7621, lng: 11.2480, label: 'Boboli Gardens, Florence' },
     mood: 'Euphoric',
     layout: 'fullbleed',
@@ -260,7 +260,7 @@ export default function DemoPage() {
 
         {/* Events */}
         <section id="schedule" style={{ position: 'relative', overflow: 'hidden' }}>
-          <WeddingEvents events={EVENTS} title="The Celebration" />
+          <WeddingEvents events={EVENTS} title="The Celebration" vibeSkin={SKIN} />
         </section>
 
         <WaveDivider skin={SKIN} fromColor={bgColor} toColor={bgColor} height={60} />
