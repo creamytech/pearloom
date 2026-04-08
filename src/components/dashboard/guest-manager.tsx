@@ -29,9 +29,9 @@ interface Guest {
 }
 
 const STATUS_CONFIG: Record<Guest['status'], { label: string; color: string; bg: string }> = {
-  attending: { label: 'Attending', color: '#3d7a4a', bg: 'rgba(163,177,138,0.15)' },
-  declined: { label: 'Declined', color: '#b91c1c', bg: 'rgba(239,68,68,0.08)' },
-  pending: { label: 'Pending', color: '#92400e', bg: 'rgba(245,158,11,0.10)' },
+  attending: { label: 'Attending', color: 'var(--pl-olive)', bg: 'rgba(163,177,138,0.15)' },
+  declined: { label: 'Declined', color: 'var(--pl-ink-soft)', bg: 'rgba(239,68,68,0.08)' },
+  pending: { label: 'Pending', color: 'var(--pl-ink-soft)', bg: 'rgba(245,158,11,0.10)' },
 };
 
 interface GuestManagerProps {

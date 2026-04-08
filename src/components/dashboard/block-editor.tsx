@@ -775,9 +775,10 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           marginBottom: '1.25rem', padding: '0.875rem 1.25rem',
-          background: '#fff', borderRadius: '0.875rem',
-          border: '1px solid rgba(0,0,0,0.05)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         }}>
           <div>
             <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '0.15rem' }}>
@@ -813,10 +814,12 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 justifyContent: 'center', minHeight: '320px',
-                background: '#fff', borderRadius: '1rem',
-                border: '2px dashed rgba(0,0,0,0.09)',
+                background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '16px',
+                border: '2px dashed rgba(255,255,255,0.5)',
+                boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
                 color: 'var(--pl-muted)', gap: '1rem',
-              }}
+              } as React.CSSProperties}
             >
               <div style={{
                 width: '56px', height: '56px', borderRadius: '1rem',

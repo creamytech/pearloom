@@ -62,13 +62,14 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 20 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        className="relative z-10 w-full max-w-[900px] max-h-[85vh] flex flex-col rounded-[24px] bg-white/95 backdrop-blur-xl border border-[rgba(0,0,0,0.06)] shadow-[0_24px_60px_rgba(43,30,20,0.15)]"
+        className="relative z-10 w-full max-w-[900px] max-h-[85vh] flex flex-col rounded-[16px]"
+        style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}
       >
         {/* Header */}
         <div className="shrink-0 px-6 pt-6 pb-4 border-b border-[var(--pl-divider)]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-heading italic text-[1.4rem] text-[var(--pl-ink)] m-0">
+              <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic' }} className="text-[1.4rem] text-[var(--pl-ink)] m-0">
                 Choose a Template
               </h2>
               <p className="text-[0.78rem] text-[var(--pl-muted)] mt-1">
@@ -85,7 +86,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
 
           {/* Search + Filters */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex-1 min-w-[200px] flex items-center gap-2 px-3 py-2 rounded-full bg-[var(--pl-cream-deep)] border border-[var(--pl-divider)]">
+            <div className="flex-1 min-w-[200px] flex items-center gap-2 px-3 py-2 rounded-[12px]" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)' } as React.CSSProperties}>
               <Search size={14} className="text-[var(--pl-muted)]" />
               <input
                 type="text"
@@ -137,17 +138,17 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                     style={{
                       borderRadius: '16px',
                       overflow: 'hidden',
-                      border: isSelected ? '2px solid var(--pl-olive)' : '2px solid transparent',
+                      border: isSelected ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.5)',
                       boxShadow: isSelected
                         ? '0 0 0 3px rgba(163,177,138,0.2)'
-                        : isHovered
-                          ? '0 4px 20px rgba(43,30,20,0.08)'
-                          : '0 1px 4px rgba(43,30,20,0.04)',
-                      background: 'white',
+                        : '0 4px 20px rgba(43,30,20,0.06)',
+                      background: 'rgba(255,255,255,0.45)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       transform: isHovered ? 'translateY(-2px)' : 'none',
-                    }}
+                    } as React.CSSProperties}
                   >
                     {/* Color preview */}
                     <div

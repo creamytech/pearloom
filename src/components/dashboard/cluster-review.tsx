@@ -293,17 +293,21 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-          background: `${C.olive}1A`, color: C.olive,
+          background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          color: 'var(--pl-olive)',
           padding: '0.4rem 1.1rem', borderRadius: '100px',
+          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
           fontSize: text.sm, fontWeight: 600, letterSpacing: '0.04em',
           marginBottom: '1.25rem',
-        }}>
+        } as React.CSSProperties}>
           <Calendar size={13} /> {clusters.length} memory group{clusters.length !== 1 ? 's' : ''} detected
         </div>
-        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '0.75rem', fontWeight: 600 }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic', fontSize: '2rem', marginBottom: '0.75rem', fontWeight: 600 }}>
           Where were these taken?
         </h3>
-        <p style={{ color: C.muted, fontSize: text.md, lineHeight: 1.6, maxWidth: '480px', margin: '0 auto' }}>
+        <p style={{ color: 'var(--pl-muted)', fontSize: text.md, lineHeight: 1.6, maxWidth: '480px', margin: '0 auto' }}>
           We grouped your photos by trip or event. Add a location to any group that&apos;s missing one — the AI uses this to write richer stories.
         </p>
       </div>
@@ -361,11 +365,11 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                 <div style={{ flex: 1, padding: '1.25rem 1.5rem' }}>
                   {/* Date range + photo count */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.85rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: text.sm, color: C.muted, fontWeight: 500 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: text.sm, color: 'var(--pl-muted)', fontWeight: 500 }}>
                       <Calendar size={13} />
                       {formatDateRange(cluster.startDate, cluster.endDate)}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: text.sm, color: C.muted }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: text.sm, color: 'var(--pl-muted)' }}>
                       <Camera size={12} />
                       {cluster.photos.length} photo{cluster.photos.length !== 1 ? 's' : ''}
                     </div>
@@ -375,7 +379,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                   {isEditing ? (
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <div style={{ position: 'relative', flex: 1 }}>
-                        <MapPin size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: C.olive, opacity: 0.6 }} />
+                        <MapPin size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--pl-olive)', opacity: 0.6 }} />
                         <input
                           autoFocus
                           type="text"
@@ -696,23 +700,23 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         <button
           onClick={() => onConfirm(clusters)}
           style={{
-            flex: 1, padding: '1rem 1.5rem', borderRadius: card.radius,
-            background: C.ink, color: '#fff',
+            flex: 1, padding: '1rem 1.5rem', borderRadius: '16px',
+            background: 'var(--pl-ink)', color: '#fff',
             border: 'none', fontSize: text.base, fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: '0.5rem',
-            boxShadow: card.shadow,
+            boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
             transition: 'opacity 0.2s, box-shadow 0.2s',
           }}
-          onMouseOver={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.boxShadow = card.shadowHover; }}
-          onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.boxShadow = card.shadow; }}
+          onMouseOver={e => { e.currentTarget.style.opacity = '0.88'; }}
+          onMouseOut={e => { e.currentTarget.style.opacity = '1'; }}
         >
           Continue to Set Your Vibe →
         </button>
       </div>
 
       {!allLocationsSet && (
-        <p style={{ textAlign: 'center', fontSize: text.sm, color: C.muted, marginTop: '1rem', opacity: 0.7 }}>
+        <p style={{ textAlign: 'center', fontSize: text.sm, color: 'var(--pl-muted)', marginTop: '1rem', opacity: 0.7 }}>
           Tip: Adding locations helps the AI write more personal, geographically-detailed stories for each chapter.
         </p>
       )}

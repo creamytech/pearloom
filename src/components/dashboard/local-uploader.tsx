@@ -141,10 +141,10 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
     <div style={{ maxWidth: '720px', margin: '0 auto' }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '0.5rem', color: C.ink }}>
+        <h2 style={{ fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic', fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--pl-ink)' }}>
           Upload Your Photos
         </h2>
-        <p style={{ color: C.muted, fontSize: text.md, lineHeight: 1.6 }}>
+        <p style={{ color: 'var(--pl-muted)', fontSize: text.md, lineHeight: 1.6 }}>
           Select your favorite moments. We support JPG, PNG, WebP, and HEIC.
         </p>
       </div>
@@ -155,11 +155,16 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
-            padding: '0.85rem 1.25rem', background: '#fef2f2', color: '#dc2626',
-            borderRadius: card.radius, marginBottom: '1.25rem', fontSize: text.sm,
+            padding: '0.85rem 1.25rem',
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            color: '#dc2626',
+            borderRadius: '16px', marginBottom: '1.25rem', fontSize: text.sm,
             display: 'flex', alignItems: 'center', gap: '0.5rem',
-            border: '1px solid rgba(220,38,38,0.15)',
-          }}
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+          } as React.CSSProperties}
         >
           <AlertCircle size={16} />
           {globalError}
@@ -173,16 +178,19 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         animate={{
-          borderColor: isDragging ? C.olive : 'rgba(0,0,0,0.1)',
-          background: isDragging ? `${C.olive}0A` : 'rgba(0,0,0,0.02)',
+          borderColor: isDragging ? 'var(--pl-olive)' : 'rgba(255,255,255,0.5)',
+          background: isDragging ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.45)',
         }}
         style={{
           position: 'relative', overflow: 'hidden',
           padding: files.length > 0 ? '1.5rem' : '3.5rem 2rem',
-          border: '2px dashed rgba(0,0,0,0.1)',
-          borderRadius: card.radius, textAlign: 'center',
+          border: '2px dashed rgba(255,255,255,0.5)',
+          borderRadius: '16px', textAlign: 'center',
           cursor: 'pointer', transition: 'all 0.2s ease',
-        }}
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+        } as React.CSSProperties}
       >
         <input
           ref={inputRef}
@@ -197,11 +205,11 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
         {files.length === 0 ? (
           /* Empty state */
           <div>
-            <UploadCloud size={44} style={{ margin: '0 auto', color: C.olive, marginBottom: '1rem', opacity: 0.7 }} />
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '0.35rem', color: C.ink }}>
+            <UploadCloud size={44} style={{ margin: '0 auto', color: 'var(--pl-olive)', marginBottom: '1rem', opacity: 0.7 }} />
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '0.35rem', color: 'var(--pl-ink)' }}>
               Drop photos here or tap to browse
             </h3>
-            <p style={{ color: C.muted, fontSize: text.sm }}>
+            <p style={{ color: 'var(--pl-muted)', fontSize: text.sm }}>
               JPG, PNG, WebP, HEIC — up to {maxFiles} photos, 20MB each
             </p>
           </div>
@@ -222,13 +230,13 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2 }}
                     style={{
-                      position: 'relative', aspectRatio: '1', borderRadius: '0.5rem',
+                      position: 'relative', aspectRatio: '1', borderRadius: '12px',
                       overflow: 'hidden',
                       border: entry.status === 'error'
                         ? '2px solid rgba(220,38,38,0.4)'
                         : entry.status === 'done'
-                        ? `2px solid ${C.olive}66`
-                        : '1px solid rgba(0,0,0,0.06)',
+                        ? '2px solid var(--pl-olive)'
+                        : '1px solid rgba(255,255,255,0.4)',
                     }}
                   >
                     {/* Thumbnail */}
@@ -252,7 +260,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
                       <div style={{
                         position: 'absolute', bottom: '4px', right: '4px',
                         width: '20px', height: '20px', borderRadius: '50%',
-                        background: C.olive, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: 'var(--pl-olive)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         <Check size={12} color="#fff" />
                       </div>
@@ -292,12 +300,14 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
               {!isUploading && files.length < maxFiles && (
                 <div
                   style={{
-                    aspectRatio: '1', borderRadius: '0.5rem',
-                    border: '2px dashed rgba(0,0,0,0.08)',
+                    aspectRatio: '1', borderRadius: '12px',
+                    border: '2px dashed rgba(255,255,255,0.5)',
+                    background: 'rgba(255,255,255,0.35)',
+                    backdropFilter: 'blur(8px)',
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
                     justifyContent: 'center', gap: '0.25rem',
-                    color: C.muted, fontSize: text.xs,
-                  }}
+                    color: 'var(--pl-muted)', fontSize: text.xs,
+                  } as React.CSSProperties}
                 >
                   <ImagePlus size={18} />
                   <span>Add more</span>
@@ -306,7 +316,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
             </div>
 
             {/* Count + errors */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: text.sm, color: C.muted }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: text.sm, color: 'var(--pl-muted)' }}>
               <span>{files.length} photo{files.length !== 1 ? 's' : ''} selected</span>
               {errorCount > 0 && <span style={{ color: '#dc2626' }}>{errorCount} failed</span>}
             </div>
@@ -320,14 +330,14 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
           {/* Progress bar (during upload) */}
           {isUploading && (
             <div style={{ marginBottom: '1rem' }}>
-              <div style={{ height: '3px', background: 'rgba(0,0,0,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ height: '3px', background: 'rgba(255,255,255,0.35)', borderRadius: '2px', overflow: 'hidden' }}>
                 <motion.div
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.3 }}
-                  style={{ height: '100%', background: C.olive, borderRadius: '2px' }}
+                  style={{ height: '100%', background: 'var(--pl-olive)', borderRadius: '2px' }}
                 />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', fontSize: text.xs, color: C.muted }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', fontSize: text.xs, color: 'var(--pl-muted)' }}>
                 <span>Uploading {completedCount} of {files.length}</span>
                 <span>{progress}%</span>
               </div>
@@ -339,11 +349,11 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
             disabled={isUploading || files.every(f => f.status === 'done')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: '0.5rem', padding: '1rem 2rem', borderRadius: card.radius,
-              background: C.ink, color: '#fff', fontSize: text.base,
+              gap: '0.5rem', padding: '1rem 2rem', borderRadius: '16px',
+              background: 'var(--pl-ink)', color: '#fff', fontSize: text.base,
               fontWeight: 600, cursor: isUploading ? 'wait' : 'pointer', border: 'none',
               transition: 'opacity 0.2s, box-shadow 0.2s',
-              boxShadow: card.shadow,
+              boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
               opacity: isUploading ? 0.7 : 1,
             }}
           >

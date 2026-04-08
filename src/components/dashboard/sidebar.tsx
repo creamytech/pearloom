@@ -16,7 +16,7 @@ export function DashboardSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 shrink-0 border-r border-[var(--pl-divider)] bg-[var(--pl-cream)] min-h-0 h-full flex flex-col">
+    <aside className="w-56 shrink-0 min-h-0 h-full flex flex-col" style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}>
       <div className="px-5 pt-5 pb-3">
         <h2 className="font-heading italic text-lg text-[var(--pl-ink-soft)]">The Atelier</h2>
         <p className="text-[0.65rem] uppercase tracking-[0.12em] text-[var(--pl-muted)] font-bold mt-0.5">Your creative studio</p>
@@ -35,13 +35,14 @@ export function DashboardSidebar() {
               {isActive && (
                 <motion.span
                   layoutId="dash-sidebar-active"
-                  className="absolute inset-0 rounded-lg bg-[var(--pl-olive-mist)] z-0"
+                  className="absolute inset-0 rounded-[12px] z-0"
+                  style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)' } as React.CSSProperties}
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
               <Link
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors relative z-10 no-underline ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-sm transition-colors relative z-10 no-underline ${
                   isActive
                     ? 'text-[var(--pl-olive)] font-medium'
                     : 'text-[var(--pl-muted)] hover:text-[var(--pl-ink)]'
@@ -63,7 +64,8 @@ export function DashboardSidebar() {
         <div className="pt-4 mt-4 border-t border-[var(--pl-divider)]">
           <Link
             href="/faq"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--pl-muted)] hover:text-[var(--pl-ink)] hover:bg-black/[0.03] transition-all no-underline"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-sm text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-all no-underline"
+            style={{ background: 'transparent' }}
           >
             <HelpCircle size={16} />
             Help & FAQ
