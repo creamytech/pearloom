@@ -81,7 +81,7 @@ export function GuestChip({
           justifyContent: 'center',
           fontSize: '0.5rem',
           fontWeight: 700,
-          color: '#fff',
+          color: 'white',
           cursor: 'default',
           position: 'relative',
           userSelect: 'none',
@@ -145,7 +145,7 @@ export function GuestChip({
           justifyContent: 'center',
           fontSize: isPlusOne ? '0.55rem' : '0.6rem',
           fontWeight: 700,
-          color: '#fff',
+          color: 'white',
           flexShrink: 0,
           position: 'relative',
         }}

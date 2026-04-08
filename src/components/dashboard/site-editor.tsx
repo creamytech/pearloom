@@ -246,7 +246,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: '0.65rem 1.5rem', borderRadius: '100px',
                 background: 'linear-gradient(135deg, var(--pl-cream-deep), var(--pl-cream))',
-                color: '#fff', border: 'none',
+                color: 'white', border: 'none',
                 fontSize: '0.78rem', fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
                 boxShadow: '0 8px 20px rgba(0,0,0,0.2)',
@@ -300,7 +300,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
               <motion.div
                 key={chapter.id}
                 layout
-                style={{ borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', background: '#fff', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}
+                style={{ borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', background: 'var(--pl-cream-card)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}
               >
                 {editingId === chapter.id ? (
                   <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -388,7 +388,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.5rem',
                           padding: '0.6rem 1.5rem', borderRadius: '0.6rem',
-                          background: 'var(--pl-olive)', color: '#fff',
+                          background: 'var(--pl-olive)', color: 'white',
                           border: 'none', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
                         }}
                       >
@@ -458,7 +458,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
           <motion.div key="design" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
             {/* Color system */}
-            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--pl-cream-card)', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Color Palette</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>Customize your site-wide colors. Preview updates live.</div>
@@ -479,7 +479,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             </div>
 
             {/* Typography */}
-            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--pl-cream-card)', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Typography</div>
               </div>
@@ -532,7 +532,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             </div>
 
             {/* Background pattern */}
-            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--pl-cream-card)', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Background Pattern</div>
               </div>
@@ -561,7 +561,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
           <motion.div key="details" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
             {/* Coming Soon editor */}
-            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--pl-cream-card)', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)' }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Coming Soon Section</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--pl-muted)', marginTop: '0.25rem' }}>The bottom section teasing what&apos;s next.</div>
@@ -597,7 +597,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
             </div>
 
             {/* Password protection */}
-            <div style={{ background: '#fff', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--pl-cream-card)', borderRadius: '1rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>Password Protection</div>
@@ -610,7 +610,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
                     padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 700,
                     border: 'none', cursor: 'pointer',
                     background: manifest.comingSoon?.passwordProtected ? 'var(--pl-ink)' : 'rgba(0,0,0,0.06)',
-                    color: manifest.comingSoon?.passwordProtected ? '#fff' : 'var(--pl-muted)',
+                    color: manifest.comingSoon?.passwordProtected ? 'white' : 'var(--pl-muted)',
                     transition: 'all 0.2s',
                   }}
                 >

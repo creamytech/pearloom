@@ -179,7 +179,7 @@ export function ChapterPanel({
       {/* Story text — the main content area */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <label style={{ ...lbl, fontSize: '0.62rem', marginBottom: 0 }}>Story</label>
+          <label style={{ ...lbl, fontSize: 'var(--pl-text-2xs)', marginBottom: 0 }}>Story</label>
           <div style={{ display: 'flex', gap: '4px' }}>
             <motion.button
               onClick={() => onAIRewrite(chapter.id)}
@@ -190,9 +190,9 @@ export function ChapterPanel({
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '3px 8px', borderRadius: '100px',
                 border: '1px solid var(--pl-olive-30)',
-                background: isRewriting ? 'var(--pl-olive-12)' : 'rgba(163,177,138,0.06)',
+                background: isRewriting ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
                 color: 'var(--pl-olive-deep, #6E8C5C)',
-                fontSize: '0.65rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
+                fontSize: 'var(--pl-text-xs)', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
               }}
             >
               {isRewriting ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={10} />}
@@ -210,7 +210,7 @@ export function ChapterPanel({
                   border: '1px solid rgba(109,89,122,0.25)',
                   background: 'rgba(109,89,122,0.06)',
                   color: 'var(--pl-plum, #6D597A)',
-                  fontSize: '0.65rem', fontWeight: 700, cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
+                  fontSize: 'var(--pl-text-xs)', fontWeight: 700, cursor: isLoadingAlternates ? 'not-allowed' : 'pointer',
                 }}
               >
                 {isLoadingAlternates ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : '✦'}
@@ -230,7 +230,7 @@ export function ChapterPanel({
             fontSize: '0.9rem',
             ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}),
           }}
-          onFocus={e => { if (streamingText == null) { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; } }}
+          onFocus={e => { if (streamingText == null) { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--pl-olive-10)'; } }}
           onBlur={e => { e.currentTarget.style.borderColor = 'var(--pl-black-7)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
@@ -247,7 +247,7 @@ export function ChapterPanel({
 
       {/* Layout — visual preview cards */}
       <div>
-        <label style={{ ...lbl, fontSize: '0.62rem' }}>Layout</label>
+        <label style={{ ...lbl, fontSize: 'var(--pl-text-2xs)' }}>Layout</label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {LAYOUT_OPTS.map(l => {
             const isActive = currentLayout === l;
@@ -262,10 +262,10 @@ export function ChapterPanel({
                   display: 'flex', flexDirection: 'column',
                   border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
                   borderRadius: '8px', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
+                  background: isActive ? 'var(--pl-olive-8)' : '#fff',
                   overflow: 'hidden', transition: 'border-color 0.15s',
                   padding: 0,
-                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.15)' : '0 1px 3px var(--pl-black-4)',
+                  boxShadow: isActive ? '0 2px 8px var(--pl-olive-15)' : '0 1px 3px var(--pl-black-4)',
                 }}
               >
                 <div style={{ height: '36px', overflow: 'hidden', background: 'var(--pl-cream-deep, #F0EBE0)' }}>
@@ -273,7 +273,7 @@ export function ChapterPanel({
                 </div>
                 <div style={{
                   padding: '4px 6px',
-                  fontSize: '0.6rem', fontWeight: 700,
+                  fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
                   letterSpacing: '0.04em',
                   color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted)',
                   textAlign: 'center',
@@ -288,7 +288,7 @@ export function ChapterPanel({
 
       {/* Mood — visual selectable presets */}
       <div>
-        <label style={{ ...lbl, fontSize: '0.62rem' }}>Mood</label>
+        <label style={{ ...lbl, fontSize: 'var(--pl-text-2xs)' }}>Mood</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '6px' }}>
           {MOOD_PRESETS.map(m => {
             const isActive = currentMood.toLowerCase().includes(m.id.replace('-', ' '));
@@ -303,7 +303,7 @@ export function ChapterPanel({
                   padding: '4px 10px', borderRadius: '100px',
                   border: isActive ? `2px solid ${m.color}` : '1px solid var(--pl-divider, #E0D8CA)',
                   background: isActive ? `${m.color}15` : '#fff',
-                  cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
+                  cursor: 'pointer', fontSize: 'var(--pl-text-sm)', fontWeight: 600,
                   color: isActive ? m.color : 'var(--pl-ink-soft, #3D3530)',
                   transition: 'all 0.15s',
                   boxShadow: isActive ? `0 2px 8px ${m.color}20` : 'none',
@@ -319,8 +319,8 @@ export function ChapterPanel({
           value={chapter.mood || ''}
           onChange={e => upd({ mood: e.target.value })}
           placeholder="Or type your own mood..."
-          style={{ ...inp, fontSize: '0.82rem', padding: '5px 8px' }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
+          style={{ ...inp, fontSize: 'var(--pl-text-base)', padding: '5px 8px' }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; }}
           onBlur={e => { e.currentTarget.style.borderColor = 'var(--pl-black-7)'; }}
         />
       </div>
