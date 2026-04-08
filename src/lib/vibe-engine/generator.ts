@@ -6,6 +6,7 @@
 import type { VibeSkin, CoupleProfile, VibeSkinContext, SiteArtResult } from './types';
 import { WAVE_PATHS, CORNER_STYLES, extractSvgFromField, isValidSvg, buildFallbackArt } from './svg-library';
 import { deriveFallback } from './fallback';
+import { enforcePaletteContrast } from '@/lib/color-utils';
 
 // ── Dev-only logging helpers ─────────────────────────────────────────────────
 const isDev = process.env.NODE_ENV === 'development';
@@ -562,7 +563,7 @@ CRITICAL DESIGN RULES:
       dividerQuote: typeof parsed.dividerQuote === 'string' ? parsed.dividerQuote : vibeString,
       cornerStyle: CORNER_STYLES[curve],
       tone: VALID_TONES.includes(parsed.tone) ? parsed.tone : 'dreamy',
-      palette: {
+      palette: enforcePaletteContrast({
         background: bgColor,
         foreground: fgColor,
         accent: accentColor,
@@ -572,7 +573,7 @@ CRITICAL DESIGN RULES:
         highlight: highlightColor,
         subtle: subtleColor,
         ink: inkColor,
-      },
+      }),
       fonts: {
         heading: (typeof parsed.fonts?.heading === 'string' && parsed.fonts.heading.length > 0) ? parsed.fonts.heading : 'Playfair Display',
         body:    (typeof parsed.fonts?.body === 'string' && parsed.fonts.body.length > 0)       ? parsed.fonts.body    : 'Inter',

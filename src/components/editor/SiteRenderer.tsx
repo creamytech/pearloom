@@ -23,6 +23,7 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
+import { ensureContrast } from '@/lib/color-utils';
 import type { StoryManifest, SitePage, PageBlock, BlockType } from '@/types';
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
@@ -618,6 +619,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     const blockCfg = block.config || {};
     const key = block.id;
 
+    // Per-block contrast-safe colors: if a block has a custom bgColor,
+    // auto-adjust text colors so they remain readable
+    const blockBg = (blockCfg.bgColor as string) || bgColor;
+    const safeFg = ensureContrast(pal.foreground, blockBg, 4.5);
+    const safeMuted = ensureContrast(pal.muted, blockBg, 3.0);
+    const safeAccent = ensureContrast(pal.accent, blockBg, 3.0);
+
     // Apply per-block style overrides from config
     const blockStyle: React.CSSProperties = {};
     if (blockCfg.bgColor) blockStyle.background = blockCfg.bgColor as string;
@@ -693,7 +701,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'countdown':
         return (
           <section key={key} data-pe-section="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
-            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground }}>
+            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg }}>
               Countdown
             </div>
           </section>
@@ -705,7 +713,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <section key={key} data-pe-section="text" style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
             <p
               data-pe-editable="true" data-pe-path={`blocks.${manifest.blocks?.findIndex(b => b.id === block.id) ?? 0}.config.content`}
-              style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: pal.foreground, opacity: 0.8, textAlign: 'center' }}
+              style={{ fontFamily: `"${vibeSkin.fonts.body}", sans-serif`, fontSize: '1.1rem', lineHeight: 1.8, color: safeFg, opacity: 0.8, textAlign: 'center' }}
             >
               {textContent}
             </p>
@@ -715,8 +723,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'quote':
         return (
           <section key={key} data-pe-section="quote" style={{ padding: '5rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
-            <div data-pe-icon="accentSymbol" data-pe-icon-scope="global" style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem', cursor: 'pointer' }}>{vibeSkin.accentSymbol || '✦'}</div>
-            <p data-pe-editable="true" data-pe-path="poetry.dividerQuote" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: pal.foreground, opacity: 0.75 }}>
+            <div data-pe-icon="accentSymbol" data-pe-icon-scope="global" style={{ fontSize: '2rem', color: safeAccent, opacity: 0.4, marginBottom: '1rem', cursor: 'pointer' }}>{vibeSkin.accentSymbol || '✦'}</div>
+            <p data-pe-editable="true" data-pe-path="poetry.dividerQuote" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.65, color: safeFg, opacity: 0.75 }}>
               {vibeSkin.dividerQuote || manifest.vibeString || 'Love is composed of a single soul inhabiting two bodies.'}
             </p>
           </section>
@@ -777,12 +785,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'guestbook':
         return (
           <section key={key} data-pe-section="guestbook" style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
-            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: pal.foreground, marginBottom: '1rem' }}>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: safeFg, marginBottom: '1rem' }}>
               Leave Your Wishes
             </h2>
-            <p style={{ color: pal.muted, fontSize: '0.95rem', marginBottom: '2rem' }}>Share your love and well wishes</p>
+            <p style={{ color: safeMuted, fontSize: '0.95rem', marginBottom: '2rem' }}>Share your love and well wishes</p>
             <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.card}40`, border: `1px solid ${pal.accent}20` }}>
-              <p style={{ color: pal.muted, fontStyle: 'italic' }}>Guestbook messages will appear here</p>
+              <p style={{ color: safeMuted, fontStyle: 'italic' }}>Guestbook messages will appear here</p>
             </div>
           </section>
         );
@@ -804,16 +812,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'hashtag':
         return (
           <section key={key} data-pe-section="hashtag" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
-            <div style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontWeight: 600, color: pal.accent }}>
+            <div style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontWeight: 600, color: safeAccent }}>
               #{(blockCfg.hashtag as string) || `${names[0]}And${names[1]}`.replace(/\s/g, '')}
             </div>
-            <p style={{ color: pal.muted, fontSize: '0.88rem', marginTop: '0.5rem' }}>Share your photos with our hashtag</p>
+            <p style={{ color: safeMuted, fontSize: '0.88rem', marginTop: '0.5rem' }}>Share your photos with our hashtag</p>
           </section>
         );
       case 'weddingParty':
         return (
           <section key={key} data-pe-section="weddingParty" style={{ padding: '4rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
-            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: pal.foreground, textAlign: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: safeFg, textAlign: 'center', marginBottom: '2rem' }}>
               The Wedding Party
             </h2>
             {(manifest.weddingParty?.length || 0) > 0 ? (
@@ -823,13 +831,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                     <div style={{ width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 0.75rem', background: `${pal.accent}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', color: pal.accent }}>
                       {m.name?.[0] || '?'}
                     </div>
-                    <div style={{ fontWeight: 600, color: pal.foreground, fontSize: '0.88rem' }}>{m.name}</div>
-                    <div style={{ color: pal.muted, fontSize: '0.75rem' }}>{m.role}</div>
+                    <div style={{ fontWeight: 600, color: safeFg, fontSize: '0.88rem' }}>{m.name}</div>
+                    <div style={{ color: safeMuted, fontSize: '0.75rem' }}>{m.role}</div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ textAlign: 'center', color: pal.muted }}>Add wedding party members in the Story panel</p>
+              <p style={{ textAlign: 'center', color: safeMuted }}>Add wedding party members in the Story panel</p>
             )}
           </section>
         );
@@ -842,7 +850,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <p data-pe-editable="true" data-pe-path={block.type === 'welcome' ? 'poetry.welcomeStatement' : 'poetry.dividerQuote'} style={{
               fontFamily: `"${block.type === 'welcome' ? vibeSkin.fonts.body : vibeSkin.fonts.heading}", ${block.type === 'welcome' ? 'sans-serif' : 'serif'}`,
               fontSize: block.type === 'welcome' ? '1.05rem' : 'clamp(1.2rem, 2.5vw, 1.8rem)',
-              fontStyle: 'italic', fontWeight: 400, lineHeight: 1.7, color: pal.foreground, opacity: 0.75,
+              fontStyle: 'italic', fontWeight: 400, lineHeight: 1.7, color: safeFg, opacity: 0.75,
             }}>
               {statement}
             </p>
@@ -852,12 +860,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'quiz':
         return (
           <section key={key} data-pe-section="quiz" style={{ padding: '4rem 2rem', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, marginBottom: '1rem' }}>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
               How Well Do You Know Us?
             </h2>
-            <p style={{ color: pal.muted, marginBottom: '2rem' }}>Take the couple quiz and see how you score!</p>
+            <p style={{ color: safeMuted, marginBottom: '2rem' }}>Take the couple quiz and see how you score!</p>
             <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20` }}>
-              <p style={{ color: pal.muted, fontStyle: 'italic' }}>Quiz questions will appear here for your guests</p>
+              <p style={{ color: safeMuted, fontStyle: 'italic' }}>Quiz questions will appear here for your guests</p>
             </div>
           </section>
         );
@@ -867,7 +875,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         return (
           <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground }}>
+              <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg }}>
                 {block.type === 'photoWall' ? 'Photo Wall' : 'Gallery'}
               </h2>
             </div>
@@ -881,7 +889,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 ))}
               </div>
             ) : (
-              <p style={{ textAlign: 'center', color: pal.muted }}>Photos from your chapters will appear here</p>
+              <p style={{ textAlign: 'center', color: safeMuted }}>Photos from your chapters will appear here</p>
             )}
           </section>
         );
@@ -892,14 +900,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         return (
           <section key={key} data-pe-section="anniversary" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
-            <h2 data-pe-editable="true" data-pe-path="poetry.anniversaryTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, marginBottom: '1rem' }}>
+            <h2 data-pe-editable="true" data-pe-path="poetry.anniversaryTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
               Anniversary Milestones
             </h2>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
               {['First Date', '1 Year', '5 Years', 'Today'].map((milestone, i) => (
                 <div key={i} style={{ padding: '1rem', borderRadius: '12px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, minWidth: '100px' }}>
                   <div style={{ fontSize: '1.5rem', color: pal.accent, marginBottom: '0.25rem' }}>{['💕', '🎂', '🌟', '✨'][i]}</div>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 600, color: pal.foreground }}>{milestone}</div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 600, color: safeFg }}>{milestone}</div>
                 </div>
               ))}
             </div>
@@ -908,18 +916,18 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'storymap':
         return (
           <section key={key} data-pe-section="storymap" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-            <h2 data-pe-editable="true" data-pe-path="poetry.storymapTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: pal.foreground, marginBottom: '1rem' }}>
+            <h2 data-pe-editable="true" data-pe-path="poetry.storymapTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
               Our Journey
             </h2>
-            <p style={{ color: pal.muted, marginBottom: '2rem' }}>The places that made our story</p>
+            <p style={{ color: safeMuted, marginBottom: '2rem' }}>The places that made our story</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               {(manifest.chapters || []).slice(0, 4).filter(c => c.location?.label).map((ch, i) => (
-                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: '100px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.82rem', color: pal.foreground }}>
+                <div key={i} style={{ padding: '0.75rem 1.25rem', borderRadius: '100px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, fontSize: '0.82rem', color: safeFg }}>
                   📍 {ch.location!.label}
                 </div>
               ))}
               {!(manifest.chapters || []).some(c => c.location?.label) && (
-                <p style={{ color: pal.muted, fontStyle: 'italic' }}>Add locations to your chapters to see them here</p>
+                <p style={{ color: safeMuted, fontStyle: 'italic' }}>Add locations to your chapters to see them here</p>
               )}
             </div>
           </section>
