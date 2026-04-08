@@ -608,7 +608,8 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], ['-18%', '18%']);
-  // Desaturate image as it exits viewport — reinforces narrative time progression
+  // Subtle opacity fade as it exits viewport — GPU-friendly alternative to filter animation
+  const imgOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [1, 1, 0.6]);
   const imgFilter = useTransform(
     scrollYProgress,
     [0, 0.55, 1],
@@ -756,7 +757,8 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
 function CinematicLayout({ chapter, index }: TimelineItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const blur = useTransform(scrollYProgress, [0, 0.5, 1], [60, 80, 60]);
+  // Static blur — animating filter:blur on every scroll frame is expensive
+  const blur = 70;
   const hasImages = (chapter.images?.length ?? 0) > 0;
   const mainImage = heroImage(chapter);
   const [videoPlaying, setVideoPlaying] = useState(false);
@@ -808,7 +810,7 @@ function CinematicLayout({ chapter, index }: TimelineItemProps) {
                   position: 'absolute', inset: -120,
                   backgroundImage: `url(${proxyUrl(mainImage, 800, 800)})`,
                   backgroundSize: 'cover', backgroundPosition: focalPos(chapter),
-                  filter: `blur(${blur.get()}px) brightness(0.88) saturate(1.6)`,
+                  filter: `blur(${blur}px) brightness(0.88) saturate(1.6)`,
                   opacity: 0.35, zIndex: 0,
                 }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'var(--pl-cream)', opacity: 0.82, zIndex: 1 }} />

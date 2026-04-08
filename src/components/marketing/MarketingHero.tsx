@@ -62,10 +62,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!mockupRef.current) return;
     const rect = mockupRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    mouseX.set(e.clientX - centerX);
-    mouseY.set(e.clientY - centerY);
+    mouseX.set(e.clientX - (rect.left + rect.width / 2));
+    mouseY.set(e.clientY - (rect.top + rect.height / 2));
   };
 
   const handleMouseLeave = () => {
@@ -83,7 +81,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         background: 'radial-gradient(ellipse at 50% 0%, var(--pl-cream-deep) 0%, var(--pl-cream) 55%)',
       }}
     >
-      {/* Ambient orb */}
+      {/* Ambient orbs — static blur, GPU-composited */}
       <div
         aria-hidden="true"
         className="absolute top-[-10%] right-[-12%] w-[55vw] h-[55vw] rounded-full pointer-events-none"
@@ -91,7 +89,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           background: 'radial-gradient(circle, var(--pl-olive-mist) 0%, transparent 70%)',
           filter: 'blur(90px)',
           opacity: 0.55,
-          animation: 'orb-drift 22s ease-in-out infinite',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
         }}
       />
       <div
@@ -101,7 +100,8 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
           background: 'radial-gradient(circle, var(--pl-plum-mist) 0%, transparent 70%)',
           filter: 'blur(80px)',
           opacity: 0.35,
-          animation: 'orb-drift 28s ease-in-out infinite reverse',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
         }}
       />
 
@@ -232,6 +232,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
               rotateX,
               rotateY,
               transformStyle: 'preserve-3d',
+              willChange: 'transform',
             }}
           >
             <div style={{ transform: 'scale(1.08)' }}>

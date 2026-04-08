@@ -80,8 +80,30 @@ export function VibeParticles({ particle, accent }: VibeParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
+  const isVisibleRef = useRef(true);
+
+  // Respect prefers-reduced-motion
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mq.matches) return; // Don't render particles at all
+  }, []);
+
+  // Pause when off-screen via IntersectionObserver
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { isVisibleRef.current = entry.isIntersecting; },
+      { threshold: 0.1 }
+    );
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
+    // Skip entirely if user prefers reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -115,6 +137,11 @@ export function VibeParticles({ particle, accent }: VibeParticlesProps) {
 
     let frame = 0;
     const animate = () => {
+      // Skip rendering when off-screen to save GPU cycles
+      if (!isVisibleRef.current) {
+        animRef.current = requestAnimationFrame(animate);
+        return;
+      }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       frame++;
 

@@ -6,7 +6,7 @@
 // typography, date/venue badge, poetry tagline
 // ─────────────────────────────────────────────────────────────
 
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { CountdownWidget } from '@/components/countdown-widget';
 import { VibeParticles } from '@/components/vibe/VibeParticles';
@@ -81,6 +81,7 @@ function formatDateBadge(dateStr: string): string {
 
 export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos, editMode }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const prefersReduced = useReducedMotion();
 
   // Editor mode: prefer explicit prop, fall back to DOM check (for legacy callers)
   const isEditorRef = useRef<boolean | null>(editMode ?? null);
@@ -262,23 +263,25 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           }} />
           <FilmGrain />
 
-          {/* Animated soft orbs */}
+          {/* Soft orbs — static when reduced motion preferred */}
           <motion.div
-            animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
+            animate={prefersReduced ? {} : { x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
             transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
             style={{
               position: 'absolute', width: 'clamp(300px, 70vw, 700px)', height: 'clamp(300px, 70vw, 700px)', borderRadius: '50%',
               background: 'radial-gradient(circle, color-mix(in srgb, var(--pl-olive) 18%, transparent) 0%, transparent 70%)',
               top: '-15%', left: '-10%', filter: 'blur(60px)', zIndex: 0,
+              willChange: 'transform', transform: 'translateZ(0)',
             }}
           />
           <motion.div
-            animate={{ x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.15, 1] }}
+            animate={prefersReduced ? {} : { x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.15, 1] }}
             transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
             style={{
               position: 'absolute', width: 'clamp(260px, 60vw, 600px)', height: 'clamp(260px, 60vw, 600px)', borderRadius: '50%',
               background: 'radial-gradient(circle, color-mix(in srgb, var(--pl-olive) 10%, transparent) 0%, transparent 70%)',
               bottom: '-10%', right: '-10%', filter: 'blur(80px)', zIndex: 0,
+              willChange: 'transform', transform: 'translateZ(0)',
             }}
           />
 
@@ -294,7 +297,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
 
           {/* Subtle accent orb — bottom-right, no cover photo only */}
           <motion.div
-            animate={{ scale: [1, 1.08, 1], opacity: [0.06, 0.09, 0.06] }}
+            animate={prefersReduced ? {} : { scale: [1, 1.08, 1], opacity: [0.06, 0.09, 0.06] }}
             transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
             style={{
               position: 'absolute', bottom: '-40px', right: '-40px',
