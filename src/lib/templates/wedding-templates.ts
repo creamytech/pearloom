@@ -42,6 +42,10 @@ export interface SiteTemplate {
   };
   /** Default vibe string */
   vibeString: string;
+  /** Price in cents (0 = free, undefined = free) */
+  price?: number;
+  /** Featured in marketplace */
+  featured?: boolean;
   /** Hero cover photo URL */
   coverPhoto?: string;
   /** Layout format */
@@ -76,6 +80,8 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'ethereal-garden',
     name: 'Ethereal Garden',
     tagline: 'Botanical romance with soft light',
+    price: 0,
+    featured: true,
     description: 'Lush greenery, soft sage accents, and warm natural light. Perfect for garden ceremonies and outdoor celebrations.',
     previewGradient: 'linear-gradient(135deg, #E8F0E0 0%, #D4DFC8 50%, #A3B18A 100%)',
     occasions: ['wedding', 'engagement'],
@@ -117,6 +123,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'midnight-luxe',
     name: 'Midnight Luxe',
     tagline: 'Dark elegance with gold accents',
+    price: 0,
     description: 'Sophisticated dark palette with antique gold details. Ideal for evening galas, ballroom receptions, and glamorous celebrations.',
     previewGradient: 'linear-gradient(135deg, #1A1510 0%, #2D2618 50%, #C4A96A 100%)',
     coverPhoto: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=2000&auto=format&fit=crop',
@@ -157,6 +164,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     coverPhoto: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop',
     name: 'Coastal Breeze',
     tagline: 'Seaside serenity with ocean blues',
+    price: 0,
     description: 'Fresh ocean blues, driftwood textures, and salt-kissed air. Perfect for beach ceremonies and waterfront venues.',
     previewGradient: 'linear-gradient(135deg, #F0F5FA 0%, #7BA7BC 50%, #3D6E80 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
@@ -197,6 +205,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     coverPhoto: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=2000&auto=format&fit=crop',
     name: 'Rustic Romance',
     tagline: 'Barn wood and wildflowers',
+    price: 0,
     description: 'Warm earth tones, hand-lettered charm, and rustic textures. Ideal for barn weddings, farm celebrations, and countryside charm.',
     previewGradient: 'linear-gradient(135deg, #FDF8F0 0%, #8B7355 50%, #4A3828 100%)',
     occasions: ['wedding', 'engagement'],
@@ -237,6 +246,8 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     coverPhoto: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=2000&auto=format&fit=crop',
     name: 'Blush & Bloom',
     tagline: 'Soft pinks and delicate florals',
+    price: 0,
+    featured: true,
     description: 'Romantic blush palette with champagne accents and soft petal textures. Perfect for spring and summer celebrations.',
     previewGradient: 'linear-gradient(135deg, #FDF8F5 0%, #E8B4C0 50%, #C080A0 100%)',
     occasions: ['wedding', 'engagement', 'birthday'],
@@ -277,6 +288,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     coverPhoto: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=2000&auto=format&fit=crop',
     name: 'Minimalist White',
     tagline: 'Clean lines, pure simplicity',
+    price: 0,
     description: 'Ultra-clean white space with sharp typography and no distractions. For couples who believe less is more.',
     previewGradient: 'linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 50%, #111111 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
@@ -309,6 +321,8 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     coverPhoto: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2000&auto=format&fit=crop',
     name: 'Golden Hour',
     tagline: 'Warm light and analog nostalgia',
+    price: 0,
+    featured: true,
     description: 'Sun-drenched warmth with film grain textures and golden tones. Captures the magic of that perfect sunset moment.',
     previewGradient: 'linear-gradient(135deg, #FAF9F6 0%, #D4A574 50%, #8B5E3C 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
@@ -350,6 +364,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     coverPhoto: 'https://images.unsplash.com/photo-1503516459261-40c66117780a?q=80&w=2000&auto=format&fit=crop',
     name: 'Lavender Dreams',
     tagline: 'Ethereal purple haze',
+    price: 0,
     description: 'Dreamy lavender palette with celestial accents. Ethereal and otherworldly, perfect for evening ceremonies under the stars.',
     previewGradient: 'linear-gradient(135deg, #F0EEFF 0%, #9B7FD9 50%, #4A3060 100%)',
     occasions: ['wedding', 'engagement', 'anniversary'],
@@ -387,6 +402,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'y2k-reloaded',
     name: 'Y2K Reloaded',
     tagline: 'Early 2000s nostalgia, rebooted',
+    price: 399,
     description: 'Hot pink meets electric blue in a throwback to the early 2000s. Bubble fonts, bold color clashes, and unapologetic fun for birthday parties that refuse to grow up.',
     previewGradient: 'linear-gradient(135deg, #FFF0F5 0%, #FF69B4 50%, #00BFFF 100%)',
     occasions: ['birthday'],
@@ -426,6 +442,8 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'aged-to-perfection',
     name: 'Aged to Perfection',
     tagline: 'Sophisticated wine and charcuterie vibes',
+    price: 499,
+    featured: true,
     description: 'Burgundy, cream, and gold set the tone for a birthday celebration that\'s refined, warm, and effortlessly elegant. Think wine tastings, cheese boards, and candlelit toasts.',
     previewGradient: 'linear-gradient(135deg, #FAF5F0 0%, #722F37 50%, #C4A96A 100%)',
     occasions: ['birthday', 'story'],
@@ -465,6 +483,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'future-noir',
     name: 'Future Noir',
     tagline: 'Cyberpunk dark theme for the digital age',
+    price: 399,
     description: 'Neon cyan and electric purple cut through deep black in a birthday theme built for the future. Sharp, dark, and unforgettable — for those who celebrate at the edge of tomorrow.',
     previewGradient: 'linear-gradient(135deg, #0A0A12 0%, #00D4FF 50%, #7B2FBE 100%)',
     occasions: ['birthday'],
@@ -504,6 +523,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'martini-hour',
     name: 'Martini Hour',
     tagline: 'Chic cocktail elegance',
+    price: 499,
     description: 'Yellow gold on crisp white with black accents — a birthday celebration dripping in cocktail-hour sophistication. Shaken, never boring.',
     previewGradient: 'linear-gradient(135deg, #FFFDE8 0%, #D4A800 50%, #1A1A0A 100%)',
     occasions: ['birthday', 'story'],
@@ -543,6 +563,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'gothic-masquerade',
     name: 'Gothic Masquerade',
     tagline: 'Dark dramatic elegance',
+    price: 399,
     description: 'Deep purple, black, gold, and crimson collide in a birthday theme steeped in mystery and grandeur. Masks optional, drama required.',
     previewGradient: 'linear-gradient(135deg, #0D0A10 0%, #8B0000 50%, #C4A96A 100%)',
     occasions: ['birthday'],
@@ -582,6 +603,7 @@ export const SITE_TEMPLATES: SiteTemplate[] = [
     id: 'maximalist-fun-house',
     name: 'Maximalist Fun House',
     tagline: 'Bold circus-chic energy',
+    price: 499,
     description: 'Primary colors, bold patterns, and maximum playful energy. A birthday theme for those who believe more is more and subtlety is overrated.',
     previewGradient: 'linear-gradient(135deg, #FFF5F0 0%, #FF4444 50%, #FFD700 100%)',
     occasions: ['birthday'],
