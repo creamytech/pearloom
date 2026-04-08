@@ -198,11 +198,8 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
         <div className="flex-1 overflow-auto flex justify-center px-4 md:px-8 py-6 md:py-10">
           <div className="w-full max-w-[960px] flex flex-col lg:flex-row gap-5">
             {/* Glass card */}
-            <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex-1 min-w-0"
+            <div
+              className="pl-enter-scale flex-1 min-w-0"
               style={{
                 background: 'rgba(255,255,255,0.55)',
                 backdropFilter: 'blur(40px) saturate(1.3)',
@@ -217,11 +214,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
               <div className="p-6 md:p-10">
                 {/* Step label + progress */}
                 {title && step !== 'dashboard' && step !== 'generating' && (
-                  <motion.div
-                    initial={{ y: 10 }}
-                    animate={{ y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  >
+                  <div className="pl-enter pl-enter-d1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-[0.6rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)]">
                         {STEPS[currentIdx]?.label?.toUpperCase() || 'STEP'}
@@ -248,7 +241,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
                     )}
 
                     <div className="mt-8" />
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* Step content */}
@@ -264,18 +257,13 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
                   </motion.div>
                 </AnimatePresence>
               </div>
-            </motion.div>
+            </div>
 
             {/* Right panel — floats beside the glass card on lg+ */}
             {rightPanel && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="hidden lg:block w-[240px] shrink-0"
-              >
+              <div className="pl-enter pl-enter-d2 hidden lg:block w-[240px] shrink-0">
                 {rightPanel}
-              </motion.div>
+              </div>
             )}
           </div>
         </div>

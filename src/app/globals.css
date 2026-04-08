@@ -628,6 +628,65 @@ input:focus, textarea:focus, select:focus {
   to   { transform: rotate(360deg); }
 }
 
+/* ── Entrance Animation System ─────────────────────────────
+   CSS-only entrance animations that avoid Framer Motion hydration
+   flash. Elements start hidden via CSS (not JS), so there's no
+   frame where content is visible then disappears.
+
+   Usage:
+     <div className="pl-enter">              — fade + slide up (default)
+     <div className="pl-enter pl-enter-d1">  — with 100ms delay
+     <div className="pl-enter pl-enter-d2">  — with 200ms delay
+     <div className="pl-enter-scale">        — fade + scale pop
+     <div className="pl-enter-fade">         — fade only (no movement)
+   ──────────────────────────────────────────────────────────── */
+
+@keyframes pl-enter-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pl-enter-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pl-enter-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pl-enter {
+  animation: pl-enter-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pl-enter-scale {
+  animation: pl-enter-scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pl-enter-fade {
+  animation: pl-enter-fade-in 0.35s ease-out both;
+}
+
+/* Stagger delays */
+.pl-enter-d1 { animation-delay: 0.06s; }
+.pl-enter-d2 { animation-delay: 0.12s; }
+.pl-enter-d3 { animation-delay: 0.18s; }
+.pl-enter-d4 { animation-delay: 0.24s; }
+.pl-enter-d5 { animation-delay: 0.3s; }
+.pl-enter-d6 { animation-delay: 0.36s; }
+.pl-enter-d7 { animation-delay: 0.42s; }
+.pl-enter-d8 { animation-delay: 0.48s; }
+
+/* Reduced motion: skip all entrance animations */
+@media (prefers-reduced-motion: reduce) {
+  .pl-enter,
+  .pl-enter-scale,
+  .pl-enter-fade {
+    animation: none !important;
+  }
+}
+
 /* ─── Base Reset ─── */
 
 *, *::before, *::after {

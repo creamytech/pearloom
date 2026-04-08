@@ -224,12 +224,6 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   const [copiedId, setCopiedId]             = useState<string | null>(null);
   const [expandedCompleteness, setExpandedCompleteness] = useState<string | null>(null);
 
-  // Prevent hydration flash: skip initial animation state until after mount.
-  // SSR renders content visible → without this, Framer sets opacity:0 on hydrate → flash.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-  const fadeIn = mounted ? { opacity: 0, y: 20 } : false;
-  const fadeInSmall = mounted ? { opacity: 0, y: 8 } : false;
 
   const loadSites = () => {
     setFetchError(false);
@@ -289,11 +283,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
     <div className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20">
 
       {/* ── Header band ── */}
-      <motion.div
-        initial={fadeIn}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-[var(--pl-radius-lg)] sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
+      <div
+        className="pl-enter rounded-[var(--pl-radius-lg)] sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
       >
         {/* Decorative arc */}
         <div>
@@ -316,7 +307,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         >
           New Site
         </Button>
-      </motion.div>
+      </div>
 
       {/* ── Bento creation cards ── */}
       {!loading && !fetchError && (
@@ -326,22 +317,17 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             { icon: <Image size={24} />, title: 'Upload Photos', desc: 'Jump straight to uploading your own high-quality images.', action: () => { if (onStartNew) onStartNew(); /* navigates to photos step */ } },
             { icon: <Sparkles size={24} />, title: 'From Template', desc: 'Pick a pre-designed template and customize every detail.', action: onOpenTemplates || onQuickStart || onStartNew },
           ].map((card, i) => (
-            <motion.button
+            <button
               key={card.title}
               onClick={card.action}
-              initial={fadeInSmall}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 + 0.15, duration: 0.4 }}
-              whileHover={{ y: -3, boxShadow: '0 8px 32px rgba(43,30,20,0.08)' }}
-              whileTap={{ scale: 0.98 }}
-              className="flex flex-col items-center text-center p-5 sm:p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer"
+              className={`pl-enter pl-enter-d${i + 1} flex flex-col items-center text-center p-5 sm:p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] active:scale-[0.98] transition-all duration-300 cursor-pointer`}
             >
               <div className="w-14 h-14 rounded-2xl border border-[var(--pl-divider)] flex items-center justify-center mb-4 text-[var(--pl-muted)]">
                 {card.icon}
               </div>
               <h3 className="font-heading italic text-lg text-[var(--pl-ink-soft)] mb-2">{card.title}</h3>
               <p className="text-[0.82rem] text-[var(--pl-muted)] leading-relaxed">{card.desc}</p>
-            </motion.button>
+            </button>
           ))}
         </div>
       )}
@@ -374,11 +360,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
       ) : sites.length === 0 ? (
         <div className="max-w-[640px] mx-auto">
           {/* Hero empty state */}
-          <motion.div
-            initial={fadeIn}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="flex flex-col items-center justify-center text-center py-16 px-8 rounded-[24px] mb-8"
+          <div
+            className="pl-enter flex flex-col items-center justify-center text-center py-16 px-8 rounded-[24px] mb-8"
             style={{
               background: 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(20px)',
@@ -406,14 +389,11 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 </Button>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* How it works — 3 steps */}
-          <motion.div
-            initial={fadeInSmall}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+          <div
+            className="pl-enter pl-enter-d2 grid grid-cols-1 sm:grid-cols-3 gap-4"
           >
             {[
               { num: '1', title: 'Add photos', desc: 'From Google Photos or your device — the moments that matter most.' },
@@ -440,7 +420,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
 
       ) : (
@@ -474,14 +454,9 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               const occ           = OCCASION_BADGE[site.manifest?.occasion || ''];
 
               return (
-                <motion.article
+                <article
                   key={site.id}
-                  initial={fadeIn}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                  exit={{ opacity: 0, scale: 0.93 }}
-                  className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)] bg-white group transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.14),0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-1.5 flex flex-col"
+                  className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)] bg-white group transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.14),0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-1.5 flex flex-col`}
                 >
                   {/* Cover — living portrait */}
                   <motion.div
@@ -712,19 +687,15 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                       {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                     </Button>
                   </CardFooter>
-                </motion.article>
+                </article>
               );
             })}
           </AnimatePresence>
 
           {/* Create new card */}
-          <motion.button
-            initial={fadeIn}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.5, delay: sites.length * 0.06, ease: [0.16, 1, 0.3, 1] }}
+          <button
             onClick={onStartNew}
-            className="min-h-[340px] flex flex-col items-center justify-center gap-5 rounded-[var(--pl-radius-lg)] border-2 border-dashed border-[rgba(163,177,138,0.35)] bg-transparent cursor-pointer transition-all duration-300 hover:border-[var(--pl-olive)] hover:bg-[rgba(163,177,138,0.04)] group"
+            className="pl-enter pl-enter-d4 min-h-[340px] flex flex-col items-center justify-center gap-5 rounded-[var(--pl-radius-lg)] border-2 border-dashed border-[rgba(163,177,138,0.35)] bg-transparent cursor-pointer transition-all duration-300 hover:border-[var(--pl-olive)] hover:bg-[rgba(163,177,138,0.04)] group"
           >
             <div className="w-14 h-14 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
               <Plus size={22} className="text-[var(--pl-olive)]" />
@@ -737,7 +708,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 Create your celebration site in seconds
               </div>
             </div>
-          </motion.button>
+          </button>
         </div>
         </>
       )}
