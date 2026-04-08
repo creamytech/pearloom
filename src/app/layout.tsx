@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { validateEnv } from "@/lib/env";
 import "./globals.css";
+
+// Run environment validation once at module load (server startup).
+validateEnv();
 
 export const viewport: Viewport = {
   width: 'device-width',

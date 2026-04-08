@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ─────────────────────────────────────────────────────────────
 // Pearloom / api/generate-pattern/route.ts
@@ -246,6 +247,12 @@ function buildFallbackSvg(accent: string, vibeString: string, place: string): st
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`generate-pattern:${ip}`, { max: 10, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY not set' }, { status: 500 });

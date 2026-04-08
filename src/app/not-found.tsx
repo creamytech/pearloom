@@ -1,19 +1,6 @@
-'use client';
+import Link from 'next/link';
 
-import { useEffect } from 'react';
-
-export default function ErrorPage({
-  error,
-  unstable_retry,
-}: {
-  error: Error & { digest?: string };
-  unstable_retry: () => void;
-}) {
-  useEffect(() => {
-    // TODO: replace with Sentry.captureException(error) once integrated
-    console.error('[Pearloom] Unhandled error:', error);
-  }, [error]);
-
+export default function NotFound() {
   return (
     <div
       style={{
@@ -48,7 +35,7 @@ export default function ErrorPage({
           letterSpacing: '-0.01em',
         }}
       >
-        Something went wrong
+        Page not found
       </h1>
       <p
         style={{
@@ -59,39 +46,26 @@ export default function ErrorPage({
           marginBottom: '2rem',
         }}
       >
-        An unexpected error occurred. Your site data is safe &mdash; we just
-        hit a snag displaying this page.
+        The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </p>
-      <button
-        onClick={() => unstable_retry()}
+      <Link
+        href="/"
         style={{
+          display: 'inline-block',
           padding: '0.7rem 1.75rem',
           borderRadius: '100px',
           background: '#A3B18A',
           color: '#fff',
-          border: 'none',
           fontFamily: "'Lora', Georgia, serif",
           fontWeight: 600,
           fontSize: '0.9rem',
-          cursor: 'pointer',
+          textDecoration: 'none',
           letterSpacing: '0.04em',
+          transition: 'background 0.2s ease',
         }}
       >
-        Try again
-      </button>
-      {error.digest && (
-        <p
-          style={{
-            marginTop: '1.5rem',
-            fontSize: '0.7rem',
-            color: '#C4A96A',
-            letterSpacing: '0.06em',
-            fontFamily: 'monospace',
-          }}
-        >
-          Error ID: {error.digest}
-        </p>
-      )}
+        Go home
+      </Link>
     </div>
   );
 }

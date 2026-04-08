@@ -95,4 +95,6 @@ export const RATE_LIMITS = {
   aiRewrite: { max: 30, windowMs: 60 * 60 * 1000 },
   /** Site health analysis — 10 per hour per user */
   siteHealth: { max: 10, windowMs: 60 * 60 * 1000 },
+  /** Data export — 10 per hour per user (GDPR compliance) */
+  dataExport: { max: 10, windowMs: 60 * 60 * 1000 },
 } as const;

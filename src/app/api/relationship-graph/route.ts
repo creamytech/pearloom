@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,12 @@ function buildMockData(): { nodes: GraphNode[]; edges: GraphEdge[] } {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`relationship-graph:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const siteId = req.nextUrl.searchParams.get('siteId');
   if (!siteId) return NextResponse.json({ nodes: [], edges: [] });
 
@@ -126,6 +133,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`relationship-graph-post:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const { siteId, guestName, side, relationshipType, relationshipLabel, memorySnippet } = await req.json();
 

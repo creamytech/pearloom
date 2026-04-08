@@ -3,11 +3,19 @@
 // Generates poetic 4-8 word captions for chapter photos via Gemini.
 // ─────────────────────────────────────────────────────────────
 
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(`generate-captions:${ip}`, { max: 10, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return Response.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'Gemini API key not configured' }, { status: 500 });

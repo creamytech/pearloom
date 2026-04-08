@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { acceptSiteInvite } from '@/lib/db';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,12 @@ export const dynamic = 'force-dynamic';
 // Body: { token: string }
 // No auth required (guest accepts via token link)
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`invite-accept:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const { token } = await req.json() as { token: string };
 

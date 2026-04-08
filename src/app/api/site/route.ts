@@ -5,8 +5,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSiteConfig } from '@/lib/db';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`site:${ip}`, { max: 60, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const siteId = req.nextUrl.searchParams.get('siteId');
     if (!siteId) {

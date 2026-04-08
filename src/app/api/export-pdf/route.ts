@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { StoryManifest } from '@/types';
 import { parseLocalDate } from '@/lib/date';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -328,6 +329,12 @@ function buildHtml(manifest: StoryManifest, siteId: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`export-pdf:${ip}`, { max: 20, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return new Response('Too many requests', { status: 429 });
+  }
+
   try {
     const siteId = req.nextUrl.searchParams.get('siteId');
     if (!siteId) {

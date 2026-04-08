@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GEMINI_FLASH } from '@/lib/memory-engine/gemini-client';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/design-advisor
@@ -38,6 +39,12 @@ Output ONLY a JSON array: [{"severity":"tip|warn","title":"...","detail":"..."}]
 If the palette looks great, return an empty array [].`;
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`design-advisor:${ip}`, { max: 10, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ suggestions: [] });
