@@ -499,6 +499,9 @@ export function MobileEditorSheet() {
         flex: 1, position: 'relative', minHeight: 0,
         overflow: 'auto', WebkitOverflowScrolling: 'touch',
         background: 'var(--pl-cream)',
+        // Isolate stacking context so SiteRenderer z-index values
+        // (icon pickers, context menus) don't overlap the bottom sheet
+        zIndex: 0, isolation: 'isolate',
       } as React.CSSProperties}>
         <SiteRenderer
           manifest={manifest}
