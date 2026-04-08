@@ -85,6 +85,70 @@ export const THEME_ART: Record<string, ThemeArt> = {
     dividerPath: 'M0,25 Q20,20 40,25 Q50,22 60,25 Q80,30 100,25 Q120,20 140,25 Q150,22 160,25 Q180,30 200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="20" fill="none" stroke="#C8A84A" stroke-width="1" opacity="0.25"/><path d="M30 50 Q40 35 50 50 Q60 35 70 50 Q60 65 50 50 Q40 65 30 50Z" fill="#C8A84A" opacity="0.08"/><circle cx="35" cy="30" r="1.5" fill="#C8A84A" opacity="0.3"/><circle cx="65" cy="25" r="1" fill="#C8A84A" opacity="0.25"/><circle cx="70" cy="70" r="0.8" fill="#C8A84A" opacity="0.2"/></svg>',
   },
+
+  // ── Tuscan Villa ─────────────────────────────────────────
+  'tuscan-villa': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 90 Q10 70 8 50 Q12 65 15 80 M8 85 Q18 60 15 35 Q22 55 20 75" fill="none" stroke="#B8693D" stroke-width="1.5" opacity="0.35"/><circle cx="8" cy="48" r="3" fill="#B8693D" opacity="0.15"/><circle cx="15" cy="33" r="2.5" fill="#B8693D" opacity="0.12"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="25" height="25" fill="none" stroke="#B8693D" stroke-width="0.3" opacity="0.04"/><rect x="25" y="25" width="25" height="25" fill="none" stroke="#B8693D" stroke-width="0.3" opacity="0.04"/></svg>',
+    dividerPath: 'M0,30 Q20,22 40,28 Q60,18 80,26 Q100,22 120,28 Q140,18 160,26 Q180,22 200,28',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M45 80 L45 30 Q45 15 50 10 Q55 15 55 30 L55 80" fill="none" stroke="#B8693D" stroke-width="1.5" opacity="0.2"/><path d="M42 80 L42 35 Q42 18 50 8 Q58 18 58 35 L58 80" fill="none" stroke="#B8693D" stroke-width="0.8" opacity="0.12"/></svg>',
+  },
+
+  // ── French Chateau ──────────────────────────────────────
+  'french-chateau': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 Q15 15 20 25 Q25 15 20 5Z M20 25 L15 35 L20 30 L25 35Z" fill="#6B8CAE" opacity="0.25"/><path d="M5 5 L35 5 L35 8 L8 8 L8 35 L5 35Z" fill="none" stroke="#6B8CAE" stroke-width="0.8" opacity="0.15"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 5 Q30 15 25 25 Q20 15 25 5Z" fill="#6B8CAE" opacity="0.03"/><path d="M10 30 Q15 40 10 50 Q5 40 10 30Z" fill="#6B8CAE" opacity="0.025"/><path d="M40 30 Q45 40 40 50 Q35 40 40 30Z" fill="#6B8CAE" opacity="0.025"/></svg>',
+    dividerPath: 'M0,25 Q10,18 20,25 Q30,32 40,25 Q50,18 60,25 Q70,32 80,25 Q90,18 100,25 Q110,32 120,25 Q130,18 140,25 Q150,32 160,25 Q170,18 180,25 Q190,32 200,25',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="50" rx="30" ry="38" fill="none" stroke="#6B8CAE" stroke-width="1.5" opacity="0.2"/><ellipse cx="50" cy="50" rx="22" ry="30" fill="none" stroke="#6B8CAE" stroke-width="0.8" opacity="0.12"/><path d="M50 12 L50 88 M20 50 L80 50" stroke="#6B8CAE" stroke-width="0.5" opacity="0.08"/></svg>',
+  },
+
+  // ── Southern Charm ──────────────────────────────────────
+  'southern-charm': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 30 Q10 20 18 12 Q26 20 20 28 Q14 22 15 30Z" fill="#E8A87C" opacity="0.25"/><path d="M18 15 Q22 8 28 12" fill="none" stroke="#E8A87C" stroke-width="1" opacity="0.2"/><circle cx="30" cy="10" r="1.5" fill="#E8A87C" opacity="0.2"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 20 Q22 15 25 10 Q28 15 25 20Z" fill="#E8A87C" opacity="0.04"/><circle cx="25" cy="10" r="1" fill="#E8A87C" opacity="0.03"/></svg>',
+    dividerPath: 'M0,25 Q15,15 30,25 Q45,35 60,25 Q75,15 90,25 Q105,35 120,25 Q135,15 150,25 Q165,35 180,25 Q195,15 200,22',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 25 Q60 30 62 42 Q64 54 55 60 Q46 66 38 58 Q30 50 35 40 Q40 30 50 25Z" fill="none" stroke="#E8A87C" stroke-width="1.5" opacity="0.25"/><path d="M50 30 Q56 34 57 42 Q58 50 52 54 Q46 58 42 52 Q38 46 41 40 Q44 34 50 30Z" fill="#E8A87C" opacity="0.06"/></svg>',
+  },
+
+  // ── Industrial Chic ─────────────────────────────────────
+  'industrial-chic': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="30" height="3" fill="#B87333" opacity="0.3"/><rect x="5" y="5" width="3" height="30" fill="#B87333" opacity="0.3"/><circle cx="8" cy="8" r="3" fill="none" stroke="#B87333" stroke-width="1.5" opacity="0.25"/><circle cx="8" cy="8" r="1.5" fill="#B87333" opacity="0.15"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="24" width="50" height="0.5" fill="#B87333" opacity="0.04"/><rect x="24" y="0" width="0.5" height="50" fill="#B87333" opacity="0.04"/></svg>',
+    dividerPath: 'M0,25 L200,25',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="25" fill="none" stroke="#B87333" stroke-width="2" opacity="0.2"/><path d="M50 25 L53 47 L75 50 L53 53 L50 75 L47 53 L25 50 L47 47Z" fill="none" stroke="#B87333" stroke-width="1" opacity="0.15"/></svg>',
+  },
+
+  // ── Modern Glam ─────────────────────────────────────────
+  'modern-glam': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="5" y1="5" x2="40" y2="5" stroke="#E84393" stroke-width="2" opacity="0.3"/><line x1="5" y1="5" x2="5" y2="40" stroke="#E84393" stroke-width="2" opacity="0.3"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="25" r="0.8" fill="#E84393" opacity="0.06"/></svg>',
+    dividerPath: 'M0,25 L85,25 L90,20 L95,25 L100,20 L105,25 L110,20 L115,25 L200,25',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 20 L60 45 L85 50 L60 55 L50 80 L40 55 L15 50 L40 45Z" fill="none" stroke="#E84393" stroke-width="1.5" opacity="0.2"/></svg>',
+  },
+
+  // ── Vintage Romance ─────────────────────────────────────
+  'vintage-romance': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 40 Q5 25 15 15 Q25 25 20 35 Q15 28 10 40Z" fill="#C48B8B" opacity="0.2"/><path d="M5 50 Q8 30 20 20 Q12 35 10 48" fill="none" stroke="#C48B8B" stroke-width="1" opacity="0.2"/><path d="M15 50 Q20 35 30 28" fill="none" stroke="#C48B8B" stroke-width="0.8" opacity="0.15"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="25" r="8" fill="none" stroke="#C48B8B" stroke-width="0.3" opacity="0.04" stroke-dasharray="2 2"/></svg>',
+    dividerPath: 'M0,25 Q10,20 20,25 Q25,22 30,25 Q40,30 50,25 Q60,20 70,25 Q75,22 80,25 Q90,30 100,25 Q110,20 120,25 Q125,22 130,25 Q140,30 150,25 Q160,20 170,25 Q175,22 180,25 Q190,30 200,25',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="50" rx="28" ry="35" fill="none" stroke="#C48B8B" stroke-width="1.5" opacity="0.2"/><path d="M35 20 Q50 15 65 20 M35 80 Q50 85 65 80" fill="none" stroke="#C48B8B" stroke-width="1" opacity="0.15"/></svg>',
+  },
+
+  // ── Rustic Romance ──────────────────────────────────────
+  'rustic-romance': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 60 L8 30 L5 5 M8 60 L12 28 L8 5 M12 55 L15 30 L12 8" fill="none" stroke="#C97C30" stroke-width="1" opacity="0.2"/><circle cx="5" cy="5" r="2" fill="#C97C30" opacity="0.15"/><circle cx="8" cy="3" r="1.5" fill="#C97C30" opacity="0.1"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="50" y2="50" stroke="#C97C30" stroke-width="0.3" opacity="0.03"/><line x1="50" y1="0" x2="0" y2="50" stroke="#C97C30" stroke-width="0.3" opacity="0.03"/></svg>',
+    dividerPath: 'M0,22 Q5,28 10,25 Q15,22 20,28 Q25,22 30,25 Q35,28 40,22 Q45,28 50,25 Q55,22 60,28 Q65,22 70,25 Q75,28 80,22 Q85,28 90,25 Q95,22 100,28 Q105,22 110,25 Q115,28 120,22 Q125,28 130,25 Q135,22 140,28 Q145,22 150,25 Q155,28 160,22 Q165,28 170,25 Q175,22 180,28 Q185,22 190,25 Q195,28 200,22',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M30 70 L30 40 Q30 30 40 25 L50 20 L60 25 Q70 30 70 40 L70 70" fill="none" stroke="#C97C30" stroke-width="1.5" opacity="0.2"/><path d="M40 55 Q50 48 60 55" fill="none" stroke="#C97C30" stroke-width="1" opacity="0.15"/><circle cx="50" cy="42" r="3" fill="#C97C30" opacity="0.1"/></svg>',
+  },
+
+  // ── Dark Romance ────────────────────────────────────────
+  'dark-romance': {
+    cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 35 Q8 20 18 10 Q28 20 22 32 Q16 24 15 35Z" fill="#8B2040" opacity="0.3"/><path d="M25 25 Q30 15 38 18" fill="none" stroke="#8B2040" stroke-width="1" opacity="0.2"/></svg>',
+    heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 20 Q22 15 25 10 Q28 15 25 20Z" fill="#8B2040" opacity="0.04"/></svg>',
+    dividerPath: 'M0,25 Q25,15 50,25 Q75,35 100,25 Q125,15 150,25 Q175,35 200,25',
+    accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 25 Q60 30 62 45 Q64 60 50 65 Q36 60 38 45 Q40 30 50 25Z" fill="none" stroke="#8B2040" stroke-width="1.5" opacity="0.25"/><path d="M50 30 Q45 42 50 55 Q55 42 50 30Z" fill="#8B2040" opacity="0.08"/></svg>',
+  },
 };
 
 /** Get art for a theme, falling back to empty object */
