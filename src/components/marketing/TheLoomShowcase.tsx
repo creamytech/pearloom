@@ -166,7 +166,7 @@ export function TheLoomShowcase() {
               </p>
               <p
                 className="italic"
-                style={{ fontSize: '0.8rem', color: 'var(--pl-ink-soft)', fontFamily: r.font }}
+                style={{ fontSize: '0.8rem', color: C.darkText, fontFamily: r.font }}
               >
                 {r.font}
               </p>

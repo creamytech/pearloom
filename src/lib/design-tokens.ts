@@ -30,7 +30,7 @@ export const colors = {
   darkBg:      '#1E1B24',
   darkCard:    'rgba(255,255,255,0.09)',
   darkBorder:  'rgba(255,255,255,0.08)',
-  darkText:    'rgba(245,241,232,0.55)',
+  darkText:    'rgba(245,241,232,0.75)',
   darkHeading: '#F5F1E8',
 
   // Semantic states

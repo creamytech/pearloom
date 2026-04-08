@@ -56,27 +56,27 @@ function TryItLivePlayground({ onGetStarted }: { onGetStarted: () => void }) {
   return (
     <div>
       {/* Input row */}
-      <div className="flex gap-3 mb-6 max-w-[400px] mx-auto">
+      <div className="flex gap-3 mb-6 w-full max-w-[400px] mx-auto">
         <input
           type="text"
           value={name1}
           onChange={(e) => setName1(e.target.value)}
           placeholder="First name"
-          className="flex-1 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
+          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
         />
         <input
           type="text"
           value={name2}
           onChange={(e) => setName2(e.target.value)}
           placeholder="Partner's name"
-          className="flex-1 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
+          className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-[rgba(0,0,0,0.08)] bg-white text-[var(--pl-ink)] text-[max(16px,0.9rem)] font-body outline-none focus:border-[var(--pl-olive)] transition-colors"
         />
       </div>
 
       {/* Live preview card */}
       <motion.div
         layout
-        className="rounded-2xl overflow-hidden mx-auto max-w-[400px]"
+        className="rounded-2xl overflow-hidden mx-auto w-full max-w-[400px]"
         style={{
           background: 'linear-gradient(145deg, #faf9f6 0%, #f0ece4 100%)',
           border: '1px solid rgba(0,0,0,0.06)',
