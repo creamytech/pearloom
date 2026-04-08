@@ -3,10 +3,10 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / MobileEditorSheet.tsx — Preview-First Architecture
 // Always-visible live preview + smart bottom sheet + 3-tab nav.
-// Rivals Zola's mobile editing experience.
+// Direct-DOM rendering (matches desktop) — no iframe.
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -15,11 +15,13 @@ import {
   Users, Send, Mail, Mic, LayoutGrid, Globe, Gift,
   Music, ShoppingBag, Heart, BarChart2,
 } from 'lucide-react';
-import { useEditor, stripArtForStorage } from '@/lib/editor-state';
+import { useEditor } from '@/lib/editor-state';
+import { SiteRenderer } from './SiteRenderer';
 import { MobileBottomSheet } from './MobileBottomSheet';
 import { MobileContextPanel } from './MobileContextPanel';
 import { MobileBlockList } from './MobileBlockList';
 import { MobileActionBar } from './MobileActionBar';
+import type { PageBlock, BlockType } from '@/types';
 
 // ── Lazy panel imports ──────────────────────────────────────────
 const SectionsPanel           = dynamic(() => import('./SectionsPanel').then(m => ({ default: m.SectionsPanel })), { ssr: false });
@@ -76,8 +78,10 @@ const TABS: Array<{ id: BottomTab; icon: React.ElementType; label: string }> = [
 
 // ── Main Component ──────────────────────────────────────────────
 export function MobileEditorSheet() {
-  const { state, dispatch, manifest, coupleNames, actions, previewKey, iframeRef } = useEditor();
-  const { chapters, activeId, canUndo, canRedo, previewPage, subdomain, mobileActionChapterId } = state;
+  const { state, dispatch, manifest, coupleNames, actions } = useEditor();
+  const { canUndo, canRedo, previewPage, subdomain, mobileActionChapterId } = state;
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
 
   // ── State ──
   const [activeTab, setActiveTab] = useState<BottomTab>('edit');
@@ -87,9 +91,6 @@ export function MobileEditorSheet() {
   const [sheetSnap, setSheetSnap] = useState<0 | 1 | 2>(0);
   const [moreToolOpen, setMoreToolOpen] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
-
-  // ── Preview iframe source ──
-  const iframeSrc = `/preview?key=${previewKey}${previewPage ? `&page=${encodeURIComponent(previewPage)}` : ''}`;
 
   // ── Couple display name ──
   const displayName = coupleNames
@@ -107,123 +108,142 @@ export function MobileEditorSheet() {
     }
   }, [mobileActionChapterId, dispatch]);
 
-  // ── Listen for messages from preview iframe ──
-  useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      // Section tap — open context panel
-      if (event.data?.type === 'pearloom-section-click') {
-        const { chapterId, sectionId } = event.data;
-        if (chapterId) {
-          setActiveChapterId(chapterId);
-          setActiveSection('story');
-          setActiveTab('edit');
-          setSheetSnap(1); // half
-        } else if (sectionId) {
-          setActiveSection(sectionId);
-          setActiveChapterId(null);
-          setActiveTab('edit');
-          setSheetSnap(1);
-        }
-      }
+  // ── Section click — direct DOM (matches EditorCanvas) ──────
+  const handleSectionClick = useCallback((sectionId: string, chapterId?: string, blockId?: string) => {
+    if (chapterId) {
+      setActiveChapterId(chapterId);
+      setActiveSection('story');
+      setActiveTab('edit');
+      setSheetSnap(1);
+      dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
+      return;
+    }
 
-      // Inline text edit commit
-      if (event.data?.type === 'pearloom-edit-commit') {
-        const { chapterId, field, value } = event.data;
-        if (chapterId && field !== undefined) {
-          actions.updateChapter(chapterId, { [field]: value });
-        }
-      }
+    if (blockId) {
+      setSelectedBlockId(blockId);
+      dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
+    }
 
-      // Photo operations
-      if (event.data?.type === 'pearloom-photo-replace') {
-        const { chapterId, photoIndex, newUrl, newAlt } = event.data;
-        if (!chapterId || !newUrl) return;
-        const chapter = chapters.find(c => c.id === chapterId);
-        if (!chapter) return;
-        const imgs = [...(chapter.images || [])];
-        const newImage = { id: `img-${Date.now()}`, url: newUrl, alt: newAlt || '', width: 0, height: 0 };
-        if (photoIndex >= 0 && photoIndex < imgs.length) {
-          imgs[photoIndex] = newImage;
-        } else {
-          imgs.push(newImage);
-        }
-        actions.updateChapter(chapterId, { images: imgs });
-      }
+    setActiveSection(sectionId);
+    setActiveChapterId(null);
+    setActiveTab('edit');
+    setSheetSnap(1);
+  }, [dispatch]);
 
-      if (event.data?.type === 'pearloom-photo-remove') {
-        const { chapterId, photoIndex } = event.data;
-        if (!chapterId) return;
-        const chapter = chapters.find(c => c.id === chapterId);
-        if (!chapter) return;
-        const imgs = (chapter.images || []).filter((_: unknown, i: number) => i !== photoIndex);
-        actions.updateChapter(chapterId, { images: imgs });
+  // ── Inline text edit — direct DOM (matches EditorCanvas) ───
+  const handleTextEdit = useCallback((path: string, value: string) => {
+    if (path === '__addSticker__') {
+      const sticker = JSON.parse(value);
+      actions.handleDesignChange({ ...manifest, stickers: [...(manifest.stickers || []), sticker] });
+      return;
+    }
+    if (path === '__moveSticker__') {
+      const { index, x, y } = JSON.parse(value);
+      const stickers = [...(manifest.stickers || [])];
+      if (stickers[index]) {
+        stickers[index] = { ...stickers[index], x, y };
+        actions.handleDesignChange({ ...manifest, stickers });
       }
+      return;
+    }
+    if (path === '__removeSticker__') {
+      const index = parseInt(value);
+      const stickers = (manifest.stickers || []).filter((_, i) => i !== index);
+      actions.handleDesignChange({ ...manifest, stickers });
+      return;
+    }
 
-      // Inline text edit
-      if (event.data?.type === 'pearloom-inline-edit-commit') {
-        const { elementId, newText } = event.data;
-        if (!elementId || !newText) return;
-        let parsed: { type: 'chapter' | 'block'; id: string; field: string } | null = null;
-        if (elementId.startsWith('block:')) {
-          const parts = elementId.split(':');
-          if (parts.length >= 3) parsed = { type: 'block', id: parts[1], field: parts.slice(2).join(':') };
-        } else {
-          const colonIdx = elementId.indexOf(':');
-          if (colonIdx > 0) parsed = { type: 'chapter', id: elementId.slice(0, colonIdx), field: elementId.slice(colonIdx + 1) };
+    if (path.startsWith('chapter:')) {
+      const [, chId, field] = path.split(':');
+      const chapter = manifest.chapters?.find(c => c.id === chId);
+      if (chapter) actions.updateChapter(chId, { [field]: value });
+    } else {
+      const parts = path.split('.');
+      const updated = JSON.parse(JSON.stringify(manifest));
+      let target: Record<string, unknown> = updated;
+      for (let i = 0; i < parts.length - 1; i++) {
+        const key = /^\d+$/.test(parts[i]) ? parseInt(parts[i]) : parts[i];
+        if (target[key as string] === undefined || target[key as string] === null) {
+          target[key as string] = {};
         }
-        if (!parsed) return;
-        if (parsed.type === 'chapter') {
-          const chapter = chapters.find(c => c.id === parsed!.id);
-          if (chapter) actions.updateChapter(parsed.id, { [parsed.field]: newText });
-        }
-        if (parsed.type === 'block') {
-          dispatch({ type: 'SET_ACTIVE_ID', id: parsed.id });
-        }
+        target = target[key as string] as Record<string, unknown>;
       }
+      const lastKey = /^\d+$/.test(parts[parts.length - 1]) ? parseInt(parts[parts.length - 1]) : parts[parts.length - 1];
+      (target as Record<string | number, unknown>)[lastKey] = value;
+      actions.handleDesignChange(updated);
+    }
+  }, [manifest, actions]);
 
-      // Photo AI regen — open design context
-      if (event.data?.type === 'pearloom-photo-ai-regen') {
-        setActiveSection('design');
-        setActiveTab('edit');
-        setSheetSnap(1);
+  // ── Block actions from inline toolbar ─────────────────────
+  const handleBlockAction = useCallback((action: 'moveUp' | 'moveDown' | 'duplicate' | 'delete' | 'toggleVisibility', blockId: string) => {
+    const blocks = manifest.blocks || [];
+    const idx = blocks.findIndex(b => b.id === blockId);
+    if (idx === -1) return;
+
+    let updated = [...blocks];
+    switch (action) {
+      case 'moveUp':
+        if (idx > 0) [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+        break;
+      case 'moveDown':
+        if (idx < updated.length - 1) [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+        break;
+      case 'duplicate': {
+        const dup = { ...blocks[idx], id: `${blocks[idx].type}-dup-${Date.now()}` };
+        updated.splice(idx + 1, 0, dup);
+        break;
       }
+      case 'delete':
+        updated = updated.filter(b => b.id !== blockId);
+        if (selectedBlockId === blockId) setSelectedBlockId(null);
+        break;
+      case 'toggleVisibility':
+        updated = updated.map(b => b.id === blockId ? { ...b, visible: !b.visible } : b);
+        break;
+    }
+    actions.handleDesignChange({ ...manifest, blocks: updated.map((b, i) => ({ ...b, order: i })) });
+  }, [manifest, actions, selectedBlockId]);
+
+  // ── Block reorder ─────────────────────────────────────────
+  const handleBlockReorder = useCallback((fromIdx: number, toIdx: number) => {
+    const blocks = [...(manifest.blocks || [])].filter(b => b.visible).sort((a, b) => a.order - b.order);
+    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
+    const [moved] = blocks.splice(fromIdx, 1);
+    blocks.splice(toIdx > fromIdx ? toIdx - 1 : toIdx, 0, moved);
+    actions.handleDesignChange({ ...manifest, blocks: blocks.map((b, i) => ({ ...b, order: i })) });
+  }, [manifest, actions]);
+
+  // ── Block drop → insert at position ──────────────────────
+  const handleBlockDrop = useCallback((blockType: string, position: number) => {
+    const blocks = manifest.blocks || [];
+    const newBlock = {
+      id: `block-${blockType}-${Date.now()}`,
+      type: blockType as BlockType,
+      order: position,
+      visible: true,
     };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, [chapters, actions, dispatch]);
+    const updated = [...blocks];
+    updated.splice(position, 0, newBlock);
+    actions.handleDesignChange({ ...manifest, blocks: updated.map((b, i) => ({ ...b, order: i })) });
+  }, [manifest, actions]);
 
-  // ── Enable edit mode in iframe on load ──
-  const handleIframeLoad = useCallback(() => {
-    dispatch({ type: 'SET_IFRAME_READY', ready: true });
-    try {
-      iframeRef.current?.contentWindow?.postMessage({ type: 'pearloom-edit-mode', enabled: true }, '*');
-      iframeRef.current?.contentWindow?.postMessage({
-        type: 'pearloom-preview-update',
-        manifest: stripArtForStorage(manifest),
-        names: coupleNames,
-      }, '*');
-    } catch {}
-  }, [dispatch, iframeRef, manifest, coupleNames]);
-
-  // ── Block selection → scroll preview ──
+  // ── Block selection → scroll preview (direct DOM) ──────────
   const scrollToBlock = useCallback((blockId: string) => {
-    try {
-      iframeRef.current?.contentWindow?.postMessage({
-        type: 'pearloom-scroll-to-block',
-        blockId,
-      }, '*');
-    } catch {}
-  }, [iframeRef]);
+    const el = previewRef.current?.querySelector(`[data-block-id="${blockId}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, []);
 
   // ── Handle block selection from list ──
   const handleSelectBlock = useCallback((blockId: string) => {
     const block = manifest.blocks?.find(b => b.id === blockId);
     if (block) {
+      setSelectedBlockId(blockId);
+      dispatch({ type: 'SET_ACTIVE_ID', id: blockId });
       setActiveSection(block.type);
       setActiveTab('edit');
       setSheetSnap(1);
     }
-  }, [manifest.blocks]);
+  }, [manifest.blocks, dispatch]);
 
   // ── Add block ──
   const handleAddBlock = useCallback(() => {
@@ -474,42 +494,22 @@ export function MobileEditorSheet() {
         </div>
       </div>
 
-      {/* ── Preview Area (always visible, fills remaining space) ── */}
-      <div style={{ flex: 1, position: 'relative', minHeight: 0, overflow: 'hidden' }}>
-        {/* Loading spinner */}
-        {!state.iframeReady && (
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex',
-            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--pl-cream)', gap: 12, zIndex: 2,
-          }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              border: '2px solid var(--pl-olive-20)',
-              borderTopColor: 'var(--pl-olive)',
-              animation: 'spin 0.8s linear infinite',
-            }} />
-            <span style={{
-              fontSize: 'var(--pl-text-sm)',
-              color: 'var(--pl-muted)',
-              fontWeight: 600, letterSpacing: '0.06em',
-            }}>
-              Loading your site...
-            </span>
-          </div>
-        )}
-
-        {/* Live preview iframe */}
-        <iframe
-          ref={iframeRef}
-          src={iframeSrc}
-          onLoad={handleIframeLoad}
-          title="Live Preview"
-          style={{
-            width: '100%', height: '100%',
-            border: 'none', display: 'block',
-            background: 'var(--pl-cream)',
-          }}
+      {/* ── Preview Area (direct DOM, matches desktop) ── */}
+      <div ref={previewRef} style={{
+        flex: 1, position: 'relative', minHeight: 0,
+        overflow: 'auto', WebkitOverflowScrolling: 'touch',
+        background: 'var(--pl-cream)',
+      } as React.CSSProperties}>
+        <SiteRenderer
+          manifest={manifest}
+          names={coupleNames}
+          onTextEdit={handleTextEdit}
+          onSectionClick={handleSectionClick}
+          onBlockDrop={handleBlockDrop}
+          onBlockReorder={handleBlockReorder}
+          onBlockAction={handleBlockAction}
+          selectedBlockId={selectedBlockId}
+          editMode
         />
 
         {/* Action bar floating above sheet */}
