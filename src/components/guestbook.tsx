@@ -78,7 +78,7 @@ function WishCard({ wish, index }: { wish: Wish; index: number }) {
       }}
       whileHover={{ boxShadow: '0 14px 40px rgba(43,43,43,0.13)', y: -3, backgroundColor: 'rgba(255,255,255,0.97)' }}
       style={{
-        background: '#ffffff',
+        background: 'var(--pl-cream-card)',
         borderRadius: '1.25rem',
         padding: '1.75rem',
         border: '1px solid rgba(0,0,0,0.05)',

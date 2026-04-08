@@ -122,7 +122,7 @@ function HeroSection({
         <h1 style={{
           fontFamily: `"${headingFont}", Georgia, serif`,
           fontSize: '52px', fontWeight: 700, lineHeight: 1.1,
-          color: coverPhoto ? '#ffffff' : fg, margin: '0 0 16px',
+          color: coverPhoto ? 'white' : fg, margin: '0 0 16px',
           letterSpacing: '-0.02em',
         }}>
           {coupleNames[0]}{hasPair && (

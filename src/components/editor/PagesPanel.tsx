@@ -82,7 +82,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)' }}>
+        <span style={{ fontSize: 'var(--pl-text-base)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)' }}>
           Site Pages
         </span>
         <button
@@ -90,8 +90,8 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
           style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             padding: '5px 10px', borderRadius: '5px', border: 'none',
-            background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)',
-            cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+            background: 'var(--pl-olive-20)', color: 'var(--pl-olive, #A3B18A)',
+            cursor: 'pointer', fontSize: 'var(--pl-text-base)', fontWeight: 700,
           }}
         >
           <Plus size={11} /> Add Page
@@ -105,7 +105,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             style={{ overflow: 'hidden', marginBottom: '8px' }}
           >
-            <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '8px', padding: '10px', border: '1px solid rgba(163,177,138,0.2)' }}>
+            <div style={{ background: 'var(--pl-olive-8)', borderRadius: '8px', padding: '10px', border: '1px solid var(--pl-olive-20)' }}>
               <label style={lbl}>Page Name</label>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <input
@@ -120,13 +120,13 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
                   disabled={!newPageTitle.trim()}
                   style={{
                     padding: '6px 12px', borderRadius: '5px', border: 'none',
-                    background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.06)',
+                    background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-black-6)',
                     color: newPageTitle.trim() ? '#fff' : 'var(--pl-muted)',
-                    fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
+                    fontSize: 'var(--pl-text-sm)', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                   }}
                 >Add</button>
               </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', marginTop: '4px' }}>
+              <div style={{ fontSize: 'var(--pl-text-base)', color: 'var(--pl-muted)', marginTop: '4px' }}>
                 URL: {baseUrl}/{newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '...'}
               </div>
             </div>
@@ -135,7 +135,7 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
       </AnimatePresence>
 
       {/* Preset pages */}
-      <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', marginBottom: '4px', marginTop: '8px' }}>
+      <div style={{ fontSize: 'var(--pl-text-sm)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', marginBottom: '4px', marginTop: '8px' }}>
         Built-in Pages
       </div>
       {filteredPresets.map(page => {
@@ -153,18 +153,18 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
           <div key={page.id} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             padding: '8px 10px 8px 12px', borderRadius: '10px',
-            background: isActive && !isHidden ? 'rgba(163,177,138,0.1)' : 'rgba(163,177,138,0.04)',
-            border: `1px solid ${isActive && !isHidden ? 'rgba(163,177,138,0.3)' : 'rgba(0,0,0,0.04)'}`,
+            background: isActive && !isHidden ? 'var(--pl-olive-10)' : 'var(--pl-olive-5)',
+            border: `1px solid ${isActive && !isHidden ? 'var(--pl-olive-30)' : 'var(--pl-black-4)'}`,
             opacity: isHidden ? 0.4 : 1,
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: isActive && !isHidden ? '#fff' : 'rgba(255,255,255,0.45)' }}>{page.label}</div>
-              {subdomain && <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
+              <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 700, color: isActive && !isHidden ? '#fff' : 'var(--pl-white-50)' }}>{page.label}</div>
+              {subdomain && <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</div>}
             </div>
             <span style={{
-              fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+              fontSize: 'var(--pl-text-sm)', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
               color: isActive && !isHidden ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted)',
-              background: isActive && !isHidden ? 'rgba(163,177,138,0.15)' : 'rgba(163,177,138,0.06)',
+              background: isActive && !isHidden ? 'var(--pl-olive-15)' : 'var(--pl-olive-5)',
               padding: '3px 8px', borderRadius: '100px',
             }}>{isActive && !isHidden ? 'Live' : 'Inactive'}</span>
             {onPreviewPage && isActive && !isHidden && (
@@ -199,24 +199,24 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
       {/* Custom pages */}
       {customPages.length > 0 && (
         <>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', margin: '12px 0 4px' }}>
+          <div style={{ fontSize: 'var(--pl-text-sm)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', margin: '12px 0 4px' }}>
             Custom Pages
           </div>
           {customPages.map(page => (
             <div key={page.id} style={{
               display: 'flex', alignItems: 'center', gap: '10px',
               padding: '8px 10px 8px 12px', borderRadius: '10px',
-              background: 'rgba(163,177,138,0.08)',
-              border: '1px solid rgba(163,177,138,0.2)',
+              background: 'var(--pl-olive-8)',
+              border: '1px solid var(--pl-olive-20)',
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{page.title}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '2px' }}>{baseUrl}/{page.slug}</div>
+                <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 700, color: '#fff' }}>{page.title}</div>
+                <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-muted)', marginTop: '2px' }}>{baseUrl}/{page.slug}</div>
               </div>
               <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 <span style={{
-                  fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: 'var(--pl-olive, #A3B18A)', background: 'rgba(163,177,138,0.15)', padding: '3px 8px', borderRadius: '100px',
+                  fontSize: 'var(--pl-text-sm)', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  color: 'var(--pl-olive, #A3B18A)', background: 'var(--pl-olive-15)', padding: '3px 8px', borderRadius: '100px',
                 }}>Live</span>
                 {onPreviewPage && (
                   <button
@@ -246,8 +246,8 @@ export function PagesPanel({ manifest, subdomain, onChange, onPreviewPage, previ
         </>
       )}
 
-      <div style={{ marginTop: '8px', padding: '10px', background: 'rgba(163,177,138,0.06)', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.2)' }}>
-        <p style={{ fontSize: '0.82rem', color: 'rgba(163,177,138,0.8)', lineHeight: 1.5, margin: 0 }}>
+      <div style={{ marginTop: '8px', padding: '10px', background: 'var(--pl-olive-5)', borderRadius: '8px', border: '1px dashed var(--pl-olive-20)' }}>
+        <p style={{ fontSize: 'var(--pl-text-base)', color: 'var(--pl-olive)', lineHeight: 1.5, margin: 0 }}>
           To activate built-in pages, add content in the <strong style={{ color: 'var(--pl-olive, #A3B18A)' }}>Details</strong> tab. Custom pages can be edited in the <strong style={{ color: 'var(--pl-olive, #A3B18A)' }}>Canvas</strong> tab.
         </p>
       </div>

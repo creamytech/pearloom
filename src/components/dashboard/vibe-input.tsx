@@ -409,7 +409,7 @@ const DRESSCODE_OPTIONS = [
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '1.25rem', borderRadius: '1rem',
-  border: '2px solid var(--pl-divider, #E6DFD2)', background: '#ffffff',
+  border: '2px solid var(--pl-divider, #E6DFD2)', background: 'var(--pl-cream-card)',
   fontSize: '1.1rem', fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)',
   outline: 'none', transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.2s',
   boxShadow: '0 2px 10px rgba(0,0,0,0.02)',

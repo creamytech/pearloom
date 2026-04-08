@@ -701,7 +701,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
       )}
 
       {/* Content anchored at bottom — hidden when video playing */}
-      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: 'clamp(2rem, 5vw, 5rem) 1.25rem clamp(3rem, 6vw, 7rem)', maxWidth: '900px', color: '#ffffff', width: '100%', display: chapter.videoUrl && videoPlaying ? 'none' : undefined }}>
+      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: 'clamp(2rem, 5vw, 5rem) 1.25rem clamp(3rem, 6vw, 7rem)', maxWidth: '900px', color: 'white', width: '100%', display: chapter.videoUrl && videoPlaying ? 'none' : undefined }}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -717,7 +717,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
             filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))',
           }} className="max-md:px-5 max-md:py-6 max-md:max-w-[90vw] max-md:mx-auto p-8">
             <MoodBadge mood={chapter.mood} light />
-            <span style={{ fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase', opacity: 0.8, display: 'block', marginBottom: '1.75rem', color: '#ffffff', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+            <span style={{ fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase', opacity: 0.8, display: 'block', marginBottom: '1.75rem', color: 'white', textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
               {formatDateFull(chapter.date)}
             </span>
             <h3 style={{
@@ -727,7 +727,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
               fontStyle: 'italic',
               lineHeight: 1.0,
               margin: '0 0 2rem 0',
-              color: '#ffffff',
+              color: 'white',
               textShadow: '0 2px 20px rgba(0,0,0,0.8)',
               letterSpacing: '-0.03em',
             }}>

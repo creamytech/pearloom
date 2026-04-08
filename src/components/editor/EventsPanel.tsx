@@ -114,7 +114,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
             <CalendarHeartIcon size={28} />
           </motion.div>
           <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 700, fontStyle: 'italic', fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)', color: 'var(--pl-muted)' }}>No events yet</div>
-          <div style={{ fontSize: '0.78rem', marginTop: '5px', color: 'var(--pl-muted)' }}>Add your ceremony, reception, and more</div>
+          <div style={{ fontSize: 'var(--pl-text-base)', marginTop: '5px', color: 'var(--pl-muted)' }}>Add your ceremony, reception, and more</div>
         </motion.div>
       ) : (
         events.map((evt) => {
@@ -215,7 +215,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
       {/* Add event button */}
       <button
         onClick={addEvent}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed var(--pl-olive-40)', background: 'transparent', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s' }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed var(--pl-olive-40)', background: 'transparent', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: 'var(--pl-text-md)', fontWeight: 700, transition: 'all 0.15s' }}
         onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-8)'; }}
         onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
@@ -252,7 +252,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               border: '1px solid var(--pl-olive-30)',
               background: 'var(--pl-olive-10)',
               color: 'var(--pl-olive, #A3B18A)',
-              fontSize: '0.84rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-md)', fontWeight: 700,
               letterSpacing: '0.03em',
               textDecoration: 'none',
               transition: 'all 0.15s',
@@ -276,7 +276,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                 border: '1px solid rgba(109,89,122,0.35)',
                 background: 'rgba(109,89,122,0.10)',
                 color: 'var(--pl-plum, #6D597A)',
-                fontSize: '0.84rem', fontWeight: 700,
+                fontSize: 'var(--pl-text-md)', fontWeight: 700,
                 letterSpacing: '0.03em',
                 textDecoration: 'none',
                 transition: 'all 0.15s',

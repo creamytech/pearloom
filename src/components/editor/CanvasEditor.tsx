@@ -151,15 +151,15 @@ const EVENT_TYPES: Record<WeddingEvent['type'], {
 
 // ── Shared mini styles ──────────────────────────────────────────
 const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.62rem', fontWeight: 800,
+  display: 'block', fontSize: 'var(--pl-text-2xs)', fontWeight: 800,
   letterSpacing: '0.14em', textTransform: 'uppercase',
   color: 'var(--pl-muted)', marginBottom: '0.4rem',
 };
 
 const inp: React.CSSProperties = {
   width: '100%', padding: '0.6rem 0.75rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(0,0,0,0.07)', background: 'rgba(163,177,138,0.06)',
-  color: 'var(--pl-ink)', fontSize: 'max(16px, 0.82rem)', outline: 'none', fontFamily: 'inherit',
+  border: '1px solid var(--pl-black-7)', background: 'var(--pl-olive-5)',
+  color: 'var(--pl-ink)', fontSize: 'max(16px, var(--pl-text-base))', outline: 'none', fontFamily: 'inherit',
   boxSizing: 'border-box', transition: 'border-color 0.15s',
 };
 
@@ -172,8 +172,8 @@ function MiniInput({ label, value, onChange, placeholder, type = 'text' }: {
       <input
         type={type} value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} style={inp}
-        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
-        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'var(--pl-black-7)'; }}
       />
     </div>
   );
@@ -187,7 +187,7 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
         onClick={() => onChange(!value)}
         style={{
           width: '36px', height: '20px', borderRadius: '100px',
-          background: value ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+          background: value ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-black-7)',
           border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
         }}
       >
@@ -244,7 +244,7 @@ function EventBlockConfig({ events, onChange }: {
               onClick={() => setActiveId(e.id)}
               style={{
                 padding: '4px 10px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
-                background: activeId === e.id ? def.color : 'rgba(0,0,0,0.05)',
+                background: activeId === e.id ? def.color : 'var(--pl-black-4)',
                 color: activeId === e.id ? '#fff' : 'var(--pl-ink-soft)',
                 transition: 'all 0.15s',
               }}
@@ -407,9 +407,9 @@ const BlockRow = memo(function BlockRow({
         padding: '13px 10px 13px 8px',
         minHeight: '68px',
         borderRadius: '10px',
-        background: isActive ? `${color}18` : hovered ? 'rgba(0,0,0,0.04)' : 'rgba(163,177,138,0.04)',
-        border: `1px solid ${isActive ? `${color}45` : hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
-        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.04)'}`,
+        background: isActive ? `${color}18` : hovered ? 'var(--pl-black-4)' : 'var(--pl-olive-5)',
+        border: `1px solid ${isActive ? `${color}45` : hovered ? 'var(--pl-black-7)' : 'var(--pl-black-4)'}`,
+        borderLeft: isActive ? `3px solid ${color}` : `1px solid ${hovered ? 'var(--pl-black-7)' : 'var(--pl-black-4)'}`,
         cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s, box-shadow 0.15s', position: 'relative',
         userSelect: 'none',
         boxShadow: isActive ? `0 2px 16px ${color}14, 0 0 0 1px ${color}08` : 'none',
@@ -478,7 +478,7 @@ const BlockRow = memo(function BlockRow({
                   onClick={e => { e.stopPropagation(); onSaveAsComponent(block.id); }}
                   title="Save as Component"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-olive, #A3B18A)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', borderRadius: '6px', transition: 'color 0.15s, background 0.15s', minWidth: '36px', minHeight: '36px' }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.12)'; }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-12)'; }}
                   onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
                 >
                   <Package size={14} />
@@ -609,16 +609,16 @@ function SectionStylePanel({
       {/* Breakpoint indicator and reset */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(163,177,138,0.7)' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-olive)' }}>
             Section Style
           </div>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '4px',
             padding: '2px 8px', borderRadius: '100px',
             fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.06em',
-            background: isOverrideMode ? 'rgba(109,89,122,0.15)' : 'rgba(163,177,138,0.12)',
-            color: isOverrideMode ? '#6D597A' : 'rgba(163,177,138,0.9)',
-            border: `1px solid ${isOverrideMode ? 'rgba(109,89,122,0.25)' : 'rgba(163,177,138,0.25)'}`,
+            background: isOverrideMode ? 'rgba(109,89,122,0.15)' : 'var(--pl-olive-12)',
+            color: isOverrideMode ? '#6D597A' : 'var(--pl-olive)',
+            border: `1px solid ${isOverrideMode ? 'rgba(109,89,122,0.25)' : 'var(--pl-olive-20)'}`,
           }}>
             <DeviceIcon size={10} />
             {deviceLabel(device)}
@@ -656,7 +656,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ bgColor: bg.value })}
                 style={{
                   width: '24px', height: '24px', borderRadius: '6px',
-                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(0,0,0,0.08)',
+                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-black-7)',
                   background: bg.value === 'accent' ? 'linear-gradient(135deg, #A3B18A, #8FA876)' : bg.value || 'transparent',
                   cursor: 'pointer', position: 'relative', transition: 'border 0.15s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -694,7 +694,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ verticalPadding: p.value })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(0,0,0,0.04)',
+                  background: isActive ? 'var(--pl-olive-20)' : 'var(--pl-black-4)',
                   color: isActive ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
                   transition: 'all 0.15s',
@@ -719,7 +719,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textAlign: a })}
                 style={{
                   flex: 1, padding: '6px 0', borderRadius: '6px', border: 'none',
-                  background: isActive ? 'rgba(163,177,138,0.25)' : 'rgba(0,0,0,0.04)',
+                  background: isActive ? 'var(--pl-olive-20)' : 'var(--pl-black-4)',
                   color: isActive ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-ink-soft)',
                   fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
                 }}
@@ -743,7 +743,7 @@ function SectionStylePanel({
                 onClick={() => updateConfig({ textColor: c })}
                 style={{
                   width: '28px', height: '28px', borderRadius: '6px',
-                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid rgba(0,0,0,0.08)',
+                  border: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-black-7)',
                   background: c || 'transparent', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
@@ -988,8 +988,8 @@ function BlockEffectsEditor({
         {hasEffects && (
           <span style={{
             fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
-            color: 'rgba(163,177,138,0.9)', background: 'rgba(163,177,138,0.12)',
-            padding: '2px 6px', borderRadius: '100px', border: '1px solid rgba(163,177,138,0.25)',
+            color: 'var(--pl-olive)', background: 'var(--pl-olive-12)',
+            padding: '2px 6px', borderRadius: '100px', border: '1px solid var(--pl-olive-20)',
           }}>ON</span>
         )}
         <span style={{ display: 'flex', alignItems: 'center', color: 'var(--pl-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
@@ -1012,9 +1012,9 @@ function BlockEffectsEditor({
                   onClick={() => onUpdate({ scrollReveal: opt.value === 'none' ? undefined : (opt.value as 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'blur-in') })}
                   style={{
                     padding: '5px 9px', borderRadius: '7px',
-                    border: `1px solid ${reveal === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
-                    background: reveal === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(163,177,138,0.05)',
-                    color: reveal === opt.value ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
+                    border: `1px solid ${reveal === opt.value ? 'var(--pl-olive-50)' : 'var(--pl-black-6)'}`,
+                    background: reveal === opt.value ? 'var(--pl-olive-15)' : 'var(--pl-olive-5)',
+                    color: reveal === opt.value ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
                     cursor: 'pointer', fontSize: '0.72rem', fontWeight: reveal === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
                     transition: 'all 0.12s',
@@ -1045,9 +1045,9 @@ function BlockEffectsEditor({
                   }}
                   style={{
                     padding: '5px 9px', borderRadius: '7px',
-                    border: `1px solid ${divStyle === opt.value ? 'rgba(163,177,138,0.6)' : 'rgba(0,0,0,0.06)'}`,
-                    background: divStyle === opt.value ? 'rgba(163,177,138,0.14)' : 'rgba(163,177,138,0.05)',
-                    color: divStyle === opt.value ? 'rgba(163,177,138,1)' : 'var(--pl-ink-soft)',
+                    border: `1px solid ${divStyle === opt.value ? 'var(--pl-olive-50)' : 'var(--pl-black-6)'}`,
+                    background: divStyle === opt.value ? 'var(--pl-olive-15)' : 'var(--pl-olive-5)',
+                    color: divStyle === opt.value ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
                     cursor: 'pointer', fontSize: '0.72rem', fontWeight: divStyle === opt.value ? 700 : 400,
                     display: 'flex', alignItems: 'center', gap: '4px',
                     transition: 'all 0.12s',
@@ -1096,12 +1096,12 @@ function AddBlockPicker({ onAdd, existingTypes, occasion = 'wedding' }: { onAdd:
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           padding: '11px 14px', borderRadius: '8px',
-          border: '1px solid rgba(163,177,138,0.22)',
-          background: open ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.06)',
-          color: 'rgba(163,177,138,0.95)', cursor: 'pointer',
+          border: '1px solid var(--pl-olive-20)',
+          background: open ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
+          color: 'var(--pl-olive)', cursor: 'pointer',
           fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em',
           transition: 'all 0.15s',
-          boxShadow: open ? 'inset 0 1px 0 rgba(163,177,138,0.05)' : 'none',
+          boxShadow: open ? 'inset 0 1px 0 var(--pl-olive-5)' : 'none',
         }}
       >
         <Sparkles size={13} />
@@ -1376,7 +1376,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             onChange={e => setActivePage(e.target.value)}
             style={{
               ...inp, fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
-              background: 'rgba(163,177,138,0.1)', borderColor: 'rgba(163,177,138,0.3)',
+              background: 'var(--pl-olive-10)', borderColor: 'var(--pl-olive-30)',
               color: 'var(--pl-olive, #A3B18A)', padding: '8px 10px',
             }}
           >
@@ -1396,8 +1396,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
               onClick={() => setShowAddPage(s => !s)}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                padding: '6px', borderRadius: '6px', border: '1px dashed rgba(163,177,138,0.4)',
-                background: 'rgba(163,177,138,0.06)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer',
+                padding: '6px', borderRadius: '6px', border: '1px dashed var(--pl-olive-40)',
+                background: 'var(--pl-olive-5)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer',
                 fontSize: '0.7rem', fontWeight: 700, transition: 'all 0.15s',
               }}
             >
@@ -1440,7 +1440,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                       disabled={!newPageTitle.trim()}
                       style={{
                         padding: '6px 12px', borderRadius: '5px', border: 'none',
-                        background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.06)',
+                        background: newPageTitle.trim() ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-black-6)',
                         color: newPageTitle.trim() ? '#fff' : 'var(--pl-muted)',
                         fontSize: '0.72rem', fontWeight: 700, cursor: newPageTitle.trim() ? 'pointer' : 'not-allowed',
                       }}
@@ -1471,22 +1471,22 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             background: 'linear-gradient(135deg, rgba(214,198,168,0.04) 0%, rgba(214,198,168,0.02) 100%)',
             textAlign: 'center',
           }}>
-            <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginBottom: '4px' }} />
+            <div style={{ width: '36px', height: '1px', background: 'var(--pl-olive-30)', marginBottom: '4px' }} />
             <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--pl-muted)', letterSpacing: '-0.01em' }}>Canvas is empty</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.6 }}>Add your first section below</div>
-            <div style={{ width: '36px', height: '1px', background: 'rgba(163,177,138,0.3)', marginTop: '4px' }} />
+            <div style={{ width: '36px', height: '1px', background: 'var(--pl-olive-30)', marginTop: '4px' }} />
             <button
               onClick={() => addBlock('hero')}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 marginTop: '4px', padding: '0.5rem 1.25rem', borderRadius: '100px',
-                border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.1)',
+                border: '1px solid var(--pl-olive-30)', background: 'var(--pl-olive-10)',
                 color: 'rgba(163,177,138,0.85)', cursor: 'pointer',
                 fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
                 transition: 'all 0.2s',
               }}
               onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.18)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.45)'; }}
-              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-10)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-olive-30)'; }}
             >
               + Add Hero
             </button>
@@ -1604,7 +1604,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 </div>
                 <button
                   onClick={() => setActiveBlockId(null)}
-                  style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
+                  style={{ background: 'var(--pl-black-4)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
                 >
                   <X size={13} />
                 </button>
@@ -1631,7 +1631,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
       {(() => {
         const draggedBlock = dragId ? dragOrderedBlocks.find(b => b.id === dragId) : null;
         const draggedDef = draggedBlock ? BLOCK_DEF_MAP.get(draggedBlock.type) ?? null : null;
-        const ghostColor = draggedDef?.color ?? 'rgba(163,177,138,1)';
+        const ghostColor = draggedDef?.color ?? 'var(--pl-olive)';
         const GhostIcon = draggedDef?.icon ?? LayoutTemplate;
         return (
           <div

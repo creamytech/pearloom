@@ -86,7 +86,7 @@ const fadeUp = {
 // ── Shared card style ──────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
-  background: '#ffffff',
+  background: 'var(--pl-cream-card)',
   borderRadius: '1.25rem',
   border: '1px solid rgba(0,0,0,0.06)',
   overflow: 'hidden',
@@ -293,7 +293,7 @@ export function GuestDashboard({
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                background: '#ffffff',
+                background: 'var(--pl-cream-card)',
                 border: '1px solid rgba(0,0,0,0.07)',
                 borderRadius: '1rem',
                 padding: '0.9rem 1.3rem',

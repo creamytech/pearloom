@@ -181,7 +181,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
               exit={{ opacity: 0, y: 20 }}
               style={{
                 position: 'fixed', bottom: '2rem', right: '2rem',
-                background: 'var(--pl-plum, #6D597A)', color: '#fff',
+                background: 'var(--pl-plum, #6D597A)', color: 'white',
                 padding: '1rem 1.5rem', borderRadius: '0.75rem',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                 zIndex: 1000, fontSize: '0.9rem', fontWeight: 600,
@@ -400,7 +400,7 @@ export function GuestPhotoWall({ siteId, vibeSkin, enabled = true }: GuestPhotoW
                       border: 'none', borderRadius: '0.6rem',
                       cursor: uploading || !selectedFile || !uploaderName.trim() ? 'not-allowed' : 'pointer',
                       background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                      color: '#fff', fontSize: '0.9rem', fontWeight: 600,
+                      color: 'white', fontSize: '0.9rem', fontWeight: 600,
                       opacity: uploading || !selectedFile || !uploaderName.trim() ? 0.5 : 1,
                       transition: 'opacity 0.2s',
                     }}

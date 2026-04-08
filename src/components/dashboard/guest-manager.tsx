@@ -288,7 +288,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           style={{
             display: 'flex', alignItems: 'center', gap: '0.4rem',
             padding: '0.7rem 1.25rem', borderRadius: '0.65rem',
-            background: 'var(--pl-ink)', color: '#fff', border: 'none',
+            background: 'var(--pl-ink)', color: 'white', border: 'none',
             cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
             fontFamily: 'var(--pl-font-body)',
           }}
@@ -361,7 +361,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.4rem',
                     padding: '0.7rem 1.1rem', borderRadius: '0.65rem',
-                    background: 'var(--pl-olive)', color: '#fff',
+                    background: 'var(--pl-olive)', color: 'white',
                     border: 'none', cursor: saving || !newGuest.name.trim() ? 'not-allowed' : 'pointer',
                     fontWeight: 700, fontSize: '0.8rem', opacity: !newGuest.name.trim() ? 0.5 : 1,
                     fontFamily: 'var(--pl-font-body)',

@@ -134,7 +134,7 @@ function ChapterCard({
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
       <div style={{
-        background: '#fff',
+        background: 'var(--pl-cream-card)',
         borderRadius: '1rem',
         border: isEditing ? '2px solid var(--pl-olive)' : '1.5px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
@@ -183,7 +183,7 @@ function ChapterCard({
             <div style={{
               position: 'absolute', top: '6px', left: '6px',
               background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-              color: '#fff', fontSize: '0.6rem', fontWeight: 800,
+              color: 'white', fontSize: '0.6rem', fontWeight: 800,
               padding: '2px 6px', borderRadius: '100px', letterSpacing: '0.06em',
             }}>
               {index + 1}
@@ -299,7 +299,7 @@ function ChapterCard({
                 padding: '0.45rem 0.7rem', borderRadius: '0.5rem', fontSize: '0.72rem',
                 border: `1px solid ${isEditing ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
                 background: isEditing ? 'var(--pl-olive)' : 'transparent',
-                color: isEditing ? '#fff' : 'rgba(0,0,0,0.5)',
+                color: isEditing ? 'white' : 'rgba(0,0,0,0.5)',
                 cursor: 'pointer', fontWeight: 700,
                 display: 'flex', alignItems: 'center', gap: '4px',
                 transition: 'all 0.15s',
@@ -515,7 +515,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                 style={{
                   width: '100%', padding: '0.75rem', borderRadius: '0.55rem',
                   border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
-                  color: '#fff', fontSize: '0.82rem', lineHeight: 1.6, resize: 'none',
+                  color: 'white', fontSize: '0.82rem', lineHeight: 1.6, resize: 'none',
                   outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
                 }}
                 onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generate(); }}
@@ -529,7 +529,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                   width: '100%', marginTop: '0.6rem', padding: '0.7rem',
                   borderRadius: '0.55rem', border: 'none', cursor: prompt.trim() ? 'pointer' : 'not-allowed',
                   background: prompt.trim() ? 'var(--pl-olive)' : 'rgba(0,0,0,0.05)',
-                  color: prompt.trim() ? '#fff' : 'rgba(255,255,255,0.28)',
+                  color: prompt.trim() ? 'white' : 'rgba(255,255,255,0.28)',
                   fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.04em',
                   transition: 'all 0.2s',
                 }}
@@ -690,7 +690,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                     ...sidebarIconBtn,
                     background: hasChanges ? 'var(--pl-olive)' : 'rgba(0,0,0,0.04)',
                     border: hasChanges ? '1px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.08)',
-                    color: hasChanges ? '#fff' : 'var(--pl-muted)',
+                    color: hasChanges ? 'white' : 'var(--pl-muted)',
                     padding: '0.45rem 0.875rem',
                     gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700,
                     transition: 'all 0.2s',
@@ -708,7 +708,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
           {[{ label: 'Blocks', value: blocks.length }, { label: 'AI Made', value: aiCount }].map(s => (
             <div key={s.label} style={{
-              background: '#fff', borderRadius: '0.75rem', padding: '0.875rem 1rem',
+              background: 'var(--pl-cream-card)', borderRadius: '0.75rem', padding: '0.875rem 1rem',
               border: '1px solid rgba(0,0,0,0.05)', textAlign: 'center',
               boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
             }}>
@@ -723,7 +723,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
 
         {/* Block Palette */}
         <div style={{
-          background: '#fff', borderRadius: '1rem',
+          background: 'var(--pl-cream-card)', borderRadius: '1rem',
           border: '1px solid rgba(0,0,0,0.06)',
           overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
         }}>
@@ -764,7 +764,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           marginBottom: '1.25rem', padding: '0.875rem 1.25rem',
-          background: '#fff', borderRadius: '0.875rem',
+          background: 'var(--pl-cream-card)', borderRadius: '0.875rem',
           border: '1px solid rgba(0,0,0,0.05)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
         }}>
@@ -781,7 +781,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
             style={{
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.6rem 1.1rem', borderRadius: '0.6rem',
-              background: 'var(--pl-ink)', color: '#fff', border: 'none',
+              background: 'var(--pl-ink)', color: 'white', border: 'none',
               cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700,
               boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
               transition: 'transform 0.15s, box-shadow 0.15s',
@@ -802,7 +802,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 justifyContent: 'center', minHeight: '320px',
-                background: '#fff', borderRadius: '1rem',
+                background: 'var(--pl-cream-card)', borderRadius: '1rem',
                 border: '2px dashed rgba(0,0,0,0.09)',
                 color: 'var(--pl-muted)', gap: '1rem',
               }}
@@ -823,7 +823,7 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.7rem 1.5rem', borderRadius: '100px',
-                  background: 'var(--pl-olive)', color: '#fff', border: 'none',
+                  background: 'var(--pl-olive)', color: 'white', border: 'none',
                   cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem',
                   boxShadow: '0 8px 20px rgba(163,177,138,0.3)',
                 }}
