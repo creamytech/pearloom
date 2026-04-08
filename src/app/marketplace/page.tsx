@@ -6,26 +6,29 @@
 // Integrated into the dashboard layout with sidebar navigation.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
-  Search, Star, Heart, ArrowRight, ArrowLeft,
+  Search, Heart, ArrowRight, ArrowLeft,
   Sparkles, Grid, List, Check, Copy, Palette,
-  LayoutTemplate, Blocks, Users,
+  LayoutTemplate, Blocks, Users, Lock, Package,
+  ShoppingBag,
 } from 'lucide-react';
 import { BLOCK_TEMPLATES, searchTemplates as searchBlockTemplates } from '@/lib/block-engine/templates';
 import { SITE_TEMPLATES, searchTemplates as searchSiteTemplates } from '@/lib/templates/wedding-templates';
 import { COLOR_THEMES, searchColorThemes } from '@/lib/templates/color-themes';
-import { MARKETPLACE_CATEGORIES } from '@/lib/marketplace';
+import { MARKETPLACE_CATEGORIES, formatPrice } from '@/lib/marketplace';
+import { MARKETPLACE_PACKS, searchPacks } from '@/lib/marketplace-assets';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 
-type TabId = 'templates' | 'themes' | 'blocks' | 'community';
+type TabId = 'templates' | 'themes' | 'blocks' | 'assets' | 'community';
 
 const TABS: Array<{ id: TabId; label: string; icon: React.ElementType; count: number }> = [
   { id: 'templates', label: 'Templates', icon: LayoutTemplate, count: SITE_TEMPLATES.length },
   { id: 'themes', label: 'Themes', icon: Palette, count: COLOR_THEMES.length },
+  { id: 'assets', label: 'Asset Packs', icon: Package, count: MARKETPLACE_PACKS.length },
   { id: 'blocks', label: 'Block Presets', icon: Blocks, count: BLOCK_TEMPLATES.length },
   { id: 'community', label: 'Community', icon: Users, count: 0 },
 ];
@@ -36,6 +39,37 @@ export default function MarketplacePage() {
   const [category, setCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [ownedItems, setOwnedItems] = useState<Set<string>>(new Set());
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+
+  // Fetch owned items on mount
+  useEffect(() => {
+    fetch('/api/marketplace/owned')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.ownedItems) setOwnedItems(new Set(data.ownedItems)); })
+      .catch(() => {});
+  }, []);
+
+  const handlePurchase = async (itemId: string, itemType: string) => {
+    setPurchasing(itemId);
+    try {
+      const res = await fetch('/api/marketplace/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, itemType }),
+      });
+      const data = await res.json();
+      if (data.owned) {
+        setOwnedItems(prev => new Set([...prev, itemId]));
+      } else if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
+    } catch {
+      // Silent
+    } finally {
+      setPurchasing(null);
+    }
+  };
 
   const siteResults = useMemo(() => {
     let items = search ? searchSiteTemplates(search) : [...SITE_TEMPLATES];
@@ -218,6 +252,21 @@ export default function MarketplacePage() {
                               <Sparkles size={8} /> Popular
                             </div>
                           )}
+                          {template.featured && (
+                            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--pl-gold)]/90 backdrop-blur-sm text-[0.52rem] font-bold uppercase tracking-[0.08em] text-white" style={{ left: template.popularity >= 90 ? '90px' : '12px' }}>
+                              ★ Featured
+                            </div>
+                          )}
+                          {template.price && template.price > 0 && !ownedItems.has(template.id) && (
+                            <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[0.55rem] font-bold text-white">
+                              {formatPrice(template.price)}
+                            </div>
+                          )}
+                          {ownedItems.has(template.id) && (
+                            <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--pl-olive)]/90 backdrop-blur-sm text-[0.52rem] font-bold text-white">
+                              <Check size={8} /> Owned
+                            </div>
+                          )}
                         </div>
 
                         <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex items-center' : ''}`}>
@@ -230,13 +279,28 @@ export default function MarketplacePage() {
                               ))}
                             </div>
                             <div className="flex items-center gap-2">
-                              <Link
-                                href="/dashboard"
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold no-underline hover:bg-[var(--pl-olive-hover)] transition-colors"
-                              >
-                                Use Template <ArrowRight size={11} />
-                              </Link>
-                              <span className="text-[0.62rem] text-[var(--pl-muted)]">{template.blocks.length} blocks · Free</span>
+                              {(!template.price || template.price === 0 || ownedItems.has(template.id)) ? (
+                                <Link
+                                  href="/dashboard"
+                                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold no-underline hover:opacity-90 transition-opacity"
+                                >
+                                  Use Template <ArrowRight size={11} />
+                                </Link>
+                              ) : (
+                                <button
+                                  onClick={() => handlePurchase(template.id, 'template')}
+                                  disabled={purchasing === template.id}
+                                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-ink)] text-white text-[0.68rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
+                                >
+                                  {purchasing === template.id ? 'Loading...' : (
+                                    <><ShoppingBag size={11} /> {formatPrice(template.price)}</>
+                                  )}
+                                </button>
+                              )}
+                              <span className="text-[0.62rem] text-[var(--pl-muted)]">
+                                {template.blocks.length} blocks
+                                {(!template.price || template.price === 0) ? ' · Free' : ownedItems.has(template.id) ? ' · Owned' : ''}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -353,6 +417,101 @@ export default function MarketplacePage() {
                           </div>
                         </div>
                       </motion.div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+
+            {/* ── Asset Packs ── */}
+            {activeTab === 'assets' && (() => {
+              const packResults = search ? searchPacks(search) : MARKETPLACE_PACKS;
+              const PACK_CATEGORIES = [
+                { id: 'all', label: 'All' },
+                { id: 'icon-pack', label: 'Icons' },
+                { id: 'background-pack', label: 'Backgrounds' },
+                { id: 'accent-pack', label: 'Accents' },
+                { id: 'sticker-pack', label: 'Stickers' },
+              ];
+              const filtered = category === 'all' ? packResults : packResults.filter(p => p.category === category.replace('-pack', 's'));
+              return (
+                <>
+                  <div className="mb-5">
+                    <h2 className="font-heading italic text-[1.2rem] text-[var(--pl-ink)]">
+                      {filtered.length} Asset Pack{filtered.length !== 1 ? 's' : ''}
+                    </h2>
+                    <p className="text-[0.78rem] text-[var(--pl-muted)] mt-1">
+                      Icons, backgrounds, decorative accents, and stickers for your site.
+                    </p>
+                  </div>
+
+                  {/* Pack category filter */}
+                  <div className="flex gap-1.5 mb-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                    {PACK_CATEGORIES.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setCategory(cat.id)}
+                        className={`shrink-0 px-3 py-1.5 rounded-full text-[0.65rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
+                          category === cat.id ? 'bg-[var(--pl-ink)] text-white' : 'bg-white text-[var(--pl-muted)]'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {filtered.map((pack, i) => (
+                      <div
+                        key={pack.id}
+                        className="pl-enter rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 transition-all"
+                        style={{ animationDelay: `${i * 40}ms` }}
+                      >
+                        {/* Preview strip */}
+                        <div className="h-[100px] relative flex items-center justify-center" style={{
+                          background: pack.category === 'icons' ? 'linear-gradient(135deg, var(--pl-cream) 0%, var(--pl-olive-mist) 100%)'
+                            : pack.category === 'backgrounds' ? 'linear-gradient(135deg, #E8D5C4 0%, #D4B8A0 100%)'
+                            : pack.category === 'accents' ? 'linear-gradient(135deg, #F0E8F5 0%, #D4C0E0 100%)'
+                            : 'linear-gradient(135deg, #FFE8E0 0%, #FFD0C0 100%)',
+                        }}>
+                          <Package size={28} className="text-[var(--pl-muted)] opacity-40" />
+                          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[0.55rem] font-bold text-white">
+                            {formatPrice(pack.price)}
+                          </div>
+                          <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.52rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-muted)]">
+                            {pack.items.length} items
+                          </div>
+                          {ownedItems.has(pack.id) && (
+                            <div className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-[var(--pl-olive)]/90 backdrop-blur-sm text-[0.52rem] font-bold text-white flex items-center gap-1">
+                              <Check size={8} /> Owned
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)] mb-0.5">{pack.name}</h3>
+                          <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed mb-3">{pack.description}</p>
+                          <div className="flex items-center gap-2">
+                            {ownedItems.has(pack.id) ? (
+                              <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold border-none cursor-pointer">
+                                <Check size={11} /> View Assets
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handlePurchase(pack.id, pack.category)}
+                                disabled={purchasing === pack.id}
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-ink)] text-white text-[0.68rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
+                              >
+                                {purchasing === pack.id ? 'Loading...' : <><ShoppingBag size={11} /> Buy Pack</>}
+                              </button>
+                            )}
+                            <div className="flex gap-1">
+                              {pack.tags.slice(0, 2).map(tag => (
+                                <span key={tag} className="text-[0.5rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">{tag}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </>
