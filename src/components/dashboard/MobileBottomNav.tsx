@@ -28,11 +28,11 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 safe-bottom lg:hidden"
       style={{
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(24px) saturate(1.4)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-        borderTop: '1px solid rgba(0,0,0,0.06)',
-        boxShadow: '0 -2px 12px rgba(43,30,20,0.06)',
+        background: 'rgba(255,255,255,0.45)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255,255,255,0.5)',
+        boxShadow: '0 -4px 20px rgba(43,30,20,0.06)',
       } as React.CSSProperties}
     >
       <div style={{

@@ -310,7 +310,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
   if (state === 'idle') {
     return (
       <div style={cardStyle}>
-        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', marginBottom: '0.5rem', color: 'var(--pl-ink-soft)', fontWeight: 400 }}>
+        <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', marginBottom: '0.5rem', color: 'var(--pl-ink-soft)', fontWeight: 400, fontStyle: 'italic' }}>
           Add your photos
         </h3>
         <p style={{ color: 'var(--pl-muted)', fontSize: '0.92rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '420px', margin: '0 auto 2.5rem' }}>
@@ -330,7 +330,6 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
               WebkitBackdropFilter: 'blur(12px)',
               boxShadow: '0 2px 12px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
               cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
-              borderBottom: '1px solid rgba(255,255,255,0.6)',
             } as React.CSSProperties}
           >
             <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -372,7 +371,6 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
               WebkitBackdropFilter: 'blur(12px)',
               boxShadow: '0 2px 12px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
               cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
-              borderBottom: '1px solid rgba(255,255,255,0.6)',
             } as React.CSSProperties}
           >
             <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -404,8 +402,10 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                 onClick={onSkipToTemplate}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '14px 20px', borderRadius: '16px', border: 'none',
-                  background: 'rgba(163,177,138,0.06)',
+                  padding: '14px 20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)',
+                  background: 'rgba(255,255,255,0.45)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
                   cursor: 'pointer', textAlign: 'left' as const, transition: 'all 0.2s',
                   width: '100%',
                 }}
@@ -610,7 +610,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
     return (
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: '#fef9e7', border: '2px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: 'rgba(255,255,255,0.5)', border: '2px solid rgba(163,177,138,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Clock size={32} color="#d97706" />
           </div>
         </div>
@@ -632,7 +632,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
     return (
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: '#fef2f2', border: '2px solid #fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '5rem', height: '5rem', borderRadius: '50%', background: 'rgba(255,255,255,0.5)', border: '2px solid rgba(220,100,100,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <AlertCircle size={32} color="#dc2626" />
           </div>
         </div>
@@ -689,12 +689,12 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.5rem',
           padding: '0.75rem 1rem', marginBottom: '1rem',
-          background: '#fff7ed', border: '1px solid #fed7aa',
-          borderRadius: card.radius, fontSize: text.sm, color: '#92400e',
-        }}>
+          background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)',
+          borderRadius: card.radius, fontSize: text.sm, color: 'var(--pl-ink-soft)',
+        } as React.CSSProperties}>
           <AlertCircle size={15} style={{ flexShrink: 0 }} />
           <span>{error}</span>
-          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', padding: 0 }}>
+          <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-ink-soft)', padding: 0 }}>
             <X size={14} />
           </button>
         </div>

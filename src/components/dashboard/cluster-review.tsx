@@ -322,13 +322,15 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
               style={{
-                background: card.bg,
-                borderRadius: card.radius,
-                border: hasLocation ? `1px solid ${C.olive}55` : card.border,
+                background: 'rgba(255,255,255,0.45)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '16px',
+                border: hasLocation ? '1px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.5)',
                 overflow: 'hidden',
-                boxShadow: card.shadow,
+                boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
                 transition: 'border-color 0.25s ease',
-              }}
+              } as React.CSSProperties}
             >
               <div style={{ display: 'flex', alignItems: 'stretch' }}>
                 {/* Thumbnail strip */}
@@ -340,7 +342,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                   overflow: 'hidden',
                 }}>
                   {cluster.photos.slice(0, 2).map((p, pi) => (
-                    <div key={pi} style={{ overflow: 'hidden', background: '#f0ebe4' }}>
+                    <div key={pi} style={{ overflow: 'hidden', background: 'var(--pl-cream-deep)' }}>
                       <img
                         src={p.baseUrl
                           ? (p.baseUrl.includes('googleusercontent.com')
@@ -389,10 +391,13 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           style={{
                             width: '100%', boxSizing: 'border-box',
                             padding: '0.6rem 0.75rem 0.6rem 2.25rem',
-                            borderRadius: card.radius, border: `1.5px solid ${C.olive}`,
+                            borderRadius: '12px',
+                            border: '1px solid rgba(255,255,255,0.4)',
                             fontSize: 'max(16px, 0.9rem)', fontFamily: 'var(--pl-font-body)',
-                            outline: 'none', background: card.bg,
-                          }}
+                            outline: 'none',
+                            background: 'rgba(255,255,255,0.35)',
+                            backdropFilter: 'blur(8px)',
+                          } as React.CSSProperties}
                         />
                       </div>
                       <button
@@ -401,8 +406,8 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         }}
                         disabled={isGeocoding}
                         style={{
-                          padding: '0.6rem 1rem', borderRadius: card.radius,
-                          background: C.olive, color: '#fff',
+                          padding: '0.6rem 1rem', borderRadius: '12px',
+                          background: 'var(--pl-olive)', color: '#fff',
                           border: 'none', cursor: 'pointer', fontSize: text.sm,
                           fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem',
                           flexShrink: 0,
@@ -413,7 +418,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                       </button>
                       <button
                         onClick={() => { setEditingIdx(null); setDraftLocation(''); }}
-                        style={{ padding: '0.6rem', borderRadius: card.radius, background: 'transparent', border: card.border, cursor: 'pointer', color: C.muted, fontSize: text.sm }}
+                        style={{ padding: '0.6rem', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', color: 'var(--pl-muted)', fontSize: text.sm } as React.CSSProperties}
                       >
                         ✕
                       </button>
@@ -422,18 +427,18 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <div style={{ flex: 1 }}>
                         {hasLocation ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.md, fontWeight: 600, color: C.ink }}>
-                            <MapPin size={14} color={C.olive} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.md, fontWeight: 600, color: 'var(--pl-ink)' }}>
+                            <MapPin size={14} color="var(--pl-olive)" />
                             {cluster.location!.label}
                             {cluster.location!.lat !== 0 && (
-                              <span style={{ fontSize: text.xs, color: C.muted, fontWeight: 400, marginLeft: '0.25rem' }}>
+                              <span style={{ fontSize: text.xs, color: 'var(--pl-muted)', fontWeight: 400, marginLeft: '0.25rem' }}>
                                 (GPS verified)
                               </span>
                             )}
                           </div>
                         ) : (
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.base, color: C.muted, fontStyle: 'italic' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.base, color: 'var(--pl-muted)', fontStyle: 'italic' }}>
                               <MapPin size={14} style={{ opacity: 0.4 }} />
                               No location detected
                             </div>
@@ -441,17 +446,18 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             {aiSuggestions[idx] && aiSuggestions[idx].location && (
                               <div style={{
                                 display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem',
-                                padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                                background: `${C.olive}0D`, border: `1px solid ${C.olive}33`,
-                              }}>
-                                <Sparkles size={13} color={C.olive} />
-                                <span style={{ fontSize: text.sm, color: C.ink, fontWeight: 500, flex: 1 }}>
+                                padding: '0.5rem 0.75rem', borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(255,255,255,0.4)',
+                              } as React.CSSProperties}>
+                                <Sparkles size={13} color="var(--pl-olive)" />
+                                <span style={{ fontSize: text.sm, color: 'var(--pl-ink)', fontWeight: 500, flex: 1 }}>
                                   {aiSuggestions[idx].location}
-                                  <span style={{ fontSize: text.xs, color: C.muted, fontWeight: 400, marginLeft: '0.35rem' }}>
+                                  <span style={{ fontSize: text.xs, color: 'var(--pl-muted)', fontWeight: 400, marginLeft: '0.35rem' }}>
                                     ({aiSuggestions[idx].confidence})
                                   </span>
                                   {aiSuggestions[idx].suggestedTitle && (
-                                    <span style={{ display: 'block', fontSize: text.xs, color: C.olive, fontWeight: 500, marginTop: '0.15rem', fontStyle: 'italic' }}>
+                                    <span style={{ display: 'block', fontSize: text.xs, color: 'var(--pl-olive)', fontWeight: 500, marginTop: '0.15rem', fontStyle: 'italic' }}>
                                       &ldquo;{aiSuggestions[idx].suggestedTitle}&rdquo;
                                     </span>
                                   )}
@@ -460,7 +466,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                                   onClick={() => acceptSuggestion(idx)}
                                   style={{
                                     padding: '0.3rem 0.7rem', borderRadius: '100px',
-                                    background: C.olive, color: '#fff', border: 'none',
+                                    background: 'var(--pl-olive)', color: '#fff', border: 'none',
                                     fontSize: text.xs, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
                                   }}
                                 >Accept</button>
@@ -468,14 +474,16 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                                   onClick={() => setAiSuggestions(prev => { const n = { ...prev }; delete n[idx]; return n; })}
                                   style={{
                                     padding: '0.3rem 0.5rem', borderRadius: '100px',
-                                    background: 'transparent', color: C.muted, border: card.border,
+                                    background: 'rgba(255,255,255,0.35)', color: 'var(--pl-muted)',
+                                    border: '1px solid rgba(255,255,255,0.4)',
+                                    backdropFilter: 'blur(8px)',
                                     fontSize: text.xs, cursor: 'pointer', flexShrink: 0,
-                                  }}
+                                  } as React.CSSProperties}
                                 >Dismiss</button>
                               </div>
                             )}
                             {aiSuggestions[idx] && !aiSuggestions[idx].location && (
-                              <div style={{ fontSize: text.xs, color: C.muted, marginTop: '0.35rem' }}>
+                              <div style={{ fontSize: text.xs, color: 'var(--pl-muted)', marginTop: '0.35rem' }}>
                                 Could not suggest — please add manually
                               </div>
                             )}
@@ -490,12 +498,16 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                             style={{
                               display: 'flex', alignItems: 'center', gap: '0.35rem',
                               padding: '0.45rem 0.9rem', borderRadius: '100px',
-                              border: `1px solid ${C.olive}55`, background: `${C.olive}0A`,
-                              color: C.olive,
+                              border: '1px solid rgba(255,255,255,0.5)',
+                              background: 'rgba(255,255,255,0.45)',
+                              backdropFilter: 'blur(20px)',
+                              WebkitBackdropFilter: 'blur(20px)',
+                              color: 'var(--pl-olive)',
                               fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
                               transition: 'all 0.2s ease', flexShrink: 0,
                               opacity: aiSuggesting === idx ? 0.7 : 1,
-                            }}
+                              boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+                            } as React.CSSProperties}
                           >
                             {aiSuggesting === idx ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={11} />}
                             {aiSuggesting === idx ? 'Thinking...' : 'AI Suggest'}
@@ -509,11 +521,15 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           style={{
                             display: 'flex', alignItems: 'center', gap: '0.35rem',
                             padding: '0.45rem 0.9rem', borderRadius: '100px',
-                            border: card.border, background: hasLocation ? `${C.olive}14` : C.cream,
-                            color: hasLocation ? C.olive : C.muted,
+                            border: '1px solid rgba(255,255,255,0.5)',
+                            background: 'rgba(255,255,255,0.45)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            color: hasLocation ? 'var(--pl-olive)' : 'var(--pl-muted)',
                             fontSize: text.sm, fontWeight: 600, cursor: 'pointer',
                             transition: 'all 0.2s ease', flexShrink: 0,
-                          }}
+                            boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+                          } as React.CSSProperties}
                         >
                           <Pencil size={11} />
                           {hasLocation ? 'Edit' : 'Manual'}
@@ -535,10 +551,13 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.3rem',
                           padding: '0.35rem 0.7rem', borderRadius: '100px',
-                          border: card.border, background: C.cream,
-                          color: C.muted, fontSize: text.xs, fontWeight: 600,
+                          border: '1px solid rgba(255,255,255,0.5)',
+                          background: 'rgba(255,255,255,0.45)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          color: 'var(--pl-muted)', fontSize: text.xs, fontWeight: 600,
                           cursor: 'pointer', transition: 'all 0.2s',
-                        }}
+                        } as React.CSSProperties}
                       >
                         <Scissors size={11} /> Split
                       </button>
@@ -550,10 +569,13 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           display: 'flex', alignItems: 'center', gap: '0.3rem',
                           padding: '0.35rem 0.7rem', borderRadius: '100px',
-                          border: card.border, background: C.cream,
-                          color: C.muted, fontSize: text.xs, fontWeight: 600,
+                          border: '1px solid rgba(255,255,255,0.5)',
+                          background: 'rgba(255,255,255,0.45)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          color: 'var(--pl-muted)', fontSize: text.xs, fontWeight: 600,
                           cursor: 'pointer', transition: 'all 0.2s',
-                        }}
+                        } as React.CSSProperties}
                       >
                         <Merge size={11} /> Merge with next
                       </button>
@@ -576,26 +598,27 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         style={{
                           width: '100%', boxSizing: 'border-box',
                           padding: '0.55rem 0.75rem',
-                          borderRadius: card.radius,
-                          border: card.border,
+                          borderRadius: '12px',
+                          border: '1px solid rgba(255,255,255,0.4)',
                           fontSize: 'max(16px, 0.9rem)',
                           fontFamily: 'var(--pl-font-body)',
-                          color: C.ink,
+                          color: 'var(--pl-ink)',
                           outline: 'none',
                           resize: 'none',
-                          background: C.cream,
+                          background: 'rgba(255,255,255,0.35)',
+                          backdropFilter: 'blur(8px)',
                           lineHeight: 1.5,
                           transition: 'border-color 0.2s',
-                        }}
-                        onFocus={e => { e.target.style.borderColor = C.olive; }}
-                        onBlur={e => { e.target.style.borderColor = C.divider; }}
+                        } as React.CSSProperties}
+                        onFocus={e => { e.target.style.borderColor = 'var(--pl-olive)'; }}
+                        onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.4)'; }}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
-                      <label style={{ fontSize: text.xs, color: C.muted, fontWeight: 500 }}>
+                      <label style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)' } as React.CSSProperties}>
                         What was happening here?
                       </label>
-                      <span style={{ fontSize: text.xs, color: C.muted }}>
+                      <span style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
                         {120 - ((draftNotes[idx] ?? cluster.note ?? '').length)} remaining
                       </span>
                     </div>
@@ -606,7 +629,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                 {hasLocation && !isEditing && (
                   <div style={{
                     width: '3px', alignSelf: 'stretch',
-                    background: C.olive, borderRadius: `0 ${card.radius} ${card.radius} 0`,
+                    background: 'var(--pl-olive)', borderRadius: '0 16px 16px 0',
                     opacity: 0.5,
                   }} />
                 )}
@@ -623,27 +646,29 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
           animate={{ opacity: 1, y: 0 }}
           style={{
             marginBottom: '1.5rem', padding: '1.25rem 1.5rem',
-            background: storyAdvice.arcQuality === 'strong' ? `${C.olive}0D` : '#FFF',
-            borderRadius: card.radius,
-            border: `1px solid ${storyAdvice.arcQuality === 'strong' ? `${C.olive}33` : 'rgba(0,0,0,0.06)'}`,
-            boxShadow: card.shadow,
-          }}
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.5)',
+            boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+          } as React.CSSProperties}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <Sparkles size={14} color={C.olive} />
-              <span style={{ fontSize: text.sm, fontWeight: 700, color: C.olive, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <Sparkles size={14} color="var(--pl-olive)" />
+              <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--pl-olive)', textTransform: 'uppercase', letterSpacing: '0.1em' } as React.CSSProperties}>
                 Story Arc: {storyAdvice.arcQuality === 'strong' ? 'Excellent' : storyAdvice.arcQuality === 'good' ? 'Good' : 'Could be stronger'}
               </span>
             </div>
             <button
               onClick={() => setStoryAdviceDismissed(true)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, fontSize: text.xs, flexShrink: 0 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', fontSize: text.xs, flexShrink: 0 }}
             >Dismiss</button>
           </div>
-          <p style={{ fontSize: text.base, color: C.ink, marginBottom: '0.5rem', lineHeight: 1.5 }}>{storyAdvice.arcSummary}</p>
+          <p style={{ fontSize: text.base, color: 'var(--pl-ink)', marginBottom: '0.5rem', lineHeight: 1.5 }}>{storyAdvice.arcSummary}</p>
           {storyAdvice.suggestions.length > 0 && (
-            <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: text.sm, color: C.muted, lineHeight: 1.6 }}>
+            <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: text.sm, color: 'var(--pl-muted)', lineHeight: 1.6 }}>
               {storyAdvice.suggestions.map((s, i) => <li key={i}>{s}</li>)}
             </ul>
           )}
@@ -655,15 +680,16 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
         <button
           onClick={onBack}
           style={{
-            padding: '0.9rem 1.75rem', borderRadius: card.radius,
-            border: card.border, background: card.bg,
-            color: C.ink, fontSize: text.base, fontWeight: 500,
+            padding: '0.9rem 1.75rem', borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.5)',
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            color: 'var(--pl-ink)', fontSize: text.base, fontWeight: 500,
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
             transition: 'background 0.2s, box-shadow 0.2s',
-            boxShadow: card.shadow,
-          }}
-          onMouseOver={e => { e.currentTarget.style.boxShadow = card.shadowHover; }}
-          onMouseOut={e => { e.currentTarget.style.boxShadow = card.shadow; }}
+            boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+          } as React.CSSProperties}
         >
           ← Back
         </button>

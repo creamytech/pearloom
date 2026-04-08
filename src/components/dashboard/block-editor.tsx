@@ -37,12 +37,12 @@ interface BlockEditorProps {
 
 // ── Constants ──────────────────────────────────────────────────
 const BLOCK_CONFIG: Record<BlockType, { label: string; color: string; gradient: string; icon: React.ElementType }> = {
-  chapter: { label: 'Chapter', color: '#f0f4ff', gradient: 'linear-gradient(135deg, #667eea22, #764ba222)', icon: Image },
-  faq:     { label: 'FAQ',     color: '#f0fdf4', gradient: 'linear-gradient(135deg, #11998e22, #38ef7d22)', icon: HelpCircle },
-  events:  { label: 'Event',   color: '#fff7f0', gradient: 'linear-gradient(135deg, #f09a2222, #fc4a1a22)', icon: Calendar },
-  registry:{ label: 'Registry',color: '#fdf4ff', gradient: 'linear-gradient(135deg, #a18cd122, #fbc2eb22)', icon: Gift },
-  travel:  { label: 'Travel',  color: '#f0faff', gradient: 'linear-gradient(135deg, #4facfe22, #00f2fe22)', icon: Map },
-  'coming-soon': { label: 'Coming Soon', color: '#fffbf0', gradient: 'linear-gradient(135deg, #f6d36522, #fda08522)', icon: Globe },
+  chapter: { label: 'Chapter', color: 'rgba(255,255,255,0.35)', gradient: 'linear-gradient(135deg, rgba(163,177,138,0.12), rgba(163,177,138,0.06))', icon: Image },
+  faq:     { label: 'FAQ',     color: 'rgba(255,255,255,0.35)', gradient: 'linear-gradient(135deg, rgba(163,177,138,0.12), rgba(163,177,138,0.06))', icon: HelpCircle },
+  events:  { label: 'Event',   color: 'rgba(255,255,255,0.35)', gradient: 'linear-gradient(135deg, rgba(163,177,138,0.12), rgba(163,177,138,0.06))', icon: Calendar },
+  registry:{ label: 'Registry',color: 'rgba(255,255,255,0.35)', gradient: 'linear-gradient(135deg, rgba(163,177,138,0.12), rgba(163,177,138,0.06))', icon: Gift },
+  travel:  { label: 'Travel',  color: 'rgba(255,255,255,0.35)', gradient: 'linear-gradient(135deg, rgba(163,177,138,0.12), rgba(163,177,138,0.06))', icon: Map },
+  'coming-soon': { label: 'Coming Soon', color: 'rgba(255,255,255,0.35)', gradient: 'linear-gradient(135deg, rgba(163,177,138,0.12), rgba(163,177,138,0.06))', icon: Globe },
 };
 
 const LAYOUT_LABELS: Record<string, string> = {
@@ -134,16 +134,18 @@ function ChapterCard({
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
       <div style={{
-        background: '#fff',
-        borderRadius: '1rem',
-        border: isEditing ? '2px solid var(--pl-olive)' : '1.5px solid rgba(0,0,0,0.06)',
+        background: 'rgba(255,255,255,0.45)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '16px',
+        border: isEditing ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.5)',
         overflow: 'hidden',
         boxShadow: isEditing
           ? '0 8px 30px rgba(163,177,138,0.16)'
-          : '0 2px 12px rgba(0,0,0,0.04)',
+          : '0 4px 20px rgba(43,30,20,0.06)',
         marginBottom: '0.75rem',
         transition: 'border-color 0.2s, box-shadow 0.2s',
-      }}>
+      } as React.CSSProperties}>
         {/* ── Card Header ── */}
         <div style={{
           display: 'flex', alignItems: 'stretch',
@@ -152,8 +154,8 @@ function ChapterCard({
           {/* Drag handle strip */}
           <div style={{
             display: 'flex', alignItems: 'center', padding: '0 0.5rem',
-            background: 'rgba(0,0,0,0.015)',
-            borderRight: '1.5px solid rgba(0,0,0,0.04)',
+            background: 'rgba(255,255,255,0.15)',
+            borderRight: '1px solid rgba(255,255,255,0.3)',
           }}>
             <DragHandle controls={controls} />
           </div>
@@ -270,8 +272,8 @@ function ChapterCard({
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', gap: '0.35rem', padding: '0.75rem 0.875rem',
-            borderLeft: '1.5px solid rgba(0,0,0,0.04)',
-            background: 'rgba(0,0,0,0.01)',
+            borderLeft: '1px solid rgba(255,255,255,0.3)',
+            background: 'rgba(255,255,255,0.15)',
             flexShrink: 0,
           }}>
             {/* AI rewrite */}
@@ -317,7 +319,7 @@ function ChapterCard({
                 color: 'rgba(239,68,68,0.45)', cursor: 'pointer', display: 'flex',
                 transition: 'all 0.15s',
               }}
-              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = '#fef2f2'; (e.currentTarget as HTMLElement).style.color = '#ef4444'; (e.currentTarget as HTMLElement).style.borderColor = '#ef4444'; }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.08)'; (e.currentTarget as HTMLElement).style.color = 'var(--pl-ink-soft)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--pl-ink-soft)'; }}
               onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'rgba(239,68,68,0.45)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(239,68,68,0.15)'; }}
             >
               <Trash2 size={14} />
@@ -422,12 +424,15 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '0.7rem 0.9rem', borderRadius: '0.6rem',
-  border: '1.5px solid rgba(0,0,0,0.1)', outline: 'none',
-  fontSize: '0.88rem', background: '#F5F1E8', fontFamily: 'inherit',
+  width: '100%', padding: '0.7rem 0.9rem', borderRadius: '12px',
+  border: '1px solid rgba(255,255,255,0.4)', outline: 'none',
+  fontSize: '0.88rem', background: 'rgba(255,255,255,0.35)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
   color: 'var(--pl-ink)',
-};
+} as React.CSSProperties;
 
 // ── AI Block Generator ────────────────────────────────────────
 function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: CanvasBlock) => void; manifest: StoryManifest }) {
@@ -469,9 +474,12 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
 
   return (
     <div style={{
-      borderRadius: '1rem', overflow: 'hidden',
-      border: '1px solid rgba(0,0,0,0.06)',
-      background: 'linear-gradient(145deg, #1c1410 0%, #251a10 100%)',
+      borderRadius: '16px', overflow: 'hidden',
+      border: '1px solid rgba(255,255,255,0.5)',
+      background: 'rgba(255,255,255,0.45)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
     }}>
       {/* Header */}
       <button
@@ -485,7 +493,7 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
           <div style={{ padding: '0.3rem', borderRadius: '0.4rem', background: 'rgba(163,177,138,0.2)' }}>
             <Wand2 size={13} color="var(--pl-olive)" />
           </div>
-          <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-ink)' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic' }}>
             AI Block Generator
           </span>
         </div>
@@ -513,23 +521,24 @@ function AIBlockGenerator({ onGenerated, manifest }: { onGenerated: (block: Canv
                 placeholder={'e.g. "Write about our first trip to Paris"'}
                 rows={3}
                 style={{
-                  width: '100%', padding: '0.75rem', borderRadius: '0.55rem',
-                  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(163,177,138,0.06)',
-                  color: '#fff', fontSize: '0.82rem', lineHeight: 1.6, resize: 'none',
+                  width: '100%', padding: '0.75rem', borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)',
+                  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+                  color: 'var(--pl-ink)', fontSize: '0.82rem', lineHeight: 1.6, resize: 'none',
                   outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
                 }}
                 onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generate(); }}
               />
-              {error && <p style={{ fontSize: '0.72rem', color: '#f87171', marginTop: '0.4rem' }}>{error}</p>}
+              {error && <p style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft)', marginTop: '0.4rem' }}>{error}</p>}
               <button
                 onClick={generate}
                 disabled={loading || !prompt.trim()}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   width: '100%', marginTop: '0.6rem', padding: '0.7rem',
-                  borderRadius: '0.55rem', border: 'none', cursor: prompt.trim() ? 'pointer' : 'not-allowed',
-                  background: prompt.trim() ? 'var(--pl-olive)' : 'rgba(0,0,0,0.05)',
-                  color: prompt.trim() ? '#fff' : 'rgba(255,255,255,0.28)',
+                  borderRadius: '12px', border: 'none', cursor: prompt.trim() ? 'pointer' : 'not-allowed',
+                  background: prompt.trim() ? 'var(--pl-olive)' : 'rgba(255,255,255,0.25)',
+                  color: prompt.trim() ? '#fff' : 'var(--pl-muted)',
                   fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.04em',
                   transition: 'all 0.2s',
                 }}
@@ -558,7 +567,7 @@ function PaletteItem({ type, onAdd }: { type: BlockType; onAdd: (t: BlockType) =
       style={{
         display: 'flex', alignItems: 'center', gap: '0.75rem',
         width: '100%', padding: '0.7rem 0.875rem', borderRadius: '0.65rem',
-        background: cfg.color, border: '1px solid rgba(0,0,0,0.05)',
+        background: cfg.color, border: '1px solid rgba(255,255,255,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
         cursor: 'pointer', textAlign: 'left', marginBottom: '0.4rem',
         transition: 'box-shadow 0.15s',
       }}
@@ -708,10 +717,11 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
           {[{ label: 'Blocks', value: blocks.length }, { label: 'AI Made', value: aiCount }].map(s => (
             <div key={s.label} style={{
-              background: '#fff', borderRadius: '0.75rem', padding: '0.875rem 1rem',
-              border: '1px solid rgba(0,0,0,0.05)', textAlign: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-            }}>
+              background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '16px', padding: '0.875rem 1rem',
+              border: '1px solid rgba(255,255,255,0.5)', textAlign: 'center',
+              boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+            } as React.CSSProperties}>
               <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-heading)', lineHeight: 1 }}>{s.value}</div>
               <div style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginTop: '0.3rem' }}>{s.label}</div>
             </div>
@@ -723,12 +733,13 @@ export function BlockEditor({ manifest, onChange, onSave, onPreview }: BlockEdit
 
         {/* Block Palette */}
         <div style={{
-          background: '#fff', borderRadius: '1rem',
-          border: '1px solid rgba(0,0,0,0.06)',
-          overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-        }}>
+          background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          border: '1px solid rgba(255,255,255,0.5)',
+          overflow: 'hidden', boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+        } as React.CSSProperties}>
           <div style={{
-            padding: '0.75rem 0.875rem', borderBottom: '1px solid rgba(0,0,0,0.05)',
+            padding: '0.75rem 0.875rem', borderBottom: '1px solid rgba(255,255,255,0.3)',
             fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.18em',
             textTransform: 'uppercase', color: 'var(--pl-muted)',
           }}>

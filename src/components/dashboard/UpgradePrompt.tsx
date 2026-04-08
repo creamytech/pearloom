@@ -33,9 +33,12 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 340, damping: 28 }}
       style={{
-        background: 'linear-gradient(135deg, rgba(163,177,138,0.08), rgba(163,177,138,0.15))',
-        border: '1px solid rgba(163,177,138,0.3)',
-        borderRadius: '1rem', padding: '1.5rem',
+        background: 'rgba(255,255,255,0.45)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.5)',
+        borderRadius: '16px', padding: '1.5rem',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         textAlign: 'center',
       }}
     >
@@ -46,8 +49,8 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
       >
         ✦
       </motion.div>
-      <div style={{ fontWeight: 700, marginBottom: '0.25rem' }}>Upgrade to Pro</div>
-      <div style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '1rem' }}>
+      <div style={{ fontWeight: 700, marginBottom: '0.25rem', fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic', color: 'var(--pl-ink)' }}>Upgrade to Pro</div>
+      <div style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: '1rem' }}>
         {feature} is a Pro feature. Upgrade for $12/month.
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
@@ -57,8 +60,8 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
           whileHover={loading ? {} : { scale: 1.04, y: -1 }}
           whileTap={loading ? {} : { scale: 0.97 }}
           style={{
-            padding: '0.6rem 1.5rem', borderRadius: '0.75rem',
-            background: 'var(--pl-olive-deep)', color: '#fff',
+            padding: '0.6rem 1.5rem', borderRadius: '12px',
+            background: 'var(--pl-olive)', color: '#fff',
             border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
             fontWeight: 600, fontSize: '0.9rem',
           }}
@@ -70,7 +73,7 @@ export function UpgradePrompt({ feature, onDismiss }: UpgradePromptProps) {
             onClick={onDismiss}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            style={{ padding: '0.6rem 1rem', borderRadius: '0.75rem', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', cursor: 'pointer', fontSize: '0.9rem' }}
+            style={{ padding: '0.6rem 1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--pl-ink)' } as React.CSSProperties}
           >
             Not now
           </motion.button>

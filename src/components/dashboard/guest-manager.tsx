@@ -179,11 +179,13 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
 
   const inputBase: React.CSSProperties = {
     padding: '0.7rem 1rem',
-    borderRadius: '0.65rem',
-    border: '1.5px solid rgba(0,0,0,0.08)',
+    borderRadius: '12px',
+    border: '1px solid rgba(255,255,255,0.4)',
     outline: 'none',
     fontSize: 'max(16px, 0.9rem)',
-    background: '#fff',
+    background: 'rgba(255,255,255,0.35)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
     width: '100%',
     boxSizing: 'border-box',
     fontFamily: 'var(--pl-font-body)',
@@ -197,10 +199,10 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       {/* ── Stats bar ── */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         {[
-          { label: `${stats.total} total`, color: 'var(--pl-ink)', bg: 'rgba(0,0,0,0.05)' },
-          { label: `${stats.attending} attending`, color: '#3d7a4a', bg: 'rgba(163,177,138,0.15)' },
-          { label: `${stats.declined} declined`, color: '#b91c1c', bg: 'rgba(239,68,68,0.08)' },
-          { label: `${stats.pending} pending`, color: '#92400e', bg: 'rgba(245,158,11,0.10)' },
+          { label: `${stats.total} total`, color: 'var(--pl-ink)', bg: 'rgba(255,255,255,0.45)' },
+          { label: `${stats.attending} attending`, color: 'var(--pl-olive)', bg: 'rgba(163,177,138,0.15)' },
+          { label: `${stats.declined} declined`, color: 'var(--pl-ink-soft)', bg: 'rgba(239,68,68,0.08)' },
+          { label: `${stats.pending} pending`, color: 'var(--pl-ink-soft)', bg: 'rgba(245,158,11,0.10)' },
           ...(stats.plusOnes > 0
             ? [{ label: `${stats.plusOnes} plus ones`, color: 'var(--pl-olive)', bg: 'rgba(163,177,138,0.10)' }]
             : []),
@@ -241,12 +243,15 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
             style={{
               padding: '0.7rem 2.5rem 0.7rem 1rem',
-              borderRadius: '0.65rem',
-              border: '1.5px solid rgba(0,0,0,0.08)',
-              background: '#fff', fontSize: 'max(16px, 0.85rem)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255,255,255,0.4)',
+              background: 'rgba(255,255,255,0.35)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              fontSize: 'max(16px, 0.85rem)',
               fontWeight: 600, appearance: 'none', cursor: 'pointer',
               fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)',
-            }}
+            } as React.CSSProperties}
           >
             <option value="all">All Guests</option>
             <option value="attending">Attending</option>
@@ -259,9 +264,9 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
         <button
           onClick={fetchGuests}
           aria-label="Refresh guest list"
-          style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)', transition: 'background 0.15s' }}
-          onMouseOver={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; }}
+          style={{ padding: '0.7rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)', transition: 'background 0.15s' } as React.CSSProperties}
+          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.35)'; }}
         >
           <RefreshCw size={15} />
         </button>
@@ -270,14 +275,15 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           onClick={exportCsv}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.7rem 1rem', borderRadius: '0.65rem',
-            border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff',
+            padding: '0.7rem 1rem', borderRadius: '12px',
+            border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)',
+            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
             cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
             color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)',
             transition: 'background 0.15s',
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
-          onMouseOut={(e) => { e.currentTarget.style.background = '#fff'; }}
+          } as React.CSSProperties}
+          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.55)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.35)'; }}
         >
           <Download size={14} />
           Export CSV
@@ -287,8 +293,8 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           onClick={() => setAddOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.4rem',
-            padding: '0.7rem 1.25rem', borderRadius: '0.65rem',
-            background: 'var(--pl-ink)', color: '#fff', border: 'none',
+            padding: '0.7rem 1.25rem', borderRadius: '12px',
+            background: 'var(--pl-olive)', color: '#fff', border: 'none',
             cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700,
             fontFamily: 'var(--pl-font-body)',
           }}
@@ -306,11 +312,15 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             style={{
-              overflow: 'hidden', background: '#fff',
-              borderRadius: '0.75rem',
-              border: '1px solid rgba(0,0,0,0.06)',
+              overflow: 'hidden',
+              background: 'rgba(255,255,255,0.45)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.5)',
+              boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
               padding: '1.5rem',
-            }}
+            } as React.CSSProperties}
           >
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto', gap: '0.75rem', alignItems: 'end' }}
               className="add-guest-grid"
@@ -372,7 +382,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                 </button>
                 <button
                   onClick={() => setAddOpen(false)}
-                  style={{ padding: '0.7rem', borderRadius: '0.65rem', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)' }}
+                  style={{ padding: '0.7rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', display: 'flex', color: 'var(--pl-muted)' } as React.CSSProperties}
                 >
                   <X size={14} />
                 </button>
@@ -386,9 +396,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       {selectedIds.size > 0 && (
         <div style={{
           position: 'sticky', top: 0, zIndex: 10,
-          background: 'rgba(163,177,138,0.12)',
-          border: '1px solid rgba(163,177,138,0.25)',
-          borderRadius: '0.75rem', padding: '0.75rem 1rem',
+          background: 'rgba(255,255,255,0.45)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.5)',
+          borderRadius: '16px', padding: '0.75rem 1rem',
+          boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
           display: 'flex', alignItems: 'center', gap: '0.75rem',
           marginBottom: '0.75rem',
         }}>
@@ -400,8 +413,8 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
               key={status}
               onClick={() => bulkUpdateStatus(status)}
               style={{
-                padding: '0.35rem 0.75rem', borderRadius: '0.5rem',
-                background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)',
+                padding: '0.35rem 0.75rem', borderRadius: '12px',
+                background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.4)',
                 cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                 textTransform: 'capitalize',
               }}
@@ -419,7 +432,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       )}
 
       {/* ── Guest Table / Cards ── */}
-      <div style={{ background: '#fff', borderRadius: '0.875rem', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+      <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', overflow: 'hidden' } as React.CSSProperties}>
         {/* Table header (desktop) */}
         <div
           className="guest-table-header"
@@ -427,8 +440,8 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
             display: 'grid',
             gridTemplateColumns: '32px 1fr 180px 110px 70px 120px 36px',
             padding: '0.75rem 1.25rem',
-            background: 'rgba(0,0,0,0.015)',
-            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            background: 'rgba(255,255,255,0.25)',
+            borderBottom: '1px solid rgba(255,255,255,0.3)',
             fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em',
             textTransform: 'uppercase', color: 'var(--pl-muted)',
           }}
@@ -461,8 +474,8 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
           </div>
         ) : fetchError ? (
           <div style={{ padding: '3rem', textAlign: 'center' }}>
-            <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginBottom: '1rem' }}>{fetchError}</p>
-            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: '0.65rem', border: '1.5px solid rgba(0,0,0,0.08)', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)' }}>
+            <p style={{ color: 'var(--pl-ink-soft)', fontSize: '0.875rem', marginBottom: '1rem' }}>{fetchError}</p>
+            <button onClick={fetchGuests} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-body)' } as React.CSSProperties}>
               <RefreshCw size={13} /> Retry
             </button>
           </div>
@@ -518,12 +531,12 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
                     padding: '0.875rem 1.25rem',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    borderBottom: '1px solid rgba(0,0,0,0.04)',
-                    background: i % 2 === 0 ? '#fff' : 'rgba(0,0,0,0.008)',
+                    borderBottom: '1px solid rgba(255,255,255,0.2)',
+                    background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.1)',
                     transition: 'background 0.12s',
                   }}
-                  onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.04)'; }}
-                  onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? '#fff' : 'rgba(0,0,0,0.008)'; }}
+                  onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.2)'; }}
+                  onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.1)'; }}
                 >
                   <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
                     <input
@@ -649,9 +662,9 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       </div>
 
       {deleteError && (
-        <div style={{ padding: '0.7rem 1rem', background: 'rgba(185,28,28,0.06)', border: '1px solid rgba(185,28,28,0.15)', borderRadius: '0.65rem', fontSize: '0.8rem', color: '#b91c1c', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <div style={{ padding: '0.7rem 1rem', background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', fontSize: '0.8rem', color: 'var(--pl-ink-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' } as React.CSSProperties}>
           <span>{deleteError}</span>
-          <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b91c1c', padding: 0, fontSize: '1rem', lineHeight: 1 }}>×</button>
+          <button onClick={() => setDeleteError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-ink-soft)', padding: 0, fontSize: '1rem', lineHeight: 1 }}>×</button>
         </div>
       )}
 

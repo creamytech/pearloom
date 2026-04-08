@@ -112,9 +112,9 @@ export function GenerationProgress({
 
         {/* ── Left sidebar — glass, hidden on mobile ── */}
         <aside className="hidden md:flex w-[220px] shrink-0 flex-col p-5 pt-6 relative" style={{
-          background: 'rgba(255,255,255,0.35)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          background: 'rgba(255,255,255,0.45)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderRight: '1px solid rgba(255,255,255,0.5)',
         } as React.CSSProperties}>
           <h2 className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)] mb-1">
@@ -216,7 +216,7 @@ export function GenerationProgress({
           </div>
 
           {/* Desktop right step list */}
-          <div className="hidden md:block absolute right-8 top-1/2 -translate-y-1/2 w-[260px] bg-white/60 backdrop-blur-md rounded-[16px] p-5 border border-[rgba(0,0,0,0.06)]">
+          <div className="hidden md:block absolute right-8 top-1/2 -translate-y-1/2 w-[260px] rounded-[16px] p-5" style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}>
             {PASSES.map((p, i) => {
               const isActive = i === idx;
               const isPast = i < idx;

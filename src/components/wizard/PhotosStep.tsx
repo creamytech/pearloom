@@ -116,9 +116,13 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBac
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 mx-auto mt-6 px-5 py-3.5 max-w-[480px] rounded-xl"
           style={{
-            background: 'rgba(163,177,138,0.08)',
-            border: '1px solid rgba(163,177,138,0.15)',
-          }}
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            borderRadius: '16px',
+            boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+          } as React.CSSProperties}
         >
           <ImagePlus size={16} className="text-[var(--pl-olive)] flex-shrink-0" />
           <p className="text-[var(--pl-ink-soft)] text-[0.85rem] leading-snug m-0">

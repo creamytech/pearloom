@@ -22,7 +22,7 @@ export function LivePreview({ state, names, occasion }: LivePreviewProps) {
     : names?.[0] || 'Your Site';
 
   return (
-    <div className="rounded-[20px] bg-white border border-[rgba(0,0,0,0.05)] overflow-hidden shadow-[0_4px_24px_rgba(43,30,20,0.06)]">
+    <div className="rounded-[16px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}>
       {/* Mini browser chrome */}
       <div className="h-7 bg-[var(--pl-cream-deep)] border-b border-[var(--pl-divider)] flex items-center px-3 gap-1.5">
         <div className="w-2 h-2 rounded-full bg-[rgba(0,0,0,0.08)]" />
@@ -63,7 +63,7 @@ export function LivePreview({ state, names, occasion }: LivePreviewProps) {
         </AnimatePresence>
 
         {/* Hero preview */}
-        <div className="rounded-[12px] bg-[var(--pl-cream-deep)] p-6 mb-3 text-center relative overflow-hidden">
+        <div className="rounded-[16px] p-6 mb-3 text-center relative overflow-hidden" style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}>
           {state.results.style?.palette && (
             <div className="absolute inset-0 opacity-20" style={{
               background: `linear-gradient(135deg, ${state.results.style.palette.accent}20, transparent)`,
@@ -96,7 +96,8 @@ export function LivePreview({ state, names, occasion }: LivePreviewProps) {
                 x: state.progress >= 30 + i * 10 ? 0 : -8,
               }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(0,0,0,0.02)]"
+              className="flex items-center gap-2 px-3 py-2 rounded-[12px]"
+              style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '12px' } as React.CSSProperties}
             >
               <div className="w-6 h-6 rounded-md bg-[var(--pl-cream-deep)]" />
               <div className="flex-1 min-w-0">
@@ -155,11 +156,12 @@ export function QuickStartBanner({ onQuickStart }: QuickStartProps) {
       onClick={onQuickStart}
       className="w-full p-4 rounded-2xl cursor-pointer text-left transition-all hover:-translate-y-0.5 active:scale-[0.99]"
       style={{
-        background: 'rgba(255,255,255,0.4)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        background: 'rgba(255,255,255,0.45)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(255,255,255,0.5)',
-        boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
+        borderRadius: '16px',
       } as React.CSSProperties}
     >
       <div className="flex items-center gap-3">

@@ -218,7 +218,7 @@ function MilestoneRow({
   const Icon = milestone.icon;
 
   return (
-    <div style={{ borderBottom: isLast ? 'none' : '1px solid rgba(0,0,0,0.04)' }}>
+    <div style={{ borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.2)' }}>
       {/* Main row */}
       <div
         onClick={!milestone.done && milestone.suggestionField ? handleExpand : undefined}
@@ -298,9 +298,12 @@ function MilestoneRow({
             <div style={{
               margin: '0 0 10px 38px',
               padding: '12px 14px',
-              background: 'linear-gradient(135deg, #fdfaf5, #fef9f2)',
-              borderRadius: '10px',
-              border: '1px solid rgba(163,177,138,0.15)',
+              background: 'rgba(255,255,255,0.45)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.5)',
+              boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
             }}>
               {loading ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
@@ -316,7 +319,7 @@ function MilestoneRow({
               ) : suggestion ? (
                 <>
                   <p style={{
-                    fontSize: '0.8rem', lineHeight: 1.65, color: '#3D3530',
+                    fontSize: '0.8rem', lineHeight: 1.65, color: 'var(--pl-ink)',
                     margin: '0 0 10px', fontStyle: 'italic',
                     fontFamily: 'var(--pl-font-heading, Georgia, serif)',
                   }}>
@@ -498,12 +501,14 @@ export function SiteCompletenessPanel({
   // ── Full panel ──────────────────────────────────────────────
   return (
     <div style={{
-      background: '#fff',
-      borderRadius: '1rem',
-      border: '1px solid rgba(0,0,0,0.05)',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
+      background: 'rgba(255,255,255,0.45)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderRadius: '16px',
+      border: '1px solid rgba(255,255,255,0.5)',
+      boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
       overflow: 'hidden',
-    }}>
+    } as React.CSSProperties}>
       {/* Header — always visible */}
       <button
         onClick={() => setOpen(v => !v)}
@@ -586,7 +591,7 @@ export function SiteCompletenessPanel({
             {/* Section header */}
             <div style={{
               padding: '0 1.25rem',
-              borderTop: '1px solid rgba(0,0,0,0.04)',
+              borderTop: '1px solid rgba(255,255,255,0.3)',
             }}>
               {/* Incomplete items first */}
               {incomplete.length > 0 && (
@@ -609,7 +614,7 @@ export function SiteCompletenessPanel({
 
               {/* Completed items */}
               {doneCount > 0 && (
-                <div style={{ paddingTop: '8px', paddingBottom: '12px', borderTop: incomplete.length > 0 ? '1px solid rgba(0,0,0,0.04)' : 'none', marginTop: incomplete.length > 0 ? '4px' : 0 }}>
+                <div style={{ paddingTop: '8px', paddingBottom: '12px', borderTop: incomplete.length > 0 ? '1px solid rgba(255,255,255,0.2)' : 'none', marginTop: incomplete.length > 0 ? '4px' : 0 }}>
                   <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.25)', marginBottom: '4px' }}>
                     Done
                   </div>

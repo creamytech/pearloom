@@ -101,6 +101,7 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h3 style={{
           fontFamily: 'var(--pl-font-heading)',
+          fontStyle: 'italic',
           fontSize: 'clamp(1.3rem, 3vw, 1.8rem)',
           fontWeight: 400,
           color: 'var(--pl-ink-soft)',
@@ -138,18 +139,18 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
                 flexDirection: 'column',
                 alignItems: 'flex-start',
                 padding: '20px 16px',
-                borderRadius: '20px',
-                border: `1.5px solid ${isSelected ? 'var(--pl-olive)' : card.borderColor}`,
-                background: card.gradient,
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
+                borderRadius: '16px',
+                border: isSelected ? '1.5px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.5)',
+                background: 'rgba(255,255,255,0.45)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.2s',
                 overflow: 'hidden',
                 boxShadow: isSelected
                   ? '0 4px 20px rgba(163,177,138,0.2), 0 0 0 2px rgba(163,177,138,0.15)'
-                  : '0 2px 12px rgba(43,30,20,0.04)',
+                  : '0 4px 20px rgba(43,30,20,0.06)',
                 minHeight: '120px',
               } as React.CSSProperties}
             >
@@ -173,13 +174,13 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
               <span style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: '36px', height: '36px', borderRadius: '12px',
-                background: 'rgba(255,255,255,0.5)',
+                background: 'rgba(255,255,255,0.35)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
                 fontSize: '1.1rem',
                 color: 'var(--pl-ink-soft)',
                 marginBottom: '12px',
-                border: '1px solid rgba(255,255,255,0.6)',
+                border: '1px solid rgba(255,255,255,0.4)',
               } as React.CSSProperties}>
                 {card.icon}
               </span>
@@ -230,14 +231,17 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
           whileTap={{ scale: 0.98 }}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            padding: '10px 24px', borderRadius: '100px', border: 'none',
-            background: selected.size > 0 ? 'var(--pl-olive)' : 'rgba(0,0,0,0.04)',
+            padding: '10px 24px', borderRadius: '100px',
+            border: selected.size > 0 ? 'none' : '1px solid rgba(255,255,255,0.5)',
+            background: selected.size > 0 ? 'var(--pl-olive)' : 'rgba(255,255,255,0.45)',
+            backdropFilter: selected.size > 0 ? 'none' : 'blur(20px)',
+            WebkitBackdropFilter: selected.size > 0 ? 'none' : 'blur(20px)',
             color: selected.size > 0 ? 'white' : 'var(--pl-muted)',
             fontSize: '0.78rem', fontWeight: 700,
             letterSpacing: '0.04em', textTransform: 'uppercase',
             cursor: 'pointer', transition: 'all 0.2s',
-            boxShadow: selected.size > 0 ? '0 4px 16px rgba(163,177,138,0.3)' : 'none',
-          }}
+            boxShadow: selected.size > 0 ? '0 4px 16px rgba(163,177,138,0.3)' : '0 4px 20px rgba(43,30,20,0.06)',
+          } as React.CSSProperties}
         >
           CONTINUE <ArrowRight size={14} />
         </motion.button>

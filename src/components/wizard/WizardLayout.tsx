@@ -162,7 +162,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
               initial={{ x: -260 }} animate={{ x: 0 }} exit={{ x: -260 }}
               transition={{ type: 'spring', stiffness: 400, damping: 34 }}
               className="fixed top-0 left-0 bottom-0 z-50 w-[260px] flex flex-col md:hidden"
-              style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: '4px 0 24px rgba(43,30,20,0.06)', borderRight: '1px solid rgba(0,0,0,0.04)' } as React.CSSProperties}
+              style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', borderRight: '1px solid rgba(255,255,255,0.5)' } as React.CSSProperties}
             >
               <div className="p-5 border-b border-[rgba(0,0,0,0.04)]">
                 <span className="font-heading italic text-lg text-[var(--pl-ink-soft)]">Pearloom</span>
@@ -201,12 +201,12 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
             <div
               className="pl-enter-scale flex-1 min-w-0"
               style={{
-                background: 'rgba(255,255,255,0.55)',
-                backdropFilter: 'blur(40px) saturate(1.3)',
-                WebkitBackdropFilter: 'blur(40px) saturate(1.3)',
-                borderRadius: '24px',
-                border: '1px solid rgba(255,255,255,0.6)',
-                boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 2px 8px rgba(43,30,20,0.04), inset 0 1px 0 rgba(255,255,255,0.5)',
+                background: 'rgba(255,255,255,0.45)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255,255,255,0.5)',
+                boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
                 overflow: 'hidden',
               } as React.CSSProperties}
             >

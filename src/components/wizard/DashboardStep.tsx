@@ -33,6 +33,7 @@ export function DashboardStep({
           variant="outlined"
           padding="none"
           className="flex items-center justify-between gap-4 flex-wrap mb-8 px-6 py-4 border-l-[3px] border-l-[var(--pl-olive)]"
+          style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '16px', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', borderLeft: '3px solid var(--pl-olive)' } as React.CSSProperties}
         >
           <div className="flex-1 min-w-0">
             <p className="text-[0.92rem] font-semibold text-[var(--pl-ink)]">

@@ -409,8 +409,9 @@ const DRESSCODE_OPTIONS = [
 ];
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '1.25rem', borderRadius: '1rem',
-  border: '2px solid var(--pl-divider, #E6DFD2)', background: '#ffffff',
+  width: '100%', padding: '1.25rem', borderRadius: '12px',
+  border: '2px solid var(--pl-divider, #E6DFD2)', background: 'rgba(255,255,255,0.45)',
+  backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
   fontSize: '1.1rem', fontFamily: 'var(--pl-font-body)', color: 'var(--pl-ink)',
   outline: 'none', transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.2s',
   boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
@@ -1375,7 +1376,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
 
           {/* ── STORY / JUST BECAUSE ── */}
           {occasion === 'story' && (
-            <div style={{ background: '#fff', borderRadius: '14px 14px 32px 32px', padding: '2rem', border: '1px solid rgba(0,0,0,0.06)', textAlign: 'center', color: 'var(--pl-muted)', lineHeight: 1.6, position: 'relative', overflow: 'hidden', boxShadow: '0 2px 16px rgba(0,0,0,0.05), 0 8px 24px rgba(163,177,138,0.08)' }}>
+            <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '2rem', border: '1px solid rgba(255,255,255,0.5)', textAlign: 'center', color: 'var(--pl-muted)', lineHeight: 1.6, position: 'relative', overflow: 'hidden', boxShadow: '0 4px 20px rgba(43,30,20,0.06)' } as React.CSSProperties}>
               No extra details needed. We&apos;ll build entirely from your photos and vibe — just hit &ldquo;Build my site&rdquo; below.
             </div>
           )}
@@ -1406,7 +1407,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         )}
 
         {/* URL slug picker */}
-        <div style={{ background: '#fff', borderRadius: '14px 14px 32px 32px', padding: '1.5rem', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 2px 16px rgba(0,0,0,0.05), 0 8px 24px rgba(163,177,138,0.08)', marginTop: '2rem', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(43,30,20,0.06)', marginTop: '2rem', position: 'relative', overflow: 'hidden' } as React.CSSProperties}>
           <div style={{ position: 'absolute', bottom: -24, right: -16, pointerEvents: 'none', zIndex: 0 }} aria-hidden="true">
             <PearBackground color="var(--pl-olive, #A3B18A)" opacity={0.055} size={110} />
           </div>
@@ -1415,7 +1416,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           <p style={{ fontSize: '0.85rem', color: 'var(--pl-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
             This is where your site will live. You can always change it later.
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(0,0,0,0.1)', borderRadius: '0.75rem', overflow: 'hidden', transition: 'border-color 0.2s', background: '#FAFAF8' }}
+          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', overflow: 'hidden', transition: 'border-color 0.2s', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
             onFocus={() => {}} onBlur={() => {}}>
             <input
               value={subdomain}
@@ -1512,15 +1513,17 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
       fullWidth = false
     ) => (
       <div style={{
-        background: '#fff',
-        borderRadius: '16px 16px 28px 28px',
-        border: '1px solid rgba(0,0,0,0.06)',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
+        background: 'rgba(255,255,255,0.45)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255,255,255,0.5)',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         padding: '1.1rem 1.25rem',
         display: 'flex', flexDirection: 'column', gap: '0.5rem',
         gridColumn: fullWidth ? '1 / -1' : undefined,
         position: 'relative',
-      }}>
+      } as React.CSSProperties}>
         {children}
         <div style={{ marginTop: '0.15rem' }}>
           {editLink('Edit', onEdit)}

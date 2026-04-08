@@ -111,11 +111,15 @@ export function SiteSharePanel({
 
   const card = (children: React.ReactNode, extraStyle?: React.CSSProperties) => (
     <div style={{
-      background: 'var(--pl-cream)', borderRadius: '1.25rem',
-      border: '1px solid rgba(0,0,0,0.06)',
-      padding: '1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+      background: 'rgba(255,255,255,0.45)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderRadius: '16px',
+      border: '1px solid rgba(255,255,255,0.5)',
+      padding: '1.5rem',
+      boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
       ...extraStyle,
-    }}>
+    } as React.CSSProperties}>
       {children}
     </div>
   );
@@ -123,8 +127,9 @@ export function SiteSharePanel({
   const urlRow = (url: string, type: 'link' | 'rsvp') => (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.6rem',
-      background: 'rgba(0,0,0,0.025)', borderRadius: '0.65rem',
-      padding: '0.7rem 0.9rem', border: '1px solid rgba(0,0,0,0.06)',
+      background: 'rgba(255,255,255,0.35)', borderRadius: '12px',
+      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+      padding: '0.7rem 0.9rem', border: '1px solid rgba(255,255,255,0.4)',
     }}>
       <code style={{
         flex: 1, fontSize: '0.8rem', color: 'var(--pl-ink)',
@@ -144,8 +149,8 @@ export function SiteSharePanel({
           style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.4rem 0.8rem', borderRadius: '0.4rem', flexShrink: 0,
-            background: copied === type ? 'rgba(34,197,94,0.1)' : 'var(--pl-ink)',
-            color:      copied === type ? '#16a34a'             : '#fff',
+            background: copied === type ? 'rgba(34,197,94,0.1)' : 'var(--pl-olive)',
+            color:      copied === type ? 'var(--pl-olive)'             : '#fff',
             border:     copied === type ? '1px solid rgba(34,197,94,0.2)' : 'none',
             cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
             fontFamily: 'var(--pl-font-body)',
@@ -170,9 +175,11 @@ export function SiteSharePanel({
       style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem',
         padding: '0.55rem 1rem', borderRadius: '100px',
-        background: primary ? 'var(--pl-ink)' : 'rgba(0,0,0,0.04)',
+        background: primary ? 'var(--pl-olive)' : 'rgba(255,255,255,0.35)',
+        backdropFilter: primary ? 'none' : 'blur(8px)',
+        WebkitBackdropFilter: primary ? 'none' : 'blur(8px)',
         color:      primary ? '#fff'         : 'var(--pl-ink)',
-        border:     primary ? 'none'         : '1px solid rgba(0,0,0,0.08)',
+        border:     primary ? 'none'         : '1px solid rgba(255,255,255,0.4)',
         cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
         fontFamily: 'var(--pl-font-body)', whiteSpace: 'nowrap',
       }}
@@ -208,13 +215,14 @@ export function SiteSharePanel({
             />
             {/* iMessage-style bottom row */}
             <div style={{
-              background: '#f9f9f9', borderTop: '1px solid rgba(0,0,0,0.07)',
+              background: 'rgba(255,255,255,0.35)', borderTop: '1px solid rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
               padding: '0.65rem 0.875rem',
               display: 'flex', alignItems: 'center', gap: '0.5rem',
-            }}>
+            } as React.CSSProperties}>
               <div style={{ flex: 1 }}>
                 <div style={{
-                  fontSize: '0.78rem', fontWeight: 700, color: '#1a1816', marginBottom: '0.1rem',
+                  fontSize: '0.78rem', fontWeight: 700, color: 'var(--pl-ink)', marginBottom: '0.1rem',
                   fontFamily: '-apple-system, sans-serif',
                 }}>
                   {siteName || displayNames}
@@ -285,7 +293,7 @@ export function SiteSharePanel({
           {rsvpUrl && (
             <div style={{
               display: 'flex', gap: '0.25rem', marginBottom: '1.25rem',
-              background: 'rgba(0,0,0,0.04)', borderRadius: '0.6rem', padding: '0.2rem',
+              background: 'rgba(255,255,255,0.3)', borderRadius: '12px', padding: '0.2rem',
             }}>
               {(['site', 'rsvp'] as const).map(tab => (
                 <button
@@ -293,7 +301,7 @@ export function SiteSharePanel({
                   onClick={() => setQrTab(tab)}
                   style={{
                     flex: 1, padding: '0.45rem', borderRadius: '0.45rem',
-                    background: qrTab === tab ? '#fff' : 'transparent',
+                    background: qrTab === tab ? 'rgba(255,255,255,0.6)' : 'transparent',
                     border: 'none', cursor: 'pointer',
                     fontSize: '0.72rem', fontWeight: 600,
                     color: qrTab === tab ? 'var(--pl-ink)' : 'var(--pl-muted)',
@@ -313,7 +321,7 @@ export function SiteSharePanel({
             <div style={{
               width: '120px', height: '120px', borderRadius: '0.75rem',
               overflow: 'hidden', flexShrink: 0,
-              background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.06)',
+              background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               {activeSvg ? (
@@ -338,7 +346,7 @@ export function SiteSharePanel({
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
                   padding: '0.45rem 0.85rem', borderRadius: '0.5rem',
-                  border: '1px solid rgba(0,0,0,0.1)', background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.35)',
                   cursor: activeSvg ? 'pointer' : 'not-allowed',
                   fontSize: '0.72rem', fontWeight: 600,
                   opacity: activeSvg ? 1 : 0.4,
