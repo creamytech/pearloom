@@ -653,6 +653,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               vibeSkin={vibeSkin}
               heroTagline={manifest.poetry?.heroTagline}
               photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url.includes('googleusercontent.com') ? `/api/photos/proxy?url=${encodeURIComponent(img.url)}&w=1200&h=800` : img.url)).filter(Boolean).slice(0, 6)}
+              editMode={editMode}
             />
             <StickerLayer stickers={manifest.stickers || []} accentColor={pal.accent} />
           </div>
@@ -1133,7 +1134,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </>
           ) : (
             <>
-              <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url)).filter(Boolean).slice(0, 6)} />
+              <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url)).filter(Boolean).slice(0, 6)} editMode={editMode} />
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
               <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
               {manifest.events?.length ? <section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section> : null}

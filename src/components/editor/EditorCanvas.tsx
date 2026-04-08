@@ -87,8 +87,8 @@ export function EditorCanvas() {
       // Nav bar → design panel → navigation section
       'nav': { tab: 'design', contextSection: 'navigation' },
       'navigation': { tab: 'design', contextSection: 'navigation' },
-      // Hero → story (auto-select first chapter)
-      'hero': { tab: 'story' },
+      // Hero → canvas with block selected
+      'hero': { tab: 'canvas', selectBlock: true },
       // Story chapters → story tab
       'story': { tab: 'story' },
       'chapter': { tab: 'story' },
@@ -139,18 +139,6 @@ export function EditorCanvas() {
       'welcome': { tab: 'canvas', selectBlock: true },
       'anniversary': { tab: 'canvas', selectBlock: true },
     };
-
-    // Hero special case
-    if (sectionId === 'hero') {
-      if (manifest.chapters?.length) {
-        dispatch({ type: 'SET_ACTIVE_ID', id: manifest.chapters[0].id });
-        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'story' });
-      } else {
-        dispatch({ type: 'SET_ACTIVE_TAB', tab: 'design' });
-      }
-      dispatch({ type: 'SET_CONTEXT_SECTION', section: null });
-      return;
-    }
 
     const mapping = sectionToTab[sectionId];
     if (mapping) {

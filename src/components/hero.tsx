@@ -25,6 +25,7 @@ interface HeroProps {
   vibeSkin?: VibeSkin;
   heroTagline?: string; // from manifest.poetry?.heroTagline
   photos?: string[];
+  editMode?: boolean;
 }
 
 // Letter-by-letter staggered name reveal
@@ -77,17 +78,15 @@ function formatDateBadge(dateStr: string): string {
   } catch { return dateStr; }
 }
 
-export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos }: HeroProps) {
+export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhoto, weddingDate, vibeSkin, heroTagline, photos, editMode }: HeroProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Detect editor mode synchronously — check if parent has pl-site-scope
-  // This MUST be true on first render for animation skipping to work
-  const isEditorRef = useRef<boolean | null>(null);
+  // Editor mode: prefer explicit prop, fall back to DOM check (for legacy callers)
+  const isEditorRef = useRef<boolean | null>(editMode ?? null);
   if (isEditorRef.current === null && typeof document !== 'undefined') {
-    // Check if any ancestor has the editor scope class
     isEditorRef.current = !!document.querySelector('.pl-site-scope');
   }
-  const isEditor = isEditorRef.current ?? false;
+  const isEditor = editMode ?? isEditorRef.current ?? false;
 
   // Scroll-based parallax — only works outside editor (viewport scroll)
   // In editor, the scroll container is different, so we disable parallax
