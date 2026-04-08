@@ -1385,6 +1385,16 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
       setActiveBlockId(state.activeId);
     }
   }, [state.activeId, blocks]);
+
+  // Auto-scroll config panel into view when a block is selected
+  useEffect(() => {
+    if (activeBlockId && configPanelRef.current) {
+      setTimeout(() => {
+        configPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 300); // Wait for slide animation
+    }
+  }, [activeBlockId]);
+
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -1430,6 +1440,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
   // ── Drag-and-drop reordering via useDragSort ──────────────────
   const ghostRef = useRef<HTMLDivElement>(null);
   const ghostOffsetRef = useRef({ x: 0, y: 0 });
+  const configPanelRef = useRef<HTMLDivElement>(null);
 
   const {
     orderedItems: dragOrderedBlocks,
@@ -1879,6 +1890,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
       <AnimatePresence>
         {activeBlock && activeDef && (
           <motion.div
+            ref={configPanelRef}
             key={activeBlock.id}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
