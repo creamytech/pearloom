@@ -168,7 +168,7 @@ export function SiteNav({
                 : navStyle === 'floating'
                   ? 'bg-white/90 border border-[rgba(255,255,255,0.6)] shadow-[0_4px_24px_rgba(43,30,20,0.08)]'
                   : (atTop && !isStudio
-                    ? 'bg-black/40 border-b border-white/10 shadow-none'
+                    ? 'bg-black/50 border-b border-white/10 shadow-none'
                     : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
         )}
         style={{

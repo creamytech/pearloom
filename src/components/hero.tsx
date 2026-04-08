@@ -133,13 +133,9 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
     img.src = coverPhoto;
   }, [coverPhoto]);
 
-  // Resolved text color: brightness-aware when photo analyzed, fallback to hasPhoto logic
-  const heroTextColor = hasPhoto
-    ? (photoBrightness === 'dark' ? '#1C1C1C' : '#ffffff')
-    : 'var(--pl-ink)';
-  const heroSecondaryColor = hasPhoto
-    ? (photoBrightness === 'dark' ? 'var(--pl-ink-soft)' : 'rgba(255,255,255,0.75)')
-    : 'var(--pl-olive)';
+  // Text color: always white on photos (dark overlay guarantees readability)
+  const heroTextColor = hasPhoto ? '#ffffff' : 'var(--pl-ink)';
+  const heroSecondaryColor = hasPhoto ? 'rgba(255,255,255,0.8)' : 'var(--pl-olive)';
 
   return (
     <section
@@ -237,10 +233,10 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             </AnimatePresence>
           </motion.div>
 
-          {/* Dark gradient overlay — ensures text readability on any photo */}
+          {/* Dark overlay — strong enough for bright daytime photos */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.45) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 35%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.55) 100%)',
           }} />
           {/* Radial vignette for cinematic frame */}
           <div style={{
@@ -359,6 +355,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             flexDirection: 'column',
             alignItems: 'center',
             color: heroTextColor,
+            textShadow: hasPhoto ? '0 2px 20px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3)' : 'none',
           }}>
           <AnimatedName
             text={names[0]}
@@ -410,9 +407,9 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               gap: '0.5em',
               padding: '0.6rem 1.75rem',
               borderRadius: '100px',
-              background: hasPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(163,177,138,0.12)',
-              backdropFilter: 'blur(12px)',
-              border: hasPhoto ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(163,177,138,0.22)',
+              background: hasPhoto ? 'rgba(0,0,0,0.25)' : 'rgba(163,177,138,0.12)',
+              backdropFilter: 'blur(16px)',
+              border: hasPhoto ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(163,177,138,0.22)',
               fontSize: '0.7rem',
               fontWeight: 600,
               letterSpacing: '0.15em',
