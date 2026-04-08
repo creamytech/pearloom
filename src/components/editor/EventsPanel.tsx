@@ -113,7 +113,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           >
             <CalendarHeartIcon size={28} />
           </motion.div>
-          <div style={{ fontSize: '0.88rem', fontWeight: 700, fontStyle: 'italic', fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)', color: 'var(--pl-muted)' }}>No events yet</div>
+          <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 700, fontStyle: 'italic', fontFamily: 'var(--pl-font-heading, "Playfair Display", serif)', color: 'var(--pl-muted)' }}>No events yet</div>
           <div style={{ fontSize: '0.78rem', marginTop: '5px', color: 'var(--pl-muted)' }}>Add your ceremony, reception, and more</div>
         </motion.div>
       ) : (
@@ -129,8 +129,8 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
               >
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: evtTypeOpt.color, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.name || 'Event'}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', marginTop: '2px' }}>{evt.date}{evt.time ? ` · ${evt.time}` : ''}{evt.venue ? ` · ${evt.venue}` : ''}</div>
+                  <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{evt.name || 'Event'}</div>
+                  <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-ink-soft)', marginTop: '2px' }}>{evt.date}{evt.time ? ` · ${evt.time}` : ''}{evt.venue ? ` · ${evt.venue}` : ''}</div>
                 </div>
                 <ChevronDown size={13} color="var(--pl-muted)" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }} />
               </button>
@@ -184,7 +184,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                       {/* Ceremony Details sub-section — shown for ceremony-type events */}
                       {evt.type === 'ceremony' && (
                         <div style={{ marginTop: '0.25rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-                          <div style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', marginBottom: '0.6rem', opacity: 0.7 }}>
+                          <div style={{ fontSize: 'var(--pl-text-sm)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', marginBottom: '0.6rem', opacity: 0.7 }}>
                             Ceremony Details
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -233,7 +233,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           gap: '8px',
         }}>
           <div style={{
-            fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em',
+            fontSize: 'var(--pl-text-sm)', fontWeight: 800, letterSpacing: '0.1em',
             textTransform: 'uppercase', color: 'var(--pl-muted)',
             display: 'flex', alignItems: 'center', gap: '6px',
             marginBottom: '2px',

@@ -330,7 +330,7 @@ function MilestoneRow({
                         display: 'flex', alignItems: 'center', gap: '5px',
                         padding: '5px 12px', borderRadius: '6px', border: 'none',
                         background: applied ? 'var(--pl-olive, #A3B18A)' : 'linear-gradient(135deg, #A3B18A, #8FA876)',
-                        color: '#fff', fontSize: '0.7rem', fontWeight: 700,
+                        color: 'white', fontSize: '0.7rem', fontWeight: 700,
                         cursor: applied ? 'default' : 'pointer', transition: 'all 0.2s',
                       }}
                     >
@@ -498,7 +498,7 @@ export function SiteCompletenessPanel({
   // ── Full panel ──────────────────────────────────────────────
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--pl-cream-card)',
       borderRadius: '1rem',
       border: '1px solid rgba(0,0,0,0.05)',
       boxShadow: '0 2px 12px rgba(0,0,0,0.03)',

@@ -183,7 +183,7 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
     border: '1.5px solid rgba(0,0,0,0.08)',
     outline: 'none',
     fontSize: 'max(16px, 0.9rem)',
-    background: '#fff',
+    background: 'var(--pl-cream-card)',
     width: '100%',
     boxSizing: 'border-box',
     fontFamily: 'var(--pl-font-body)',
