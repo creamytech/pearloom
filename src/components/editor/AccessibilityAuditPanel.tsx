@@ -120,7 +120,7 @@ function auditManifest(manifest: StoryManifest): A11yIssue[] {
 const SEV_STYLE: Record<string, { bg: string; border: string; icon: React.ReactNode; color: string }> = {
   error: { bg: 'rgba(248,81,73,0.10)', border: 'rgba(248,81,73,0.35)', icon: <IconError size={14} />,  color: '#f87171' },
   warn:  { bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.30)',  icon: <IconWarn size={14} />,  color: '#fbbf24' },
-  tip:   { bg: 'rgba(163,177,138,0.10)',border: 'rgba(163,177,138,0.3)', icon: <IconTip size={14} />,   color: '#A3B18A' },
+  tip:   { bg: 'var(--pl-olive-10)',border: 'var(--pl-olive-30)', icon: <IconTip size={14} />,   color: 'var(--pl-olive)' },
 };
 
 interface AccessibilityAuditPanelProps {

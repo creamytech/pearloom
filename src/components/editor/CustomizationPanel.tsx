@@ -43,7 +43,7 @@ function PickerGrid<T extends { id: string; name: string; preview: string }>({
             style={{
               padding: '8px',
               border: value === item.id ? '2px solid var(--pl-olive)' : undefined,
-              background: value === item.id ? 'rgba(163,177,138,0.08)' : undefined,
+              background: value === item.id ? 'var(--pl-olive-8)' : undefined,
               textAlign: 'center',
               cursor: 'pointer',
               position: 'relative',

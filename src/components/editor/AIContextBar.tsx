@@ -149,7 +149,7 @@ function AIActionPill({
       onClick={onClick}
       disabled={disabled}
       whileHover={!disabled ? {
-        backgroundColor: accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)',
+        backgroundColor: accent ? 'var(--pl-olive-20)' : 'var(--pl-black-6)',
         color: accent ? '#A3B18A' : 'rgba(214,198,168,0.9)',
       } : {}}
       whileTap={!disabled ? { scale: 0.94 } : {}}
@@ -158,8 +158,8 @@ function AIActionPill({
         display: 'flex', alignItems: 'center', gap: '4px',
         padding: '3px 9px', borderRadius: '100px',
         border: `1px solid ${accent ? 'rgba(163,177,138,0.2)' : 'rgba(0,0,0,0.06)'}`,
-        background: accent ? 'rgba(163,177,138,0.1)' : 'rgba(163,177,138,0.05)',
-        color: accent ? 'rgba(163,177,138,0.85)' : 'rgba(214,198,168,0.45)',
+        background: accent ? 'var(--pl-olive-10)' : 'var(--pl-olive-5)',
+        color: accent ? 'var(--pl-olive)' : 'rgba(214,198,168,0.45)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontSize: '0.72rem', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,

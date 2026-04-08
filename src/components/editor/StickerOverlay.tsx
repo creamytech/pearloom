@@ -90,7 +90,7 @@ export function StickerOverlay({ stickers, onChange, containerRef }: StickerOver
                 style={{
                   position: 'absolute', bottom: -8, right: -8,
                   width: 18, height: 18, borderRadius: '50%',
-                  background: 'rgba(163,177,138,0.9)', border: 'none',
+                  background: 'var(--pl-olive)', border: 'none',
                   cursor: 'pointer', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', color: '#fff', zIndex: 10,
                   pointerEvents: 'auto',

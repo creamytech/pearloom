@@ -128,8 +128,8 @@ export function AnniversaryNudgePanel() {
         style={{
           margin: '0 0 20px',
           padding: '16px 18px',
-          background: 'rgba(163,177,138,0.08)',
-          border: '1px solid rgba(163,177,138,0.25)',
+          background: 'var(--pl-olive-8)',
+          border: '1px solid var(--pl-olive-20)',
           borderRadius: 12,
           position: 'relative',
         }}
@@ -166,8 +166,8 @@ export function AnniversaryNudgePanel() {
             display: 'inline-block',
             marginBottom: 10,
             padding: '3px 10px',
-            background: 'rgba(163,177,138,0.15)',
-            border: '1px solid rgba(163,177,138,0.35)',
+            background: 'var(--pl-olive-15)',
+            border: '1px solid var(--pl-olive-30)',
             borderRadius: 20,
             fontSize: '0.72rem',
             letterSpacing: '1.5px',
@@ -223,11 +223,11 @@ export function AnniversaryNudgePanel() {
               style={{
                 padding: '9px 18px',
                 background: loading
-                  ? 'rgba(163,177,138,0.08)'
-                  : 'rgba(163,177,138,0.15)',
-                border: '1px solid rgba(163,177,138,0.35)',
+                  ? 'var(--pl-olive-8)'
+                  : 'var(--pl-olive-15)',
+                border: '1px solid var(--pl-olive-30)',
                 borderRadius: 8,
-                color: loading ? 'rgba(163,177,138,0.5)' : '#A3B18A',
+                color: loading ? 'var(--pl-olive-50)' : 'var(--pl-olive)',
                 fontSize: '0.78rem',
                 letterSpacing: '1.5px',
                 textTransform: 'uppercase',
