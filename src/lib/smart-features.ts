@@ -455,3 +455,487 @@ export function detectContentNudges(manifest: {
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   return nudges.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 }
+
+// ══════════════════════════════════════════════════════════════
+// DESIGN INTELLIGENCE FEATURES
+// ══════════════════════════════════════════════════════════════
+
+// ── 7. Smart Layout Suggestions ──────────────────────────────
+
+type ChapterLayout = 'editorial' | 'fullbleed' | 'split' | 'cinematic' | 'gallery' | 'mosaic' | 'bento';
+
+export interface LayoutSuggestion {
+  chapterId: string;
+  currentLayout?: string;
+  suggestedLayout: ChapterLayout;
+  reason: string;
+}
+
+/**
+ * Suggest the best layout for each chapter based on photo count,
+ * text length, and content characteristics.
+ */
+export function suggestChapterLayouts(chapters: Array<{
+  id: string;
+  layout?: string;
+  images?: Array<{ url: string; width?: number; height?: number }>;
+  description?: string;
+  title?: string;
+}>): LayoutSuggestion[] {
+  const suggestions: LayoutSuggestion[] = [];
+  for (const ch of chapters) {
+    const photoCount = ch.images?.length || 0;
+    const textLen = (ch.description || '').length;
+    const hasLandscape = ch.images?.some(img => (img.width || 0) > (img.height || 0));
+    const hasPortrait = ch.images?.some(img => (img.height || 0) > (img.width || 0));
+
+    let suggested: ChapterLayout;
+    let reason: string;
+
+    if (photoCount === 0) {
+      suggested = 'editorial';
+      reason = 'No photos — editorial layout lets the text shine';
+    } else if (photoCount === 1 && hasLandscape) {
+      suggested = 'fullbleed';
+      reason = 'Single landscape photo — fullbleed makes it cinematic';
+    } else if (photoCount === 1 && hasPortrait) {
+      suggested = 'split';
+      reason = 'Single portrait photo — split layout balances text and image';
+    } else if (photoCount === 1) {
+      suggested = textLen > 200 ? 'split' : 'cinematic';
+      reason = textLen > 200 ? 'Long text + one photo — split keeps both readable' : 'Short text + one photo — cinematic for impact';
+    } else if (photoCount >= 2 && photoCount <= 3) {
+      suggested = 'cinematic';
+      reason = `${photoCount} photos — cinematic creates a film-strip feel`;
+    } else if (photoCount >= 4 && photoCount <= 6) {
+      suggested = 'gallery';
+      reason = `${photoCount} photos — gallery grid shows them all beautifully`;
+    } else {
+      suggested = 'mosaic';
+      reason = `${photoCount} photos — mosaic creates a dynamic collage`;
+    }
+
+    if (ch.layout !== suggested) {
+      suggestions.push({ chapterId: ch.id, currentLayout: ch.layout, suggestedLayout: suggested, reason });
+    }
+  }
+  return suggestions;
+}
+
+// ── 8. Section Spacing Intelligence ──────────────────────────
+
+export interface SpacingSuggestion {
+  blockId: string;
+  blockType: string;
+  currentPadding?: string;
+  suggestedPadding: string;
+  reason: string;
+}
+
+/**
+ * Suggest optimal vertical padding per block based on content density.
+ * Text-heavy blocks get compact spacing, photo blocks get spacious breathing room.
+ */
+export function suggestBlockSpacing(blocks: Array<{
+  id: string;
+  type: string;
+  config?: Record<string, unknown>;
+}>): SpacingSuggestion[] {
+  const spacingMap: Record<string, { padding: string; reason: string }> = {
+    hero:       { padding: '0',          reason: 'Hero is full-viewport — no extra padding needed' },
+    story:      { padding: '3rem 2rem',  reason: 'Story chapters need moderate breathing room' },
+    event:      { padding: '4rem 2rem',  reason: 'Event cards need space for scanning' },
+    countdown:  { padding: '3rem 2rem',  reason: 'Countdown is compact — moderate padding' },
+    rsvp:       { padding: '4rem 2rem',  reason: 'RSVP form needs comfortable spacing' },
+    registry:   { padding: '4rem 2rem',  reason: 'Registry links need browse-friendly spacing' },
+    travel:     { padding: '3rem 2rem',  reason: 'Travel info is reference content — moderate spacing' },
+    faq:        { padding: '3rem 2rem',  reason: 'FAQ items are scannable — moderate spacing' },
+    photos:     { padding: '5rem 2rem',  reason: 'Photo sections deserve spacious breathing room' },
+    gallery:    { padding: '5rem 2rem',  reason: 'Gallery grids look best with generous spacing' },
+    photoWall:  { padding: '5rem 2rem',  reason: 'Photo walls need space to breathe' },
+    guestbook:  { padding: '4rem 2rem',  reason: 'Guestbook is interactive — comfortable spacing' },
+    text:       { padding: '3rem 2rem',  reason: 'Text blocks are compact — tighter spacing' },
+    quote:      { padding: '5rem 2rem',  reason: 'Quotes need whitespace for emphasis' },
+    video:      { padding: '4rem 2rem',  reason: 'Video embeds need comfortable framing' },
+    map:        { padding: '3rem 2rem',  reason: 'Maps are utility — moderate spacing' },
+    divider:    { padding: '0',          reason: 'Dividers are self-spacing' },
+    hashtag:    { padding: '3rem 2rem',  reason: 'Hashtags are quick-read — moderate spacing' },
+    weddingParty: { padding: '4rem 2rem', reason: 'Party grid needs browse-friendly spacing' },
+  };
+
+  const results: SpacingSuggestion[] = [];
+  for (const b of blocks) {
+    const suggestion = spacingMap[b.type];
+    if (!suggestion) continue;
+    const current = b.config?.verticalPadding as string | undefined;
+    if (current === suggestion.padding) continue;
+    results.push({
+      blockId: b.id, blockType: b.type,
+      currentPadding: current,
+      suggestedPadding: suggestion.padding,
+      reason: suggestion.reason,
+    });
+  }
+  return results;
+}
+
+// ── 9. Visual Rhythm Checker ─────────────────────────────────
+
+export interface RhythmIssue {
+  severity: 'warn' | 'tip';
+  title: string;
+  detail: string;
+  suggestion?: string;
+}
+
+/** Content category for rhythm analysis */
+function blockCategory(type: string): 'text' | 'visual' | 'interactive' | 'spacer' | 'other' {
+  switch (type) {
+    case 'text': case 'quote': case 'vibeQuote': case 'welcome': return 'text';
+    case 'photos': case 'gallery': case 'photoWall': case 'video': case 'hero': return 'visual';
+    case 'rsvp': case 'guestbook': case 'quiz': case 'map': return 'interactive';
+    case 'divider': return 'spacer';
+    default: return 'other';
+  }
+}
+
+/**
+ * Analyze the block sequence for visual rhythm issues:
+ * monotony, missing breaks, jarring transitions.
+ */
+export function checkVisualRhythm(blocks: Array<{ type: string }>): RhythmIssue[] {
+  const issues: RhythmIssue[] = [];
+  if (blocks.length < 3) return issues;
+
+  // Check for 3+ consecutive same-category blocks
+  for (let i = 0; i < blocks.length - 2; i++) {
+    const cat = blockCategory(blocks[i].type);
+    if (cat === 'spacer' || cat === 'other') continue;
+    if (blockCategory(blocks[i + 1].type) === cat && blockCategory(blocks[i + 2].type) === cat) {
+      issues.push({
+        severity: 'tip',
+        title: `${cat === 'text' ? 'Text' : cat === 'visual' ? 'Photo' : 'Interactive'} section monotony`,
+        detail: `3 ${cat} sections in a row (${blocks[i].type} → ${blocks[i+1].type} → ${blocks[i+2].type}). The page may feel repetitive.`,
+        suggestion: `Insert a ${cat === 'text' ? 'photo or interactive' : 'text or quote'} section to break the rhythm.`,
+      });
+      break; // One warning is enough
+    }
+  }
+
+  // Check for no dividers in a long page
+  if (blocks.length > 6 && !blocks.some(b => b.type === 'divider')) {
+    issues.push({
+      severity: 'tip',
+      title: 'No visual breaks',
+      detail: `${blocks.length} sections with no dividers. The page may feel like an endless scroll.`,
+      suggestion: 'Add wave dividers between major sections to create visual breathing room.',
+    });
+  }
+
+  // Check for interactive sections buried at the bottom
+  const interactiveIdx = blocks.findIndex(b => blockCategory(b.type) === 'interactive');
+  if (interactiveIdx > blocks.length * 0.8 && blocks.length > 5) {
+    issues.push({
+      severity: 'tip',
+      title: 'Interactive content buried',
+      detail: `Your ${blocks[interactiveIdx].type} section is near the bottom. Many guests won't scroll that far.`,
+      suggestion: 'Move interactive sections (RSVP, guestbook, quiz) to the middle third of the page.',
+    });
+  }
+
+  return issues;
+}
+
+// ── 10. Smart Font Size Hierarchy ────────────────────────────
+
+export type TypeScale = 'minor-third' | 'major-third' | 'perfect-fourth' | 'golden-ratio';
+
+const SCALE_RATIOS: Record<TypeScale, number> = {
+  'minor-third':    1.2,
+  'major-third':    1.25,
+  'perfect-fourth': 1.333,
+  'golden-ratio':   1.618,
+};
+
+export interface TypeHierarchy {
+  scale: TypeScale;
+  ratio: number;
+  sizes: {
+    hero: string;      // Largest — hero names
+    h1: string;        // Section headings
+    h2: string;        // Sub-headings
+    h3: string;        // Card titles
+    body: string;      // Body text (base)
+    caption: string;   // Captions, timestamps
+    label: string;     // UI labels, badges
+  };
+}
+
+/**
+ * Generate a complete typographic size hierarchy from a base size
+ * and a musical/mathematical scale.
+ */
+export function generateTypeHierarchy(
+  baseSize = 16,
+  scale: TypeScale = 'major-third',
+): TypeHierarchy {
+  const r = SCALE_RATIOS[scale];
+  const px = (n: number) => `${(baseSize * n).toFixed(1)}px`;
+
+  return {
+    scale,
+    ratio: r,
+    sizes: {
+      hero:    px(r * r * r * r),   // r^4
+      h1:      px(r * r * r),       // r^3
+      h2:      px(r * r),           // r^2
+      h3:      px(r),               // r^1
+      body:    px(1),               // base
+      caption: px(1 / r),           // r^-1
+      label:   px(1 / (r * r)),     // r^-2
+    },
+  };
+}
+
+// ── 11. Auto Dark Mode Preview ───────────────────────────────
+
+/**
+ * Invert a palette to create a dark mode version.
+ * Swaps light/dark values while preserving accent hue.
+ */
+export function invertPalette(palette: {
+  background: string; foreground: string; accent: string;
+  accent2: string; card: string; muted: string;
+  highlight: string; subtle: string; ink: string;
+}): typeof palette {
+  const darken = (hex: string, amount: number) => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    return '#' + rgb.map(c => Math.max(0, Math.round(c * (1 - amount))).toString(16).padStart(2, '0')).join('');
+  };
+  const lighten = (hex: string, amount: number) => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    return '#' + rgb.map(c => Math.min(255, Math.round(c + (255 - c) * amount)).toString(16).padStart(2, '0')).join('');
+  };
+
+  return {
+    background: darken(palette.background, 0.85),
+    foreground: lighten(palette.foreground, 0.8),
+    accent: palette.accent, // Keep accent as-is
+    accent2: darken(palette.accent2, 0.3),
+    card: darken(palette.card, 0.8),
+    muted: lighten(palette.muted, 0.4),
+    highlight: palette.highlight,
+    subtle: darken(palette.subtle, 0.82),
+    ink: lighten(palette.ink, 0.85),
+  };
+}
+
+// ── 12. Responsive Preview Warnings ──────────────────────────
+
+export interface ResponsiveWarning {
+  severity: 'warn' | 'error';
+  title: string;
+  detail: string;
+  blockId?: string;
+}
+
+/**
+ * Analyze blocks for potential mobile responsiveness issues.
+ * Runs on manifest data — no DOM needed.
+ */
+export function checkResponsiveIssues(
+  blocks: Array<{ id: string; type: string; config?: Record<string, unknown> }>,
+  chapters?: Array<{ id: string; title?: string; images?: Array<{ width?: number; height?: number }> }>,
+): ResponsiveWarning[] {
+  const warnings: ResponsiveWarning[] = [];
+
+  for (const block of blocks) {
+    const cfg = block.config || {};
+
+    // Fixed widths that won't fit mobile
+    if (cfg.maxWidth && typeof cfg.maxWidth === 'string') {
+      const px = parseInt(cfg.maxWidth);
+      if (px > 500 && !cfg.maxWidth.includes('%') && !cfg.maxWidth.includes('vw')) {
+        warnings.push({
+          severity: 'warn',
+          title: `Fixed width on ${block.type}`,
+          detail: `${cfg.maxWidth} max-width may overflow on mobile screens (< 390px).`,
+          blockId: block.id,
+        });
+      }
+    }
+
+    // Video blocks without responsive wrapper
+    if (block.type === 'video' && cfg.url && !(cfg.aspectRatio || cfg.responsive)) {
+      warnings.push({
+        severity: 'warn',
+        title: 'Video may not resize on mobile',
+        detail: 'Add an aspect ratio to ensure the video scales properly on small screens.',
+        blockId: block.id,
+      });
+    }
+  }
+
+  // Chapters with very long titles
+  if (chapters) {
+    for (const ch of chapters) {
+      if (ch.title && ch.title.length > 40) {
+        warnings.push({
+          severity: 'warn',
+          title: `Long chapter title`,
+          detail: `"${ch.title.slice(0, 30)}…" (${ch.title.length} chars) may wrap awkwardly on mobile.`,
+        });
+      }
+    }
+  }
+
+  // Too many blocks = long scroll on mobile
+  const visibleBlocks = blocks.filter(b => b.type !== 'divider');
+  if (visibleBlocks.length > 12) {
+    warnings.push({
+      severity: 'warn',
+      title: `${visibleBlocks.length} sections is a lot`,
+      detail: 'Mobile users may lose interest scrolling through this many sections. Consider hiding less important ones.',
+    });
+  }
+
+  return warnings;
+}
+
+// ── 13. Design Style Presets ─────────────────────────────────
+
+export interface DesignPreset {
+  id: string;
+  name: string;
+  description: string;
+  preview: { bg: string; fg: string; accent: string }; // For thumbnail
+  palette: {
+    background: string; foreground: string; accent: string;
+    accent2: string; card: string; muted: string;
+    highlight: string; subtle: string; ink: string;
+  };
+  fonts: { heading: string; body: string };
+  cardStyle: string;
+  texture: string;
+  headingStyle: string;
+  sectionEntrance: string;
+  particle: string;
+  tone: string;
+}
+
+export const DESIGN_PRESETS: DesignPreset[] = [
+  {
+    id: 'minimalist',
+    name: 'Minimalist',
+    description: 'Clean lines, lots of white space, understated elegance',
+    preview: { bg: '#FFFFFF', fg: '#1A1A1A', accent: '#2A2A2A' },
+    palette: {
+      background: '#FAFAFA', foreground: '#1A1A1A', accent: '#2A2A2A',
+      accent2: '#E0E0E0', card: '#FFFFFF', muted: '#888888',
+      highlight: '#1A1A1A', subtle: '#F5F5F5', ink: '#000000',
+    },
+    fonts: { heading: 'Inter', body: 'Inter' },
+    cardStyle: 'minimal', texture: 'none', headingStyle: 'uppercase-tracked',
+    sectionEntrance: 'fade-up', particle: 'petals', tone: 'intimate',
+  },
+  {
+    id: 'romantic-garden',
+    name: 'Romantic Garden',
+    description: 'Soft florals, warm ivory, classic serif typography',
+    preview: { bg: '#FDF8F0', fg: '#2B2018', accent: '#A3B18A' },
+    palette: {
+      background: '#FDF8F0', foreground: '#2B2018', accent: '#A3B18A',
+      accent2: '#D4C5A0', card: '#FFFBF5', muted: '#9A8E78',
+      highlight: '#8A9E70', subtle: '#FAF5EC', ink: '#1A1208',
+    },
+    fonts: { heading: 'Playfair Display', body: 'Lora' },
+    cardStyle: 'elevated', texture: 'linen', headingStyle: 'italic-serif',
+    sectionEntrance: 'bloom', particle: 'petals', tone: 'dreamy',
+  },
+  {
+    id: 'modern-editorial',
+    name: 'Modern Editorial',
+    description: 'Bold contrasts, magazine-quality, contemporary feel',
+    preview: { bg: '#F5F1E8', fg: '#1C1C1C', accent: '#C45C1A' },
+    palette: {
+      background: '#F5F1E8', foreground: '#1C1C1C', accent: '#C45C1A',
+      accent2: '#E8A060', card: '#FDFAF4', muted: '#7A7268',
+      highlight: '#A04010', subtle: '#F2EEE5', ink: '#0A0A0A',
+    },
+    fonts: { heading: 'Cormorant Garamond', body: 'Source Sans Pro' },
+    cardStyle: 'solid', texture: 'none', headingStyle: 'bold-editorial',
+    sectionEntrance: 'reveal', particle: 'confetti', tone: 'luxurious',
+  },
+  {
+    id: 'boho-rustic',
+    name: 'Boho Rustic',
+    description: 'Earthy tones, organic shapes, free-spirited warmth',
+    preview: { bg: '#F2E8D8', fg: '#2A1E10', accent: '#8B6B3D' },
+    palette: {
+      background: '#F2E8D8', foreground: '#2A1E10', accent: '#8B6B3D',
+      accent2: '#C4A870', card: '#FAF2E6', muted: '#8A7A60',
+      highlight: '#6A4E28', subtle: '#F5EDE0', ink: '#1A1008',
+    },
+    fonts: { heading: 'Josefin Sans', body: 'Nunito' },
+    cardStyle: 'outlined', texture: 'paper', headingStyle: 'thin-elegant',
+    sectionEntrance: 'drift', particle: 'leaves', tone: 'rustic',
+  },
+  {
+    id: 'midnight-luxe',
+    name: 'Midnight Luxe',
+    description: 'Dark sophistication, gold accents, evening glamour',
+    preview: { bg: '#1A1520', fg: '#F0E8D8', accent: '#C8A84A' },
+    palette: {
+      background: '#1A1520', foreground: '#F0E8D8', accent: '#C8A84A',
+      accent2: '#8A7030', card: '#252030', muted: '#9A9088',
+      highlight: '#D4B850', subtle: '#201A28', ink: '#FAF2E4',
+    },
+    fonts: { heading: 'Cinzel', body: 'Raleway' },
+    cardStyle: 'glass', texture: 'starfield', headingStyle: 'uppercase-tracked',
+    sectionEntrance: 'float', particle: 'fireflies', tone: 'luxurious',
+  },
+  {
+    id: 'coastal-breeze',
+    name: 'Coastal Breeze',
+    description: 'Ocean blues, sandy neutrals, breezy seaside vibes',
+    preview: { bg: '#F0F5F8', fg: '#1A2C38', accent: '#2E7A9E' },
+    palette: {
+      background: '#F0F5F8', foreground: '#1A2C38', accent: '#2E7A9E',
+      accent2: '#90C0D8', card: '#F8FBFD', muted: '#6A8898',
+      highlight: '#1A5A7A', subtle: '#EDF3F7', ink: '#0D1C28',
+    },
+    fonts: { heading: 'Libre Baskerville', body: 'Open Sans' },
+    cardStyle: 'glass', texture: 'none', headingStyle: 'italic-serif',
+    sectionEntrance: 'drift', particle: 'bubbles', tone: 'playful',
+  },
+  {
+    id: 'vibrant-celebration',
+    name: 'Vibrant Celebration',
+    description: 'Bold colors, playful energy, party atmosphere',
+    preview: { bg: '#FFF5F8', fg: '#1A0A30', accent: '#E84393' },
+    palette: {
+      background: '#FFF5F8', foreground: '#1A0A30', accent: '#E84393',
+      accent2: '#F8C000', card: '#FFFAFC', muted: '#9A6080',
+      highlight: '#D42080', subtle: '#FFF0F5', ink: '#100020',
+    },
+    fonts: { heading: 'DM Serif Display', body: 'DM Sans' },
+    cardStyle: 'elevated', texture: 'none', headingStyle: 'bold-editorial',
+    sectionEntrance: 'bloom', particle: 'confetti', tone: 'playful',
+  },
+  {
+    id: 'classic-elegance',
+    name: 'Classic Elegance',
+    description: 'Timeless refinement, serif typography, muted palette',
+    preview: { bg: '#F8F4EE', fg: '#2C2420', accent: '#8A6E4E' },
+    palette: {
+      background: '#F8F4EE', foreground: '#2C2420', accent: '#8A6E4E',
+      accent2: '#C4A880', card: '#FDFAF5', muted: '#8A8078',
+      highlight: '#6A5038', subtle: '#F5F0EA', ink: '#1A1410',
+    },
+    fonts: { heading: 'EB Garamond', body: 'Lato' },
+    cardStyle: 'elevated', texture: 'linen', headingStyle: 'italic-serif',
+    sectionEntrance: 'fade-up', particle: 'petals', tone: 'intimate',
+  },
+];

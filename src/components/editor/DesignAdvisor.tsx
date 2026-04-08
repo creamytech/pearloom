@@ -15,7 +15,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { detectPaletteIssues, type DesignIssue } from '@/lib/color-utils';
-import { validateTypography, temperatureAdvice, detectContentNudges, type TypographyIssue, type ContentNudge } from '@/lib/smart-features';
+import {
+  validateTypography, temperatureAdvice, detectContentNudges,
+  suggestChapterLayouts, checkVisualRhythm, checkResponsiveIssues,
+  type TypographyIssue, type ContentNudge,
+} from '@/lib/smart-features';
 import type { AISuggestion } from '@/app/api/design-advisor/route';
 import type { ThemeSchema, StoryManifest } from '@/types';
 import { IconError, IconWarn, IconTip, IconCheck, IconClose, IconPalette, IconSparkle } from './EditorIcons';
@@ -117,6 +121,15 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
   const highNudges = contentNudges.filter(n => n.priority === 'high');
   const medNudges = contentNudges.filter(n => n.priority === 'medium').slice(0, 2);
 
+  // ── Layout suggestions ─────────────────────────────────
+  const layoutSuggestions = suggestChapterLayouts(manifest.chapters || []).slice(0, 2);
+
+  // ── Visual rhythm ──────────────────────────────────────
+  const rhythmIssues = checkVisualRhythm(manifest.blocks || []);
+
+  // ── Responsive warnings ────────────────────────────────
+  const responsiveWarnings = checkResponsiveIssues(manifest.blocks || [], manifest.chapters);
+
   // ── AI suggestions (debounced) ────────────────────────────
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -160,7 +173,8 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
 
   // ── Render nothing if no issues and AI is quiet ───────────
   const hasAnything = visibleRuleIssues.length > 0 || aiLoading || visibleAiSuggestions.length > 0
-    || typoIssues.length > 0 || highNudges.length > 0 || medNudges.length > 0;
+    || typoIssues.length > 0 || highNudges.length > 0 || medNudges.length > 0
+    || layoutSuggestions.length > 0 || rhythmIssues.length > 0 || responsiveWarnings.length > 0;
   if (!hasAnything) return null;
 
   return (
@@ -226,6 +240,39 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
           title={nudge.title}
           detail={nudge.description}
           onDismiss={() => setDismissed(prev => new Set([...prev, nudge.id]))}
+        />
+      ))}
+
+      {/* Layout suggestions */}
+      {layoutSuggestions.filter(s => !dismissed.has(`layout-${s.chapterId}`)).map(s => (
+        <IssueCard
+          key={`layout-${s.chapterId}`}
+          severity="tip"
+          title={`Try "${s.suggestedLayout}" layout`}
+          detail={s.reason}
+          onDismiss={() => setDismissed(prev => new Set([...prev, `layout-${s.chapterId}`]))}
+        />
+      ))}
+
+      {/* Visual rhythm issues */}
+      {rhythmIssues.filter((_, i) => !dismissed.has(`rhythm-${i}`)).map((issue, i) => (
+        <IssueCard
+          key={`rhythm-${i}`}
+          severity={issue.severity}
+          title={issue.title}
+          detail={`${issue.detail}${issue.suggestion ? ` ${issue.suggestion}` : ''}`}
+          onDismiss={() => setDismissed(prev => new Set([...prev, `rhythm-${i}`]))}
+        />
+      ))}
+
+      {/* Responsive warnings */}
+      {responsiveWarnings.filter((_, i) => !dismissed.has(`responsive-${i}`)).map((w, i) => (
+        <IssueCard
+          key={`responsive-${i}`}
+          severity={w.severity}
+          title={w.title}
+          detail={w.detail}
+          onDismiss={() => setDismissed(prev => new Set([...prev, `responsive-${i}`]))}
         />
       ))}
 

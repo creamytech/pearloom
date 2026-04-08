@@ -24,6 +24,7 @@ import {
 } from '@/components/icons/PearloomIcons';
 import type { StoryManifest, ThemeSchema, LogoIconId } from '@/types';
 import type { VibeSkin } from '@/lib/vibe-engine';
+import { invertPalette, DESIGN_PRESETS, generateTypeHierarchy, type TypeScale } from '@/lib/smart-features';
 
 // ── Logo Icon Options ─────────────────────────────────────────
 const LOGO_ICONS: Array<{ id: LogoIconId; label: string; Icon: React.ComponentType<{ size?: number; color?: string }> }> = [
@@ -579,6 +580,115 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {/* ── Corner Decorations — swappable presets ── */}
       <SidebarSection title="Corner Decorations" defaultOpen={false}>
         <CornerDecorationPicker manifest={manifest} onChange={onChange} />
+      </SidebarSection>
+
+      {/* ── Quick Design Presets ── */}
+      <SidebarSection title="Quick Style Presets" defaultOpen={false}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+          {DESIGN_PRESETS.map(preset => (
+            <button
+              key={preset.id}
+              onClick={() => {
+                const newSkin: VibeSkin = {
+                  ...(manifest.vibeSkin || {} as VibeSkin),
+                  palette: preset.palette,
+                  fonts: preset.fonts,
+                  cardStyle: preset.cardStyle as VibeSkin['cardStyle'],
+                  texture: preset.texture as VibeSkin['texture'],
+                  headingStyle: preset.headingStyle as VibeSkin['headingStyle'],
+                  sectionEntrance: preset.sectionEntrance as VibeSkin['sectionEntrance'],
+                  particle: preset.particle as VibeSkin['particle'],
+                  tone: preset.tone as VibeSkin['tone'],
+                };
+                handleThemeApply(newSkin);
+              }}
+              style={{
+                display: 'flex', flexDirection: 'column', gap: '6px',
+                padding: '10px', borderRadius: '10px', cursor: 'pointer',
+                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'rgba(255,255,255,0.3)',
+                textAlign: 'left', transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.5)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; }}
+            >
+              <div style={{ display: 'flex', gap: '3px' }}>
+                {[preset.preview.bg, preset.preview.fg, preset.preview.accent].map((c, i) => (
+                  <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />
+                ))}
+              </div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--pl-ink)' }}>{preset.name}</div>
+              <div style={{ fontSize: '0.58rem', color: 'var(--pl-muted)', lineHeight: 1.3 }}>{preset.description}</div>
+            </button>
+          ))}
+        </div>
+      </SidebarSection>
+
+      {/* ── Dark Mode Preview ── */}
+      <SidebarSection title="Dark Mode Preview" defaultOpen={false}>
+        <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginBottom: '8px', lineHeight: 1.5 }}>
+          Preview how your site would look with inverted colors. Great for evening events.
+        </p>
+        <button
+          onClick={() => {
+            if (!manifest.vibeSkin) return;
+            const darkPalette = invertPalette(manifest.vibeSkin.palette);
+            const darkSkin: VibeSkin = { ...manifest.vibeSkin, palette: darkPalette };
+            handleThemeApply(darkSkin);
+          }}
+          style={{
+            width: '100%', padding: '10px 14px', borderRadius: '10px',
+            border: '1px solid rgba(255,255,255,0.3)',
+            background: 'linear-gradient(135deg, #1a1520 0%, #252030 100%)',
+            color: '#F0E8D8', cursor: 'pointer',
+            fontSize: '0.78rem', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          }}
+        >
+          <span style={{ fontSize: '1rem' }}>🌙</span> Apply Dark Mode
+        </button>
+      </SidebarSection>
+
+      {/* ── Typographic Scale ── */}
+      <SidebarSection title="Type Scale" defaultOpen={false}>
+        <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginBottom: '8px', lineHeight: 1.5 }}>
+          Set the mathematical ratio for font size hierarchy across your site.
+        </p>
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {(['minor-third', 'major-third', 'perfect-fourth', 'golden-ratio'] as TypeScale[]).map(scale => {
+            const h = generateTypeHierarchy(16, scale);
+            return (
+              <button
+                key={scale}
+                onClick={() => {
+                  onChange({
+                    ...manifest,
+                    theme: {
+                      ...manifest.theme,
+                      typeScale: scale,
+                      typeSizes: h.sizes,
+                    },
+                  });
+                }}
+                style={{
+                  flex: 1, minWidth: '70px', padding: '8px 6px', borderRadius: '8px',
+                  border: manifest.theme?.typeScale === scale
+                    ? '1.5px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.25)',
+                  background: manifest.theme?.typeScale === scale
+                    ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.3)',
+                  cursor: 'pointer', textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--pl-ink)', textTransform: 'capitalize' }}>
+                  {scale.replace('-', ' ')}
+                </div>
+                <div style={{ fontSize: '0.5rem', color: 'var(--pl-muted)' }}>
+                  {h.ratio}:1
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </SidebarSection>
 
       {/* Design Health — advisors collapsed at bottom */}

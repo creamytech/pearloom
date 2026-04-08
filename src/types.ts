@@ -259,6 +259,14 @@ export interface ThemeSchema {
     /** Tiling texture layered over background */
     textureOverlay?: 'none' | 'paper' | 'linen' | 'concrete' | 'velvet' | 'bokeh';
   };
+
+  /** Typographic scale — mathematical ratio for font size hierarchy */
+  typeScale?: 'minor-third' | 'major-third' | 'perfect-fourth' | 'golden-ratio';
+  /** Computed font sizes from the type scale */
+  typeSizes?: {
+    hero: string; h1: string; h2: string; h3: string;
+    body: string; caption: string; label: string;
+  };
 }
 
 /**
