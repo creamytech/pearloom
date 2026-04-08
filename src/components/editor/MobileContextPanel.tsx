@@ -6,13 +6,13 @@
 // tapped in the mobile preview. Renders inside MobileBottomSheet.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   X, Star, BookOpen, CalendarDays, Mail, Gift, Plane, HelpCircle,
   Camera, MessageSquare, MapPin, Quote, Type, Video, Timer, Minus,
   Music, Hash, Users, Navigation, LayoutGrid, Sparkles, Image,
-  Palette,
+  Palette, Upload, Loader2,
 } from 'lucide-react';
 import { useEditor } from '@/lib/editor-state';
 import { Field, lbl, inp } from './editor-utils';
@@ -330,6 +330,133 @@ export function MobileContextPanel({
 // Section-specific settings sub-components
 // ═══════════════════════════════════════════════════════════════
 
+// ── Cover Photo Uploader ────────────────────────────────────
+
+function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
+  currentPhoto?: string;
+  onPhotoChange: (url: string) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (res.ok) {
+        const { publicUrl } = await res.json();
+        onPhotoChange(publicUrl);
+      }
+    } catch {
+      // Silent fail
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <label style={lbl}>Cover Photo</label>
+
+      {/* Current photo preview */}
+      {currentPhoto && (
+        <div style={{ marginBottom: 8, borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={currentPhoto} alt="Cover" style={{ width: '100%', height: 120, objectFit: 'cover', display: 'block' }} />
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%)',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+            padding: 8,
+          }}>
+            <span style={{ fontSize: '0.65rem', color: 'white', fontWeight: 600, letterSpacing: '0.06em' }}>
+              Tap below to replace
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Upload options */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Device upload */}
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+            border: '1.5px dashed rgba(255,255,255,0.5)',
+            background: 'rgba(255,255,255,0.35)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            textAlign: 'left' as const, width: '100%',
+          }}
+        >
+          {uploading ? (
+            <Loader2 size={18} style={{ color: 'var(--pl-olive)', animation: 'spin 1s linear infinite' }} />
+          ) : (
+            <Upload size={18} style={{ color: 'var(--pl-olive)' }} />
+          )}
+          <div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+              {uploading ? 'Uploading...' : 'Upload from Device'}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>
+              JPG, PNG, or HEIC
+            </div>
+          </div>
+        </button>
+
+        {/* Google Photos */}
+        <button
+          onClick={() => {
+            // Open Google Photos picker flow
+            window.open('/api/photos/picker?context=cover', '_blank', 'width=600,height=700');
+          }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+            border: '1px solid rgba(255,255,255,0.5)',
+            background: 'rgba(255,255,255,0.35)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            textAlign: 'left' as const, width: '100%',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4L29.5 14.5H18.5L24 4Z" fill="#EA4335"/>
+            <path d="M4 34.5L14.5 29V40L4 34.5Z" fill="#4285F4"/>
+            <path d="M44 34.5L33.5 40V29L44 34.5Z" fill="#34A853"/>
+            <path d="M24 44L18.5 33.5H29.5L24 44Z" fill="#FBBC05"/>
+          </svg>
+          <div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+              Google Photos
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>
+              Pick from your library
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,image/heic,image/heif"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFileUpload(file);
+          e.target.value = '';
+        }}
+      />
+    </div>
+  );
+}
+
 // ── Hero Settings ───────────────────────────────────────────
 
 function HeroSettings({
@@ -359,23 +486,10 @@ function HeroSettings({
           placeholder="A warm welcome to your guests..."
         />
 
-        <div>
-          <label style={lbl}>Cover Photo</label>
-          <div style={{
-            padding: 16,
-            borderRadius: 12,
-            border: '1.5px dashed var(--pl-black-6)',
-            background: 'var(--pl-olive-5)',
-            textAlign: 'center',
-            color: 'var(--pl-muted)',
-            fontSize: 'var(--pl-text-sm)',
-            cursor: 'pointer',
-          }}>
-            {/* eslint-disable-next-line jsx-a11y/alt-text -- lucide SVG icon, not an HTML img */}
-            <Image size={20} style={{ margin: '0 auto 8px', display: 'block', opacity: 0.5 }} />
-            Tap to change cover photo
-          </div>
-        </div>
+        <CoverPhotoUploader
+          currentPhoto={manifest.coverPhoto}
+          onPhotoChange={(url) => onUpdate({ coverPhoto: url })}
+        />
 
         <div>
           <label style={lbl}>Display Names</label>
