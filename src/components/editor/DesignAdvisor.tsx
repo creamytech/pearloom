@@ -15,6 +15,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { detectPaletteIssues, type DesignIssue } from '@/lib/color-utils';
+import { validateTypography, temperatureAdvice, detectContentNudges, type TypographyIssue, type ContentNudge } from '@/lib/smart-features';
 import type { AISuggestion } from '@/app/api/design-advisor/route';
 import type { ThemeSchema, StoryManifest } from '@/types';
 import { IconError, IconWarn, IconTip, IconCheck, IconClose, IconPalette, IconSparkle } from './EditorIcons';
@@ -95,6 +96,27 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
 
   const visibleRuleIssues = ruleIssues.filter(i => !dismissed.has(i.code));
 
+  // ── Typography validation ────────────────────────────────
+  const typoIssues = manifest.vibeSkin?.fonts
+    ? validateTypography(manifest.vibeSkin.fonts.heading, manifest.vibeSkin.fonts.body)
+        .filter(i => i.severity !== 'ok')
+    : [];
+
+  // ── Photo color temperature advice ───────────────────────
+  const photoColors = manifest.chapters?.flatMap(ch =>
+    (ch.images || []).slice(0, 1)
+  ).length ? [] : []; // Placeholder — uses dominantColors when available
+  // Use vibeSkin palette colors as proxy for photo temperature
+  const tempColors = manifest.vibeSkin?.palette
+    ? [manifest.vibeSkin.palette.accent, manifest.vibeSkin.palette.accent2, manifest.vibeSkin.palette.background]
+    : [];
+  const tempAdvice = tempColors.length ? temperatureAdvice(tempColors) : null;
+
+  // ── Content completeness nudges ──────────────────────────
+  const contentNudges = detectContentNudges(manifest);
+  const highNudges = contentNudges.filter(n => n.priority === 'high');
+  const medNudges = contentNudges.filter(n => n.priority === 'medium').slice(0, 2);
+
   // ── AI suggestions (debounced) ────────────────────────────
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -137,7 +159,8 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
   const visibleAiSuggestions = aiSuggestions.filter((_, i) => !aiDismissed.has(i));
 
   // ── Render nothing if no issues and AI is quiet ───────────
-  const hasAnything = visibleRuleIssues.length > 0 || aiLoading || visibleAiSuggestions.length > 0;
+  const hasAnything = visibleRuleIssues.length > 0 || aiLoading || visibleAiSuggestions.length > 0
+    || typoIssues.length > 0 || highNudges.length > 0 || medNudges.length > 0;
   if (!hasAnything) return null;
 
   return (
@@ -171,6 +194,38 @@ export function DesignAdvisor({ manifest }: DesignAdvisorProps) {
           title={s.title}
           detail={s.detail}
           onDismiss={() => setAiDismissed(prev => new Set([...prev, i]))}
+        />
+      ))}
+
+      {/* Typography issues */}
+      {typoIssues.map((issue, i) => (
+        <IssueCard
+          key={`typo-${i}`}
+          severity={issue.severity === 'error' ? 'error' : 'warn'}
+          title={issue.title}
+          detail={`${issue.detail}${issue.suggestion ? ` ${issue.suggestion}` : ''}`}
+          onDismiss={() => setDismissed(prev => new Set([...prev, `typo-${i}`]))}
+        />
+      ))}
+
+      {/* Color temperature advice */}
+      {tempAdvice && tempAdvice.suggestion !== 'neutral' && (
+        <IssueCard
+          severity="tip"
+          title={`Your palette feels ${tempAdvice.suggestion}`}
+          detail={tempAdvice.description}
+          onDismiss={() => setDismissed(prev => new Set([...prev, 'color-temp']))}
+        />
+      )}
+
+      {/* Content completeness nudges */}
+      {[...highNudges, ...medNudges].filter(n => !dismissed.has(n.id)).map(nudge => (
+        <IssueCard
+          key={nudge.id}
+          severity={nudge.priority === 'high' ? 'warn' : 'tip'}
+          title={nudge.title}
+          detail={nudge.description}
+          onDismiss={() => setDismissed(prev => new Set([...prev, nudge.id]))}
         />
       ))}
 

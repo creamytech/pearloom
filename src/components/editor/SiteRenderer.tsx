@@ -24,6 +24,7 @@ import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { ensureContrast } from '@/lib/color-utils';
+import { smartBlockOrder } from '@/lib/smart-features';
 import type { StoryManifest, SitePage, PageBlock, BlockType } from '@/types';
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
@@ -323,7 +324,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     ...(manifest.faqs?.length ? [{ id: 'faq', slug: 'faq', label: 'FAQ', enabled: true, order: 5 }] : []),
   ], [manifest, vibeSkin]);
 
-  const visibleBlocks = manifest.blocks?.filter(b => b.visible).sort((a, b) => a.order - b.order);
+  const visibleBlocksRaw = manifest.blocks?.filter(b => b.visible).sort((a, b) => a.order - b.order);
+  // Smart section ordering: auto-reorder based on date context
+  const visibleBlocks = useMemo(() => {
+    if (!visibleBlocksRaw) return undefined;
+    const weddingDate = manifest.logistics?.date || manifest.events?.[0]?.date;
+    const rsvpDeadline = manifest.logistics?.rsvpDeadline;
+    const { reordered } = smartBlockOrder(visibleBlocksRaw, weddingDate, rsvpDeadline);
+    return reordered as PageBlock[];
+  }, [visibleBlocksRaw, manifest.logistics?.date, manifest.logistics?.rsvpDeadline, manifest.events]);
 
   // ── Section click handler — direct DOM, no postMessage ──
   const handleSectionClick = useCallback((e: React.MouseEvent) => {

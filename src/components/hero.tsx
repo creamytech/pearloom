@@ -13,6 +13,7 @@ import { VibeParticles } from '@/components/vibe/VibeParticles';
 
 import type { VibeSkin } from '@/lib/vibe-engine';
 import { parseLocalDate } from '@/lib/date';
+import { smartNameFontSize, getImageBrightness, textColorForBrightness } from '@/lib/smart-features';
 
 interface HeroProps {
   names: [string, string];
@@ -117,6 +118,27 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   const badgeDateStr = weddingDate || date;
   // True when any photo is displayed — drives text/overlay color choices
   const hasPhoto = !!(coverPhoto || photoList.length > 0);
+
+  // Smart brightness detection: analyze cover photo to pick optimal text color
+  const [photoBrightness, setPhotoBrightness] = useState<'light' | 'dark' | null>(null);
+  useEffect(() => {
+    if (!coverPhoto || coverPhoto.startsWith('data:') || coverPhoto.includes('/api/hero-art')) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const brightness = getImageBrightness(img);
+      if (brightness !== null) setPhotoBrightness(textColorForBrightness(brightness));
+    };
+    img.src = coverPhoto;
+  }, [coverPhoto]);
+
+  // Resolved text color: brightness-aware when photo analyzed, fallback to hasPhoto logic
+  const heroTextColor = hasPhoto
+    ? (photoBrightness === 'dark' ? '#1C1C1C' : '#ffffff')
+    : 'var(--pl-ink)';
+  const heroSecondaryColor = hasPhoto
+    ? (photoBrightness === 'dark' ? 'var(--pl-ink-soft)' : 'rgba(255,255,255,0.75)')
+    : 'var(--pl-olive)';
 
   return (
     <section
@@ -293,7 +315,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           opacity: opacityText,
           y: yText,
           padding: '0 clamp(1rem, 5vw, 2rem)',
-          color: hasPhoto ? '#ffffff' : 'var(--pl-ink)',
+          color: heroTextColor,
           width: '100%',
           maxWidth: '1300px',
         }}
@@ -321,13 +343,15 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           </motion.div>
         )}
 
-        {/* Names — cinematic size, light weight, italic elegance */}
+        {/* Names — smart-scaled cinematic typography */}
         <h1
           data-pe-editable="true"
           data-pe-field="names"
           style={{
             fontFamily: 'var(--pl-font-heading)',
-            fontSize: 'clamp(4rem, 12vw, 10rem)',
+            fontSize: smartNameFontSize(
+              names[1] ? [names[0], names[1]].reduce((a, b) => a.length > b.length ? a : b) : names[0]
+            ),
             lineHeight: 0.88,
             fontWeight: 300,
             fontStyle: 'italic',
@@ -336,12 +360,12 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            color: hasPhoto ? '#ffffff' : 'var(--pl-ink)',
+            color: heroTextColor,
           }}>
           <AnimatedName
             text={names[0]}
             delay={0.35}
-            color={hasPhoto ? '#ffffff' : undefined}
+            color={hasPhoto ? heroTextColor : undefined}
           />
 
           {/* "&" and second name — only for two-person occasions (not birthday/solo) */}
@@ -356,7 +380,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
                   fontStyle: 'italic',
                   fontWeight: 300,
                   fontSize: 'clamp(2.2rem, 5.5vw, 5rem)',
-                  color: hasPhoto ? 'var(--pl-ink-soft)' : 'var(--pl-olive)',
+                  color: heroSecondaryColor,
                   margin: '-1.6rem 0 -1.4rem',
                   display: 'block',
                   letterSpacing: '0.02em',
@@ -368,7 +392,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               <AnimatedName
                 text={names[1]}
                 delay={names[0].length * 0.04 + 0.6}
-                color={hasPhoto ? '#ffffff' : undefined}
+                color={hasPhoto ? heroTextColor : undefined}
               />
             </>
           )}
