@@ -55,7 +55,7 @@ function StatCard({
   return (
     <div
       style={{
-        background: '#ffffff',
+        background: 'var(--pl-cream-card)',
         borderRadius: '1rem',
         padding: '1.5rem',
         boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
@@ -259,7 +259,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
     <>
       <div
         style={{
-          background: '#ffffff',
+          background: 'var(--pl-cream-card)',
           borderRadius: '1rem',
           overflow: 'hidden',
           boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
@@ -293,7 +293,7 @@ function GuestTable({ guests, domain }: { guests: Guest[]; domain: string }) {
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
               background: 'var(--pl-ink)',
-              color: '#ffffff',
+              color: 'white',
               fontSize: '0.8rem',
               fontWeight: 500,
               fontFamily: 'var(--pl-font-body)',
@@ -602,7 +602,7 @@ function MealSummary({ guests }: { guests: Guest[] }) {
   return (
     <div
       style={{
-        background: '#ffffff',
+        background: 'var(--pl-cream-card)',
         borderRadius: '1rem',
         padding: '1.25rem 1.5rem',
         boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
@@ -658,7 +658,7 @@ function SongPlaylist({ guests }: { guests: Guest[] }) {
   return (
     <div
       style={{
-        background: '#ffffff',
+        background: 'var(--pl-cream-card)',
         borderRadius: '1rem',
         padding: '1.5rem',
         boxShadow: '0 2px 8px rgba(43,43,43,0.07)',
@@ -763,7 +763,7 @@ function CopyLink({ url }: { url: string }) {
           padding: '0.3rem 0.75rem',
           borderRadius: '0.5rem',
           background: copied ? 'var(--pl-olive)' : 'var(--pl-ink)',
-          color: '#ffffff',
+          color: 'white',
           fontSize: '0.78rem',
           fontWeight: 500,
           fontFamily: 'var(--pl-font-body)',
@@ -885,7 +885,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
             padding: '0.5rem 1rem',
             borderRadius: '0.5rem',
             background: 'var(--pl-ink)',
-            color: '#ffffff',
+            color: 'white',
             fontSize: '0.82rem',
             fontWeight: 500,
             fontFamily: 'var(--pl-font-body)',
@@ -973,7 +973,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
         /* Loading skeleton */
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--pl-cream-card)',
             borderRadius: '1rem',
             padding: '3rem 2rem',
             textAlign: 'center',
@@ -989,7 +989,7 @@ function RsvpPageContent({ domain }: { domain: string }) {
       ) : list.length === 0 ? (
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--pl-cream-card)',
             borderRadius: '1rem',
             padding: '4rem 2rem',
             textAlign: 'center',

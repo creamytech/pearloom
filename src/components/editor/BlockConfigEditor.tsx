@@ -44,7 +44,7 @@ function PropControl({
     borderRadius: 'var(--pl-radius-sm)',
     border: '1.5px solid var(--pl-divider)',
     background: 'white',
-    fontSize: '0.88rem',
+    fontSize: 'var(--pl-text-md)',
     fontFamily: 'var(--pl-font-body)',
     color: 'var(--pl-ink)',
     outline: 'none',
@@ -52,7 +52,7 @@ function PropControl({
   };
 
   const labelStyle: React.CSSProperties = {
-    fontSize: '0.65rem',
+    fontSize: 'var(--pl-text-xs)',
     fontWeight: 700,
     letterSpacing: '0.1em',
     textTransform: 'uppercase',
@@ -76,7 +76,7 @@ function PropControl({
               color: isBinding ? 'var(--pl-olive)' : 'var(--pl-divider)',
               display: 'flex', alignItems: 'center',
               padding: '1px 4px', borderRadius: '4px',
-              fontSize: '0.55rem',
+              fontSize: 'var(--pl-text-2xs)',
             }}
           >
             <LinkIcon size={10} />
@@ -177,7 +177,7 @@ function PropControl({
           style={{
             ...inputStyle,
             fontFamily: 'monospace',
-            fontSize: '0.82rem',
+            fontSize: 'var(--pl-text-base)',
             color: 'var(--pl-olive-deep)',
           }}
           className="pl-focus-glow"
@@ -187,7 +187,7 @@ function PropControl({
       {/* Description */}
       {schema.description && (
         <p style={{
-          fontSize: '0.68rem', color: 'var(--pl-muted)',
+          fontSize: 'var(--pl-text-xs)', color: 'var(--pl-muted)',
           marginTop: '4px', lineHeight: 1.4,
         }}>
           {schema.description}
@@ -197,7 +197,7 @@ function PropControl({
       {/* Binding indicator */}
       {isBinding && (
         <p style={{
-          fontSize: '0.62rem', color: 'var(--pl-olive)',
+          fontSize: 'var(--pl-text-2xs)', color: 'var(--pl-olive)',
           marginTop: '3px', fontFamily: 'monospace',
           display: 'flex', alignItems: 'center', gap: '4px',
         }}>
@@ -225,7 +225,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
         padding: '20px',
         textAlign: 'center',
         color: 'var(--pl-muted)',
-        fontSize: '0.85rem',
+        fontSize: 'var(--pl-text-md)',
       }}>
         <Settings2 size={24} style={{ opacity: 0.3, marginBottom: '8px' }} />
         <p>No editable properties for this block type.</p>
@@ -274,7 +274,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
             {schema.label}
           </h3>
           <p style={{
-            fontSize: '0.68rem', color: 'var(--pl-muted)',
+            fontSize: 'var(--pl-text-xs)', color: 'var(--pl-muted)',
             margin: 0,
           }}>
             {schema.description}
@@ -287,7 +287,7 @@ export function BlockConfigEditor({ block, onChange }: BlockConfigEditorProps) {
         <div key={groupName} style={{ marginBottom: '20px' }}>
           {Object.keys(groups).length > 1 && (
             <h4 style={{
-              fontSize: '0.62rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
               letterSpacing: '0.12em', textTransform: 'uppercase',
               color: 'var(--pl-muted)',
               marginBottom: '12px',

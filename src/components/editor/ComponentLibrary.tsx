@@ -396,7 +396,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
             background: 'rgba(255,255,255,0.2)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.15)',
+            border: '1px solid var(--pl-glass-dark-border)',
             boxShadow: '0 1px 4px rgba(43,30,20,0.08)',
           } as React.CSSProperties}>
             <Search size={12} style={{ color: 'var(--pl-muted)', flexShrink: 0 }} />
@@ -485,7 +485,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
               background: 'rgba(255,255,255,0.2)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.15)',
+              border: '1px solid var(--pl-glass-dark-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 12px',
               boxShadow: '0 2px 8px rgba(43,30,20,0.08)',
@@ -538,7 +538,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                     WebkitBackdropFilter: 'blur(8px)',
                     border: isBuiltIn
                       ? '1px solid rgba(163,177,138,0.25)'
-                      : '1px solid rgba(255,255,255,0.18)',
+                      : '1px solid var(--pl-glass-dark-border)',
                     boxShadow: '0 2px 8px rgba(43,30,20,0.08)',
                     overflow: 'hidden',
                     position: 'relative',
@@ -557,7 +557,7 @@ export function ComponentLibrary({ manifest, onChange }: ComponentLibraryProps) 
                       background: 'rgba(163,177,138,0.85)',
                       backdropFilter: 'blur(4px)',
                       fontSize: '0.5rem', fontWeight: 800,
-                      color: '#fff', letterSpacing: '0.05em',
+                      color: 'white', letterSpacing: '0.05em',
                       textTransform: 'uppercase',
                     } as React.CSSProperties}>
                       Template
@@ -752,7 +752,7 @@ function CategoryChip({ label, count, active, color, onClick }: {
       style={{
         padding: '3px 8px',
         borderRadius: '8px',
-        border: `1px solid ${active ? color : 'rgba(255,255,255,0.15)'}`,
+        border: `1px solid ${active ? color : 'var(--pl-glass-dark-border)'}`,
         background: active ? `${color}18` : 'rgba(255,255,255,0.08)',
         color: active ? color : 'var(--pl-muted)',
         cursor: 'pointer',
@@ -768,7 +768,7 @@ function CategoryChip({ label, count, active, color, onClick }: {
       {count > 0 && (
         <span style={{
           fontSize: '0.5rem',
-          background: active ? `${color}25` : 'rgba(255,255,255,0.15)',
+          background: active ? `${color}25` : 'rgba(255,255,255,0.08)',
           padding: '0px 4px',
           borderRadius: '4px',
           fontWeight: 800,

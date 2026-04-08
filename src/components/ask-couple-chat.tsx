@@ -154,12 +154,12 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: '0 8px 32px rgba(43,43,43,0.18)',
-          color: '#fff',
+          color: 'white',
         }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
-        <WeddingRingsIcon size={22} color="#fff" />
+        <WeddingRingsIcon size={22} color="white" />
       </motion.button>
 
       {/* Chat window */}
@@ -195,7 +195,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                 alignItems: 'center',
                 gap: '0.75rem',
                 background: 'var(--pl-olive)',
-                color: '#fff',
+                color: 'white',
               }}
             >
               <div
@@ -210,7 +210,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                   flexShrink: 0,
                 }}
               >
-                <WeddingRingsIcon size={20} color="#fff" />
+                <WeddingRingsIcon size={20} color="white" />
               </div>
               <div style={{ flex: 1 }}>
                 <div
@@ -279,7 +279,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                         msg.role === 'user'
                           ? 'var(--pl-olive)'
                           : 'var(--pl-cream-deep)',
-                      color: msg.role === 'user' ? '#fff' : 'var(--pl-ink)',
+                      color: msg.role === 'user' ? 'white' : 'var(--pl-ink)',
                       fontSize: '0.875rem',
                       lineHeight: 1.5,
                       fontFamily: 'var(--pl-font-body)',
@@ -367,7 +367,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                 display: 'flex',
                 gap: '0.5rem',
                 alignItems: 'center',
-                background: '#fff',
+                background: 'var(--pl-cream-card)',
               }}
             >
               <input
@@ -409,7 +409,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                       : 'var(--pl-olive)',
                   border: 'none',
                   cursor: !input.trim() || typing ? 'not-allowed' : 'pointer',
-                  color: !input.trim() || typing ? 'var(--pl-muted)' : '#fff',
+                  color: !input.trim() || typing ? 'var(--pl-muted)' : 'white',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

@@ -245,7 +245,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
                         position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        <Loader2 size={20} color="#fff" style={{ animation: 'spin 1s linear infinite' }} />
+                        <Loader2 size={20} color="white" style={{ animation: 'spin 1s linear infinite' }} />
                       </div>
                     )}
                     {entry.status === 'done' && (
@@ -254,7 +254,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
                         width: '20px', height: '20px', borderRadius: '50%',
                         background: C.olive, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        <Check size={12} color="#fff" />
+                        <Check size={12} color="white" />
                       </div>
                     )}
                     {entry.status === 'error' && (
@@ -275,7 +275,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
                           width: '22px', height: '22px', borderRadius: '50%',
                           background: 'rgba(0,0,0,0.6)', border: 'none',
                           cursor: 'pointer', display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', color: '#fff', opacity: 0,
+                          justifyContent: 'center', color: 'white', opacity: 0,
                           transition: 'opacity 0.15s',
                         }}
                         onMouseOver={e => { (e.target as HTMLElement).style.opacity = '1'; }}
@@ -340,7 +340,7 @@ export function LocalUploader({ onUploadComplete, maxFiles = 30 }: LocalUploader
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               gap: '0.5rem', padding: '1rem 2rem', borderRadius: card.radius,
-              background: C.ink, color: '#fff', fontSize: text.base,
+              background: C.ink, color: 'white', fontSize: text.base,
               fontWeight: 600, cursor: isUploading ? 'wait' : 'pointer', border: 'none',
               transition: 'opacity 0.2s, box-shadow 0.2s',
               boxShadow: card.shadow,

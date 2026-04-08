@@ -150,16 +150,16 @@ export function generateEmbedCode(partner: Partner, widgetType: EmbedWidget['typ
 
     case 'banner':
       return `<div style="padding:20px;border-radius:16px;background:linear-gradient(135deg,#FAF7F2,#F0EBE0);border:1px solid rgba(0,0,0,0.06);text-align:center;font-family:Georgia,serif">
-  <p style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#7A756E;margin:0 0 8px">Recommended by ${partner.businessName}</p>
+  <p style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6B665F;margin:0 0 8px">Recommended by ${partner.businessName}</p>
   <p style="font-size:20px;font-style:italic;color:#3D3530;margin:0 0 16px">Create your celebration site with Pearloom</p>
   <a href="${referralUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 20px;border-radius:100px;background:#6E8C5C;color:#fff;font-size:12px;font-weight:700;text-decoration:none;letter-spacing:0.08em;text-transform:uppercase">Get Started Free</a>
 </div>`;
 
     case 'card':
       return `<div style="width:300px;padding:24px;border-radius:20px;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);border:1px solid rgba(0,0,0,0.06);box-shadow:0 4px 24px rgba(43,30,20,0.08);font-family:Georgia,serif">
-  <p style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#7A756E;margin:0 0 8px">Partner Recommended</p>
+  <p style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#6B665F;margin:0 0 8px">Partner Recommended</p>
   <p style="font-size:18px;font-style:italic;color:#3D3530;margin:0 0 4px">Pearloom</p>
-  <p style="font-size:13px;color:#7A756E;margin:0 0 16px;line-height:1.5">AI-powered celebration sites from your photos</p>
+  <p style="font-size:13px;color:#6B665F;margin:0 0 16px;line-height:1.5">AI-powered celebration sites from your photos</p>
   <a href="${referralUrl}" target="_blank" rel="noopener" style="display:block;text-align:center;padding:10px;border-radius:100px;background:#6E8C5C;color:#fff;font-size:11px;font-weight:700;text-decoration:none;letter-spacing:0.08em;text-transform:uppercase">Create Your Site</a>
 </div>`;
 

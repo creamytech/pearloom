@@ -16,7 +16,7 @@
   --pl-cream-card:   #FFFFFF;   /* Cards / elevated surfaces           */
   --pl-ink:          #1A1A1A;   /* Near-black — body text              */
   --pl-ink-soft:     #3D3530;   /* Warm dark — headings on light       */
-  --pl-muted:        #7A756E;   /* Secondary text                      */
+  --pl-muted:        #6B665F;   /* Secondary text (WCAG AA on cream)   */
   --pl-divider:      #E0D8CA;   /* Borders, separators                 */
 
   /* ── Brand Accents ── */
@@ -47,7 +47,54 @@
   --pl-glass-border:      rgba(214,198,168,0.32);
   --pl-glass-light:       rgba(255,255,255,0.88);
   --pl-glass-light-border: rgba(0,0,0,0.06);
+  --pl-glass-heavy:       rgba(255,255,255,0.94);
+  --pl-glass-dark:        rgba(28,25,22,0.92);
+  --pl-glass-dark-border: rgba(255,255,255,0.08);
   --pl-glass-shadow:      0 4px 24px rgba(43,30,20,0.08);
+  --pl-glass-shadow-lg:   0 12px 48px rgba(43,30,20,0.14);
+  --pl-glass-blur:        blur(24px) saturate(1.5);
+  --pl-glass-blur-sm:     blur(12px);
+  --pl-glass-blur-lg:     blur(40px) saturate(1.8);
+
+  /* ── Olive opacity scale ── */
+  --pl-olive-5:   rgba(163,177,138,0.05);
+  --pl-olive-8:   rgba(163,177,138,0.08);
+  --pl-olive-10:  rgba(163,177,138,0.10);
+  --pl-olive-12:  rgba(163,177,138,0.12);
+  --pl-olive-15:  rgba(163,177,138,0.15);
+  --pl-olive-20:  rgba(163,177,138,0.20);
+  --pl-olive-30:  rgba(163,177,138,0.30);
+  --pl-olive-40:  rgba(163,177,138,0.40);
+  --pl-olive-50:  rgba(163,177,138,0.50);
+
+  /* ── Neutral opacity scale ── */
+  --pl-black-4:   rgba(0,0,0,0.04);
+  --pl-black-6:   rgba(0,0,0,0.06);
+  --pl-black-7:   rgba(0,0,0,0.07);
+  --pl-black-10:  rgba(0,0,0,0.10);
+  --pl-white-20:  rgba(255,255,255,0.20);
+  --pl-white-30:  rgba(255,255,255,0.30);
+  --pl-white-50:  rgba(255,255,255,0.50);
+  --pl-white-70:  rgba(255,255,255,0.70);
+  --pl-white-90:  rgba(255,255,255,0.90);
+
+  /* ── Typography Scale (1.2 minor third ratio) ── */
+  --pl-text-2xs:  0.58rem;   /* 9.3px  — micro labels          */
+  --pl-text-xs:   0.65rem;   /* 10.4px — tiny hints             */
+  --pl-text-sm:   0.72rem;   /* 11.5px — small labels           */
+  --pl-text-base: 0.82rem;   /* 13.1px — body text              */
+  --pl-text-md:   0.88rem;   /* 14.1px — card titles            */
+  --pl-text-lg:   1rem;      /* 16px   — section headers        */
+  --pl-text-xl:   1.2rem;    /* 19.2px — panel titles           */
+  --pl-text-2xl:  1.44rem;   /* 23px   — page titles            */
+  --pl-text-3xl:  1.73rem;   /* 27.7px — hero secondary         */
+
+  /* ── Icon sizes ── */
+  --pl-icon-xs:   12px;
+  --pl-icon-sm:   14px;
+  --pl-icon-md:   16px;
+  --pl-icon-lg:   20px;
+  --pl-icon-xl:   24px;
 
   /* ── Typography ── */
   --pl-font-heading: "Playfair Display", Georgia, serif;
@@ -246,9 +293,80 @@
   background: rgba(255,255,255,0.65);
 }
 
+/* ── Glass Surface Utilities ── */
+/* Light glass — floating toolbars, popovers, context menus */
+.pl-glass-surface {
+  background: var(--pl-glass-light);
+  backdrop-filter: var(--pl-glass-blur);
+  -webkit-backdrop-filter: var(--pl-glass-blur);
+  border: 1px solid var(--pl-glass-light-border);
+  box-shadow: var(--pl-glass-shadow);
+}
+/* Heavy glass — elevated menus, dropdowns */
+.pl-glass-surface-heavy {
+  background: var(--pl-glass-heavy);
+  backdrop-filter: var(--pl-glass-blur);
+  -webkit-backdrop-filter: var(--pl-glass-blur);
+  border: 1px solid var(--pl-glass-light-border);
+  box-shadow: var(--pl-glass-shadow-lg);
+}
+/* Dark glass — dark toolbars, rails */
+.pl-glass-surface-dark {
+  background: var(--pl-glass-dark);
+  backdrop-filter: var(--pl-glass-blur-lg);
+  -webkit-backdrop-filter: var(--pl-glass-blur-lg);
+  border: 1px solid var(--pl-glass-dark-border);
+  box-shadow: var(--pl-glass-shadow-lg);
+}
+/* Warm glass — panels, wings */
+.pl-glass-surface-warm {
+  background: var(--pl-glass);
+  backdrop-filter: var(--pl-glass-blur);
+  -webkit-backdrop-filter: var(--pl-glass-blur);
+  border: 1px solid var(--pl-glass-border);
+  box-shadow: var(--pl-glass-shadow);
+}
+
+/* ── Typography Utilities ── */
+.pl-text-2xs { font-size: var(--pl-text-2xs); }
+.pl-text-xs  { font-size: var(--pl-text-xs); }
+.pl-text-sm  { font-size: var(--pl-text-sm); }
+.pl-text-base { font-size: var(--pl-text-base); }
+.pl-text-md  { font-size: var(--pl-text-md); }
+.pl-text-lg  { font-size: var(--pl-text-lg); }
+.pl-text-xl  { font-size: var(--pl-text-xl); }
+.pl-text-2xl { font-size: var(--pl-text-2xl); }
+.pl-text-3xl { font-size: var(--pl-text-3xl); }
+
+.pl-label {
+  font-size: var(--pl-text-2xs);
+  font-weight: 800;
+  letter-spacing: var(--pl-label-tracking);
+  text-transform: uppercase;
+  color: var(--pl-muted);
+}
+
+.pl-heading {
+  font-family: var(--pl-font-heading);
+  font-weight: 700;
+  color: var(--pl-ink);
+  line-height: 1.2;
+}
+
+.pl-body {
+  font-family: var(--pl-font-body);
+  color: var(--pl-ink-soft);
+  line-height: 1.6;
+}
+
+.pl-muted-text {
+  color: var(--pl-muted);
+  font-size: var(--pl-text-xs);
+}
+
 /* Panel section label — consistent uppercase tracking */
 .pl-panel-label {
-  font-size: 0.58rem;
+  font-size: var(--pl-text-2xs);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;

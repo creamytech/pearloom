@@ -155,7 +155,7 @@ export default function FaqPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              background: '#ffffff',
+              background: 'var(--pl-cream-card)',
               borderRadius: '1.25rem',
               border: '1px solid rgba(0,0,0,0.06)',
               boxShadow: '0 8px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',

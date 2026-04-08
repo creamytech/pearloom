@@ -130,19 +130,19 @@ export function ZoomControls({
         gap: '2px',
         padding: '4px',
         borderRadius: '100px',
-        background: 'rgba(255,255,255,0.88)',
-        backdropFilter: 'blur(24px) saturate(1.5)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.5)',
-        border: '1px solid rgba(0,0,0,0.06)',
+        background: 'var(--pl-glass-light)',
+        backdropFilter: 'var(--pl-glass-blur)',
+        WebkitBackdropFilter: 'var(--pl-glass-blur)',
+        border: '1px solid var(--pl-glass-light-border)',
         boxShadow:
-          '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.06)',
+          'var(--pl-glass-shadow)',
       } as React.CSSProperties}
     >
       {/* Zoom out */}
       <motion.button
         onClick={handleZoomOut}
         disabled={zoom <= MIN_ZOOM}
-        whileHover={{ scale: 1.12, backgroundColor: 'rgba(0,0,0,0.06)' }}
+        whileHover={{ scale: 1.12, backgroundColor: 'var(--pl-black-6)' }}
         whileTap={{ scale: 0.88 }}
         transition={{ type: 'spring', stiffness: 420, damping: 22 }}
         title="Zoom out (Cmd+-)"
@@ -167,7 +167,7 @@ export function ZoomControls({
       <div ref={dropdownRef} style={{ position: 'relative' }}>
         <motion.button
           onClick={() => setPresetsOpen((v) => !v)}
-          whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
+          whileHover={{ backgroundColor: 'var(--pl-black-6)' }}
           whileTap={{ scale: 0.95 }}
           title="Zoom presets"
           style={{
@@ -178,10 +178,10 @@ export function ZoomControls({
             padding: '4px 10px',
             borderRadius: '100px',
             border: 'none',
-            background: presetsOpen ? 'rgba(0,0,0,0.06)' : 'transparent',
+            background: presetsOpen ? 'var(--pl-black-6)' : 'transparent',
             color: zoom === 1 ? 'var(--pl-muted)' : 'var(--pl-olive, #A3B18A)',
             cursor: 'pointer',
-            fontSize: '0.72rem',
+            fontSize: 'var(--pl-text-sm)',
             fontWeight: 700,
             letterSpacing: '0.02em',
             minWidth: '52px',
@@ -222,12 +222,12 @@ export function ZoomControls({
                 minWidth: '120px',
                 padding: '4px',
                 borderRadius: '12px',
-                background: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                border: '1px solid rgba(0,0,0,0.06)',
+                background: 'var(--pl-glass-heavy)',
+                backdropFilter: 'var(--pl-glass-blur)',
+                WebkitBackdropFilter: 'var(--pl-glass-blur)',
+                border: '1px solid var(--pl-glass-light-border)',
                 boxShadow:
-                  '0 8px 32px rgba(43,30,20,0.12), 0 0 0 1px rgba(0,0,0,0.04)',
+                  'var(--pl-glass-shadow-lg)',
                 zIndex: 60,
               } as React.CSSProperties}
             >
@@ -239,7 +239,7 @@ export function ZoomControls({
                     key={preset.label}
                     onClick={() => handlePresetClick(preset)}
                     whileHover={{
-                      backgroundColor: 'rgba(163,177,138,0.12)',
+                      backgroundColor: 'var(--pl-olive-12)',
                     }}
                     whileTap={{ scale: 0.97 }}
                     style={{
@@ -251,13 +251,13 @@ export function ZoomControls({
                       borderRadius: '8px',
                       border: 'none',
                       background: isActive
-                        ? 'rgba(163,177,138,0.1)'
+                        ? 'var(--pl-olive-10)'
                         : 'transparent',
                       cursor: 'pointer',
                       color: isActive
                         ? 'var(--pl-olive-deep)'
                         : 'var(--pl-ink-soft)',
-                      fontSize: '0.72rem',
+                      fontSize: 'var(--pl-text-sm)',
                       fontWeight: isActive ? 700 : 600,
                       textAlign: 'left',
                     }}
@@ -288,7 +288,7 @@ export function ZoomControls({
       <motion.button
         onClick={handleZoomIn}
         disabled={zoom >= MAX_ZOOM}
-        whileHover={{ scale: 1.12, backgroundColor: 'rgba(0,0,0,0.06)' }}
+        whileHover={{ scale: 1.12, backgroundColor: 'var(--pl-black-6)' }}
         whileTap={{ scale: 0.88 }}
         transition={{ type: 'spring', stiffness: 420, damping: 22 }}
         title="Zoom in (Cmd+=)"
@@ -314,13 +314,13 @@ export function ZoomControls({
         style={{
           width: '1px',
           height: '18px',
-          background: 'rgba(0,0,0,0.08)',
+          background: 'var(--pl-black-7)',
           margin: '0 2px',
         }}
       />
       <motion.button
         onClick={handleFit}
-        whileHover={{ scale: 1.12, backgroundColor: 'rgba(0,0,0,0.06)' }}
+        whileHover={{ scale: 1.12, backgroundColor: 'var(--pl-black-6)' }}
         whileTap={{ scale: 0.88 }}
         transition={{ type: 'spring', stiffness: 420, damping: 22 }}
         title="Fit to screen"

@@ -190,7 +190,7 @@ function WallOfLight({ wishes, vibeSkin }: { wishes: Wish[]; vibeSkin?: VibeSkin
       position: 'relative',
       width: '100%',
       minHeight: Math.max(totalHeight, 400),
-      background: 'radial-gradient(ellipse at 50% 20%, rgba(40,35,30,0.95) 0%, rgba(20,18,15,0.98) 100%)',
+      background: 'radial-gradient(ellipse at 50% 20%, rgba(40,35,30,0.95) 0%, var(--pl-glass-dark) 100%)',
       borderRadius: '1.5rem',
       overflow: 'hidden',
       padding: '2rem 0',

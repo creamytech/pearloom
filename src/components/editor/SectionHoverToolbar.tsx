@@ -114,12 +114,12 @@ export function SectionHoverToolbar() {
             zIndex: 50,
             display: 'flex', alignItems: 'center',
             height: TOOLBAR_H,
-            background: 'rgba(255,255,255,0.92)',
+            background: 'var(--pl-glass-light)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0,0,0,0.06)',
+            border: '1px solid var(--pl-black-6)',
             borderRadius: '100px',
-            boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 0 0 1px rgba(0,0,0,0.06)',
+            boxShadow: '0 4px 24px rgba(43,30,20,0.1), 0 0 0 1px var(--pl-black-6)',
             overflow: 'visible',
             whiteSpace: 'nowrap',
           } as React.CSSProperties}
@@ -172,7 +172,7 @@ export function SectionHoverToolbar() {
                     background: 'rgba(22,18,28,0.96)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(0,0,0,0.06)',
+                    border: '1px solid var(--pl-black-6)',
                     borderRadius: '12px',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
                     padding: '4px',
@@ -222,8 +222,8 @@ function ToolbarBtn({
       disabled={disabled}
       title={label}
       whileHover={!disabled ? {
-        backgroundColor: accent ? 'rgba(163,177,138,0.18)' : 'rgba(0,0,0,0.06)',
-        color: accent ? '#A3B18A' : 'var(--pl-ink)',
+        backgroundColor: accent ? 'var(--pl-olive-20)' : 'var(--pl-black-6)',
+        color: accent ? 'var(--pl-olive)' : 'var(--pl-ink)',
         y: -1,
       } : {}}
       whileTap={!disabled ? { scale: 0.9 } : {}}
@@ -232,8 +232,8 @@ function ToolbarBtn({
         display: 'flex', alignItems: 'center', gap: '4px',
         padding: '0 10px', height: TOOLBAR_H,
         border: 'none', background: 'transparent', cursor: disabled ? 'not-allowed' : 'pointer',
-        color: accent ? 'rgba(163,177,138,0.8)' : 'var(--pl-ink-soft)',
-        fontSize: '0.7rem', fontWeight: 700,
+        color: accent ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
+        fontSize: 'var(--pl-text-sm)', fontWeight: 700,
         opacity: disabled ? 0.5 : 1,
         borderRadius: '100px',
         letterSpacing: '0.01em',
@@ -246,7 +246,7 @@ function ToolbarBtn({
 }
 
 function ToolbarDivider() {
-  return <div style={{ width: 1, height: 16, background: 'rgba(0,0,0,0.06)', flexShrink: 0 }} />;
+  return <div style={{ width: 1, height: 16, background: 'var(--pl-black-6)', flexShrink: 0 }} />;
 }
 
 function DropdownItem({
@@ -257,7 +257,7 @@ function DropdownItem({
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ backgroundColor: danger ? 'rgba(248,113,113,0.12)' : 'rgba(0,0,0,0.06)', x: 2 }}
+      whileHover={{ backgroundColor: danger ? 'rgba(248,113,113,0.12)' : 'var(--pl-black-6)', x: 2 }}
       whileTap={{ scale: 0.95 }}
       transition={SPRING_BTN}
       style={{

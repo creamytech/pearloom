@@ -162,18 +162,18 @@ export function EditorWing({
             display: 'flex',
             flexDirection: 'column',
             borderRadius: '20px',
-            background: 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(24px) saturate(1.4)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-            border: '1px solid rgba(0,0,0,0.06)',
-            boxShadow: '0 8px 40px rgba(43,30,20,0.1), 0 2px 8px rgba(43,30,20,0.05)',
+            background: 'var(--pl-glass-heavy)',
+            backdropFilter: 'var(--pl-glass-blur)',
+            WebkitBackdropFilter: 'var(--pl-glass-blur)',
+            border: '1px solid var(--pl-glass-light-border)',
+            boxShadow: 'var(--pl-glass-shadow-lg)',
             overflow: 'hidden',
           } as React.CSSProperties}
         >
           {/* Panel header */}
           <div style={{
             padding: '14px 14px 10px',
-            borderBottom: '1px solid rgba(0,0,0,0.05)',
+            borderBottom: '1px solid var(--pl-black-6)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div style={{ minWidth: 0 }}>
@@ -197,7 +197,7 @@ export function EditorWing({
                   </h3>
                   {hint && (
                     <span style={{
-                      fontSize: '0.58rem', fontWeight: 600,
+                      fontSize: 'var(--pl-text-2xs)', fontWeight: 600,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       color: 'var(--pl-muted)',
@@ -210,7 +210,7 @@ export function EditorWing({
               </AnimatePresence>
               {meta && (
                 <span style={{
-                  fontSize: '0.55rem', fontWeight: 700,
+                  fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
                   letterSpacing: '0.07em', textTransform: 'uppercase',
                   color: meta.color,
                   background: meta.bg,
@@ -227,7 +227,7 @@ export function EditorWing({
             <motion.button
               onClick={onToggle}
               title="Close panel"
-              whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)', rotate: 90 }}
+              whileHover={{ backgroundColor: 'var(--pl-black-6)', rotate: 90 }}
               whileTap={{ scale: 0.82 }}
               transition={SPRING_SNAPPY}
               style={{
@@ -275,10 +275,10 @@ export function EditorWing({
             onMouseLeave={() => setResizeHover(false)}
             animate={{
               backgroundColor: resizeHover
-                ? 'rgba(163,177,138,0.5)'
+                ? 'var(--pl-olive-50)'
                 : 'rgba(0,0,0,0)',
               boxShadow: resizeHover
-                ? '0 0 8px rgba(163,177,138,0.4)'
+                ? '0 0 8px var(--pl-olive-40)'
                 : '0 0 0px rgba(0,0,0,0)',
             }}
             transition={{ duration: 0.2 }}

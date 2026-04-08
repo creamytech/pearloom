@@ -391,7 +391,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                 }}
                 style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(0,0,0,0.55)', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
               >
-                <X size={11} color="#fff" />
+                <X size={11} color="white" />
               </button>
             </div>
           ))}
@@ -480,7 +480,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
             {/* Live wait timer */}
             <div style={{
               position: 'absolute', bottom: '-0.5rem', right: '-0.5rem',
-              background: C.olive, color: '#fff', borderRadius: '100px',
+              background: C.olive, color: 'white', borderRadius: '100px',
               fontSize: '0.6rem', fontWeight: 700, padding: '2px 7px',
               display: 'flex', alignItems: 'center', gap: '2px',
             }}>
@@ -710,7 +710,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                       style={{ position: 'absolute', inset: 0, background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: C.olive, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                        <Check size={16} color="#fff" strokeWidth={3} />
+                        <Check size={16} color="white" strokeWidth={3} />
                       </div>
                     </motion.div>
                   )}
@@ -719,7 +719,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30 }: PhotoBrow
                   <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0,
                     background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)',
-                    padding: '1rem 0.5rem 0.5rem', fontSize: '0.7rem', color: '#fff', fontWeight: 500,
+                    padding: '1rem 0.5rem 0.5rem', fontSize: '0.7rem', color: 'white', fontWeight: 500,
                   }}>
                     {dateLabel}
                   </div>

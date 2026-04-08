@@ -190,8 +190,8 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               zIndex: 2001,
               background: '#19160f',
               borderRadius: '16px',
-              border: '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(163,177,138,0.05)',
+              border: '1px solid var(--pl-black-6)',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px var(--pl-olive-5)',
               overflow: 'hidden',
             }}
           >
@@ -199,7 +199,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
             <div style={{
               display: 'flex', alignItems: 'center', gap: '12px',
               padding: '14px 16px',
-              borderBottom: '1px solid rgba(0,0,0,0.05)',
+              borderBottom: '1px solid var(--pl-black-4)',
             }}>
               <Search size={16} color="var(--pl-ink-soft)" />
               <input
@@ -215,9 +215,9 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                 }}
               />
               <kbd style={{
-                padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem',
-                background: 'rgba(0,0,0,0.05)', color: 'var(--pl-muted)',
-                border: '1px solid rgba(0,0,0,0.06)', fontFamily: 'inherit',
+                padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--pl-text-xs)',
+                background: 'var(--pl-black-4)', color: 'var(--pl-muted)',
+                border: '1px solid var(--pl-black-6)', fontFamily: 'inherit',
               }}>ESC</kbd>
             </div>
 
@@ -227,7 +227,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
               style={{ maxHeight: '400px', overflowY: 'auto', padding: '8px' }}
             >
               {flatFiltered.length === 0 ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--pl-muted)', fontSize: '0.85rem' }}>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--pl-muted)', fontSize: 'var(--pl-text-md)' }}>
                   No results for &ldquo;{query}&rdquo;
                 </div>
               ) : (
@@ -236,7 +236,7 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                     {/* Group label */}
                     <div style={{
                       padding: '6px 10px 4px',
-                      fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.15em',
+                      fontSize: 'var(--pl-text-2xs)', fontWeight: 800, letterSpacing: '0.15em',
                       textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)',
                     }}>
                       {groupName}
@@ -252,35 +252,35 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           data-index={idx}
                           onClick={() => execute(cmd)}
                           onMouseEnter={() => setSelectedIndex(idx)}
-                          animate={{ background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent' }}
+                          animate={{ background: isSelected ? 'var(--pl-olive-12)' : 'transparent' }}
                           transition={{ duration: 0.1 }}
                           style={{
                             display: 'flex', alignItems: 'center', gap: '12px',
                             width: '100%', padding: '9px 10px', borderRadius: '8px',
-                            border: isSelected ? '1px solid rgba(163,177,138,0.2)' : '1px solid transparent',
+                            border: isSelected ? '1px solid var(--pl-olive-20)' : '1px solid transparent',
                             cursor: 'pointer', textAlign: 'left',
-                            background: isSelected ? 'rgba(163,177,138,0.12)' : 'transparent',
+                            background: isSelected ? 'var(--pl-olive-12)' : 'transparent',
                             transition: 'border 0.1s',
                           }}
                         >
                           {/* Icon */}
                           <div style={{
                             width: '30px', height: '30px', borderRadius: '7px',
-                            background: 'rgba(163,177,138,0.06)',
+                            background: 'var(--pl-olive-5)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             flexShrink: 0,
-                            border: '1px solid rgba(0,0,0,0.04)',
+                            border: '1px solid var(--pl-black-4)',
                           }}>
                             <Icon size={14} color={cmd.iconColor || 'var(--pl-ink-soft)'} />
                           </div>
 
                           {/* Text */}
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>
+                            <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>
                               {cmd.label}
                             </div>
                             {cmd.description && (
-                              <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginTop: '1px' }}>
+                              <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-muted)', marginTop: '1px' }}>
                                 {cmd.description}
                               </div>
                             )}
@@ -289,9 +289,9 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
                           {/* Shortcut or arrow */}
                           {cmd.shortcut ? (
                             <kbd style={{
-                              padding: '2px 7px', borderRadius: '5px', fontSize: '0.65rem',
-                              background: 'rgba(0,0,0,0.04)', color: 'var(--pl-muted)',
-                              border: '1px solid rgba(0,0,0,0.06)', fontFamily: 'inherit',
+                              padding: '2px 7px', borderRadius: '5px', fontSize: 'var(--pl-text-xs)',
+                              background: 'var(--pl-black-4)', color: 'var(--pl-muted)',
+                              border: '1px solid var(--pl-black-6)', fontFamily: 'inherit',
                               flexShrink: 0,
                             }}>
                               {cmd.shortcut}
@@ -310,20 +310,20 @@ export function CommandPalette({ open, onClose, onAction, chapters, canUndo, can
             {/* Footer hint */}
             <div style={{
               padding: '8px 16px',
-              borderTop: '1px solid rgba(0,0,0,0.04)',
+              borderTop: '1px solid var(--pl-black-4)',
               display: 'flex', gap: '16px', alignItems: 'center',
             }}>
               {[['↑↓', 'navigate'], ['↵', 'select'], ['esc', 'close']].map(([key, label]) => (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <kbd style={{
-                    padding: '1px 6px', borderRadius: '4px', fontSize: '0.6rem',
-                    background: 'rgba(0,0,0,0.04)', color: 'var(--pl-muted)',
-                    border: '1px solid rgba(0,0,0,0.06)',
+                    padding: '1px 6px', borderRadius: '4px', fontSize: 'var(--pl-text-2xs)',
+                    background: 'var(--pl-black-4)', color: 'var(--pl-muted)',
+                    border: '1px solid var(--pl-black-6)',
                   }}>{key}</kbd>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--pl-muted)' }}>{label}</span>
+                  <span style={{ fontSize: 'var(--pl-text-xs)', color: 'var(--pl-muted)' }}>{label}</span>
                 </div>
               ))}
-              <div style={{ flex: 1, textAlign: 'right', fontSize: '0.6rem', color: 'rgba(0,0,0,0.08)' }}>
+              <div style={{ flex: 1, textAlign: 'right', fontSize: 'var(--pl-text-2xs)', color: 'rgba(0,0,0,0.08)' }}>
                 ⌘K to toggle
               </div>
             </div>

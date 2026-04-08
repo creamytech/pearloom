@@ -169,7 +169,7 @@ function SeatingPageInner() {
       {showAIToast && (
         <div style={{
           position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
-          background: 'var(--pl-olive-deep)', color: '#fff',
+          background: 'var(--pl-olive-deep)', color: 'white',
           padding: '0.9rem 1.5rem', borderRadius: '0.875rem',
           boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
           fontSize: '0.875rem', fontFamily: 'var(--pl-font-body)',

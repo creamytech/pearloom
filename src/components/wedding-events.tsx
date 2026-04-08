@@ -377,7 +377,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
               gap: '0.35rem',
               fontSize: '0.72rem',
               fontWeight: 700,
-              color: '#fff',
+              color: 'white',
               background: accentColor,
               padding: '0.45rem 1rem',
               borderRadius: '100px',

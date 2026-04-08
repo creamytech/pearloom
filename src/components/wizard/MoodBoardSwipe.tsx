@@ -321,7 +321,7 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
                 style={{
                   width: '72px', height: '72px',
                   borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.15)',
+                  background: 'rgba(255,255,255,0.08)',
                   backdropFilter: 'blur(8px)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'rgba(255,255,255,0.9)',

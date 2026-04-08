@@ -47,7 +47,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
   return (
     <section 
       style={{ 
-        background: 'var(--pl-cream-card, #ffffff)', 
+        background: 'var(--pl-cream-card)', 
         padding: '8rem 2rem', 
         borderTop: '1px solid rgba(0,0,0,0.05)',
         position: 'relative' 
@@ -197,7 +197,7 @@ export function EventLogistics({ manifest, siteId }: { manifest: StoryManifest, 
                     type="submit" 
                     disabled={status === 'loading' || attending === null}
                     style={{ 
-                      width: '100%', padding: '1.25rem', background: 'var(--pl-ink)', color: '#fff', 
+                      width: '100%', padding: '1.25rem', background: 'var(--pl-ink)', color: 'white',
                       borderRadius: '0.5rem', border: 'none', fontWeight: 600, cursor: 'pointer',
                       opacity: attending === null ? 0.5 : 1, transition: 'opacity 0.2s', marginTop: '1rem'
                     }}

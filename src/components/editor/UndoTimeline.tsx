@@ -562,7 +562,7 @@ export function UndoTimelinePanel() {
             padding: '10px 14px',
             borderRadius: '10px',
             border: '1px solid rgba(255,255,255,0.3)',
-            background: 'rgba(255,255,255,0.15)',
+            background: 'rgba(255,255,255,0.08)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             cursor: 'pointer',

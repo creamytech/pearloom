@@ -193,7 +193,7 @@ export default async function SiteSubPage(
           <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {venue && (
               <div style={{
-                background: '#fff', borderRadius: '1.5rem', padding: '2.5rem',
+                background: 'var(--pl-cream-card)', borderRadius: '1.5rem', padding: '2.5rem',
                 border: '1px solid rgba(0,0,0,0.06)',
                 boxShadow: '0 8px 40px rgba(0,0,0,0.04)',
               }}>
@@ -217,7 +217,7 @@ export default async function SiteSubPage(
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
                     marginTop: '1.5rem', padding: '0.65rem 1.5rem',
-                    background: 'var(--pl-ink)', color: '#fff',
+                    background: 'var(--pl-ink)', color: 'white',
                     borderRadius: '100px', fontSize: '0.8rem', fontWeight: 700,
                     textDecoration: 'none', letterSpacing: '0.05em',
                   }}

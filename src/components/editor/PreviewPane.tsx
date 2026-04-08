@@ -413,7 +413,7 @@ export function PreviewPane({
               title={d === 'desktop' ? 'Desktop (1280px)' : 'Mobile (390px)'}
               style={{
                 padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer',
-                background: previewDevice === d ? 'rgba(255,255,255,0.14)' : 'transparent',
+                background: previewDevice === d ? 'var(--pl-glass-dark-border)' : 'transparent',
                 color: previewDevice === d ? '#fff' : 'var(--pl-muted)',
                 display: 'flex', alignItems: 'center', transition: 'all 0.15s',
               }}

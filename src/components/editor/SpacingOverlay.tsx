@@ -84,7 +84,7 @@ export function SpacingOverlay() {
               left: gap.centerX - 60,
               width: 120,
               height: 0,
-              borderTop: '1px dashed rgba(163,177,138,0.5)',
+              borderTop: '1px dashed var(--pl-olive-50)',
             }}
           />
 
@@ -96,7 +96,7 @@ export function SpacingOverlay() {
               left: gap.centerX - 60,
               width: 120,
               height: 0,
-              borderTop: '1px dashed rgba(163,177,138,0.5)',
+              borderTop: '1px dashed var(--pl-olive-50)',
             }}
           />
 
@@ -109,7 +109,7 @@ export function SpacingOverlay() {
                 left: gap.centerX,
                 width: 0,
                 height: lineHeight,
-                borderLeft: '1px dashed rgba(163,177,138,0.35)',
+                borderLeft: '1px dashed var(--pl-olive-30)',
               }}
             />
           )}
@@ -128,12 +128,12 @@ export function SpacingOverlay() {
               borderRadius: '100px',
               background: 'var(--pl-olive, #A3B18A)',
               color: 'white',
-              fontSize: '0.6rem',
+              fontSize: 'var(--pl-text-2xs)',
               fontWeight: 700,
               letterSpacing: '0.04em',
               fontVariantNumeric: 'tabular-nums',
               whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(163,177,138,0.35)',
+              boxShadow: '0 2px 8px var(--pl-olive-30)',
             }}
           >
             {gap.spacing}px

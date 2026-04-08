@@ -55,7 +55,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
   type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating';
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => (
-    <div style={{ borderBottom: '1px solid rgba(0,0,0,0.04)', position: 'relative', zIndex: openSection === id ? 10 : 1 }}>
+    <div style={{ borderBottom: '1px solid var(--pl-black-4)', position: 'relative', zIndex: openSection === id ? 10 : 1 }}>
       <button
         onClick={() => setOpenSection(openSection === id ? null : id)}
         style={{
@@ -64,7 +64,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           color: openSection === id ? 'var(--pl-gold, #D6C6A8)' : 'var(--pl-ink-soft)',
         }}
       >
-        <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: 'var(--pl-text-base)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           {label}
         </span>
         <ChevronDown size={12} style={{ transform: openSection === id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
@@ -89,8 +89,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   // Section heading divider style
   const sectionHead = (label: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-      <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>{label}</span>
-      <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+      <span style={{ fontSize: 'var(--pl-text-base)', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>{label}</span>
+      <div style={{ flex: 1, height: '1px', background: 'var(--pl-black-4)' }} />
     </div>
   );
 
@@ -126,11 +126,11 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <div>
           <label style={lbl}>Venue</label>
           {logistics.venue ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '10px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--pl-olive-10)', border: '1px solid var(--pl-olive-30)', borderRadius: '8px', padding: '10px 12px' }}>
               <LocationPinIcon size={13} color="var(--pl-olive, #A3B18A)" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
-                {logistics.venueAddress && <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>{logistics.venueAddress}</div>}
+                <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 700, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
+                {logistics.venueAddress && <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>{logistics.venueAddress}</div>}
               </div>
               <button
                 onClick={() => upd({ venue: '', venueAddress: '', venuePlaceId: '' })}
@@ -155,12 +155,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       <Section id="registry" label="Registry">
         {/* Registry enabled toggle */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '0.88rem', color: 'var(--pl-ink)', fontWeight: 600 }}>Registry enabled</span>
+          <span style={{ fontSize: 'var(--pl-text-md)', color: 'var(--pl-ink)', fontWeight: 600 }}>Registry enabled</span>
           <button
             onClick={() => updRegistry({ enabled: !manifest.registry?.enabled })}
             style={{
               width: '36px', height: '20px', borderRadius: '100px', flexShrink: 0,
-              background: manifest.registry?.enabled !== false ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+              background: manifest.registry?.enabled !== false ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-black-7)',
               border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
             }}
           >
@@ -175,14 +175,14 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We are saving for our honeymoon!" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
           <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
-          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'var(--pl-olive-20)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: 'var(--pl-text-base)', fontWeight: 700 }}>
             <Plus size={10} /> Add Registry
           </button>
         </div>
         {entries.map((entry, i) => (
-          <div key={i} style={{ background: 'rgba(163,177,138,0.04)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(0,0,0,0.04)' }}>
+          <div key={i} style={{ background: 'var(--pl-olive-5)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid var(--pl-black-4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Registry {i + 1}</span>
+              <span style={{ fontSize: 'var(--pl-text-base)', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Registry {i + 1}</span>
               <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}>
@@ -194,7 +194,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Note (optional)" value={entry.note || ''} onChange={v => updEntry(i, { note: v })} placeholder="Our kitchen wishlist" />
           </div>
         ))}
-        {entries.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
+        {entries.length === 0 && <p style={{ fontSize: 'var(--pl-text-base)', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>No registries yet</p>}
       </Section>
 
       <Section id="rsvp" label="RSVP">
@@ -229,14 +229,14 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
           <label style={{ ...lbl, margin: 0 }}>Hotels ({(travel.hotels || []).length})</label>
-          <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'var(--pl-olive-20)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: 'var(--pl-text-base)', fontWeight: 700 }}>
             <Plus size={10} /> Add Hotel
           </button>
         </div>
         {(travel.hotels || []).map((hotel, i) => (
-          <div key={i} style={{ background: 'rgba(163,177,138,0.04)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(0,0,0,0.04)' }}>
+          <div key={i} style={{ background: 'var(--pl-olive-5)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid var(--pl-black-4)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Hotel {i + 1}</span>
+              <span style={{ fontSize: 'var(--pl-text-base)', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Hotel {i + 1}</span>
               <button onClick={() => delHotel(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}>
@@ -254,12 +254,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
       <Section id="faq" label="FAQ">
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'var(--pl-olive-20)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: 'var(--pl-text-base)', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
           </button>
         </div>
         {faqs.map(faq => (
-          <div key={faq.id} style={{ background: 'rgba(163,177,138,0.04)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(0,0,0,0.04)' }}>
+          <div key={faq.id} style={{ background: 'var(--pl-olive-5)', borderRadius: '8px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid var(--pl-black-4)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button onClick={() => delFaq(faq.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
@@ -271,7 +271,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Answer" value={faq.answer} onChange={v => updFaq(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />
           </div>
         ))}
-        {faqs.length === 0 && <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
+        {faqs.length === 0 && <p style={{ fontSize: 'var(--pl-text-base)', color: 'var(--pl-muted)', textAlign: 'center', padding: '1rem 0' }}>No FAQs yet — add common guest questions</p>}
       </Section>
 
       <Section id="vibe" label="Site Vibe">
@@ -283,10 +283,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             rows={3}
             placeholder="intimate, golden hour, wildflower meadow..."
             style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
-            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--pl-olive-50)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'var(--pl-black-7)'; }}
           />
-          <div style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', marginTop: '0.4rem', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 'var(--pl-text-base)', color: 'var(--pl-muted)', marginTop: '0.4rem', lineHeight: 1.5 }}>
             Used by the AI when rewriting chapters and generating art.
           </div>
         </div>
@@ -294,10 +294,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {/* ── Site Features ── */}
         <div style={{ marginTop: '0.5rem' }}>
           {/* Guestbook toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--pl-black-4)' }}>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Wishes Wall</div>
-              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests leave messages on your site</div>
+              <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 600 }}>Guest Wishes Wall</div>
+              <div style={{ fontSize: 'var(--pl-text-sm)', opacity: 0.5, marginTop: '2px' }}>Let guests leave messages on your site</div>
             </div>
             <button
               onClick={() => onChange({
@@ -306,7 +306,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.guestbook ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+                background: (manifest.features?.guestbook ?? true) ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-black-7)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -322,10 +322,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </div>
 
           {/* Live Updates toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--pl-black-4)' }}>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Live Updates Feed</div>
-              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Enable live updates feed for day-of announcements</div>
+              <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 600 }}>Live Updates Feed</div>
+              <div style={{ fontSize: 'var(--pl-text-sm)', opacity: 0.5, marginTop: '2px' }}>Enable live updates feed for day-of announcements</div>
             </div>
             <button
               onClick={() => onChange({
@@ -334,7 +334,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.liveUpdates ?? true) ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+                background: (manifest.features?.liveUpdates ?? true) ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-black-7)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -350,10 +350,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </div>
 
           {/* Photo Wall toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--pl-black-4)' }}>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>Guest Photo Wall</div>
-              <div style={{ fontSize: '0.72rem', opacity: 0.5, marginTop: '2px' }}>Let guests upload photos from the celebration</div>
+              <div style={{ fontSize: 'var(--pl-text-md)', fontWeight: 600 }}>Guest Photo Wall</div>
+              <div style={{ fontSize: 'var(--pl-text-sm)', opacity: 0.5, marginTop: '2px' }}>Let guests upload photos from the celebration</div>
             </div>
             <button
               onClick={() => onChange({
@@ -362,7 +362,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               })}
               style={{
                 width: '40px', height: '22px', borderRadius: '11px',
-                background: (manifest.features?.photoWall ?? false) ? 'var(--pl-olive, #A3B18A)' : 'rgba(0,0,0,0.07)',
+                background: (manifest.features?.photoWall ?? false) ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-black-7)',
                 border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
                 flexShrink: 0,
               }}
@@ -382,10 +382,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       {/* Seating chart — weddings + engagements only */}
       {isEvent && (
         <Section id="seating" label="Seating Chart">
-          <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '10px', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 'var(--pl-text-base)', color: 'var(--pl-white-50)', marginBottom: '10px', lineHeight: 1.5 }}>
             Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
           </div>
-          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.05)' }}>
+          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--pl-black-4)' }}>
             <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
           </div>
         </Section>
@@ -405,17 +405,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               gap: '6px',
               padding: '9px 14px',
               borderRadius: '8px',
-              border: '1px solid rgba(163,177,138,0.35)',
-              background: 'rgba(163,177,138,0.1)',
+              border: '1px solid var(--pl-olive-30)',
+              background: 'var(--pl-olive-10)',
               color: 'var(--pl-olive, #A3B18A)',
               cursor: 'pointer',
-              fontSize: '0.82rem',
+              fontSize: 'var(--pl-text-base)',
               fontWeight: 700,
               letterSpacing: '0.04em',
               transition: 'background 0.18s',
             }}
-            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-20)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-10)'; }}
           >
             Export Program
           </button>

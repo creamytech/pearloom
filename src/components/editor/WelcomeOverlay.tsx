@@ -31,7 +31,7 @@ function WeaveFlash() {
             right: 0,
             top: `${(i / 12) * 100}%`,
             height: `${(1 / 12) * 100}%`,
-            background: 'rgba(163,177,138,0.07)',
+            background: 'var(--pl-olive-8)',
             pointerEvents: 'none',
           }}
         />
@@ -62,7 +62,7 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         transition={{ duration: 1.2, ease: 'easeOut' }}
         style={{
           position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at center, rgba(163,177,138,0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, var(--pl-olive-5) 0%, transparent 70%)',
           backdropFilter: 'blur(2px)',
           pointerEvents: 'none',
         }}
@@ -123,7 +123,7 @@ export function WelcomeOverlay({ onDismiss }: WelcomeOverlayProps) {
         transition={{ duration: 2.5, delay: 2.2, repeat: Infinity, ease: 'easeInOut' }}
         style={{
           position: 'absolute', bottom: '40px',
-          fontSize: '0.7rem', fontWeight: 600,
+          fontSize: 'var(--pl-text-sm)', fontWeight: 600,
           color: 'var(--pl-muted)',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',

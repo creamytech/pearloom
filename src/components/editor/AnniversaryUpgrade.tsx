@@ -43,7 +43,7 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
         bottom: '1.5rem',
         right: '1.5rem',
         zIndex: 9000,
-        background: 'rgba(30,27,22,0.92)',
+        background: 'var(--pl-glass-dark)',
         backdropFilter: 'blur(8px)',
         border: '1px solid rgba(163,177,138,0.35)',
         borderRadius: '2rem',

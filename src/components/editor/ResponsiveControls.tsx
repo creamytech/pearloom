@@ -100,7 +100,7 @@ export function ResponsiveControls<T>({
       }}>
         {label && (
           <span style={{
-            fontSize: '0.7rem', fontWeight: 700,
+            fontSize: 'var(--pl-text-sm)', fontWeight: 700,
             color: 'var(--pl-ink-soft)',
             letterSpacing: '0.06em',
             textTransform: 'uppercase' as const,
@@ -118,7 +118,7 @@ export function ResponsiveControls<T>({
           background: 'rgba(255,255,255,0.25)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
-          border: '1px solid rgba(0,0,0,0.05)',
+          border: '1px solid var(--pl-black-4)',
         } as React.CSSProperties}>
           {DEVICE_LIST.map(({ mode, Icon, label: deviceLabel }) => {
             const isActive = editingDevice === mode && !isLinked;
@@ -177,8 +177,8 @@ export function ResponsiveControls<T>({
           style={{
             width: '26px', height: '26px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '6px', border: '1px solid rgba(0,0,0,0.06)',
-            background: isLinked ? 'rgba(163,177,138,0.15)' : 'rgba(255,255,255,0.2)',
+            borderRadius: '6px', border: '1px solid var(--pl-black-6)',
+            background: isLinked ? 'var(--pl-olive-15)' : 'var(--pl-white-20)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             color: isLinked ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
@@ -216,7 +216,7 @@ export function ResponsiveControls<T>({
               padding: '2px 8px',
               borderRadius: '100px',
               background: 'var(--pl-olive-mist)',
-              fontSize: '0.6rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
               color: 'var(--pl-olive-deep)',
               letterSpacing: '0.06em',
               textTransform: 'uppercase' as const,

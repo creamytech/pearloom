@@ -113,7 +113,7 @@ function ColorPreviewSwatch({ colors }: { colors: Record<string, string> }) {
           The beginning of everything.
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <div style={{ background: colors.accent, color: '#fff', padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>
+          <div style={{ background: colors.accent, color: 'white', padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 700 }}>
             View Story
           </div>
           <div style={{ background: colors.accentLight, color: colors.accent, padding: '0.3rem 0.8rem', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 600 }}>
@@ -121,7 +121,7 @@ function ColorPreviewSwatch({ colors }: { colors: Record<string, string> }) {
           </div>
         </div>
       </div>
-      <div style={{ background: colors.accent, color: '#fff', padding: '0.5rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+      <div style={{ background: colors.accent, color: 'white', padding: '0.5rem 1rem', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
         Accent strip ↑
       </div>
     </div>
@@ -178,7 +178,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
     border: 'none',
     cursor: 'pointer' as const,
     background: active ? (accent ? 'var(--pl-olive)' : 'var(--pl-ink)') : 'transparent',
-    color: active ? '#fff' : 'var(--pl-muted)',
+    color: active ? 'white' : 'var(--pl-muted)',
     transition: 'all 0.2s ease',
   });
 
@@ -188,7 +188,7 @@ export function SiteEditor({ manifest, onChange, onSave, onPreview }: SiteEditor
       {/* ── Header + Tabs ── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '1rem 1.5rem', background: '#fff', borderRadius: '1.25rem',
+        padding: '1rem 1.5rem', background: 'var(--pl-cream-card)', borderRadius: '1.25rem',
         border: '1px solid rgba(0,0,0,0.04)',
         boxShadow: '0 8px 30px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02)',
         gap: '1rem', flexWrap: 'wrap',

@@ -65,7 +65,7 @@ const TRAVEL: TravelInfo = {
 };
 
 const cardStyle: React.CSSProperties = {
-  background: '#ffffff',
+  background: 'var(--pl-cream-card)',
   borderRadius: '1rem',
   border: '1px solid rgba(0,0,0,0.06)',
   boxShadow: '0 4px 20px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)',

@@ -74,7 +74,7 @@ function ViewportPopover({
           border: '1px solid var(--pl-divider)',
           background: open ? 'var(--pl-olive-mist)' : 'transparent',
           color: open ? 'var(--pl-ink)' : 'var(--pl-muted)',
-          cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+          cursor: 'pointer', fontSize: 'var(--pl-text-sm)', fontWeight: 700,
         }}
       >
         <ActiveIcon size={13} />
@@ -137,11 +137,11 @@ function ViewportPopover({
                       />
                     )}
                     <Icon size={14} />
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
+                    <span style={{ fontSize: 'var(--pl-text-2xs)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
                       {mode.charAt(0).toUpperCase() + mode.slice(1)}
                     </span>
                     <span style={{
-                      fontSize: '0.55rem', fontWeight: 600,
+                      fontSize: 'var(--pl-text-2xs)', fontWeight: 600,
                       color: isActive ? 'var(--pl-olive)' : 'var(--pl-muted)',
                       opacity: 0.7,
                       letterSpacing: '0.02em',
@@ -230,7 +230,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             padding: '3px 9px', borderRadius: '6px',
             border: '1px solid var(--pl-divider)',
             background: 'var(--pl-cream-deep)', color: 'var(--pl-muted)',
-            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+            cursor: 'pointer', fontSize: 'var(--pl-text-sm)', fontWeight: 700,
             letterSpacing: '0.04em', minHeight: '32px',
           }}
         >
@@ -249,7 +249,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
         <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
           <motion.button
             onClick={actions.undo} disabled={!canUndo} title="Undo (Cmd+Z)" aria-label="Undo"
-            whileHover={canUndo ? { scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
+            whileHover={canUndo ? { scale: 1.1, backgroundColor: 'var(--pl-black-6)' } : {}}
             whileTap={canUndo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
@@ -264,7 +264,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           ><UndoIcon size={isMobile ? 11 : 13} /></motion.button>
           <motion.button
             onClick={actions.redo} disabled={!canRedo} title="Redo (Cmd+Shift+Z)" aria-label="Redo"
-            whileHover={canRedo ? { scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' } : {}}
+            whileHover={canRedo ? { scale: 1.1, backgroundColor: 'var(--pl-black-6)' } : {}}
             whileTap={canRedo ? { scale: 0.88 } : {}}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
@@ -281,7 +281,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             onClick={() => setTimelineOpen(v => !v)}
             title="Edit timeline"
             aria-label="Open edit timeline"
-            whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.06)' }}
+            whileHover={{ scale: 1.1, backgroundColor: 'var(--pl-black-6)' }}
             whileTap={{ scale: 0.88 }}
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
@@ -311,7 +311,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: isMobile ? '4px 6px' : '4px 9px', borderRadius: '100px',
-              background: saveState === 'saved' ? 'rgba(163,177,138,0.14)' : 'rgba(251,146,60,0.12)',
+              background: saveState === 'saved' ? 'var(--pl-olive-15)' : 'rgba(251,146,60,0.12)',
               position: 'relative', overflow: 'hidden',
             }}
           >
@@ -319,7 +319,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             {saveState === 'saved' && !isMobile && (
               <div style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(163,177,138,0.3) 50%, transparent 100%)',
+                background: 'linear-gradient(90deg, transparent 0%, var(--pl-olive-30) 50%, transparent 100%)',
                 animation: 'pl-shimmer-sweep 0.7s ease-out forwards',
                 borderRadius: 'inherit',
               }} />
@@ -332,8 +332,8 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               }} />
             ) : (
               saveState === 'saved'
-                ? <><SavedIcon size={10} color="#A3B18A" /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#A3B18A', letterSpacing: '0.04em' }}>Saved</span></>
-                : <><UnsavedIcon size={10} color="#fb923c" style={{ animation: 'pl-heartbeat 1.2s ease-in-out infinite' }} /><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved</span></>
+                ? <><SavedIcon size={10} color="#A3B18A" /><span style={{ fontSize: 'var(--pl-text-sm)', fontWeight: 700, color: '#A3B18A', letterSpacing: '0.04em' }}>Saved</span></>
+                : <><UnsavedIcon size={10} color="#fb923c" style={{ animation: 'pl-heartbeat 1.2s ease-in-out infinite' }} /><span style={{ fontSize: 'var(--pl-text-sm)', fontWeight: 700, color: '#fb923c', letterSpacing: '0.04em' }}>Unsaved</span></>
             )}
           </motion.div>
         </AnimatePresence>
@@ -359,7 +359,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             style={{
               background: 'var(--pl-cream-deep)', border: '1px solid var(--pl-divider)',
               color: 'var(--pl-ink-soft)', borderRadius: '0.5rem', padding: '0.3rem 0.5rem',
-              fontSize: '0.75rem', cursor: 'pointer',
+              fontSize: 'var(--pl-text-sm)', cursor: 'pointer',
             }}
           >
             <option value="en">🌐 EN</option>
@@ -381,7 +381,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               padding: '8px 18px', borderRadius: '100px', border: 'none',
               background: 'var(--pl-olive-deep)',
               color: '#fff', cursor: 'pointer',
-              fontSize: '0.75rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-sm)', fontWeight: 700,
               letterSpacing: '0.1em',
               textTransform: 'uppercase' as const,
               boxShadow: '0 2px 12px rgba(110,140,92,0.3)',
@@ -408,7 +408,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
                 padding: '6px 13px', borderRadius: '6px',
                 border: '1px solid var(--pl-divider)',
                 background: 'transparent', color: 'var(--pl-ink-soft)',
-                cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+                cursor: 'pointer', fontSize: 'var(--pl-text-base)', fontWeight: 700,
               }}
             >
               <PreviewIcon size={13} /> Preview
@@ -429,10 +429,10 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             <motion.button
               onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
               title="Publish your site"
-              whileHover={{ scale: 1.06, boxShadow: '0 8px 28px rgba(163,177,138,0.5)' }}
+              whileHover={{ scale: 1.06, boxShadow: '0 8px 28px var(--pl-olive-50)' }}
               whileTap={{ scale: 0.94 }}
               animate={saveState === 'unsaved'
-                ? { boxShadow: ['0 2px 12px rgba(110,140,92,0.3)', '0 4px 20px rgba(163,177,138,0.55)', '0 2px 12px rgba(110,140,92,0.3)'] }
+                ? { boxShadow: ['0 2px 12px rgba(110,140,92,0.3)', '0 4px 20px var(--pl-olive-50)', '0 2px 12px rgba(110,140,92,0.3)'] }
                 : { boxShadow: '0 2px 12px rgba(110,140,92,0.3)' }}
               transition={saveState === 'unsaved'
                 ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
@@ -441,7 +441,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '8px 22px', borderRadius: '100px', border: 'none',
                 background: 'var(--pl-olive-deep)',
-                color: '#fff', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
+                color: '#fff', cursor: 'pointer', fontSize: 'var(--pl-text-sm)', fontWeight: 700,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase' as const,
               }}

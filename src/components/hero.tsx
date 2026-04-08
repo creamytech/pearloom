@@ -146,10 +146,10 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             </AnimatePresence>
           </motion.div>
 
-          {/* Dark gradient: transparent top → rgba(43,30,20,0.3) bottom — text readability */}
+          {/* Dark gradient overlay — ensures text readability on photos */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(43,30,20,0.1) 0%, transparent 30%, rgba(43,30,20,0.3) 100%)',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 40%, rgba(0,0,0,0.5) 100%)',
           }} />
           {/* Top vignette */}
           <div style={{
@@ -225,7 +225,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           opacity: opacityText,
           y: yText,
           padding: '0 clamp(1rem, 5vw, 2rem)',
-          color: hasPhoto ? '#ffffff' : 'var(--pl-ink)',
+          color: hasPhoto ? 'white' : 'var(--pl-ink)',
           width: '100%',
           maxWidth: '1300px',
         }}
@@ -268,12 +268,12 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            color: hasPhoto ? '#ffffff' : 'var(--pl-ink)',
+            color: hasPhoto ? 'white' : 'var(--pl-ink)',
           }}>
           <AnimatedName
             text={names[0]}
             delay={0.35}
-            color={hasPhoto ? '#ffffff' : undefined}
+            color={hasPhoto ? 'white' : undefined}
           />
 
           {/* "&" and second name — only for two-person occasions (not birthday/solo) */}
@@ -300,7 +300,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               <AnimatedName
                 text={names[1]}
                 delay={names[0].length * 0.04 + 0.6}
-                color={hasPhoto ? '#ffffff' : undefined}
+                color={hasPhoto ? 'white' : undefined}
               />
             </>
           )}

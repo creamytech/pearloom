@@ -36,7 +36,7 @@ function SkeletonLoading({ slow }: { slow: boolean }) {
       </div>
       <div style={{
         marginTop: 'auto', textAlign: 'center',
-        color: 'var(--pl-muted)', fontSize: '0.8rem',
+        color: 'var(--pl-muted)', fontSize: 'var(--pl-text-base)',
       }}>
         {slow ? 'Taking a moment\u2026 almost there' : 'Loading preview\u2026'}
       </div>
@@ -124,10 +124,10 @@ function BreakpointBar({
           pointerEvents: 'auto',
           height: '24px',
           borderRadius: '0 0 10px 10px',
-          background: 'rgba(255,255,255,0.85)',
+          background: 'var(--pl-glass-light)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(0,0,0,0.06)',
+          border: '1px solid var(--pl-black-6)',
           borderTop: 'none',
           boxShadow: '0 2px 8px rgba(43,30,20,0.06)',
           overflow: 'hidden',
@@ -189,7 +189,7 @@ function BreakpointBar({
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.08 }}
             style={{
-              fontSize: '0.6rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
               color: matched ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
               letterSpacing: '0.04em',
               fontVariantNumeric: 'tabular-nums',
@@ -397,7 +397,7 @@ export function EditorCanvas() {
             borderRadius: '100px',
             background: 'var(--pl-olive-deep)',
             color: 'white',
-            fontSize: '0.55rem', fontWeight: 700,
+            fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
             letterSpacing: '0.12em', textTransform: 'uppercase',
             whiteSpace: 'nowrap',
             pointerEvents: 'auto',
@@ -420,10 +420,10 @@ export function EditorCanvas() {
         padding: '4px',
         borderRadius: '100px',
         pointerEvents: 'auto',
-        background: 'rgba(255,255,255,0.88)',
+        background: 'var(--pl-glass-light)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(0,0,0,0.06)',
+        border: '1px solid var(--pl-black-6)',
         boxShadow: '0 2px 12px rgba(43,30,20,0.08)',
       } as React.CSSProperties}>
         {([
@@ -495,7 +495,7 @@ export function EditorCanvas() {
               display: 'flex', flexDirection: 'column',
               borderRadius: 24,
               overflow: 'hidden',
-              boxShadow: '0 12px 48px rgba(43,30,20,0.12), 0 0 0 1px rgba(0,0,0,0.06)',
+              boxShadow: '0 12px 48px rgba(43,30,20,0.12), 0 0 0 1px var(--pl-black-6)',
               flexShrink: 0,
               minHeight: isPhone ? 780 : 600,
               background: 'var(--pl-cream)',
@@ -522,7 +522,7 @@ export function EditorCanvas() {
               flex: 1,
               borderRadius: '20px',
               overflow: 'hidden',
-              boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+              boxShadow: '0 8px 40px rgba(43,30,20,0.08), 0 0 0 1px var(--pl-black-4)',
               position: 'relative',
               background: 'white',
               minHeight: 0,

@@ -39,7 +39,7 @@ function DragHandle({ controls }: { controls: ReturnType<typeof useDragControls>
       aria-label="Drag to reorder"
       tabIndex={0}
       onPointerDown={e => { e.preventDefault(); controls.start(e); }}
-      whileHover={{ color: 'rgba(163,177,138,0.85)', scale: 1.15 }}
+      whileHover={{ color: 'var(--pl-olive)', scale: 1.15 }}
       transition={{ type: 'spring', stiffness: 420, damping: 22 }}
       style={{
         cursor: 'grab', padding: '0 10px', display: 'flex', alignItems: 'center',
@@ -64,13 +64,13 @@ function CanvasDragHandle({ chapterId, chapterTitle }: { chapterId: string; chap
       {...attributes}
       {...listeners}
       title="Drag to reorder in canvas"
-      whileHover={!isDragging ? { color: 'rgba(163,177,138,0.85)', backgroundColor: 'rgba(163,177,138,0.1)', scale: 1.1 } : {}}
+      whileHover={!isDragging ? { color: 'var(--pl-olive)', backgroundColor: 'var(--pl-olive-10)', scale: 1.1 } : {}}
       transition={{ type: 'spring', stiffness: 420, damping: 22 }}
       style={{
         cursor: isDragging ? 'grabbing' : 'grab',
         padding: '2px 6px 2px 2px',
         display: 'flex', alignItems: 'center',
-        color: isDragging ? 'rgba(163,177,138,0.9)' : 'rgba(0,0,0,0.1)',
+        color: isDragging ? 'var(--pl-olive)' : 'var(--pl-black-10)',
         touchAction: 'none', userSelect: 'none', flexShrink: 0,
         borderRadius: '4px',
       }}
@@ -108,14 +108,14 @@ function SectionItem({
       style={{ marginBottom: '6px', cursor: 'pointer' }}
     >
       <motion.div
-        whileHover={!isActive ? { backgroundColor: 'rgba(163,177,138,0.04)', borderColor: 'var(--pl-olive, #A3B18A)' } : {}}
+        whileHover={!isActive ? { backgroundColor: 'var(--pl-olive-5)', borderColor: 'var(--pl-olive, #A3B18A)' } : {}}
         transition={{ duration: 0.15 }}
         className={isActive ? 'pl-panel-card active' : 'pl-panel-card'}
         style={{
-          borderLeft: isActive ? '3px solid var(--pl-olive)' : '3px solid rgba(163,177,138,0.15)',
+          borderLeft: isActive ? '3px solid var(--pl-olive)' : '3px solid var(--pl-olive-15)',
           position: 'relative',
           overflow: 'hidden',
-          boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.1)' : '0 1px 3px rgba(0,0,0,0.03)',
+          boxShadow: isActive ? '0 2px 8px var(--pl-olive-10)' : '0 1px 3px rgba(0,0,0,0.03)',
         }}
       >
         <div
@@ -128,10 +128,10 @@ function SectionItem({
           <div style={{
             flexShrink: 0,
             width: '22px', height: '22px', borderRadius: '50%',
-            background: isActive ? 'rgba(163,177,138,0.15)' : 'var(--pl-cream-deep, #F0EBE0)',
+            background: isActive ? 'var(--pl-olive-15)' : 'var(--pl-cream-deep, #F0EBE0)',
             border: isActive ? '1.5px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.65rem', fontWeight: 800, color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted, #7A756E)',
+            fontSize: 'var(--pl-text-xs)', fontWeight: 800, color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted)',
             letterSpacing: '-0.01em',
           }}>
             {index + 1}
@@ -139,7 +139,7 @@ function SectionItem({
 
           <div style={{
             width: '44px', height: '44px', borderRadius: '7px', flexShrink: 0,
-            background: thumb ? 'transparent' : 'rgba(0,0,0,0.06)',
+            background: thumb ? 'transparent' : 'var(--pl-black-6)',
             overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)',
           }}>
             {thumb
@@ -152,7 +152,7 @@ function SectionItem({
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: '0.88rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-md)', fontWeight: 700,
               fontFamily: 'var(--font-heading, Playfair Display, Georgia, serif)',
               color: isActive ? 'var(--pl-ink, #1A1A1A)' : 'var(--pl-ink-soft, #3D3530)',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -160,7 +160,7 @@ function SectionItem({
             }}>
               {chapter.title || 'Untitled'}
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted, #7A756E)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-muted)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               {chapter.location?.label && (
                 <><LocationPinIcon size={9} style={{ flexShrink: 0, opacity: 0.7 }} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{chapter.location.label}</span><span>·</span></>
               )}
@@ -169,7 +169,7 @@ function SectionItem({
             </div>
             {/* Font label */}
             <div style={{
-              fontSize: '0.58rem', fontWeight: 500,
+              fontSize: 'var(--pl-text-2xs)', fontWeight: 500,
               color: 'var(--pl-olive)',
               fontStyle: 'italic',
               marginTop: '1px',
@@ -192,7 +192,7 @@ function SectionItem({
             transition={{ type: 'spring', stiffness: 420, damping: 22 }}
             style={{
               padding: '5px', borderRadius: '5px', border: 'none',
-              background: 'none', color: 'var(--pl-muted, #7A756E)', cursor: 'pointer',
+              background: 'none', color: 'var(--pl-muted)', cursor: 'pointer',
               display: 'flex', flexShrink: 0,
               opacity: 0.5,
             }}
@@ -237,14 +237,14 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
       {...attributes}
       {...listeners}
       title="Drag to insert →"
-      whileHover={!isDragging ? { x: 3, backgroundColor: 'rgba(0,0,0,0.06)', borderColor: 'rgba(163,177,138,0.4)' } : {}}
+      whileHover={!isDragging ? { x: 3, backgroundColor: 'var(--pl-black-6)', borderColor: 'var(--pl-olive-40)' } : {}}
       whileTap={!isDragging ? { scale: 0.97 } : {}}
       transition={{ type: 'spring', stiffness: 380, damping: 28 }}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         padding: '8px 10px', borderRadius: '8px', minHeight: '52px',
         border: '1px solid var(--pl-divider, #E0D8CA)',
-        background: isDragging ? 'rgba(163,177,138,0.1)' : '#fff',
+        background: isDragging ? 'var(--pl-olive-10)' : '#fff',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: 'none', touchAction: 'none',
         marginBottom: '5px',
@@ -254,14 +254,14 @@ function BlockTypeCard({ blockId, label, Icon, desc }: { blockId: string; label:
     >
       <div style={{
         width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
-        background: 'rgba(163,177,138,0.1)', display: 'flex', alignItems: 'center',
+        background: 'var(--pl-olive-10)', display: 'flex', alignItems: 'center',
         justifyContent: 'center',
       }}>
         <Icon size={15} color="var(--pl-olive, #A3B18A)" />
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-ink-soft, #3D3530)', lineHeight: 1.2 }}>{label}</div>
-        <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted, #7A756E)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
+        <div style={{ fontSize: 'var(--pl-text-base)', fontWeight: 700, color: 'var(--pl-ink-soft, #3D3530)', lineHeight: 1.2 }}>{label}</div>
+        <div style={{ fontSize: 'var(--pl-text-xs)', color: 'var(--pl-muted)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{desc}</div>
       </div>
     </motion.div>
   );
@@ -309,9 +309,9 @@ export function StoryPanel() {
         marginBottom: '4px',
       }}>
         <span style={{
-          fontSize: '0.58rem', fontWeight: 800,
+          fontSize: 'var(--pl-text-2xs)', fontWeight: 800,
           letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: 'var(--pl-muted, #7A756E)',
+          color: 'var(--pl-muted)',
         }}>
           Chapters · {chapters.length}
         </span>
@@ -319,7 +319,7 @@ export function StoryPanel() {
 
       {/* Timeline format switcher — visual previews */}
       <div style={{ marginBottom: '12px' }}>
-        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
+        <div style={{ fontSize: 'var(--pl-text-2xs)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '6px' }}>
           Timeline Format
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
@@ -327,13 +327,13 @@ export function StoryPanel() {
             { id: 'cascade',   label: 'Cascade',   desc: 'Classic scroll',
               preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[0.3, 0.2, 0.25].map((o, i) => <div key={i} style={{ display: 'flex', flexDirection: i%2===0?'row':'row-reverse', gap: '2px' }}><div style={{ width: '40%', height: '8px', background: `rgba(163,177,138,${o})`, borderRadius: '1px' }} /><div style={{ flex: 1, height: '8px', background: `rgba(255,255,255,${o*0.5})`, borderRadius: '1px' }} /></div>)}</div> },
             { id: 'filmstrip', label: 'Filmstrip', desc: 'Cinematic reel',
-              preview: <div style={{ display: 'flex', gap: '2px', padding: '4px', background: '#0a0a0a' }}>{[0,1,2,3].map(i => <div key={i} style={{ flex: 1, height: '20px', background: 'rgba(0,0,0,0.06)', borderRadius: '1px', border: '1px solid rgba(0,0,0,0.07)' }} />)}</div> },
+              preview: <div style={{ display: 'flex', gap: '2px', padding: '4px', background: '#0a0a0a' }}>{[0,1,2,3].map(i => <div key={i} style={{ flex: 1, height: '20px', background: 'var(--pl-black-6)', borderRadius: '1px', border: '1px solid var(--pl-black-7)' }} />)}</div> },
             { id: 'magazine',  label: 'Magazine',  desc: 'Editorial spreads',
-              preview: <div style={{ display: 'flex', padding: '3px', gap: '2px' }}><div style={{ width: '50%', background: 'rgba(163,177,138,0.25)', borderRadius: '1px' }} /><div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}><div style={{ height: '4px', background: 'var(--pl-muted)', borderRadius: '1px' }} /><div style={{ height: '4px', width: '70%', background: 'rgba(0,0,0,0.06)', borderRadius: '1px' }} /></div></div> },
+              preview: <div style={{ display: 'flex', padding: '3px', gap: '2px' }}><div style={{ width: '50%', background: 'var(--pl-olive-20)', borderRadius: '1px' }} /><div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center' }}><div style={{ height: '4px', background: 'var(--pl-muted)', borderRadius: '1px' }} /><div style={{ height: '4px', width: '70%', background: 'var(--pl-black-6)', borderRadius: '1px' }} /></div></div> },
             { id: 'scrapbook', label: 'Scrapbook', desc: 'Polaroid feel',
-              preview: <div style={{ position: 'relative', padding: '3px' }}>{[{r:-5,x:3,y:2},{r:4,x:16,y:3},{r:-2,x:10,y:10}].map((p,i) => <div key={i} style={{ position: 'absolute', width: '10px', height: '12px', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', transform: `rotate(${p.r}deg)`, left: `${p.x}px`, top: `${p.y}px`, borderRadius: '1px' }}><div style={{ width: '100%', height: '6px', background: 'rgba(163,177,138,0.3)' }} /></div>)}</div> },
+              preview: <div style={{ position: 'relative', padding: '3px' }}>{[{r:-5,x:3,y:2},{r:4,x:16,y:3},{r:-2,x:10,y:10}].map((p,i) => <div key={i} style={{ position: 'absolute', width: '10px', height: '12px', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', transform: `rotate(${p.r}deg)`, left: `${p.x}px`, top: `${p.y}px`, borderRadius: '1px' }}><div style={{ width: '100%', height: '6px', background: 'var(--pl-olive-30)' }} /></div>)}</div> },
             { id: 'chapters',  label: 'Chapters',  desc: 'Book pages',
-              preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[100,60,80].map((w,i) => <div key={i} style={{ height: '5px', background: i===0?'rgba(163,177,138,0.4)':'rgba(0,0,0,0.06)', borderRadius: '2px', width: `${w}%` }} />)}</div> },
+              preview: <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '4px' }}>{[100,60,80].map((w,i) => <div key={i} style={{ height: '5px', background: i===0?'var(--pl-olive-40)':'var(--pl-black-6)', borderRadius: '2px', width: `${w}%` }} />)}</div> },
             { id: 'starmap',   label: 'Starmap',   desc: 'Constellation',
               preview: <div style={{ background: '#050810', padding: '3px', position: 'relative' }}>{[[20,35],[50,15],[75,30],[35,55],[60,50]].map(([x,y],i) => <div key={i} style={{ position: 'absolute', width: '2px', height: '2px', borderRadius: '50%', background: 'rgba(200,220,255,0.7)', left: `${x}%`, top: `${y}%` }} />)}</div> },
           ].map(fmt => {
@@ -342,21 +342,21 @@ export function StoryPanel() {
               <motion.button
                 key={fmt.id}
                 onClick={() => actions.handleDesignChange({ ...manifest, layoutFormat: fmt.id as StoryManifest['layoutFormat'] })}
-                whileHover={!isActive ? { scale: 1.04, borderColor: 'rgba(163,177,138,0.35)' } : {}}
+                whileHover={!isActive ? { scale: 1.04, borderColor: 'var(--pl-olive-30)' } : {}}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 22 }}
                 style={{
                   display: 'flex', flexDirection: 'column',
                   borderRadius: '8px', border: 'none', cursor: 'pointer',
-                  background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
+                  background: isActive ? 'var(--pl-olive-8)' : '#fff',
                   outline: isActive ? '2px solid var(--pl-olive, #A3B18A)' : '1px solid var(--pl-divider, #E0D8CA)',
                   overflow: 'hidden', padding: 0,
-                  boxShadow: isActive ? '0 2px 6px rgba(163,177,138,0.12)' : '0 1px 2px rgba(0,0,0,0.03)',
+                  boxShadow: isActive ? '0 2px 6px var(--pl-olive-12)' : '0 1px 2px rgba(0,0,0,0.03)',
                 }}
               >
                 <div style={{ height: '28px', overflow: 'hidden', background: 'var(--pl-cream-deep, #F0EBE0)' }}>{fmt.preview}</div>
                 <div style={{ padding: '3px 4px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 700, color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted, #7A756E)', letterSpacing: '0.02em' }}>
+                  <div style={{ fontSize: 'var(--pl-text-2xs)', fontWeight: 700, color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted)', letterSpacing: '0.02em' }}>
                     {fmt.label}
                   </div>
                 </div>
@@ -387,7 +387,7 @@ export function StoryPanel() {
       {/* Dashed "Add Chapter" card */}
       <motion.button
         onClick={actions.addChapter}
-        whileHover={{ borderColor: 'rgba(163,177,138,0.5)', backgroundColor: 'rgba(163,177,138,0.06)', y: -1 }}
+        whileHover={{ borderColor: 'var(--pl-olive-50)', backgroundColor: 'var(--pl-olive-5)', y: -1 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 400, damping: 28 }}
         style={{
@@ -395,7 +395,7 @@ export function StoryPanel() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
           border: '1.5px dashed var(--pl-olive, #A3B18A)', borderRadius: '10px',
           background: 'transparent', cursor: 'pointer',
-          color: 'var(--pl-olive, #A3B18A)', fontSize: '0.8rem', fontWeight: 700,
+          color: 'var(--pl-olive, #A3B18A)', fontSize: 'var(--pl-text-base)', fontWeight: 700,
           letterSpacing: '0.04em', opacity: 0.6,
         }}
       >
@@ -410,7 +410,7 @@ export function StoryPanel() {
           position: 'sticky', top: 0, zIndex: 4,
           background: 'var(--pl-cream, #FAF7F2)',
           padding: '4px 0 8px',
-          fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
+          fontSize: 'var(--pl-text-2xs)', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
           color: 'var(--pl-olive, #A3B18A)', marginBottom: '4px',
         }}>
           Drag Sections to Canvas

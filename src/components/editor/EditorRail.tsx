@@ -38,10 +38,10 @@ function RailTooltip({ label, visible }: { label: string; visible: boolean }) {
             transform: 'translateY(-50%)',
             padding: '4px 10px',
             borderRadius: '8px',
-            background: 'rgba(28,25,22,0.92)',
+            background: 'var(--pl-glass-dark)',
             backdropFilter: 'blur(12px)',
-            color: '#f5f0eb',
-            fontSize: '0.68rem',
+            color: 'var(--pl-dark-heading)',
+            fontSize: 'var(--pl-text-xs)',
             fontWeight: 700,
             letterSpacing: '0.04em',
             whiteSpace: 'nowrap',
@@ -101,11 +101,11 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         gap: '4px',
         padding: '12px 8px',
         borderRadius: '24px',
-        background: 'rgba(255,255,255,0.88)',
-        backdropFilter: 'blur(24px) saturate(1.4)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-        border: '1px solid rgba(0,0,0,0.06)',
-        boxShadow: '0 4px 24px rgba(43,30,20,0.08), 0 1px 4px rgba(43,30,20,0.04)',
+        background: 'var(--pl-glass-light)',
+        backdropFilter: 'var(--pl-glass-blur)',
+        WebkitBackdropFilter: 'var(--pl-glass-blur)',
+        border: '1px solid var(--pl-glass-light-border)',
+        boxShadow: 'var(--pl-glass-shadow)',
       } as React.CSSProperties}
     >
       {/* Avatar / Logo at top — stagger index 0 */}
@@ -113,7 +113,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         initial={{ opacity: 0, scale: 0.5, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ ...SPRING_BOUNCY, delay: 0.15 }}
-        whileHover={{ scale: 1.12, boxShadow: '0 0 14px rgba(163,177,138,0.35)' }}
+        whileHover={{ scale: 1.12, boxShadow: '0 0 14px var(--pl-olive-35)' }}
         whileTap={{ scale: 0.92 }}
         style={{
           width: '40px', height: '40px',
@@ -145,8 +145,8 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
             onMouseLeave={() => setHoveredId(null)}
             whileHover={{
               scale: 1.08,
-              backgroundColor: 'rgba(163,177,138,0.14)',
-              boxShadow: '0 0 12px rgba(163,177,138,0.2)',
+              backgroundColor: 'var(--pl-olive-15)',
+              boxShadow: '0 0 12px var(--pl-olive-20)',
             }}
             whileTap={{ scale: 0.88 }}
             style={{
@@ -169,7 +169,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                 style={{
                   position: 'absolute', inset: 0,
                   borderRadius: '14px',
-                  background: 'rgba(163,177,138,0.15)',
+                  background: 'var(--pl-olive-15)',
                   zIndex: -1,
                 }}
                 transition={SPRING_SNAPPY}
@@ -196,7 +196,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
               <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
             </motion.div>
             <span style={{
-              fontSize: '0.48rem', fontWeight: 700,
+              fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
               letterSpacing: '0.06em', textTransform: 'uppercase',
               lineHeight: 1, userSelect: 'none',
             }}>
@@ -221,8 +221,8 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         onMouseLeave={() => setHoveredId(null)}
         whileHover={{
           scale: 1.08,
-          backgroundColor: 'rgba(163,177,138,0.14)',
-          boxShadow: '0 0 12px rgba(163,177,138,0.2)',
+          backgroundColor: 'var(--pl-olive-15)',
+          boxShadow: '0 0 12px var(--pl-olive-20)',
         }}
         whileTap={{ scale: 0.88 }}
         style={{
@@ -244,7 +244,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
             style={{
               position: 'absolute', inset: 0,
               borderRadius: '14px',
-              background: 'rgba(163,177,138,0.15)',
+              background: 'var(--pl-olive-15)',
               zIndex: -1,
             }}
             transition={SPRING_SNAPPY}
@@ -265,7 +265,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
         )}
         <Settings size={18} strokeWidth={1.8} />
         <span style={{
-          fontSize: '0.48rem', fontWeight: 700,
+          fontSize: 'var(--pl-text-2xs)', fontWeight: 700,
           letterSpacing: '0.06em', textTransform: 'uppercase',
           lineHeight: 1, userSelect: 'none',
         }}>

@@ -101,7 +101,7 @@ function Avatar({ user, showPulse }: { user: CollabUser; showPulse: boolean }) {
               bottom: 'calc(100% + 6px)',
               left: '50%',
               transform: 'translateX(-50%)',
-              background: 'rgba(30,27,22,0.95)',
+              background: 'var(--pl-glass-dark)',
               border: '1px solid rgba(0,0,0,0.07)',
               borderRadius: '0.4rem',
               padding: '0.35rem 0.6rem',
@@ -125,7 +125,7 @@ function Avatar({ user, showPulse }: { user: CollabUser; showPulse: boolean }) {
                 height: 0,
                 borderLeft: '5px solid transparent',
                 borderRight: '5px solid transparent',
-                borderTop: '5px solid rgba(30,27,22,0.95)',
+                borderTop: '5px solid var(--pl-glass-dark)',
               }}
             />
           </motion.div>

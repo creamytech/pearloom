@@ -323,12 +323,12 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
             minWidth: '210px',
             padding: '4px',
             borderRadius: '12px',
-            background: 'rgba(255,255,255,0.94)',
-            backdropFilter: 'blur(24px) saturate(1.5)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.5)',
-            border: '1px solid rgba(0,0,0,0.06)',
+            background: 'var(--pl-glass-heavy)',
+            backdropFilter: 'var(--pl-glass-blur)',
+            WebkitBackdropFilter: 'var(--pl-glass-blur)',
+            border: '1px solid var(--pl-glass-light-border)',
             boxShadow:
-              '0 12px 48px rgba(43,30,20,0.14), 0 4px 12px rgba(43,30,20,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
+              'var(--pl-glass-shadow-lg)',
           } as React.CSSProperties}
         >
           {entries.map((entry) => {
@@ -338,7 +338,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                   key={entry.id}
                   style={{
                     height: '1px',
-                    background: 'rgba(0,0,0,0.06)',
+                    background: 'var(--pl-black-6)',
                     margin: '4px 8px',
                   }}
                 />
@@ -355,7 +355,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                     ? {
                         backgroundColor: entry.danger
                           ? 'rgba(248,113,113,0.08)'
-                          : 'rgba(163,177,138,0.1)',
+                          : 'var(--pl-olive-10)',
                       }
                     : {}
                 }
@@ -375,7 +375,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                     : entry.danger
                       ? 'rgba(220,80,80,0.85)'
                       : 'var(--pl-ink-soft)',
-                  fontSize: '0.72rem',
+                  fontSize: 'var(--pl-text-sm)',
                   fontWeight: 600,
                   textAlign: 'left',
                   opacity: entry.disabled ? 0.45 : 1,
@@ -386,7 +386,7 @@ export function CanvasContextMenu({ containerRef }: CanvasContextMenuProps) {
                 {entry.shortcut && (
                   <span
                     style={{
-                      fontSize: '0.6rem',
+                      fontSize: 'var(--pl-text-2xs)',
                       fontWeight: 500,
                       color: 'var(--pl-muted)',
                       letterSpacing: '0.04em',

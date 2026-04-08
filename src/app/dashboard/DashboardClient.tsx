@@ -404,7 +404,7 @@ export default function DashboardClient() {
                         style={{
                           borderRadius: 'var(--pl-radius-sm)',
                           background: 'var(--pl-olive)',
-                          color: '#fff',
+                          color: 'white',
                           transition: 'background 0.15s',
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--pl-olive-hover)')}

@@ -402,7 +402,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         disabled={isGeocoding}
                         style={{
                           padding: '0.6rem 1rem', borderRadius: card.radius,
-                          background: C.olive, color: '#fff',
+                          background: C.olive, color: 'white',
                           border: 'none', cursor: 'pointer', fontSize: text.sm,
                           fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem',
                           flexShrink: 0,
@@ -460,7 +460,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                                   onClick={() => acceptSuggestion(idx)}
                                   style={{
                                     padding: '0.3rem 0.7rem', borderRadius: '100px',
-                                    background: C.olive, color: '#fff', border: 'none',
+                                    background: C.olive, color: 'white', border: 'none',
                                     fontSize: text.xs, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
                                   }}
                                 >Accept</button>
@@ -671,7 +671,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
           onClick={() => onConfirm(clusters)}
           style={{
             flex: 1, padding: '1rem 1.5rem', borderRadius: card.radius,
-            background: C.ink, color: '#fff',
+            background: C.ink, color: 'white',
             border: 'none', fontSize: text.base, fontWeight: 600,
             cursor: 'pointer', display: 'flex', alignItems: 'center',
             justifyContent: 'center', gap: '0.5rem',

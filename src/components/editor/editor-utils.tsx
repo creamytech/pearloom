@@ -12,15 +12,15 @@ import { parseLocalDate } from '@/lib/date';
 
 // ── Shared label/input styles ──────────────────────────────────
 export const lbl: React.CSSProperties = {
-  display: 'block', fontSize: '0.68rem', fontWeight: 700,
+  display: 'block', fontSize: 'var(--pl-text-xs)', fontWeight: 700,
   letterSpacing: '0.08em', textTransform: 'uppercase',
-  color: 'var(--pl-muted, #7A756E)', marginBottom: '0.35rem',
+  color: 'var(--pl-muted)', marginBottom: '0.35rem',
 };
 
 export const inp: React.CSSProperties = {
   width: '100%', padding: '0.55rem 0.7rem', borderRadius: '0.5rem',
-  border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)',
-  color: 'var(--pl-ink, #1A1A1A)', fontSize: 'max(16px, 0.88rem)', outline: 'none', fontFamily: 'inherit',
+  border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)', backdropFilter: 'blur(16px)',
+  color: 'var(--pl-ink, #1A1A1A)', fontSize: 'max(16px, var(--pl-text-md))', outline: 'none', fontFamily: 'inherit',
   transition: 'border-color 0.15s, box-shadow 0.15s', boxSizing: 'border-box',
   minHeight: '36px',
 };
@@ -32,7 +32,7 @@ export function Field({ label, value, onChange, rows, placeholder }: {
 }) {
   const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--pl-olive, #A3B18A)';
-    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12)';
+    e.currentTarget.style.boxShadow = '0 0 0 3px var(--pl-olive-12)';
   };
   const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'var(--pl-divider, #E0D8CA)';

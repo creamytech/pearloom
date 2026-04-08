@@ -28,17 +28,17 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '3px' }}>
         <div style={{ height: '14px', background: 'var(--pl-muted)', borderRadius: '2px' }} />
         <div style={{ display: 'flex', gap: '2px' }}>
-          <div style={{ flex: 1, height: '8px', background: 'rgba(0,0,0,0.08)', borderRadius: '1px' }} />
-          <div style={{ flex: 1, height: '8px', background: 'rgba(0,0,0,0.06)', borderRadius: '1px' }} />
+          <div style={{ flex: 1, height: '8px', background: 'var(--pl-black-7)', borderRadius: '1px' }} />
+          <div style={{ flex: 1, height: '8px', background: 'var(--pl-black-6)', borderRadius: '1px' }} />
         </div>
-        <div style={{ height: '4px', width: '60%', background: 'rgba(0,0,0,0.06)', borderRadius: '1px' }} />
+        <div style={{ height: '4px', width: '60%', background: 'var(--pl-black-6)', borderRadius: '1px' }} />
       </div>
     ),
   },
   fullbleed: {
     label: 'Full Bleed',
     preview: (
-      <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(163,177,138,0.3), rgba(109,89,122,0.2))', borderRadius: '2px', display: 'flex', alignItems: 'flex-end', padding: '3px' }}>
+      <div style={{ height: '100%', background: 'linear-gradient(135deg, var(--pl-olive-30), rgba(109,89,122,0.2))', borderRadius: '2px', display: 'flex', alignItems: 'flex-end', padding: '3px' }}>
         <div style={{ height: '6px', width: '70%', background: 'var(--pl-ink-soft)', borderRadius: '1px' }} />
       </div>
     ),
@@ -47,10 +47,10 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
     label: 'Split',
     preview: (
       <div style={{ display: 'flex', gap: '2px', height: '100%', padding: '2px' }}>
-        <div style={{ width: '45%', background: 'rgba(163,177,138,0.25)', borderRadius: '2px' }} />
+        <div style={{ width: '45%', background: 'var(--pl-olive-20)', borderRadius: '2px' }} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', justifyContent: 'center', padding: '2px' }}>
           <div style={{ height: '4px', background: 'var(--pl-muted)', borderRadius: '1px' }} />
-          <div style={{ height: '4px', width: '70%', background: 'rgba(0,0,0,0.07)', borderRadius: '1px' }} />
+          <div style={{ height: '4px', width: '70%', background: 'var(--pl-black-7)', borderRadius: '1px' }} />
         </div>
       </div>
     ),
@@ -84,7 +84,7 @@ const LAYOUT_PREVIEWS: Record<string, { label: string; preview: React.ReactNode 
             transform: `rotate(${p.r}deg)`, left: `${p.x}px`, top: `${p.y}px`,
             borderRadius: '1px',
           }}>
-            <div style={{ width: '100%', height: '8px', background: 'rgba(163,177,138,0.3)' }} />
+            <div style={{ width: '100%', height: '8px', background: 'var(--pl-olive-30)' }} />
           </div>
         ))}
       </div>
@@ -189,8 +189,8 @@ export function ChapterPanel({
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '3px 8px', borderRadius: '100px',
-                border: '1px solid rgba(163,177,138,0.35)',
-                background: isRewriting ? 'rgba(163,177,138,0.12)' : 'rgba(163,177,138,0.06)',
+                border: '1px solid var(--pl-olive-30)',
+                background: isRewriting ? 'var(--pl-olive-12)' : 'rgba(163,177,138,0.06)',
                 color: 'var(--pl-olive-deep, #6E8C5C)',
                 fontSize: '0.65rem', fontWeight: 700, cursor: isRewriting ? 'not-allowed' : 'pointer',
               }}
@@ -231,7 +231,7 @@ export function ChapterPanel({
             ...(streamingText != null ? { opacity: 0.85, cursor: 'default' } : {}),
           }}
           onFocus={e => { if (streamingText == null) { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.1)'; } }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; e.currentTarget.style.boxShadow = 'none'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'var(--pl-black-7)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
 
@@ -265,7 +265,7 @@ export function ChapterPanel({
                   background: isActive ? 'rgba(163,177,138,0.08)' : '#fff',
                   overflow: 'hidden', transition: 'border-color 0.15s',
                   padding: 0,
-                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.15)' : '0 1px 3px rgba(0,0,0,0.04)',
+                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.15)' : '0 1px 3px var(--pl-black-4)',
                 }}
               >
                 <div style={{ height: '36px', overflow: 'hidden', background: 'var(--pl-cream-deep, #F0EBE0)' }}>
@@ -275,7 +275,7 @@ export function ChapterPanel({
                   padding: '4px 6px',
                   fontSize: '0.6rem', fontWeight: 700,
                   letterSpacing: '0.04em',
-                  color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted, #7A756E)',
+                  color: isActive ? 'var(--pl-olive-deep, #6E8C5C)' : 'var(--pl-muted)',
                   textAlign: 'center',
                 }}>
                   {label}
@@ -321,12 +321,12 @@ export function ChapterPanel({
           placeholder="Or type your own mood..."
           style={{ ...inp, fontSize: '0.82rem', padding: '5px 8px' }}
           onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)'; }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.07)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'var(--pl-black-7)'; }}
         />
       </div>
 
       {/* Image Manager */}
-      <div style={{ borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '0.75rem' }}>
+      <div style={{ borderTop: '1px solid var(--pl-black-4)', paddingTop: '0.75rem' }}>
         <ImageManager
           images={chapter.images || []}
           onUpdate={imgs => upd({ images: imgs })}
@@ -341,7 +341,7 @@ export function ChapterPanel({
 
       {/* Section Style Overrides */}
       {vibeSkin && onOverridesChange && (
-        <div style={{ borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '0.75rem' }}>
+        <div style={{ borderTop: '1px solid var(--pl-black-4)', paddingTop: '0.75rem' }}>
           <SectionStyleEditor
             sectionId={chapter.id}
             sectionType="chapter"

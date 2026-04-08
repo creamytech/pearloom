@@ -49,7 +49,7 @@ export function EditorStatusBar() {
       padding: '0 14px', gap: '10px',
       background: 'var(--pl-cream)',
       borderTop: '1px solid var(--pl-divider)',
-      fontSize: '0.65rem', fontWeight: 600,
+      fontSize: 'var(--pl-text-xs)', fontWeight: 600,
       color: 'var(--pl-muted)', letterSpacing: '0.03em',
       userSelect: 'none',
     }}>
@@ -87,9 +87,9 @@ export function EditorStatusBar() {
         <div style={{
           width: '6px', height: '6px', borderRadius: '50%',
           flexShrink: 0,
-          background: saveState === 'saved' ? '#A3B18A' : 'var(--pl-gold)',
+          background: saveState === 'saved' ? 'var(--pl-olive)' : 'var(--pl-gold)',
           boxShadow: saveState === 'saved'
-            ? '0 0 6px rgba(163,177,138,0.55)'
+            ? '0 0 6px var(--pl-olive-50)'
             : '0 0 6px rgba(196,169,106,0.55)',
           transition: 'background 0.3s, box-shadow 0.3s',
         }} />

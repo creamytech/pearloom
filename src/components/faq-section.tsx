@@ -297,7 +297,7 @@ export function FaqSection({
                     borderRadius: '100px',
                     border: `1.5px solid ${isActive ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
                     background: isActive ? 'var(--pl-olive)' : 'transparent',
-                    color: isActive ? '#fff' : 'var(--pl-muted)',
+                    color: isActive ? 'white' : 'var(--pl-muted)',
                     fontSize: '0.75rem',
                     fontWeight: 600,
                     letterSpacing: '0.05em',

@@ -138,7 +138,7 @@ export default function EditorClient({ manifest: initialManifest, siteSlug, name
             zIndex: 9998,
             pointerEvents: 'none',
             background: saveStatus === 'error' ? 'rgba(220,60,60,0.9)' : 'rgba(0,0,0,0.75)',
-            color: '#fff',
+            color: 'white',
             backdropFilter: 'blur(8px)',
             transition: 'opacity 0.3s',
             opacity: 1,

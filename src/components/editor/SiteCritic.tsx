@@ -229,7 +229,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               style={{
                 fontSize: '0.7rem',
                 fontWeight: 600,
-                color: 'var(--pl-muted, #7A756E)',
+                color: 'var(--pl-muted)',
                 background: 'rgba(163,177,138,0.13)',
                 borderRadius: 10,
                 padding: '1px 7px',
@@ -238,7 +238,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
             >
               {suggestions.length}
             </span>
-            <span style={{ color: 'var(--pl-muted, #7A756E)', display: 'flex', alignItems: 'center', marginLeft: 2 }}>
+            <span style={{ color: 'var(--pl-muted)', display: 'flex', alignItems: 'center', marginLeft: 2 }}>
               {collapsed ? <IconChevronDown size={12} /> : <IconChevronUp size={12} />}
             </span>
           </button>
@@ -249,7 +249,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'var(--pl-muted, #7A756E)',
+              color: 'var(--pl-muted)',
               padding: 2,
               display: 'flex',
               alignItems: 'center',
@@ -278,7 +278,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                   <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-ink, #1A1A1A)', lineHeight: 1.3 }}>
                     {s.title}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--pl-muted, #7A756E)', lineHeight: 1.45, marginTop: 2 }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', lineHeight: 1.45, marginTop: 2 }}>
                     {s.description}
                   </div>
                 </div>
@@ -289,7 +289,7 @@ export function SiteCritic({ manifest, coupleNames, onNavigate }: SiteCriticProp
                       flexShrink: 0,
                       alignSelf: 'center',
                       background: 'var(--pl-olive, #A3B18A)',
-                      color: '#fff',
+                      color: 'white',
                       border: 'none',
                       borderRadius: 6,
                       padding: '4px 12px',

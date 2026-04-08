@@ -51,14 +51,14 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
       }}>
         <Code size={14} color="var(--pl-olive)" />
         <span style={{
-          fontSize: '0.65rem', fontWeight: 700,
+          fontSize: 'var(--pl-text-xs)', fontWeight: 700,
           letterSpacing: '0.1em', textTransform: 'uppercase',
           color: 'var(--pl-olive-deep)',
         }}>
           Custom CSS
         </span>
         <span style={{
-          fontSize: '0.55rem', fontWeight: 600,
+          fontSize: 'var(--pl-text-2xs)', fontWeight: 600,
           color: 'var(--pl-muted)',
           padding: '2px 6px', borderRadius: '4px',
           background: 'var(--pl-cream-deep)',
@@ -81,7 +81,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
           border: error ? '1.5px solid var(--pl-warning)' : '1.5px solid var(--pl-divider)',
           background: 'var(--pl-cream-deep)',
           fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-          fontSize: '0.78rem',
+          fontSize: 'var(--pl-text-base)',
           lineHeight: 1.6,
           color: 'var(--pl-ink)',
           resize: 'vertical',
@@ -93,7 +93,7 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           marginTop: '6px', color: 'var(--pl-warning)',
-          fontSize: '0.72rem', fontWeight: 600,
+          fontSize: 'var(--pl-text-sm)', fontWeight: 600,
         }}>
           <AlertTriangle size={12} /> {error}
         </div>
@@ -123,10 +123,10 @@ export function CustomCSSEditor({ block, onChange }: CustomCSSEditorProps) {
       </div>
 
       <p style={{
-        fontSize: '0.62rem', color: 'var(--pl-muted)',
+        fontSize: 'var(--pl-text-2xs)', color: 'var(--pl-muted)',
         marginTop: '8px', lineHeight: 1.4,
       }}>
-        CSS is scoped to this block. Use <code style={{ fontSize: '0.58rem', background: 'var(--pl-cream-deep)', padding: '1px 4px', borderRadius: '3px' }}>.block</code> to target the wrapper.
+        CSS is scoped to this block. Use <code style={{ fontSize: 'var(--pl-text-2xs)', background: 'var(--pl-cream-deep)', padding: '1px 4px', borderRadius: '3px' }}>.block</code> to target the wrapper.
       </p>
     </div>
   );

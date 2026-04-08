@@ -12,15 +12,15 @@ export function DraftBanner({ onRestore, onDismiss }: DraftBannerProps) {
       background: 'var(--pl-gold, #D6C6A8)', color: 'var(--pl-ink)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       gap: '0.75rem', padding: '0.6rem 1rem',
-      fontSize: '0.85rem', fontWeight: 600,
+      fontSize: 'var(--pl-text-md)', fontWeight: 600,
     }}>
       <span>Unsaved draft recovered</span>
       <span style={{ opacity: 0.4 }}>—</span>
       <button
         onClick={onRestore}
         style={{
-          background: 'var(--pl-ink)', color: '#fff', border: 'none', borderRadius: '4px',
-          padding: '3px 10px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+          background: 'var(--pl-ink)', color: 'white', border: 'none', borderRadius: '4px',
+          padding: '3px 10px', fontSize: 'var(--pl-text-base)', fontWeight: 700, cursor: 'pointer',
         }}
       >
         restore draft
@@ -29,7 +29,7 @@ export function DraftBanner({ onRestore, onDismiss }: DraftBannerProps) {
         onClick={onDismiss}
         style={{
           background: 'transparent', border: 'none', cursor: 'pointer',
-          color: 'var(--pl-ink)', fontSize: '0.78rem', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
+          color: 'var(--pl-ink)', fontSize: 'var(--pl-text-base)', fontWeight: 600, opacity: 0.6, padding: '3px 6px',
         }}
       >
         dismiss

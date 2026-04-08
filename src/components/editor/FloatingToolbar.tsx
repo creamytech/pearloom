@@ -85,12 +85,12 @@ export function FloatingToolbar() {
           padding: '6px 8px',
           borderRadius: '100px',
           pointerEvents: 'auto',
-          background: 'rgba(255,255,255,0.88)',
-          backdropFilter: 'blur(24px) saturate(1.5)',
-          WebkitBackdropFilter: 'blur(24px) saturate(1.5)',
-          border: '1px solid rgba(0,0,0,0.06)',
+          background: 'var(--pl-glass-light)',
+          backdropFilter: 'var(--pl-glass-blur)',
+          WebkitBackdropFilter: 'var(--pl-glass-blur)',
+          border: '1px solid var(--pl-glass-light-border)',
           boxShadow:
-            '0 4px 24px rgba(43,30,20,0.1), 0 1px 4px rgba(43,30,20,0.06)',
+            'var(--pl-glass-shadow)',
           position: 'relative',
         } as React.CSSProperties}
       >
@@ -156,7 +156,7 @@ export function FloatingToolbar() {
                     style={{
                       position: 'absolute', inset: 0,
                       borderRadius: '12px',
-                      background: 'rgba(163,177,138,0.12)',
+                      background: 'var(--pl-olive-12)',
                       zIndex: -1,
                     }}
                     transition={SPRING_SNAPPY}
@@ -169,7 +169,7 @@ export function FloatingToolbar() {
                 {!isPrimary && (
                   <span
                     style={{
-                      fontSize: '0.55rem',
+                      fontSize: 'var(--pl-text-2xs)',
                       fontWeight: 700,
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
@@ -189,7 +189,7 @@ export function FloatingToolbar() {
           style={{
             width: '1px',
             height: '24px',
-            background: 'rgba(0,0,0,0.08)',
+            background: 'var(--pl-black-7)',
             margin: '0 4px',
             flexShrink: 0,
           }}
@@ -203,7 +203,7 @@ export function FloatingToolbar() {
             gap: '2px',
             padding: '2px',
             borderRadius: '100px',
-            background: 'rgba(0,0,0,0.03)',
+            background: 'var(--pl-black-4)',
           }}
         >
           {DEVICES.map(({ mode, Icon, label }) => {
@@ -256,7 +256,7 @@ export function FloatingToolbar() {
           style={{
             width: '1px',
             height: '24px',
-            background: 'rgba(0,0,0,0.08)',
+            background: 'var(--pl-black-7)',
             margin: '0 4px',
             flexShrink: 0,
           }}
@@ -269,7 +269,7 @@ export function FloatingToolbar() {
             const newZoom = state.previewZoom !== 1 ? 1 : 0.75;
             dispatch({ type: 'SET_PREVIEW_ZOOM', zoom: newZoom });
           }}
-          whileHover={{ scale: 1.08, y: -2, backgroundColor: 'rgba(0,0,0,0.04)' }}
+          whileHover={{ scale: 1.08, y: -2, backgroundColor: 'var(--pl-black-4)' }}
           whileTap={{ scale: 0.9 }}
           transition={SPRING_TAP}
           onMouseEnter={() => setTooltip('Zoom (\u2318+/\u2318-)')}
@@ -296,7 +296,7 @@ export function FloatingToolbar() {
           <ZoomIn size={14} />
           <span
             style={{
-              fontSize: '0.5rem',
+              fontSize: 'var(--pl-text-2xs)',
               fontWeight: 700,
               letterSpacing: '0.04em',
               fontVariantNumeric: 'tabular-nums',
@@ -322,9 +322,9 @@ export function FloatingToolbar() {
                 transform: 'translateX(-50%)',
                 padding: '4px 10px',
                 borderRadius: '6px',
-                background: 'rgba(30,25,20,0.92)',
+                background: 'var(--pl-glass-dark)',
                 color: 'white',
-                fontSize: '0.6rem',
+                fontSize: 'var(--pl-text-2xs)',
                 fontWeight: 600,
                 letterSpacing: '0.02em',
                 whiteSpace: 'nowrap',

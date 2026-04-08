@@ -307,7 +307,7 @@ export function PublicRsvpSection({
                         zIndex: 3,
                       }}
                     >
-                      <EnvelopeIcon size={16} color="#ffffff" />
+                      <EnvelopeIcon size={16} color="white" />
                     </div>
                   </div>
                 </motion.div>
@@ -367,7 +367,7 @@ export function PublicRsvpSection({
                       envelopeState === 'opening'
                         ? 'linear-gradient(135deg, #d4b87a, #a8894e)'
                         : 'linear-gradient(135deg, #C4A96A, #8B7040)',
-                    color: '#ffffff',
+                    color: 'white',
                     border: 'none',
                     borderRadius: '2rem',
                     fontFamily: 'var(--pl-font-body, inherit)',

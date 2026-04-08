@@ -145,7 +145,7 @@ export function SiteSharePanel({
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.4rem 0.8rem', borderRadius: '0.4rem', flexShrink: 0,
             background: copied === type ? 'rgba(34,197,94,0.1)' : 'var(--pl-ink)',
-            color:      copied === type ? '#16a34a'             : '#fff',
+            color:      copied === type ? '#16a34a'             : 'white',
             border:     copied === type ? '1px solid rgba(34,197,94,0.2)' : 'none',
             cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
             fontFamily: 'var(--pl-font-body)',
@@ -171,7 +171,7 @@ export function SiteSharePanel({
         display: 'flex', alignItems: 'center', gap: '0.4rem',
         padding: '0.55rem 1rem', borderRadius: '100px',
         background: primary ? 'var(--pl-ink)' : 'rgba(0,0,0,0.04)',
-        color:      primary ? '#fff'         : 'var(--pl-ink)',
+        color:      primary ? 'white'         : 'var(--pl-ink)',
         border:     primary ? 'none'         : '1px solid rgba(0,0,0,0.08)',
         cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
         fontFamily: 'var(--pl-font-body)', whiteSpace: 'nowrap',
@@ -293,7 +293,7 @@ export function SiteSharePanel({
                   onClick={() => setQrTab(tab)}
                   style={{
                     flex: 1, padding: '0.45rem', borderRadius: '0.45rem',
-                    background: qrTab === tab ? '#fff' : 'transparent',
+                    background: qrTab === tab ? 'var(--pl-cream-card)' : 'transparent',
                     border: 'none', cursor: 'pointer',
                     fontSize: '0.72rem', fontWeight: 600,
                     color: qrTab === tab ? 'var(--pl-ink)' : 'var(--pl-muted)',
