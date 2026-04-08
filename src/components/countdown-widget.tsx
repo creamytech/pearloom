@@ -194,9 +194,9 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
           </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'clamp(0.25rem, 1.5vw, 0.5rem)', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
           {segments.map((seg, i) => (
-            <div key={seg.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div key={seg.label} style={{ display: 'flex', alignItems: 'center', gap: 'clamp(0.25rem, 1.5vw, 0.5rem)' }}>
               {/* Unit card */}
               <div style={{
                 display: 'flex',
@@ -204,9 +204,9 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
                 alignItems: 'center',
                 background: cardBg,
                 border: `1px solid ${cardBorder}`,
-                borderRadius: '1.25rem',
-                padding: '1.1rem 1.6rem',
-                minWidth: '68px',
+                borderRadius: 'clamp(0.75rem, 2vw, 1.25rem)',
+                padding: 'clamp(0.6rem, 2vw, 1.1rem) clamp(0.8rem, 2.5vw, 1.6rem)',
+                minWidth: 'clamp(52px, 14vw, 68px)',
                 boxShadow: cardShadow,
                 backdropFilter: onPhoto ? 'blur(12px)' : 'none',
               }}>
@@ -216,7 +216,7 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.3 }}
                   style={{
-                    fontSize: '2.25rem',
+                    fontSize: 'clamp(1.5rem, 5vw, 2.25rem)',
                     fontWeight: 600,
                     color: textColor,
                     lineHeight: 1,

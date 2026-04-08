@@ -355,7 +355,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             fontSize: smartNameFontSize(
               names[1] ? [names[0], names[1]].reduce((a, b) => a.length > b.length ? a : b) : names[0]
             ),
-            lineHeight: 0.88,
+            lineHeight: 0.95,
             fontWeight: 300,
             fontStyle: 'italic',
             letterSpacing: '-0.04em',
@@ -384,7 +384,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
                   fontWeight: 300,
                   fontSize: 'clamp(2.2rem, 5.5vw, 5rem)',
                   color: heroSecondaryColor,
-                  margin: '-1.6rem 0 -1.4rem',
+                  margin: '-0.5rem 0 -0.3rem',
                   display: 'block',
                   letterSpacing: '0.02em',
                 }}

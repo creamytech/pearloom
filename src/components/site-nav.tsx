@@ -523,7 +523,14 @@ export function SiteNav({
                   lineHeight: 1,
                   color: 'inherit',
                 }}>
-                  {page.label.length > 8 ? page.label.slice(0, 7) + '…' : page.label}
+                  {(() => {
+                    const shortLabels: Record<string, string> = {
+                      'Our Story': 'Story', 'Our Photos': 'Photos',
+                      'Schedule': 'Events', 'Getting There': 'Travel',
+                    };
+                    const lbl = shortLabels[page.label] || page.label;
+                    return lbl.length > 8 ? lbl.slice(0, 7) + '…' : lbl;
+                  })()}
                 </span>
               </Link>
             );
