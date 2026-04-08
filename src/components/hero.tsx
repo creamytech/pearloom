@@ -525,50 +525,6 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         )}
       </motion.div>
 
-      {/* ── Animated Scroll Indicator ── */}
-      <motion.div
-        initial={isEditor ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.8, duration: 1.2 }}
-        style={{
-          position: 'absolute',
-          bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '0.6rem',
-          color: heroSecondaryColor,
-          zIndex: 20,
-        }}
-      >
-        {/* Mouse-scroll icon */}
-        <div style={{
-          width: '22px', height: '34px', borderRadius: '11px',
-          border: `1.5px solid ${coverPhoto ? 'rgba(255,255,255,0.28)' : 'currentColor'}`,
-          display: 'flex', justifyContent: 'center', paddingTop: '6px',
-          opacity: 0.55,
-        }}>
-          <motion.div
-            animate={{ y: [0, 8, 0], opacity: [1, 0.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              width: '3px', height: '6px', borderRadius: '2px',
-              background: coverPhoto ? 'var(--pl-ink)' : 'currentColor',
-            }}
-          />
-        </div>
-        <span style={{
-          fontSize: '0.55rem',
-          letterSpacing: '0.35em',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          opacity: 0.45,
-        }}>
-          Scroll
-        </span>
-      </motion.div>
     </section>
   );
 }

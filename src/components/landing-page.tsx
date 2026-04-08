@@ -177,7 +177,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
             <a
               key={label}
               href={`#${label.toLowerCase().replace(/ /g, '-')}`}
-              className="text-[0.85rem] font-medium text-white/55 no-underline tracking-[0.03em] transition-colors duration-200 hover:text-white"
+              className="text-[0.85rem] font-medium text-white/75 no-underline tracking-[0.03em] transition-colors duration-200 hover:text-white"
             >
               {label}
             </a>
@@ -224,7 +224,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 </span>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="bg-transparent border-0 cursor-pointer p-1.5 text-white/50 hover:text-white transition-colors"
+                  className="bg-transparent border-0 cursor-pointer p-1.5 text-white/70 hover:text-white transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -252,7 +252,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
                 >
                   Get Started Free
                 </Button>
-                <p className="text-center mt-3 text-[0.75rem] text-white/35 tracking-wider">
+                <p className="text-center mt-3 text-[0.75rem] text-white/60 tracking-wider">
                   No credit card required
                 </p>
               </div>
@@ -466,7 +466,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               <br />
               <span style={{ color: C.gold }}>Let&rsquo;s give it a home.</span>
             </h2>
-            <p className="text-[1rem] text-white/45 leading-[1.8] max-w-[440px]">
+            <p className="text-[1rem] text-white/70 leading-[1.8] max-w-[440px]">
               Weddings, birthdays, anniversaries, reunions &mdash; whatever you&rsquo;re celebrating,
               Pearloom and The Loom make it unforgettable.
             </p>
@@ -490,7 +490,7 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               <h3 className="font-heading text-[1.5rem] font-semibold italic text-white mb-2 leading-tight">
                 Create your first site
               </h3>
-              <p className="text-[0.85rem] text-white/45 leading-relaxed mb-8">
+              <p className="text-[0.85rem] text-white/70 leading-relaxed mb-8">
                 Answer a few questions. The Loom builds something extraordinary.
               </p>
               <Button
@@ -502,10 +502,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
               >
                 Begin Your Story <ArrowRight size={16} strokeWidth={2.2} />
               </Button>
-              <p className="text-center mt-3 text-[0.8rem] text-white/40 tracking-[0.02em]">
+              <p className="text-center mt-3 text-[0.8rem] text-white/65 tracking-[0.02em]">
                 Takes less than 2 minutes
               </p>
-              <p className="text-center mt-1 text-[0.68rem] text-white/25 tracking-[0.08em]">
+              <p className="text-center mt-1 text-[0.68rem] text-white/50 tracking-[0.08em]">
                 Free to start &nbsp;&middot;&nbsp; No credit card &nbsp;&middot;&nbsp; Live in minutes
               </p>
             </Card>

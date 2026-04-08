@@ -246,23 +246,6 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
         </motion.div>
       </div>
 
-      {/* Scroll cue */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 0.8 }}
-        className="absolute bottom-6 flex flex-col items-center gap-1 text-[0.62rem] font-bold tracking-[0.18em] uppercase text-[var(--pl-gold)]"
-      >
-        Scroll
-        <motion.div
-          animate={{ y: [0, 4, 0] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
-            <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </motion.div>
-      </motion.div>
     </section>
   );
 }
