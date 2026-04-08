@@ -662,9 +662,6 @@ export function GuestManager({ siteId, shareUrl }: GuestManagerProps) {
       )}
 
       <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
         }
         @media (max-width: 768px) {
           .guest-table-header { display: none !important; }

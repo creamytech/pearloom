@@ -77,7 +77,6 @@ function VenueAestheticChip({ loading, style, mood }: { loading: boolean; style:
             flexShrink: 0,
           }} />
           <span style={{ color: 'var(--pl-muted)' }}>Reading venue style…</span>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </>
       ) : (
         <>
@@ -1459,7 +1458,6 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           )}
           </div>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
         {/* Build my site button */}
         <div style={{ marginTop: '2.5rem' }}>

@@ -267,9 +267,6 @@ export function LanguageSwitcher({
 
       {/* CSS for spinner animation */}
       <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
       `}</style>
     </div>
   );

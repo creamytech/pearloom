@@ -53,15 +53,18 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
   const ref = useRef<HTMLElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
 
-  // Parallax tilt on hover
+  // Parallax tilt on hover — cached rect to avoid layout thrashing
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const rotateX = useSpring(useTransform(mouseY, [-300, 300], [4, -4]), { stiffness: 150, damping: 20 });
   const rotateY = useSpring(useTransform(mouseX, [-400, 400], [-4, 4]), { stiffness: 150, damping: 20 });
+  const cachedRect = useRef<DOMRect | null>(null);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!mockupRef.current) return;
-    const rect = mockupRef.current.getBoundingClientRect();
+    // Cache rect on first move, refresh on scroll/resize via handleMouseLeave
+    if (!cachedRect.current) cachedRect.current = mockupRef.current.getBoundingClientRect();
+    const rect = cachedRect.current;
     mouseX.set(e.clientX - (rect.left + rect.width / 2));
     mouseY.set(e.clientY - (rect.top + rect.height / 2));
   };
@@ -69,6 +72,7 @@ export function MarketingHero({ handleSignIn, status }: MarketingHeroProps) {
   const handleMouseLeave = () => {
     mouseX.set(0);
     mouseY.set(0);
+    cachedRect.current = null; // Invalidate cache
   };
 
   return (

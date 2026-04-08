@@ -616,7 +616,7 @@ export function RsvpDashboard({
       </div>
 
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
         input::placeholder { color: rgba(214,198,168,0.3); }
         input:focus { border-color: rgba(163,177,138,0.4) !important; }
       `}</style>

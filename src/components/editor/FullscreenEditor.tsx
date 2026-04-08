@@ -893,7 +893,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       </AnimatePresence>
 
       <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 100px; }

@@ -496,9 +496,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     };
 
     setupEditableElements();
-    const observer = new MutationObserver(setupEditableElements);
+    let rafId: number;
+    const observer = new MutationObserver(() => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(setupEditableElements);
+    });
     observer.observe(siteRef.current, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); cancelAnimationFrame(rafId); };
   }, [editMode, onTextEdit]);
 
   // ── Make icon elements clickable for swap ──

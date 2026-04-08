@@ -392,9 +392,6 @@ export function PhotoGallery({ siteId }: PhotoGalleryProps) {
           0% { background-position: -200% 0; }
           100% { background-position: 200% 0; }
         }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
         }
         @keyframes pulse-zone {
           0%, 100% { transform: scale(1); }

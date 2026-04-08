@@ -274,7 +274,6 @@ function SpinnerIcon() {
       fill="none"
       style={{ animation: 'spin 0.7s linear infinite' }}
     >
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <circle cx="8" cy="8" r="6" stroke="var(--pl-muted)" strokeWidth="2" />
       <path d="M8 2 A6 6 0 0 1 14 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
     </svg>
