@@ -131,12 +131,12 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
     );
   }
 
-  const textColor = onPhoto ? 'rgba(255,255,255,0.97)' : 'var(--pl-ink)';
-  const mutedColor = onPhoto ? 'rgba(255,255,255,0.52)' : 'var(--pl-muted)';
-  const cardBg = onPhoto ? 'rgba(0,0,0,0.06)' : 'var(--pl-ink)';
-  const cardBorder = onPhoto ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.07)';
+  const textColor = onPhoto ? '#ffffff' : 'var(--pl-ink)';
+  const mutedColor = onPhoto ? 'rgba(255,255,255,0.75)' : 'var(--pl-muted)';
+  const cardBg = onPhoto ? 'rgba(0,0,0,0.3)' : 'var(--pl-cream-card, #FDFAF4)';
+  const cardBorder = onPhoto ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)';
   const cardShadow = onPhoto
-    ? '0 4px 20px rgba(0,0,0,0.15)'
+    ? '0 4px 20px rgba(0,0,0,0.25)'
     : '0 4px 20px rgba(43,43,43,0.07), 0 1px 4px rgba(43,43,43,0.04)';
 
   const segments = [
@@ -208,7 +208,8 @@ export function CountdownWidget({ targetDate, onPhoto = false }: CountdownWidget
                 padding: 'clamp(0.6rem, 2vw, 1.1rem) clamp(0.8rem, 2.5vw, 1.6rem)',
                 minWidth: 'clamp(52px, 14vw, 68px)',
                 boxShadow: cardShadow,
-                backdropFilter: onPhoto ? 'blur(12px)' : 'none',
+                backdropFilter: onPhoto ? 'blur(16px) saturate(1.2)' : 'none',
+                WebkitBackdropFilter: onPhoto ? 'blur(16px) saturate(1.2)' : 'none',
               }}>
                 <motion.span
                   key={seg.value}
