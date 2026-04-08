@@ -221,68 +221,148 @@ export default function MarketplacePage() {
                   </div>
                 </div>
 
-                <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5' : 'flex flex-col gap-3'}>
-                  {siteResults.map((template, i) => (
-                    <motion.div
-                      key={template.id}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.3 }}
-                    >
-                      <div className={`rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white transition-all duration-200 hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 ${viewMode === 'list' ? 'flex' : ''}`}>
-                        {/* Preview gradient */}
+                <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6' : 'flex flex-col gap-4'}>
+                  {siteResults.map((template, i) => {
+                    const colors = template.theme.colors;
+                    const fonts = template.theme.fonts;
+                    const isFree = !template.price || template.price === 0;
+                    const isOwned = ownedItems.has(template.id);
+                    const canUse = isFree || isOwned;
+
+                    return (
+                      <div
+                        key={template.id}
+                        className={`pl-enter group rounded-[20px] overflow-hidden transition-all duration-300 hover:shadow-[0_16px_48px_rgba(43,30,20,0.12)] hover:-translate-y-1.5 ${viewMode === 'list' ? 'flex' : ''}`}
+                        style={{ animationDelay: `${i * 40}ms`, border: `1px solid ${colors.accent}20` }}
+                      >
+                        {/* ── Mini site preview ── */}
                         <div
-                          className={viewMode === 'list' ? 'w-[180px] shrink-0' : ''}
+                          className={viewMode === 'list' ? 'w-[200px] shrink-0' : ''}
                           style={{
-                            height: viewMode === 'list' ? '100%' : '150px',
-                            minHeight: viewMode === 'list' ? '110px' : undefined,
-                            background: template.previewGradient,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            height: viewMode === 'list' ? '100%' : '200px',
+                            minHeight: viewMode === 'list' ? '140px' : undefined,
+                            background: colors.background,
                             position: 'relative',
+                            overflow: 'hidden',
                           }}
                         >
-                          <span style={{
-                            fontFamily: `"${template.theme.fonts.heading}", serif`,
-                            fontSize: viewMode === 'list' ? '0.92rem' : '1.2rem',
-                            fontStyle: 'italic', fontWeight: 600,
-                            color: template.theme.colors.foreground, opacity: 0.6,
-                          }}>{template.name}</span>
-                          {template.popularity >= 90 && (
-                            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.52rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]">
-                              <Sparkles size={8} /> Popular
-                            </div>
+                          {/* Cover photo or gradient as hero preview */}
+                          {template.coverPhoto ? (
+                            <>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`${template.coverPhoto}&w=600&h=400`}
+                                alt=""
+                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)' }} />
+                            </>
+                          ) : (
+                            <div style={{ position: 'absolute', inset: 0, background: template.previewGradient }} />
                           )}
-                          {template.featured && (
-                            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--pl-gold)]/90 backdrop-blur-sm text-[0.52rem] font-bold uppercase tracking-[0.08em] text-white" style={{ left: template.popularity >= 90 ? '90px' : '12px' }}>
-                              ★ Featured
+
+                          {/* Mini hero text overlay */}
+                          <div style={{
+                            position: 'absolute', inset: 0, display: 'flex',
+                            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                            padding: '16px', textAlign: 'center', zIndex: 2,
+                          }}>
+                            <div style={{
+                              fontFamily: `"${fonts.heading}", serif`,
+                              fontSize: viewMode === 'list' ? '1rem' : '1.4rem',
+                              fontStyle: 'italic', fontWeight: 400,
+                              color: template.coverPhoto ? '#ffffff' : colors.foreground,
+                              lineHeight: 1.1, letterSpacing: '-0.02em',
+                              textShadow: template.coverPhoto ? '0 2px 12px rgba(0,0,0,0.4)' : 'none',
+                            }}>
+                              Emma<br /><span style={{ fontSize: '0.6em', opacity: 0.7 }}>&</span><br />James
                             </div>
-                          )}
-                          {template.price && template.price > 0 && !ownedItems.has(template.id) && (
-                            <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[0.55rem] font-bold text-white">
-                              {formatPrice(template.price)}
-                            </div>
-                          )}
-                          {ownedItems.has(template.id) && (
-                            <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--pl-olive)]/90 backdrop-blur-sm text-[0.52rem] font-bold text-white">
-                              <Check size={8} /> Owned
-                            </div>
-                          )}
+                            {template.poetry.heroTagline && (
+                              <div style={{
+                                fontFamily: `"${fonts.body}", sans-serif`,
+                                fontSize: '0.55rem', fontStyle: 'italic',
+                                color: template.coverPhoto ? 'rgba(255,255,255,0.7)' : colors.muted,
+                                marginTop: '6px', letterSpacing: '0.04em',
+                                textShadow: template.coverPhoto ? '0 1px 4px rgba(0,0,0,0.3)' : 'none',
+                              }}>
+                                {template.poetry.heroTagline}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Color palette strip at bottom */}
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: '3px', zIndex: 3 }}>
+                            {[colors.accent, colors.accentLight, colors.background, colors.foreground, colors.muted].map((c, ci) => (
+                              <div key={ci} style={{ flex: 1, background: c }} />
+                            ))}
+                          </div>
+
+                          {/* Badges */}
+                          <div className="absolute top-3 left-3 flex gap-1.5 z-10">
+                            {template.popularity >= 90 && (
+                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[0.5rem] font-bold uppercase tracking-[0.06em] text-[var(--pl-olive-deep)]">
+                                <Sparkles size={7} /> Popular
+                              </div>
+                            )}
+                            {template.featured && (
+                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/90 backdrop-blur-sm text-[0.5rem] font-bold uppercase tracking-[0.06em] text-white">
+                                ★ Featured
+                              </div>
+                            )}
+                          </div>
+                          <div className="absolute top-3 right-3 z-10">
+                            {!isFree && !isOwned && (
+                              <div className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[0.55rem] font-bold text-white">
+                                {formatPrice(template.price!)}
+                              </div>
+                            )}
+                            {isOwned && (
+                              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-600/90 backdrop-blur-sm text-[0.5rem] font-bold text-white">
+                                <Check size={7} /> Owned
+                              </div>
+                            )}
+                            {isFree && !isOwned && (
+                              <div className="px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[0.5rem] font-bold text-[var(--pl-olive-deep)]">
+                                Free
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex items-center' : ''}`}>
+                        {/* ── Card body ── */}
+                        <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex items-center' : ''}`} style={{ background: 'white' }}>
                           <div className={viewMode === 'list' ? 'flex-1' : ''}>
-                            <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)] mb-0.5">{template.name}</h3>
-                            <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed mb-2">{template.tagline}</p>
-                            <div className="flex gap-1 flex-wrap mb-3">
-                              {template.tags.slice(0, 3).map(tag => (
-                                <span key={tag} className="text-[0.52rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">{tag}</span>
-                              ))}
+                            {/* Font preview */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <span style={{
+                                fontFamily: `"${fonts.heading}", serif`,
+                                fontSize: '0.95rem', fontStyle: 'italic', fontWeight: 600,
+                                color: 'var(--pl-ink)',
+                              }}>{template.name}</span>
+                              <span className="text-[0.55rem] font-bold tracking-[0.06em] uppercase px-1.5 py-0.5 rounded-full" style={{
+                                background: `${colors.accent}15`,
+                                color: colors.accent,
+                              }}>
+                                {template.occasions[0]}
+                              </span>
                             </div>
+                            <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed mb-3">{template.tagline}</p>
+
+                            {/* Font info */}
+                            <div className="flex items-center gap-3 mb-3 text-[0.58rem] text-[var(--pl-muted)]">
+                              <span style={{ fontFamily: `"${fonts.heading}", serif`, fontStyle: 'italic' }}>{fonts.heading}</span>
+                              <span>+</span>
+                              <span style={{ fontFamily: `"${fonts.body}", sans-serif` }}>{fonts.body}</span>
+                              <span className="ml-auto">{template.blocks.length} blocks</span>
+                            </div>
+
+                            {/* Action */}
                             <div className="flex items-center gap-2">
-                              {(!template.price || template.price === 0 || ownedItems.has(template.id)) ? (
+                              {canUse ? (
                                 <Link
                                   href="/dashboard"
-                                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold no-underline hover:opacity-90 transition-opacity"
+                                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[0.72rem] font-bold no-underline transition-opacity hover:opacity-90"
+                                  style={{ background: colors.accent, color: '#fff' }}
                                 >
                                   Use Template <ArrowRight size={11} />
                                 </Link>
@@ -290,23 +370,17 @@ export default function MarketplacePage() {
                                 <button
                                   onClick={() => handlePurchase(template.id, 'template')}
                                   disabled={purchasing === template.id}
-                                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-ink)] text-white text-[0.68rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
+                                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--pl-ink)] text-white text-[0.72rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
                                 >
-                                  {purchasing === template.id ? 'Loading...' : (
-                                    <><ShoppingBag size={11} /> {formatPrice(template.price)}</>
-                                  )}
+                                  {purchasing === template.id ? 'Loading...' : <><ShoppingBag size={11} /> Get Template</>}
                                 </button>
                               )}
-                              <span className="text-[0.62rem] text-[var(--pl-muted)]">
-                                {template.blocks.length} blocks
-                                {(!template.price || template.price === 0) ? ' · Free' : ownedItems.has(template.id) ? ' · Owned' : ''}
-                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             )}
