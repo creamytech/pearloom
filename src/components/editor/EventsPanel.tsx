@@ -91,11 +91,11 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+        <div style={{ flex: 1, height: '1px', background: 'var(--pl-black-4)' }} />
         <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>
           {manifest.occasion === 'birthday' ? 'Party Events' : manifest.occasion === 'anniversary' ? 'Anniversary Events' : 'Wedding Events'}
         </span>
-        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.05)' }} />
+        <div style={{ flex: 1, height: '1px', background: 'var(--pl-black-4)' }} />
       </div>
 
       {events.length === 0 ? (
@@ -121,7 +121,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
           const evtTypeOpt = EVENT_TYPE_OPTS.find(o => o.type === (evt.type || 'other')) || EVENT_TYPE_OPTS[EVENT_TYPE_OPTS.length - 1];
           const isExpanded = expandedId === evt.id;
           return (
-            <div key={evt.id} style={{ borderRadius: '10px', border: `1px solid ${isExpanded ? `${evtTypeOpt.color}35` : 'rgba(0,0,0,0.05)'}`, background: isExpanded ? `${evtTypeOpt.color}08` : 'rgba(163,177,138,0.05)', overflow: 'hidden', transition: 'all 0.15s' }}>
+            <div key={evt.id} style={{ borderRadius: '10px', border: `1px solid ${isExpanded ? `${evtTypeOpt.color}35` : 'var(--pl-black-4)'}`, background: isExpanded ? `${evtTypeOpt.color}08` : 'var(--pl-olive-5)', overflow: 'hidden', transition: 'all 0.15s' }}>
               {/* Card header — click to expand */}
               <button
                 onClick={() => setExpandedId(isExpanded ? null : evt.id)}
@@ -155,7 +155,7 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
                               style={{
                                 padding: '5px 12px', borderRadius: '100px', border: 'none', cursor: 'pointer',
                                 fontSize: '0.82rem', fontWeight: 700,
-                                background: (evt.type || 'other') === opt.type ? opt.color : 'rgba(0,0,0,0.06)',
+                                background: (evt.type || 'other') === opt.type ? opt.color : 'var(--pl-black-6)',
                                 color: (evt.type || 'other') === opt.type ? '#fff' : 'var(--pl-ink-soft)',
                                 transition: 'all 0.15s',
                               }}
@@ -215,8 +215,8 @@ export function EventsPanel({ manifest, onChange }: { manifest: StoryManifest; o
       {/* Add event button */}
       <button
         onClick={addEvent}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed rgba(163,177,138,0.4)', background: 'transparent', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s' }}
-        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.08)'; }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '8px', border: '1px dashed var(--pl-olive-40)', background: 'transparent', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.15s' }}
+        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--pl-olive-8)'; }}
         onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <Plus size={13} /> Add Event

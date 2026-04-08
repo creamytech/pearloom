@@ -104,7 +104,7 @@ export function SectionStyleEditor({
               flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
               cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
               background: isDark ? 'var(--pl-plum, #6D597A)' : 'rgba(0,0,0,0.05)',
-              color: isDark ? '#fff' : 'var(--pl-ink-soft)',
+              color: isDark ? 'white' : 'var(--pl-ink-soft)',
               transition: 'all 0.15s',
               minHeight: '36px',
             }}
@@ -117,7 +117,7 @@ export function SectionStyleEditor({
               flex: 1, padding: '7px 10px', borderRadius: '6px', border: 'none',
               cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
               background: !isDark ? 'var(--pl-plum, #6D597A)' : 'rgba(0,0,0,0.05)',
-              color: !isDark ? '#fff' : 'var(--pl-ink-soft)',
+              color: !isDark ? 'white' : 'var(--pl-ink-soft)',
               transition: 'all 0.15s',
               minHeight: '36px',
             }}
@@ -139,7 +139,7 @@ export function SectionStyleEditor({
                 flex: 1, padding: '7px 6px', borderRadius: '6px', border: 'none',
                 cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                 background: padding === opt.value ? 'var(--pl-plum, #6D597A)' : 'rgba(0,0,0,0.05)',
-                color: padding === opt.value ? '#fff' : 'var(--pl-ink-soft)',
+                color: padding === opt.value ? 'white' : 'var(--pl-ink-soft)',
                 transition: 'all 0.15s',
                 minHeight: '36px',
               }}
@@ -166,7 +166,7 @@ export function SectionStyleEditor({
             <span style={{
               position: 'absolute', top: '2px',
               left: currentOverrides.fullWidth ? '18px' : '2px',
-              width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
+              width: '16px', height: '16px', borderRadius: '50%', background: 'var(--pl-cream-card)',
               transition: 'left 0.2s', display: 'block',
             }} />
           </button>
@@ -185,7 +185,7 @@ export function SectionStyleEditor({
             <span style={{
               position: 'absolute', top: '2px',
               left: currentOverrides.dividerBefore ? '18px' : '2px',
-              width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
+              width: '16px', height: '16px', borderRadius: '50%', background: 'var(--pl-cream-card)',
               transition: 'left 0.2s', display: 'block',
             }} />
           </button>
@@ -204,7 +204,7 @@ export function SectionStyleEditor({
             <span style={{
               position: 'absolute', top: '2px',
               left: currentOverrides.dividerAfter ? '18px' : '2px',
-              width: '16px', height: '16px', borderRadius: '50%', background: '#fff',
+              width: '16px', height: '16px', borderRadius: '50%', background: 'var(--pl-cream-card)',
               transition: 'left 0.2s', display: 'block',
             }} />
           </button>
