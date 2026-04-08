@@ -445,10 +445,10 @@ export function LandingPage({ handleSignIn, status }: LandingPageProps) {
         ref={ctaRef}
         className="relative bg-[var(--pl-ink)] overflow-hidden py-[clamp(4rem,8vw,7rem)] px-[clamp(1.5rem,5vw,4rem)]"
       >
-        {/* Decorative circles */}
-        <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full border border-white/[0.04] pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-[340px] h-[340px] rounded-full border border-[var(--pl-gold)]/[0.08] pointer-events-none" />
-        <div className="absolute top-10 right-10 w-[200px] h-[200px] rounded-full border border-[var(--pl-plum)]/[0.12] pointer-events-none" />
+        {/* Decorative circles — hidden on mobile to prevent overlay issues */}
+        <div className="hidden md:block absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full border border-white/[0.04] pointer-events-none" />
+        <div className="hidden md:block absolute -bottom-20 -left-20 w-[340px] h-[340px] rounded-full border border-[var(--pl-gold)]/[0.08] pointer-events-none" />
+        <div className="hidden md:block absolute top-10 right-10 w-[200px] h-[200px] rounded-full border border-[var(--pl-plum)]/[0.12] pointer-events-none" />
 
         <div className="max-w-[1100px] mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
           {/* Left — text */}
