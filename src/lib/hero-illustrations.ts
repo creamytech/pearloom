@@ -154,6 +154,199 @@ function southernCharm(c: HeroColors): string {
   return wrap(c.background, art, gradientOverlay(c.background));
 }
 
+// ── Additional theme illustrations ─────────────────────────
+
+function blushBloom(c: HeroColors): string {
+  const petals = [250, 500, 750, 1000].map((x, i) => `<circle cx="${x}" cy="${150 + i * 30}" r="${35 - i * 3}" fill="${c.accent}" opacity=".08"/><circle cx="${x + 40}" cy="${200 + i * 20}" r="${25 - i * 2}" fill="${c.accent2}" opacity=".06"/>`).join('');
+  return wrap(c.background, `<g opacity=".2">${petals}</g>`, gradientOverlay(c.background));
+}
+
+function goldenHour(c: HeroColors): string {
+  const rays = [...Array(8)].map((_, i) => `<line x1="600" y1="0" x2="${i * 170}" y2="800" stroke="${c.accent}" stroke-width="1.5" opacity=".06"/>`).join('');
+  const sun = `<circle cx="600" cy="-50" r="200" fill="${c.accent}" opacity=".06"/>`;
+  return wrap(c.background, `<g>${sun}${rays}</g>`, gradientOverlay(c.background));
+}
+
+function lavenderDreams(c: HeroColors): string {
+  const stars = [...Array(20)].map((_, i) => `<circle cx="${60 + (i * 61) % 1100}" cy="${40 + (i * 43) % 700}" r="${1 + i % 3}" fill="${c.accent}" opacity=".${15 + i % 20}"/>`).join('');
+  const nebula = `<ellipse cx="400" cy="400" rx="300" ry="200" fill="${c.accent}" opacity=".04"/><ellipse cx="800" cy="300" rx="250" ry="180" fill="${c.accent2}" opacity=".03"/>`;
+  return wrap(c.background, `<g>${nebula}${stars}</g>`, gradientOverlay(c.background));
+}
+
+function bohoWildflower(c: HeroColors): string {
+  const grasses = [...Array(12)].map((_, i) => `<path d="M${80 + i * 100} 800q${10 - i % 20}-200 ${i % 2 ? 30 : -30}-400" fill="none" stroke="${i % 2 ? c.accent : c.accent2}" stroke-width="1" opacity=".12"/>`).join('');
+  const dots = [...Array(8)].map((_, i) => `<circle cx="${150 + i * 130}" cy="${300 + (i * 47) % 200}" r="${4 + i % 3}" fill="${c.accent}" opacity=".1"/>`).join('');
+  return wrap(c.background, `<g>${grasses}${dots}</g>`, gradientOverlay(c.background));
+}
+
+function classicElegance(c: HeroColors): string {
+  const frame = `<rect x="60" y="60" width="1080" height="680" rx="4" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".08"/><rect x="80" y="80" width="1040" height="640" rx="2" fill="none" stroke="${c.accent}" stroke-width=".5" opacity=".05"/>`;
+  const garland = `<path d="M100 100q250 40 500 0t500 0" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".1"/>`;
+  return wrap(c.background, `<g>${frame}${garland}</g>`, gradientOverlay(c.background));
+}
+
+function fairytale(c: HeroColors): string {
+  const towers = `<path d="M150 800v-400l30-50 30 50v400M990 800v-350l25-45 25 45v350" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".12"/>`;
+  const arch = `<path d="M200 400q400-250 800 0" fill="none" stroke="${c.accent2}" stroke-width="1.5" opacity=".1"/>`;
+  const stars = [...Array(6)].map((_, i) => `<circle cx="${300 + i * 120}" cy="${200 + (i * 37) % 150}" r="2" fill="${c.accent}" opacity=".15"/>`).join('');
+  return wrap(c.background, `<g>${towers}${arch}${stars}</g>`, gradientOverlay(c.background));
+}
+
+function cottagecore_(c: HeroColors): string {
+  const fence = [...Array(8)].map((_, i) => `<rect x="${100 + i * 140}" y="600" width="8" height="120" fill="${c.accent}" opacity=".06"/>`).join('');
+  const flowers = [...Array(10)].map((_, i) => `<circle cx="${130 + i * 110}" cy="${580 - (i * 23) % 60}" r="${5 + i % 3}" fill="${i % 2 ? c.accent : c.accent2}" opacity=".1"/>`).join('');
+  const path_ = `<path d="M0 650q300-30 600 0t600 0" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".08"/>`;
+  return wrap(c.background, `<g>${fence}${flowers}${path_}</g>`, gradientOverlay(c.background));
+}
+
+function regencyRomance(c: HeroColors): string {
+  const columns = `<rect x="100" y="200" width="20" height="500" rx="10" fill="${c.accent}" opacity=".06"/><rect x="1080" y="200" width="20" height="500" rx="10" fill="${c.accent}" opacity=".06"/>`;
+  const arch = `<path d="M120 200q480-180 960 0" fill="none" stroke="${c.accent}" stroke-width="1.5" opacity=".1"/>`;
+  const swags = `<path d="M200 250q200 50 400 0M600 250q200 50 400 0" fill="none" stroke="${c.accent2}" stroke-width="1" opacity=".08"/>`;
+  return wrap(c.background, `<g>${columns}${arch}${swags}</g>`, gradientOverlay(c.background));
+}
+
+function retroDisco(c: HeroColors): string {
+  const ball = `<circle cx="600" cy="100" r="60" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".15"/><line x1="600" y1="0" x2="600" y2="40" stroke="${c.accent}" stroke-width=".5" opacity=".1"/>`;
+  const rays = [...Array(12)].map((_, i) => `<line x1="600" y1="100" x2="${i * 110}" y2="800" stroke="${c.accent2}" stroke-width=".5" opacity=".06"/>`).join('');
+  return wrap(c.background, `<g>${ball}${rays}</g>`, gradientOverlay(c.background));
+}
+
+function blackAndWhite(c: HeroColors): string {
+  const lines = [...Array(6)].map((_, i) => `<line x1="0" y1="${i * 160}" x2="1200" y2="${i * 160}" stroke="${c.foreground}" stroke-width=".5" opacity=".05"/>`).join('');
+  const diag = `<line x1="0" y1="0" x2="1200" y2="800" stroke="${c.foreground}" stroke-width=".3" opacity=".04"/><line x1="1200" y1="0" x2="0" y2="800" stroke="${c.foreground}" stroke-width=".3" opacity=".04"/>`;
+  return wrap(c.background, `<g>${lines}${diag}</g>`, gradientOverlay(c.background));
+}
+
+function gothicCathedral(c: HeroColors): string {
+  const arches = [...Array(5)].map((_, i) => `<path d="M${100 + i * 250} 700v-300q0-100 125-150q125 50 125 150v300" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".1"/>`).join('');
+  const cross = `<path d="M600 150v200M540 250h120" stroke="${c.accent}" stroke-width="1.5" opacity=".08"/>`;
+  return wrap(c.background, `<g>${arches}${cross}</g>`, gradientOverlay(c.background));
+}
+
+function nauticalPrep(c: HeroColors): string {
+  const waves = [...Array(4)].map((_, i) => `<path d="M0 ${550 + i * 60}q150-30 300 0t300 0t300 0t300 0" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".${8 - i}"/>`).join('');
+  const anchor = `<circle cx="600" cy="300" r="30" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".08"/><line x1="600" y1="270" x2="600" y2="380" stroke="${c.accent}" stroke-width="1" opacity=".08"/>`;
+  return wrap(c.background, `<g>${waves}${anchor}</g>`, gradientOverlay(c.background));
+}
+
+function mountainLodge(c: HeroColors): string {
+  const mountains = `<path d="M0 600l200-300 150 100 250-350 200 250 150-200 250 300v200H0z" fill="${c.accent}" opacity=".06"/>`;
+  const pines = [...Array(6)].map((_, i) => `<path d="M${150 + i * 180} 600l-20-60 30 10-10-50 25 10-5-40 20 10 0-30 20 30-5-10 25-10-10 50 30-10z" fill="${c.accent}" opacity=".05"/>`).join('');
+  return wrap(c.background, `<g>${mountains}${pines}</g>`, gradientOverlay(c.background));
+}
+
+function japandiZen(c: HeroColors): string {
+  const circle = `<circle cx="600" cy="350" r="180" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".08"/>`;
+  const branch = `<path d="M300 350q150-30 300 20" fill="none" stroke="${c.accent}" stroke-width="1.5" opacity=".1"/><circle cx="620" cy="365" r="6" fill="${c.accent}" opacity=".08"/>`;
+  const horizon = `<line x1="200" y1="550" x2="1000" y2="550" stroke="${c.accent}" stroke-width=".5" opacity=".06"/>`;
+  return wrap(c.background, `<g>${circle}${branch}${horizon}</g>`, gradientOverlay(c.background));
+}
+
+function victorianGarden(c: HeroColors): string {
+  const frame = `<rect x="50" y="50" width="1100" height="700" rx="8" fill="none" stroke="${c.accent}" stroke-width="1.5" opacity=".08"/><rect x="70" y="70" width="1060" height="660" rx="4" fill="none" stroke="${c.accent}" stroke-width=".8" opacity=".05"/>`;
+  const corners = `<path d="M60 60q30 30 60 0M1140 60q-30 30-60 0M60 740q30-30 60 0M1140 740q-30-30-60 0" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".1"/>`;
+  return wrap(c.background, `<g>${frame}${corners}</g>`, gradientOverlay(c.background));
+}
+
+function fallHarvest(c: HeroColors): string {
+  const leaves = [...Array(15)].map((_, i) => `<path d="M${80 + (i * 83) % 1100} ${100 + (i * 57) % 600}q10-15 0-30q-10 15 0 30" fill="${i % 3 === 0 ? c.accent : c.accent2}" opacity=".${8 + i % 8}" transform="rotate(${(i * 37) % 360} ${80 + (i * 83) % 1100} ${100 + (i * 57) % 600})"/>`).join('');
+  return wrap(c.background, `<g opacity=".2">${leaves}</g>`, gradientOverlay(c.background));
+}
+
+function darkAcademia(c: HeroColors): string {
+  const shelves = [...Array(4)].map((_, i) => `<line x1="100" y1="${200 + i * 150}" x2="1100" y2="${200 + i * 150}" stroke="${c.accent}" stroke-width="1" opacity=".06"/>`).join('');
+  const books = [...Array(12)].map((_, i) => `<rect x="${120 + i * 80}" y="${170 + (i % 4) * 150}" width="${12 + i % 8}" height="28" rx="1" fill="${i % 2 ? c.accent : c.accent2}" opacity=".08"/>`).join('');
+  return wrap(c.background, `<g>${shelves}${books}</g>`, gradientOverlay(c.background));
+}
+
+function oldMoney(c: HeroColors): string {
+  const frame = `<rect x="100" y="100" width="1000" height="600" rx="2" fill="none" stroke="${c.accent}" stroke-width=".8" opacity=".06"/>`;
+  const monogram = `<circle cx="600" cy="400" r="60" fill="none" stroke="${c.accent}" stroke-width=".5" opacity=".05"/>`;
+  return wrap(c.background, `<g>${frame}${monogram}</g>`, gradientOverlay(c.background));
+}
+
+function maximalistColor(c: HeroColors): string {
+  const shapes = [...Array(15)].map((_, i) => {
+    const x = 50 + (i * 83) % 1100, y = 50 + (i * 67) % 700, r = 20 + i % 40;
+    return i % 3 === 0 ? `<circle cx="${x}" cy="${y}" r="${r}" fill="${c.accent}" opacity=".06"/>` : i % 3 === 1 ? `<rect x="${x}" y="${y}" width="${r}" height="${r}" fill="${c.accent2}" opacity=".05" transform="rotate(${i * 15} ${x} ${y})"/>` : `<polygon points="${x},${y - r} ${x + r},${y + r} ${x - r},${y + r}" fill="${c.foreground}" opacity=".04"/>`;
+  }).join('');
+  return wrap(c.background, `<g>${shapes}</g>`, gradientOverlay(c.background));
+}
+
+function countryBarn(c: HeroColors): string {
+  const barn = `<path d="M400 500l200-150 200 150v200H400z" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".08"/><path d="M400 500l200-150 200 150" fill="none" stroke="${c.accent}" stroke-width="1.5" opacity=".1"/>`;
+  const fence = [...Array(10)].map((_, i) => `<rect x="${50 + i * 120}" y="650" width="6" height="80" fill="${c.accent}" opacity=".04"/>`).join('');
+  const fenceLine = `<line x1="50" y1="680" x2="1150" y2="680" stroke="${c.accent}" stroke-width=".5" opacity=".05"/>`;
+  return wrap(c.background, `<g>${barn}${fence}${fenceLine}</g>`, gradientOverlay(c.background));
+}
+
+function westernRanch(c: HeroColors): string {
+  const mesa = `<path d="M0 600l100-200h200l50 50h300l50-50h200l100 200v200H0z" fill="${c.accent}" opacity=".05"/>`;
+  const cacti = `<path d="M300 500v-100M280 440h20M320 460h-20" stroke="${c.accent}" stroke-width="2" opacity=".08"/><path d="M900 520v-80M885 470h15M915 480h-15" stroke="${c.accent}" stroke-width="2" opacity=".06"/>`;
+  const sun = `<circle cx="600" cy="200" r="60" fill="${c.accent2}" opacity=".06"/>`;
+  return wrap(c.background, `<g>${sun}${mesa}${cacti}</g>`, gradientOverlay(c.background));
+}
+
+function romanticBlush(c: HeroColors): string {
+  const petals = [...Array(12)].map((_, i) => `<ellipse cx="${100 + (i * 97) % 1000}" cy="${100 + (i * 71) % 600}" rx="${15 + i % 10}" ry="${20 + i % 12}" fill="${c.accent}" opacity=".06" transform="rotate(${i * 30} ${100 + (i * 97) % 1000} ${100 + (i * 71) % 600})"/>`).join('');
+  return wrap(c.background, `<g>${petals}</g>`, gradientOverlay(c.background));
+}
+
+function wildflowerMeadow(c: HeroColors): string {
+  const stems = [...Array(15)].map((_, i) => `<path d="M${80 + i * 75} 800q${(i % 2 ? 10 : -10)}-150 ${i % 2 ? 20 : -20}-350" fill="none" stroke="${i % 3 === 0 ? c.accent : c.accent2}" stroke-width="1" opacity=".1"/><circle cx="${80 + i * 75 + (i % 2 ? 20 : -20)}" cy="${450 - (i * 17) % 100}" r="${4 + i % 4}" fill="${i % 2 ? c.accent : c.accent2}" opacity=".12"/>`).join('');
+  return wrap(c.background, `<g>${stems}</g>`, gradientOverlay(c.background));
+}
+
+function whimsicalGarden(c: HeroColors): string {
+  const swirls = [...Array(6)].map((_, i) => `<circle cx="${200 + i * 160}" cy="${300 + (i * 43) % 200}" r="${30 + i * 5}" fill="none" stroke="${i % 2 ? c.accent : c.accent2}" stroke-width="1" opacity=".08" stroke-dasharray="5 5"/>`).join('');
+  const dots = [...Array(20)].map((_, i) => `<circle cx="${60 + (i * 61) % 1080}" cy="${60 + (i * 41) % 680}" r="${2 + i % 3}" fill="${i % 3 === 0 ? c.accent : c.accent2}" opacity=".1"/>`).join('');
+  return wrap(c.background, `<g>${swirls}${dots}</g>`, gradientOverlay(c.background));
+}
+
+function natureOrganic(c: HeroColors): string {
+  const waves = [...Array(5)].map((_, i) => `<path d="M0 ${400 + i * 80}q300-${40 + i * 10} 600 0t600 0" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".${10 - i}"/>`).join('');
+  const leaves = [...Array(4)].map((_, i) => `<path d="M${200 + i * 250} ${300 + (i * 47) % 150}q20-30 0-50q-20 20 0 50" fill="${c.accent}" opacity=".06"/>`).join('');
+  return wrap(c.background, `<g>${waves}${leaves}</g>`, gradientOverlay(c.background));
+}
+
+// Birthday themes
+function y2kReloaded(c: HeroColors): string {
+  const bubbles = [...Array(15)].map((_, i) => `<circle cx="${80 + (i * 79) % 1040}" cy="${60 + (i * 53) % 680}" r="${15 + i % 20}" fill="none" stroke="${i % 2 ? c.accent : c.accent2}" stroke-width="1" opacity=".1"/>`).join('');
+  const stars = [...Array(8)].map((_, i) => `<path d="M${150 + i * 130} ${200 + (i * 47) % 400}l4-12 4 12 12-4-12 4 4 12-4-12-12 4z" fill="${i % 2 ? c.accent : c.accent2}" opacity=".12"/>`).join('');
+  return wrap(c.background, `<g>${bubbles}${stars}</g>`, gradientOverlay(c.background));
+}
+
+function agedToPerfection(c: HeroColors): string {
+  const glass = `<path d="M560 300l40 100h-80z" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".1"/><line x1="600" y1="400" x2="600" y2="500" stroke="${c.accent}" stroke-width="1" opacity=".08"/><ellipse cx="600" cy="500" rx="30" ry="5" fill="none" stroke="${c.accent}" stroke-width=".8" opacity=".08"/>`;
+  const rings = `<circle cx="300" cy="400" r="80" fill="none" stroke="${c.accent2}" stroke-width=".5" opacity=".06"/><circle cx="900" cy="350" r="60" fill="none" stroke="${c.accent2}" stroke-width=".5" opacity=".05"/>`;
+  return wrap(c.background, `<g>${glass}${rings}</g>`, gradientOverlay(c.background));
+}
+
+function futureNoir(c: HeroColors): string {
+  const grid = [...Array(8)].map((_, i) => `<line x1="${i * 170}" y1="0" x2="${i * 170}" y2="800" stroke="${c.accent}" stroke-width=".3" opacity=".08"/>`).join('') + [...Array(6)].map((_, i) => `<line x1="0" y1="${i * 160}" x2="1200" y2="${i * 160}" stroke="${c.accent}" stroke-width=".3" opacity=".06"/>`).join('');
+  const hex = `<polygon points="600,250 660,290 660,370 600,410 540,370 540,290" fill="none" stroke="${c.accent}" stroke-width="1" opacity=".12"/>`;
+  return wrap(c.background, `<g>${grid}${hex}</g>`, gradientOverlay(c.background));
+}
+
+function martiniHour(c: HeroColors): string {
+  const glass = `<path d="M550 250l50 120h-100z" fill="none" stroke="${c.accent}" stroke-width="1.5" opacity=".12"/><line x1="600" y1="370" x2="600" y2="450" stroke="${c.accent}" stroke-width="1" opacity=".1"/><line x1="570" y1="450" x2="630" y2="450" stroke="${c.accent}" stroke-width="1" opacity=".1"/>`;
+  const bubbles = [...Array(5)].map((_, i) => `<circle cx="${580 + (i * 13) % 40}" cy="${270 + i * 15}" r="${2 + i % 2}" fill="${c.accent}" opacity=".08"/>`).join('');
+  return wrap(c.background, `<g>${glass}${bubbles}</g>`, gradientOverlay(c.background));
+}
+
+function gothicMasquerade(c: HeroColors): string {
+  const mask = `<ellipse cx="600" cy="350" rx="100" ry="60" fill="none" stroke="${c.accent}" stroke-width="1.5" opacity=".12"/><circle cx="560" cy="340" r="15" fill="none" stroke="${c.accent}" stroke-width=".8" opacity=".1"/><circle cx="640" cy="340" r="15" fill="none" stroke="${c.accent}" stroke-width=".8" opacity=".1"/>`;
+  const feathers = `<path d="M500 300q-40-80-20-150M700 300q40-80 20-150" fill="none" stroke="${c.accent2}" stroke-width="1" opacity=".08"/>`;
+  return wrap(c.background, `<g>${mask}${feathers}</g>`, gradientOverlay(c.background));
+}
+
+function maxFunHouse(c: HeroColors): string {
+  const tent = `<path d="M200 600l400-350 400 350" fill="none" stroke="${c.accent}" stroke-width="2" opacity=".1"/><path d="M300 600l300-250 300 250" fill="none" stroke="${c.accent2}" stroke-width="1" opacity=".08"/>`;
+  const pennants = [...Array(8)].map((_, i) => `<path d="M${200 + i * 100} 300l15 30-30 0z" fill="${i % 2 ? c.accent : c.accent2}" opacity=".08"/>`).join('');
+  return wrap(c.background, `<g>${tent}${pennants}</g>`, gradientOverlay(c.background));
+}
+
 // ── Generic / fallback illustration ──────────────────────────
 function genericIllustration(themeId: string, c: HeroColors): string {
   // Create a deterministic seed from theme name
@@ -207,6 +400,41 @@ const GENERATORS: Record<string, (c: HeroColors) => string> = {
   'modern-glam': modernGlam,
   'vintage-romance': vintageRomance,
   'southern-charm': southernCharm,
+  // Additional themes
+  'blush-bloom': blushBloom,
+  'golden-hour': goldenHour,
+  'lavender-dreams': lavenderDreams,
+  'boho-wildflower': bohoWildflower,
+  'classic-elegance': classicElegance,
+  'fairytale-castle': fairytale,
+  'cottagecore': cottagecore_,
+  'regency-romance': regencyRomance,
+  'retro-disco': retroDisco,
+  'black-and-white': blackAndWhite,
+  'gothic-cathedral': gothicCathedral,
+  'nautical-prep': nauticalPrep,
+  'mountain-lodge': mountainLodge,
+  'japandi-zen': japandiZen,
+  'victorian-garden': victorianGarden,
+  'fall-harvest': fallHarvest,
+  'dark-academia': darkAcademia,
+  'old-money': oldMoney,
+  'maximalist-color': maximalistColor,
+  'country-barn': countryBarn,
+  'western-ranch': westernRanch,
+  'romantic-blush': romanticBlush,
+  'wildflower-meadow': wildflowerMeadow,
+  'whimsical-garden': whimsicalGarden,
+  'nature-organic': natureOrganic,
+  'rustic-romance': (c) => bohoWildflower(c), // Similar aesthetic
+  'minimalist-white': blackAndWhite, // Same clean-line approach
+  // Birthday themes
+  'y2k-reloaded': y2kReloaded,
+  'aged-to-perfection': agedToPerfection,
+  'future-noir': futureNoir,
+  'martini-hour': martiniHour,
+  'gothic-masquerade': gothicMasquerade,
+  'maximalist-fun-house': maxFunHouse,
 };
 
 /**
