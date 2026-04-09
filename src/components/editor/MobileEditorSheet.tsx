@@ -128,6 +128,18 @@ export function MobileEditorSheet() {
     setActiveChapterId(null);
     setActiveTab('edit');
     setSheetSnap(1);
+
+    // Flash highlight on the tapped section in preview
+    const el = previewRef.current?.querySelector(`[data-pe-section="${sectionId}"]`) as HTMLElement | null;
+    if (el) {
+      el.style.outline = '2px solid var(--pl-olive)';
+      el.style.outlineOffset = '-2px';
+      el.style.transition = 'outline-color 0.6s ease';
+      setTimeout(() => {
+        el.style.outlineColor = 'transparent';
+        setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 600);
+      }, 800);
+    }
   }, [dispatch]);
 
   // ── Inline text edit — direct DOM (matches EditorCanvas) ───

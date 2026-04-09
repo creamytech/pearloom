@@ -756,18 +756,50 @@ function DesignSettings({
   const theme = manifest.theme || {};
   const colors = theme.colors || {};
 
+  const DESKTOP_NAV_STYLES = [
+    { id: 'glass', label: 'Glass', desc: 'Frosted blur' },
+    { id: 'minimal', label: 'Minimal', desc: 'Clean line' },
+    { id: 'solid', label: 'Solid', desc: 'White bar' },
+    { id: 'editorial', label: 'Editorial', desc: 'Centered' },
+    { id: 'floating', label: 'Floating', desc: 'Pill shape' },
+  ];
+
+  const MOBILE_NAV_STYLES = [
+    { id: 'classic', label: 'Classic', desc: 'Top + hamburger' },
+    { id: 'compact-glass', label: 'Compact', desc: 'Thin glass bar' },
+    { id: 'floating-pill', label: 'Pill', desc: 'Centered pill' },
+    { id: 'bottom-tabs', label: 'Tabs', desc: 'Bottom tab bar' },
+    { id: 'hidden', label: 'Hidden', desc: 'Hamburger only' },
+  ];
+
+  const FONT_OPTIONS = [
+    'Playfair Display', 'Cormorant Garamond', 'Lora', 'Libre Baskerville',
+    'Dancing Script', 'Great Vibes', 'Josefin Sans', 'DM Sans',
+    'Montserrat', 'Inter', 'Raleway', 'Open Sans', 'Source Sans 3', 'Lato',
+  ];
+
+  const NAV_BG_PRESETS = [
+    { label: 'Auto', value: '' },
+    { label: 'White', value: 'rgba(255,255,255,0.9)' },
+    { label: 'Cream', value: 'rgba(245,241,232,0.92)' },
+    { label: 'Dark', value: 'rgba(28,28,28,0.85)' },
+    { label: 'Black', value: 'rgba(0,0,0,0.7)' },
+  ];
+
+  const selectStyle: React.CSSProperties = {
+    ...inp,
+    appearance: 'none',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239A9488' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+    paddingRight: '32px',
+  };
+
   return (
     <div style={sectionPad}>
       <div style={fieldStack}>
-        <div style={{
-          fontSize: 'var(--pl-text-sm)',
-          color: 'var(--pl-muted)',
-          lineHeight: 1.5,
-          marginBottom: 8,
-        }}>
-          {section === 'nav'
-            ? 'Customize the navigation bar appearance.'
-            : 'Customize the footer appearance and closing message.'}
+        <div style={{ fontSize: 'var(--pl-text-sm)', color: 'var(--pl-muted)', lineHeight: 1.5, marginBottom: 4 }}>
+          {section === 'nav' ? 'Customize the navigation bar.' : 'Customize the footer.'}
         </div>
 
         {section === 'footer' && (
@@ -787,21 +819,109 @@ function DesignSettings({
           />
         )}
 
+        {/* ── Desktop Nav Style ── */}
+        {section === 'nav' && (
+          <div>
+            <label style={lbl}>Desktop Style</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+              {DESKTOP_NAV_STYLES.map(s => {
+                const active = (manifest.navStyle || 'glass') === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => onUpdate({ navStyle: s.id as StoryManifest['navStyle'] })}
+                    style={{
+                      padding: '10px 6px', borderRadius: 10, textAlign: 'center',
+                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{s.label}</div>
+                    <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: 2 }}>{s.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Mobile Nav Style ── */}
+        {section === 'nav' && (
+          <div>
+            <label style={lbl}>Mobile Style</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+              {MOBILE_NAV_STYLES.map(s => {
+                const active = (manifest.mobileNavStyle || 'classic') === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => onUpdate({ mobileNavStyle: s.id as StoryManifest['mobileNavStyle'] })}
+                    style={{
+                      padding: '10px 6px', borderRadius: 10, textAlign: 'center',
+                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{s.label}</div>
+                    <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: 2 }}>{s.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Nav Opacity ── */}
+        {section === 'nav' && (
+          <div>
+            <label style={lbl}>Opacity — {manifest.navOpacity ?? 100}%</label>
+            <input
+              type="range" min={0} max={100} step={5}
+              value={manifest.navOpacity ?? 100}
+              onChange={e => onUpdate({ navOpacity: Number(e.target.value) })}
+              style={{ width: '100%', accentColor: 'var(--pl-olive)' }}
+            />
+          </div>
+        )}
+
+        {/* ── Nav Background Presets ── */}
+        {section === 'nav' && (
+          <div>
+            <label style={lbl}>Nav Background</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {NAV_BG_PRESETS.map(p => {
+                const active = (manifest.navBackground || '') === p.value;
+                return (
+                  <button
+                    key={p.label}
+                    onClick={() => onUpdate({ navBackground: p.value || undefined })}
+                    style={{
+                      padding: '6px 12px', borderRadius: 8, fontSize: '0.68rem', fontWeight: 600,
+                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
+                      color: active ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                      display: 'flex', alignItems: 'center', gap: 4,
+                    }}
+                  >
+                    {p.value && <span style={{ width: 10, height: 10, borderRadius: '50%', background: p.value, border: '1px solid rgba(0,0,0,0.1)' }} />}
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Colors ── */}
         <div>
           <label style={lbl}>Background Color</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input
-              type="color"
-              value={colors.background || '#FFFDF8'}
-              onChange={e => onUpdate({
-                theme: { ...theme, colors: { ...colors, background: e.target.value } },
-              })}
-              style={{
-                width: 52, height: 44, padding: 3,
-                borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)',
-                cursor: 'pointer', background: 'transparent',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-              }}
+            <input type="color" value={colors.background || '#FFFDF8'}
+              onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, background: e.target.value } } })}
+              style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
             <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontFamily: 'monospace' }}>{colors.background || '#FFFDF8'}</span>
           </div>
@@ -810,40 +930,36 @@ function DesignSettings({
         <div>
           <label style={lbl}>Accent Color</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input
-              type="color"
-              value={colors.accent || '#A3B18A'}
-              onChange={e => onUpdate({
-                theme: { ...theme, colors: { ...colors, accent: e.target.value } },
-              })}
-              style={{
-                width: 52, height: 44, padding: 3,
-                borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)',
-                cursor: 'pointer', background: 'transparent',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-              }}
+            <input type="color" value={colors.accent || '#A3B18A'}
+              onChange={e => onUpdate({ theme: { ...theme, colors: { ...colors, accent: e.target.value } } })}
+              style={{ width: 52, height: 44, padding: 3, borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer', background: 'transparent', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
             />
             <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontFamily: 'monospace' }}>{colors.accent || '#A3B18A'}</span>
           </div>
         </div>
 
-        <Field
-          label="Heading Font"
-          value={theme.fonts?.heading || 'Playfair Display'}
-          onChange={(v) => onUpdate({
-            theme: { ...theme, fonts: { ...(theme.fonts || {}), heading: v } },
-          })}
-          placeholder="Playfair Display"
-        />
+        {/* ── Font Selectors (dropdowns, not text inputs) ── */}
+        <div>
+          <label style={lbl}>Heading Font</label>
+          <select
+            value={theme.fonts?.heading || 'Playfair Display'}
+            onChange={e => onUpdate({ theme: { ...theme, fonts: { ...(theme.fonts || {}), heading: e.target.value } } })}
+            style={selectStyle}
+          >
+            {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
 
-        <Field
-          label="Body Font"
-          value={theme.fonts?.body || 'Lora'}
-          onChange={(v) => onUpdate({
-            theme: { ...theme, fonts: { ...(theme.fonts || {}), body: v } },
-          })}
-          placeholder="Lora"
-        />
+        <div>
+          <label style={lbl}>Body Font</label>
+          <select
+            value={theme.fonts?.body || 'Inter'}
+            onChange={e => onUpdate({ theme: { ...theme, fonts: { ...(theme.fonts || {}), body: e.target.value } } })}
+            style={selectStyle}
+          >
+            {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
       </div>
     </div>
   );
