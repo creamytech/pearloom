@@ -29,7 +29,111 @@ import { getHeroIllustrationDataUrl } from '@/lib/hero-illustrations';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { ensureContrast, enforcePaletteContrast } from '@/lib/color-utils';
 import { smartBlockOrder } from '@/lib/smart-features';
+import { PearIcon } from '@/components/icons/PearloomIcons';
 import type { StoryManifest, SitePage, PageBlock, BlockType } from '@/types';
+
+// ── "Let Pear help" button for empty states ──
+const OLIVE = 'var(--pl-olive, #A3B18A)';
+
+function PearHelpButton({ label, prompt }: { label: string; prompt: string }) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        window.dispatchEvent(new CustomEvent('pear-command', { detail: { prompt } }));
+      }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '5px',
+        marginTop: '0.75rem',
+        padding: '5px 12px',
+        borderRadius: '100px',
+        background: 'transparent',
+        border: `1px solid rgba(163,177,138,0.4)`,
+        color: OLIVE,
+        fontSize: '0.72rem',
+        fontWeight: 600,
+        fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+        cursor: 'pointer',
+        outline: 'none',
+        whiteSpace: 'nowrap',
+        transition: 'background 0.15s, border-color 0.15s',
+      }}
+      onMouseEnter={e => {
+        (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.05)';
+      }}
+      onMouseLeave={e => {
+        (e.target as HTMLElement).style.background = 'transparent';
+      }}
+    >
+      <PearIcon size={12} color="var(--pl-olive, #A3B18A)" />
+      {label}
+    </button>
+  );
+}
+
+// ── PearNudge — one-time floating nudge on first empty section scroll ──
+function PearNudge({ prompt, onDismiss }: { prompt: string; onDismiss: () => void }) {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+      onDismiss();
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  if (!visible) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 40 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      onClick={(e) => {
+        e.stopPropagation();
+        window.dispatchEvent(new CustomEvent('pear-command', { detail: { prompt } }));
+        setVisible(false);
+        onDismiss();
+      }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '8px 16px',
+        borderRadius: '100px',
+        background: 'rgba(255,255,255,0.75)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(163,177,138,0.3)',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.08)',
+        cursor: 'pointer',
+        marginTop: '0.75rem',
+        fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+        fontSize: '0.78rem',
+        fontWeight: 500,
+        color: 'var(--pl-ink-soft, #3D3530)',
+        whiteSpace: 'nowrap',
+      } as React.CSSProperties}
+    >
+      <PearIcon size={14} color="var(--pl-olive, #A3B18A)" />
+      Pear can fill this in for you &rarr;
+    </motion.div>
+  );
+}
+
+// ── Prompt map for empty sections ──
+const EMPTY_SECTION_PROMPTS: Record<string, string> = {
+  events: 'Set up my wedding events',
+  faq: 'Write FAQs for my site',
+  registry: 'Suggest registry links',
+  travel: 'Add travel and hotel info',
+  text: 'Write a text section',
+  rsvp: 'Set up my RSVP section',
+};
 
 function proxyUrl(rawUrl: string, w: number, h: number): string {
   if (!rawUrl) return '';
@@ -683,6 +787,51 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
     return () => window.removeEventListener('keydown', handler);
   }, [editMode, selectedBlockId, hasClipboard, manifest, onBlockCopy, onBlockPaste, onBlockAction]);
 
+  // ── Pear nudge: appears once per session on first empty section scroll ──
+  const [pearNudgeSection, setPearNudgeSection] = useState<string | null>(null);
+  const pearNudgeShownRef = useRef(false);
+
+  useEffect(() => {
+    if (!editMode || pearNudgeShownRef.current) return;
+    // Check localStorage to see if we've shown the nudge this session
+    try {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('pear_nudge_shown')) {
+        pearNudgeShownRef.current = true;
+        return;
+      }
+    } catch { /* ignore */ }
+
+    const siteEl = siteRef.current;
+    if (!siteEl) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting && !pearNudgeShownRef.current) {
+          const sectionType = (entry.target as HTMLElement).getAttribute('data-pe-empty-section');
+          if (sectionType && EMPTY_SECTION_PROMPTS[sectionType]) {
+            pearNudgeShownRef.current = true;
+            setPearNudgeSection(sectionType);
+            try { sessionStorage.setItem('pear_nudge_shown', '1'); } catch { /* ignore */ }
+            observer.disconnect();
+          }
+        }
+      }
+    }, { threshold: 0.5 });
+
+    // Observe after a short delay to let empty sections render
+    const timer = setTimeout(() => {
+      if (!siteEl) return;
+      siteEl.querySelectorAll('[data-pe-empty-section]').forEach(el => observer.observe(el));
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [editMode, manifest]);
+
+  const dismissPearNudge = useCallback(() => setPearNudgeSection(null), []);
+
   // ── Canvas section drag-to-reorder state ──
   const [draggingBlockIdx, setDraggingBlockIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
@@ -800,11 +949,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'event':
         if (!manifest.events?.length) return editMode ? (
-          <section key={key} data-pe-section="events" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+          <section key={key} data-pe-section="events" data-pe-empty-section="events" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><CalendarDays size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Events</div>
               <p style={{ fontSize: '0.85rem' }}>Add your ceremony, reception, and other events in the Events panel</p>
+              <PearHelpButton label="Ask Pear to set up events" prompt="Set up my wedding events" />
+              {pearNudgeSection === 'events' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.events} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -856,11 +1007,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'rsvp':
         if (!manifest.events?.length) return editMode ? (
-          <section key={key} data-pe-section="rsvp" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+          <section key={key} data-pe-section="rsvp" data-pe-empty-section="rsvp" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Mail size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>RSVP</div>
               <p style={{ fontSize: '0.85rem' }}>Add events first — the RSVP form will appear here for your guests</p>
+              <PearHelpButton label="Ask Pear to set up RSVP" prompt="Set up my RSVP section" />
+              {pearNudgeSection === 'rsvp' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.rsvp} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -888,22 +1041,26 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'registry':
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return editMode ? (
-          <section key={key} data-pe-section="registry" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+          <section key={key} data-pe-section="registry" data-pe-empty-section="registry" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Gift size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Registry</div>
               <p style={{ fontSize: '0.85rem' }}>Add registry links in Details → Registry</p>
+              <PearHelpButton label="Ask Pear to suggest registries" prompt="Suggest registry links" />
+              {pearNudgeSection === 'registry' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.registry} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
         return <section key={key} id="registry" data-pe-section="registry" style={blockStyle}><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section>;
       case 'travel':
         if (!manifest.travelInfo) return editMode ? (
-          <section key={key} data-pe-section="travel" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+          <section key={key} data-pe-section="travel" data-pe-empty-section="travel" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Plane size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Travel & Hotels</div>
               <p style={{ fontSize: '0.85rem' }}>Add hotel and travel info in Details → Travel</p>
+              <PearHelpButton label="Ask Pear to add travel info" prompt="Add travel and hotel info" />
+              {pearNudgeSection === 'travel' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.travel} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -921,11 +1078,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'faq':
         if (!manifest.faqs?.length) return editMode ? (
-          <section key={key} data-pe-section="faq" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+          <section key={key} data-pe-section="faq" data-pe-empty-section="faq" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><HelpCircle size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>FAQ</div>
               <p style={{ fontSize: '0.85rem' }}>Add frequently asked questions in Details → FAQ</p>
+              <PearHelpButton label="Ask Pear to write FAQs" prompt="Write FAQs for my site" />
+              {pearNudgeSection === 'faq' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.faq} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;
@@ -969,10 +1128,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'text': {
         const textContent = blockCfg.content as string | undefined;
         if (!textContent) return editMode ? (
-          <section key={key} data-pe-section="text" style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+          <section key={key} data-pe-section="text" data-pe-empty-section="text" style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
             <div style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.5rem' }}><PenLine size={22} style={{ color: 'var(--pl-muted)' }} /></div>
               <p style={{ fontSize: '0.85rem' }}>Click to add text content</p>
+              <PearHelpButton label="Ask Pear to write this" prompt="Write a text section" />
+              {pearNudgeSection === 'text' && <PearNudge prompt={EMPTY_SECTION_PROMPTS.text} onDismiss={dismissPearNudge} />}
             </div>
           </section>
         ) : null;

@@ -6,7 +6,7 @@
 // contextual AI assistant. Notion AI / Linear-style UX.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowUp, Check, Loader2, X } from 'lucide-react';
 import { PearIcon } from '@/components/icons/PearloomIcons';
@@ -21,7 +21,7 @@ interface QuickAction {
   handler: 'ai-chat' | 'ai-faq' | 'section-picker';
 }
 
-const QUICK_ACTIONS: QuickAction[] = [
+const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
   { label: 'Pear, help me start',   prompt: 'Look at my site and tell me what\'s missing or needs attention. Give me a prioritized to-do list of the most important things to add or fix, and offer to do the first one for me.', handler: 'ai-chat' },
   { label: 'Make it beautiful',     prompt: 'Redesign my site to look stunning — change the color palette, fonts, and tagline to create a cohesive, magazine-worthy look that matches the vibe.', handler: 'ai-chat' },
   { label: 'Write my content',      prompt: 'Write all the text content my site needs — hero tagline, welcome message, closing line, and RSVP intro. Make it personal using the couple names and any details you know about the event.', handler: 'ai-chat' },
@@ -29,6 +29,44 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Ask Pear for FAQs',     prompt: 'Write 5-7 FAQs that my guests would actually ask. Use real details from my site like venue, parking, dress code. If you don\'t have enough info, ask me the key questions first.', handler: 'ai-chat' },
   { label: 'Suggest improvements',  prompt: 'Review my entire site like a wedding planner would. What\'s working? What could be better? Give me specific, actionable suggestions and offer to make the changes.', handler: 'ai-chat' },
 ];
+
+const SECTION_QUICK_ACTIONS: Record<string, QuickAction[]> = {
+  hero: [
+    { label: 'Rewrite my tagline', prompt: 'Rewrite my hero tagline to be more personal and memorable. Use the couple names and wedding date if available.', handler: 'ai-chat' },
+    { label: 'Change hero style', prompt: 'Change my hero section style — try a different layout, typography treatment, or visual approach that feels fresh.', handler: 'ai-chat' },
+    { label: 'Add a cover photo', prompt: 'Help me set up a beautiful cover photo for my hero section with the right sizing and positioning.', handler: 'ai-chat' },
+  ],
+  events: [
+    { label: 'Add more events', prompt: 'Add more events to my wedding schedule — suggest common events I might be missing like a welcome dinner or after-party.', handler: 'ai-chat' },
+    { label: 'Change dress code', prompt: 'Update the dress code for my events. Suggest appropriate dress codes based on the venue and vibe.', handler: 'ai-chat' },
+    { label: 'Write event descriptions', prompt: 'Write engaging descriptions for each of my wedding events that give guests helpful details and set the right tone.', handler: 'ai-chat' },
+  ],
+  story: [
+    { label: 'Improve chapter descriptions', prompt: 'Improve my story chapter descriptions — make them more vivid, personal, and engaging while keeping the same tone.', handler: 'ai-chat' },
+    { label: 'Add a new chapter', prompt: 'Add a new chapter to our love story. Suggest a meaningful milestone we might want to include.', handler: 'ai-chat' },
+    { label: 'Make stories more emotional', prompt: 'Rewrite our story chapters to be more emotional and heartfelt — add sensory details and personal touches.', handler: 'ai-chat' },
+  ],
+  design: [
+    { label: 'Change color palette', prompt: 'Change my site color palette to something fresh and cohesive. Suggest a palette that matches the wedding vibe.', handler: 'ai-chat' },
+    { label: 'Try different fonts', prompt: 'Try different font pairings for my site. Suggest elegant heading and body font combinations.', handler: 'ai-chat' },
+    { label: 'Make it more elegant', prompt: 'Make my site design more elegant — refine the typography, spacing, and color choices to feel more polished and sophisticated.', handler: 'ai-chat' },
+  ],
+};
+
+/** Return context-aware quick actions based on the active section/tab */
+function getContextualActions(manifest: StoryManifest, activeSection: string | null): QuickAction[] {
+  if (!activeSection) return DEFAULT_QUICK_ACTIONS;
+
+  // Normalize: the contextSection or block type maps to our action groups
+  const normalized = activeSection.toLowerCase();
+
+  if (normalized === 'hero') return SECTION_QUICK_ACTIONS.hero;
+  if (normalized === 'events' || normalized === 'event' || normalized === 'schedule') return SECTION_QUICK_ACTIONS.events;
+  if (normalized === 'story' || normalized === 'chapter') return SECTION_QUICK_ACTIONS.story;
+  if (normalized === 'design' || normalized === 'theme' || normalized === 'navigation' || normalized === 'nav') return SECTION_QUICK_ACTIONS.design;
+
+  return DEFAULT_QUICK_ACTIONS;
+}
 
 // ── Colour tokens ─────────────────────────────────────────────
 
@@ -92,6 +130,20 @@ export function AICommandBar() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [expanded, open, close]);
+
+  // ── Listen for pear-command events from empty state buttons ──
+
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      setExpanded(true);
+      setInputVal(e.detail.prompt);
+      setStatus('idle');
+      setErrorMsg('');
+      setTimeout(() => inputRef.current?.focus(), 80);
+    };
+    window.addEventListener('pear-command', handler as EventListener);
+    return () => window.removeEventListener('pear-command', handler as EventListener);
+  }, []);
 
   // ── Clean up on unmount ───────────────────────────────────
 
@@ -338,6 +390,25 @@ export function AICommandBar() {
       submit(inputVal);
     }
   }, [inputVal, submit]);
+
+  // ── Determine active section for contextual actions ────────
+
+  const activeSection = useMemo(() => {
+    // First check if a block is selected — its type is the best signal
+    if (state.activeId && manifest.blocks) {
+      const selectedBlock = manifest.blocks.find(b => b.id === state.activeId);
+      if (selectedBlock) return selectedBlock.type;
+    }
+    // Fall back to contextSection from editor state
+    if (state.contextSection) return state.contextSection;
+    // Fall back to activeTab if it maps to a section
+    if (state.activeTab === 'story') return 'story';
+    if (state.activeTab === 'events') return 'events';
+    if (state.activeTab === 'design') return 'design';
+    return null;
+  }, [state.activeId, state.contextSection, state.activeTab, manifest.blocks]);
+
+  const quickActions = useMemo(() => getContextualActions(manifest, activeSection), [manifest, activeSection]);
 
   // ── Determine mobile ──────────────────────────────────────
 
@@ -619,7 +690,7 @@ export function AICommandBar() {
                   padding: '0 16px 14px',
                 }}
               >
-                {QUICK_ACTIONS.map(action => (
+                {quickActions.map(action => (
                   <button
                     key={action.label}
                     onClick={() => handleQuickAction(action)}
