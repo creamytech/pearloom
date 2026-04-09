@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useEditor } from '@/lib/editor-state';
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed } from 'lucide-react';
+import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed, Link, Loader2 } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
 import type { StoryManifest, FaqItem, TravelInfo, HotelBlock, MealOption } from '@/types';
@@ -12,6 +12,7 @@ import { VenueSearch } from '@/components/venue/VenueSearch';
 import type { VenuePartial } from '@/components/venue/VenueSearch';
 import { SeatingCanvas } from '@/components/seating/SeatingCanvas';
 import { HotelFinderPanel } from './HotelFinderPanel';
+import { RsvpInsights } from '@/components/rsvp-insights';
 
 export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const { state } = useEditor();
