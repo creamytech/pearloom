@@ -59,6 +59,8 @@ import { CustomizationPanel } from './CustomizationPanel';
 import { ActiveCuratorBadge } from '@/components/dashboard/CuratorAICard';
 import { trackPublish, trackEdit } from '@/lib/intelligence';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
+import { EditorTour } from './EditorTour';
+import { GettingStartedChecklist } from './GettingStartedChecklist';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
   setBlockStyle, saveSnapshot, parseElementId,
@@ -920,6 +922,10 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
       <AnimatePresence>
         {state.showWelcome && <WelcomeOverlay onDismiss={() => dispatch({ type: 'SET_WELCOME', show: false })} />}
       </AnimatePresence>
+
+      {/* Guided tour (first-time only) + Getting started checklist */}
+      {!state.isMobile && <EditorTour />}
+      {!state.isMobile && <GettingStartedChecklist />}
     </div>
     </DndContext>
     </EditorContext.Provider>

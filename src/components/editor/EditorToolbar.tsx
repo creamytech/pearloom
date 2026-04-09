@@ -6,13 +6,15 @@
 // Everything else lives in the rail or inline on the canvas
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone } from 'lucide-react';
 import {
   UndoIcon, RedoIcon, PublishIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
+import { RichTooltip } from '@/components/ui/tooltip';
 import { useEditor } from '@/lib/editor-state';
+import { KeyboardShortcuts } from './KeyboardShortcuts';
 
 interface EditorToolbarProps {
   onExit: () => void;
@@ -21,12 +23,37 @@ interface EditorToolbarProps {
 export function EditorToolbar({ onExit }: EditorToolbarProps) {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
   const { isMobile, canUndo, canRedo, saveState } = state;
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const siteName = coupleNames[1]?.trim()
     ? `${coupleNames[0]} & ${coupleNames[1]}`
     : coupleNames[0] || 'Untitled Site';
 
+  // Global Shift+/ (?) listener to open shortcuts modal
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs/textareas
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setShortcutsOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
+
+  const deviceTooltips = {
+    desktop: { label: 'Desktop view', shortcut: '⌘1' },
+    tablet: { label: 'Tablet view', shortcut: '⌘2' },
+    mobile: { label: 'Mobile view', shortcut: '⌘3' },
+  } as const;
+
   return (
+    <>
     <div style={{
       height: '40px', flexShrink: 0,
       display: 'flex', alignItems: 'center',
@@ -41,19 +68,21 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
 
       {/* Left: Exit + Site name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-        <motion.button
-          onClick={onExit}
-          whileHover={{ x: -2 }}
-          whileTap={{ scale: 0.92 }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '4px 8px', borderRadius: '8px', border: 'none',
-            background: 'transparent', color: 'var(--pl-muted)',
-            cursor: 'pointer', fontSize: '0.72rem', fontWeight: 500,
-          }}
-        >
-          <ArrowLeft size={14} />
-        </motion.button>
+        <RichTooltip label="Exit editor" side="bottom">
+          <motion.button
+            onClick={onExit}
+            whileHover={{ x: -2 }}
+            whileTap={{ scale: 0.92 }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              padding: '4px 8px', borderRadius: '8px', border: 'none',
+              background: 'transparent', color: 'var(--pl-muted)',
+              cursor: 'pointer', fontSize: '0.72rem', fontWeight: 500,
+            }}
+          >
+            <ArrowLeft size={14} />
+          </motion.button>
+        </RichTooltip>
 
         <span style={{
           fontSize: '0.82rem', fontWeight: 600,
@@ -71,27 +100,36 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
           {/* Device switcher */}
           {(['desktop', 'tablet', 'mobile'] as const).map(mode => {
             const Icon = mode === 'desktop' ? Monitor : mode === 'tablet' ? Tablet : Smartphone;
+            const tip = deviceTooltips[mode];
             return (
-              <ToolBtn key={mode} onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })} title={`${mode} view`}>
-                <Icon size={13} style={{ opacity: state.device === mode ? 1 : 0.4 }} />
-              </ToolBtn>
+              <RichTooltip key={mode} label={tip.label} shortcut={tip.shortcut} side="bottom">
+                <ToolBtn onClick={() => dispatch({ type: 'SET_DEVICE', device: mode })}>
+                  <Icon size={13} style={{ opacity: state.device === mode ? 1 : 0.4 }} />
+                </ToolBtn>
+              </RichTooltip>
             );
           })}
           <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
-          <ToolBtn onClick={actions.undo} disabled={!canUndo} title="Undo (⌘Z)">
-            <UndoIcon size={13} />
-          </ToolBtn>
-          <ToolBtn onClick={actions.redo} disabled={!canRedo} title="Redo (⌘⇧Z)">
-            <RedoIcon size={13} />
-          </ToolBtn>
+          <RichTooltip label="Undo" shortcut="⌘Z" side="bottom">
+            <ToolBtn onClick={actions.undo} disabled={!canUndo}>
+              <UndoIcon size={13} />
+            </ToolBtn>
+          </RichTooltip>
+          <RichTooltip label="Redo" shortcut="⌘⇧Z" side="bottom">
+            <ToolBtn onClick={actions.redo} disabled={!canRedo}>
+              <RedoIcon size={13} />
+            </ToolBtn>
+          </RichTooltip>
           <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
-          <ToolBtn onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })} title="Command palette (⌘K)">
-            <Command size={12} />
-          </ToolBtn>
+          <RichTooltip label="Quick actions" shortcut="⌘K" side="bottom">
+            <ToolBtn onClick={() => dispatch({ type: 'SET_CMD_PALETTE', open: true })}>
+              <Command size={12} />
+            </ToolBtn>
+          </RichTooltip>
         </div>
       )}
 
-      {/* Right: Save + Preview + Publish */}
+      {/* Right: Save + Preview + Help + Publish */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
         {/* Save indicator */}
         <span style={{
@@ -109,44 +147,75 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
 
         {/* Preview */}
         {!isMobile && (
-          <ToolBtn onClick={actions.storePreviewForOpen} title="Preview (⌘P)">
-            <Eye size={13} />
-          </ToolBtn>
+          <RichTooltip label="Preview your site" shortcut="⌘P" side="bottom">
+            <ToolBtn onClick={actions.storePreviewForOpen}>
+              <Eye size={13} />
+            </ToolBtn>
+          </RichTooltip>
+        )}
+
+        {/* Help — Keyboard shortcuts */}
+        {!isMobile && (
+          <RichTooltip label="Keyboard shortcuts" shortcut="?" side="bottom">
+            <motion.button
+              onClick={() => setShortcutsOpen(true)}
+              whileHover={{ scale: 1.1, background: 'rgba(255,255,255,0.3)' }}
+              whileTap={{ scale: 0.88 }}
+              style={{
+                width: '26px', height: '26px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: '50%', border: '1px solid rgba(0,0,0,0.08)',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'var(--pl-muted)',
+                cursor: 'pointer',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                transition: 'border-color 0.15s',
+              }}
+            >
+              <span style={{ lineHeight: 1, marginTop: '-1px' }}>?</span>
+            </motion.button>
+          </RichTooltip>
         )}
 
         {/* Publish */}
-        <motion.button
-          onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '5px',
-            padding: isMobile ? '6px 14px' : '6px 18px',
-            borderRadius: '100px', border: 'none',
-            background: 'var(--pl-olive-deep)',
-            color: '#fff', cursor: 'pointer',
-            fontSize: '0.68rem', fontWeight: 700,
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-            boxShadow: '0 2px 8px rgba(110,140,92,0.25)',
-          }}
-        >
-          Publish
-        </motion.button>
+        <RichTooltip label="Publish & share your site" side="bottom">
+          <motion.button
+            onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: isMobile ? '6px 14px' : '6px 18px',
+              borderRadius: '100px', border: 'none',
+              background: 'var(--pl-olive-deep)',
+              color: '#fff', cursor: 'pointer',
+              fontSize: '0.68rem', fontWeight: 700,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              boxShadow: '0 2px 8px rgba(110,140,92,0.25)',
+            }}
+          >
+            Publish
+          </motion.button>
+        </RichTooltip>
       </div>
     </div>
+
+    {/* Keyboard shortcuts modal */}
+    <KeyboardShortcuts open={shortcutsOpen} onClose={closeShortcuts} />
+    </>
   );
 }
 
 // ── Tiny tool button ────────────────────────────────────────
-function ToolBtn({ onClick, disabled, title, children }: {
-  onClick: () => void; disabled?: boolean; title: string;
+function ToolBtn({ onClick, disabled, children }: {
+  onClick: () => void; disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      title={title}
       whileHover={!disabled ? { scale: 1.1, background: 'rgba(255,255,255,0.3)' } : {}}
       whileTap={!disabled ? { scale: 0.88 } : {}}
       style={{

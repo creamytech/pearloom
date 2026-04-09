@@ -13,6 +13,7 @@ import {
   Music, ShoppingBag, Mail, Heart, FileText, X,
 } from 'lucide-react';
 import { ElegantHeartIcon } from '@/components/icons/PearloomIcons';
+import { RichTooltip } from '@/components/ui/tooltip';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 
 type RailItem = {
@@ -20,15 +21,17 @@ type RailItem = {
   tab: EditorTab;
   Icon: React.ElementType;
   label: string;
+  description?: string;
+  shortcut?: string;
 };
 
 // Primary tabs — always visible on the rail
 const PRIMARY_ITEMS: RailItem[] = [
-  { id: 'design',   tab: 'design',   Icon: Palette,      label: 'Design' },
-  { id: 'sections', tab: 'canvas',   Icon: LayoutGrid,   label: 'Layout' },
-  { id: 'story',    tab: 'story',    Icon: BookOpen,     label: 'Chapters' },
-  { id: 'events',   tab: 'events',   Icon: CalendarDays, label: 'Events' },
-  { id: 'pages',    tab: 'pages',    Icon: FileText,     label: 'Pages' },
+  { id: 'design',   tab: 'design',   Icon: Palette,      label: 'Design',   description: 'Colors, fonts & visual style', shortcut: '⌘3' },
+  { id: 'sections', tab: 'canvas',   Icon: LayoutGrid,   label: 'Layout',   description: 'Add & arrange page sections', shortcut: '⌘8' },
+  { id: 'story',    tab: 'story',    Icon: BookOpen,     label: 'Chapters', description: 'Your love story timeline', shortcut: '⌘1' },
+  { id: 'events',   tab: 'events',   Icon: CalendarDays, label: 'Events',   description: 'Ceremony, reception & more', shortcut: '⌘2' },
+  { id: 'pages',    tab: 'pages',    Icon: FileText,     label: 'Pages',    description: 'Manage site pages', shortcut: '⌘5' },
 ];
 
 // Overflow tabs — shown in "More" popover
@@ -51,38 +54,44 @@ const MORE_ITEMS: RailItem[] = [
 function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boolean; onClick: () => void }) {
   const Icon = item.Icon;
   return (
-    <motion.button
-      onClick={onClick}
-      title={item.label}
-      whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
-      whileTap={{ scale: 0.88 }}
-      style={{
-        width: '38px', height: '38px',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        gap: '2px', border: 'none', borderRadius: '12px',
-        background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
-        color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-        cursor: 'pointer', position: 'relative',
-        transition: 'background 0.15s, color 0.15s',
-      }}
+    <RichTooltip
+      label={item.label}
+      description={item.description}
+      shortcut={item.shortcut}
+      side="right"
     >
-      {isActive && (
-        <motion.div
-          layoutId="rail-active"
-          style={{
-            position: 'absolute', left: '-4px', top: '50%', transform: 'translateY(-50%)',
-            width: '3px', height: '20px', borderRadius: '0 3px 3px 0',
-            background: 'var(--pl-olive-deep)',
-          }}
-          transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-        />
-      )}
-      <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
-      <span style={{ fontSize: '0.42rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
-        {item.label}
-      </span>
-    </motion.button>
+      <motion.button
+        onClick={onClick}
+        whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+        whileTap={{ scale: 0.88 }}
+        style={{
+          width: '38px', height: '38px',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: '2px', border: 'none', borderRadius: '12px',
+          background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
+          color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+          cursor: 'pointer', position: 'relative',
+          transition: 'background 0.15s, color 0.15s',
+        }}
+      >
+        {isActive && (
+          <motion.div
+            layoutId="rail-active"
+            style={{
+              position: 'absolute', left: '-4px', top: '50%', transform: 'translateY(-50%)',
+              width: '3px', height: '20px', borderRadius: '0 3px 3px 0',
+              background: 'var(--pl-olive-deep)',
+            }}
+            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+          />
+        )}
+        <Icon size={18} strokeWidth={isActive ? 2.2 : 1.8} />
+        <span style={{ fontSize: '0.42rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
+          {item.label}
+        </span>
+      </motion.button>
+    </RichTooltip>
   );
 }
 
@@ -134,30 +143,31 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
 
       {/* More button + popover */}
       <div ref={moreRef} style={{ position: 'relative' }}>
-        <motion.button
-          onClick={() => setMoreOpen(!moreOpen)}
-          title="More tools"
-          whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
-          whileTap={{ scale: 0.88 }}
-          style={{
-            width: '44px', height: '44px',
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            gap: '3px', border: 'none', borderRadius: '14px',
-            background: moreOpen || isMoreActive ? 'rgba(163,177,138,0.15)' : 'transparent',
-            color: moreOpen || isMoreActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
-            cursor: 'pointer', transition: 'background 0.15s',
-          }}
-        >
-          <MoreHorizontal size={18} />
-          <span style={{ fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
-            More
-          </span>
-          {/* Notification dot if active tab is in More */}
-          {isMoreActive && !moreOpen && (
-            <div style={{ position: 'absolute', top: '6px', right: '6px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
-          )}
-        </motion.button>
+        <RichTooltip label="More tools" description="All editor panels & features" side="right">
+          <motion.button
+            onClick={() => setMoreOpen(!moreOpen)}
+            whileHover={{ backgroundColor: 'rgba(163,177,138,0.12)' }}
+            whileTap={{ scale: 0.88 }}
+            style={{
+              width: '44px', height: '44px',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: '3px', border: 'none', borderRadius: '14px',
+              background: moreOpen || isMoreActive ? 'rgba(163,177,138,0.15)' : 'transparent',
+              color: moreOpen || isMoreActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+              cursor: 'pointer', transition: 'background 0.15s',
+            }}
+          >
+            <MoreHorizontal size={18} />
+            <span style={{ fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1, userSelect: 'none' }}>
+              More
+            </span>
+            {/* Notification dot if active tab is in More */}
+            {isMoreActive && !moreOpen && (
+              <div style={{ position: 'absolute', top: '6px', right: '6px', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
+            )}
+          </motion.button>
+        </RichTooltip>
 
         {/* Popover */}
         <AnimatePresence>
@@ -216,7 +226,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
 
       {/* Settings at bottom */}
       <RailButton
-        item={{ id: 'details', tab: 'details', Icon: Settings, label: 'Settings' }}
+        item={{ id: 'details', tab: 'details', Icon: Settings, label: 'Settings', description: 'Site details & configuration' }}
         isActive={activeTab === 'details'}
         onClick={() => handleClick('details')}
       />
