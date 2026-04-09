@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
 import type { ProgressiveState } from '@/lib/progressive-generation';
 
 interface LivePreviewProps {
@@ -167,7 +168,7 @@ export function QuickStartBanner({ onQuickStart }: QuickStartProps) {
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: 'rgba(163,177,138,0.12)', border: '1px solid rgba(163,177,138,0.2)' }}>
-          <span className="text-[1.1rem] text-[var(--pl-olive)]">✦</span>
+          <Sparkles size={18} className="text-[var(--pl-olive)]" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[0.82rem] font-semibold text-[var(--pl-ink)] m-0">

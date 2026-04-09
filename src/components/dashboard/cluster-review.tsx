@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Camera, Pencil, Check, Loader2, Scissors, Merge, Sparkles } from 'lucide-react';
+import { MapPin, Calendar, Camera, Pencil, Check, Loader2, Scissors, Merge, Sparkles, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import type { GooglePhotoMetadata, PhotoCluster, GeoLocation } from '@/types';
 import { clusterPhotos } from '@/lib/google-photos';
 import { colors as C, text, card } from '@/lib/design-tokens';
@@ -337,28 +337,22 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
               } as React.CSSProperties}
             >
               <div style={{ display: 'flex', alignItems: 'stretch' }}>
-                {/* Thumbnail strip */}
+                {/* Thumbnail */}
                 <div style={{
                   width: '80px', flexShrink: 0,
-                  display: 'grid',
-                  gridTemplateRows: cluster.photos.length > 1 ? '1fr 1fr' : '1fr',
-                  gridTemplateColumns: '1fr',
                   overflow: 'hidden',
+                  background: 'var(--pl-cream-deep)',
                 }}>
-                  {cluster.photos.slice(0, 2).map((p, pi) => (
-                    <div key={pi} style={{ overflow: 'hidden', background: 'var(--pl-cream-deep)' }}>
-                      <img
-                        src={p.baseUrl
-                          ? (p.baseUrl.includes('googleusercontent.com')
-                            ? `/api/photos/proxy?url=${encodeURIComponent(p.baseUrl)}&w=120&h=120`
-                            : p.baseUrl)
-                          : ''}
-                        alt=""
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        loading="lazy"
-                      />
-                    </div>
-                  ))}
+                  <img
+                    src={coverPhoto?.baseUrl
+                      ? (coverPhoto.baseUrl.includes('googleusercontent.com')
+                        ? `/api/photos/proxy?url=${encodeURIComponent(coverPhoto.baseUrl)}&w=160&h=160`
+                        : coverPhoto.baseUrl)
+                      : ''}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    loading="lazy"
+                  />
                 </div>
 
                 {/* Content */}
@@ -424,7 +418,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         onClick={() => { setEditingIdx(null); setDraftLocation(''); }}
                         style={{ padding: '0.6rem', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', color: 'var(--pl-muted)', fontSize: text.sm } as React.CSSProperties}
                       >
-                        ✕
+                        <X size={12} />
                       </button>
                     </div>
                   ) : (
@@ -442,9 +436,15 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                           </div>
                         ) : (
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: text.base, color: 'var(--pl-muted)', fontStyle: 'italic' }}>
-                              <MapPin size={14} style={{ opacity: 0.4 }} />
-                              No location detected
+                            <div style={{
+                              display: 'flex', alignItems: 'center', gap: '0.5rem',
+                              fontSize: text.sm, color: 'var(--pl-olive-deep)',
+                              padding: '0.5rem 0.75rem', borderRadius: '12px',
+                              background: 'rgba(163,177,138,0.08)',
+                              border: '1px solid rgba(163,177,138,0.15)',
+                            }}>
+                              <MapPin size={14} style={{ color: 'var(--pl-olive)', flexShrink: 0 }} />
+                              Add a location to help AI write a richer story
                             </div>
                             {/* AI suggestion result */}
                             {aiSuggestions[idx] && aiSuggestions[idx].location && (
@@ -553,17 +553,16 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         }}
                         title="Split this group into two"
                         style={{
-                          display: 'flex', alignItems: 'center', gap: '0.3rem',
-                          padding: '0.35rem 0.7rem', borderRadius: '100px',
-                          border: '1px solid rgba(255,255,255,0.5)',
-                          background: 'rgba(255,255,255,0.45)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          color: 'var(--pl-muted)', fontSize: text.xs, fontWeight: 600,
+                          display: 'flex', alignItems: 'center', gap: '0.35rem',
+                          padding: '0.4rem 0.85rem', borderRadius: '100px',
+                          border: '1px solid rgba(163,177,138,0.25)',
+                          background: 'rgba(163,177,138,0.08)',
+                          color: 'var(--pl-olive-deep)', fontSize: text.xs, fontWeight: 600,
                           cursor: 'pointer', transition: 'all 0.2s',
-                        } as React.CSSProperties}
+                          minHeight: '28px',
+                        }}
                       >
-                        <Scissors size={11} /> Split
+                        <Scissors size={12} /> Split
                       </button>
                     )}
                     {idx < clusters.length - 1 && (
@@ -571,17 +570,16 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                         onClick={() => mergeWithNext(idx)}
                         title="Merge with the group below"
                         style={{
-                          display: 'flex', alignItems: 'center', gap: '0.3rem',
-                          padding: '0.35rem 0.7rem', borderRadius: '100px',
-                          border: '1px solid rgba(255,255,255,0.5)',
-                          background: 'rgba(255,255,255,0.45)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          color: 'var(--pl-muted)', fontSize: text.xs, fontWeight: 600,
+                          display: 'flex', alignItems: 'center', gap: '0.35rem',
+                          padding: '0.4rem 0.85rem', borderRadius: '100px',
+                          border: '1px solid rgba(163,177,138,0.25)',
+                          background: 'rgba(163,177,138,0.08)',
+                          color: 'var(--pl-olive-deep)', fontSize: text.xs, fontWeight: 600,
                           cursor: 'pointer', transition: 'all 0.2s',
-                        } as React.CSSProperties}
+                          minHeight: '28px',
+                        }}
                       >
-                        <Merge size={11} /> Merge with next
+                        <Merge size={12} /> Merge with next
                       </button>
                     )}
                   </div>
@@ -619,7 +617,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
-                      <label style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)' } as React.CSSProperties}>
+                      <label style={{ fontSize: '0.78rem', fontWeight: 500, color: 'var(--pl-muted)' }}>
                         What was happening here?
                       </label>
                       <span style={{ fontSize: text.xs, color: 'var(--pl-muted)' }}>
@@ -695,7 +693,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
             boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
           } as React.CSSProperties}
         >
-          ← Back
+          <ArrowLeft size={14} /> Back
         </button>
         <button
           onClick={() => onConfirm(clusters)}
@@ -711,7 +709,7 @@ export function ClusterReview({ photos, onConfirm, onBack }: ClusterReviewProps)
           onMouseOver={e => { e.currentTarget.style.opacity = '0.88'; }}
           onMouseOut={e => { e.currentTarget.style.opacity = '1'; }}
         >
-          Continue to Set Your Vibe →
+          Continue to Set Your Vibe <ArrowRight size={14} />
         </button>
       </div>
 

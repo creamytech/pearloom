@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Check, Camera } from 'lucide-react';
 import type { GooglePhotoMetadata } from '@/types';
 
 // ── Phase definitions ──────────────────────────────────────────
@@ -303,13 +304,13 @@ export function GenerationProgress({
                       />
                     ) : (
                       <div
-                        className="w-full h-full"
+                        className="w-full h-full flex items-center justify-center"
                         style={{
-                          background: 'linear-gradient(90deg, var(--pl-cream-deep) 25%, rgba(255,255,255,0.6) 50%, var(--pl-cream-deep) 75%)',
-                          backgroundSize: '200% 100%',
-                          animation: 'pl-shimmer 1.5s ease infinite',
+                          background: 'var(--pl-cream-deep)',
                         }}
-                      />
+                      >
+                        <Camera size={20} style={{ color: 'var(--pl-muted)', opacity: 0.4 }} />
+                      </div>
                     )}
                   </div>
                 ))}
@@ -460,7 +461,7 @@ export function GenerationProgress({
           </div>
 
           {/* Percentage */}
-          <span className="text-[1.4rem] font-semibold text-[var(--pl-olive-deep)] tabular-nums">
+          <span className="text-[2rem] font-bold text-[var(--pl-olive-deep)] tabular-nums">
             {pct}%
           </span>
         </div>
@@ -484,32 +485,30 @@ export function GenerationProgress({
             return (
               <div
                 key={i}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full transition-all duration-300"
+                className="flex items-center gap-1.5 px-3 rounded-full transition-all duration-300"
                 style={{
+                  minHeight: '36px',
                   background: isActive
                     ? 'var(--pl-olive-deep)'
                     : isPast
-                      ? 'rgba(163,177,138,0.15)'
+                      ? 'var(--pl-olive)'
                       : 'var(--pl-cream-deep)',
                 }}
               >
                 <span
-                  className="text-[0.55rem] font-bold"
+                  className="font-bold flex items-center justify-center"
                   style={{
-                    color: isActive
-                      ? '#fff'
-                      : isPast
-                        ? 'var(--pl-olive-deep)'
-                        : 'var(--pl-muted)',
+                    color: isActive || isPast ? '#fff' : 'var(--pl-muted)',
+                    fontSize: '0.6rem',
                   }}
                 >
-                  {isPast ? '\u2713' : String(i + 1).padStart(2, '0')}
+                  {isPast ? <Check size={12} strokeWidth={3} /> : String(i + 1).padStart(2, '0')}
                 </span>
-                {/* Show label on active and on desktop for all */}
+                {/* Show label on active pill always, others on desktop */}
                 <span
-                  className={`text-[0.55rem] font-semibold tracking-[0.02em] whitespace-nowrap ${isActive ? '' : 'hidden md:inline'}`}
+                  className={`text-[0.6rem] font-semibold tracking-[0.02em] whitespace-nowrap ${isActive ? '' : 'hidden md:inline'}`}
                   style={{
-                    color: isActive ? '#fff' : isPast ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                    color: isActive || isPast ? '#fff' : 'var(--pl-muted)',
                   }}
                 >
                   {p.headline}

@@ -8,7 +8,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, ImageOff, RefreshCw, AlertCircle, ExternalLink, Clock, Upload, X } from 'lucide-react';
+import { Check, Loader2, ImageOff, RefreshCw, AlertCircle, ExternalLink, Clock, Upload, X, Sparkles } from 'lucide-react';
 import type { GooglePhotoMetadata } from '@/types';
 import { colors as C, text, card } from '@/lib/design-tokens';
 import { Button } from '@/components/ui';
@@ -410,8 +410,8 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                   width: '100%',
                 }}
               >
-                <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1.1rem', color: 'var(--pl-olive)' }}>
-                  ✦
+                <span style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(163,177,138,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--pl-olive)' }}>
+                  <Sparkles size={18} />
                 </span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--pl-ink-soft)' }}>START FROM A TEMPLATE</div>
@@ -557,7 +557,7 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
           A Google Photos window should be open. Browse your library, select the photos you love, then come back here.
         </p>
         <p style={{ color: 'var(--pl-olive)', fontSize: '0.78rem', fontWeight: 600, margin: '0 auto 1.5rem' }}>
-          ✦ Take your time — we&apos;ll wait as long as you need
+          <Sparkles size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.25rem' }} />Take your time — we&apos;ll wait as long as you need
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
@@ -702,9 +702,8 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>Select Best Memories</h3>
           <p style={{ fontSize: '0.95rem', color: C.muted }}>
-            {selected.size} / {maxSelection} photos selected <span style={{ opacity: 0.5 }}>• {photos.length} total from picker</span>
+            {selected.size} / {maxSelection} photos selected <span style={{ opacity: 0.5 }}>&#183; {photos.length} total from picker</span>
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -769,14 +768,12 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
                 <AnimatePresence>
                   {isSelected && (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      style={{ position: 'absolute', inset: 0, background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      style={{ position: 'absolute', top: '6px', right: '6px', width: '20px', height: '20px', borderRadius: '50%', background: C.olive, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', zIndex: 2 }}
                     >
-                      <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', background: C.olive, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                        <Check size={16} color="#fff" strokeWidth={3} />
-                      </div>
+                      <Check size={11} color="#fff" strokeWidth={3} />
                     </motion.div>
                   )}
                 </AnimatePresence>

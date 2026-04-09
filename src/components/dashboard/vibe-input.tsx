@@ -9,7 +9,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Palette, Globe, Info, ChevronDown } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Palette, Globe, Info, ChevronDown, Sparkles, Check, X as XIcon, Church, Wine, MapPin as MapPinIcon, Cake, Diamond, Smile, Heart, Zap, EyeOff, PartyPopper, AlertTriangle } from 'lucide-react';
 import {
   ElegantHeartIcon, MountainIcon, StarburstIcon, CoffeeCupIcon,
   SuitcaseIcon, PawIcon, MusicNoteIcon, LoomThreadIcon,
@@ -80,7 +80,7 @@ function VenueAestheticChip({ loading, style, mood }: { loading: boolean; style:
         </>
       ) : (
         <>
-          <span style={{ flexShrink: 0 }}>✦</span>
+          <Sparkles size={12} style={{ flexShrink: 0 }} />
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {style}{mood ? ` · ${mood}` : ''}
           </span>
@@ -93,7 +93,7 @@ function VenueAestheticChip({ loading, style, mood }: { loading: boolean; style:
 // ── Collapsible accordion for Phase 2 details ──────────────────
 function AccordionSection({ title, icon, children, defaultOpen = true }: {
   title: string;
-  icon?: string;
+  icon?: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
 }) {
@@ -123,7 +123,7 @@ function AccordionSection({ title, icon, children, defaultOpen = true }: {
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--pl-olive)' }}>
-          {icon && <span style={{ fontSize: '1rem' }}>{icon}</span>}
+          {icon && <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span>}
           {title}
         </span>
         <motion.span
@@ -891,7 +891,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           {/* ── WEDDING ── */}
           {occasion === 'wedding' && (
             <>
-              <AccordionSection title="Venue & Time" icon="💒" defaultOpen={true}>
+              <AccordionSection title="Venue & Time" icon={<Church size={16} />} defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
@@ -958,7 +958,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="More Details (Optional)" icon="🥂" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon={<Wine size={16} />} defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
@@ -1052,7 +1052,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           {/* ── ANNIVERSARY ── */}
           {occasion === 'anniversary' && (
             <>
-              <AccordionSection title="Your milestone" icon="🥂" defaultOpen={true}>
+              <AccordionSection title="Your milestone" icon={<Wine size={16} />} defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>How many years together? <Tooltip text="Helps us set the right tone for your milestone" /></label>
@@ -1069,7 +1069,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     />
                     {detailsData.anniversaryYears && [5, 10, 15, 20, 25, 30, 40, 50].includes(Number(detailsData.anniversaryYears)) && (
                       <p style={{ fontSize: '0.82rem', color: 'var(--pl-olive)', marginTop: '0.4rem', fontWeight: 600 }}>
-                        ✨ Milestone anniversary!
+                        <Sparkles size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Milestone anniversary!
                       </p>
                     )}
                   </div>
@@ -1115,7 +1115,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="More Details (Optional)" icon="📍" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon={<MapPinIcon size={16} />} defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1163,7 +1163,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           {/* ── BIRTHDAY ── */}
           {occasion === 'birthday' && (
             <>
-              <AccordionSection title="About them" icon="🎂" defaultOpen={true}>
+              <AccordionSection title="About them" icon={<Cake size={16} />} defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>How old are they turning? <Tooltip text="Age shapes the tone and narrative of the whole site" /></label>
@@ -1180,7 +1180,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     />
                     {detailsData.birthdayAge && isMilestoneBirthday(detailsData.birthdayAge) && (
                       <p style={{ fontSize: '0.82rem', color: 'var(--pl-olive)', marginTop: '0.4rem', fontWeight: 600 }}>
-                        ✨ Milestone birthday!
+                        <Sparkles size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /> Milestone birthday!
                       </p>
                     )}
                   </div>
@@ -1191,13 +1191,13 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                         onClick={() => setDetailsData(prev => ({ ...prev, isSurprise: true }))}
                         style={pillStyle(detailsData.isSurprise === true)}
                       >
-                        🤫 Yes, keep it secret
+                        <EyeOff size={14} style={{ flexShrink: 0 }} /> Yes, keep it secret
                       </button>
                       <button
                         onClick={() => setDetailsData(prev => ({ ...prev, isSurprise: false }))}
                         style={pillStyle(detailsData.isSurprise === false)}
                       >
-                        🎉 They know!
+                        <PartyPopper size={14} style={{ flexShrink: 0 }} /> They know!
                       </button>
                     </div>
                   </div>
@@ -1229,7 +1229,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="More Details (Optional)" icon="📍" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon={<MapPinIcon size={16} />} defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue / location <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1289,10 +1289,10 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           {/* ── ENGAGEMENT ── */}
           {occasion === 'engagement' && (
             <>
-              <AccordionSection title="The proposal" icon="💍" defaultOpen={true}>
+              <AccordionSection title="The proposal" icon={<Diamond size={16} />} defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
-                    <label style={fieldLabel}>Tell us about the proposal 💍 <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                    <label style={fieldLabel}>Tell us about the proposal <Diamond size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /> <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                     <textarea
                       placeholder="Where were you? How did it happen? What was said?..."
                       value={detailsData.proposalStory ?? ''}
@@ -1326,7 +1326,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="More Details (Optional)" icon="✨" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon={<Sparkles size={16} />} defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Wedding timeline <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1386,7 +1386,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         {hasInspoInput && (
           <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '14px 14px 32px 32px', padding: '1rem 1.25rem', border: '1px solid rgba(163,177,138,0.2)', marginTop: '2rem', boxShadow: '0 4px 20px rgba(163,177,138,0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: inspoKeywords.length > 0 ? '0.6rem' : 0 }}>
-              <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>✨</span>
+              <Sparkles size={18} style={{ flexShrink: 0, color: 'var(--pl-olive)' }} />
               <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-olive)', margin: 0 }}>
                 Aesthetic vibes locked in — AI will match these references
               </p>
@@ -1444,12 +1444,12 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           )}
           {subdomainStatus === 'available' && (
             <p style={{ fontSize: '0.8rem', color: 'var(--pl-olive)', marginTop: '0.5rem', fontWeight: 600 }}>
-              ✓ Available
+              <Check size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /> Available
             </p>
           )}
           {subdomainStatus === 'taken' && (
             <p style={{ fontSize: '0.8rem', color: 'var(--pl-plum, #7C3D73)', marginTop: '0.5rem', fontWeight: 600 }}>
-              ✗ Already taken — try a different URL
+              <XIcon size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /> Already taken — try a different URL
             </p>
           )}
           {subdomainStatus === 'error' && subdomain.length > 0 && (
@@ -1503,7 +1503,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
         onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
         onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.8'; }}
       >
-        {label} →
+        {label} <ArrowRight size={12} style={{ display: 'inline', verticalAlign: 'middle' }} />
       </button>
     );
 
@@ -2087,7 +2087,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
             {/* ── Make it yours (optional) — inspiration keywords/URLs ── */}
             <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: '2rem', marginTop: '2.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>✨</span>
+                <Sparkles size={20} style={{ color: 'var(--pl-olive)' }} />
                 <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.5rem', margin: 0 }}>Make it yours</h3>
                 <span style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', fontWeight: 400 }}>(optional)</span>
               </div>
@@ -2214,12 +2214,12 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                             onBlur={getBlurStyle}
                           />
                           {idx > 0 && (
-                            <button type="button" onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: '0.25rem', flexShrink: 0 }}>✕</button>
+                            <button type="button" onClick={() => setInspirationUrls(prev => prev.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', padding: '0.25rem', flexShrink: 0, display: 'flex', alignItems: 'center' }}><XIcon size={14} /></button>
                           )}
                         </div>
                         {warnNotDirectImage && (
                           <p style={{ fontSize: '0.76rem', color: '#f59e0b', margin: 0, paddingLeft: '0.25rem' }}>
-                            ⚠ Paste a direct image URL (ending in .jpg / .png) for best results
+                            <AlertTriangle size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /> Paste a direct image URL (ending in .jpg / .png) for best results
                           </p>
                         )}
                       </div>
@@ -2266,7 +2266,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
                 }}
               >
-                <span style={{ fontSize: '1.25rem' }}>✨</span>
+                <Sparkles size={20} style={{ color: 'var(--pl-olive)' }} />
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--pl-ink)' }}>Let AI pick colors for you</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', marginTop: '0.15rem' }}>Recommended — matches your vibe perfectly</div>
@@ -2281,7 +2281,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
             {hasInspoInput && (
               <div style={{ background: 'rgba(163,177,138,0.08)', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBottom: '1.5rem', border: '1px solid rgba(163,177,138,0.2)' }}>
                 <p style={{ fontSize: '0.85rem', color: 'var(--pl-olive)', fontWeight: 600, margin: 0 }}>
-                  ✨ Your inspiration vibes will also influence colors
+                  <Sparkles size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /> Your inspiration vibes will also influence colors
                 </p>
               </div>
             )}
@@ -2324,7 +2324,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                           background: 'var(--pl-ink)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '0.75rem',
-                        }}>✓</div>
+                        }}><Check size={14} color="#fff" /></div>
                       )}
                     </div>
                     <div style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -2514,14 +2514,14 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
               {(isBirthday
                 ? [
-                    { label: 'Funny', emoji: '😂', text: `${name1.trim() || 'They'} always makes everyone laugh — ` },
-                    { label: 'Emotional', emoji: '🥲', text: `Where do I even begin with ${name1.trim() || 'them'}... ` },
-                    { label: 'Short & sweet', emoji: '✨', text: `${name1.trim() || 'They'} — simply the best. ` },
+                    { label: 'Funny', icon: Smile, text: `${name1.trim() || 'They'} always makes everyone laugh — ` },
+                    { label: 'Emotional', icon: Heart, text: `Where do I even begin with ${name1.trim() || 'them'}... ` },
+                    { label: 'Short & sweet', icon: Zap, text: `${name1.trim() || 'They'} — simply the best. ` },
                   ]
                 : [
-                    { label: 'Funny', emoji: '😂', text: 'It started with a terrible joke — ' },
-                    { label: 'Emotional', emoji: '🥲', text: 'The moment I saw them, something just clicked — ' },
-                    { label: 'Short & sweet', emoji: '✨', text: 'We met. We clicked. The rest is history. ' },
+                    { label: 'Funny', icon: Smile, text: 'It started with a terrible joke — ' },
+                    { label: 'Emotional', icon: Heart, text: 'The moment I saw them, something just clicked — ' },
+                    { label: 'Short & sweet', icon: Zap, text: 'We met. We clicked. The rest is history. ' },
                   ]
               ).map(chip => (
                 <button
@@ -2536,7 +2536,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     cursor: 'pointer', transition: 'all 0.15s',
                   }}
                 >
-                  <span>{chip.emoji}</span> {chip.label}
+                  <chip.icon size={14} /> {chip.label}
                 </button>
               ))}
             </div>
@@ -2651,7 +2651,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
               </p>
               {eventDate && (
                 <p style={{ fontSize: '0.88rem', color: 'var(--pl-olive)', fontWeight: 600, marginTop: '0.75rem' }}>
-                  ✓ Date set: {/^\d{4}-\d{2}-\d{2}$/.test(eventDate) ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : eventDate}
+                  <Check size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /> Date set: {/^\d{4}-\d{2}-\d{2}$/.test(eventDate) ? new Date(eventDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : eventDate}
                 </p>
               )}
             </div>

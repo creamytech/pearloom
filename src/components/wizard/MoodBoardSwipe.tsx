@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Heart, Triangle, Sparkles, CircleDot, Square, Flower2 } from 'lucide-react';
 
 // ── Vibe card data with organic pastel gradients ─────────────
 
@@ -17,7 +17,7 @@ const VIBE_CARDS = [
     label: 'Classic Romance',
     desc: 'Timeless, elegant, deeply comforting',
     words: 'romantic elegant timeless classic',
-    icon: '♡',
+    icon: Heart,
     gradient: 'linear-gradient(145deg, rgba(232,180,192,0.35) 0%, rgba(220,160,175,0.2) 100%)',
     borderColor: 'rgba(232,180,192,0.4)',
   },
@@ -26,7 +26,7 @@ const VIBE_CARDS = [
     label: 'Adventurous',
     desc: 'Wild, exploring the world together',
     words: 'adventurous bold wild natural',
-    icon: '△',
+    icon: Triangle,
     gradient: 'linear-gradient(145deg, rgba(163,177,138,0.3) 0%, rgba(140,160,120,0.15) 100%)',
     borderColor: 'rgba(163,177,138,0.4)',
   },
@@ -35,7 +35,7 @@ const VIBE_CARDS = [
     label: 'Playful & Fun',
     desc: 'Laughter, color, and vibrant energy',
     words: 'playful colorful fun vibrant',
-    icon: '✳',
+    icon: Sparkles,
     gradient: 'linear-gradient(145deg, rgba(220,200,140,0.35) 0%, rgba(200,180,120,0.15) 100%)',
     borderColor: 'rgba(220,200,140,0.4)',
   },
@@ -44,7 +44,7 @@ const VIBE_CARDS = [
     label: 'Cozy & Intimate',
     desc: 'Quiet meetings, warmth, and comfort',
     words: 'intimate cozy warm candlelit',
-    icon: '◎',
+    icon: CircleDot,
     gradient: 'linear-gradient(145deg, rgba(210,185,165,0.35) 0%, rgba(190,165,145,0.15) 100%)',
     borderColor: 'rgba(210,185,165,0.45)',
   },
@@ -53,7 +53,7 @@ const VIBE_CARDS = [
     label: 'Wanderlust',
     desc: 'Travel-driven, worldly, cultural',
     words: 'wanderlust travel worldly cultural',
-    icon: '◻',
+    icon: Square,
     gradient: 'linear-gradient(145deg, rgba(155,180,200,0.35) 0%, rgba(135,165,185,0.15) 100%)',
     borderColor: 'rgba(155,180,200,0.4)',
   },
@@ -62,7 +62,7 @@ const VIBE_CARDS = [
     label: 'Organic & Natural',
     desc: 'Botanical, earthy, garden-inspired',
     words: 'botanical organic natural earthy',
-    icon: '❋',
+    icon: Flower2,
     gradient: 'linear-gradient(145deg, rgba(170,190,150,0.35) 0%, rgba(150,175,130,0.15) 100%)',
     borderColor: 'rgba(170,190,150,0.45)',
   },
@@ -177,12 +177,11 @@ export function MoodBoardSwipe({ onComplete, onSkip }: MoodBoardSwipeProps) {
                 background: 'rgba(255,255,255,0.35)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
-                fontSize: '1.1rem',
                 color: 'var(--pl-ink-soft)',
                 marginBottom: '12px',
                 border: '1px solid rgba(255,255,255,0.4)',
               } as React.CSSProperties}>
-                {card.icon}
+                <card.icon size={18} />
               </span>
 
               {/* Label */}

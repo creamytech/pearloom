@@ -166,12 +166,12 @@ export function PhotosStep({ selectedPhotos, onPhotosSelected, onContinue, onBac
           whileTap={count > 0 ? { scale: 0.98 } : {}}
           className="flex items-center gap-2 px-6 py-2.5 rounded-full border-none cursor-pointer text-[0.75rem] font-bold uppercase tracking-[0.06em] transition-all"
           style={{
-            background: count > 0 ? 'var(--pl-olive)' : 'rgba(0,0,0,0.04)',
+            background: count > 0 ? 'var(--pl-olive-deep)' : 'rgba(0,0,0,0.04)',
             color: count > 0 ? 'white' : 'var(--pl-muted)',
-            boxShadow: count > 0 ? '0 4px 16px rgba(163,177,138,0.3)' : 'none',
+            boxShadow: count > 0 ? '0 4px 16px rgba(110,140,92,0.35)' : 'none',
           }}
         >
-          Continue
+          {count > 0 ? `Continue with ${count} photo${count !== 1 ? 's' : ''}` : 'Continue'}
           {count > 0 ? <ArrowRight size={13} /> : <Lock size={11} />}
         </motion.button>
       </div>
