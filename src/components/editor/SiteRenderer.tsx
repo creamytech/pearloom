@@ -23,6 +23,7 @@ import { WaveDivider } from '@/components/vibe/WaveDivider';
 import { deriveVibeSkin } from '@/lib/vibe-engine';
 import { sanitizeSvg } from '@/lib/sanitize-svg';
 import { getThemeArt } from '@/lib/theme-art';
+import { getHeroIllustrationDataUrl } from '@/lib/hero-illustrations';
 import { StickerLayer } from '@/components/site-stickers/StickerLayer';
 import { ensureContrast, enforcePaletteContrast } from '@/lib/color-utils';
 import { smartBlockOrder } from '@/lib/smart-features';
@@ -323,6 +324,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
   const proxiedCover = manifest.coverPhoto
     || vibeSkin.heroArtDataUrl
     || `/api/hero-art?${new URLSearchParams({ n1: safeNames[0], n2: safeNames[1], occasion, accent: pal.accent, bg: pal.background }).toString()}`;
+
+  // If no cover photo, generate illustrated hero from theme
+  const effectiveCover = proxiedCover || (manifest.theme?.name ? getHeroIllustrationDataUrl(manifest.theme.name, {
+    background: pal.background,
+    accent: pal.accent,
+    accent2: pal.accent2,
+    foreground: pal.foreground,
+  }) : undefined);
 
   const sitePages: SitePage[] = useMemo(() => [
     { id: 'story', slug: 'our-story', label: vibeSkin.sectionLabels?.story || 'Our Story', enabled: true, order: 0 },
@@ -678,7 +687,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <Hero
               names={names}
               subtitle={manifest.chapters?.[0]?.subtitle || `${manifest.chapters?.length || 0} chapters of your love story`}
-              coverPhoto={proxiedCover}
+              coverPhoto={effectiveCover}
               weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date}
               vibeSkin={vibeSkin}
               heroTagline={manifest.poetry?.heroTagline}
@@ -1097,7 +1106,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
     }
-  }, [manifest, names, vibeSkin, pal, bgColor, cardBg, proxiedCover, editMode, handleTextBlur, onTextEdit, art]);
+  }, [manifest, names, vibeSkin, pal, bgColor, cardBg, effectiveCover, editMode, handleTextBlur, onTextEdit, art]);
 
   // ── Drop zone between blocks ──
   // ── Add Section Line — visible between every block ──
@@ -1306,7 +1315,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </>
           ) : (
             <>
-              <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={proxiedCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url)).filter(Boolean).slice(0, 6)} editMode={editMode} />
+              <Hero names={names} subtitle={manifest.chapters?.[0]?.subtitle || 'A love story beautifully told.'} coverPhoto={effectiveCover} weddingDate={manifest.events?.[0]?.date || manifest.logistics?.date} vibeSkin={vibeSkin} heroTagline={manifest.poetry?.heroTagline} photos={(manifest.chapters || []).flatMap(ch => (ch.images || []).slice(0, 1).map(img => img.url)).filter(Boolean).slice(0, 6)} editMode={editMode} />
               <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={70} />
               <section id="our-story"><Timeline chapters={manifest.chapters || []} layoutFormat={manifest.layoutFormat} /></section>
               {manifest.events?.length ? <section id="schedule"><WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} /></section> : null}
