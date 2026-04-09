@@ -622,4 +622,36 @@ export const BLOCK_SCHEMAS: Record<string, BlockSchema> = {
       },
     },
   },
+
+  storymap: {
+    type: 'storymap',
+    label: 'Story Map',
+    description: 'Interactive map of your journey together',
+    icon: 'MapPin',
+    category: 'media',
+    props: {
+      title: {
+        label: 'Title',
+        type: 'text',
+        defaultValue: 'Our Journey',
+        group: 'Content',
+      },
+    },
+  },
+
+  weddingParty: {
+    type: 'weddingParty',
+    label: 'Wedding Party',
+    description: 'Showcase your bridal party and groomsmen',
+    icon: 'Users',
+    category: 'content',
+    props: {
+      title: {
+        label: 'Title',
+        type: 'text',
+        defaultValue: 'The Wedding Party',
+        group: 'Content',
+      },
+    },
+  },
 };

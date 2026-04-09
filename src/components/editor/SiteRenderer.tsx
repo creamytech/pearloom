@@ -1058,8 +1058,19 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       }
-      case 'footer':
-        return null; // Footer is rendered separately below
+      case 'footer': {
+        const footerText = blockCfg.text as string | undefined;
+        return (
+          <section key={key} data-pe-section="footer" style={{ padding: '3rem 2rem', textAlign: 'center', borderTop: `1px solid ${pal.accent}15`, ...blockStyle }}>
+            <p style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '0.88rem', fontStyle: 'italic', color: safeMuted, lineHeight: 1.6 }}>
+              {footerText || manifest.poetry?.closingLine || 'Made with love'}
+            </p>
+            <p style={{ fontSize: '0.65rem', color: safeMuted, opacity: 0.6, marginTop: '0.5rem' }}>
+              Pearloom
+            </p>
+          </section>
+        );
+      }
       case 'anniversary':
         return (
           <section key={key} data-pe-section="anniversary" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
