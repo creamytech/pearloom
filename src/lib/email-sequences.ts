@@ -18,6 +18,64 @@ export type EmailType =
   | 'event_reminder'
   | 'post_wedding_thank_you';
 
+export interface EmailThemeColors {
+  background: string;    // page bg (replaces #F5F1E8)
+  foreground: string;    // text color (replaces #2B2B2B)
+  accent: string;        // button/link color (replaces #A3B18A)
+  accentLight: string;   // light accent for borders
+  card: string;          // card bg (replaces #FFFFFF)
+  muted: string;         // secondary text
+  headingFont: string;   // heading font name
+  bodyFont: string;      // body font name
+}
+
+const DEFAULT_THEME: EmailThemeColors = {
+  background: '#F5F1E8',
+  foreground: '#2B2B2B',
+  accent: '#A3B18A',
+  accentLight: '#EEE8DC',
+  card: '#FFFFFF',
+  muted: '#9A9488',
+  headingFont: 'Playfair Display',
+  bodyFont: 'Inter',
+};
+
+/**
+ * Parse a hex color to relative luminance (0 = black, 1 = white).
+ * Used to detect dark backgrounds and swap colors for email readability.
+ */
+function hexLuminance(hex: string): number {
+  const h = hex.replace('#', '');
+  if (h.length < 6) return 0.5; // can't parse short/invalid — assume mid
+  const r = parseInt(h.substring(0, 2), 16) / 255;
+  const g = parseInt(h.substring(2, 4), 16) / 255;
+  const b = parseInt(h.substring(4, 6), 16) / 255;
+  const toLinear = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+/**
+ * Ensure theme colors are email-safe. If the background is dark
+ * (luminance < 0.2), swap to a light scheme so emails remain readable
+ * across all email clients.
+ */
+function emailSafeTheme(theme: EmailThemeColors): EmailThemeColors {
+  const bgLum = hexLuminance(theme.background);
+  if (bgLum < 0.2) {
+    // Dark background — swap: use card as page bg, foreground stays dark
+    return {
+      ...theme,
+      background: theme.card,      // light card becomes page bg
+      card: '#FFFFFF',             // card stays white
+      foreground: theme.foreground.toLowerCase() === '#ffffff' || hexLuminance(theme.foreground) > 0.8
+        ? '#2B2B2B'                // if foreground was light (for dark bg), reset to dark
+        : theme.foreground,
+      // Keep accent, accentLight, muted, fonts as-is
+    };
+  }
+  return theme;
+}
+
 export interface EmailContext {
   guestName?: string;
   coupleNames?: string;
@@ -32,6 +90,7 @@ export interface EmailContext {
   daysUntilEvent?: number;
   daysUntilDeadline?: number;
   personalNote?: string;
+  themeColors?: EmailThemeColors;
 }
 
 export interface ScheduledEmail {
@@ -67,7 +126,11 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function emailLayout(content: string): string {
+function emailLayout(content: string, themeColors?: EmailThemeColors): string {
+  const t = emailSafeTheme(themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,'Times New Roman',serif`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,19 +138,19 @@ function emailLayout(content: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pearloom</title>
 </head>
-<body style="margin:0;padding:0;background-color:#F5F1E8;font-family:Georgia,'Times New Roman',serif;-webkit-font-smoothing:antialiased">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#F5F1E8;padding:40px 16px">
+<body style="margin:0;padding:0;background-color:${t.background};font-family:${bodyStack};-webkit-font-smoothing:antialiased">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.background};padding:40px 16px">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(43,30,20,0.07)">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;background-color:${t.card};border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(43,30,20,0.07)">
           ${content}
         </table>
         <!-- Footer -->
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:560px;margin-top:16px">
           <tr>
             <td style="text-align:center;padding:8px 0">
-              <p style="font-size:11px;color:#9B9487;margin:0;font-family:Georgia,serif">
-                Sent with love by <a href="https://pearloom.com" style="color:#A3B18A;text-decoration:none;font-weight:600">Pearloom</a>
+              <p style="font-size:11px;color:${t.muted};margin:0;font-family:${bodyStack}">
+                Sent with love by <a href="https://pearloom.com" style="color:${t.accent};text-decoration:none;font-weight:600">Pearloom</a>
               </p>
             </td>
           </tr>
@@ -99,12 +162,15 @@ function emailLayout(content: string): string {
 </html>`;
 }
 
-function button(text: string, href: string): string {
-  return `<a href="${esc(href)}" style="display:inline-block;padding:14px 36px;background-color:#A3B18A;color:#FFFFFF;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:Georgia,serif;mso-padding-alt:14px 36px">${esc(text)}</a>`;
+function button(text: string, href: string, themeColors?: EmailThemeColors): string {
+  const t = themeColors || DEFAULT_THEME;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
+  return `<a href="${esc(href)}" style="display:inline-block;padding:14px 36px;background-color:${t.accent};color:#FFFFFF;border-radius:100px;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:${bodyStack};mso-padding-alt:14px 36px">${esc(text)}</a>`;
 }
 
-function divider(): string {
-  return '<div style="width:48px;height:1px;background-color:#D4C9B0;margin:20px auto"></div>';
+function divider(themeColors?: EmailThemeColors): string {
+  const t = themeColors || DEFAULT_THEME;
+  return `<div style="width:48px;height:1px;background-color:${t.accentLight};margin:20px auto"></div>`;
 }
 
 // ── Email Templates ─────────────────────────────────────────
@@ -114,6 +180,9 @@ function rsvpConfirmationTemplate(ctx: EmailContext): { subject: string; html: s
   const coupleNames = ctx.coupleNames || 'the happy couple';
   const isAttending = ctx.rsvpStatus === 'attending';
   const isDeclined = ctx.rsvpStatus === 'declined';
+  const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
 
   const subject = isAttending
     ? `Thank you for your RSVP! We can't wait to celebrate with you`
@@ -134,26 +203,26 @@ function rsvpConfirmationTemplate(ctx: EmailContext): { subject: string; html: s
       : `Dear ${esc(guestName)},<br><br>We've received your response for <strong>${esc(coupleNames)}</strong>'s celebration. Thank you for letting us know.`;
 
   const eventDetails = (ctx.eventDate || ctx.venueName)
-    ? `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FAF7F2;border-radius:12px;margin:24px 0">
+    ? `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:12px;margin:24px 0">
         <tr><td style="padding:20px 24px;text-align:center">
-          ${ctx.eventDate ? `<p style="font-size:15px;color:#3D3530;margin:0 0 4px;font-weight:600">${esc(ctx.eventDate)}</p>` : ''}
-          ${ctx.venueName ? `<p style="font-size:13px;color:#7A756E;margin:0">${esc(ctx.venueName)}</p>` : ''}
+          ${ctx.eventDate ? `<p style="font-size:15px;color:${t.foreground};margin:0 0 4px;font-weight:600">${esc(ctx.eventDate)}</p>` : ''}
+          ${ctx.venueName ? `<p style="font-size:13px;color:${t.muted};margin:0">${esc(ctx.venueName)}</p>` : ''}
         </td></tr>
       </table>`
     : '';
 
   const html = emailLayout(`
     <tr><td style="padding:48px 36px 12px;text-align:center">
-      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#A3B18A;margin:0 0 16px;font-family:Georgia,serif">RSVP Confirmed</p>
-      <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:400;font-style:italic;color:#3D3530;margin:0 0 8px;line-height:1.3">${heroMessage}</h1>
-      ${divider()}
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:0 0 16px;font-family:${bodyStack}">RSVP Confirmed</p>
+      <h1 style="font-family:${headingStack};font-size:28px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.3">${heroMessage}</h1>
+      ${divider(t)}
     </td></tr>
     <tr><td style="padding:8px 36px 36px;text-align:center">
-      <p style="font-size:14px;color:#5A534A;line-height:1.7;margin:0 0 16px">${bodyMessage}</p>
+      <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0 0 16px">${bodyMessage}</p>
       ${eventDetails}
-      ${ctx.siteUrl ? `<p style="margin:24px 0 0">${button('View Wedding Site', ctx.siteUrl)}</p>` : ''}
+      ${ctx.siteUrl ? `<p style="margin:24px 0 0">${button('View Wedding Site', ctx.siteUrl, t)}</p>` : ''}
     </td></tr>
-  `);
+  `, t);
 
   return { subject, html };
 }
@@ -163,6 +232,8 @@ function rsvpReminderTemplate(ctx: EmailContext): { subject: string; html: strin
   const coupleNames = ctx.coupleNames || 'the couple';
   const daysLeft = ctx.daysUntilDeadline;
   const urgency = daysLeft !== undefined && daysLeft <= 3 ? 'last-chance' : 'gentle';
+  const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
 
   const subject = urgency === 'last-chance'
     ? `Only ${daysLeft} day${daysLeft === 1 ? '' : 's'} left to RSVP — ${coupleNames}'s celebration`
@@ -179,26 +250,26 @@ function rsvpReminderTemplate(ctx: EmailContext): { subject: string; html: strin
   const html = emailLayout(`
     <tr><td style="padding:48px 36px 12px;text-align:center">
       <p style="font-size:28px;margin:0 0 12px;line-height:1">&#9825;</p>
-      <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:400;font-style:italic;color:#3D3530;margin:0 0 8px;line-height:1.3">${headline}</h1>
-      ${divider()}
+      <h1 style="font-family:${headingStack};font-size:26px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.3">${headline}</h1>
+      ${divider(t)}
     </td></tr>
     <tr><td style="padding:8px 36px 16px;text-align:center">
-      <p style="font-size:14px;color:#5A534A;line-height:1.7;margin:0">${message}</p>
+      <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0">${message}</p>
     </td></tr>
     ${ctx.eventDate || ctx.venueName ? `
     <tr><td style="padding:0 36px 16px">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FAF7F2;border-radius:12px">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:12px">
         <tr><td style="padding:20px 24px;text-align:center">
-          ${ctx.eventDate ? `<p style="font-size:15px;color:#3D3530;margin:0 0 4px;font-weight:600">${esc(ctx.eventDate)}</p>` : ''}
-          ${ctx.venueName ? `<p style="font-size:13px;color:#7A756E;margin:0">${esc(ctx.venueName)}</p>` : ''}
+          ${ctx.eventDate ? `<p style="font-size:15px;color:${t.foreground};margin:0 0 4px;font-weight:600">${esc(ctx.eventDate)}</p>` : ''}
+          ${ctx.venueName ? `<p style="font-size:13px;color:${t.muted};margin:0">${esc(ctx.venueName)}</p>` : ''}
         </td></tr>
       </table>
     </td></tr>` : ''}
     <tr><td style="padding:8px 36px 40px;text-align:center">
-      ${ctx.rsvpUrl ? button('RSVP Now', ctx.rsvpUrl) : ''}
-      ${ctx.rsvpDeadline ? `<p style="font-size:12px;color:#9B9487;margin:20px 0 0">Please respond by ${esc(ctx.rsvpDeadline)}</p>` : ''}
+      ${ctx.rsvpUrl ? button('RSVP Now', ctx.rsvpUrl, t) : ''}
+      ${ctx.rsvpDeadline ? `<p style="font-size:12px;color:${t.muted};margin:20px 0 0">Please respond by ${esc(ctx.rsvpDeadline)}</p>` : ''}
     </td></tr>
-  `);
+  `, t);
 
   return { subject, html };
 }
@@ -208,6 +279,9 @@ function eventReminderTemplate(ctx: EmailContext): { subject: string; html: stri
   const coupleNames = ctx.coupleNames || 'the couple';
   const daysUntil = ctx.daysUntilEvent;
   const isTomorrow = daysUntil === 1;
+  const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
 
   const subject = isTomorrow
     ? `Tomorrow is the day! See you at ${coupleNames}'s celebration`
@@ -223,28 +297,28 @@ function eventReminderTemplate(ctx: EmailContext): { subject: string; html: stri
 
   const html = emailLayout(`
     <tr><td style="padding:48px 36px 12px;text-align:center">
-      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#A3B18A;margin:0 0 16px;font-family:Georgia,serif">${isTomorrow ? 'TOMORROW' : 'COMING SOON'}</p>
-      <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:400;font-style:italic;color:#3D3530;margin:0 0 8px;line-height:1.3">${headline}</h1>
-      ${divider()}
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:0 0 16px;font-family:${bodyStack}">${isTomorrow ? 'TOMORROW' : 'COMING SOON'}</p>
+      <h1 style="font-family:${headingStack};font-size:28px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.3">${headline}</h1>
+      ${divider(t)}
     </td></tr>
     <tr><td style="padding:8px 36px 16px;text-align:center">
-      <p style="font-size:14px;color:#5A534A;line-height:1.7;margin:0">${message}</p>
+      <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0">${message}</p>
     </td></tr>
     ${ctx.eventDate || ctx.venueName ? `
     <tr><td style="padding:0 36px 16px">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FAF7F2;border-radius:12px">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:12px">
         <tr><td style="padding:24px;text-align:center">
-          <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9B9487;margin:0 0 8px">Event Details</p>
-          ${ctx.eventDate ? `<p style="font-size:17px;color:#3D3530;margin:0 0 6px;font-weight:600;font-family:'Playfair Display',Georgia,serif">${esc(ctx.eventDate)}</p>` : ''}
-          ${ctx.venueName ? `<p style="font-size:14px;color:#7A756E;margin:0">${esc(ctx.venueName)}</p>` : ''}
+          <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:${t.muted};margin:0 0 8px">Event Details</p>
+          ${ctx.eventDate ? `<p style="font-size:17px;color:${t.foreground};margin:0 0 6px;font-weight:600;font-family:${headingStack}">${esc(ctx.eventDate)}</p>` : ''}
+          ${ctx.venueName ? `<p style="font-size:14px;color:${t.muted};margin:0">${esc(ctx.venueName)}</p>` : ''}
         </td></tr>
       </table>
     </td></tr>` : ''}
     <tr><td style="padding:8px 36px 40px;text-align:center">
-      ${ctx.siteUrl ? button('View Full Details', ctx.siteUrl) : ''}
-      <p style="font-size:13px;color:#5A534A;font-style:italic;margin:24px 0 0;line-height:1.6">We're so grateful to have you as part of this celebration.<br>With love, <strong>${esc(coupleNames)}</strong></p>
+      ${ctx.siteUrl ? button('View Full Details', ctx.siteUrl, t) : ''}
+      <p style="font-size:13px;color:${t.foreground};font-style:italic;margin:24px 0 0;line-height:1.6">We're so grateful to have you as part of this celebration.<br>With love, <strong>${esc(coupleNames)}</strong></p>
     </td></tr>
-  `);
+  `, t);
 
   return { subject, html };
 }
@@ -252,17 +326,20 @@ function eventReminderTemplate(ctx: EmailContext): { subject: string; html: stri
 function postWeddingThankYouTemplate(ctx: EmailContext): { subject: string; html: string } {
   const guestName = ctx.guestName || 'Friend';
   const coupleNames = ctx.coupleNames || 'the newlyweds';
+  const t = emailSafeTheme(ctx.themeColors || DEFAULT_THEME);
+  const headingStack = `'${t.headingFont}',Georgia,serif`;
+  const bodyStack = `'${t.bodyFont}',Georgia,serif`;
 
   const subject = `Thank you for celebrating with us — ${coupleNames}`;
 
   const html = emailLayout(`
     <tr><td style="padding:48px 36px 12px;text-align:center">
-      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#A3B18A;margin:0 0 16px;font-family:Georgia,serif">Thank You</p>
-      <h1 style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:400;font-style:italic;color:#3D3530;margin:0 0 8px;line-height:1.3">From the bottom of our hearts</h1>
-      ${divider()}
+      <p style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${t.accent};margin:0 0 16px;font-family:${bodyStack}">Thank You</p>
+      <h1 style="font-family:${headingStack};font-size:28px;font-weight:400;font-style:italic;color:${t.foreground};margin:0 0 8px;line-height:1.3">From the bottom of our hearts</h1>
+      ${divider(t)}
     </td></tr>
     <tr><td style="padding:8px 36px 16px;text-align:center">
-      <p style="font-size:14px;color:#5A534A;line-height:1.7;margin:0">
+      <p style="font-size:14px;color:${t.foreground};line-height:1.7;margin:0">
         Dear ${esc(guestName)},<br><br>
         Words can't fully express how much it meant to have you at our celebration. Your presence, your warmth, and your love made the day truly unforgettable.<br><br>
         ${ctx.personalNote ? `${esc(ctx.personalNote)}<br><br>` : ''}
@@ -270,17 +347,17 @@ function postWeddingThankYouTemplate(ctx: EmailContext): { subject: string; html
       </p>
     </td></tr>
     <tr><td style="padding:0 36px 8px">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FAF7F2;border-radius:12px">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:${t.accentLight};border-radius:12px">
         <tr><td style="padding:24px;text-align:center">
           ${ctx.galleryUrl ? `
           <a href="${esc(ctx.galleryUrl)}" style="display:block;text-decoration:none;margin-bottom:${ctx.guestbookUrl ? '16px' : '0'}">
             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
               <tr>
-                <td style="padding:12px 16px;background-color:#FFFFFF;border-radius:8px;text-align:left">
-                  <p style="font-size:13px;font-weight:700;color:#3D3530;margin:0 0 2px">Photo Gallery</p>
-                  <p style="font-size:12px;color:#7A756E;margin:0">Browse and download photos from the celebration</p>
+                <td style="padding:12px 16px;background-color:${t.card};border-radius:8px;text-align:left">
+                  <p style="font-size:13px;font-weight:700;color:${t.foreground};margin:0 0 2px">Photo Gallery</p>
+                  <p style="font-size:12px;color:${t.muted};margin:0">Browse and download photos from the celebration</p>
                 </td>
-                <td style="width:40px;text-align:center;color:#A3B18A;font-size:18px">&#8250;</td>
+                <td style="width:40px;text-align:center;color:${t.accent};font-size:18px">&#8250;</td>
               </tr>
             </table>
           </a>` : ''}
@@ -288,11 +365,11 @@ function postWeddingThankYouTemplate(ctx: EmailContext): { subject: string; html
           <a href="${esc(ctx.guestbookUrl)}" style="display:block;text-decoration:none">
             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
               <tr>
-                <td style="padding:12px 16px;background-color:#FFFFFF;border-radius:8px;text-align:left">
-                  <p style="font-size:13px;font-weight:700;color:#3D3530;margin:0 0 2px">Guestbook</p>
-                  <p style="font-size:12px;color:#7A756E;margin:0">Leave a note or read messages from fellow guests</p>
+                <td style="padding:12px 16px;background-color:${t.card};border-radius:8px;text-align:left">
+                  <p style="font-size:13px;font-weight:700;color:${t.foreground};margin:0 0 2px">Guestbook</p>
+                  <p style="font-size:12px;color:${t.muted};margin:0">Leave a note or read messages from fellow guests</p>
                 </td>
-                <td style="width:40px;text-align:center;color:#A3B18A;font-size:18px">&#8250;</td>
+                <td style="width:40px;text-align:center;color:${t.accent};font-size:18px">&#8250;</td>
               </tr>
             </table>
           </a>` : ''}
@@ -300,12 +377,12 @@ function postWeddingThankYouTemplate(ctx: EmailContext): { subject: string; html
       </table>
     </td></tr>
     <tr><td style="padding:16px 36px 44px;text-align:center">
-      ${ctx.siteUrl ? button('Visit Our Site', ctx.siteUrl) : ''}
-      <p style="font-size:14px;color:#3D3530;font-style:italic;margin:28px 0 0;line-height:1.6;font-family:'Playfair Display',Georgia,serif">
+      ${ctx.siteUrl ? button('Visit Our Site', ctx.siteUrl, t) : ''}
+      <p style="font-size:14px;color:${t.foreground};font-style:italic;margin:28px 0 0;line-height:1.6;font-family:${headingStack}">
         With all our love,<br><strong>${esc(coupleNames)}</strong>
       </p>
     </td></tr>
-  `);
+  `, t);
 
   return { subject, html };
 }

@@ -17,7 +17,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { scheduleEmailForSite, type EmailType, type EmailContext } from '@/lib/email-sequences';
+import { scheduleEmailForSite, type EmailType, type EmailContext, type EmailThemeColors } from '@/lib/email-sequences';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +117,25 @@ export async function POST(req: NextRequest) {
     const logistics = manifest.logistics as Record<string, unknown> | undefined;
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pearloom.com';
 
+    // Extract theme colors from the site manifest (vibeSkin or legacy theme)
+    const vibeSkin = manifest.vibeSkin as Record<string, unknown> | undefined;
+    const themeBlock = manifest.theme as Record<string, unknown> | undefined;
+    const vibePalette = vibeSkin?.palette as Record<string, string> | undefined;
+    const themeColors = themeBlock?.colors as Record<string, string> | undefined;
+    const vibeFonts = vibeSkin?.fonts as Record<string, string> | undefined;
+    const themeFonts = themeBlock?.fonts as Record<string, string> | undefined;
+
+    const emailThemeColors: EmailThemeColors = {
+      background: vibePalette?.background || themeColors?.background || '#F5F1E8',
+      foreground: vibePalette?.foreground || themeColors?.foreground || '#2B2B2B',
+      accent: vibePalette?.accent || themeColors?.accent || '#A3B18A',
+      accentLight: vibePalette?.accent2 || themeColors?.accentLight || '#EEE8DC',
+      card: vibePalette?.card || themeColors?.cardBg || '#FFFFFF',
+      muted: vibePalette?.muted || themeColors?.muted || '#9A9488',
+      headingFont: vibeFonts?.heading || themeFonts?.heading || 'Playfair Display',
+      bodyFont: vibeFonts?.body || themeFonts?.body || 'Inter',
+    };
+
     const baseContext: EmailContext = {
       coupleNames,
       eventDate: (logistics?.date as string) || sharedContext?.eventDate || '',
@@ -126,6 +145,7 @@ export async function POST(req: NextRequest) {
       rsvpDeadline: sharedContext?.rsvpDeadline || '',
       guestbookUrl: sharedContext?.guestbookUrl || `${baseUrl}/s/${siteId}#guestbook`,
       galleryUrl: sharedContext?.galleryUrl || `${baseUrl}/s/${siteId}#gallery`,
+      themeColors: emailThemeColors,
       ...sharedContext,
     };
 

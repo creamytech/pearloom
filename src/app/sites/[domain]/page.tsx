@@ -87,20 +87,23 @@ export async function generateMetadata(
     ? `${displayNames}'s love story — ${vibeString.slice(0, 120)}${vibeString.length > 120 ? '...' : ''}`
     : `${displayNames}'s ${occasionDescLabel[occasion] || 'wedding website'}. ${chapterCount} chapters of their story.`;
 
-  // OG image: prefer the AI-generated OG route, fall back to first chapter photo
-  const accent = manifest?.theme?.colors?.accent || '#A3B18A';
-  const bg = manifest?.theme?.colors?.background || '#2B2B2B';
-  const rawCoverPhoto = manifest?.chapters?.[0]?.images?.[0]?.url || '';
-  // Make /api/img/ proxy URLs absolute — external crawlers (iMessage, Twitter) can't
-  // resolve relative paths, so the OG image renderer needs the full URL.
-  const coverPhoto = rawCoverPhoto.startsWith('/') ? `https://pearloom.com${rawCoverPhoto}` : rawCoverPhoto;
-  const weddingDate = eventDate || '';
-  const tagline = siteConfig.tagline || vibeString || 'A love story beautifully told.';
-  const [n1, n2] = names;
-
-  const ogUrl = `/api/og?n1=${encodeURIComponent(n1)}&n2=${encodeURIComponent(n2)}&tag=${encodeURIComponent(tagline)}&accent=${encodeURIComponent(accent)}&bg=${encodeURIComponent(bg)}&date=${encodeURIComponent(weddingDate)}&photo=${encodeURIComponent(coverPhoto)}`;
+  // Derive vibeSkin for themed OG image colors & fonts
+  const vibeSkin = manifest?.vibeSkin || deriveVibeSkin(manifest?.vibeString || '');
+  const tagline = manifest?.poetry?.heroTagline || siteConfig.tagline || vibeString || '';
 
   const siteUrl = `https://${domain}.pearloom.com`;
+
+  // Build themed OG image URL with full palette & font info
+  const ogUrl = new URL('/api/og', siteUrl);
+  ogUrl.searchParams.set('names', `${names[0]},${names[1]}`);
+  ogUrl.searchParams.set('occasion', occasion);
+  ogUrl.searchParams.set('date', eventDate || '');
+  ogUrl.searchParams.set('tagline', tagline);
+  ogUrl.searchParams.set('bg', vibeSkin.palette.background.replace('#', ''));
+  ogUrl.searchParams.set('fg', vibeSkin.palette.foreground.replace('#', ''));
+  ogUrl.searchParams.set('accent', vibeSkin.palette.accent.replace('#', ''));
+  ogUrl.searchParams.set('heading', vibeSkin.fonts.heading);
+  ogUrl.searchParams.set('symbol', vibeSkin.accentSymbol || '✦');
 
   return {
     metadataBase: new URL('https://pearloom.com'),
@@ -118,13 +121,13 @@ export async function generateMetadata(
       url: siteUrl,
       siteName: 'Pearloom',
       type: 'website',
-      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${displayNames}${dateStr ? ` — ${dateStr}` : ''}` }],
+      images: [{ url: ogUrl.toString(), width: 1200, height: 630, alt: `${displayNames}${dateStr ? ` — ${dateStr}` : ''}` }],
     },
     twitter: {
       card: 'summary_large_image',
       title: shortTitle,
       description,
-      images: [ogUrl],
+      images: [ogUrl.toString()],
     },
     robots: {
       index: true,

@@ -3,27 +3,6 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
-// Trusted photo hosts (SSRF prevention)
-const ALLOWED_PHOTO_HOSTS = [
-  'lh3.googleusercontent.com',
-  'googleusercontent.com',
-  'supabase.co',
-  'r2.cloudflarestorage.com',
-  'pearloom.com',
-];
-function isTrustedPhotoUrl(url: string): boolean {
-  if (!url) return false;
-  try {
-    const { hostname, protocol } = new URL(url);
-    if (protocol !== 'https:') return false;
-    return ALLOWED_PHOTO_HOSTS.some(
-      h => hostname === h || hostname.endsWith('.' + h) || hostname.startsWith('pub-')
-    );
-  } catch {
-    return false;
-  }
-}
-
 // Parse hex → [r, g, b] (0–255)
 function hexToRgb(hex: string): [number, number, number] {
   const clean = hex.replace('#', '');
@@ -42,31 +21,112 @@ function luminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+/** Try to load a Google Font as ArrayBuffer for Satori rendering */
+async function loadGoogleFont(family: string, weight = 400): Promise<ArrayBuffer | null> {
+  try {
+    const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@${weight}&display=swap`;
+    const cssRes = await fetch(cssUrl, {
+      headers: {
+        // Request woff format — lighter and supported by Satori
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+      },
+    });
+    if (!cssRes.ok) return null;
+    const css = await cssRes.text();
+    // Extract the first src url from the CSS
+    const match = css.match(/src:\s*url\(([^)]+)\)/);
+    if (!match?.[1]) return null;
+    const fontRes = await fetch(match[1]);
+    if (!fontRes.ok) return null;
+    return fontRes.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
+/** Format a date string into a nice display format */
+function formatDate(raw: string): string {
+  if (!raw) return '';
+  try {
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return raw;
+  }
+}
+
 export async function GET(req: NextRequest) {
-  const origin = req.nextUrl.origin;
   const { searchParams } = req.nextUrl;
 
-  const name1   = (searchParams.get('n1')    || 'Together').slice(0, 60);
-  const name2   = (searchParams.get('n2')    || 'Forever').slice(0, 60);
-  const date    = (searchParams.get('date')  || '').slice(0, 30);
-  const tagline = (searchParams.get('tag')   || 'A love story beautifully told.').slice(0, 120);
-  const bg      = searchParams.get('bg')     || 'var(--pl-ink-soft)';
-  const accent  = searchParams.get('accent') || '#A3B18A';
+  // ── Parse params (support both legacy and new param names) ────────────
+  // New format: ?names=Name1,Name2   Legacy: ?n1=Name1&n2=Name2
+  const namesParam = searchParams.get('names');
+  let name1: string;
+  let name2: string;
+  if (namesParam) {
+    const parts = namesParam.split(',');
+    name1 = (parts[0] || 'Together').trim().slice(0, 60);
+    name2 = (parts[1] || 'Forever').trim().slice(0, 60);
+  } else {
+    name1 = (searchParams.get('n1') || 'Together').slice(0, 60);
+    name2 = (searchParams.get('n2') || 'Forever').slice(0, 60);
+  }
 
-  // Resolve relative /api/img/ URLs to absolute so external crawlers can fetch them
-  const rawPhoto = searchParams.get('photo') || '';
-  const resolvedPhoto = rawPhoto.startsWith('/') ? `${origin}${rawPhoto}` : rawPhoto;
-  const photo = isTrustedPhotoUrl(resolvedPhoto) ? resolvedPhoto : '';
+  const occasion = (searchParams.get('occasion') || 'wedding').slice(0, 30);
+  const rawDate  = (searchParams.get('date') || '').slice(0, 30);
+  const tagline  = (searchParams.get('tagline') || searchParams.get('tag') || '').slice(0, 120);
+  const bgRaw    = searchParams.get('bg') || 'F5F1E8';
+  const fgRaw    = searchParams.get('fg') || '';
+  const accentRaw = searchParams.get('accent') || 'A3B18A';
+  const headingFont = (searchParams.get('heading') || 'Playfair Display').slice(0, 60);
+  const symbol   = (searchParams.get('symbol') || '✦').slice(0, 4);
 
-  // Adaptive text colours — dark text on light backgrounds, white on dark
-  const lum    = luminance(bg);
+  // Normalize colors — ensure they have # prefix
+  const bg     = bgRaw.startsWith('#') ? bgRaw : `#${bgRaw}`;
+  const accent = accentRaw.startsWith('#') ? accentRaw : `#${accentRaw}`;
+
+  // Derive fg from bg luminance if not provided
+  const lum = luminance(bg);
   const isLight = lum > 0.35;
-  const textPrimary   = isLight ? '#1a1816'               : '#ffffff';
-  const textSecondary = isLight ? 'rgba(30,25,20,0.6)'    : 'rgba(255,255,255,0.62)';
-  const textMuted     = isLight ? 'rgba(30,25,20,0.32)'   : 'rgba(255,255,255,0.32)';
-  const overlayBg     = isLight
-    ? `linear-gradient(108deg, ${bg}ff 0%, ${bg}f8 52%, ${bg}d0 72%, transparent 100%)`
-    : `linear-gradient(108deg, ${bg}ff 0%, ${bg}f0 52%, ${bg}b0 72%, transparent 100%)`;
+  const fg = fgRaw
+    ? (fgRaw.startsWith('#') ? fgRaw : `#${fgRaw}`)
+    : (isLight ? '#1a1816' : '#ffffff');
+
+  const textSecondary = isLight ? 'rgba(30,25,20,0.55)' : 'rgba(255,255,255,0.58)';
+  const textMuted     = isLight ? 'rgba(30,25,20,0.30)' : 'rgba(255,255,255,0.30)';
+
+  // Format occasion label nicely
+  const occasionLabels: Record<string, string> = {
+    wedding: 'WEDDING', anniversary: 'ANNIVERSARY',
+    birthday: 'BIRTHDAY', engagement: 'ENGAGEMENT', story: 'OUR STORY',
+  };
+  const occasionLabel = occasionLabels[occasion.toLowerCase()] || occasion.toUpperCase();
+
+  // Format date
+  const displayDate = formatDate(rawDate);
+
+  // ── Load heading font from Google Fonts ──────────────────────────────
+  const fonts: { name: string; data: ArrayBuffer; weight: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900; style: 'normal' | 'italic' }[] = [];
+  const [headingRegular, headingItalic] = await Promise.all([
+    loadGoogleFont(headingFont, 400),
+    loadGoogleFont(headingFont, 400), // italic fallback — we'll style via CSS
+  ]);
+  if (headingRegular) {
+    fonts.push({ name: headingFont, data: headingRegular, weight: 400, style: 'normal' });
+  }
+  if (headingItalic) {
+    fonts.push({ name: headingFont, data: headingItalic, weight: 400, style: 'italic' });
+  }
+
+  // Accent color with reduced opacity for frame/border
+  const [ar, ag, ab] = hexToRgb(accent);
+  const accentFaded = `rgba(${ar},${ag},${ab},0.25)`;
+  const accentMedium = `rgba(${ar},${ag},${ab},0.50)`;
 
   return new ImageResponse(
     (
@@ -74,143 +134,172 @@ export async function GET(req: NextRequest) {
         style={{
           width: '1200px',
           height: '630px',
-          position: 'relative',
           display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           background: bg,
+          position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Right: photo panel (55% width, full height) */}
-        {photo && (
-          <img
-            src={photo}
-            style={{
-              position: 'absolute',
-              right: 0,
-              top: 0,
-              width: '55%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              opacity: isLight ? 0.92 : 0.88,
-            }}
-          />
-        )}
-
-        {/* Gradient overlay — fades photo into background on the left */}
+        {/* Subtle accent-colored border/frame — inset */}
         <div
           style={{
             position: 'absolute',
-            inset: 0,
-            background: overlayBg,
+            top: '20px',
+            left: '20px',
+            right: '20px',
+            bottom: '20px',
+            border: `1px solid ${accentFaded}`,
             display: 'flex',
           }}
         />
-
-        {/* Left accent bar */}
+        {/* Inner frame — double border effect */}
         <div
           style={{
             position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: '5px',
-            background: accent,
-            display: 'flex',
-          }}
-        />
-
-        {/* Watermark thread curves (bottom-left) */}
-        <div
-          style={{
-            position: 'absolute',
+            top: '28px',
+            left: '28px',
+            right: '28px',
             bottom: '28px',
-            left: '54px',
-            opacity: 0.08,
+            border: `1px solid ${accentFaded}`,
             display: 'flex',
           }}
-        >
-          <svg viewBox="0 0 160 60" width="160" height="60">
-            <path
-              d="M 8 42 C 8 18, 44 12, 80 30 C 116 48, 152 42, 152 18"
-              stroke={accent}
-              strokeWidth="2.5"
-              fill="none"
-            />
-            <path
-              d="M 8 18 C 8 42, 44 48, 80 30 C 116 12, 152 18, 152 42"
-              stroke={accent}
-              strokeWidth="2.5"
-              fill="none"
-              opacity="0.5"
-            />
-          </svg>
-        </div>
+        />
 
-        {/* Content column */}
+        {/* Corner accent flourishes */}
         <div
           style={{
-            position: 'relative',
-            zIndex: 10,
+            position: 'absolute',
+            top: '16px',
+            left: '16px',
+            width: '40px',
+            height: '40px',
+            borderTop: `2px solid ${accentMedium}`,
+            borderLeft: `2px solid ${accentMedium}`,
+            display: 'flex',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            width: '40px',
+            height: '40px',
+            borderTop: `2px solid ${accentMedium}`,
+            borderRight: `2px solid ${accentMedium}`,
+            display: 'flex',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '16px',
+            left: '16px',
+            width: '40px',
+            height: '40px',
+            borderBottom: `2px solid ${accentMedium}`,
+            borderLeft: `2px solid ${accentMedium}`,
+            display: 'flex',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '16px',
+            right: '16px',
+            width: '40px',
+            height: '40px',
+            borderBottom: `2px solid ${accentMedium}`,
+            borderRight: `2px solid ${accentMedium}`,
+            display: 'flex',
+          }}
+        />
+
+        {/* Main content — centered invitation card layout */}
+        <div
+          style={{
             display: 'flex',
             flexDirection: 'column',
+            alignItems: 'center',
             justifyContent: 'center',
-            padding: '0 82px',
-            width: photo ? '640px' : '100%',
+            textAlign: 'center',
+            padding: '60px 80px',
+            width: '100%',
             height: '100%',
-            gap: '0px',
+            position: 'relative',
+            zIndex: 10,
           }}
         >
-          {/* Pearloom brand */}
+          {/* Decorative accent symbol at top */}
           <div
             style={{
-              fontSize: '11px',
-              letterSpacing: '0.46em',
-              textTransform: 'uppercase',
+              fontSize: '32px',
               color: accent,
-              fontWeight: 700,
-              marginBottom: '44px',
+              marginBottom: '20px',
               display: 'flex',
+              opacity: 0.8,
             }}
           >
-            ✦ PEARLOOM
+            {symbol}
           </div>
 
-          {/* Names */}
+          {/* Occasion label — small uppercase tracked text */}
+          <div
+            style={{
+              fontSize: '13px',
+              letterSpacing: '0.35em',
+              textTransform: 'uppercase',
+              color: textSecondary,
+              fontWeight: 400,
+              marginBottom: '28px',
+              display: 'flex',
+              fontFamily: headingRegular ? headingFont : 'serif',
+            }}
+          >
+            {occasionLabel}
+          </div>
+
+          {/* Names in heading font — large, centered */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              lineHeight: 0.88,
-              letterSpacing: '-0.025em',
+              alignItems: 'center',
+              lineHeight: 1.0,
+              gap: '0px',
+              fontFamily: headingRegular ? headingFont : 'serif',
             }}
           >
             <span
               style={{
-                fontSize: '90px',
+                fontSize: '72px',
                 fontWeight: 400,
-                color: textPrimary,
+                color: fg,
                 display: 'flex',
               }}
             >
               {name1}
             </span>
+            {/* "&" symbol in accent color */}
             <span
               style={{
+                fontSize: '40px',
                 color: accent,
-                fontSize: '50px',
-                margin: '0',
+                fontWeight: 400,
+                fontStyle: 'italic',
+                margin: '4px 0',
                 display: 'flex',
-                fontWeight: 300,
               }}
             >
               &amp;
             </span>
             <span
               style={{
-                fontSize: '90px',
+                fontSize: '72px',
                 fontWeight: 400,
-                color: textPrimary,
+                color: fg,
                 display: 'flex',
               }}
             >
@@ -218,52 +307,88 @@ export async function GET(req: NextRequest) {
             </span>
           </div>
 
-          {/* Divider */}
+          {/* Decorative divider */}
           <div
             style={{
-              width: '46px',
-              height: '2px',
+              width: '50px',
+              height: '1px',
               background: accent,
-              margin: '28px 0',
+              margin: '24px 0',
               display: 'flex',
-              opacity: 0.7,
+              opacity: 0.6,
             }}
           />
 
-          {/* Tagline */}
-          <div
-            style={{
-              fontSize: '20px',
-              color: textSecondary,
-              fontStyle: 'italic',
-              fontWeight: 300,
-              maxWidth: '460px',
-              lineHeight: 1.45,
-              display: 'flex',
-            }}
-          >
-            {tagline}
-          </div>
-
-          {/* Date */}
-          {date && (
+          {/* Date — formatted nicely */}
+          {displayDate && (
             <div
               style={{
-                marginTop: '20px',
-                fontSize: '13px',
-                letterSpacing: '0.28em',
+                fontSize: '15px',
+                letterSpacing: '0.18em',
+                color: textSecondary,
+                fontWeight: 400,
+                marginBottom: '12px',
+                display: 'flex',
+                fontFamily: headingRegular ? headingFont : 'serif',
+              }}
+            >
+              {displayDate}
+            </div>
+          )}
+
+          {/* Tagline — italic body font */}
+          {tagline && (
+            <div
+              style={{
+                fontSize: '18px',
+                color: textSecondary,
+                fontStyle: 'italic',
+                fontWeight: 400,
+                maxWidth: '500px',
+                lineHeight: 1.5,
+                marginTop: '8px',
+                display: 'flex',
+                textAlign: 'center',
+                fontFamily: headingRegular ? headingFont : 'serif',
+              }}
+            >
+              &ldquo;{tagline}&rdquo;
+            </div>
+          )}
+
+          {/* Bottom branding */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '36px',
+              left: '0',
+              right: '0',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '10px',
+                letterSpacing: '0.3em',
                 textTransform: 'uppercase',
                 color: textMuted,
-                fontWeight: 600,
+                fontWeight: 400,
                 display: 'flex',
               }}
             >
-              {date}
+              pearloom.com
             </div>
-          )}
+          </div>
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      fonts: fonts.length > 0 ? fonts : undefined,
+    }
   );
 }
