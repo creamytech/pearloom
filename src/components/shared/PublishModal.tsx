@@ -126,7 +126,7 @@ export function PublishModal({
   };
 
   return (
-    <Modal open={open} onClose={handleClose} showClose={!publishedUrl}>
+    <Modal open={open} onClose={handleClose} showClose={!publishedUrl} className="!bg-[rgba(250,247,242,0.95)] !backdrop-blur-[40px]">
       {publishedUrl ? (
         /* ── Success state ── */
         <div className="flex flex-col items-center gap-5 relative overflow-hidden text-center">
@@ -246,17 +246,32 @@ export function PublishModal({
       ) : (
         /* ── Simplified publish flow ── */
         <>
-          <h2 className="text-[2rem] mb-2 font-heading font-normal">
+          {/* Decorative accent */}
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="h-[1px] w-10 bg-[var(--pl-olive)] opacity-30" />
+            <Globe size={18} className="text-[var(--pl-olive)] opacity-60" />
+            <div className="h-[1px] w-10 bg-[var(--pl-olive)] opacity-30" />
+          </div>
+          <h2 className="text-[1.8rem] mb-1 font-heading font-normal italic text-[var(--pl-ink-soft)] text-center tracking-tight">
             Publish Your Site
           </h2>
+          <p className="text-[0.82rem] text-[var(--pl-muted)] text-center mb-4">
+            Make your site live and shareable with guests
+          </p>
 
-          {/* Prominent URL preview */}
-          <div className="w-full rounded-[var(--pl-radius-md)] bg-[var(--pl-cream)] border border-[var(--pl-gold)] p-4 mb-2 text-center">
-            <div className="text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-muted)] mb-2">
+          {/* Prominent URL preview — glass card */}
+          <div className="w-full rounded-2xl p-5 mb-3 text-center" style={{
+            background: 'rgba(255,255,255,0.5)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            boxShadow: '0 4px 20px rgba(43,30,20,0.06), inset 0 1px 0 rgba(255,255,255,0.5)',
+          }}>
+            <div className="text-[0.62rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] mb-2">
               Your site will be at
             </div>
-            <div className="text-[1.1rem] font-bold text-[var(--pl-ink)] tracking-tight">
-              {subdomain || '...'}<span className="text-[var(--pl-muted)]">.pearloom.com</span>
+            <div className="text-[1.15rem] font-bold text-[var(--pl-ink)] tracking-tight">
+              {subdomain || '...'}<span className="text-[var(--pl-olive)] opacity-60">.pearloom.com</span>
             </div>
           </div>
 
@@ -280,12 +295,16 @@ export function PublishModal({
             </div>
           )}
 
-          <p className="text-[var(--pl-muted)] text-[0.82rem] mb-4 leading-relaxed text-center">
-            Your site will be live and shareable with guests. You can update it anytime.
+          <p className="text-[var(--pl-muted)] text-[0.75rem] mb-4 leading-relaxed text-center opacity-70">
+            You can update your site anytime after publishing.
           </p>
 
           {error && (
-            <div className="text-red-600 bg-red-50 p-3 rounded-lg mb-4 text-[0.9rem]">
+            <div className="p-3 rounded-xl mb-4 text-[0.82rem] text-center" style={{
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.2)',
+              color: '#dc2626',
+            }}>
               {error}
             </div>
           )}
