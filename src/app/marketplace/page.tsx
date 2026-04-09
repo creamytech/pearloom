@@ -43,6 +43,7 @@ export default function MarketplacePage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [ownedItems, setOwnedItems] = useState<Set<string>>(new Set());
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [expandedPack, setExpandedPack] = useState<string | null>(null);
 
   // Fetch owned items on mount
   useEffect(() => {
@@ -578,12 +579,45 @@ export default function MarketplacePage() {
                           )}
                         </div>
                         <div className="p-4">
-                          <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)] mb-0.5">{pack.name}</h3>
+                          <div className="flex items-start justify-between mb-1">
+                            <h3 className="text-[0.88rem] font-semibold text-[var(--pl-ink)]">{pack.name}</h3>
+                            <button
+                              onClick={() => setExpandedPack(expandedPack === pack.id ? null : pack.id)}
+                              className="text-[0.6rem] font-bold text-[var(--pl-olive)] bg-transparent border-none cursor-pointer hover:underline shrink-0 ml-2"
+                            >
+                              {expandedPack === pack.id ? 'Hide contents' : `See all ${pack.items.length} items`}
+                            </button>
+                          </div>
                           <p className="text-[0.72rem] text-[var(--pl-muted)] leading-relaxed mb-3">{pack.description}</p>
+
+                          {/* Expanded item list */}
+                          {expandedPack === pack.id && (
+                            <div className="mb-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.04)' }}>
+                              <div className="text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-muted)] mb-2">
+                                Pack Contents ({pack.items.length} items)
+                              </div>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                {pack.items.map((item) => (
+                                  <div key={item.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.6)' }}>
+                                    <div className="w-6 h-6 rounded flex items-center justify-center shrink-0 text-[0.7rem]" style={{
+                                      background: item.type === 'svg' ? 'rgba(163,177,138,0.1)' : item.type === 'pattern' ? 'rgba(196,168,106,0.1)' : 'rgba(139,107,61,0.1)',
+                                    }}>
+                                      {item.type === 'svg' ? '◆' : item.type === 'pattern' ? '▦' : '◎'}
+                                    </div>
+                                    <span className="text-[0.62rem] text-[var(--pl-ink-soft)] truncate">{item.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center gap-2">
                             {ownedItems.has(pack.id) ? (
-                              <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold border-none cursor-pointer">
-                                <Check size={11} /> View Assets
+                              <button
+                                onClick={() => setExpandedPack(expandedPack === pack.id ? null : pack.id)}
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive)] text-white text-[0.68rem] font-bold border-none cursor-pointer"
+                              >
+                                <Check size={11} /> {expandedPack === pack.id ? 'Close' : 'View Assets'}
                               </button>
                             ) : (
                               <button
