@@ -1741,7 +1741,6 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
   }, [blocks]);
 
   const activeBlock = blocks.find(b => b.id === activeBlockId);
-  const activeDef = activeBlock ? BLOCK_CATALOGUE.find(d => d.type === activeBlock.type) : null;
   const existingTypes = new Set(blocks.map(b => b.type));
 
   return (
