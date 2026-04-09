@@ -185,7 +185,24 @@ export const THEME_ART: Record<string, ThemeArt> = {
   'maximalist-fun-house': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 5 L20 15 L25 5 L30 15 L35 5" fill="none" stroke="#FF4444" stroke-width="1.5" opacity="0.2"/><circle cx="10" cy="25" r="5" fill="#FFB800" opacity="0.08"/><circle cx="30" cy="22" r="4" fill="#4444FF" opacity="0.06"/></svg>', dividerPath: 'M0,20 Q10,30 20,20 Q30,10 40,20 Q50,30 60,20 Q70,10 80,20 Q90,30 100,20 Q110,10 120,20 Q130,30 140,20 Q150,10 160,20 Q170,30 180,20 Q190,10 200,20' },
 };
 
-/** Get art for a theme, falling back to empty object */
+/** Get art for a theme, with auto-generated pattern/accent fallbacks */
 export function getThemeArt(themeId: string): ThemeArt {
-  return THEME_ART[themeId] || {};
+  const art = THEME_ART[themeId];
+  if (!art) return {};
+
+  // If theme has corner but missing pattern/accent, generate defaults
+  if (art.cornerSvg && (!art.heroPatternSvg || !art.accentSvg)) {
+    // Extract the primary color from the cornerSvg
+    const colorMatch = art.cornerSvg.match(/#[0-9A-Fa-f]{6}/);
+    const color = colorMatch ? colorMatch[0] : '#A3B18A';
+
+    if (!art.heroPatternSvg) {
+      art.heroPatternSvg = `<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="25" r="1" fill="${color}" opacity="0.04"/><circle cx="5" cy="5" r="0.5" fill="${color}" opacity="0.03"/><circle cx="45" cy="45" r="0.5" fill="${color}" opacity="0.03"/></svg>`;
+    }
+    if (!art.accentSvg) {
+      art.accentSvg = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="30" fill="none" stroke="${color}" stroke-width="1" opacity="0.15"/><circle cx="50" cy="50" r="20" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.1"/></svg>`;
+    }
+  }
+
+  return art;
 }
