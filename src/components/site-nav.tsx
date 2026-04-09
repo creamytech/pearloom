@@ -153,10 +153,10 @@ export function SiteNav({
       {/* ── Nav bar ── */}
       <motion.nav
         className={cn(
-          'z-[100] relative overflow-hidden',
+          'z-[100] overflow-hidden',
           !inline && 'pt-[env(safe-area-inset-top,0px)]',
           'transition-[background,box-shadow,border-color,padding,margin,border-radius] duration-300',
-          // Position: inline (mobile editor) = relative, otherwise fixed
+          // Position: inline (editor) = sticky within scroll container, otherwise fixed
           inline
             ? 'w-full'
             : navStyle === 'floating'
@@ -184,6 +184,8 @@ export function SiteNav({
                       : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
         )}
         style={{
+          // When inline (editor preview): sticky + kill transform so sticky works
+          ...(inline ? { position: 'sticky' as const, top: 0, transform: 'none' } : {}),
           backdropFilter: navStyle === 'minimal' ? 'none'
             : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
             : 'blur(14px) saturate(1.6)',
@@ -191,9 +193,10 @@ export function SiteNav({
             : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
             : 'blur(14px) saturate(1.6)',
         }}
-        initial={inline ? false : { y: -80, opacity: 0 }}
-        animate={inline ? { y: 0, opacity: 1 } : { y: 0, opacity: 1 }}
-        transition={inline ? { duration: 0 } : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        {...(inline
+          ? { initial: false, animate: undefined, transition: undefined }
+          : { initial: { y: -80, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+        )}
       >
         {/* Custom nav background overlay — separate layer so it doesn't affect Safari chrome or child opacity */}
         {navBackground && (
