@@ -146,8 +146,8 @@ export async function cancelAllNotifications(): Promise<void> {
  * - event_reminder: could navigate to dashboard
  */
 export function useNotificationHandler(): void {
-  const notificationListener = useRef<Notifications.EventSubscription>();
-  const responseListener = useRef<Notifications.EventSubscription>();
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     // Handle notifications received while app is in foreground
@@ -197,14 +197,10 @@ export function useNotificationHandler(): void {
 
     return () => {
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(
-          notificationListener.current,
-        );
+        notificationListener.current.remove();
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(
-          responseListener.current,
-        );
+        responseListener.current.remove();
       }
     };
   }, []);
