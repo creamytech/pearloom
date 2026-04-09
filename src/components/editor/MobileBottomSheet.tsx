@@ -98,7 +98,7 @@ function closestSnap(yPos: number, snapYs: number[]): SnapIndex {
 
 export function MobileBottomSheet({
   children,
-  snapPoints = [12, 45, 88],
+  snapPoints = [10, 50, 92],
   initialSnap = 0,
   onSnapChange,
   header,
@@ -240,7 +240,7 @@ export function MobileBottomSheet({
 
   const handleContentTouchStart = useCallback(
     (e: React.TouchEvent) => {
-      if (currentSnap !== 2) return;
+      if (currentSnap < 1) return;
       const el = contentRef.current;
       if (!el) return;
       contentTouchStartY.current = e.touches[0].clientY;
@@ -287,6 +287,20 @@ export function MobileBottomSheet({
     },
     [y, snapYs, onClose, animateToSnap],
   );
+
+  // ── Keyboard avoidance: auto-expand when input is focused ─────
+
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        // Expand to full so keyboard doesn't cover the input
+        if (currentSnap < 2) animateToSnap(2);
+      }
+    };
+    document.addEventListener('focusin', handleFocusIn);
+    return () => document.removeEventListener('focusin', handleFocusIn);
+  }, [currentSnap, animateToSnap]);
 
   // ── Backdrop tap handler ──────────────────────────────────────
 
@@ -404,7 +418,7 @@ export function MobileBottomSheet({
                 </div>
               )}
 
-              {/* Scrollable content area */}
+              {/* Scrollable content area — scrollable at half AND full snap */}
               <div
                 ref={contentRef}
                 onTouchStart={handleContentTouchStart}
@@ -412,10 +426,10 @@ export function MobileBottomSheet({
                 onTouchEnd={handleContentTouchEnd}
                 style={{
                   flex: 1,
-                  overflowY: currentSnap === 2 ? 'auto' : 'hidden',
+                  overflowY: currentSnap >= 1 ? 'auto' : 'hidden',
                   overflowX: 'hidden',
                   WebkitOverflowScrolling: 'touch',
-                  touchAction: currentSnap === 2 ? 'pan-y' : 'none',
+                  touchAction: currentSnap >= 1 ? 'pan-y' : 'none',
                   minHeight: 0,
                 } as React.CSSProperties}
               >

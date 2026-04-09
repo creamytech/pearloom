@@ -789,34 +789,42 @@ function DesignSettings({
 
         <div>
           <label style={lbl}>Background Color</label>
-          <input
-            type="color"
-            value={colors.background || '#FFFDF8'}
-            onChange={e => onUpdate({
-              theme: { ...theme, colors: { ...colors, background: e.target.value } },
-            })}
-            style={{
-              width: 48, height: 36, padding: 2,
-              borderRadius: 8, border: '1px solid var(--pl-black-6)',
-              cursor: 'pointer', background: 'transparent',
-            }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input
+              type="color"
+              value={colors.background || '#FFFDF8'}
+              onChange={e => onUpdate({
+                theme: { ...theme, colors: { ...colors, background: e.target.value } },
+              })}
+              style={{
+                width: 52, height: 44, padding: 3,
+                borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)',
+                cursor: 'pointer', background: 'transparent',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              }}
+            />
+            <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontFamily: 'monospace' }}>{colors.background || '#FFFDF8'}</span>
+          </div>
         </div>
 
         <div>
           <label style={lbl}>Accent Color</label>
-          <input
-            type="color"
-            value={colors.accent || '#A3B18A'}
-            onChange={e => onUpdate({
-              theme: { ...theme, colors: { ...colors, accent: e.target.value } },
-            })}
-            style={{
-              width: 48, height: 36, padding: 2,
-              borderRadius: 8, border: '1px solid var(--pl-black-6)',
-              cursor: 'pointer', background: 'transparent',
-            }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input
+              type="color"
+              value={colors.accent || '#A3B18A'}
+              onChange={e => onUpdate({
+                theme: { ...theme, colors: { ...colors, accent: e.target.value } },
+              })}
+              style={{
+                width: 52, height: 44, padding: 3,
+                borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)',
+                cursor: 'pointer', background: 'transparent',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              }}
+            />
+            <span style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', fontFamily: 'monospace' }}>{colors.accent || '#A3B18A'}</span>
+          </div>
         </div>
 
         <Field
