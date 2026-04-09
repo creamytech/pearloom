@@ -51,28 +51,30 @@ interface MoreTool {
   label: string;
 }
 
-const MORE_TOOLS: MoreTool[] = [
-  { id: 'sections',    icon: Layers,      label: 'Sections'      },
+const ESSENTIAL_TOOLS: MoreTool[] = [
   { id: 'details',     icon: LayoutGrid,  label: 'Details'       },
   { id: 'pages',       icon: Globe,       label: 'Pages'         },
   { id: 'guests',      icon: Users,       label: 'Guests'        },
   { id: 'messaging',   icon: Mail,        label: 'Messaging'     },
   { id: 'invite',      icon: Mail,        label: 'Invites'       },
-  { id: 'blocks',      icon: LayoutGrid,  label: 'AI Fill'       },
-  { id: 'voice',       icon: Mic,         label: 'Voice'         },
-  { id: 'seating',     icon: Users,       label: 'Seating'       },
+];
+
+const ADVANCED_TOOLS: MoreTool[] = [
+  { id: 'blocks',      icon: LayoutGrid,  label: 'AI Content'    },
+  { id: 'voice',       icon: Mic,         label: 'Voice AI'      },
+  { id: 'seating',     icon: Users,       label: 'Seating Chart' },
   { id: 'analytics',   icon: BarChart2,   label: 'Analytics'     },
   { id: 'translate',   icon: Globe,       label: 'Translate'     },
-  { id: 'savethedate', icon: Gift,        label: 'Save Date'     },
+  { id: 'savethedate', icon: Gift,        label: 'Save the Date' },
   { id: 'vendors',     icon: ShoppingBag, label: 'Vendors'       },
-  { id: 'thankyou',    icon: Heart,       label: 'Thank You'     },
+  { id: 'thankyou',    icon: Heart,       label: 'Thank You Notes' },
   { id: 'spotify',     icon: Music,       label: 'Spotify'       },
 ];
 
 // ── Bottom tabs ─────────────────────────────────────────────────
 const TABS: Array<{ id: BottomTab; icon: React.ElementType; label: string }> = [
   { id: 'edit',   icon: Pencil, label: 'Edit'   },
-  { id: 'blocks', icon: Layers, label: 'Blocks' },
+  { id: 'blocks', icon: Layers, label: 'Sections' },
   { id: 'more',   icon: MoreHorizontal, label: 'More' },
 ];
 
@@ -402,7 +404,7 @@ export function MobileEditorSheet() {
                     fontWeight: 600, cursor: 'pointer',
                   }}
                 >
-                  <ArrowLeft size={14} /> Back to Blocks
+                  <ArrowLeft size={14} /> Back to Sections
                 </button>
               </div>
             )}
@@ -425,27 +427,29 @@ export function MobileEditorSheet() {
       case 'more':
         return (
           <div style={{ padding: '8px 16px 24px' }}>
+            {/* ── Essentials ── */}
             <div style={{
               fontSize: 'var(--pl-text-2xs)', fontWeight: 800,
               letterSpacing: 'var(--pl-label-tracking)', textTransform: 'uppercase',
-              color: 'var(--pl-muted)', marginBottom: 12,
+              color: 'var(--pl-olive)', marginBottom: 12,
+              fontVariant: 'small-caps',
             }}>
-              Tools
+              Essentials
             </div>
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: 8,
+              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 10,
             }}>
-              {MORE_TOOLS.map(tool => (
+              {ESSENTIAL_TOOLS.map(tool => (
                 <motion.button
                   key={tool.id}
                   onClick={() => { setMoreToolOpen(tool.id); setSheetSnap(2); }}
                   whileTap={{ scale: 0.92 }}
                   style={{
                     display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', gap: 6,
-                    padding: '14px 4px',
-                    minHeight: 80,
+                    alignItems: 'center', gap: 8,
+                    padding: '16px 4px',
+                    minHeight: 92,
                     borderRadius: 'var(--pl-radius-sm)',
                     border: '1px solid var(--pl-black-4)',
                     background: 'var(--pl-cream-card)',
@@ -454,11 +458,65 @@ export function MobileEditorSheet() {
                   }}
                 >
                   <div style={{
-                    width: 36, height: 36, borderRadius: 'var(--pl-radius-xs)',
+                    width: 40, height: 40, borderRadius: 'var(--pl-radius-xs)',
                     background: 'var(--pl-olive-8)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <tool.icon size={16} color="var(--pl-olive)" />
+                    <tool.icon size={18} color="var(--pl-olive)" />
+                  </div>
+                  <span style={{
+                    fontSize: 'var(--pl-text-xs)', fontWeight: 600,
+                    color: 'var(--pl-ink-soft)', textAlign: 'center',
+                    lineHeight: 1.2,
+                  }}>
+                    {tool.label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* ── Divider ── */}
+            <div style={{
+              height: 1, background: 'var(--pl-black-6)',
+              margin: '20px 0 16px',
+            }} />
+
+            {/* ── More Tools (Advanced) ── */}
+            <div style={{
+              fontSize: 'var(--pl-text-2xs)', fontWeight: 800,
+              letterSpacing: 'var(--pl-label-tracking)', textTransform: 'uppercase',
+              color: 'var(--pl-olive)', marginBottom: 12,
+              fontVariant: 'small-caps',
+            }}>
+              More Tools
+            </div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 8,
+            }}>
+              {ADVANCED_TOOLS.map(tool => (
+                <motion.button
+                  key={tool.id}
+                  onClick={() => { setMoreToolOpen(tool.id); setSheetSnap(2); }}
+                  whileTap={{ scale: 0.92 }}
+                  style={{
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', gap: 6,
+                    padding: '12px 4px',
+                    minHeight: 72,
+                    borderRadius: 'var(--pl-radius-sm)',
+                    border: '1px solid var(--pl-black-4)',
+                    background: 'var(--pl-cream-card)',
+                    cursor: 'pointer',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 'var(--pl-radius-xs)',
+                    background: 'var(--pl-olive-8)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <tool.icon size={14} color="var(--pl-olive)" />
                   </div>
                   <span style={{
                     fontSize: 'var(--pl-text-2xs)', fontWeight: 600,
@@ -661,7 +719,7 @@ export function MobileEditorSheet() {
             }}>
               {activeSection
                 ? `${activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Settings`
-                : 'Tap anything on your site to edit'}
+                : 'Tap any section on your site to customize it'}
             </div>
           ) : undefined
         }

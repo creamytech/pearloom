@@ -1418,7 +1418,7 @@ function AddBlockPicker({ onAdd, onDragType, existingTypes, occasion = 'wedding'
                 autoFocus
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search blocks…"
+                placeholder="Search sections…"
                 style={{ ...inp, fontSize: '0.78rem', padding: '6px 10px' }}
               />
             </div>
@@ -1987,7 +1987,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--pl-ink)' }}>{inlineActiveDef.label}</div>
-                          <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Section Settings</div>
                         </div>
                         <button
                           onClick={() => setActiveBlockId(null)}

@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone } from 'lucide-react';
+import { ArrowLeft, Eye, Command, Monitor, Tablet, Smartphone, Link } from 'lucide-react';
 import {
   UndoIcon, RedoIcon, PublishIcon, SavedIcon, UnsavedIcon,
 } from '@/components/icons/EditorIcons';
@@ -22,8 +22,9 @@ interface EditorToolbarProps {
 
 export function EditorToolbar({ onExit }: EditorToolbarProps) {
   const { state, dispatch, actions, manifest, coupleNames } = useEditor();
-  const { isMobile, canUndo, canRedo, saveState } = state;
+  const { isMobile, canUndo, canRedo, saveState, subdomain, publishedUrl } = state;
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   const siteName = coupleNames[1]?.trim()
     ? `${coupleNames[0]} & ${coupleNames[1]}`
@@ -153,6 +154,56 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             </ToolBtn>
           </RichTooltip>
         )}
+
+        {/* Share */}
+        {!isMobile && subdomain && (
+          <RichTooltip label="Copy site link" side="bottom">
+            <motion.button
+              onClick={async () => {
+                const url = `https://${subdomain}.pearloom.com`;
+                try { await navigator.clipboard.writeText(url); } catch {}
+                setShareCopied(true);
+                setTimeout(() => setShareCopied(false), 2000);
+              }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px',
+                padding: '6px 14px',
+                borderRadius: '100px', border: 'none',
+                background: shareCopied ? 'var(--pl-olive)' : 'var(--pl-olive-deep)',
+                color: '#fff', cursor: 'pointer',
+                fontSize: '0.65rem', fontWeight: 700,
+                letterSpacing: '0.06em', textTransform: 'uppercase',
+                transition: 'background 0.2s',
+              }}
+            >
+              <Link size={12} />
+              {shareCopied ? 'Link copied!' : 'Share'}
+            </motion.button>
+          </RichTooltip>
+        )}
+
+        {/* Draft / Live badge */}
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: '4px',
+          padding: '3px 10px', borderRadius: '100px',
+          fontSize: '0.58rem', fontWeight: 800,
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+          background: publishedUrl
+            ? 'rgba(74,155,138,0.12)'
+            : 'rgba(251,146,60,0.12)',
+          color: publishedUrl
+            ? '#4a9b8a'
+            : '#fb923c',
+          border: `1px solid ${publishedUrl ? 'rgba(74,155,138,0.25)' : 'rgba(251,146,60,0.25)'}`,
+        }}>
+          <span style={{
+            width: '5px', height: '5px', borderRadius: '50%',
+            background: publishedUrl ? '#4a9b8a' : '#fb923c',
+          }} />
+          {publishedUrl ? 'Live' : 'Draft'}
+        </span>
 
         {/* Help — Keyboard shortcuts */}
         {!isMobile && (

@@ -36,7 +36,7 @@ const PRIMARY_ITEMS: RailItem[] = [
 
 // Overflow tabs — shown in "More" popover
 const MORE_ITEMS: RailItem[] = [
-  { id: 'blocks',     tab: 'blocks',     Icon: Sparkles,     label: 'AI Blocks' },
+  { id: 'blocks',     tab: 'blocks',     Icon: Sparkles,     label: 'Smart Fill' },
   { id: 'guests',     tab: 'guests',     Icon: Users,        label: 'Guests' },
   { id: 'messaging',  tab: 'messaging',  Icon: MessageSquare, label: 'Messages' },
   { id: 'analytics',  tab: 'analytics',  Icon: BarChart2,    label: 'Analytics' },
