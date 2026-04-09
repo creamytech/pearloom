@@ -36,7 +36,7 @@ const OLIVE = 'var(--pl-olive, #A3B18A)';
 
 // ── Status type ───────────────────────────────────────────────
 
-type BarStatus = 'idle' | 'loading' | 'success' | 'error';
+type BarStatus = 'idle' | 'loading' | 'success' | 'error' | 'reply';
 
 // ── Main Component ────────────────────────────────────────────
 
@@ -46,6 +46,7 @@ export function AICommandBar() {
   const [inputVal, setInputVal] = useState('');
   const [status, setStatus] = useState<BarStatus>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [pearReply, setPearReply] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,6 +67,7 @@ export function AICommandBar() {
     setInputVal('');
     setStatus('idle');
     setErrorMsg('');
+    setPearReply('');
   }, []);
 
   // ── Keyboard shortcut: "/" opens, ESC closes ──────────────
@@ -279,6 +281,26 @@ export function AICommandBar() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         applyAIResponse(data);
+
+        // Show Pear's reply — keep bar open for conversation
+        if (data.reply) {
+          setPearReply(data.reply);
+          setInputVal('');
+          if (data.action === 'message') {
+            // Pear is asking a question or giving advice — stay open for response
+            setStatus('reply');
+          } else {
+            // Pear made changes — show reply briefly then stay open
+            setStatus('reply');
+            // Don't auto-close — let user continue the conversation
+          }
+        } else {
+          setStatus('success');
+          successTimerRef.current = setTimeout(() => {
+            close();
+          }, 1200);
+        }
+        return; // skip the generic success below
       }
 
       setStatus('success');
@@ -482,14 +504,42 @@ export function AICommandBar() {
                 </AnimatePresence>
               </div>
 
+              {/* Pear's reply bubble — shown above input when Pear responds */}
+              {status === 'reply' && pearReply && (
+                <div style={{
+                  position: 'absolute', bottom: '100%', left: 0, right: 0,
+                  marginBottom: '8px', padding: '12px 16px',
+                  borderRadius: '16px',
+                  background: 'rgba(250,247,242,0.95)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(163,177,138,0.2)',
+                  boxShadow: '0 4px 20px rgba(43,30,20,0.08)',
+                  maxHeight: '200px', overflowY: 'auto',
+                } as React.CSSProperties}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                    <PearIcon size={16} color={OLIVE} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <p style={{
+                      margin: 0, fontSize: '0.85rem', lineHeight: 1.55,
+                      color: 'var(--pl-ink-soft, #3D3530)',
+                      fontFamily: 'var(--pl-font-body, Inter, sans-serif)',
+                      whiteSpace: 'pre-wrap',
+                    }}>
+                      {pearReply}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Input field */}
               <input
                 ref={inputRef}
                 value={status === 'success' ? 'Pear applied your changes!' : status === 'error' ? errorMsg : inputVal}
-                onChange={e => setInputVal(e.target.value)}
+                onChange={e => { setInputVal(e.target.value); if (status === 'reply') setStatus('idle'); }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
+                    if (status === 'reply') setPearReply('');
                     handleSubmit();
                   }
                   if (e.key === 'Escape') {
@@ -498,7 +548,7 @@ export function AICommandBar() {
                   }
                 }}
                 disabled={status === 'loading' || status === 'success'}
-                placeholder={status === 'loading' ? 'Pear is thinking...' : 'Rewrite the hero tagline...'}
+                placeholder={status === 'loading' ? 'Pear is thinking...' : status === 'reply' ? 'Reply to Pear...' : 'Ask Pear anything...'}
                 style={{
                   flex: 1,
                   background: 'transparent',
