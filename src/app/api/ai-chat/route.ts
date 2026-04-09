@@ -13,7 +13,7 @@ import type { StoryManifest } from '@/types';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
 const SYSTEM_PROMPT = `You are an AI assistant helping a couple build their wedding website on Pearloom.
 You can:

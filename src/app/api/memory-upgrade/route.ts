@@ -13,7 +13,7 @@ import type { StoryManifest } from '@/types';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
 async function rewriteDescriptionToPastTense(
   description: string,
