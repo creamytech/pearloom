@@ -90,6 +90,18 @@ export function AICommandBar() {
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sidePanelInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Desktop detection (>= 768px) ─────────────────────────
+
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // ── Expand / collapse ─────────────────────────────────────
 
@@ -98,7 +110,10 @@ export function AICommandBar() {
     setStatus('idle');
     setInputVal('');
     setErrorMsg('');
-    setTimeout(() => inputRef.current?.focus(), 80);
+    setTimeout(() => {
+      inputRef.current?.focus();
+      sidePanelInputRef.current?.focus();
+    }, 80);
   }, []);
 
   const close = useCallback(() => {
@@ -110,6 +125,17 @@ export function AICommandBar() {
     setPearReply('');
     setMessages([]);
   }, []);
+
+  // ── Notify canvas when desktop side panel opens/closes ────
+
+  useEffect(() => {
+    const panelOpen = expanded && isDesktop;
+    window.dispatchEvent(new CustomEvent('pear-panel-toggle', { detail: { open: panelOpen } }));
+    return () => {
+      // Ensure panel reports closed on unmount
+      window.dispatchEvent(new CustomEvent('pear-panel-toggle', { detail: { open: false } }));
+    };
+  }, [expanded, isDesktop]);
 
   // ── Keyboard shortcut: "/" opens, ESC closes ──────────────
 
@@ -436,194 +462,200 @@ export function AICommandBar() {
 
   // ── Render ────────────────────────────────────────────────
 
+  // Desktop side panel shown when expanded on >= 768px
+  const showSidePanel = expanded && isDesktop;
+
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: isMobile ? 80 : 24,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 1200,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        pointerEvents: 'none',
-        width: isMobile ? 'calc(100% - 32px)' : 'auto',
-        maxWidth: isMobile ? 'calc(100% - 32px)' : '520px',
-      }}
-    >
-      <AnimatePresence mode="wait">
-        {!expanded ? (
-          /* ── Collapsed Pill ────────────────────────────────── */
-          <motion.button
-            key="pill"
-            initial={{ opacity: 0, y: 12, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            onClick={open}
-            style={{
-              pointerEvents: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 20px',
-              borderRadius: '100px',
-              background: 'rgba(255,255,255,0.75)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: `1px solid rgba(163,177,138,0.35)`,
-              boxShadow: '0 8px 32px rgba(43,30,20,0.1)',
-              cursor: 'pointer',
-              fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
-              fontSize: '0.82rem',
-              fontWeight: 500,
-              color: 'var(--pl-ink-soft, #3D3530)',
-              whiteSpace: 'nowrap',
-              outline: 'none',
-            } as React.CSSProperties}
-          >
-            <motion.span
-              animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ display: 'flex', alignItems: 'center' }}
-            >
-              <Sparkles size={15} color={OLIVE} />
-            </motion.span>
-            <PearIcon size={15} color={OLIVE} style={{ marginRight: '-4px' }} />
-            Ask Pear anything...
-            <kbd style={{
-              padding: '2px 6px',
-              borderRadius: '4px',
-              fontSize: '0.6rem',
-              background: 'rgba(0,0,0,0.04)',
-              color: 'var(--pl-muted, #9e9a96)',
-              border: '1px solid rgba(0,0,0,0.06)',
-              fontFamily: 'inherit',
-              marginLeft: '4px',
-            }}>/</kbd>
-          </motion.button>
-        ) : (
-          /* ── Expanded Command Bar ─────────────────────────── */
+    <>
+      {/* ── Desktop Side Panel ──────────────────────────────── */}
+      <AnimatePresence>
+        {showSidePanel && (
           <motion.div
-            key="bar"
-            initial={{ opacity: 0, y: 12, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            key="side-panel"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 340, damping: 34 }}
             style={{
-              pointerEvents: 'auto',
-              width: isMobile ? '100%' : '480px',
-              borderRadius: '24px',
-              background: 'rgba(255,255,255,0.8)',
+              position: 'fixed',
+              top: 52,
+              right: 0,
+              width: 380,
+              height: 'calc(100vh - 52px)',
+              zIndex: 150,
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: '16px 0 0 16px',
+              background: 'rgba(250,247,242,0.95)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255,255,255,0.6)',
-              boxShadow: '0 8px 32px rgba(43,30,20,0.1)',
+              borderLeft: '1px solid rgba(163,177,138,0.15)',
+              boxShadow: '-8px 0 32px rgba(43,30,20,0.06)',
               overflow: 'hidden',
-              position: 'relative',
             } as React.CSSProperties}
           >
-            {/* Loading shimmer overlay */}
-            <AnimatePresence>
-              {status === 'loading' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    zIndex: 10,
-                    borderRadius: '24px',
-                    overflow: 'hidden',
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <motion.div
-                    animate={{ x: ['-100%', '100%'] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'linear-gradient(90deg, transparent 0%, rgba(163,177,138,0.12) 50%, transparent 100%)',
-                    }}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Conversation thread */}
-            {messages.length > 0 && (
-              <div style={{
-                maxHeight: '280px', overflowY: 'auto', padding: '12px 16px 4px',
-                display: 'flex', flexDirection: 'column', gap: '8px',
-                borderBottom: '1px solid rgba(163,177,138,0.12)',
-              }}>
-                {messages.map((msg, i) => (
-                  <div key={i} style={{
-                    display: 'flex', gap: '8px',
-                    flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
-                    alignItems: 'flex-start',
-                  }}>
-                    {msg.role === 'pear' && (
-                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                        <PearIcon size={13} color={OLIVE} />
-                      </div>
-                    )}
-                    <div style={{
-                      maxWidth: '80%', padding: '8px 12px', borderRadius: '14px',
-                      fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
-                      background: msg.role === 'user' ? 'rgba(163,177,138,0.12)' : 'rgba(250,247,242,0.8)',
-                      color: 'var(--pl-ink-soft, #3D3530)',
-                      border: msg.role === 'pear' ? '1px solid rgba(163,177,138,0.1)' : 'none',
-                    }}>
-                      {msg.text}
-                      {/* Visual change preview */}
-                      {msg.action === 'update_theme' && msg.data && typeof msg.data === 'object' && 'colors' in msg.data && (
-                        <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
-                          {Object.values((msg.data as { colors: Record<string, string> }).colors).slice(0, 6).map((c: string, ci: number) => (
-                            <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
-                          ))}
-                        </div>
-                      )}
-                      {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
-                        <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--pl-muted)' }}>
-                          {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
-                            <div key={ei}>• {e.name}</div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {status === 'loading' && (
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <PearIcon size={13} color={OLIVE} />
-                    </div>
-                    <div style={{ padding: '8px 12px', borderRadius: 14, background: 'rgba(250,247,242,0.8)', fontSize: '0.82rem', color: 'var(--pl-muted)' }}>
-                      <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-
-            {/* Input row */}
+            {/* ── Header ────────────────────────────────────── */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              padding: '12px 16px',
+              justifyContent: 'space-between',
+              padding: '14px 16px 12px',
+              borderBottom: '1px solid rgba(163,177,138,0.12)',
+              background: 'rgba(255,255,255,0.08)',
+              flexShrink: 0,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <PearIcon size={20} color={OLIVE} />
+                <span style={{
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  fontFamily: 'var(--pl-font-heading)',
+                  fontStyle: 'italic',
+                  color: 'var(--pl-ink)',
+                }}>Pear</span>
+              </div>
+              <motion.button
+                onClick={close}
+                title="Close panel"
+                whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
+                whileTap={{ scale: 0.88 }}
+                style={{
+                  width: 28, height: 28,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 8, border: 'none',
+                  background: 'transparent',
+                  color: 'var(--pl-muted)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <X size={14} />
+              </motion.button>
+            </div>
+
+            {/* ── Messages area ─────────────────────────────── */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              padding: '16px 16px 8px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            } as React.CSSProperties}>
+              {messages.map((msg, i) => (
+                <div key={i} style={{
+                  display: 'flex', gap: 8,
+                  flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                  alignItems: 'flex-start',
+                }}>
+                  {msg.role === 'pear' && (
+                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                      <PearIcon size={14} color={OLIVE} />
+                    </div>
+                  )}
+                  <div style={{
+                    maxWidth: '85%', padding: '10px 14px', borderRadius: 16,
+                    fontSize: '0.84rem', lineHeight: 1.55, whiteSpace: 'pre-wrap',
+                    background: msg.role === 'user' ? 'rgba(163,177,138,0.12)' : 'rgba(255,255,255,0.7)',
+                    color: 'var(--pl-ink-soft, #3D3530)',
+                    border: msg.role === 'pear' ? '1px solid rgba(163,177,138,0.1)' : 'none',
+                  }}>
+                    {msg.text}
+                    {/* Visual change preview — theme colors */}
+                    {msg.action === 'update_theme' && msg.data && typeof msg.data === 'object' && 'colors' in msg.data && (
+                      <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                        {Object.values((msg.data as { colors: Record<string, string> }).colors).slice(0, 6).map((c: string, ci: number) => (
+                          <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                        ))}
+                      </div>
+                    )}
+                    {/* Visual change preview — events */}
+                    {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
+                      <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--pl-muted)' }}>
+                        {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
+                          <div key={ei}>• {e.name}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {status === 'loading' && (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <PearIcon size={14} color={OLIVE} />
+                  </div>
+                  <div style={{ padding: '10px 14px', borderRadius: 16, background: 'rgba(255,255,255,0.7)', fontSize: '0.84rem', color: 'var(--pl-muted)' }}>
+                    <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* ── Quick actions (above input) ───────────────── */}
+            {status === 'idle' && (
+              <div style={{
+                display: 'flex',
+                overflowX: 'auto',
+                gap: 6,
+                padding: '8px 16px',
+                borderTop: '1px solid rgba(163,177,138,0.08)',
+                flexShrink: 0,
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+              } as React.CSSProperties}>
+                {quickActions.map(action => (
+                  <button
+                    key={action.label}
+                    onClick={() => handleQuickAction(action)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: 100,
+                      background: 'rgba(163,177,138,0.1)',
+                      border: '1px solid rgba(163,177,138,0.18)',
+                      color: OLIVE,
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      transition: 'background 0.15s, border-color 0.15s',
+                    }}
+                    onMouseEnter={e => {
+                      (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.18)';
+                      (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)';
+                    }}
+                    onMouseLeave={e => {
+                      (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.1)';
+                      (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.18)';
+                    }}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* ── Input bar (fixed at bottom) ───────────────── */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '12px 16px 14px',
+              borderTop: '1px solid rgba(163,177,138,0.12)',
+              background: 'rgba(255,255,255,0.06)',
+              flexShrink: 0,
             }}>
               {/* Status icon */}
               <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                 <AnimatePresence mode="wait">
                   {status === 'success' ? (
                     <motion.div
-                      key="check"
+                      key="sp-check"
                       initial={{ scale: 0, rotate: -20 }}
                       animate={{ scale: 1, rotate: 0 }}
                       exit={{ scale: 0 }}
@@ -633,23 +665,22 @@ export function AICommandBar() {
                     </motion.div>
                   ) : status === 'loading' ? (
                     <motion.div
-                      key="loader"
+                      key="sp-loader"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     >
                       <Loader2 size={16} color={OLIVE} />
                     </motion.div>
                   ) : (
-                    <motion.div key="sparkles">
+                    <motion.div key="sp-sparkles">
                       <Sparkles size={16} color={OLIVE} />
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              {/* Input field */}
               <input
-                ref={inputRef}
+                ref={sidePanelInputRef}
                 value={status === 'success' ? 'Pear applied your changes!' : status === 'error' ? errorMsg : inputVal}
                 onChange={e => { setInputVal(e.target.value); if (status === 'reply') setStatus('idle'); }}
                 onKeyDown={e => {
@@ -683,99 +714,404 @@ export function AICommandBar() {
                 }}
               />
 
-              {/* Submit / close buttons */}
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
-                {status === 'idle' && inputVal.trim() && (
-                  <motion.button
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                    onClick={handleSubmit}
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: OLIVE,
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      outline: 'none',
-                    }}
-                  >
-                    <ArrowUp size={14} color="white" strokeWidth={2.5} />
-                  </motion.button>
-                )}
-                <button
-                  onClick={close}
+              {/* Send button */}
+              {status === 'idle' && inputVal.trim() && (
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                  onClick={handleSubmit}
                   style={{
-                    width: '28px',
-                    height: '28px',
+                    width: 28, height: 28,
                     borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.04)',
+                    background: OLIVE,
                     border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer',
                     outline: 'none',
+                    flexShrink: 0,
                   }}
                 >
-                  <X size={13} color="var(--pl-muted, #9e9a96)" />
-                </button>
-              </div>
+                  <ArrowUp size={14} color="white" strokeWidth={2.5} />
+                </motion.button>
+              )}
             </div>
 
-            {/* Quick action chips */}
-            {status === 'idle' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.18 }}
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '6px',
-                  padding: '0 16px 14px',
-                }}
-              >
-                {quickActions.map(action => (
-                  <button
-                    key={action.label}
-                    onClick={() => handleQuickAction(action)}
+            {/* Loading shimmer overlay */}
+            <AnimatePresence>
+              {status === 'loading' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 10,
+                    borderRadius: '16px 0 0 16px',
+                    overflow: 'hidden',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <motion.div
+                    animate={{ x: ['-100%', '100%'] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                     style={{
-                      padding: '5px 12px',
-                      borderRadius: '100px',
-                      background: 'rgba(163,177,138,0.1)',
-                      border: '1px solid rgba(163,177,138,0.18)',
-                      color: OLIVE,
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                      fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
-                      cursor: 'pointer',
-                      outline: 'none',
-                      whiteSpace: 'nowrap',
-                      transition: 'background 0.15s, border-color 0.15s',
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(163,177,138,0.08) 50%, transparent 100%)',
                     }}
-                    onMouseEnter={e => {
-                      (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.18)';
-                      (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)';
-                    }}
-                    onMouseLeave={e => {
-                      (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.1)';
-                      (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.18)';
-                    }}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </motion.div>
-            )}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+
+      {/* ── Floating Pill / Expanded Bar (mobile + collapsed desktop) ── */}
+      {!showSidePanel && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: isMobile ? 80 : 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1200,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            pointerEvents: 'none',
+            width: isMobile ? 'calc(100% - 32px)' : 'auto',
+            maxWidth: isMobile ? 'calc(100% - 32px)' : '520px',
+          }}
+        >
+          <AnimatePresence mode="wait">
+            {!expanded ? (
+              /* ── Collapsed Pill ────────────────────────────────── */
+              <motion.button
+                key="pill"
+                initial={{ opacity: 0, y: 12, scale: 0.92 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                onClick={open}
+                style={{
+                  pointerEvents: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  borderRadius: '100px',
+                  background: 'rgba(255,255,255,0.75)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: `1px solid rgba(163,177,138,0.35)`,
+                  boxShadow: '0 8px 32px rgba(43,30,20,0.1)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                  fontSize: '0.82rem',
+                  fontWeight: 500,
+                  color: 'var(--pl-ink-soft, #3D3530)',
+                  whiteSpace: 'nowrap',
+                  outline: 'none',
+                } as React.CSSProperties}
+              >
+                <motion.span
+                  animate={{ opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ display: 'flex', alignItems: 'center' }}
+                >
+                  <Sparkles size={15} color={OLIVE} />
+                </motion.span>
+                <PearIcon size={15} color={OLIVE} style={{ marginRight: '-4px' }} />
+                Ask Pear anything...
+                <kbd style={{
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontSize: '0.6rem',
+                  background: 'rgba(0,0,0,0.04)',
+                  color: 'var(--pl-muted, #9e9a96)',
+                  border: '1px solid rgba(0,0,0,0.06)',
+                  fontFamily: 'inherit',
+                  marginLeft: '4px',
+                }}>/</kbd>
+              </motion.button>
+            ) : (
+              /* ── Expanded Command Bar (mobile only) ───────────── */
+              <motion.div
+                key="bar"
+                initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  pointerEvents: 'auto',
+                  width: isMobile ? '100%' : '480px',
+                  borderRadius: '24px',
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '1px solid rgba(255,255,255,0.6)',
+                  boxShadow: '0 8px 32px rgba(43,30,20,0.1)',
+                  overflow: 'hidden',
+                  position: 'relative',
+                } as React.CSSProperties}
+              >
+                {/* Loading shimmer overlay */}
+                <AnimatePresence>
+                  {status === 'loading' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        zIndex: 10,
+                        borderRadius: '24px',
+                        overflow: 'hidden',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      <motion.div
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(163,177,138,0.12) 50%, transparent 100%)',
+                        }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Conversation thread */}
+                {messages.length > 0 && (
+                  <div style={{
+                    maxHeight: '280px', overflowY: 'auto', padding: '12px 16px 4px',
+                    display: 'flex', flexDirection: 'column', gap: '8px',
+                    borderBottom: '1px solid rgba(163,177,138,0.12)',
+                  }}>
+                    {messages.map((msg, i) => (
+                      <div key={i} style={{
+                        display: 'flex', gap: '8px',
+                        flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                        alignItems: 'flex-start',
+                      }}>
+                        {msg.role === 'pear' && (
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                            <PearIcon size={13} color={OLIVE} />
+                          </div>
+                        )}
+                        <div style={{
+                          maxWidth: '80%', padding: '8px 12px', borderRadius: '14px',
+                          fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
+                          background: msg.role === 'user' ? 'rgba(163,177,138,0.12)' : 'rgba(250,247,242,0.8)',
+                          color: 'var(--pl-ink-soft, #3D3530)',
+                          border: msg.role === 'pear' ? '1px solid rgba(163,177,138,0.1)' : 'none',
+                        }}>
+                          {msg.text}
+                          {/* Visual change preview */}
+                          {msg.action === 'update_theme' && msg.data && typeof msg.data === 'object' && 'colors' in msg.data && (
+                            <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                              {Object.values((msg.data as { colors: Record<string, string> }).colors).slice(0, 6).map((c: string, ci: number) => (
+                                <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                              ))}
+                            </div>
+                          )}
+                          {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
+                            <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--pl-muted)' }}>
+                              {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
+                                <div key={ei}>• {e.name}</div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {status === 'loading' && (
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <PearIcon size={13} color={OLIVE} />
+                        </div>
+                        <div style={{ padding: '8px 12px', borderRadius: 14, background: 'rgba(250,247,242,0.8)', fontSize: '0.82rem', color: 'var(--pl-muted)' }}>
+                          <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+
+                {/* Input row */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '12px 16px',
+                }}>
+                  {/* Status icon */}
+                  <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                    <AnimatePresence mode="wait">
+                      {status === 'success' ? (
+                        <motion.div
+                          key="check"
+                          initial={{ scale: 0, rotate: -20 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          exit={{ scale: 0 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                        >
+                          <Check size={16} color={OLIVE} strokeWidth={2.5} />
+                        </motion.div>
+                      ) : status === 'loading' ? (
+                        <motion.div
+                          key="loader"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        >
+                          <Loader2 size={16} color={OLIVE} />
+                        </motion.div>
+                      ) : (
+                        <motion.div key="sparkles">
+                          <Sparkles size={16} color={OLIVE} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Input field */}
+                  <input
+                    ref={inputRef}
+                    value={status === 'success' ? 'Pear applied your changes!' : status === 'error' ? errorMsg : inputVal}
+                    onChange={e => { setInputVal(e.target.value); if (status === 'reply') setStatus('idle'); }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (status === 'reply') setPearReply('');
+                        handleSubmit();
+                      }
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        close();
+                      }
+                    }}
+                    disabled={status === 'loading' || status === 'success'}
+                    placeholder={status === 'loading' ? 'Pear is thinking...' : status === 'reply' ? 'Reply to Pear...' : 'Ask Pear anything...'}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: status === 'success'
+                        ? OLIVE
+                        : status === 'error'
+                          ? '#b91c1c'
+                          : 'var(--pl-ink, #2B1E14)',
+                      fontSize: '0.88rem',
+                      fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                      fontWeight: status === 'success' ? 600 : 400,
+                      caretColor: OLIVE,
+                      minWidth: 0,
+                    }}
+                  />
+
+                  {/* Submit / close buttons */}
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
+                    {status === 'idle' && inputVal.trim() && (
+                      <motion.button
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                        onClick={handleSubmit}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          background: OLIVE,
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          outline: 'none',
+                        }}
+                      >
+                        <ArrowUp size={14} color="white" strokeWidth={2.5} />
+                      </motion.button>
+                    )}
+                    <button
+                      onClick={close}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.04)',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        outline: 'none',
+                      }}
+                    >
+                      <X size={13} color="var(--pl-muted, #9e9a96)" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick action chips */}
+                {status === 'idle' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.18 }}
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '6px',
+                      padding: '0 16px 14px',
+                    }}
+                  >
+                    {quickActions.map(action => (
+                      <button
+                        key={action.label}
+                        onClick={() => handleQuickAction(action)}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: '100px',
+                          background: 'rgba(163,177,138,0.1)',
+                          border: '1px solid rgba(163,177,138,0.18)',
+                          color: OLIVE,
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          fontFamily: 'var(--pl-font-body, Lora, Georgia, serif)',
+                          cursor: 'pointer',
+                          outline: 'none',
+                          whiteSpace: 'nowrap',
+                          transition: 'background 0.15s, border-color 0.15s',
+                        }}
+                        onMouseEnter={e => {
+                          (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.18)';
+                          (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.3)';
+                        }}
+                        onMouseLeave={e => {
+                          (e.target as HTMLElement).style.background = 'rgba(163,177,138,0.1)';
+                          (e.target as HTMLElement).style.borderColor = 'rgba(163,177,138,0.18)';
+                        }}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </>
   );
 }
