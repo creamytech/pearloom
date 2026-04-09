@@ -507,6 +507,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               const weddingDate   = site.manifest?.logistics?.date || site.manifest?.events?.[0]?.date;
               const isLive        = !site.manifest?.comingSoon?.enabled;
               const occ           = OCCASION_BADGE[site.manifest?.occasion || ''];
+              const daysLeft      = weddingDate ? daysUntil(weddingDate) : null;
+              const showMilestone = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
 
               // Date display
               let dateDisplay: string | null = null;
@@ -525,9 +527,9 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                   transition={{ duration: 0.3, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
                   onClick={() => onEditSite(site)}
                   className={cn(
-                    'flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer',
+                    'pl-site-card flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer',
                     'transition-all duration-200',
-                    'hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-0.5',
+                    'hover:shadow-[0_8px_32px_rgba(163,177,138,0.12)] hover:-translate-y-0.5 hover:scale-[1.01]',
                     'active:scale-[0.99]',
                   )}
                   style={{
@@ -536,6 +538,8 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                     WebkitBackdropFilter: 'blur(16px)',
                     border: '1px solid rgba(255,255,255,0.6)',
                     boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
+                    position: 'relative',
+                    overflow: 'hidden',
                   } as React.CSSProperties}
                 >
                   {/* Thumbnail */}
@@ -573,6 +577,27 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                         <span className="flex items-center gap-1">
                           <Calendar size={10} />
                           {dateDisplay}
+                        </span>
+                      )}
+                      {showMilestone && (
+                        <span
+                          className="pl-badge-pulse"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            padding: '2px 8px',
+                            borderRadius: '100px',
+                            background: 'rgba(196,169,106,0.12)',
+                            border: '1px solid rgba(196,169,106,0.25)',
+                            fontSize: '0.6rem',
+                            fontWeight: 700,
+                            color: 'var(--pl-gold, #C4A96A)',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {'\uD83C\uDF89'} {daysLeft === 0 ? 'Today!' : `${daysLeft} day${daysLeft === 1 ? '' : 's'} to go!`}
                         </span>
                       )}
                     </div>

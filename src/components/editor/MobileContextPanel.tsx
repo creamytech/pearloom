@@ -413,6 +413,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
@@ -459,24 +460,35 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
+          className={dragOver ? 'pl-dropzone-active' : undefined}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            const file = e.dataTransfer.files?.[0];
+            if (file && file.type.startsWith('image/')) handleFileUpload(file);
+          }}
           style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
-            border: '1.5px dashed rgba(255,255,255,0.5)',
-            background: 'rgba(255,255,255,0.35)',
+            border: `1.5px dashed ${dragOver ? 'rgba(163,177,138,0.8)' : 'rgba(255,255,255,0.5)'}`,
+            background: dragOver ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.35)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             textAlign: 'left' as const, width: '100%',
+            transition: 'border-color 0.25s ease, background 0.25s ease',
           }}
         >
           {uploading ? (
             <Loader2 size={18} style={{ color: 'var(--pl-olive)', animation: 'spin 1s linear infinite' }} />
           ) : (
-            <Upload size={18} style={{ color: 'var(--pl-olive)' }} />
+            <Upload size={18} className="pl-dropzone-icon" style={{ color: 'var(--pl-olive)', transition: 'transform 0.2s ease' }} />
           )}
           <div>
             <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
-              {uploading ? 'Uploading...' : 'Upload from Device'}
+              {uploading ? 'Uploading...' : dragOver ? 'Drop image here' : 'Upload from Device'}
             </div>
             <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>
               JPG, PNG, or HEIC

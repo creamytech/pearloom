@@ -2038,11 +2038,13 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 return (
                   <motion.button
                     key={m.id}
+                    className="pl-mood-chip"
                     onClick={() => setMood(m.id)}
                     whileHover={{ y: -3, boxShadow: '0 12px 32px rgba(0,0,0,0.10)' }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     style={{
+                      '--pl-mood-color': m.iconColor,
                       display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem',
                       padding: '1.5rem', borderRadius: '14px 14px 28px 28px', textAlign: 'left',
                       border: `2px solid ${active ? m.activeBorder : 'rgba(0,0,0,0.0)'}`,
@@ -2050,8 +2052,8 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                       cursor: 'pointer',
                       transition: 'background 0.35s ease, border-color 0.25s ease',
                       boxShadow: active ? `0 8px 28px ${m.orb}` : '0 2px 12px rgba(0,0,0,0.04)',
-                      position: 'relative', overflow: 'hidden',
-                    }}
+                      position: 'relative', overflow: 'visible',
+                    } as React.CSSProperties}
                   >
                     {/* Glow spot */}
                     {active && (

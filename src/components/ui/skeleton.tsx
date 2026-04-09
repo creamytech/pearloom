@@ -13,9 +13,9 @@ const roundedMap = {
 
 const shimmerStyle: React.CSSProperties = {
   background:
-    'linear-gradient(90deg, var(--pl-cream-deep) 0%, var(--pl-cream) 50%, var(--pl-cream-deep) 100%)',
+    'linear-gradient(90deg, var(--pl-cream-deep) 0%, rgba(196,169,106,0.15) 50%, var(--pl-cream-deep) 100%)',
   backgroundSize: '200% 100%',
-  animation: 'shimmer 1.8s ease-in-out infinite',
+  animation: 'shimmer 1.5s ease-in-out infinite',
 };
 
 export interface SkeletonProps {

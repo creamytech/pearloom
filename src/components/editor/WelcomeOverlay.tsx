@@ -96,8 +96,8 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
         cursor: 'pointer', overflow: 'hidden',
       }}
     >
-      {/* Warm gradient background */}
-      <div style={{
+      {/* Warm gradient background — slow-shifting animation */}
+      <div className="pl-welcome-shift" style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(135deg, #E8D5C4 0%, #F2E6D9 25%, #D4B8A0 50%, #E8CDB8 75%, #F0DFD0 100%)',
       }} />

@@ -350,6 +350,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
         <h1
           data-pe-editable="true"
           data-pe-field="names"
+          className="pl-name-glow"
           style={{
             fontFamily: 'var(--pl-font-heading)',
             fontSize: smartNameFontSize(
@@ -365,6 +366,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             alignItems: 'center',
             color: heroTextColor,
             textShadow: hasPhoto ? '0 2px 20px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3)' : 'none',
+            animationDelay: '1.2s',
           }}>
           <AnimatedName
             text={names[0]}

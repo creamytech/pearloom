@@ -235,6 +235,7 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
             onClick={() => dispatch({ type: 'OPEN_PUBLISH' })}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
+            className="pl-cta-pulse"
             style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: isMobile ? '6px 14px' : '6px 18px',
@@ -244,6 +245,13 @@ export function EditorToolbar({ onExit }: EditorToolbarProps) {
               fontSize: '0.68rem', fontWeight: 700,
               letterSpacing: '0.08em', textTransform: 'uppercase',
               boxShadow: '0 2px 8px rgba(110,140,92,0.25)',
+              transition: 'box-shadow 0.25s ease',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(163,177,138,0.3), 0 2px 8px rgba(110,140,92,0.25)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(110,140,92,0.25)';
             }}
           >
             Publish

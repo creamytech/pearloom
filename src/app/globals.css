@@ -775,16 +775,16 @@ a { transition: color 0.18s ease, opacity 0.18s ease; }
   animation: marquee linear infinite;
 }
 
-/* Shimmer loading skeleton */
+/* Shimmer loading skeleton — branded gradient shimmer */
 .skeleton {
   background: linear-gradient(
     90deg,
     var(--pl-cream-deep) 0%,
-    #fdf9f4 50%,
+    rgba(196,169,106,0.15) 50%,
     var(--pl-cream-deep) 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 
 /* Shimmer text effect */
@@ -854,6 +854,130 @@ a { transition: color 0.18s ease, opacity 0.18s ease; }
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+}
+
+/* ─── Toast Bounce Entry/Exit ─── */
+@keyframes pl-toast-enter {
+  0%   { transform: translateY(20px); opacity: 0; }
+  70%  { transform: translateY(-4px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes pl-toast-exit {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(12px); opacity: 0; }
+}
+
+.pl-toast-enter {
+  animation: pl-toast-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.pl-toast-exit {
+  animation: pl-toast-exit 0.25s ease both;
+}
+
+/* ─── Multi-layer Glassmorphism ─── */
+.pl-glass-primary {
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: 0 8px 32px rgba(43,30,20,0.12), 0 2px 8px rgba(43,30,20,0.06);
+}
+.pl-glass-secondary {
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 20px rgba(43,30,20,0.08), 0 1px 4px rgba(43,30,20,0.04);
+}
+.pl-glass-tertiary {
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 2px 10px rgba(43,30,20,0.04);
+}
+
+/* ─── Pear Breathing Animation ─── */
+@keyframes pl-pear-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(163,177,138,0));
+  }
+  50% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 8px rgba(163,177,138,0.45));
+  }
+}
+.pl-pear-breathe {
+  animation: pl-pear-breathe 3s ease-in-out infinite;
+}
+
+/* ─── Hero Name Glow ─── */
+@keyframes pl-name-glow {
+  0%   { text-shadow: 0 0 40px rgba(255,255,255,0.3); }
+  100% { text-shadow: 0 0 0px rgba(255,255,255,0); }
+}
+.pl-name-glow {
+  animation: pl-name-glow 2s ease-out both;
+}
+
+/* ─── CTA Pulse ─── */
+@keyframes pl-cta-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.02); }
+}
+.pl-cta-pulse {
+  animation: pl-cta-pulse 3s ease-in-out infinite;
+}
+
+/* ─── Dropzone Pulse ─── */
+@keyframes pl-dropzone-pulse {
+  0%, 100% {
+    border-color: rgba(163,177,138,0.4);
+    box-shadow: inset 0 0 0 0 rgba(163,177,138,0);
+  }
+  50% {
+    border-color: rgba(163,177,138,0.8);
+    box-shadow: inset 0 0 20px rgba(163,177,138,0.08);
+  }
+}
+@keyframes pl-dropzone-icon-spin {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-10deg); }
+  75%      { transform: rotate(10deg); }
+}
+.pl-dropzone-active {
+  animation: pl-dropzone-pulse 1.2s ease-in-out infinite;
+}
+.pl-dropzone-active .pl-dropzone-icon {
+  animation: pl-dropzone-icon-spin 0.8s ease-in-out infinite;
+}
+
+/* ─── Confetti Burst ─── */
+@keyframes pl-confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120px) rotate(var(--pl-confetti-rotate, 360deg)) scale(0.5);
+    opacity: 0;
+  }
+}
+@keyframes pl-confetti-drift {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(var(--pl-confetti-drift, 15px)); }
+  75% { transform: translateX(calc(var(--pl-confetti-drift, 15px) * -0.5)); }
+  100% { transform: translateX(0); }
+}
+
+/* ─── Theme Transition Fade ─── */
+[data-pl-site-root],
+:root {
+  transition: background-color 0.4s ease, color 0.3s ease;
 }
 
 /* ─── Reduced Motion ─── */
@@ -1035,5 +1159,167 @@ select:focus-visible {
   ::view-transition-old(hero-image),
   ::view-transition-new(hero-image) {
     animation-duration: 0s !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM DESIGN POLISH — Animations & Visual Enhancements
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── #11: Animated empty state gradient ──────────────────────── */
+@keyframes pl-empty-gradient {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 50% 100%; }
+  50%  { background-position: 100% 50%; }
+  75%  { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
+}
+
+.pl-empty-gradient {
+  background: linear-gradient(135deg, #A3B18A22, #C4A96A22, #FAF7F222, #A3B18A22) !important;
+  background-size: 300% 300% !important;
+  animation: pl-empty-gradient 12s ease-in-out infinite;
+}
+
+/* ── #13: Icon entrance animation ────────────────────────────── */
+@keyframes pl-icon-entrance-kf {
+  0%   { transform: scale(0.8) rotate(0deg); opacity: 0; }
+  50%  { transform: scale(1.02) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.pl-icon-entrance {
+  animation: pl-icon-entrance-kf 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── #16: Celebration badge pulse ────────────────────────────── */
+@keyframes pl-badge-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196,169,106,0.3); }
+  50%      { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(196,169,106,0); }
+}
+
+.pl-badge-pulse {
+  animation: pl-badge-pulse 2s ease-in-out infinite;
+}
+
+/* ── #17: Welcome overlay gradient shift ─────────────────────── */
+@keyframes pl-welcome-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.pl-welcome-shift {
+  background-size: 200% 200%;
+  animation: pl-welcome-shift 15s ease-in-out infinite;
+}
+
+/* ── #18: Smooth page content entrance (utility) ─────────────── */
+.pl-page-enter {
+  animation: pl-page-enter 0.5s ease both;
+}
+.pl-page-enter-d1 { animation-delay: 0.05s; }
+.pl-page-enter-d2 { animation-delay: 0.10s; }
+.pl-page-enter-d3 { animation-delay: 0.15s; }
+.pl-page-enter-d4 { animation-delay: 0.20s; }
+.pl-page-enter-d5 { animation-delay: 0.25s; }
+.pl-page-enter-d6 { animation-delay: 0.30s; }
+.pl-page-enter-d7 { animation-delay: 0.35s; }
+.pl-page-enter-d8 { animation-delay: 0.40s; }
+
+/* ── #19: Mood particle hints on vibe chips ──────────────────── */
+@keyframes pl-mood-particle {
+  0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+  30%  { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(-18px) scale(0.2); }
+}
+
+.pl-mood-chip {
+  position: relative;
+  overflow: visible;
+}
+.pl-mood-chip::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: 20%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pl-mood-color, #A3B18A);
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+.pl-mood-chip:hover::after {
+  animation: pl-mood-particle 0.8s ease-out forwards;
+}
+
+/* ── #20: Cursor sparkle trail (opt-in) ──────────────────────── */
+@keyframes pl-sparkle-pop {
+  0%   { opacity: 0.7; transform: scale(0.3); }
+  50%  { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.6); }
+}
+
+.pl-sparkle-cursor *:active::after {
+  content: '';
+  position: fixed;
+  top: var(--pl-click-y, 50%);
+  left: var(--pl-click-x, 50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(163,177,138,0.6), rgba(163,177,138,0) 70%);
+  pointer-events: none;
+  z-index: 99999;
+  animation: pl-sparkle-pop 0.4s ease-out forwards;
+}
+
+/* ── #12: Multi-layer card hover highlight sweep ─────────────── */
+@keyframes pl-card-sweep {
+  0%   { transform: translateX(-110%); opacity: 0; }
+  50%  { opacity: 0.4; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+
+.pl-site-card {
+  position: relative;
+  overflow: hidden;
+}
+.pl-site-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(163,177,138,0.35), rgba(196,169,106,0.25), transparent);
+  border-radius: 0 0 4px 4px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-110%);
+}
+.pl-site-card:hover::after {
+  animation: pl-card-sweep 0.8s ease-out forwards;
+}
+
+/* ── #15: Palette swatch expansion on hover ──────────────────── */
+.pl-palette-swatches > div {
+  transform: scale(1);
+}
+button:hover > .pl-palette-swatches > div {
+  transform: scale(1.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-empty-gradient,
+  .pl-icon-entrance,
+  .pl-badge-pulse,
+  .pl-welcome-shift,
+  .pl-page-enter,
+  .pl-mood-chip:hover::after,
+  .pl-sparkle-cursor *:active::after {
+    animation: none !important;
   }
 }

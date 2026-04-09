@@ -950,7 +950,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'event':
         if (!manifest.events?.length) return editMode ? (
           <section key={key} data-pe-section="events" data-pe-empty-section="events" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
-            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><CalendarDays size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Events</div>
               <p style={{ fontSize: '0.85rem' }}>Add your ceremony, reception, and other events in the Events panel</p>
@@ -1008,7 +1008,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'rsvp':
         if (!manifest.events?.length) return editMode ? (
           <section key={key} data-pe-section="rsvp" data-pe-empty-section="rsvp" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
-            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Mail size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>RSVP</div>
               <p style={{ fontSize: '0.85rem' }}>Add events first — the RSVP form will appear here for your guests</p>
@@ -1042,7 +1042,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'registry':
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return editMode ? (
           <section key={key} data-pe-section="registry" data-pe-empty-section="registry" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
-            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Gift size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Registry</div>
               <p style={{ fontSize: '0.85rem' }}>Add registry links in Details → Registry</p>
@@ -1055,7 +1055,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'travel':
         if (!manifest.travelInfo) return editMode ? (
           <section key={key} data-pe-section="travel" data-pe-empty-section="travel" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
-            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Plane size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Travel & Hotels</div>
               <p style={{ fontSize: '0.85rem' }}>Add hotel and travel info in Details → Travel</p>
@@ -1079,7 +1079,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'faq':
         if (!manifest.faqs?.length) return editMode ? (
           <section key={key} data-pe-section="faq" data-pe-empty-section="faq" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
-            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><HelpCircle size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>FAQ</div>
               <p style={{ fontSize: '0.85rem' }}>Add frequently asked questions in Details → FAQ</p>
@@ -1129,7 +1129,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const textContent = blockCfg.content as string | undefined;
         if (!textContent) return editMode ? (
           <section key={key} data-pe-section="text" data-pe-empty-section="text" style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.5rem' }}><PenLine size={22} style={{ color: 'var(--pl-muted)' }} /></div>
               <p style={{ fontSize: '0.85rem' }}>Click to add text content</p>
               <PearHelpButton label="Ask Pear to write this" prompt="Write a text section" />
@@ -1180,7 +1180,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
         if (!allPhotos.length) return editMode ? (
           <section key={key} data-pe-section="photos" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
-            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.75rem' }}><Camera size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Photo Gallery</div>
               <p style={{ fontSize: '0.85rem' }}>Add photos to your story chapters — they&apos;ll appear here</p>
@@ -1227,7 +1227,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 <iframe src={embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen title="Video" />
               </div>
             ) : (
-              <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)' }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)' }}>
                 <p data-pe-editable="true" data-pe-path={`blocks.${block.id}.config.url`} style={{ fontSize: '0.88rem' }}>
                   {videoUrl || 'Paste a YouTube or Vimeo URL'}
                 </p>
@@ -1245,7 +1245,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed&z=15`} style={{ width: '100%', height: '100%', border: 'none' }} loading="lazy" title="Venue" />
               </div>
             ) : (
-              <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)', fontSize: '0.88rem' }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)', fontSize: '0.88rem' }}>
                 Add an event address to show the map
               </div>
             )}
@@ -1289,7 +1289,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {embedSrc ? (
               <iframe src={embedSrc} style={{ width: '100%', height: '352px', borderRadius: '12px', border: 'none' }} allow="encrypted-media" title="Spotify Playlist" />
             ) : (
-              <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)', fontSize: '0.88rem' }}>
+              <div className="pl-empty-gradient" style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)', fontSize: '0.88rem' }}>
                 Add a Spotify playlist URL in the Music panel
               </div>
             )}
@@ -1333,7 +1333,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         const statement = block.type === 'welcome' ? manifest.poetry?.welcomeStatement : (vibeSkin.dividerQuote || manifest.vibeString);
         if (!statement) return editMode ? (
           <section key={key} data-pe-section={block.type} style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
-            <div style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+            <div className="pl-empty-gradient" style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
               <div style={{ marginBottom: '0.5rem' }}>{block.type === 'welcome' ? <Hand size={22} style={{ color: 'var(--pl-muted)' }} /> : <Sparkles size={22} style={{ color: 'var(--pl-muted)' }} />}</div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1rem', color: safeFg, marginBottom: '0.25rem' }}>
                 {block.type === 'welcome' ? 'Welcome Message' : 'Vibe Quote'}
@@ -1483,7 +1483,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       default:
         // Unknown block type — show placeholder instead of nothing
         return (
-          <section key={key} data-pe-section={block.type} style={{ padding: '2rem', margin: '1rem auto', maxWidth: '700px', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.2)' }}>
+          <section key={key} data-pe-section={block.type} className="pl-empty-gradient" style={{ padding: '2rem', margin: '1rem auto', maxWidth: '700px', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.2)' }}>
             <p style={{ color: 'var(--pl-muted)', fontSize: '0.82rem' }}>
               {String(block.type).replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()} section
             </p>

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Globe, ArrowRight, Check, Copy, ExternalLink, Mail, MessageCircle } from 'lucide-react';
 import { Modal, Button, Input } from '@/components/ui';
+import { ConfettiBurst } from '@/components/shared/ConfettiBurst';
 import type { StoryManifest } from '@/types';
 
 function CopyUrlButton({ url }: { url: string }) {
@@ -130,6 +131,8 @@ export function PublishModal({
       {publishedUrl ? (
         /* ── Success state ── */
         <div className="flex flex-col items-center gap-5 relative overflow-hidden text-center">
+          {/* Confetti burst celebration */}
+          <ConfettiBurst />
           {/* Celebration rings */}
           <div className="relative mb-1">
             {[1, 2, 3].map((i) => (

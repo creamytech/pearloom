@@ -722,11 +722,12 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.5)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; }}
             >
-              <div style={{ display: 'flex', gap: '3px' }}>
+              <div className="pl-palette-swatches" style={{ display: 'flex', gap: '3px' }}>
                 {preset.colors.slice(0, 5).map((c, i) => (
                   <div key={i} style={{
                     width: 18, height: 18, borderRadius: '50%',
                     background: c, border: '1px solid rgba(0,0,0,0.08)',
+                    transition: `transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.04}s`,
                   }} />
                 ))}
               </div>
