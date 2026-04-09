@@ -596,15 +596,25 @@ export default function MarketplacePage() {
                               <div className="text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-muted)] mb-2">
                                 Pack Contents ({pack.items.length} items)
                               </div>
-                              <div className="grid grid-cols-2 gap-1.5">
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                                 {pack.items.map((item) => (
-                                  <div key={item.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.6)' }}>
-                                    <div className="w-6 h-6 rounded flex items-center justify-center shrink-0 text-[0.7rem]" style={{
-                                      background: item.type === 'svg' ? 'rgba(163,177,138,0.1)' : item.type === 'pattern' ? 'rgba(196,168,106,0.1)' : 'rgba(139,107,61,0.1)',
-                                    }}>
-                                      {item.type === 'svg' ? '◆' : item.type === 'pattern' ? '▦' : '◎'}
-                                    </div>
-                                    <span className="text-[0.62rem] text-[var(--pl-ink-soft)] truncate">{item.name}</span>
+                                  <div key={item.id} className="flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all hover:shadow-sm" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,0,0,0.03)' }}>
+                                    {/* Render actual SVG if available */}
+                                    {'svgContent' in item && item.svgContent ? (
+                                      <div
+                                        className="w-10 h-10 flex items-center justify-center"
+                                        style={{ color: 'var(--pl-olive)' }}
+                                        dangerouslySetInnerHTML={{ __html: item.svgContent as string }}
+                                      />
+                                    ) : (
+                                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[1rem]" style={{
+                                        background: item.type === 'svg' ? 'rgba(163,177,138,0.08)' : item.type === 'pattern' ? 'rgba(196,168,106,0.08)' : 'rgba(139,107,61,0.08)',
+                                        color: 'var(--pl-muted)',
+                                      }}>
+                                        {item.type === 'svg' ? '◆' : item.type === 'pattern' ? '▦' : '◎'}
+                                      </div>
+                                    )}
+                                    <span className="text-[0.55rem] text-[var(--pl-ink-soft)] text-center leading-tight truncate w-full">{item.name}</span>
                                   </div>
                                 ))}
                               </div>
