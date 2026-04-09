@@ -21,12 +21,12 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Rewrite tagline',   prompt: 'Write a new, beautiful, poetic hero tagline that captures this couple\'s love story. Return update_manifest with path poetry.heroTagline.', handler: 'ai-chat' },
-  { label: 'Change colors',     prompt: 'Suggest a completely new, elegant color palette that matches the vibe of this site. Return update_theme with a full 6-color palette (background, foreground, accent, accentLight, muted, cardBg).', handler: 'ai-chat' },
-  { label: 'Write welcome',     prompt: 'Write a warm, heartfelt welcome message for the guests (3-4 sentences). Return update_manifest with path poetry.welcomeStatement.', handler: 'ai-chat' },
-  { label: 'Generate FAQ',      prompt: '',  handler: 'ai-faq' },
-  { label: 'Add events',        prompt: 'Create a ceremony and reception event with beautiful descriptions, realistic times, and the venue from the site details. Return update_events.', handler: 'ai-chat' },
-  { label: 'Improve story',     prompt: 'Rewrite all chapter descriptions to be more vivid, emotional, and poetic. Return update_chapter for each one.', handler: 'ai-chat' },
+  { label: 'Help me get started',  prompt: 'Look at my site and tell me what\'s missing or needs attention. Give me a prioritized to-do list of the most important things to add or fix, and offer to do the first one for me.', handler: 'ai-chat' },
+  { label: 'Make it beautiful',    prompt: 'Redesign my site to look stunning — change the color palette, fonts, and tagline to create a cohesive, magazine-worthy look that matches the vibe.', handler: 'ai-chat' },
+  { label: 'Write my content',     prompt: 'Write all the text content my site needs — hero tagline, welcome message, closing line, and RSVP intro. Make it personal using the couple names and any details you know about the event.', handler: 'ai-chat' },
+  { label: 'Set up events',       prompt: 'Set up my wedding day schedule with a ceremony, cocktail hour, and reception. Use the venue and date if I have them, or ask me for the details you need.', handler: 'ai-chat' },
+  { label: 'Add FAQ',             prompt: 'Write 5-7 FAQs that my guests would actually ask. Use real details from my site like venue, parking, dress code. If you don\'t have enough info, ask me the key questions first.', handler: 'ai-chat' },
+  { label: 'Suggest improvements', prompt: 'Review my entire site like a wedding planner would. What\'s working? What could be better? Give me specific, actionable suggestions and offer to make the changes.', handler: 'ai-chat' },
 ];
 
 // ── Colour tokens ─────────────────────────────────────────────
