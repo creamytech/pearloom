@@ -188,20 +188,12 @@ export default function MoreScreen() {
 
   // ── Determine plan badge ─────────────────────────────────────────────
 
-  const planLevel = 'free'; // Would come from user data in production
-  const planLabel = planLevel === 'premium' ? 'PREMIUM' : planLevel === 'pro' ? 'PRO' : 'FREE';
-  const planBadgeBg =
-    planLevel === 'premium'
-      ? colors.gold + '22'
-      : planLevel === 'pro'
-      ? colors.olive + '22'
-      : colors.gold + '22';
-  const planBadgeColor =
-    planLevel === 'premium'
-      ? colors.gold
-      : planLevel === 'pro'
-      ? colors.olive
-      : colors.gold;
+  // Plan badge styling — driven by user's plan level in production
+  const planLabel = 'FREE';
+  const planBadgeBg = colors.gold + '22';
+  const planBadgeColor = colors.gold;
+  // For pro: colors.olive + '22' / colors.olive, label 'PRO'
+  // For premium: colors.gold + '22' / colors.gold, label 'PREMIUM'
 
   // ── Build sections ───────────────────────────────────────────────────
 

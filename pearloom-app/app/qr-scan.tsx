@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -33,7 +34,48 @@ export default function QrScanScreen() {
   const [scannedGuest, setScannedGuest] = useState<Guest | null>(null);
   const [scanning, setScanning] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [checkedIn, setCheckedIn] = useState(false);
   const isProcessing = useRef(false);
+
+  // Animations
+  const cornerPulseAnim = useRef(new Animated.Value(1)).current;
+  const panelSlideAnim = useRef(new Animated.Value(300)).current;
+  const greenFlashAnim = useRef(new Animated.Value(0)).current;
+  const checkInScaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Corner pulse animation
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cornerPulseAnim, {
+          toValue: 1.08,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cornerPulseAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+
+  // Slide panel up when guest is scanned
+  useEffect(() => {
+    if (scannedGuest) {
+      panelSlideAnim.setValue(300);
+      Animated.spring(panelSlideAnim, {
+        toValue: 0,
+        damping: 18,
+        stiffness: 120,
+        mass: 0.8,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [scannedGuest]);
 
   // ── Parse QR data ────────────────────────────────────────────────────
 
@@ -60,6 +102,17 @@ export default function QrScanScreen() {
     return null;
   };
 
+  // ── Green flash effect ───────────────────────────────────────────────
+
+  const triggerGreenFlash = useCallback(() => {
+    greenFlashAnim.setValue(0.5);
+    Animated.timing(greenFlashAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   // ── Handle barcode scan ──────────────────────────────────────────────
 
   const onBarcodeScanned = useCallback(
@@ -84,10 +137,11 @@ export default function QrScanScreen() {
         return;
       }
 
-      // Haptic success feedback
+      // Haptic success feedback + green flash
       await Haptics.notificationAsync(
         Haptics.NotificationFeedbackType.Success,
       );
+      triggerGreenFlash();
 
       setScanning(false);
 
@@ -102,7 +156,7 @@ export default function QrScanScreen() {
         resetScanner();
       }
     },
-    [scanning],
+    [scanning, triggerGreenFlash],
   );
 
   // ── Check in guest ───────────────────────────────────────────────────
@@ -120,11 +174,29 @@ export default function QrScanScreen() {
         Haptics.NotificationFeedbackType.Success,
       );
 
-      Alert.alert(
-        'Checked In!',
-        `${scannedGuest.name} has been checked in successfully.`,
-        [{ text: 'Scan Next', onPress: resetScanner }],
-      );
+      // Success state animation
+      setCheckedIn(true);
+      Animated.sequence([
+        Animated.timing(checkInScaleAnim, {
+          toValue: 1.1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(checkInScaleAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Show alert after a short delay to show success state
+      setTimeout(() => {
+        Alert.alert(
+          'Checked In!',
+          `${scannedGuest.name} has been checked in successfully.`,
+          [{ text: 'Scan Next', onPress: resetScanner }],
+        );
+      }, 600);
     } catch (err) {
       Alert.alert('Error', 'Failed to check in guest. Please try again.');
     } finally {
@@ -137,6 +209,8 @@ export default function QrScanScreen() {
   const resetScanner = useCallback(() => {
     setScannedGuest(null);
     setScanning(true);
+    setCheckedIn(false);
+    checkInScaleAnim.setValue(1);
     isProcessing.current = false;
   }, []);
 
@@ -158,12 +232,24 @@ export default function QrScanScreen() {
         <Text style={styles.permissionBody}>
           To scan guest QR codes for check-in, please allow camera access.
         </Text>
-        <Pressable style={styles.permissionBtn} onPress={requestPermission}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.permissionBtn,
+            pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] },
+          ]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            requestPermission();
+          }}
+        >
           <Text style={styles.permissionBtnText}>Allow Camera</Text>
         </Pressable>
         <Pressable
           style={styles.backBtn}
-          onPress={() => router.back()}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.back();
+          }}
         >
           <Text style={styles.backBtnText}>Go Back</Text>
         </Pressable>
@@ -179,7 +265,10 @@ export default function QrScanScreen() {
       <View style={styles.header}>
         <Pressable
           style={styles.closeBtn}
-          onPress={() => router.back()}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.back();
+          }}
           hitSlop={12}
         >
           <FontAwesome name="times" size={22} color={colors.white} />
@@ -201,17 +290,50 @@ export default function QrScanScreen() {
           onBarcodeScanned={scanning ? onBarcodeScanned : undefined}
         />
 
+        {/* Green flash overlay on successful scan */}
+        <Animated.View
+          style={[
+            styles.greenFlash,
+            { opacity: greenFlashAnim },
+          ]}
+          pointerEvents="none"
+        />
+
         {/* QR Overlay */}
         <View style={styles.overlay}>
           <View style={styles.overlayTop} />
           <View style={styles.overlayMiddle}>
             <View style={styles.overlaySide} />
             <View style={styles.scanFrame}>
-              {/* Corner markers */}
-              <View style={[styles.corner, styles.cornerTL]} />
-              <View style={[styles.corner, styles.cornerTR]} />
-              <View style={[styles.corner, styles.cornerBL]} />
-              <View style={[styles.corner, styles.cornerBR]} />
+              {/* Animated corner markers */}
+              <Animated.View
+                style={[
+                  styles.corner,
+                  styles.cornerTL,
+                  { transform: [{ scale: cornerPulseAnim }] },
+                ]}
+              />
+              <Animated.View
+                style={[
+                  styles.corner,
+                  styles.cornerTR,
+                  { transform: [{ scale: cornerPulseAnim }] },
+                ]}
+              />
+              <Animated.View
+                style={[
+                  styles.corner,
+                  styles.cornerBL,
+                  { transform: [{ scale: cornerPulseAnim }] },
+                ]}
+              />
+              <Animated.View
+                style={[
+                  styles.corner,
+                  styles.cornerBR,
+                  { transform: [{ scale: cornerPulseAnim }] },
+                ]}
+              />
             </View>
             <View style={styles.overlaySide} />
           </View>
@@ -225,9 +347,14 @@ export default function QrScanScreen() {
         </View>
       </View>
 
-      {/* Guest info panel (slides up when scanned) */}
+      {/* Guest info panel (slides up with spring when scanned) */}
       {scannedGuest && (
-        <View style={styles.guestPanel}>
+        <Animated.View
+          style={[
+            styles.guestPanel,
+            { transform: [{ translateY: panelSlideAnim }] },
+          ]}
+        >
           <View style={styles.guestPanelHandle} />
 
           <View style={styles.guestInfo}>
@@ -293,36 +420,53 @@ export default function QrScanScreen() {
 
           {/* Actions */}
           <View style={styles.guestActions}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.checkInBtn,
-                pressed && styles.checkInBtnPressed,
-              ]}
-              onPress={handleCheckIn}
-              disabled={checkingIn}
-            >
-              {checkingIn ? (
-                <ActivityIndicator size="small" color={colors.white} />
-              ) : (
-                <>
-                  <FontAwesome
-                    name="check"
-                    size={18}
-                    color={colors.white}
-                  />
-                  <Text style={styles.checkInBtnText}>Check In</Text>
-                </>
-              )}
-            </Pressable>
+            <Animated.View style={{ transform: [{ scale: checkInScaleAnim }] }}>
+              <Pressable
+                style={({ pressed }) => [
+                  checkedIn ? styles.checkInBtnSuccess : styles.checkInBtn,
+                  pressed && !checkedIn && styles.checkInBtnPressed,
+                ]}
+                onPress={handleCheckIn}
+                disabled={checkingIn || checkedIn}
+              >
+                {checkingIn ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : checkedIn ? (
+                  <>
+                    <FontAwesome
+                      name="check-circle"
+                      size={20}
+                      color={colors.white}
+                    />
+                    <Text style={styles.checkInBtnText}>Checked In</Text>
+                  </>
+                ) : (
+                  <>
+                    <FontAwesome
+                      name="check"
+                      size={18}
+                      color={colors.white}
+                    />
+                    <Text style={styles.checkInBtnText}>Check In</Text>
+                  </>
+                )}
+              </Pressable>
+            </Animated.View>
 
             <Pressable
-              style={styles.scanAgainBtn}
-              onPress={resetScanner}
+              style={({ pressed }) => [
+                styles.scanAgainBtn,
+                pressed && { opacity: 0.6 },
+              ]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                resetScanner();
+              }}
             >
               <Text style={styles.scanAgainBtnText}>Scan Another</Text>
             </Pressable>
           </View>
-        </View>
+        </Animated.View>
       )}
     </View>
   );
@@ -410,6 +554,13 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+  },
+
+  // Green flash
+  greenFlash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.success,
+    zIndex: 5,
   },
 
   // Overlay
@@ -584,6 +735,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
     backgroundColor: colors.olive,
+    paddingVertical: spacing.md + 2,
+    borderRadius: radius.md,
+  },
+  checkInBtnSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.success,
     paddingVertical: spacing.md + 2,
     borderRadius: radius.md,
   },
