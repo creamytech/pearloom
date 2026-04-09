@@ -479,23 +479,36 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
 
       const { data } = await res.json();
 
-      // Merge generated data into manifest by block type
+      // Merge generated data into manifest by block type — APPEND, never replace
       let updated = { ...manifest };
       switch (blockType) {
         case 'events':
-          updated.events = data as WeddingEvent[];
+          updated.events = [...(manifest.events || []), ...(data as WeddingEvent[])];
           break;
         case 'venue':
           updated.logistics = { ...manifest.logistics, ...(data as typeof manifest.logistics) };
           break;
-        case 'registry':
-          updated.registry = data as typeof manifest.registry;
+        case 'registry': {
+          const regData = data as typeof manifest.registry;
+          updated.registry = {
+            ...(manifest.registry || { enabled: true }),
+            ...regData,
+            entries: [...(manifest.registry?.entries || []), ...(regData?.entries || [])],
+          };
           break;
-        case 'travel':
-          updated.travelInfo = data as TravelInfo;
+        }
+        case 'travel': {
+          const travelData = data as TravelInfo;
+          updated.travelInfo = {
+            ...(manifest.travelInfo || { airports: [], hotels: [] }),
+            ...travelData,
+            hotels: [...(manifest.travelInfo?.hotels || []), ...(travelData?.hotels || [])],
+            airports: [...(manifest.travelInfo?.airports || []), ...(travelData?.airports || [])],
+          };
           break;
+        }
         case 'faqs':
-          updated.faqs = data as FaqItem[];
+          updated.faqs = [...(manifest.faqs || []), ...(data as FaqItem[])];
           break;
       }
 

@@ -264,7 +264,8 @@ export function AICommandBar() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.faqs) {
-          actions.handleChatManifestUpdate({ faqs: data.faqs });
+          const existing = manifest.faqs || [];
+          actions.handleChatManifestUpdate({ faqs: [...existing, ...data.faqs] });
           setPearReply(`Added ${data.faqs.length} FAQs to your site! You can edit them in the FAQ section. — Pear`);
           setInputVal('');
           setStatus('reply');
