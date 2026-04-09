@@ -251,7 +251,6 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           <CalendarHeartIcon
             size={15}
             color="var(--pl-olive)"
-            aria-hidden="true"
             style={{ flexShrink: 0, marginTop: '0.15rem' }}
           />
           <div>
@@ -287,7 +286,6 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           <LocationPinIcon
             size={15}
             color="var(--pl-olive)"
-            aria-hidden="true"
             style={{ flexShrink: 0, marginTop: '0.15rem' }}
           />
           <div>
@@ -325,7 +323,6 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             <StarburstIcon
               size={15}
               color="var(--pl-olive)"
-              aria-hidden="true"
               style={{ flexShrink: 0, marginTop: '0.15rem' }}
             />
             <div>

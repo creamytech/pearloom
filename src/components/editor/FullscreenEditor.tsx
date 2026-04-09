@@ -38,6 +38,7 @@ import { VoiceTrainerPanel } from './VoiceTrainerPanel';
 import { CanvasEditor } from './CanvasEditor';
 // import { AIEditorChat } from './AIEditorChat';
 import { AIContextBar } from './AIContextBar';
+import { AICommandBar } from './AICommandBar';
 import { GuestMessagingPanel } from './GuestMessagingPanel';
 import { PostWeddingBanner } from './PostWeddingBanner';
 import { AnalyticsDashboardPanel } from './AnalyticsDashboardPanel';
@@ -917,6 +918,9 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
       {/* AI Chat — disabled: broken on mobile and takes up space */}
       {/* <AIEditorChat manifest={manifest} activeChapterId={state.activeId} onUpdateChapter={updateChapter} onUpdateManifest={handleChatManifestUpdate} /> */}
+
+      {/* Inline AI Command Bar — floating pill, visible on desktop + mobile */}
+      <AICommandBar />
 
       {/* Welcome */}
       <AnimatePresence>
