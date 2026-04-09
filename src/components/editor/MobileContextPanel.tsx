@@ -6,8 +6,8 @@
 // tapped in the mobile preview. Renders inside MobileBottomSheet.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useRef, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useCallback, useRef, useEffect, useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Star, BookOpen, CalendarDays, Mail, Gift, Plane, HelpCircle,
   Camera, MessageSquare, MapPin, Quote, Type, Video, Timer, Minus,
@@ -340,18 +340,18 @@ export function MobileContextPanel({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* ── Sticky header ── */}
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* ── Sticky header — pinned inside the sheet scroll container ── */}
       <div style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
           <div style={{
-            width: 28, height: 28, borderRadius: 8,
+            width: 32, height: 32, borderRadius: 10,
             background: 'var(--pl-olive-8)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--pl-olive)',
             flexShrink: 0,
           }}>
-            <SectionIcon size={14} />
+            <SectionIcon size={15} />
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{
@@ -387,10 +387,13 @@ export function MobileContextPanel({
         )}
       </div>
 
-      {/* ── Scrollable content ── */}
-      <div style={scrollArea}>
+      {/* ── Content (no nested scroll — relies on sheet's scroll container) ── */}
+      <div style={contentArea}>
         {renderContent()}
       </div>
+
+      {/* ── Save feedback indicator ── */}
+      <SaveIndicator />
     </div>
   );
 }
@@ -1565,11 +1568,63 @@ function BlockSettings({
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Save Indicator — shows brief "Saved" confirmation on changes
+// ═══════════════════════════════════════════════════════════════
+
+function SaveIndicator() {
+  const { state } = useEditor();
+  const [showSaved, setShowSaved] = useState(false);
+  const prevSaveStateRef = useRef(state.saveState);
+
+  useEffect(() => {
+    // Show "saved" toast when state transitions from unsaved to saved
+    if (state.saveState === 'saved' && prevSaveStateRef.current === 'unsaved') {
+      setShowSaved(true);
+      const t = setTimeout(() => setShowSaved(false), 1800);
+      prevSaveStateRef.current = state.saveState;
+      return () => clearTimeout(t);
+    }
+    prevSaveStateRef.current = state.saveState;
+  }, [state.saveState]);
+
+  return (
+    <AnimatePresence>
+      {showSaved && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.2 }}
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: '8px 16px',
+            textAlign: 'center',
+            fontSize: 'var(--pl-text-2xs)',
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase' as const,
+            color: 'var(--pl-olive)',
+            background: 'var(--pl-olive-8)',
+            borderTop: '1px solid var(--pl-olive-20)',
+            zIndex: 3,
+          }}
+        >
+          Changes saved
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Shared styles
 // ═══════════════════════════════════════════════════════════════
 
 const headerStyle: React.CSSProperties = {
-  height: 48,
+  height: 52,
   flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
@@ -1584,8 +1639,8 @@ const headerStyle: React.CSSProperties = {
 };
 
 const closeBtn: React.CSSProperties = {
-  width: 32,
-  height: 32,
+  width: 44,
+  height: 44,
   borderRadius: '50%',
   border: 'none',
   background: 'var(--pl-black-6)',
@@ -1597,12 +1652,11 @@ const closeBtn: React.CSSProperties = {
   flexShrink: 0,
 };
 
-const scrollArea: React.CSSProperties = {
-  flex: 1,
-  overflowY: 'auto',
-  WebkitOverflowScrolling: 'touch',
-  paddingBottom: '140px', // Space for bottom tab bar + safe area
-} as React.CSSProperties;
+const contentArea: React.CSSProperties = {
+  /* No overflow: relies on MobileBottomSheet's scroll container,
+     which lets the sticky header actually stick. */
+  paddingBottom: 24,
+};
 
 const sectionPad: React.CSSProperties = {
   padding: 16,

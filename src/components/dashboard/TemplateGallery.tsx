@@ -80,30 +80,31 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
             </div>
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-full border border-[var(--pl-divider)] bg-transparent cursor-pointer flex items-center justify-center text-[var(--pl-muted)]"
+              className="w-11 h-11 rounded-full border border-[var(--pl-divider)] bg-transparent cursor-pointer flex items-center justify-center text-[var(--pl-muted)] hover:text-[var(--pl-ink)] hover:border-[var(--pl-ink)] transition-colors"
+              aria-label="Close template gallery"
             >
-              <X size={16} />
+              <X size={18} />
             </button>
           </div>
 
           {/* Search + Filters */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex-1 min-w-[200px] flex items-center gap-2 px-3 py-2 rounded-[12px]" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)' } as React.CSSProperties}>
-              <Search size={14} className="text-[var(--pl-muted)]" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 rounded-[12px]" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)' } as React.CSSProperties}>
+              <Search size={14} className="text-[var(--pl-muted)] flex-shrink-0" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search templates..."
-                className="flex-1 bg-transparent border-none outline-none text-[0.85rem] text-[var(--pl-ink)] placeholder:text-[var(--pl-muted)] placeholder:opacity-50"
+                className="flex-1 bg-transparent border-none outline-none text-[max(16px,0.85rem)] text-[var(--pl-ink)] placeholder:text-[var(--pl-muted)] placeholder:opacity-50"
               />
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
               {FILTERS.map((f) => (
                 <button
                   key={f.id}
                   onClick={() => { setFilter(f.id); setSearch(''); }}
-                  className={`px-3 py-1.5 rounded-full text-[0.68rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
+                  className={`px-3.5 py-2 min-h-[44px] rounded-full text-[0.72rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all whitespace-nowrap flex-shrink-0 ${
                     filter === f.id
                       ? 'bg-[var(--pl-olive-deep)] text-white'
                       : 'bg-[var(--pl-cream-deep)] text-[var(--pl-muted)] hover:text-[var(--pl-ink)]'

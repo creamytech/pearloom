@@ -269,10 +269,10 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
             transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             style={{
               position: 'fixed',
-              bottom: 90,
+              bottom: 'calc(90px + env(safe-area-inset-bottom, 0px))',
               left: 16,
               right: 16,
-              zIndex: 200,
+              zIndex: 1400,
               background: 'var(--pl-cream, #FFFCF7)',
               border: '1px solid #ef4444',
               borderRadius: 'var(--pl-radius-sm, 8px)',

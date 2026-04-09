@@ -66,6 +66,8 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                 background: 'transparent',
                 cursor: 'pointer',
                 padding: isPrimary ? '0' : '8px 16px',
+                minHeight: isPrimary ? undefined : '44px',
+                minWidth: '44px',
                 position: 'relative',
               }}
             >
@@ -92,7 +94,7 @@ export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBotto
                     }}
                   />
                   <span style={{
-                    fontSize: '0.55rem', fontWeight: 700,
+                    fontSize: '0.65rem', fontWeight: 700,
                     letterSpacing: '0.06em', textTransform: 'uppercase',
                     color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
                     transition: 'color 0.15s',

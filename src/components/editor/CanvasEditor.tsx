@@ -670,18 +670,21 @@ function SectionStylePanel({
             );
           })}
         </div>
-        {/* Custom hex input */}
-        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-          <ColorPicker
-            value={(config.bgColor as string) || '#ffffff'}
-            onChange={(c) => updateConfig({ bgColor: c })}
-          />
-          <input
-            value={config.bgColor as string || ''}
-            onChange={e => updateConfig({ bgColor: e.target.value })}
-            placeholder="Custom #hex"
-            style={{ ...inp, flex: 1, fontSize: '0.72rem', padding: '4px 8px' }}
-          />
+        {/* FIX #8: Custom hex input with proper label for accessibility */}
+        <div style={{ marginTop: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '4px' }}>Custom Color</label>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <ColorPicker
+              value={(config.bgColor as string) || '#ffffff'}
+              onChange={(c) => updateConfig({ bgColor: c })}
+            />
+            <input
+              value={config.bgColor as string || ''}
+              onChange={e => updateConfig({ bgColor: e.target.value })}
+              placeholder="#hex or rgba(...)"
+              style={{ ...inp, flex: 1, fontSize: '0.72rem', padding: '4px 8px' }}
+            />
+          </div>
         </div>
       </div>
 
@@ -1833,6 +1836,24 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           Active · {blocks.length}
         </div>
 
+        {/* FIX #9: Empty state when all blocks are removed */}
+        {blocks.length === 0 && (
+          <div style={{
+            padding: '24px 16px', textAlign: 'center',
+            borderRadius: '14px',
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px dashed rgba(163,177,138,0.25)',
+            marginBottom: '8px',
+          }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--pl-ink-soft)', marginBottom: '4px' }}>
+              No sections on this page
+            </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.5 }}>
+              Click &ldquo;Add Section&rdquo; below or drag blocks from the catalogue to get started.
+            </div>
+          </div>
+        )}
+
         {/* ── Drag-sortable block list ── */}
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative' }}
@@ -1978,7 +1999,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 margin: '8px 0',
               } as React.CSSProperties}
             >
-              <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {/* FIX #10: Increased maxHeight so complex block configs (events, hero) don't clip */}
+              <div style={{ maxHeight: '65vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
                   <div style={{
                     width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,

@@ -163,7 +163,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
       >
         <div
           style={{
-            fontSize: '0.65rem',
+            fontSize: '0.72rem',
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: 'var(--pl-muted)',
@@ -315,7 +315,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
             <div>
               <div
                 style={{
-                  fontSize: '0.62rem',
+                  fontSize: '0.7rem',
                   fontWeight: 700,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
@@ -393,10 +393,11 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
               fontWeight: 700,
               color: '#fff',
               background: accentColor,
-              padding: '0.45rem 1rem',
+              padding: '0.65rem 1.15rem',
               borderRadius: '100px',
               textDecoration: 'none',
               letterSpacing: '0.06em',
+              minHeight: '44px',
             }}
           >
             <LocationPinIcon size={11} />
@@ -416,11 +417,12 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
                 fontWeight: 700,
                 color: 'var(--pl-muted)',
                 background: 'rgba(43,30,20,0.03)',
-                padding: '0.45rem 1rem',
+                padding: '0.65rem 1.15rem',
                 borderRadius: '100px',
                 textDecoration: 'none',
                 letterSpacing: '0.06em',
                 border: '1px solid rgba(43,30,20,0.05)',
+                minHeight: '44px',
               }}
             >
               Apple Maps

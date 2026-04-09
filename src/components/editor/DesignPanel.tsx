@@ -519,7 +519,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
     : [colors.background, colors.foreground, colors.accent, colors.accentLight, colors.muted].filter(Boolean);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '24px' }}>
 
       {/* ── Quick AI regenerate ── */}
       <div className="pl-panel-section" style={{
@@ -639,8 +639,8 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         <ColorPalettePanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
 
-      {/* ── Visual Effects (shaders, mesh, grain, etc.) — open by default ── */}
-      <SidebarSection title="Visual Effects" defaultOpen>
+      {/* FIX #6: Visual Effects collapsed by default — panel was too long */}
+      <SidebarSection title="Visual Effects" defaultOpen={false}>
         <VisualEffectsPanel
           effects={manifest.theme?.effects ?? {}}
           accentColor={manifest.theme?.colors?.accent}

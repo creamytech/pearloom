@@ -405,7 +405,7 @@ export function PublicRsvpSection({
               <div
                 style={{
                   textAlign: 'center',
-                  padding: '2.5rem 2.5rem 2rem',
+                  padding: 'clamp(1.5rem, 5vw, 2.5rem) clamp(1rem, 5vw, 2.5rem) clamp(1.25rem, 4vw, 2rem)',
                   borderBottom: '1px solid rgba(196,169,106,0.2)',
                 }}
               >
@@ -473,7 +473,7 @@ export function PublicRsvpSection({
               </div>
 
               {/* RSVP form embedded in invitation */}
-              <div style={{ padding: '2.5rem' }}>
+              <div style={{ padding: 'clamp(1rem, 5vw, 2.5rem)' }}>
                 <RsvpForm events={events} siteId={siteId} mealOptions={mealOptions} />
               </div>
             </motion.div>

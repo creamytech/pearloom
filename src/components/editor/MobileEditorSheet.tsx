@@ -114,8 +114,7 @@ export function MobileEditorSheet() {
       setActiveChapterId(chapterId);
       setActiveSection('story');
       setActiveTab('edit');
-      setSheetSnap(0);
-      requestAnimationFrame(() => setSheetSnap(2));
+      setSheetSnap(1);
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
       return;
     }
@@ -132,9 +131,9 @@ export function MobileEditorSheet() {
     setActiveSection(sectionId);
     setActiveChapterId(null);
     setActiveTab('edit');
-    // Force snap change even if already at 2 — reset then set
-    setSheetSnap(0);
-    requestAnimationFrame(() => setSheetSnap(2));
+    // Animate to half-sheet; if already there, the sheet will re-animate via
+    // the controlled snap. No flash-to-zero needed.
+    setSheetSnap(1);
 
     // Flash highlight on the tapped section in preview
     try {
@@ -228,9 +227,11 @@ export function MobileEditorSheet() {
   // ── Block reorder ─────────────────────────────────────────
   const handleBlockReorder = useCallback((fromIdx: number, toIdx: number) => {
     const blocks = [...(manifest.blocks || [])].filter(b => b.visible).sort((a, b) => a.order - b.order);
-    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
+    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= blocks.length || toIdx >= blocks.length) return;
     const [moved] = blocks.splice(fromIdx, 1);
-    blocks.splice(toIdx > fromIdx ? toIdx - 1 : toIdx, 0, moved);
+    // After removing the item, insert at the target index directly.
+    // No offset adjustment needed since toIdx refers to the final position.
+    blocks.splice(toIdx, 0, moved);
     actions.handleDesignChange({ ...manifest, blocks: blocks.map((b, i) => ({ ...b, order: i })) });
   }, [manifest, actions]);
 
@@ -379,11 +380,38 @@ export function MobileEditorSheet() {
     switch (activeTab) {
       case 'edit':
         return (
-          <MobileContextPanel
-            activeSection={activeSection}
-            activeChapterId={activeChapterId}
-            activeEventId={activeEventId}
-          />
+          <>
+            {/* Back to block list when editing a block that was selected from block list */}
+            {selectedBlockId && activeSection && (
+              <div style={{ padding: '8px 16px 0' }}>
+                <button
+                  onClick={() => {
+                    setSelectedBlockId(null);
+                    setActiveSection(null);
+                    setActiveTab('blocks');
+                    setSheetSnap(1);
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 14px', marginBottom: 4,
+                    borderRadius: 'var(--pl-radius-full)',
+                    border: '1px solid var(--pl-black-6)',
+                    background: 'var(--pl-olive-5)',
+                    color: 'var(--pl-ink-soft)',
+                    fontSize: 'var(--pl-text-sm)',
+                    fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  <ArrowLeft size={14} /> Back to Blocks
+                </button>
+              </div>
+            )}
+            <MobileContextPanel
+              activeSection={activeSection}
+              activeChapterId={activeChapterId}
+              activeEventId={activeEventId}
+            />
+          </>
         );
 
       case 'blocks':
@@ -417,10 +445,12 @@ export function MobileEditorSheet() {
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', gap: 6,
                     padding: '14px 4px',
+                    minHeight: 80,
                     borderRadius: 'var(--pl-radius-sm)',
                     border: '1px solid var(--pl-black-4)',
                     background: 'var(--pl-cream-card)',
                     cursor: 'pointer',
+                    WebkitTapHighlightColor: 'transparent',
                   }}
                 >
                   <div style={{
@@ -457,7 +487,7 @@ export function MobileEditorSheet() {
       {/* ── Top Bar ── */}
       <div style={{
         flexShrink: 0, display: 'flex', alignItems: 'center',
-        height: 44,
+        minHeight: 44,
         paddingTop: 'env(safe-area-inset-top, 0px)',
         paddingLeft: 4, paddingRight: 4,
         background: 'var(--pl-glass-heavy)',
@@ -592,8 +622,18 @@ export function MobileEditorSheet() {
           selectedBlockId={selectedBlockId}
           editMode
         />
+      </div>
 
-        {/* Action bar floating above sheet */}
+      {/* Action bar — fixed between preview and sheet, not inside scroll */}
+      <div style={{
+        position: 'fixed',
+        bottom: sheetSnap === 0 ? 'calc(10vh + 52px)' : sheetSnap === 1 ? 'calc(50vh + 8px)' : 'calc(92vh + 8px)',
+        left: 0,
+        right: 0,
+        zIndex: 1150,
+        pointerEvents: 'none',
+        transition: 'bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}>
         <MobileActionBar
           activeSection={activeSection}
           onAddBlock={handleAddBlock}
@@ -626,15 +666,25 @@ export function MobileEditorSheet() {
           ) : undefined
         }
       >
-        {renderSheetContent()}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={moreToolOpen || activeTab}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+          >
+            {renderSheetContent()}
+          </motion.div>
+        </AnimatePresence>
       </MobileBottomSheet>
 
       {/* ── Bottom Navigation (3 tabs) ── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         zIndex: 1300,
-        display: 'flex', alignItems: 'center',
-        height: 52,
+        display: 'flex', alignItems: 'stretch',
+        minHeight: 52,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         background: 'var(--pl-glass-heavy)',
         backdropFilter: 'var(--pl-glass-blur)',

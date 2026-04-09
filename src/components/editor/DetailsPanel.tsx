@@ -221,6 +221,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         transition: 'all 0.15s',
         position: 'relative', zIndex: isOpen ? 10 : 1,
       }}>
+        {/* FIX #3: Stronger section headings matching sectionHead pattern for hierarchy */}
         <button
           onClick={() => setOpenSection(isOpen ? null : id)}
           style={{
@@ -230,7 +231,10 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             borderRadius: '14px',
           }}
         >
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.06em' }}>
+          <span style={{
+            fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}>
             {label}
           </span>
           <motion.div
@@ -269,8 +273,44 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     </div>
   );
 
+  // FIX #4: Auto-save feedback indicator
+  const [showSaved, setShowSaved] = useState(false);
+  const savedTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevManifestRef = React.useRef(manifest);
+  useEffect(() => {
+    if (prevManifestRef.current !== manifest && prevManifestRef.current !== null) {
+      setShowSaved(true);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setShowSaved(false), 2000);
+    }
+    prevManifestRef.current = manifest;
+    return () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current); };
+  }, [manifest]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '24px' }}>
+      {/* FIX #4: Auto-save indicator */}
+      <AnimatePresence>
+        {showSaved && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              padding: '5px 12px', margin: '0 12px 4px',
+              borderRadius: '8px',
+              background: 'rgba(163,177,138,0.1)',
+              border: '1px solid rgba(163,177,138,0.2)',
+              fontSize: '0.68rem', fontWeight: 600,
+              color: 'var(--pl-olive, #A3B18A)',
+            }}
+          >
+            <Check size={10} /> Changes saved
+          </motion.div>
+        )}
+      </AnimatePresence>
       <Section id="couple" label={occasion === 'birthday' ? 'Honoree' : occasion === 'anniversary' ? 'Couple' : 'Couple'}>
         {occasion !== 'birthday' && (
           <Field label="Dress Code" value={logistics.dresscode || ''} onChange={v => upd({ dresscode: v })} placeholder="Black Tie Optional" />
@@ -714,26 +754,37 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Field label="Notes" value={hotel.notes || ''} onChange={v => updHotel(i, { notes: v })} placeholder="Mention the wedding block…" />
           </div>
         ))}
+        {/* FIX #5: Empty state for hotels */}
+        {(travel.hotels || []).length === 0 && (
+          <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>
+            No hotels yet — add manually or find nearby hotels
+          </p>
+        )}
       </Section>
 
       <Section id="faq" label="FAQ">
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', flexWrap: 'wrap' }}>
+          {/* FIX #14: AI FAQ button with more prominent styling for discoverability */}
           <button
             onClick={generateSmartFaqs}
             disabled={aiFaqLoading}
             style={{
-              display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
-              borderRadius: '5px', border: '1px solid rgba(163,177,138,0.35)',
-              background: aiFaqLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)',
+              display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px',
+              borderRadius: '8px',
+              border: '1px solid rgba(163,177,138,0.4)',
+              background: aiFaqLoading
+                ? 'rgba(163,177,138,0.08)'
+                : 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))',
               color: 'var(--pl-olive, #A3B18A)', cursor: aiFaqLoading ? 'wait' : 'pointer',
-              fontSize: '0.82rem', fontWeight: 700, opacity: aiFaqLoading ? 0.6 : 1,
-              transition: 'background 0.18s',
+              fontSize: '0.78rem', fontWeight: 700, opacity: aiFaqLoading ? 0.6 : 1,
+              transition: 'all 0.18s',
+              boxShadow: aiFaqLoading ? 'none' : '0 1px 4px rgba(163,177,138,0.15)',
             }}
-            onMouseOver={e => { if (!aiFaqLoading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
-            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiFaqLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)'; }}
+            onMouseOver={e => { if (!aiFaqLoading) { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.25)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(163,177,138,0.2)'; } }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiFaqLoading ? 'rgba(163,177,138,0.08)' : 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))'; (e.currentTarget as HTMLElement).style.boxShadow = aiFaqLoading ? 'none' : '0 1px 4px rgba(163,177,138,0.15)'; }}
           >
-            <Sparkles size={10} />
-            {aiFaqLoading ? 'Generating...' : 'Generate Smart FAQs'}
+            <Sparkles size={11} />
+            {aiFaqLoading ? 'Generating...' : 'AI Smart FAQs'}
           </button>
           <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question

@@ -379,7 +379,7 @@ function MagazineLayout({ chapters, vibeSkin }: { chapters: Chapter[]; vibeSkin?
                   {chapter.images.slice(1, 5).map((img, j) => (
                     <div key={img.id} style={{ width: '160px', height: '120px', flexShrink: 0, borderRadius: '4px', overflow: 'hidden' }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: `saturate(${0.9 + j * 0.05})` }} />
+                      <img src={img.url} alt={img.alt} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: `saturate(${0.9 + j * 0.05})` }} />
                     </div>
                   ))}
                 </div>

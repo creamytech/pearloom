@@ -31,6 +31,11 @@ function LivingPortrait({ photos, coverPhoto, vibeSkin }: {
   const [idx, setIdx] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
+  // Reset loaded state when image index changes so crossfade works properly
+  useEffect(() => {
+    setLoaded(false);
+  }, [idx]);
+
   useEffect(() => {
     if (allPhotos.length <= 1) return;
     const t = setInterval(() => setIdx(i => (i + 1) % allPhotos.length), 4000);
@@ -230,7 +235,10 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
     setFetchError(false);
     setLoading(true);
     fetch('/api/sites')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => { if (d.sites) setSites(d.sites); })
       .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
@@ -312,7 +320,12 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
       {/* ── Bento creation cards ── */}
       {!loading && !fetchError && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10"
+        >
           {[
             { icon: <Pencil size={24} />, title: 'New Story', desc: 'AI builds your site from photos — the full creative experience.', action: onStartNew },
             { icon: <Image size={24} />, title: 'Upload Photos', desc: 'Jump straight to uploading your own high-quality images.', action: () => { if (onStartNew) onStartNew(); /* navigates to photos step */ } },
@@ -321,7 +334,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             <button
               key={card.title}
               onClick={card.action}
-              className={`pl-enter pl-enter-d${i + 1} flex flex-col items-center text-center p-5 sm:p-8 rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] active:scale-[0.98] transition-all duration-300 cursor-pointer`}
+              className={`pl-enter pl-enter-d${i + 1} flex flex-col items-center text-center p-5 sm:p-8 min-h-[120px] rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] active:scale-[0.98] transition-all duration-300 cursor-pointer`}
             >
               <div className="w-14 h-14 rounded-2xl border border-[var(--pl-divider)] flex items-center justify-center mb-4 text-[var(--pl-muted)]">
                 {card.icon}
@@ -330,7 +343,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               <p className="text-[0.82rem] text-[var(--pl-muted)] leading-relaxed">{card.desc}</p>
             </button>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* ── Stats row ── */}
@@ -338,12 +351,12 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
       {/* ── Loading ── */}
       {loading ? (
-        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+        <div className="grid gap-4 sm:gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))' }}>
           {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
 
       ) : fetchError ? (
-        <Card variant="elevated" className="p-16 text-center max-w-[480px] mx-auto">
+        <Card variant="elevated" className="p-8 sm:p-16 text-center max-w-[480px] mx-auto">
           <div className="w-16 h-16 rounded-2xl bg-[var(--pl-plum-mist)] flex items-center justify-center mx-auto mb-6">
             <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
           </div>
@@ -433,7 +446,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             View Archive <ExternalLink size={10} />
           </a>
         </div>
-        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+        <div className="grid gap-4 sm:gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))' }}>
           <AnimatePresence>
             {sites.map((site, i) => {
               const vibeSkin      = site.manifest?.vibeSkin;
@@ -531,9 +544,9 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                           fontFamily: 'Georgia, serif',
                           fontStyle: 'italic',
                           fontSize: '0.8rem',
-                          color: 'var(--pl-ink)',
+                          color: 'rgba(255,255,255,0.85)',
                           lineHeight: 1.4,
-                          textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+                          textShadow: '0 1px 6px rgba(0,0,0,0.5)',
                           zIndex: 10,
                           margin: 0,
                           pointerEvents: 'none',

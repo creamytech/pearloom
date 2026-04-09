@@ -49,8 +49,8 @@ const SPRING = { type: 'spring' as const, stiffness: 400, damping: 35 };
 /** Velocity threshold (px/s) for jumping to next snap in drag direction */
 const VELOCITY_THRESHOLD = 500;
 
-/** Handle area height */
-const HANDLE_HEIGHT = 44;
+/** Handle area height — tall enough for easy thumb grabbing */
+const HANDLE_HEIGHT = 52;
 
 // ── Sheet context for the useMobileSheet hook ──────────────────
 
@@ -199,7 +199,7 @@ export function MobileBottomSheet({
       // Clamp: don't allow dragging above the full-snap Y
       const minY = snapYs[2]; // full snap (smallest Y = top of screen area)
       const maxY = vh; // below viewport bottom
-      y.set(Math.max(minY - 40, Math.min(maxY, newY))); // allow 40px rubber-band past full
+      y.set(Math.max(minY - 16, Math.min(maxY, newY))); // allow 16px rubber-band past full (subtle)
     },
     [snapYs, vh, y],
   );
@@ -249,6 +249,7 @@ export function MobileBottomSheet({
   // dragging down should collapse the sheet instead of scrolling.
 
   const contentTouchStartY = useRef(0);
+  const contentTouchStartTime = useRef(0);
   const isContentDragging = useRef(false);
 
   const handleContentTouchStart = useCallback(
@@ -257,6 +258,7 @@ export function MobileBottomSheet({
       const el = contentRef.current;
       if (!el) return;
       contentTouchStartY.current = e.touches[0].clientY;
+      contentTouchStartTime.current = e.timeStamp;
       // Only take over if scrolled to top
       if (el.scrollTop <= 0) {
         isContentDragging.current = true;
@@ -289,16 +291,27 @@ export function MobileBottomSheet({
       if (!isContentDragging.current) return;
       isContentDragging.current = false;
       const currentY = y.get();
-      const target = closestSnap(currentY, snapYs);
+
+      // Compute velocity for momentum-based snapping
+      const lastTouch = e.changedTouches[0];
+      const elapsed = Math.max((e.timeStamp - contentTouchStartTime.current) / 1000, 0.016);
+      const totalDelta = lastTouch.clientY - contentTouchStartY.current;
+      const velocity = totalDelta / elapsed;
 
       if (currentY > snapYs[0] + 60) {
         onClose?.();
         animateToSnap(0);
-      } else {
+      } else if (Math.abs(velocity) > VELOCITY_THRESHOLD) {
+        // Velocity-based snap: fast swipe down collapses
+        const target = velocity > 0
+          ? Math.max(0, currentSnap - 1) as SnapIndex
+          : Math.min(2, currentSnap + 1) as SnapIndex;
         animateToSnap(target);
+      } else {
+        animateToSnap(closestSnap(currentY, snapYs));
       }
     },
-    [y, snapYs, onClose, animateToSnap],
+    [y, snapYs, currentSnap, onClose, animateToSnap],
   );
 
   // ── Keyboard avoidance: auto-expand when input is focused ─────
@@ -408,10 +421,10 @@ export function MobileBottomSheet({
                 {showHandle && (
                   <div
                     style={{
-                      width: 36,
-                      height: 4,
-                      borderRadius: 2,
-                      background: 'var(--pl-black-6)',
+                      width: 48,
+                      height: 5,
+                      borderRadius: 3,
+                      background: 'var(--pl-black-10, rgba(0,0,0,0.1))',
                     }}
                   />
                 )}
@@ -444,6 +457,9 @@ export function MobileBottomSheet({
                   WebkitOverflowScrolling: 'touch',
                   touchAction: currentSnap >= 1 ? 'pan-y' : 'none',
                   minHeight: 0,
+                  /* Extra bottom padding so content doesn't get hidden behind the
+                     fixed 52px tab bar + safe area inset */
+                  paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px))',
                 } as React.CSSProperties}
               >
                 {children}

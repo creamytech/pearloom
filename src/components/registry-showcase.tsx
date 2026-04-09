@@ -237,7 +237,7 @@ function RegistryCard({
           <div>
             <div
               style={{
-                fontSize: '0.6rem',
+                fontSize: '0.7rem',
                 fontWeight: 800,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
@@ -505,7 +505,7 @@ export function RegistryShowcase({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
                 gap: '1.5rem',
                 marginBottom: cashFundUrl ? '3rem' : 0,
               }}

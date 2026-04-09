@@ -142,6 +142,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   return (
     <section
       ref={ref}
+      aria-label="Hero"
       data-pe-section="hero"
       data-pe-label="Hero"
       style={{
@@ -226,6 +227,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
                 key={photoIdx}
                 src={photoList[photoIdx]}
                 alt=""
+                loading="lazy"
                 initial={isEditor ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -336,7 +338,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               marginBottom: '3.5rem',
               opacity: hasPhoto ? 0.75 : 0.65,
               fontWeight: 700,
-              color: hasPhoto ? 'var(--pl-ink)' : 'var(--pl-olive)',
+              color: hasPhoto ? heroTextColor : 'var(--pl-olive)',
             }}
           >
             {anniversaryLabel}
@@ -416,7 +418,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               background: hasPhoto ? 'rgba(0,0,0,0.25)' : 'rgba(163,177,138,0.12)',
               backdropFilter: 'blur(16px)',
               border: hasPhoto ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(163,177,138,0.22)',
-              fontSize: '0.7rem',
+              fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
               fontWeight: 600,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',

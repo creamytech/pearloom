@@ -109,7 +109,7 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
                 <button
                   key={o.id}
                   onClick={() => setOccasion(o.id)}
-                  className="px-3.5 py-1.5 rounded-full border text-[0.75rem] font-semibold transition-all cursor-pointer"
+                  className="px-4 py-2.5 min-h-[44px] rounded-full border text-[0.78rem] font-semibold transition-all cursor-pointer"
                   style={{
                     background: occasion === o.id ? 'var(--pl-olive)' : 'transparent',
                     color: occasion === o.id ? 'white' : 'var(--pl-muted)',
@@ -451,7 +451,27 @@ export default function DashboardClient() {
       colors: { background: '#F5F1E8', foreground: '#2B2B2B', accent: '#A3B18A', accentLight: '#EEE8DC', muted: '#9A9488', cardBg: '#ffffff' },
       borderRadius: '1rem',
     }}>
-      {status === 'loading' ? null : state.step === 'dashboard' ? (
+      {status === 'loading' ? (
+        /* Issue 1: Show a branded loading state instead of blank screen while auth loads */
+        <div className="min-h-dvh flex flex-col items-center justify-center bg-[var(--pl-cream)]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center gap-4"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              >
+                <Plus size={20} className="text-[var(--pl-olive)]" />
+              </motion.div>
+            </div>
+            <span className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)]">Loading your studio...</span>
+          </motion.div>
+        </div>
+      ) : state.step === 'dashboard' ? (
         /* ── Dashboard: own layout with sidebar, no SiteNav ── */
         <div className="min-h-dvh flex flex-col bg-[var(--pl-cream)]">
           {/* Dashboard top bar — minimal, not the heavy SiteNav */}
@@ -467,9 +487,11 @@ export default function DashboardClient() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => goTo('photos')}
-                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[0.72rem] font-bold text-white bg-[var(--pl-olive-deep)] border-none cursor-pointer hover:opacity-90 transition-opacity"
+                className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[0.72rem] font-bold text-white bg-[var(--pl-olive-deep)] border-none cursor-pointer hover:opacity-90 transition-opacity"
+                aria-label="Create new site"
               >
-                <Plus size={13} /> New Site
+                <Plus size={14} />
+                <span className="hidden sm:inline">New Site</span>
               </button>
               {session?.user && (
                 <UserNav user={session.user} onDashboard={() => goTo('dashboard')} />
@@ -480,10 +502,10 @@ export default function DashboardClient() {
           <div className="flex flex-1 overflow-hidden">
             {/* Desktop sidebar */}
             <div className="hidden md:block">
-              <DashboardSidebar />
+              <DashboardSidebar onNewSite={() => goTo('photos')} />
             </div>
             {/* Main content */}
-            <main className="flex-1 overflow-auto p-4 md:p-8 lg:p-12">
+            <main className="flex-1 overflow-auto p-4 pb-20 md:p-8 lg:p-12 lg:pb-12">
               <DashboardStep
                 draftBanner={getDraft()}
                 onResumeDraft={() => {

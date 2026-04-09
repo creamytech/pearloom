@@ -12,7 +12,11 @@ const NAV_ITEMS = [
   { href: '/dashboard/profile', label: 'Settings', icon: Settings },
 ];
 
-export function DashboardSidebar() {
+interface DashboardSidebarProps {
+  onNewSite?: () => void;
+}
+
+export function DashboardSidebar({ onNewSite }: DashboardSidebarProps = {}) {
   const pathname = usePathname();
 
   return (
@@ -42,7 +46,7 @@ export function DashboardSidebar() {
               )}
               <Link
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-sm transition-colors relative z-10 no-underline ${
+                className={`flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-[12px] text-sm transition-colors relative z-10 no-underline ${
                   isActive
                     ? 'text-[var(--pl-olive)] font-medium'
                     : 'text-[var(--pl-muted)] hover:text-[var(--pl-ink)]'
@@ -64,7 +68,7 @@ export function DashboardSidebar() {
         <div className="pt-4 mt-4 border-t border-[var(--pl-divider)]">
           <Link
             href="/faq"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] text-sm text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-all no-underline"
+            className="flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-[12px] text-sm text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-all no-underline"
             style={{ background: 'transparent' }}
           >
             <HelpCircle size={16} />
@@ -75,13 +79,23 @@ export function DashboardSidebar() {
 
       {/* New site CTA */}
       <div className="px-3 pb-4">
-        <Link
-          href="/dashboard"
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-[var(--pl-radius-md)] bg-[var(--pl-olive)] text-white text-[0.72rem] font-bold uppercase tracking-[0.06em] no-underline hover:bg-[var(--pl-olive-hover)] transition-colors shadow-sm"
-        >
-          <Plus size={14} />
-          New Site
-        </Link>
+        {onNewSite ? (
+          <button
+            onClick={onNewSite}
+            className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-[var(--pl-radius-md)] bg-[var(--pl-olive)] text-white text-[0.72rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer hover:bg-[var(--pl-olive-hover)] transition-colors shadow-sm"
+          >
+            <Plus size={14} />
+            New Site
+          </button>
+        ) : (
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center gap-2 w-full py-3 min-h-[44px] rounded-[var(--pl-radius-md)] bg-[var(--pl-olive)] text-white text-[0.72rem] font-bold uppercase tracking-[0.06em] no-underline hover:bg-[var(--pl-olive-hover)] transition-colors shadow-sm"
+          >
+            <Plus size={14} />
+            New Site
+          </Link>
+        )}
         <p className="text-[0.6rem] text-[var(--pl-muted)] text-center mt-2 leading-snug">
           AI-powered celebration sites
         </p>

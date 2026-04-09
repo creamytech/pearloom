@@ -10,7 +10,7 @@
 
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import { useEditor, type EditorTab } from '@/lib/editor-state';
 import { TAB_TIER, TIER_META } from '@/lib/plan-tiers';
 
@@ -72,7 +72,7 @@ export function EditorWing({
   children,
   contentRef,
 }: EditorWingProps) {
-  const { dispatch } = useEditor();
+  const { dispatch, state: editorState } = useEditor();
   const [panelW, setPanelW] = useState(DEFAULT_W);
   const [resizing, setResizing] = useState(false);
   const dragControls = useDragControls();
@@ -83,6 +83,20 @@ export function EditorWing({
   const hint  = TAB_HINT[activeTab];
   const tier  = TAB_TIER[activeTab];
   const meta  = tier ? TIER_META[tier] : null;
+
+  // FIX #12: Auto-save visual feedback — shows briefly when save state transitions to 'saved'
+  const [showSaved, setShowSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevSaveState = useRef(editorState.saveState);
+  useEffect(() => {
+    if (editorState.saveState === 'saved' && prevSaveState.current === 'unsaved') {
+      setShowSaved(true);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setShowSaved(false), 2000);
+    }
+    prevSaveState.current = editorState.saveState;
+    return () => { if (savedTimer.current) clearTimeout(savedTimer.current); };
+  }, [editorState.saveState]);
 
   // ── Resize handle ──────────────────────────────────────────
   const startResize = useCallback((e: React.MouseEvent) => {
@@ -218,33 +232,57 @@ export function EditorWing({
                 </span>
               )}
             </div>
-            <motion.button
-              onClick={onToggle}
-              title="Close panel"
-              whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
-              whileTap={{ scale: 0.88 }}
-              style={{
-                width: '28px', height: '28px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: '8px', border: 'none',
-                background: 'transparent',
-                color: 'var(--pl-muted)',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              <X size={14} />
-            </motion.button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              {/* FIX #12: Auto-save indicator */}
+              <AnimatePresence>
+                {showSaved && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.15 }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '3px',
+                      fontSize: '0.58rem', fontWeight: 600,
+                      color: 'var(--pl-olive, #A3B18A)',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: 'rgba(163,177,138,0.1)',
+                    }}
+                  >
+                    <Check size={9} /> Saved
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <motion.button
+                onClick={onToggle}
+                title="Close panel"
+                whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
+                whileTap={{ scale: 0.88 }}
+                style={{
+                  width: '28px', height: '28px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: '8px', border: 'none',
+                  background: 'transparent',
+                  color: 'var(--pl-muted)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <X size={14} />
+              </motion.button>
+            </div>
           </div>
 
           {/* Scrollable content area — organic glass interior */}
+          {/* FIX #11: Added bottom padding so content doesn't get clipped by resize handle */}
           <div
             ref={contentRef}
             style={{
               flex: 1,
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
-              padding: '4px 0',
+              padding: '4px 0 16px',
             } as React.CSSProperties}
           >
             {children}

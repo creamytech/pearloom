@@ -151,13 +151,9 @@ export function MobileActionBar({
   return (
     <div
       style={{
-        position: 'absolute',
-        bottom: 8,
-        left: 0,
-        right: 0,
-        zIndex: 50,
         display: 'flex',
         justifyContent: 'center',
+        padding: '0 16px 8px',
         pointerEvents: 'none',
       }}
     >

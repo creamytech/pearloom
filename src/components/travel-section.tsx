@@ -190,10 +190,13 @@ function HotelCard({
             <Phone size={13} color="var(--pl-muted)" style={{ flexShrink: 0, opacity: 0.6 }} />
             <a
               href={`tel:${hotel.phone}`}
+              aria-label={`Call ${hotel.name} at ${hotel.phone}`}
               style={{
                 fontSize: '0.83rem',
-                color: 'var(--pl-muted)',
-                textDecoration: 'none',
+                color: 'var(--pl-olive)',
+                textDecoration: 'underline',
+                textUnderlineOffset: '2px',
+                textDecorationColor: 'color-mix(in srgb, var(--pl-olive) 40%, transparent)',
               }}
             >
               {hotel.phone}
@@ -225,7 +228,7 @@ function HotelCard({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.45rem',
-              padding: '0.6rem 1.25rem',
+              padding: '0.75rem 1.35rem',
               borderRadius: '100px',
               background: 'var(--pl-olive)',
               color: '#fff',
@@ -237,6 +240,7 @@ function HotelCard({
               textTransform: 'uppercase' as const,
               alignSelf: 'flex-start',
               transition: 'transform 0.2s ease, background 0.2s ease',
+              minHeight: '44px',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.background = 'var(--pl-olive-hover)';

@@ -197,15 +197,19 @@ export function StoryPanel() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0', paddingBottom: '24px' }}>
 
       {/* ── Story Style ── */}
       <div style={{ padding: '4px 14px 12px' }}>
+        {/* FIX #13: Stronger section heading for visual hierarchy */}
         <div style={{
-          fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
-          textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px',
+          fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'var(--pl-olive)',
+          marginBottom: '8px',
+          display: 'flex', alignItems: 'center', gap: '8px',
         }}>
-          Story Style
+          <span>Story Style</span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(163,177,138,0.2)' }} />
         </div>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {STYLES.map(s => {
@@ -236,31 +240,55 @@ export function StoryPanel() {
 
       {/* ── Chapter count ── */}
       <div style={{
-        padding: '8px 14px',
-        fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
-        textTransform: 'uppercase', color: 'var(--pl-muted)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 14px 6px',
+        fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.1em',
+        textTransform: 'uppercase', color: 'var(--pl-olive)',
+        display: 'flex', alignItems: 'center', gap: '8px',
       }}>
-        <span>Chapters · {chapters.length}</span>
+        <span>Chapters</span>
+        <span style={{
+          fontSize: '0.6rem', fontWeight: 700,
+          background: 'rgba(163,177,138,0.15)', color: 'var(--pl-olive)',
+          padding: '1px 7px', borderRadius: '100px',
+          border: '1px solid rgba(163,177,138,0.2)',
+        }}>{chapters.length}</span>
+        <div style={{ flex: 1, height: '1px', background: 'rgba(163,177,138,0.2)' }} />
       </div>
 
       {/* ── Chapter list ── */}
       <div style={{ padding: '0 10px' }}>
-        <Reorder.Group axis="y" values={chapters} onReorder={actions.handleReorder} as="div" style={{ margin: 0, padding: 0 }}>
-          <AnimatePresence>
-            {chapters.map((ch, i) => (
-              <ChapterCard
-                key={ch.id}
-                chapter={ch}
-                index={i}
-                isActive={activeId === ch.id}
-                isExpanded={activeId === ch.id}
-                onSelect={() => dispatch({ type: 'SET_ACTIVE_ID', id: activeId === ch.id ? null : ch.id })}
-                onDelete={() => actions.deleteChapter(ch.id)}
-              />
-            ))}
-          </AnimatePresence>
-        </Reorder.Group>
+        {chapters.length > 0 ? (
+          <Reorder.Group axis="y" values={chapters} onReorder={actions.handleReorder} as="div" style={{ margin: 0, padding: 0 }}>
+            <AnimatePresence>
+              {chapters.map((ch, i) => (
+                <ChapterCard
+                  key={ch.id}
+                  chapter={ch}
+                  index={i}
+                  isActive={activeId === ch.id}
+                  isExpanded={activeId === ch.id}
+                  onSelect={() => dispatch({ type: 'SET_ACTIVE_ID', id: activeId === ch.id ? null : ch.id })}
+                  onDelete={() => actions.deleteChapter(ch.id)}
+                />
+              ))}
+            </AnimatePresence>
+          </Reorder.Group>
+        ) : (
+          /* FIX #1: Empty state for chapters */
+          <div style={{
+            padding: '24px 16px', textAlign: 'center',
+            borderRadius: '14px',
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px dashed rgba(163,177,138,0.25)',
+          }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--pl-ink-soft)', marginBottom: '4px' }}>
+              No chapters yet
+            </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.5 }}>
+              Add your first chapter to start telling your story.
+            </div>
+          </div>
+        )}
 
         {/* Add chapter */}
         <motion.button

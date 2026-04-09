@@ -81,8 +81,8 @@ function FaqAccordionItem({
         <div
           style={{
             flexShrink: 0,
-            width: '28px',
-            height: '28px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
             border: '1px solid',
             borderColor: open ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
@@ -299,7 +299,7 @@ export function FaqSection({
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
                   style={{
-                    padding: '0.4rem 1rem',
+                    padding: '0.65rem 1.25rem',
                     borderRadius: '100px',
                     border: `1.5px solid ${isActive ? 'var(--pl-olive)' : 'rgba(0,0,0,0.1)'}`,
                     background: isActive ? 'var(--pl-olive)' : 'transparent',
@@ -310,6 +310,7 @@ export function FaqSection({
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     fontFamily: 'var(--pl-font-body)',
+                    minHeight: '44px',
                   }}
                 >
                   {cat}
