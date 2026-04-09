@@ -37,6 +37,66 @@ function proxyUrl(rawUrl: string, w: number, h: number): string {
   return rawUrl;
 }
 
+// ── Live Countdown Component ──
+function LiveCountdown({ targetDate, accentColor, textColor, mutedColor, headingFont, bodyFont }: {
+  targetDate: string; accentColor: string; textColor: string; mutedColor: string; headingFont: string; bodyFont: string;
+}) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const target = new Date(targetDate).getTime();
+  const diff = Math.max(0, target - now);
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  const isPast = target <= now;
+
+  if (isPast) {
+    return (
+      <div style={{ padding: '1rem' }}>
+        <div style={{ fontFamily: `"${headingFont}", serif`, fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', color: accentColor }}>
+          The Day Has Arrived! 🎉
+        </div>
+      </div>
+    );
+  }
+
+  const units = [
+    { value: days, label: 'Days' },
+    { value: hours, label: 'Hours' },
+    { value: minutes, label: 'Minutes' },
+    { value: seconds, label: 'Seconds' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.5rem, 2vw, 1.5rem)', flexWrap: 'wrap' }}>
+      {units.map((u) => (
+        <div key={u.label} style={{
+          minWidth: '70px', padding: '1rem 0.75rem', borderRadius: '16px',
+          background: `${accentColor}0D`, border: `1px solid ${accentColor}20`,
+        }}>
+          <div style={{
+            fontFamily: `"${headingFont}", serif`, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
+            fontWeight: 700, color: textColor, lineHeight: 1.1,
+          }}>
+            {String(u.value).padStart(2, '0')}
+          </div>
+          <div style={{
+            fontFamily: `"${bodyFont}", sans-serif`, fontSize: '0.65rem', fontWeight: 600,
+            textTransform: 'uppercase', letterSpacing: '0.08em', color: mutedColor, marginTop: '0.25rem',
+          }}>
+            {u.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Block type labels/colors ──
 const BLOCK_LABELS: Record<string, { label: string; color: string }> = {
   hero: { label: 'Hero', color: '#A3B18A' },
@@ -789,7 +849,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             <FaqSection faqs={manifest.faqs} />
           </section>
         );
-      case 'countdown':
+      case 'countdown': {
+        const countdownDate = (blockCfg.date as string) || manifest.events?.[0]?.date || manifest.logistics?.date;
         return (
           <section key={key} data-pe-section="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
             {art.blockArt?.headingDecor && (
@@ -806,11 +867,17 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.countdownDecor) }}
               />
             )}
-            <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg }}>
-              Countdown
-            </div>
+            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1.5rem' }}>
+              {(blockCfg.label as string) || 'Counting Down'}
+            </h2>
+            {countdownDate ? (
+              <LiveCountdown targetDate={countdownDate} accentColor={safeAccent} textColor={safeFg} mutedColor={safeMuted} headingFont={vibeSkin.fonts.heading} bodyFont={vibeSkin.fonts.body} />
+            ) : (
+              <p style={{ color: safeMuted, fontSize: '0.92rem', fontStyle: 'italic' }}>Set a date in the countdown block settings</p>
+            )}
           </section>
         );
+      }
       case 'text': {
         const textContent = blockCfg.content as string | undefined;
         if (!textContent) return null;
