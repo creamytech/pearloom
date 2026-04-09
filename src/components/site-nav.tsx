@@ -152,8 +152,8 @@ export function SiteNav({
           navStyle === 'floating'
             ? 'fixed top-2 left-4 right-4 rounded-full'
             : 'fixed top-0 left-0 right-0',
-          // Padding
-          scrolled ? 'py-2' : navStyle === 'floating' ? 'py-1' : 'py-4',
+          // Padding — tighter on mobile
+          scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' ? 'py-1' : 'py-2 lg:py-4',
           // Style-specific backgrounds
           navStyle === 'minimal'
             ? (atTop && !isStudio
@@ -199,14 +199,14 @@ export function SiteNav({
           style={{
             maxWidth: layout.maxWidth,
             padding: `0 ${layout.padding}`,
-            gridTemplateColumns: 'auto 1fr auto',
+            gridTemplateColumns: isDesktop ? 'auto 1fr auto' : '1fr auto',
             overflow: 'visible',
           }}
         >
           {/* ── Brand / couple name ── */}
           <Link
             href={basePath}
-            className="flex items-center gap-2 no-underline hover:opacity-75 transition-opacity duration-200"
+            className="flex items-center gap-2 no-underline hover:opacity-75 transition-opacity duration-200 min-w-0"
           >
             {isStudio ? (
               <Image
@@ -232,7 +232,7 @@ export function SiteNav({
                 ) : (
                   <LogoIcon iconId={logoIcon} size={18} color="var(--pl-olive)" />
                 )}
-                <span className="font-heading font-semibold text-[1rem] text-[var(--pl-ink-soft)] tracking-[-0.01em] whitespace-nowrap">
+                <span className="font-heading font-semibold text-[1rem] text-[var(--pl-ink-soft)] tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] lg:max-w-none">
                   {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
                 </span>
               </>
