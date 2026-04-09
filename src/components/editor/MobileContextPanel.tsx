@@ -555,7 +555,7 @@ function HeroSettings({
           value={poetry.welcomeStatement || ''}
           onChange={(v) => onUpdate({ poetry: { ...poetry, welcomeStatement: v } })}
           rows={3}
-          placeholder="A warm welcome to your guests..."
+          placeholder="e.g., We're so happy you're here to celebrate with us..."
         />
 
         <CoverPhotoUploader

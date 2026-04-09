@@ -324,7 +324,7 @@ function EventBlockConfig({ events, onChange }: {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               <MiniInput label="End time" value={activeEvent.endTime || ''} onChange={v => upd(activeEvent.id, { endTime: v })} placeholder="6:00 PM" />
-              <MiniInput label="Dress code" value={activeEvent.dressCode || ''} onChange={v => upd(activeEvent.id, { dressCode: v })} placeholder="Black Tie" />
+              <MiniInput label="Dress code" value={activeEvent.dressCode || ''} onChange={v => upd(activeEvent.id, { dressCode: v })} placeholder="e.g., Black Tie, Cocktail, Casual" />
             </div>
             <MiniInput label="Venue name" value={activeEvent.venue} onChange={v => upd(activeEvent.id, { venue: v })} placeholder="The Grand Pavilion" />
             <MiniInput label="Full address" value={activeEvent.address} onChange={v => upd(activeEvent.id, { address: v })} placeholder="123 Main St, Newport, RI" />
@@ -483,11 +483,13 @@ function BlockRow({
         style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '10px 10px 10px 4px',
-          borderRadius: '14px',
+          borderRadius: isActive ? '14px 14px 0 0' : '14px',
           background: isActive ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
-          border: isActive ? `1.5px solid ${color}35` : '1px solid rgba(255,255,255,0.2)',
-          cursor: 'pointer', transition: 'all 0.15s', position: 'relative',
+          border: isActive ? `1.5px solid var(--pl-olive, #A3B18A)` : '1px solid rgba(255,255,255,0.2)',
+          borderBottom: isActive ? `1px solid ${color}25` : undefined,
+          cursor: 'pointer', transition: 'all 0.2s', position: 'relative',
           userSelect: 'none',
+          boxShadow: isActive ? `0 0 0 1px ${color}18` : 'none',
         }}
       >
         {/* Drag handle */}
@@ -528,11 +530,11 @@ function BlockRow({
           )}
         </div>
 
-        {/* Chevron */}
+        {/* Collapse/expand chevron */}
         <motion.div
           animate={{ rotate: isActive ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          style={{ color: 'var(--pl-muted)', display: 'flex', padding: '4px' }}
+          style={{ color: isActive ? color : 'var(--pl-muted)', display: 'flex', padding: '4px', transition: 'color 0.15s' }}
         >
           <ChevronDown size={13} />
         </motion.div>
@@ -682,7 +684,7 @@ function SectionStylePanel({
             <input
               value={config.bgColor as string || ''}
               onChange={e => updateConfig({ bgColor: e.target.value })}
-              placeholder="#hex or rgba(...)"
+              placeholder="e.g., #A3B18A"
               style={{ ...inp, flex: 1, fontSize: '0.72rem', padding: '4px 8px' }}
             />
           </div>
@@ -695,7 +697,7 @@ function SectionStylePanel({
         <input
           value={(config.bgImage as string) || ''}
           onChange={e => updateConfig({ bgImage: e.target.value })}
-          placeholder="Paste image URL..."
+          placeholder="Paste an image link..."
           style={{ ...inp, fontSize: '0.72rem', padding: '6px 8px' }}
         />
         {(config.bgImage as string) && (
@@ -985,7 +987,8 @@ function BlockConfigPanel({
               label="RSVP deadline"
               value={String(block.config?.deadline || manifest.logistics?.rsvpDeadline || '')}
               onChange={v => updateBlockConfig({ deadline: v })}
-              placeholder="2026-05-01"
+              placeholder="e.g., June 1, 2026"
+              hint="The last day guests can respond to your invitation"
             />
             <Toggle
               label="Show meal preferences"
@@ -1033,7 +1036,7 @@ function BlockConfigPanel({
                       updated[i] = v;
                       onChange({ ...manifest, heroSlideshow: updated });
                     }}
-                    placeholder="https://..."
+                    placeholder="Paste an image link"
                   />
                   <button
                     onClick={() => onChange({ ...manifest, heroSlideshow: slideshowPhotos.filter((_, j) => j !== i) })}
@@ -1741,11 +1744,6 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
   const activeDef = activeBlock ? BLOCK_CATALOGUE.find(d => d.type === activeBlock.type) : null;
   const existingTypes = new Set(blocks.map(b => b.type));
 
-  // Available block types not yet added
-  const availableBlocks = BLOCK_CATALOGUE
-    .filter(b => b.occasions.includes((manifest.occasion || 'wedding') as OccasionTag))
-    .filter(b => !existingTypes.has(b.type));
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* ── Scrollable content ── */}
@@ -1841,7 +1839,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
           textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '4px 4px 6px',
         }}>
-          Active · {blocks.length}
+          Your Sections · {blocks.length}
         </div>
 
         {/* FIX #9: Empty state when all blocks are removed */}
@@ -1924,6 +1922,11 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             const showDropLine = typeof visualDropLine === 'number' && visualDropLine === idx;
             const showDropLineAfter = visualDropLine === 'after-last' && idx === N - 1;
 
+            const blockDef = def;
+            const blockColor = blockDef?.color || 'var(--pl-olive, #A3B18A)';
+            const isBlockActive = activeBlockId === block.id;
+            const inlineActiveDef = isBlockActive ? blockDef : null;
+
             return (
               <div
                 key={block.id}
@@ -1944,7 +1947,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                 <BlockRow
                   block={block}
                   def={def}
-                  isActive={activeBlockId === block.id}
+                  isActive={isBlockActive}
                   onSelect={id => setActiveBlockId(activeBlockId === id ? null : id)}
                   onToggle={toggleVisible}
                   onDelete={deleteBlock}
@@ -1957,6 +1960,56 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   isLast={idx === N - 1}
                   manifest={manifest}
                 />
+                {/* Inline config panel — expands directly below the active block row (accordion style) */}
+                {isBlockActive && activeBlock && inlineActiveDef && (
+                  <div
+                    ref={configPanelRef}
+                    style={{
+                      overflow: 'hidden',
+                      maxHeight: '2000px',
+                      opacity: 1,
+                      transition: 'max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
+                      borderLeft: `2px solid ${blockColor}60`,
+                      background: `${blockColor}08`,
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      borderRadius: '0 0 12px 12px',
+                      marginTop: '-2px',
+                    } as React.CSSProperties}
+                  >
+                    <div style={{ maxHeight: '65vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: `1px solid ${blockColor}20` }}>
+                        <div style={{
+                          width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
+                          background: `${blockColor}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          border: `1px solid ${blockColor}30`,
+                        }}>
+                          <inlineActiveDef.icon size={14} color={blockColor} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--pl-ink)' }}>{inlineActiveDef.label}</div>
+                          <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings</div>
+                        </div>
+                        <button
+                          onClick={() => setActiveBlockId(null)}
+                          style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                      <BlockConfigPanel
+                        block={activeBlock}
+                        def={inlineActiveDef}
+                        manifest={manifest}
+                        blocksKey={blocksKey}
+                        onChange={m => {
+                          onChange(m);
+                          pushToPreview(m);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
                 {/* Drop indicator line — after the last item */}
                 {showDropLineAfter && (
                   <div style={{
@@ -1987,64 +2040,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           })()}
         </div>
 
-        {/* ── Config panel — appears between active blocks and add sections ── */}
-        <AnimatePresence>
-          {activeBlock && activeDef && (
-            <motion.div
-              ref={configPanelRef}
-              key={activeBlock.id}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                overflow: 'hidden', flexShrink: 0,
-                borderTop: `2px solid ${activeDef.color}40`,
-                background: `rgba(255,255,255,0.6)`,
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderRadius: '12px',
-                margin: '8px 0',
-              } as React.CSSProperties}
-            >
-              {/* FIX #10: Increased maxHeight so complex block configs (events, hero) don't clip */}
-              <div style={{ maxHeight: '65vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                  <div style={{
-                    width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
-                    background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `1px solid ${activeDef.color}30`,
-                  }}>
-                    <activeDef.icon size={14} color={activeDef.color} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--pl-ink)' }}>{activeDef.label}</div>
-                    <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings</div>
-                  </div>
-                  <button
-                    onClick={() => setActiveBlockId(null)}
-                    style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-                <BlockConfigPanel
-                  block={activeBlock}
-                  def={activeDef}
-                  manifest={manifest}
-                  blocksKey={blocksKey}
-                  onChange={m => {
-                    onChange(m);
-                    pushToPreview(m);
-                  }}
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* FIX #15: Quick search add button using AddBlockPicker for discoverability */}
-        <div style={{ padding: '8px 2px 4px', borderTop: '1px solid rgba(255,255,255,0.2)', marginTop: '4px' }}>
+        {/* ── "+ Add Section" button — opens AddBlockPicker dropdown ── */}
+        <div style={{ padding: '8px 2px 4px', marginTop: '4px' }}>
           <AddBlockPicker
             onAdd={addBlock}
             onDragType={setDraggingNewType}
@@ -2052,58 +2049,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
             occasion={(manifest.occasion || 'wedding') as OccasionTag}
           />
         </div>
-
-        {/* ── AVAILABLE SECTIONS — click or drag to add ── */}
-        {availableBlocks.length > 0 && (
-          <>
-            <div style={{
-              fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
-              textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '12px 4px 6px',
-            }}>
-              Available Sections
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {availableBlocks.map(b => (
-                <motion.button
-                  key={b.type}
-                  onClick={() => addBlock(b.type)}
-                  draggable
-                  onDragStart={(e) => {
-                    (e as unknown as React.DragEvent).dataTransfer?.setData('pearloom/block-type', b.type);
-                    setDraggingNewType(b.type);
-                  }}
-                  onDragEnd={() => setDraggingNewType(null)}
-                  whileHover={{ y: -1, background: 'rgba(255,255,255,0.4)' }}
-                  whileTap={{ scale: 0.98 }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '10px 10px', borderRadius: '14px',
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    background: 'rgba(255,255,255,0.15)',
-                    cursor: 'grab', textAlign: 'left',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  <div style={{
-                    width: '32px', height: '32px', borderRadius: '10px', flexShrink: 0,
-                    background: `${b.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `1px solid ${b.color}25`,
-                  }}>
-                    <b.icon size={15} color={b.color} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-ink)' }}>{b.label}</div>
-                    <div style={{ fontSize: '0.62rem', color: 'var(--pl-muted)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.description}</div>
-                  </div>
-                  <Plus size={14} style={{ color: 'var(--pl-olive)', flexShrink: 0, opacity: 0.5 }} />
-                </motion.button>
-              ))}
-            </div>
-          </>
-        )}
       </div>
-
-      {/* Config panel moved above — now appears between active blocks and add sections */}
 
       {/* ── Drag ghost — follows pointer via imperative DOM updates in useDragSort ── */}
       {(() => {
