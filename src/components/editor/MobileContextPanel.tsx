@@ -65,13 +65,14 @@ const LAYOUTS: Array<{
   id: NonNullable<Chapter['layout']>;
   label: string;
   glyph: string;
+  description: string;
 }> = [
-  { id: 'editorial',  label: 'Editorial',  glyph: '▤' },
-  { id: 'fullbleed',  label: 'Full Bleed', glyph: '▣' },
-  { id: 'split',      label: 'Split',      glyph: '▥' },
-  { id: 'cinematic',  label: 'Cinematic',  glyph: '▬' },
-  { id: 'gallery',    label: 'Gallery',    glyph: '▦' },
-  { id: 'mosaic',     label: 'Mosaic',     glyph: '▩' },
+  { id: 'editorial',  label: 'Classic',      glyph: '▤', description: 'Text alongside a featured photo' },
+  { id: 'fullbleed',  label: 'Full Photo',   glyph: '▣', description: 'Photo fills the entire width' },
+  { id: 'split',      label: 'Side by Side', glyph: '▥', description: 'Photo and text split 50/50' },
+  { id: 'cinematic',  label: 'Widescreen',   glyph: '▬', description: 'Panoramic photo with text below' },
+  { id: 'gallery',    label: 'Photo Grid',   glyph: '▦', description: 'Multiple photos in a grid layout' },
+  { id: 'mosaic',     label: 'Collage',      glyph: '▩', description: 'Photos arranged in an artistic mosaic' },
 ];
 
 // ── Component ───────────────────────────────────────────────
@@ -149,7 +150,7 @@ export function MobileContextPanel({
             color: 'var(--pl-muted)',
             lineHeight: 1.5,
           }}>
-            Select a section, photo, or text block in the preview above to see its settings here.
+            Select a section, photo, or text area in the preview above to see its settings here.
           </div>
         </div>
       </div>
@@ -685,7 +686,7 @@ function ChapterSettings({
             overflowX: 'auto', paddingBottom: 4,
             scrollbarWidth: 'none',
           } as React.CSSProperties}>
-            {LAYOUTS.map(({ id, label, glyph }) => {
+            {LAYOUTS.map(({ id, label, glyph, description }) => {
               const active = (chapter.layout || 'editorial') === id;
               return (
                 <motion.button
@@ -700,9 +701,10 @@ function ChapterSettings({
                     border: active ? '1px solid var(--pl-olive-50)' : '1px solid var(--pl-black-6)',
                     background: active ? 'var(--pl-olive-12)' : 'var(--pl-olive-5)',
                     color: active ? 'var(--pl-olive)' : 'var(--pl-muted)',
-                    cursor: 'pointer', minWidth: 60,
+                    cursor: 'pointer', minWidth: 72,
                     transition: 'all 0.15s',
                   }}
+                  title={description}
                 >
                   <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{glyph}</span>
                   <span style={{
@@ -711,6 +713,14 @@ function ChapterSettings({
                     whiteSpace: 'nowrap',
                   }}>
                     {label}
+                  </span>
+                  <span style={{
+                    fontSize: '0.55rem', fontWeight: 500,
+                    color: active ? 'var(--pl-olive)' : 'var(--pl-muted)',
+                    opacity: 0.75, lineHeight: 1.2,
+                    textAlign: 'center', maxWidth: 80,
+                  }}>
+                    {description}
                   </span>
                 </motion.button>
               );
