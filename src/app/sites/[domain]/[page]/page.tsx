@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getSiteConfig } from '@/lib/db';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
@@ -131,6 +132,8 @@ export default async function SiteSubPage(
     { id: 'faq',      slug: 'faq',      label: 'FAQ',      enabled: !!(manifest.faqs?.length) && !hiddenPages.has('faq'),              order: 6 },
   ].filter(p => p.enabled) as import('@/types').SitePage[];
 
+  const basePath = `/sites/${domain}`;
+
   // Page header shared across sub-pages
   const PageHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
     <div style={{
@@ -140,6 +143,18 @@ export default async function SiteSubPage(
       borderBottom: `1px solid rgba(0,0,0,0.06)`,
     }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        {/* Breadcrumb navigation */}
+        <nav aria-label="Breadcrumb" style={{ marginBottom: '1.5rem' }}>
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+            <li>
+              <Link href={basePath} style={{ color: 'var(--pl-olive)', textDecoration: 'none', fontWeight: 600 }}>
+                Home
+              </Link>
+            </li>
+            <li aria-hidden="true" style={{ color: 'var(--pl-muted)', opacity: 0.5 }}>&gt;</li>
+            <li aria-current="page" style={{ color: 'var(--pl-muted)' }}>{title}</li>
+          </ol>
+        </nav>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
           <div style={{ flex: 1, maxWidth: '60px', height: '1px', background: 'var(--pl-olive)', opacity: 0.3 }} />
           <span style={{ fontSize: '1rem', color: 'var(--pl-olive)', opacity: 0.6 }}>{vibeSkin.decorIcons[0] || '✦'}</span>
