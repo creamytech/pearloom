@@ -5,10 +5,10 @@
 // Dashboard photo gallery — browse all photos across all sites.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, Download, Image as ImageIcon, Grid, List } from 'lucide-react';
+import { ArrowLeft, Download, Image as ImageIcon, Grid, List, Upload, Loader2 } from 'lucide-react';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 
 interface PhotoItem {
@@ -23,6 +23,41 @@ interface PhotoItem {
 export default function GalleryPage() {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const newPhotos: PhotoItem[] = [];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        const safeName = (file.name || 'photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const safeFile = new File([file], safeName, { type: file.type || 'image/jpeg' });
+        const formData = new FormData();
+        formData.append('file', safeFile);
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok && data.publicUrl) {
+          newPhotos.push({
+            id: `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            url: data.publicUrl,
+            alt: file.name.replace(/\.\w+$/, ''),
+            siteName: 'Uploaded',
+            siteId: 'uploads',
+            uploadedAt: new Date().toISOString(),
+          });
+        }
+      } catch {
+        // silent
+      }
+    }
+    if (newPhotos.length > 0) {
+      setPhotos(prev => [...newPhotos, ...prev]);
+    }
+    setUploading(false);
+  };
 
   useEffect(() => {
     // Load photos from all user sites
@@ -83,13 +118,41 @@ export default function GalleryPage() {
         {/* Main content */}
         <main className="flex-1 overflow-auto p-4 md:p-8">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2rem)] text-[var(--pl-ink)]">
-            Photo Gallery
-          </h1>
-          <p className="text-[0.82rem] text-[var(--pl-muted)]">
-            {photos.length} photos across all your sites
-          </p>
+        <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="font-heading italic text-[clamp(1.4rem,3vw,2rem)] text-[var(--pl-ink)]">
+              Photo Gallery
+            </h1>
+            <p className="text-[0.82rem] text-[var(--pl-muted)]">
+              {photos.length} photos across all your sites
+            </p>
+          </div>
+          <div>
+            <button
+              onClick={() => uploadRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-[0.75rem] font-bold uppercase tracking-[0.08em] no-underline transition-opacity"
+              style={{
+                background: 'var(--pl-olive-deep, #6B7F5E)',
+                opacity: uploading ? 0.6 : 1,
+                cursor: uploading ? 'not-allowed' : 'pointer',
+                border: 'none',
+              }}
+            >
+              {uploading
+                ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                : <Upload size={14} />}
+              {uploading ? 'Uploading...' : 'Upload Photos'}
+            </button>
+            <input
+              ref={uploadRef}
+              type="file"
+              accept="image/*"
+              multiple
+              style={{ display: 'none' }}
+              onChange={e => { handleUpload(e.target.files); e.target.value = ''; }}
+            />
+          </div>
         </div>
 
         {/* Gallery grid */}

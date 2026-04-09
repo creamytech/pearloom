@@ -35,6 +35,7 @@ import {
   IconRevealNone, IconRevealFade, IconRevealSlideUp,
   IconRevealSlideLeft, IconRevealZoom, IconRevealBlur,
 } from './EditorIcons';
+import { GalleryPicker } from './GalleryPicker';
 import type { StoryManifest, PageBlock, BlockType, WeddingEvent } from '@/types';
 
 // ── Block Catalogue ────────────────────────────────────────────
@@ -850,6 +851,8 @@ function BlockConfigPanel({
     }
   };
 
+  const [galleryOpen, setGalleryOpen] = useState(false);
+
   const noConfig = (
     <p style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', lineHeight: 1.6 }}>
       This block uses your site-wide content. Edit it from the Story, Events, or Details tabs.
@@ -1017,6 +1020,27 @@ function BlockConfigPanel({
               onChange={v => onChange({ ...manifest, coverPhoto: v })}
               placeholder="Paste an image link or leave blank for illustrated art"
               hint="Tip: Upload a photo in the Photos section, or paste an image link"
+            />
+            <button
+              onClick={() => setGalleryOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                width: '100%', padding: '7px 12px', borderRadius: '8px',
+                border: '1.5px dashed rgba(163,177,138,0.4)',
+                background: 'rgba(163,177,138,0.08)',
+                color: 'var(--pl-olive, #A3B18A)',
+                fontSize: '0.72rem', fontWeight: 700,
+                cursor: 'pointer', transition: 'all 0.15s',
+                letterSpacing: '0.04em',
+              }}
+            >
+              <ImageIcon size={12} />
+              Choose from Gallery
+            </button>
+            <GalleryPicker
+              open={galleryOpen}
+              onClose={() => setGalleryOpen(false)}
+              onSelect={(url) => onChange({ ...manifest, coverPhoto: url })}
             />
             {/* Hero Slideshow */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px', marginTop: '4px' }}>

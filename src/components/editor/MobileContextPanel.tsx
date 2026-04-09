@@ -17,6 +17,7 @@ import {
 import { useEditor } from '@/lib/editor-state';
 import { Field, lbl, inp } from './editor-utils';
 import { ImageManager } from './ImageManager';
+import { GalleryPicker } from './GalleryPicker';
 import type { Chapter, ChapterImage, WeddingEvent, FaqItem, StoryManifest } from '@/types';
 
 // ── Section type → icon + display name mapping ──────────────
@@ -411,6 +412,7 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
@@ -513,7 +515,37 @@ function CoverPhotoUploader({ currentPhoto, onPhotoChange }: {
             </div>
           </div>
         </button>
+
+        {/* Choose from Gallery */}
+        <button
+          onClick={() => setGalleryOpen(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
+            border: '1.5px dashed rgba(163,177,138,0.4)',
+            background: 'rgba(163,177,138,0.08)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            textAlign: 'left' as const, width: '100%',
+          }}
+        >
+          <Image size={18} style={{ color: 'var(--pl-olive, #A3B18A)' }} />
+          <div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+              Choose from Gallery
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--pl-muted)' }}>
+              Reuse photos from your sites
+            </div>
+          </div>
+        </button>
       </div>
+
+      <GalleryPicker
+        open={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        onSelect={(url) => onPhotoChange(url)}
+      />
 
       <input
         ref={fileRef}

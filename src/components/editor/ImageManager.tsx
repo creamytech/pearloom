@@ -6,6 +6,7 @@ import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
 import { lbl } from './editor-utils';
 import { PhotoReposition } from './PhotoReposition';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
+import { GalleryPicker } from './GalleryPicker';
 import type { ChapterImage } from '@/types';
 
 export function ImageManager({
@@ -29,6 +30,7 @@ export function ImageManager({
   const [captionSuccess, setCaptionSuccess] = useState(false);
   const [captionError, setCaptionError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'constellation'>('grid');
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
 
   const handleGooglePhotosPicked = async (photos: PickedPhoto[]) => {
@@ -209,6 +211,20 @@ export function ImageManager({
             {gpState === 'waiting' ? 'Picking…' : gpState === 'fetching' ? 'Loading…' : 'Google'}
           </button>
           <button
+            onClick={() => setGalleryOpen(true)}
+            title="Choose from Gallery"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              padding: '5px 10px', borderRadius: '5px', border: '1px solid rgba(163,177,138,0.3)',
+              background: 'rgba(163,177,138,0.08)', color: 'var(--pl-olive, #A3B18A)',
+              fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+              minHeight: '32px', transition: 'all 0.15s',
+            }}
+          >
+            <LayoutGrid size={10} />
+            Gallery
+          </button>
+          <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             style={{
@@ -234,6 +250,21 @@ export function ImageManager({
         multiple
         style={{ display: 'none' }}
         onChange={e => handleFileUpload(e.target.files)}
+      />
+
+      <GalleryPicker
+        open={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        onSelect={(url) => {
+          const newImage: ChapterImage = {
+            id: `gallery-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            url,
+            alt: 'Gallery photo',
+            width: 0,
+            height: 0,
+          };
+          onUpdate([...images, newImage]);
+        }}
       />
 
       {/* Photo grid / constellation */}
