@@ -77,6 +77,8 @@ interface SiteNavProps {
   navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
   navOpacity?: number;
   navBackground?: string;
+  /** Render inline (not fixed) — used inside mobile editor preview */
+  inline?: boolean;
   currentPage?: string;
   /** When provided, overrides the default path-based href generation for page links. */
   pageHrefOverride?: (slug: string) => string;
@@ -93,6 +95,7 @@ export function SiteNav({
   navStyle = 'glass',
   navOpacity,
   navBackground,
+  inline = false,
   currentPage,
   pageHrefOverride,
   user,
@@ -150,12 +153,15 @@ export function SiteNav({
       {/* ── Nav bar ── */}
       <motion.nav
         className={cn(
-          'z-[100] pt-[env(safe-area-inset-top,0px)] relative overflow-hidden',
+          'z-[100] relative overflow-hidden',
+          !inline && 'pt-[env(safe-area-inset-top,0px)]',
           'transition-[background,box-shadow,border-color,padding,margin,border-radius] duration-300',
-          // Position: floating is inset, others are edge-to-edge
-          navStyle === 'floating'
-            ? 'fixed top-2 left-4 right-4 rounded-full'
-            : 'fixed top-0 left-0 right-0',
+          // Position: inline (mobile editor) = relative, otherwise fixed
+          inline
+            ? 'w-full'
+            : navStyle === 'floating'
+              ? 'fixed top-2 left-4 right-4 rounded-full'
+              : 'fixed top-0 left-0 right-0',
           // Padding — tighter on mobile
           scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' ? 'py-1' : 'py-2 lg:py-4',
           // Style-specific backgrounds — skipped when custom navBackground is set
@@ -185,9 +191,9 @@ export function SiteNav({
             : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
             : 'blur(14px) saturate(1.6)',
         }}
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        initial={inline ? false : { y: -80, opacity: 0 }}
+        animate={inline ? { y: 0, opacity: 1 } : { y: 0, opacity: 1 }}
+        transition={inline ? { duration: 0 } : { duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Custom nav background overlay — separate layer so it doesn't affect Safari chrome or child opacity */}
         {navBackground && (
