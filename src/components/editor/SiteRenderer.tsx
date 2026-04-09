@@ -9,7 +9,7 @@
 
 import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical } from 'lucide-react';
+import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical, CalendarDays, Mail, Gift, Plane, HelpCircle, PenLine, Camera, Hand, Sparkles } from 'lucide-react';
 import { Hero } from '@/components/hero';
 import { Timeline } from '@/components/timeline';
 import { WeddingEvents } from '@/components/wedding-events';
@@ -802,7 +802,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!manifest.events?.length) return editMode ? (
           <section key={key} data-pe-section="events" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📅</div>
+              <div style={{ marginBottom: '0.75rem' }}><CalendarDays size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Events</div>
               <p style={{ fontSize: '0.85rem' }}>Add your ceremony, reception, and other events in the Events panel</p>
             </div>
@@ -858,7 +858,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!manifest.events?.length) return editMode ? (
           <section key={key} data-pe-section="rsvp" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>💌</div>
+              <div style={{ marginBottom: '0.75rem' }}><Mail size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>RSVP</div>
               <p style={{ fontSize: '0.85rem' }}>Add events first — the RSVP form will appear here for your guests</p>
             </div>
@@ -890,7 +890,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return editMode ? (
           <section key={key} data-pe-section="registry" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🎁</div>
+              <div style={{ marginBottom: '0.75rem' }}><Gift size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Registry</div>
               <p style={{ fontSize: '0.85rem' }}>Add registry links in Details → Registry</p>
             </div>
@@ -901,7 +901,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!manifest.travelInfo) return editMode ? (
           <section key={key} data-pe-section="travel" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>✈️</div>
+              <div style={{ marginBottom: '0.75rem' }}><Plane size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Travel & Hotels</div>
               <p style={{ fontSize: '0.85rem' }}>Add hotel and travel info in Details → Travel</p>
             </div>
@@ -923,7 +923,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!manifest.faqs?.length) return editMode ? (
           <section key={key} data-pe-section="faq" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>❓</div>
+              <div style={{ marginBottom: '0.75rem' }}><HelpCircle size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>FAQ</div>
               <p style={{ fontSize: '0.85rem' }}>Add frequently asked questions in Details → FAQ</p>
             </div>
@@ -971,7 +971,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!textContent) return editMode ? (
           <section key={key} data-pe-section="text" style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
             <div style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📝</div>
+              <div style={{ marginBottom: '0.5rem' }}><PenLine size={22} style={{ color: 'var(--pl-muted)' }} /></div>
               <p style={{ fontSize: '0.85rem' }}>Click to add text content</p>
             </div>
           </section>
@@ -1020,7 +1020,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!allPhotos.length) return editMode ? (
           <section key={key} data-pe-section="photos" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
             <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📷</div>
+              <div style={{ marginBottom: '0.75rem' }}><Camera size={28} style={{ color: 'var(--pl-muted)' }} /></div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Photo Gallery</div>
               <p style={{ fontSize: '0.85rem' }}>Add photos to your story chapters — they&apos;ll appear here</p>
             </div>
@@ -1173,7 +1173,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!statement) return editMode ? (
           <section key={key} data-pe-section={block.type} style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{block.type === 'welcome' ? '👋' : '✨'}</div>
+              <div style={{ marginBottom: '0.5rem' }}>{block.type === 'welcome' ? <Hand size={22} style={{ color: 'var(--pl-muted)' }} /> : <Sparkles size={22} style={{ color: 'var(--pl-muted)' }} />}</div>
               <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1rem', color: safeFg, marginBottom: '0.25rem' }}>
                 {block.type === 'welcome' ? 'Welcome Message' : 'Vibe Quote'}
               </div>

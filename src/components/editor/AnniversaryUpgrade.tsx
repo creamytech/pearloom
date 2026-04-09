@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Gem } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { StoryManifest, Chapter } from '@/types';
 import { parseLocalDate } from '@/lib/date';
@@ -55,7 +56,7 @@ export function AnniversaryBadge({ weddingDate }: { weddingDate?: string }) {
         pointerEvents: 'none',
       }}
     >
-      <span style={{ fontSize: '1rem' }}>💍</span>
+      <Gem size={16} style={{ color: 'var(--pl-olive)' }} />
       <span
         style={{
           color: '#f5f0e8',

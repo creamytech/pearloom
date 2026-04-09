@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MailCheck } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { parseLocalDate } from '@/lib/date';
 
@@ -275,7 +276,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
             style={styles.successBox}
           >
             <div style={styles.successTitle}>
-              ✉️ Letter sealed! It will be delivered on {formatDate(successInfo.date)}.
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MailCheck size={16} style={{ color: 'var(--pl-olive)' }} /> Letter sealed! It will be delivered on {formatDate(successInfo.date)}.</span>
             </div>
             <div style={styles.successUrl}>
               <span style={styles.dimText}>Save this link — share it with each other:</span>

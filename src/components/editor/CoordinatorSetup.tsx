@@ -1,13 +1,21 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { Target, MessageCircle, Shirt, Clock, Bus } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 
+const QUESTION_ICONS: Record<string, React.ReactNode> = {
+  parking: <span style={{ fontSize: '13px' }}>•</span>,
+  shirt: <Shirt size={13} style={{ color: 'var(--pl-olive)' }} />,
+  clock: <Clock size={13} style={{ color: 'var(--pl-olive)' }} />,
+  bus: <Bus size={13} style={{ color: 'var(--pl-olive)' }} />,
+};
+
 const SUGGESTED_QUESTIONS = [
-  { icon: '•', label: 'Where is parking?' },
-  { icon: '👗', label: 'Dress code?' },
-  { icon: '🕐', label: 'What time?' },
-  { icon: '🚌', label: 'Shuttle info?' },
+  { icon: 'parking', label: 'Where is parking?' },
+  { icon: 'shirt', label: 'Dress code?' },
+  { icon: 'clock', label: 'What time?' },
+  { icon: 'bus', label: 'Shuttle info?' },
 ];
 
 interface CoordinatorSetupProps {
@@ -74,7 +82,7 @@ export default function CoordinatorSetup({ manifest, onChange }: CoordinatorSetu
       {/* Section header */}
       <div style={{ marginBottom: '6px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          🎯 Wedding Day Coordinator AI
+          <Target size={16} style={{ color: 'var(--pl-olive)' }} /> Wedding Day Coordinator AI
         </h3>
         <p style={{ fontSize: '13px', color: '#6b6058', margin: '4px 0 0 0', lineHeight: 1.5 }}>
           Guests can ask your coordinator anything — powered by the details you provide.
@@ -457,7 +465,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
       {/* Header */}
       <div style={{ backgroundColor: accentColor, color: '#fff', padding: '14px 16px', flexShrink: 0 }}>
         <div style={{ fontWeight: 700, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span>💬</span> Wedding Coordinator
+          <MessageCircle size={16} style={{ color: '#fff' }} /> Wedding Coordinator
         </div>
         <div style={{ fontSize: '12px', opacity: 0.85, marginTop: '2px' }}>Ask anything about the big day</div>
       </div>
@@ -475,7 +483,7 @@ function PreviewCoordinator({ siteId, coupleNames, vibeSkin }: PreviewCoordinato
               {SUGGESTED_QUESTIONS.map(q => (
                 <button key={q.label} onClick={() => sendMessage(q.label)}
                   style={{ backgroundColor: 'var(--pl-cream)', border: `1.5px solid ${accentColor}30`, borderRadius: '20px', padding: '6px 12px', fontSize: '13px', cursor: 'pointer', color: foreground, display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }}>
-                  <span>{q.icon}</span> {q.label}
+                  <span>{QUESTION_ICONS[q.icon] || q.icon}</span> {q.label}
                 </button>
               ))}
             </div>
