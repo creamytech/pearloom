@@ -265,6 +265,12 @@ export function AICommandBar() {
         const data = await res.json();
         if (data.faqs) {
           actions.handleChatManifestUpdate({ faqs: data.faqs });
+          setPearReply(`Added ${data.faqs.length} FAQs to your site! You can edit them in the FAQ section. — Pear`);
+          setInputVal('');
+          setStatus('reply');
+        } else {
+          setStatus('success');
+          successTimerRef.current = setTimeout(() => { close(); }, 1500);
         }
       } else {
         // AI chat command
@@ -280,33 +286,20 @@ export function AICommandBar() {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        const reply = data.reply || data.message || '';
         applyAIResponse(data);
 
-        // Show Pear's reply — keep bar open for conversation
-        if (data.reply) {
-          setPearReply(data.reply);
+        // Always show Pear's reply if there is one
+        if (reply) {
+          setPearReply(reply);
           setInputVal('');
-          if (data.action === 'message') {
-            // Pear is asking a question or giving advice — stay open for response
-            setStatus('reply');
-          } else {
-            // Pear made changes — show reply briefly then stay open
-            setStatus('reply');
-            // Don't auto-close — let user continue the conversation
-          }
+          setStatus('reply');
         } else {
+          // No reply text — show brief success and close
           setStatus('success');
-          successTimerRef.current = setTimeout(() => {
-            close();
-          }, 1200);
+          successTimerRef.current = setTimeout(() => { close(); }, 1500);
         }
-        return; // skip the generic success below
       }
-
-      setStatus('success');
-      successTimerRef.current = setTimeout(() => {
-        close();
-      }, 1200);
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
       setStatus('error');
