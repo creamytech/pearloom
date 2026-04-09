@@ -20,8 +20,7 @@ import { SITE_TEMPLATES, searchTemplates as searchSiteTemplates } from '@/lib/te
 import { COLOR_THEMES, searchColorThemes } from '@/lib/templates/color-themes';
 import { MARKETPLACE_CATEGORIES, formatPrice } from '@/lib/marketplace';
 import { MARKETPLACE_PACKS, searchPacks } from '@/lib/marketplace-assets';
-import { generateHeroIllustration } from '@/lib/hero-illustrations';
-import { getThemeArt } from '@/lib/theme-art';
+import { generateCardIllustration } from '@/lib/card-illustrations';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 
@@ -249,50 +248,16 @@ export default function MarketplacePage() {
                             overflow: 'hidden',
                           }}
                         >
-                          {/* Custom SVG illustration background */}
-                          {(() => {
-                            const heroSvg = generateHeroIllustration(template.id, {
+                          {/* Bold scene illustration */}
+                          <div
+                            style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+                            dangerouslySetInnerHTML={{ __html: generateCardIllustration(template.id, {
                               background: colors.background,
                               accent: colors.accent,
                               accent2: colors.accentLight,
                               foreground: colors.foreground,
-                            });
-                            const art = getThemeArt(template.id);
-                            return (
-                              <>
-                                {/* Illustrated background — boosted for card visibility */}
-                                <div
-                                  style={{ position: 'absolute', inset: '-20%', width: '140%', height: '140%', zIndex: 0, filter: 'contrast(3) saturate(2)', opacity: 0.7 }}
-                                  dangerouslySetInnerHTML={{ __html: heroSvg }}
-                                />
-
-                                {/* Accent gradient glow */}
-                                <div style={{
-                                  position: 'absolute', inset: 0, zIndex: 1,
-                                  background: `radial-gradient(ellipse at 50% 80%, ${colors.accent}30 0%, transparent 70%)`,
-                                }} />
-
-                                {/* Corner decorations — all 4 corners, bold */}
-                                {art.cornerSvg && (
-                                  <>
-                                    <div style={{ position: 'absolute', top: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                                    <div style={{ position: 'absolute', top: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                                    <div style={{ position: 'absolute', bottom: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scaleY(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                                    <div style={{ position: 'absolute', bottom: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scale(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                                  </>
-                                )}
-
-                                {/* Centered heading decoration — the hero motif */}
-                                {art.blockArt?.headingDecor && (
-                                  <div style={{
-                                    position: 'absolute', top: '50%', left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    width: 140, height: 24, zIndex: 3, opacity: 0.9,
-                                  }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
-                                )}
-                              </>
-                            );
-                          })()}
+                            }) }}
+                          />
 
                           {/* Color palette strip at bottom */}
                           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: '3px', zIndex: 3 }}>

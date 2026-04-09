@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Search, X, Sparkles } from 'lucide-react';
 import { SITE_TEMPLATES, searchTemplates, type SiteTemplate } from '@/lib/templates/wedding-templates';
-import { generateHeroIllustration } from '@/lib/hero-illustrations';
+import { generateCardIllustration } from '@/lib/card-illustrations';
 import { getThemeArt } from '@/lib/theme-art';
 import { Button } from '@/components/ui/button';
 
@@ -161,47 +161,16 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                         overflow: 'hidden',
                       }}
                     >
-                      {/* Illustrated SVG background — boosted contrast for card visibility */}
+                      {/* Bold scene illustration */}
                       <div
-                        style={{ position: 'absolute', inset: '-20%', width: '140%', height: '140%', zIndex: 0, filter: 'contrast(3) saturate(2)', opacity: 0.7 }}
-                        dangerouslySetInnerHTML={{ __html: generateHeroIllustration(template.id, {
+                        style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+                        dangerouslySetInnerHTML={{ __html: generateCardIllustration(template.id, {
                           background: template.theme.colors.background,
                           accent: template.theme.colors.accent,
                           accent2: template.theme.colors.accentLight,
                           foreground: template.theme.colors.foreground,
                         }) }}
                       />
-
-                      {/* Bold accent gradient overlay */}
-                      <div style={{
-                        position: 'absolute', inset: 0, zIndex: 1,
-                        background: `radial-gradient(ellipse at 50% 80%, ${template.theme.colors.accent}30 0%, transparent 70%)`,
-                      }} />
-
-                      {/* Corner decorations — LARGE and visible */}
-                      {(() => {
-                        const art = getThemeArt(template.id);
-                        return art.cornerSvg ? (
-                          <>
-                            <div style={{ position: 'absolute', top: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                            <div style={{ position: 'absolute', top: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                            <div style={{ position: 'absolute', bottom: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scaleY(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                            <div style={{ position: 'absolute', bottom: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scale(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                          </>
-                        ) : null;
-                      })()}
-
-                      {/* Centered heading decoration motif */}
-                      {(() => {
-                        const art = getThemeArt(template.id);
-                        return art.blockArt?.headingDecor ? (
-                          <div style={{
-                            position: 'absolute', top: '50%', left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 120, height: 20, zIndex: 3, opacity: 0.9,
-                          }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
-                        ) : null;
-                      })()}
 
                       {/* Selected checkmark */}
                       {isSelected && (
