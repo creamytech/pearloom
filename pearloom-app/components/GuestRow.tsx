@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Animated,
 } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import * as Haptics from 'expo-haptics';
 import { colors, spacing, radius } from '@/lib/theme';
 import type { Guest } from '@/lib/types';
 
@@ -56,12 +57,40 @@ export default function GuestRow({
   onPress,
 }: GuestRowProps) {
   const swipeableRef = useRef<any>(null);
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const hasTriggeredHaptic = useRef(false);
+
+  const handlePressIn = useCallback(() => {
+    Animated.timing(opacityAnim, {
+      toValue: 0.7,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePressOut = useCallback(() => {
+    Animated.timing(opacityAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress?.(guest);
+  }, [guest, onPress]);
+
+  const handleSwipeableOpen = useCallback((direction: 'left' | 'right') => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }, []);
 
   const renderLeftActions = () => (
     <View style={styles.leftActions}>
       <Pressable
-        style={[styles.actionBtn, { backgroundColor: colors.olive }]}
+        style={[styles.actionBtn, styles.actionBtnAttend]}
         onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           onMarkAttending?.(guest);
           swipeableRef.current?.close();
         }}
@@ -75,8 +104,9 @@ export default function GuestRow({
   const renderRightActions = () => (
     <View style={styles.rightActions}>
       <Pressable
-        style={[styles.actionBtn, { backgroundColor: colors.gold }]}
+        style={[styles.actionBtn, styles.actionBtnDecline]}
         onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           onMarkDeclined?.(guest);
           swipeableRef.current?.close();
         }}
@@ -85,8 +115,9 @@ export default function GuestRow({
         <Text style={styles.actionLabel}>Decline</Text>
       </Pressable>
       <Pressable
-        style={[styles.actionBtn, { backgroundColor: colors.danger }]}
+        style={[styles.actionBtn, styles.actionBtnDelete]}
         onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           onDelete?.(guest);
           swipeableRef.current?.close();
         }}
@@ -107,56 +138,68 @@ export default function GuestRow({
       renderRightActions={renderRightActions}
       overshootLeft={false}
       overshootRight={false}
+      onSwipeableOpen={handleSwipeableOpen}
     >
-      <Pressable
-        style={styles.container}
-        onPress={() => onPress?.(guest)}
-      >
-        {/* Avatar */}
-        <View style={[styles.avatar, { backgroundColor: statusColor + '22' }]}>
-          <Text style={[styles.avatarText, { color: statusColor }]}>
-            {getInitial(guest.name)}
-          </Text>
-        </View>
-
-        {/* Info */}
-        <View style={styles.info}>
-          <Text style={styles.name} numberOfLines={1}>
-            {guest.name}
-          </Text>
-          {guest.email ? (
-            <Text style={styles.email} numberOfLines={1}>
-              {guest.email}
-            </Text>
-          ) : null}
-        </View>
-
-        {/* Right side details */}
-        <View style={styles.details}>
-          {/* Status badge */}
-          <View style={[styles.badge, { backgroundColor: statusColor + '1A' }]}>
-            <Text style={[styles.badgeText, { color: statusColor }]}>
-              {STATUS_LABELS[guest.rsvp_status]}
-            </Text>
+      <Animated.View style={{ opacity: opacityAnim }}>
+        <Pressable
+          style={styles.container}
+          onPress={handlePress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+        >
+          {/* Avatar with status-color border */}
+          <View
+            style={[
+              styles.avatarBorder,
+              { borderColor: statusColor + '55' },
+            ]}
+          >
+            <View style={[styles.avatar, { backgroundColor: statusColor + '22' }]}>
+              <Text style={[styles.avatarText, { color: statusColor }]}>
+                {getInitial(guest.name)}
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.metaRow}>
-            {/* +1 count */}
-            {guest.plus_ones > 0 && (
-              <View style={styles.plusOnes}>
-                <Text style={styles.plusOnesText}>
-                  +{guest.plus_ones}
-                </Text>
-              </View>
-            )}
-
-            {/* Meal preference */}
-            {mealIcon && (
-              <Text style={styles.mealIcon}>{mealIcon}</Text>
-            )}
+          {/* Info */}
+          <View style={styles.info}>
+            <Text style={styles.name} numberOfLines={1}>
+              {guest.name}
+            </Text>
+            {guest.email ? (
+              <Text style={styles.email} numberOfLines={1}>
+                {guest.email}
+              </Text>
+            ) : null}
           </View>
-        </View>
-      </Pressable>
+
+          {/* Right side details */}
+          <View style={styles.details}>
+            {/* Status badge */}
+            <View style={[styles.badge, { backgroundColor: statusColor + '1A' }]}>
+              <Text style={[styles.badgeText, { color: statusColor }]}>
+                {STATUS_LABELS[guest.rsvp_status]}
+              </Text>
+            </View>
+
+            <View style={styles.metaRow}>
+              {/* +1 count */}
+              {guest.plus_ones > 0 && (
+                <View style={styles.plusOnes}>
+                  <Text style={styles.plusOnesText}>
+                    +{guest.plus_ones}
+                  </Text>
+                </View>
+              )}
+
+              {/* Meal preference */}
+              {mealIcon && (
+                <Text style={styles.mealIcon}>{mealIcon}</Text>
+              )}
+            </View>
+          </View>
+        </Pressable>
+      </Animated.View>
     </Swipeable>
   );
 }
@@ -170,15 +213,20 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     gap: spacing.md,
   },
+  avatarBorder: {
+    borderWidth: 2,
+    borderRadius: 24,
+    padding: 1,
+  },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
   info: {
@@ -239,6 +287,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 76,
     paddingVertical: spacing.md,
+  },
+  actionBtnAttend: {
+    backgroundColor: '#22C55E',
+  },
+  actionBtnDecline: {
+    backgroundColor: colors.gold,
+  },
+  actionBtnDelete: {
+    backgroundColor: colors.danger,
   },
   actionIcon: {
     fontSize: 18,

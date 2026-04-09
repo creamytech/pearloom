@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { View, Text, Animated, StyleSheet, Easing } from 'react-native';
 import { colors, fonts, spacing } from '@/lib/theme';
 
 interface RsvpRingProps {
@@ -24,15 +24,55 @@ export default function RsvpRing({
   strokeWidth = 14,
 }: RsvpRingProps) {
   const animProgress = useRef(new Animated.Value(0)).current;
+  const countAnim = useRef(new Animated.Value(0)).current;
+  const legendAnim1 = useRef(new Animated.Value(0)).current;
+  const legendAnim2 = useRef(new Animated.Value(0)).current;
+  const legendAnim3 = useRef(new Animated.Value(0)).current;
+
   const total = attending + declined + pending;
 
   useEffect(() => {
     animProgress.setValue(0);
-    Animated.timing(animProgress, {
+    countAnim.setValue(0);
+    legendAnim1.setValue(0);
+    legendAnim2.setValue(0);
+    legendAnim3.setValue(0);
+
+    // Ring animates with spring
+    Animated.spring(animProgress, {
       toValue: 1,
-      duration: 900,
+      damping: 14,
+      stiffness: 80,
+      mass: 1,
       useNativeDriver: false,
     }).start();
+
+    // Count-up animation
+    Animated.timing(countAnim, {
+      toValue: 1,
+      duration: 900,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+
+    // Legend items staggered fade in
+    Animated.stagger(150, [
+      Animated.timing(legendAnim1, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(legendAnim2, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(legendAnim3, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, [attending, declined, pending]);
 
   const radius = (size - strokeWidth) / 2;
@@ -44,8 +84,7 @@ export default function RsvpRing({
 
   const attendingPctDisplay = total > 0 ? Math.round((attending / total) * 100) : 0;
 
-  // We'll use three overlapping circles with dasharray to create segments
-  // Segment offsets (starting from top, going clockwise)
+  // Segment offsets
   const attendingOffset = 0;
   const declinedOffset = attendingPct * circumference;
   const pendingOffset = (attendingPct + declinedPct) * circumference;
@@ -68,10 +107,6 @@ export default function RsvpRing({
             },
           ]}
         />
-
-        {/* We simulate an SVG ring using nested bordered views */}
-        {/* Since react-native-svg is not available, we use a custom approach */}
-        {/* Using conic-gradient-like approach with absolute positioned arcs */}
 
         {total > 0 && (
           <>
@@ -108,27 +143,59 @@ export default function RsvpRing({
           </>
         )}
 
-        {/* Center label */}
+        {/* Center label with counting number */}
         <View style={[styles.centerLabel, { width: size, height: size }]}>
-          <Text style={styles.pctNumber}>{attendingPctDisplay}%</Text>
+          <AnimatedCounter value={attendingPctDisplay} animValue={countAnim} />
           <Text style={styles.pctLabel}>attending</Text>
         </View>
       </View>
 
-      {/* Legend */}
+      {/* Legend with staggered fade-in */}
       <View style={styles.legend}>
-        <LegendItem color={COLORS.attending} label="Attending" count={attending} />
-        <LegendItem color={COLORS.declined} label="Declined" count={declined} />
-        <LegendItem color={COLORS.pending} label="Pending" count={pending} />
+        <Animated.View style={{ opacity: legendAnim1, transform: [{ translateY: legendAnim1.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}>
+          <LegendItem color={COLORS.attending} label="Attending" count={attending} />
+        </Animated.View>
+        <Animated.View style={{ opacity: legendAnim2, transform: [{ translateY: legendAnim2.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}>
+          <LegendItem color={COLORS.declined} label="Declined" count={declined} />
+        </Animated.View>
+        <Animated.View style={{ opacity: legendAnim3, transform: [{ translateY: legendAnim3.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}>
+          <LegendItem color={COLORS.pending} label="Pending" count={pending} />
+        </Animated.View>
       </View>
     </View>
   );
 }
 
 /**
+ * Animated counter that counts up from 0 to value.
+ */
+function AnimatedCounter({
+  value,
+  animValue,
+}: {
+  value: number;
+  animValue: Animated.Value;
+}) {
+  const displayValue = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, value],
+  });
+
+  // Use a listener to update displayed text
+  const [displayText, setDisplayText] = React.useState('0%');
+
+  React.useEffect(() => {
+    const id = animValue.addListener(({ value: v }) => {
+      setDisplayText(`${Math.round(v * value)}%`);
+    });
+    return () => animValue.removeListener(id);
+  }, [value, animValue]);
+
+  return <Text style={styles.pctNumber}>{displayText}</Text>;
+}
+
+/**
  * Renders an arc segment using four masked quadrant views.
- * Each quadrant is a half-circle that can be rotated to cover
- * the desired angular range.
  */
 function ArcSegment({
   size,
@@ -146,7 +213,6 @@ function ArcSegment({
   const span = endAngle - startAngle;
   if (span <= 0) return null;
 
-  // We split the arc into up to 4 quarter segments
   const segments: { rotate: number; sweep: number }[] = [];
   let remaining = span;
   let cursor = startAngle;
@@ -224,7 +290,7 @@ function HalfRing({
         />
       </View>
 
-      {/* Second half if sweep > 180 not needed since we cap at 180 */}
+      {/* Second half if sweep < 180 */}
       {sweepDeg > 0 && sweepDeg < 180 && (
         <View
           style={{
