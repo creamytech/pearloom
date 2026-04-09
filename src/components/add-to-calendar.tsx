@@ -136,7 +136,7 @@ export function AddToCalendar({
           display: inline-flex;
           align-items: center;
           gap: 0.3rem;
-          font-size: 0.68rem;
+          font-size: clamp(0.75rem, 2vw, 0.85rem);
           font-weight: 700;
           letter-spacing: 0.04em;
           padding: 0.35rem 0.75rem;
@@ -185,6 +185,7 @@ export function AddToCalendar({
           href={icsDataUri}
           download={`${eventName.replace(/\s+/g, '-').toLowerCase()}.ics`}
           className="pl-cal-btn pl-cal-btn--ical"
+          aria-label="Download event to Apple Calendar"
         >
           <Download size={11} />
           Apple Calendar

@@ -107,13 +107,14 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   }, [photoList.length]);
 
   // Cover photo parallax: moves at ~0.4x scroll speed
-  // In editor mode, use static values (no parallax)
-  const yImage = useTransform(scrollYProgress, [0, 1], isEditor ? ['0%', '0%'] : ['0%', '40%']);
-  const opacityImage = useTransform(scrollYProgress, [0, 1], isEditor ? [1, 1] : [1, 0.1]);
+  // In editor mode or reduced motion, use static values (no parallax)
+  const disableParallax = isEditor || !!prefersReduced;
+  const yImage = useTransform(scrollYProgress, [0, 1], disableParallax ? ['0%', '0%'] : ['0%', '40%']);
+  const opacityImage = useTransform(scrollYProgress, [0, 1], disableParallax ? [1, 1] : [1, 0.1]);
 
   // Text layer fades out as user scrolls
-  const yText = useTransform(scrollYProgress, [0, 1], isEditor ? ['0%', '0%'] : ['0%', '45%']);
-  const opacityText = useTransform(scrollYProgress, [0, 0.45], isEditor ? [1, 1] : [1, 0]);
+  const yText = useTransform(scrollYProgress, [0, 1], disableParallax ? ['0%', '0%'] : ['0%', '45%']);
+  const opacityText = useTransform(scrollYProgress, [0, 0.45], disableParallax ? [1, 1] : [1, 0]);
 
   const hasBadge = !!(date || weddingDate || venue);
   const badgeDateStr = weddingDate || date;
@@ -226,12 +227,12 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
               <motion.img
                 key={photoIdx}
                 src={photoList[photoIdx]}
-                alt=""
+                alt={names.join(' & ') + ' celebration'}
                 loading="lazy"
-                initial={isEditor ? false : { opacity: 0 }}
+                initial={isEditor || prefersReduced ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.2 }}
+                exit={prefersReduced ? undefined : { opacity: 0 }}
+                transition={{ duration: prefersReduced ? 0 : 1.2 }}
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '110%', objectFit: 'cover', objectPosition: 'center top' }}
               />
             </AnimatePresence>

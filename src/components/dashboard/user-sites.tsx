@@ -375,7 +375,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         <div className="max-w-[640px] mx-auto">
           {/* Hero empty state */}
           <div
-            className="pl-enter flex flex-col items-center justify-center text-center py-16 px-8 rounded-[24px] mb-8"
+            className="pl-enter flex flex-col items-center justify-center text-center py-20 px-8 rounded-[24px] mb-8"
             style={{
               background: 'rgba(255,255,255,0.5)',
               backdropFilter: 'blur(20px)',
@@ -387,21 +387,19 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             <div className="w-20 h-20 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center mb-6">
               <PearIcon size={48} color="var(--pl-olive)" />
             </div>
-            <h3 className="font-heading text-[clamp(1.6rem,4vw,2.2rem)] italic text-[var(--pl-ink-soft)] mb-2 tracking-tight leading-tight">
-              Welcome to Pearloom
-            </h3>
-            <p className="text-[var(--pl-muted)] max-w-[360px] leading-[1.7] text-[0.92rem] mb-8">
-              Create a beautiful, AI-powered celebration site in minutes. Upload photos, describe your vibe, and we&apos;ll craft something unforgettable.
+            <h2 className="font-heading text-[clamp(2rem,5vw,2.8rem)] italic text-[var(--pl-ink-soft)] mb-3 tracking-tight leading-tight">
+              Welcome to Pearloom!
+            </h2>
+            <p className="text-[var(--pl-muted)] max-w-[380px] leading-[1.7] text-[1rem] mb-10">
+              Create your first celebration site in minutes
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 items-center">
-              <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />}>
-                Create with AI
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />} className="shadow-[0_4px_20px_rgba(163,177,138,0.35)] min-w-[180px]">
+                Start with AI
               </Button>
-              {onQuickStart && (
-                <Button variant="secondary" size="lg" onClick={onQuickStart}>
-                  Start from Template
-                </Button>
-              )}
+              <Button variant="secondary" size="lg" onClick={onOpenTemplates || onQuickStart || onStartNew} className="min-w-[180px]">
+                Browse Templates
+              </Button>
             </div>
           </div>
 

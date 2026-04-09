@@ -211,6 +211,14 @@ export function VisualTimeline({ events }: VisualTimelineProps) {
           margin-top: 0.35rem;
         }
 
+        /* ── Reduced motion: disable all animations ── */
+        @media (prefers-reduced-motion: reduce) {
+          .pl-tl-fade-up, .pl-tl-dot-pop, .pl-tl-line-grow { animation: none !important; }
+          .pl-tl-item { animation: none !important; opacity: 1 !important; transform: none !important; }
+          .pl-tl-dot-inner { animation: none !important; transform: none !important; }
+          .pl-tl-line { animation: none !important; transform: none !important; }
+        }
+
         /* ── Mobile: single-column, all cards on the right ── */
         @media (max-width: 768px) {
           .pl-tl-line {

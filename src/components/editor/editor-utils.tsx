@@ -63,7 +63,7 @@ export const inp: React.CSSProperties = {
 // ── Focus/blur handlers ──────────────────────────────────────
 const focusStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
   e.currentTarget.style.borderColor = 'rgba(163,177,138,0.6)';
-  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.12), 0 1px 2px rgba(0,0,0,0.04)';
+  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(163,177,138,0.25), 0 1px 2px rgba(0,0,0,0.04)';
   e.currentTarget.style.background = 'rgba(255,255,255,0.92)';
 };
 const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -73,9 +73,10 @@ const blurStyle = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | 
 };
 
 // ── Reusable form field — glass input with label ──────────────
-export function Field({ label, value, onChange, rows, placeholder, hint }: {
+export function Field({ label, value, onChange, rows, placeholder, hint, type }: {
   label: string; value: string; onChange: (v: string) => void;
   rows?: number; placeholder?: string; hint?: string;
+  type?: React.HTMLInputTypeAttribute;
 }) {
   if (rows) return (
     <div>
@@ -93,6 +94,7 @@ export function Field({ label, value, onChange, rows, placeholder, hint }: {
     <div>
       <label style={lbl}>{label}</label>
       <input
+        type={type}
         value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         style={inp}
@@ -152,6 +154,7 @@ export function ActionButton({ label, icon, onClick, variant = 'default', size =
         background: colors.bg, color: colors.color,
         fontSize: size === 'sm' ? fontSize.xs : fontSize.sm,
         fontWeight: 600, transition: 'all 0.15s',
+        touchAction: 'manipulation',
       }}
     >
       {icon}
@@ -177,6 +180,7 @@ export function PillToggle({ label, value, onChange }: {
           background: value ? 'var(--pl-olive, #A3B18A)' : 'rgba(255,255,255,0.3)',
           border: value ? '1px solid rgba(163,177,138,0.5)' : '1px solid rgba(255,255,255,0.3)',
           cursor: 'pointer', position: 'relative', transition: 'all 0.2s',
+          touchAction: 'manipulation',
         }}
       >
         <span style={{
@@ -213,7 +217,7 @@ export function EmptyState({ icon, title, description, action, onAction }: {
             borderRadius: '100px', border: '1px solid rgba(163,177,138,0.3)',
             background: 'rgba(163,177,138,0.08)', color: 'var(--pl-olive)',
             fontSize: fontSize.xs, fontWeight: 700, cursor: 'pointer',
-            letterSpacing: '0.06em',
+            letterSpacing: '0.06em', touchAction: 'manipulation',
           }}
         >
           {action}

@@ -35,12 +35,17 @@ const STYLES = [
 // ── Chapter Card ──────────────────────────────────────────────
 function ChapterCard({
   chapter, index, isActive, isExpanded, onSelect, onDelete,
+  confirmDeleteId, onRequestDelete, onCancelDelete,
 }: {
   chapter: Chapter; index: number; isActive: boolean; isExpanded: boolean;
   onSelect: () => void; onDelete: () => void;
+  confirmDeleteId: string | null;
+  onRequestDelete: (id: string) => void;
+  onCancelDelete: () => void;
 }) {
   const controls = useDragControls();
   const thumb = getThumb(chapter);
+  const isConfirming = confirmDeleteId === chapter.id;
 
   return (
     <Reorder.Item
@@ -58,20 +63,22 @@ function ChapterCard({
       style={{ marginBottom: '8px' }}
     >
       <motion.div
-        onClick={onSelect}
-        whileHover={!isActive ? { y: -1 } : {}}
+        onClick={isConfirming ? undefined : onSelect}
+        whileHover={!isActive && !isConfirming ? { y: -1 } : {}}
         style={{
           borderRadius: '16px',
-          background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.25)',
+          background: isConfirming ? 'rgba(248,113,113,0.04)' : isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.25)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid rgba(255,255,255,0.3)',
+          border: isConfirming ? '1.5px solid rgba(248,113,113,0.4)' : isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid rgba(255,255,255,0.3)',
           overflow: 'hidden',
-          cursor: 'pointer',
+          cursor: isConfirming ? 'default' : 'pointer',
           transition: 'all 0.2s',
-          boxShadow: isActive
-            ? '0 4px 16px rgba(163,177,138,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
-            : '0 1px 4px rgba(43,30,20,0.03), inset 0 1px 0 rgba(255,255,255,0.2)',
+          boxShadow: isConfirming
+            ? '0 4px 16px rgba(248,113,113,0.08)'
+            : isActive
+              ? '0 4px 16px rgba(163,177,138,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+              : '0 1px 4px rgba(43,30,20,0.03), inset 0 1px 0 rgba(255,255,255,0.2)',
         } as React.CSSProperties}
       >
         {/* Main row */}
@@ -152,7 +159,7 @@ function ChapterCard({
           <motion.button
             onClick={e => {
               e.stopPropagation();
-              if (window.confirm(`Delete "${chapter.title}"?`)) onDelete();
+              onRequestDelete(chapter.id);
             }}
             whileHover={{ color: '#f87171', background: 'rgba(248,113,113,0.1)' }}
             whileTap={{ scale: 0.88 }}
@@ -165,8 +172,109 @@ function ChapterCard({
             <Trash2 size={12} />
           </motion.button>
         </div>
+
+        {/* Inline delete confirmation */}
+        <AnimatePresence>
+          {isConfirming && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{
+                padding: '10px 12px 12px',
+                borderTop: '1px solid rgba(248,113,113,0.2)',
+                display: 'flex', flexDirection: 'column', gap: '8px',
+              }}>
+                <div style={{
+                  fontSize: '0.78rem', color: '#b91c1c', fontWeight: 600, lineHeight: 1.4,
+                }}>
+                  Delete &ldquo;{chapter.title || 'Untitled'}&rdquo;? This can&apos;t be undone.
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); onCancelDelete(); }}
+                    style={{
+                      flex: 1, padding: '7px 12px', borderRadius: '10px',
+                      border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.5)',
+                      color: 'var(--pl-ink-soft)', fontSize: '0.75rem', fontWeight: 600,
+                      cursor: 'pointer', transition: 'background 0.15s',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); onDelete(); }}
+                    style={{
+                      flex: 1, padding: '7px 12px', borderRadius: '10px',
+                      border: 'none', background: '#ef4444',
+                      color: '#fff', fontSize: '0.75rem', fontWeight: 700,
+                      cursor: 'pointer', transition: 'background 0.15s',
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </Reorder.Item>
+  );
+}
+
+// ── Undo Toast ───────────────────────────────────────────────
+function UndoToast({ message, onUndo, onDismiss }: { message: string; onUndo: () => void; onDismiss: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDismiss, 5000);
+    return () => clearTimeout(t);
+  }, [onDismiss]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 9999, display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '10px 16px', borderRadius: '14px',
+        background: 'rgba(30,25,20,0.92)', backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+        color: '#fff', fontSize: '0.82rem', fontWeight: 500,
+      } as React.CSSProperties}
+    >
+      <span>{message}</span>
+      <button
+        onClick={onUndo}
+        style={{
+          padding: '4px 12px', borderRadius: '8px', border: 'none',
+          background: 'rgba(255,255,255,0.18)', color: '#fff',
+          fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: '4px',
+          transition: 'background 0.15s',
+        }}
+        onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.28)'; }}
+        onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.18)'; }}
+      >
+        <Undo2 size={12} /> Undo
+      </button>
+      <button
+        onClick={onDismiss}
+        style={{
+          padding: '4px', borderRadius: '6px', border: 'none',
+          background: 'transparent', color: 'rgba(255,255,255,0.5)',
+          cursor: 'pointer', display: 'flex',
+        }}
+      >
+        <X size={12} />
+      </button>
+    </motion.div>
   );
 }
 
@@ -175,6 +283,48 @@ export function StoryPanel() {
   const { state, dispatch, actions, manifest } = useEditor();
   const { chapters, activeId, rewritingId, sectionOverridesMap, streamingText, streamingChapterId, alternatesLoadingId, chapterAlternates } = state;
   const activeChapter = chapters.find(c => c.id === activeId) || null;
+
+  // Inline confirmation state
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Undo toast state
+  const [deletedChapter, setDeletedChapter] = useState<{ chapter: Chapter; index: number } | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDeleteChapter = useCallback((id: string) => {
+    const idx = chapters.findIndex(ch => ch.id === id);
+    const chapter = chapters[idx];
+    if (!chapter) return;
+
+    // Store for undo
+    setDeletedChapter({ chapter, index: idx });
+    setConfirmDeleteId(null);
+
+    // Perform deletion
+    actions.deleteChapter(id);
+
+    // Clear any existing undo timer
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setDeletedChapter(null), 5000);
+  }, [chapters, actions]);
+
+  const handleUndo = useCallback(() => {
+    if (!deletedChapter) return;
+    const { chapter, index } = deletedChapter;
+    // Re-insert chapter at original position
+    const next = [...chapters];
+    next.splice(Math.min(index, next.length), 0, chapter);
+    dispatch({ type: 'SET_CHAPTERS', chapters: next });
+    dispatch({ type: 'SET_ACTIVE_ID', id: chapter.id });
+    actions.syncManifest(next);
+    setDeletedChapter(null);
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+  }, [deletedChapter, chapters, dispatch, actions]);
+
+  const dismissUndo = useCallback(() => {
+    setDeletedChapter(null);
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+  }, []);
 
   const handleShowAlternates = async () => {
     if (!activeChapter) return;
@@ -278,7 +428,10 @@ export function StoryPanel() {
                   isActive={activeId === ch.id}
                   isExpanded={activeId === ch.id}
                   onSelect={() => dispatch({ type: 'SET_ACTIVE_ID', id: activeId === ch.id ? null : ch.id })}
-                  onDelete={() => actions.deleteChapter(ch.id)}
+                  onDelete={() => handleDeleteChapter(ch.id)}
+                  confirmDeleteId={confirmDeleteId}
+                  onRequestDelete={(id) => setConfirmDeleteId(id)}
+                  onCancelDelete={() => setConfirmDeleteId(null)}
                 />
               ))}
             </AnimatePresence>
@@ -361,6 +514,18 @@ export function StoryPanel() {
               />
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Undo toast ── */}
+      <AnimatePresence>
+        {deletedChapter && (
+          <UndoToast
+            key="undo-toast"
+            message="Chapter deleted"
+            onUndo={handleUndo}
+            onDismiss={dismissUndo}
+          />
         )}
       </AnimatePresence>
     </div>

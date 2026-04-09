@@ -5,7 +5,7 @@
 // Premium three-column footer for published wedding sites.
 // ─────────────────────────────────────────────────────────────
 
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { SitePage } from '@/types';
@@ -79,10 +79,12 @@ export function SiteFooter({
                 <a
                   href="https://pearloom.com"
                   target="_blank"
-                  rel="noreferrer"
-                  className="text-[rgba(245,241,232,0.55)] no-underline font-semibold font-heading hover:text-[var(--pl-olive)] transition-colors duration-200"
+                  rel="noopener noreferrer"
+                  aria-label="Pearloom (opens in a new tab)"
+                  className="text-[rgba(245,241,232,0.55)] no-underline font-semibold font-heading hover:text-[var(--pl-olive)] transition-colors duration-200 inline-flex items-center gap-1"
                 >
                   Pearloom
+                  <ExternalLink size={12} />
                 </a>
               </span>
             </div>

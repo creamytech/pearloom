@@ -670,8 +670,72 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* ── Colors — tweak individual colors ── */}
-      <SidebarSection title="Colors" defaultOpen={false}>
+      <SidebarSection title="Colors" defaultOpen>
         <ColorPalettePanel manifest={manifest} onChange={onChange} />
+      </SidebarSection>
+
+      {/* ── Wedding Palettes — curated presets ── */}
+      <SidebarSection title="Wedding Palettes" defaultOpen={false}>
+        <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: '0 0 8px' }}>
+          One-click curated palettes designed for weddings.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+          {([
+            { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530', '#F5F1E8'] },
+            { name: 'Navy & Gold', colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C', '#F5F1E8'] },
+            { name: 'Terracotta & Cream', colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24', '#F5ECE4'] },
+            { name: 'Lavender Dream', colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#2D2640', '#F0ECF8'] },
+            { name: 'Coastal Blue', colors: ['#5B9BD5', '#B8D4E8', '#F0F7FF', '#1E4D8C', '#E8F0F8'] },
+            { name: 'Emerald & Ivory', colors: ['#2D6A4F', '#C4A96A', '#F0F7F4', '#1C2E24', '#E2F0E8'] },
+            { name: 'Sunset Glow', colors: ['#E8785E', '#F0B860', '#FFF8F0', '#3D2420', '#FFF0E8'] },
+            { name: 'Classic B&W', colors: ['#333333', '#888888', '#FFFFFF', '#111111', '#F5F5F5'] },
+          ] as const).map(preset => (
+            <button
+              key={preset.name}
+              onClick={() => {
+                const [accent, accent2, background, ink, subtle] = preset.colors;
+                const newPalette = {
+                  ...(manifest.vibeSkin?.palette || {}),
+                  accent,
+                  accent2,
+                  background,
+                  foreground: ink,
+                  ink,
+                  subtle,
+                  card: subtle,
+                  muted: accent2,
+                  highlight: accent,
+                };
+                const newSkin = {
+                  ...(manifest.vibeSkin || {} as VibeSkin),
+                  palette: newPalette as VibeSkin['palette'],
+                };
+                handleThemeApply(newSkin);
+              }}
+              style={{
+                display: 'flex', flexDirection: 'column', gap: '8px',
+                padding: '10px', borderRadius: '12px', cursor: 'pointer',
+                border: '1px solid rgba(255,255,255,0.25)',
+                background: 'rgba(255,255,255,0.3)',
+                textAlign: 'left', transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(163,177,138,0.5)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; }}
+            >
+              <div style={{ display: 'flex', gap: '3px' }}>
+                {preset.colors.slice(0, 5).map((c, i) => (
+                  <div key={i} style={{
+                    width: 18, height: 18, borderRadius: '50%',
+                    background: c, border: '1px solid rgba(0,0,0,0.08)',
+                  }} />
+                ))}
+              </div>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--pl-ink)' }}>
+                {preset.name}
+              </div>
+            </button>
+          ))}
+        </div>
       </SidebarSection>
 
       {/* FIX #6: Visual Effects collapsed by default — panel was too long */}
@@ -689,7 +753,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* Typography — full font pair picker */}
-      <SidebarSection title="Typography" defaultOpen={false}>
+      <SidebarSection title="Typography" defaultOpen>
         <FontPicker
           currentHeading={manifest.theme?.fonts?.heading || 'Playfair Display'}
           currentBody={manifest.theme?.fonts?.body || 'Inter'}
@@ -716,7 +780,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* ── Navigation — logo + nav style ── */}
-      <SidebarSection title="Navigation" defaultOpen={forceOpenSection === 'navigation'} key={forceOpenSection === 'navigation' ? 'nav-open' : 'nav'}>
+      <SidebarSection title="Navigation" defaultOpen={forceOpenSection === 'navigation' || !forceOpenSection} key={forceOpenSection === 'navigation' ? 'nav-open' : 'nav'}>
         <NavCustomizationPanel manifest={manifest} onChange={onChange} />
       </SidebarSection>
 

@@ -410,13 +410,13 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
             <div style={{ borderRadius: '20px', overflow: 'hidden', aspectRatio: '4/3', marginBottom: '1.5rem', position: 'relative' }}>
               <img
                 src={proxyUrl(mainImage, 900, 675)}
-                alt=""
+                alt={chapter.images?.[chapter.heroPhotoIndex ?? 0]?.alt || chapter.title}
                 className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
               {/* Second image tucked corner */}
               {secondImage && (
                 <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.28)', border: '2px solid var(--pl-ink-soft)' }}>
-                  <img src={proxyUrl(secondImage, 160, 160)} alt="" className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <img src={proxyUrl(secondImage, 160, 160)} alt={chapter.images?.[1]?.alt || chapter.title} className="pl-glow-hover" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
               )}
             </div>
@@ -498,7 +498,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
             >
               <img
                 src={proxyUrl(mainImage, 1200, 1600)}
-                alt=""
+                alt={chapter.images?.[chapter.heroPhotoIndex ?? 0]?.alt || chapter.title}
                 loading="lazy"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block', background: 'var(--pl-olive-mist, #e8e4dc)' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05)'; }}
@@ -525,7 +525,7 @@ function EditorialLayout({ chapter, index }: TimelineItemProps) {
             >
               <img
                 src={proxyUrl(secondImage, 800, 1000)}
-                alt=""
+                alt={chapter.images?.[1]?.alt || chapter.title}
                 loading="lazy"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease', display: 'block', background: 'var(--pl-olive-mist, #e8e4dc)' }}
                 onMouseOver={e => { const img = e.currentTarget as HTMLImageElement; img.style.transform = 'scale(1.03)'; img.style.filter = 'brightness(1.05) grayscale(0)'; }}
@@ -659,7 +659,7 @@ function FullbleedLayout({ chapter }: TimelineItemProps) {
         <>
           {mainImage && (
             <motion.div style={{ position: 'absolute', inset: -80, y }}>
-              <motion.img src={proxyUrl(mainImage, 2400, 1600)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), filter: imgFilter }} />
+              <motion.img src={proxyUrl(mainImage, 2400, 1600)} alt={chapter.images?.[chapter.heroPhotoIndex ?? 0]?.alt || chapter.title} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: focalPos(chapter), filter: imgFilter }} />
             </motion.div>
           )}
 

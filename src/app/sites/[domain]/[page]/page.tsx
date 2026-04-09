@@ -344,7 +344,7 @@ export default async function SiteSubPage(
                       {((block.config?.urls as string[]) || []).slice(0, 12).map((url: string, i: number) => (
                         <div key={i} style={{ borderRadius: '1rem', overflow: 'hidden', aspectRatio: '4/3' }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={url} alt={'Photo from ' + customPage.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                       ))}
                     </div>

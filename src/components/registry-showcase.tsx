@@ -6,7 +6,7 @@
 // Supports: Zola, Amazon, The Knot, Crate & Barrel, Williams Sonoma, custom
 // ─────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import {
@@ -186,10 +186,16 @@ function RegistryCard({
   index: number;
 }) {
   const brand = getBrand(entry.url, entry.name);
+  const [isFocused, setIsFocused] = useState(false);
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
 
   return (
     <motion.div
       className="pl-scroll-scale-in"
+      tabIndex={0}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -204,6 +210,8 @@ function RegistryCard({
         overflow: 'hidden',
         boxShadow: '0 4px 24px rgba(43,30,20,0.06)',
         transition: 'box-shadow 0.4s ease, transform 0.4s ease',
+        outline: isFocused ? '2px solid var(--pl-olive)' : 'none',
+        outlineOffset: isFocused ? '2px' : undefined,
       } as React.CSSProperties}
     >
       {/* Top accent strip */}
@@ -284,7 +292,8 @@ function RegistryCard({
         <a
           href={entry.url}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
+          aria-label={entry.name + ' registry (opens new tab)'}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -312,7 +321,7 @@ function RegistryCard({
           }}
         >
           View Registry
-          <ExternalLink size={11} />
+          <ExternalLink size={12} />
         </a>
       </div>
     </motion.div>
@@ -579,7 +588,7 @@ export function RegistryShowcase({
                 <a
                   href={cashFundUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',

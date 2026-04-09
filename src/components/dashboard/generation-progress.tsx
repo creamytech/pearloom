@@ -12,20 +12,20 @@ import type { GooglePhotoMetadata } from '@/types';
 
 // ── Loom passes ──────────────────────────────────────────────
 const PASSES = [
-  { headline: 'Semantic Anchoring', copy: 'Scanning dates, places, and faces.', pct: 2 },
-  { headline: 'Atmospheric Synthesis', copy: 'Turning your moments into narrative.', pct: 15 },
-  { headline: 'Chromatic Weaving', copy: 'Colors, fonts, shapes from your vibe.', pct: 40 },
-  { headline: 'Memory Granulation', copy: 'Finding the moments that matter most.', pct: 55 },
-  { headline: 'Ethereal Depth Pass', copy: 'Designing your world with care.', pct: 68 },
-  { headline: 'Textural Cohesion', copy: 'Crafting unique artwork for your site.', pct: 82 },
-  { headline: 'Final Polish', copy: 'The tagline and the closing line.', pct: 96 },
+  { headline: 'Understanding Your Story', copy: 'Reading your dates, places, and moments.', pct: 2 },
+  { headline: 'Setting the Mood', copy: 'Turning your memories into a narrative. Almost there!', pct: 15 },
+  { headline: 'Choosing Your Colors', copy: 'Picking colors, fonts, and shapes from your vibe.', pct: 40 },
+  { headline: 'Selecting Best Photos', copy: 'Finding the moments that matter most. Looking beautiful!', pct: 55 },
+  { headline: 'Adding Finishing Touches', copy: 'Designing your world with care. So close!', pct: 68 },
+  { headline: 'Creating Your Design', copy: 'Crafting unique artwork for your site. Hang tight!', pct: 82 },
+  { headline: 'Writing Your Story', copy: 'Adding the final words. You are going to love this!', pct: 96 },
 ];
 
 const SIDEBAR_STEPS = [
-  { id: 'neural',    label: 'Neural Thread',    passes: [0, 1] },
-  { id: 'chromatic', label: 'Chromatic Weave',  passes: [2, 3] },
-  { id: 'pattern',   label: 'Pattern Loft',     passes: [4, 5] },
-  { id: 'final',     label: 'Final Curation',   passes: [6] },
+  { id: 'neural',    label: 'Your Story',       passes: [0, 1] },
+  { id: 'chromatic', label: 'Colors & Photos',   passes: [2, 3] },
+  { id: 'pattern',   label: 'Design & Art',      passes: [4, 5] },
+  { id: 'final',     label: 'Final Touches',     passes: [6] },
 ];
 
 function getActiveSidebarStep(passIdx: number): string {
@@ -249,7 +249,7 @@ export function GenerationProgress({
                     exit={{ opacity: 0, y: -4 }}
                     className="font-heading italic text-[clamp(0.9rem,2.5vw,1.1rem)] font-medium text-[var(--pl-ink)] mt-0.5 m-0"
                   >
-                    {isComplete ? 'Complete' : `Refining ${pass.headline}`}
+                    {isComplete ? 'All done!' : pass.headline}
                   </motion.h3>
                 </AnimatePresence>
               </div>
@@ -270,9 +270,9 @@ export function GenerationProgress({
             {/* Status line */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-[0.52rem] md:text-[0.58rem] font-semibold tracking-[0.06em] uppercase text-[var(--pl-muted)]">
-                AI Engine: <strong className="text-[var(--pl-ink-soft)]">Loom v2.4</strong>
-                {' // '}Latency: <strong className="text-[var(--pl-ink-soft)]">14ms</strong>
-                {' // '}Entropy: <strong className="text-[var(--pl-ink-soft)]">0.82</strong>
+                Powered by <strong className="text-[var(--pl-ink-soft)]">Pearloom AI</strong>
+                {' // '}Quality: <strong className="text-[var(--pl-ink-soft)]">High</strong>
+                {' // '}Time: <strong className="text-[var(--pl-ink-soft)]">{elapsed}s</strong>
               </span>
               {onCancel && !isComplete && (
                 <button

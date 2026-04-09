@@ -47,13 +47,14 @@ function ActionBtn({
       disabled={disabled}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-        padding: '10px 12px', borderRadius: 10, border: 'none', minWidth: 56,
+        padding: '10px 12px', borderRadius: 10, border: 'none',
         background: danger ? 'rgba(239,68,68,0.12)' : 'rgba(0,0,0,0.04)',
         color: danger ? '#fca5a5' : 'var(--pl-ink)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.35 : 1,
-        minHeight: 44,
+        minHeight: 44, minWidth: 44,
         flexShrink: 0,
+        touchAction: 'manipulation',
       }}
     >
       {icon}
@@ -83,7 +84,7 @@ const fieldStyle: React.CSSProperties = {
   border: '1.5px solid rgba(0,0,0,0.06)',
   background: 'rgba(163,177,138,0.05)',
   color: 'var(--pl-ink)',
-  fontSize: '15px', fontFamily: 'var(--pl-font-body)',
+  fontSize: 'max(16px, 1rem)', fontFamily: 'var(--pl-font-body)',
   outline: 'none', transition: 'border-color 0.15s',
 };
 
@@ -221,7 +222,7 @@ export function MobileChapterActionSheet({
               aria-label="Close"
               onClick={onClose}
               style={{
-                width: 36, height: 36, borderRadius: 8, border: 'none',
+                width: 44, height: 44, borderRadius: 8, border: 'none',
                 background: 'rgba(0,0,0,0.06)', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--pl-ink-soft)', flexShrink: 0,
@@ -297,7 +298,7 @@ export function MobileChapterActionSheet({
                     padding: '10px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     background: chapter.layout === opt.id ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.05)',
                     color: chapter.layout === opt.id ? 'var(--pl-olive)' : 'var(--pl-ink-soft)',
-                    fontSize: '0.65rem', fontWeight: 600,
+                    fontSize: '0.75rem', fontWeight: 600,
                     minHeight: 44,
                     outline: chapter.layout === opt.id ? '1.5px solid rgba(163,177,138,0.4)' : '1.5px solid transparent',
                   }}

@@ -769,6 +769,7 @@ function EventSettings({
           value={event.time || ''}
           onChange={(v) => onUpdate({ time: v })}
           placeholder="e.g., 4:00 PM"
+          type="time"
         />
         <Field
           label="Venue"

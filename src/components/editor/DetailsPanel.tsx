@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useEditor } from '@/lib/editor-state';
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,12 +14,66 @@ import { SeatingCanvas } from '@/components/seating/SeatingCanvas';
 import { HotelFinderPanel } from './HotelFinderPanel';
 import { RsvpInsights } from '@/components/rsvp-insights';
 
+// ── Confirm-on-click delete button ───────────────────────────
+// First click shows "Sure?", reverts after 3s without second click
+function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, []);
+
+  const handleClick = () => {
+    if (confirming) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setConfirming(false);
+      onConfirm();
+    } else {
+      setConfirming(true);
+      timerRef.current = setTimeout(() => setConfirming(false), 3000);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      style={{
+        background: confirming ? '#ef4444' : 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: confirming ? '#fff' : 'var(--pl-muted)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '3px',
+        padding: confirming ? '2px 8px' : '2px',
+        borderRadius: '6px',
+        fontSize: '0.72rem',
+        fontWeight: confirming ? 700 : 400,
+        transition: 'all 0.15s',
+      }}
+      onMouseOver={e => { if (!confirming) (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+      onMouseOut={e => { if (!confirming) (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}
+    >
+      {confirming ? 'Sure?' : <Trash2 size={11} />}
+    </button>
+  );
+}
+
 export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const { state } = useEditor();
   const logistics = manifest.logistics || {};
   const occasion = manifest.occasion || 'wedding';
   const isEvent = occasion === 'wedding' || occasion === 'engagement';
-  const [openSection, setOpenSection] = useState<string | null>('couple');
+  // Auto-open the first section that has no data yet
+  const getDefaultSection = (): string => {
+    const hasEvents = (manifest.events?.length ?? 0) > 0;
+    const hasRegistry = (manifest.registry?.entries?.length ?? 0) > 0 || !!manifest.registry?.cashFundUrl;
+    if (!hasEvents) return 'theday';
+    if (!hasRegistry) return 'registry';
+    return 'couple';
+  };
+  const [openSection, setOpenSection] = useState<string | null>(getDefaultSection);
 
   // Auto-open section from contextual click
   useEffect(() => {
@@ -210,9 +264,26 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     setAiMealPreviews(prev => prev.filter(m => m.name !== name));
   }, []);
 
+  // ── Section completion checks ──
   type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection';
+  const sectionFilled: Record<SectionId, boolean> = {
+    couple: !!(logistics.dresscode || logistics.notes),
+    theday: !!(logistics.date || logistics.venue || (manifest.events?.length ?? 0) > 0),
+    registry: (manifest.registry?.entries?.length ?? 0) > 0 || !!manifest.registry?.cashFundUrl,
+    rsvp: !!logistics.rsvpDeadline || (manifest.mealOptions?.length ?? 0) > 0,
+    travel: (manifest.travelInfo?.airports?.length ?? 0) > 0 || (manifest.travelInfo?.hotels?.length ?? 0) > 0,
+    faq: (manifest.faqs?.length ?? 0) > 0,
+    vibe: !!manifest.vibeString,
+    seating: false, // Seating is advanced, not required
+    seo: !!(manifest.seoTitle || manifest.seoDescription),
+    protection: !!(manifest.sitePassword || manifest.comingSoon?.enabled),
+  };
+  const filledCount = Object.values(sectionFilled).filter(Boolean).length;
+  const totalSections = Object.keys(sectionFilled).length;
+
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => {
     const isOpen = openSection === id;
+    const isFilled = sectionFilled[id];
     return (
       <div style={{
         borderRadius: '16px', marginBottom: '4px',
@@ -233,8 +304,17 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         >
           <span style={{
             fontSize: '0.78rem', fontWeight: 800, letterSpacing: '0.08em',
-            textTransform: 'uppercase',
+            textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px',
           }}>
+            {isFilled && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: '16px', height: '16px', borderRadius: '50%',
+                background: 'var(--pl-olive, #A3B18A)', flexShrink: 0,
+              }}>
+                <Check size={9} color="#fff" strokeWidth={3} />
+              </span>
+            )}
             {label}
           </span>
           <motion.div
@@ -289,6 +369,32 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '24px' }}>
+      {/* Progress indicator */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '10px 12px', marginBottom: '4px',
+        borderRadius: '12px',
+        background: 'rgba(255,255,255,0.1)',
+        border: '1px solid rgba(255,255,255,0.15)',
+      }}>
+        <div style={{
+          flex: 1, height: '4px', borderRadius: '100px',
+          background: 'rgba(255,255,255,0.15)', overflow: 'hidden',
+        }}>
+          <div style={{
+            height: '100%', borderRadius: '100px',
+            background: 'var(--pl-olive, #A3B18A)',
+            width: `${Math.round((filledCount / totalSections) * 100)}%`,
+            transition: 'width 0.3s ease',
+          }} />
+        </div>
+        <span style={{
+          fontSize: '0.7rem', fontWeight: 700, color: 'var(--pl-muted)',
+          whiteSpace: 'nowrap',
+        }}>
+          {filledCount} of {totalSections} sections filled
+        </span>
+      </div>
       {/* FIX #4: Auto-save indicator */}
       <AnimatePresence>
         {showSaved && (
@@ -481,11 +587,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Registry {i + 1}</span>
-              <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}>
-                <Trash2 size={11} />
-              </button>
+              <ConfirmDeleteButton onConfirm={() => delEntry(i)} />
             </div>
             <Field label="Store Name" value={entry.name} onChange={v => updEntry(i, { name: v })} placeholder="Williams Sonoma" />
             <Field label="Registry URL" value={entry.url} onChange={v => updEntry(i, { url: v })} placeholder="https://..." />
@@ -631,11 +733,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                   <UtensilsCrossed size={10} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                   Meal {i + 1}
                 </span>
-                <button onClick={() => delMealOption(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
-                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}>
-                  <Trash2 size={11} />
-                </button>
+                <ConfirmDeleteButton onConfirm={() => delMealOption(i)} />
               </div>
               <Field label="Meal Name" value={meal.name} onChange={v => updMealOption(i, { name: v })} placeholder="Herb-Crusted Chicken" />
               <Field label="Description" value={meal.description || ''} onChange={v => updMealOption(i, { description: v })} placeholder="A tender chicken breast with golden herb crust..." rows={2} />
@@ -741,11 +839,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Hotel {i + 1}</span>
-              <button onClick={() => delHotel(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}>
-                <Trash2 size={11} />
-              </button>
+              <ConfirmDeleteButton onConfirm={() => delHotel(i)} />
             </div>
             <Field label="Hotel Name" value={hotel.name} onChange={v => updHotel(i, { name: v })} placeholder="Marriott Newport" />
             <Field label="Address" value={hotel.address} onChange={v => updHotel(i, { address: v })} placeholder="123 Main St" />
@@ -798,11 +892,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {faqs.map(faq => (
           <div key={faq.id} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={() => delFaq(faq.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
-                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}>
-                <Trash2 size={11} />
-              </button>
+              <ConfirmDeleteButton onConfirm={() => delFaq(faq.id)} />
             </div>
             <Field label="Question" value={faq.question} onChange={v => updFaq(faq.id, { question: v })} placeholder="Is the venue wheelchair accessible?" />
             <Field label="Answer" value={faq.answer} onChange={v => updFaq(faq.id, { answer: v })} rows={2} placeholder="Yes, the venue has full accessibility…" />

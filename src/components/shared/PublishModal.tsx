@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Globe, ArrowRight, Check } from 'lucide-react';
+import { Globe, ArrowRight, Check, Copy, ExternalLink, Mail, MessageCircle } from 'lucide-react';
 import { Modal, Button, Input } from '@/components/ui';
 import type { StoryManifest } from '@/types';
 
@@ -26,6 +26,31 @@ function CopyUrlButton({ url }: { url: string }) {
   );
 }
 
+function CopyLinkButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <motion.button
+      onClick={async () => {
+        try { await navigator.clipboard.writeText(url); } catch {}
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`w-full flex items-center justify-center gap-2.5 py-4 rounded-[var(--pl-radius-md)] font-semibold text-[1rem] transition-all duration-200 cursor-pointer border-0 ${
+        copied
+          ? 'bg-[var(--pl-olive)] text-white shadow-[0_8px_30px_rgba(163,177,138,0.4)]'
+          : 'bg-[var(--pl-cream)] text-[var(--pl-ink)] border border-[var(--pl-divider)] hover:bg-[var(--pl-olive-mist)]'
+      }`}
+    >
+      {copied ? <><Check size={16} /> Link Copied!</> : <><Copy size={16} /> Copy Link</>}
+    </motion.button>
+  );
+}
+
 interface PublishModalProps {
   open: boolean;
   onClose: () => void;
@@ -46,10 +71,22 @@ export function PublishModal({
   onSubdomainChange,
   onPublished,
 }: PublishModalProps) {
-  const [subdomain, setSubdomain] = useState(initialSubdomain);
+  // Auto-suggest a name from couple names
+  const suggestedName = useMemo(() => {
+    if (initialSubdomain) return initialSubdomain;
+    const [a, b] = coupleNames;
+    if (a?.trim() && b?.trim()) {
+      return `${a.trim().toLowerCase()}-and-${b.trim().toLowerCase()}`.replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-');
+    }
+    if (a?.trim()) return a.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    return '';
+  }, [coupleNames, initialSubdomain]);
+
+  const [subdomain, setSubdomain] = useState(suggestedName || initialSubdomain);
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleSubdomainChange = (val: string) => {
     const clean = val.toLowerCase().replace(/[^a-z0-9-]/g, '');
@@ -132,20 +169,23 @@ export function PublishModal({
             Share this link with your guests
           </motion.p>
 
-          {/* URL display with copy */}
+          {/* URL display — large and prominent */}
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55 }}
-            className="w-full flex items-center rounded-[var(--pl-radius-md)] overflow-hidden bg-[var(--pl-cream)] border border-[var(--pl-gold)]"
+            transition={{ delay: 0.5 }}
+            className="w-full rounded-[var(--pl-radius-md)] overflow-hidden bg-[var(--pl-cream)] border border-[var(--pl-gold)] p-4"
           >
-            <Globe size={15} className="ml-4 flex-shrink-0 text-[var(--pl-olive)]" />
-            <span className="flex-1 py-3.5 px-3 text-[0.9rem] text-[var(--pl-ink)] font-medium tracking-tight break-all">
+            <Globe size={18} className="mx-auto mb-2 text-[var(--pl-olive)]" />
+            <div className="text-[1.15rem] text-[var(--pl-ink)] font-bold tracking-tight break-all leading-snug">
               {publishedUrl.replace(/^https?:\/\//, '')}
-            </span>
-            <CopyUrlButton url={publishedUrl} />
+            </div>
           </motion.div>
 
+          {/* Copy Link — big primary action */}
+          <CopyLinkButton url={publishedUrl} />
+
+          {/* View Your Site */}
           <motion.a
             href={publishedUrl}
             target="_blank"
@@ -157,10 +197,38 @@ export function PublishModal({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Open Your Site <ArrowRight size={16} />
+            <ExternalLink size={16} /> View Your Site
           </motion.a>
 
-          <div className="flex gap-3 w-full">
+          {/* Share options */}
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75 }}
+            className="flex gap-3 w-full"
+          >
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`Check out our wedding site: ${publishedUrl}`)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-[var(--pl-radius-md)] no-underline font-medium text-[0.85rem] text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/5 transition-colors"
+            >
+              <MessageCircle size={15} /> WhatsApp
+            </a>
+            <a
+              href={`mailto:?subject=${encodeURIComponent('Our Wedding Site')}&body=${encodeURIComponent(`We are so excited to share our wedding site with you: ${publishedUrl}`)}`}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-[var(--pl-radius-md)] no-underline font-medium text-[0.85rem] text-[var(--pl-ink)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] transition-colors"
+            >
+              <Mail size={15} /> Email
+            </a>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9 }}
+            className="flex gap-3 w-full"
+          >
             <a
               href={`/rsvps?domain=${subdomain}`}
               className="flex-1 flex items-center justify-center py-3.5 rounded-[var(--pl-radius-md)] no-underline font-medium text-[0.9rem] text-[var(--pl-ink)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] transition-colors"
@@ -171,9 +239,9 @@ export function PublishModal({
               onClick={handleClose}
               className="flex-1 bg-transparent cursor-pointer font-medium text-[0.9rem] text-[var(--pl-muted)] rounded-[var(--pl-radius-md)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] hover:text-[var(--pl-ink)] transition-colors"
             >
-              Dashboard
+              Done
             </button>
-          </div>
+          </motion.div>
         </div>
       ) : (
         /* ── URL input state ── */
