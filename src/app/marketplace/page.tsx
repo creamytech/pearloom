@@ -20,6 +20,8 @@ import { SITE_TEMPLATES, searchTemplates as searchSiteTemplates } from '@/lib/te
 import { COLOR_THEMES, searchColorThemes } from '@/lib/templates/color-themes';
 import { MARKETPLACE_CATEGORIES, formatPrice } from '@/lib/marketplace';
 import { MARKETPLACE_PACKS, searchPacks } from '@/lib/marketplace-assets';
+import { generateHeroIllustration } from '@/lib/hero-illustrations';
+import { getThemeArt } from '@/lib/theme-art';
 import { Button } from '@/components/ui/button';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 
@@ -246,49 +248,63 @@ export default function MarketplacePage() {
                             overflow: 'hidden',
                           }}
                         >
-                          {/* Cover photo or gradient as hero preview */}
-                          {template.coverPhoto ? (
-                            <>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={`${template.coverPhoto}&w=600&h=400`}
-                                alt=""
-                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                              />
-                              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)' }} />
-                            </>
-                          ) : (
-                            <div style={{ position: 'absolute', inset: 0, background: template.previewGradient }} />
-                          )}
+                          {/* Custom SVG illustration background */}
+                          {(() => {
+                            const heroSvg = generateHeroIllustration(template.id, {
+                              background: colors.background,
+                              accent: colors.accent,
+                              accent2: colors.accentLight,
+                              foreground: colors.foreground,
+                            });
+                            const art = getThemeArt(template.id);
+                            return (
+                              <>
+                                {/* Illustrated background */}
+                                <div
+                                  style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+                                  dangerouslySetInnerHTML={{ __html: heroSvg }}
+                                />
 
-                          {/* Mini hero text overlay */}
-                          <div style={{
-                            position: 'absolute', inset: 0, display: 'flex',
-                            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                            padding: '16px', textAlign: 'center', zIndex: 2,
-                          }}>
-                            <div style={{
-                              fontFamily: `"${fonts.heading}", serif`,
-                              fontSize: viewMode === 'list' ? '1rem' : '1.4rem',
-                              fontStyle: 'italic', fontWeight: 400,
-                              color: template.coverPhoto ? '#ffffff' : colors.foreground,
-                              lineHeight: 1.1, letterSpacing: '-0.02em',
-                              textShadow: template.coverPhoto ? '0 2px 12px rgba(0,0,0,0.4)' : 'none',
-                            }}>
-                              Emma<br /><span style={{ fontSize: '0.6em', opacity: 0.7 }}>&</span><br />James
-                            </div>
-                            {template.poetry.heroTagline && (
-                              <div style={{
-                                fontFamily: `"${fonts.body}", sans-serif`,
-                                fontSize: '0.55rem', fontStyle: 'italic',
-                                color: template.coverPhoto ? 'rgba(255,255,255,0.7)' : colors.muted,
-                                marginTop: '6px', letterSpacing: '0.04em',
-                                textShadow: template.coverPhoto ? '0 1px 4px rgba(0,0,0,0.3)' : 'none',
-                              }}>
-                                {template.poetry.heroTagline}
-                              </div>
-                            )}
-                          </div>
+                                {/* Corner decorations from theme art */}
+                                {art.cornerSvg && (
+                                  <>
+                                    <div style={{ position: 'absolute', top: 8, left: 8, width: 40, height: 40, zIndex: 1, opacity: 0.6 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                                    <div style={{ position: 'absolute', top: 8, right: 8, width: 40, height: 40, zIndex: 1, opacity: 0.6, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                                  </>
+                                )}
+
+                                {/* Template name + tagline overlay */}
+                                <div style={{
+                                  position: 'absolute', inset: 0, display: 'flex',
+                                  flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                  padding: '16px', textAlign: 'center', zIndex: 2,
+                                }}>
+                                  {/* Heading decoration from block art */}
+                                  {art.blockArt?.headingDecor && (
+                                    <div style={{ width: 80, height: 12, marginBottom: 8, opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
+                                  )}
+                                  <div style={{
+                                    fontFamily: `"${fonts.heading}", serif`,
+                                    fontSize: viewMode === 'list' ? '0.85rem' : '1.15rem',
+                                    fontStyle: 'italic', fontWeight: 400,
+                                    color: colors.foreground,
+                                    lineHeight: 1.15, letterSpacing: '-0.02em',
+                                  }}>
+                                    Emma <span style={{ fontSize: '0.6em', opacity: 0.5 }}>&amp;</span> James
+                                  </div>
+                                  <div style={{
+                                    fontFamily: `"${fonts.body}", sans-serif`,
+                                    fontSize: '0.5rem', fontStyle: 'italic',
+                                    color: colors.muted,
+                                    marginTop: '4px', letterSpacing: '0.04em',
+                                    maxWidth: '85%',
+                                  }}>
+                                    {template.poetry.heroTagline}
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
 
                           {/* Color palette strip at bottom */}
                           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: '3px', zIndex: 3 }}>
