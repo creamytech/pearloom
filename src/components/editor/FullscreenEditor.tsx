@@ -920,7 +920,7 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
 
       {/* Welcome */}
       <AnimatePresence>
-        {state.showWelcome && <WelcomeOverlay onDismiss={() => dispatch({ type: 'SET_WELCOME', show: false })} />}
+        {state.showWelcome && <WelcomeOverlay onDismiss={() => dispatch({ type: 'SET_WELCOME', show: false })} siteName={state.subdomain} manifest={manifest} coupleNames={coupleNames} />}
       </AnimatePresence>
 
       {/* Guided tour (first-time only) + Getting started checklist */}

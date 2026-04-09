@@ -1,18 +1,88 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / WelcomeOverlay.tsx — "Your site is ready" screen
-// Warm glass entrance with cinematic reveal
+// Pearloom / WelcomeOverlay.tsx — Context-aware welcome screen
+// First visit: "Your site is ready" with editing hints
+// Returning: Personalized greeting with site stats
 // ─────────────────────────────────────────────────────────────
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import type { StoryManifest } from '@/types';
 
 interface WelcomeOverlayProps {
   onDismiss: () => void;
   siteName?: string;
+  manifest?: StoryManifest;
+  coupleNames?: [string, string];
 }
 
-export function WelcomeOverlay({ onDismiss, siteName }: WelcomeOverlayProps) {
+const VISIT_KEY = 'pearloom_editor_visits';
+
+function getVisitCount(): number {
+  try { return parseInt(localStorage.getItem(VISIT_KEY) || '0', 10); } catch { return 0; }
+}
+
+function incrementVisit(): void {
+  try { localStorage.setItem(VISIT_KEY, String(getVisitCount() + 1)); } catch {}
+}
+
+function getTimeGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function getSiteStats(manifest?: StoryManifest) {
+  if (!manifest) return null;
+  const rsvpCount = manifest.rsvps?.length || 0;
+  const attending = manifest.rsvps?.filter(r => r.status === 'attending').length || 0;
+  const guestbookCount = (manifest as any).guestbookMessages?.length || 0;
+  const chapterCount = manifest.chapters?.length || 0;
+  const eventCount = manifest.events?.length || 0;
+  const photoCount = manifest.chapters?.reduce((sum, ch) => sum + (ch.images?.length || 0), 0) || 0;
+  const hasBlocks = (manifest.blocks?.length || 0) > 0;
+
+  const stats: Array<{ label: string; value: string }> = [];
+  if (rsvpCount > 0) stats.push({ label: 'RSVPs', value: `${attending} attending` });
+  if (guestbookCount > 0) stats.push({ label: 'Messages', value: `${guestbookCount} new` });
+  if (photoCount > 0) stats.push({ label: 'Photos', value: String(photoCount) });
+  if (chapterCount > 0) stats.push({ label: 'Chapters', value: String(chapterCount) });
+  if (eventCount > 0) stats.push({ label: 'Events', value: String(eventCount) });
+
+  return { rsvpCount, attending, guestbookCount, chapterCount, eventCount, photoCount, hasBlocks, stats };
+}
+
+export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: WelcomeOverlayProps) {
+  const [isReturning, setIsReturning] = useState(false);
+
+  useEffect(() => {
+    const visits = getVisitCount();
+    setIsReturning(visits > 0);
+    incrementVisit();
+  }, []);
+
+  const stats = getSiteStats(manifest);
+  const firstName = coupleNames?.[0] || '';
+  const greeting = getTimeGreeting();
+
+  // ── Returning user content ─────────────────────────────────
+  const returningTitle = firstName ? `${greeting}, ${firstName}` : `${greeting}!`;
+  const returningSubtitle = stats?.rsvpCount
+    ? `You have ${stats.attending} guest${stats.attending !== 1 ? 's' : ''} attending so far.`
+    : stats?.hasBlocks
+      ? 'Your site is looking great. Keep building!'
+      : 'Pick up where you left off.';
+
+  // ── First visit content ─────────────────────────────────────
+  const firstTitle = 'Your site is ready';
+  const firstSubtitle = 'Click any section to edit it. Drag to rearrange. Make it yours.';
+
+  const title = isReturning ? returningTitle : firstTitle;
+  const subtitle = isReturning ? returningSubtitle : firstSubtitle;
+  const ctaText = isReturning ? 'Continue editing' : 'Click anywhere to start editing';
+
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -85,7 +155,7 @@ export function WelcomeOverlay({ onDismiss, siteName }: WelcomeOverlayProps) {
             marginBottom: '1.5rem',
           }}
         >
-          ✦
+          {isReturning ? '👋' : '✦'}
         </motion.div>
 
         {/* Title */}
@@ -95,7 +165,7 @@ export function WelcomeOverlay({ onDismiss, siteName }: WelcomeOverlayProps) {
           transition={{ duration: 0.8, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
           style={{
             fontFamily: 'var(--pl-font-heading)',
-            fontSize: 'clamp(1.8rem, 5vw, 2.8rem)',
+            fontSize: isReturning ? 'clamp(1.5rem, 4vw, 2.2rem)' : 'clamp(1.8rem, 5vw, 2.8rem)',
             fontWeight: 400, fontStyle: 'italic',
             color: 'var(--pl-ink-soft)',
             letterSpacing: '-0.02em',
@@ -104,11 +174,11 @@ export function WelcomeOverlay({ onDismiss, siteName }: WelcomeOverlayProps) {
             lineHeight: 1.15,
           }}
         >
-          Your site is ready
+          {title}
         </motion.h1>
 
         {/* Site name */}
-        {siteName && (
+        {siteName && !isReturning && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -124,7 +194,7 @@ export function WelcomeOverlay({ onDismiss, siteName }: WelcomeOverlayProps) {
           </motion.p>
         )}
 
-        {/* Subtitle */}
+        {/* Subtitle / stats */}
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -135,11 +205,39 @@ export function WelcomeOverlay({ onDismiss, siteName }: WelcomeOverlayProps) {
             textAlign: 'center',
             lineHeight: 1.6,
             maxWidth: '320px',
-            margin: '0 0 2rem',
+            margin: '0 0 1.5rem',
           }}
         >
-          Double-click any text to edit it. Drag sections to rearrange. Click anywhere to begin.
+          {subtitle}
         </motion.p>
+
+        {/* Quick stats for returning users */}
+        {isReturning && stats && stats.stats.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.5 }}
+            style={{
+              display: 'flex', gap: '16px', marginBottom: '1.5rem',
+              flexWrap: 'wrap', justifyContent: 'center',
+            }}
+          >
+            {stats.stats.slice(0, 3).map((s) => (
+              <div
+                key={s.label}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '8px 16px', borderRadius: '12px',
+                  background: 'rgba(163,177,138,0.08)',
+                  border: '1px solid rgba(163,177,138,0.15)',
+                }}
+              >
+                <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--pl-olive-deep)' }}>{s.value}</span>
+                <span style={{ fontSize: '0.6rem', fontWeight: 600, color: 'var(--pl-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
+              </div>
+            ))}
+          </motion.div>
+        )}
 
         {/* CTA hint */}
         <motion.div
@@ -156,7 +254,7 @@ export function WelcomeOverlay({ onDismiss, siteName }: WelcomeOverlayProps) {
             letterSpacing: '0.06em',
           }}
         >
-          Click anywhere to start editing
+          {ctaText}
         </motion.div>
       </motion.div>
     </motion.div>
