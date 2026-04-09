@@ -867,6 +867,36 @@ function DesignSettings({
           />
         )}
 
+        {/* ── Page Layout Mode ── */}
+        {section === 'nav' && (
+          <div>
+            <label style={lbl}>Site Layout</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              {([
+                { id: 'multi-page', label: 'Separate Pages', desc: 'Each section is its own page' },
+                { id: 'single-scroll', label: 'Single Scroll', desc: 'One long scrollable page' },
+              ] as const).map(mode => {
+                const active = (manifest.pageMode || 'multi-page') === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    onClick={() => onUpdate({ pageMode: mode.id })}
+                    style={{
+                      padding: '10px 6px', borderRadius: 12, textAlign: 'center',
+                      border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(0,0,0,0.06)',
+                      background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.75)',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: active ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{mode.label}</div>
+                    <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: 2 }}>{mode.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* ── Desktop Nav Style ── */}
         {section === 'nav' && (
           <div>

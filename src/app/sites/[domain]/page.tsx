@@ -995,7 +995,17 @@ export default async function SubdomainSite({ params }: { params: Promise<{ doma
       <link rel="stylesheet" href={fontUrl} />
 
       <div style={{ ...siteVarsStyle, scrollBehavior: 'smooth' }}>
-        <SiteNav names={safeNames} pages={sitePages} logoIcon={manifest.logoIcon} logoSvg={manifest.logoSvg} navStyle={manifest.navStyle} />
+        <SiteNav
+          names={safeNames}
+          pages={sitePages}
+          logoIcon={manifest.logoIcon}
+          logoSvg={manifest.logoSvg}
+          navStyle={manifest.navStyle}
+          navOpacity={manifest.navOpacity}
+          navBackground={manifest.navBackground}
+          mobileNavStyle={manifest.mobileNavStyle}
+          {...(manifest.pageMode === 'single-scroll' ? { pageHrefOverride: (slug: string) => slug === '' ? '#' : `#${slug}` } : {})}
+        />
 
         {manifest.logistics?.date && (
           <WeddingDayBanner

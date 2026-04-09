@@ -108,6 +108,8 @@ export interface StoryManifest {
   // Nav bar customization — opacity (0-100) and custom background color
   navOpacity?: number;
   navBackground?: string;
+  // Site layout mode: multi-page (each section = separate page) or single-scroll (one long page)
+  pageMode?: 'multi-page' | 'single-scroll';
   // SEO
   seoTitle?: string;
   seoDescription?: string;

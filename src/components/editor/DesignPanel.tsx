@@ -128,6 +128,41 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* Page layout mode */}
+      <div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+          Site Layout
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          {([
+            { id: 'multi-page', label: 'Separate Pages', desc: 'Each section is its own page' },
+            { id: 'single-scroll', label: 'Single Scroll', desc: 'Everything on one long page' },
+          ] as const).map(mode => {
+            const isActive = (manifest.pageMode || 'multi-page') === mode.id;
+            return (
+              <button
+                key={mode.id}
+                onClick={() => onChange({ ...manifest, pageMode: mode.id })}
+                style={{
+                  padding: '12px 8px', borderRadius: '12px', textAlign: 'center',
+                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink)' }}>{mode.label}</div>
+                <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '2px' }}>{mode.desc}</div>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '6px', lineHeight: 1.4 }}>
+          {(manifest.pageMode || 'multi-page') === 'multi-page'
+            ? 'Guests navigate between pages like a real website. Best for sites with lots of content.'
+            : 'All content on one page that guests scroll through. Great for minimal sites.'}
+        </div>
+      </div>
+
       {/* Logo icon picker */}
       <div>
         <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
