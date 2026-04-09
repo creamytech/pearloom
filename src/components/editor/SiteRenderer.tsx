@@ -779,7 +779,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       case 'event':
-        if (!manifest.events?.length) return null;
+        if (!manifest.events?.length) return editMode ? (
+          <section key={key} data-pe-section="events" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📅</div>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Events</div>
+              <p style={{ fontSize: '0.85rem' }}>Add your ceremony, reception, and other events in the Events panel</p>
+            </div>
+          </section>
+        ) : null;
         return (
           <section key={key} id="schedule" data-pe-section="events" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
             {art.cornerSvg && (
@@ -810,7 +818,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       case 'rsvp':
-        if (!manifest.events?.length) return null;
+        if (!manifest.events?.length) return editMode ? (
+          <section key={key} data-pe-section="rsvp" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>💌</div>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>RSVP</div>
+              <p style={{ fontSize: '0.85rem' }}>Add events first — the RSVP form will appear here for your guests</p>
+            </div>
+          </section>
+        ) : null;
         return (
           <section key={key} id="rsvp" data-pe-section="rsvp" style={{ position: 'relative', ...blockStyle }}>
             {art.cornerSvg && (
@@ -834,13 +850,37 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       case 'registry':
-        if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
+        if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return editMode ? (
+          <section key={key} data-pe-section="registry" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🎁</div>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Registry</div>
+              <p style={{ fontSize: '0.85rem' }}>Add registry links in Details → Registry</p>
+            </div>
+          </section>
+        ) : null;
         return <section key={key} id="registry" data-pe-section="registry" style={blockStyle}><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section>;
       case 'travel':
-        if (!manifest.travelInfo) return null;
+        if (!manifest.travelInfo) return editMode ? (
+          <section key={key} data-pe-section="travel" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>✈️</div>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Travel & Hotels</div>
+              <p style={{ fontSize: '0.85rem' }}>Add hotel and travel info in Details → Travel</p>
+            </div>
+          </section>
+        ) : null;
         return <section key={key} id="travel" data-pe-section="travel" style={blockStyle}><TravelSection info={manifest.travelInfo} /></section>;
       case 'faq':
-        if (!manifest.faqs?.length) return null;
+        if (!manifest.faqs?.length) return editMode ? (
+          <section key={key} data-pe-section="faq" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>❓</div>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>FAQ</div>
+              <p style={{ fontSize: '0.85rem' }}>Add frequently asked questions in Details → FAQ</p>
+            </div>
+          </section>
+        ) : null;
         return (
           <section key={key} id="faq" data-pe-section="faq" style={{ position: 'relative', ...blockStyle }}>
             {art.cornerSvg && (
@@ -880,7 +920,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       }
       case 'text': {
         const textContent = blockCfg.content as string | undefined;
-        if (!textContent) return null;
+        if (!textContent) return editMode ? (
+          <section key={key} data-pe-section="text" style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+            <div style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📝</div>
+              <p style={{ fontSize: '0.85rem' }}>Click to add text content</p>
+            </div>
+          </section>
+        ) : null;
         return (
           <section key={key} data-pe-section="text" style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto' }}>
             <p
@@ -922,7 +969,15 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'photos': {
         const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
-        if (!allPhotos.length) return null;
+        if (!allPhotos.length) return editMode ? (
+          <section key={key} data-pe-section="photos" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
+            <div style={{ padding: '3rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📷</div>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1.2rem', color: safeFg, marginBottom: '0.5rem' }}>Photo Gallery</div>
+              <p style={{ fontSize: '0.85rem' }}>Add photos to your story chapters — they&apos;ll appear here</p>
+            </div>
+          </section>
+        ) : null;
         return (
           <section key={key} data-pe-section="photos" style={{ position: 'relative', padding: '4rem 2rem' }}>
             {art.cornerSvg && (
@@ -1067,7 +1122,17 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'vibeQuote':
       case 'welcome': {
         const statement = block.type === 'welcome' ? manifest.poetry?.welcomeStatement : (vibeSkin.dividerQuote || manifest.vibeString);
-        if (!statement) return null;
+        if (!statement) return editMode ? (
+          <section key={key} data-pe-section={block.type} style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+            <div style={{ padding: '2.5rem', borderRadius: '1rem', border: `2px dashed ${pal.accent}30`, color: safeMuted }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{block.type === 'welcome' ? '👋' : '✨'}</div>
+              <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: '1rem', color: safeFg, marginBottom: '0.25rem' }}>
+                {block.type === 'welcome' ? 'Welcome Message' : 'Vibe Quote'}
+              </div>
+              <p style={{ fontSize: '0.85rem' }}>Click to add {block.type === 'welcome' ? 'a welcome statement' : 'an atmospheric quote'}</p>
+            </div>
+          </section>
+        ) : null;
         return (
           <section key={key} data-pe-section={block.type} style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
             {/* Theme art: decorative accent above vibeQuote (not welcome) */}
@@ -1088,18 +1153,40 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       }
-      case 'quiz':
+      case 'quiz': {
+        const quizQuestions = (blockCfg.questions as Array<{ question: string; options?: string[]; answer?: string }>) || [];
+        const quizTitle = (blockCfg.quizTitle as string) || 'How Well Do You Know Us?';
         return (
           <section key={key} data-pe-section="quiz" style={{ padding: '4rem 2rem', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-            <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
-              How Well Do You Know Us?
+            <h2 data-pe-editable="true" data-pe-path={`blocks.${manifest.blocks?.findIndex(b => b.id === block.id) ?? 0}.config.quizTitle`} style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
+              {quizTitle}
             </h2>
             <p style={{ color: safeMuted, marginBottom: '2rem' }}>Take the couple quiz and see how you score!</p>
-            <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20` }}>
-              <p style={{ color: safeMuted, fontStyle: 'italic' }}>Quiz questions will appear here for your guests</p>
-            </div>
+            {quizQuestions.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
+                {quizQuestions.map((q, qi) => (
+                  <div key={qi} style={{ padding: '1.25rem', borderRadius: '12px', background: `${pal.card}60`, border: `1px solid ${pal.accent}15` }}>
+                    <div style={{ fontWeight: 600, color: safeFg, fontSize: '0.92rem', marginBottom: '0.75rem' }}>
+                      {qi + 1}. {q.question}
+                    </div>
+                    {(q.options || []).map((opt, oi) => (
+                      <div key={oi} style={{ padding: '0.5rem 0.75rem', marginBottom: '0.25rem', borderRadius: '8px', background: `${pal.accent}08`, fontSize: '0.85rem', color: safeFg, opacity: 0.8 }}>
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20` }}>
+                <p style={{ color: safeMuted, fontStyle: 'italic' }}>
+                  {editMode ? 'Add quiz questions in the block settings' : 'Quiz questions will appear here for your guests'}
+                </p>
+              </div>
+            )}
           </section>
         );
+      }
       case 'photoWall':
       case 'gallery': {
         const photos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 12) || [];
@@ -1138,23 +1225,33 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       }
-      case 'anniversary':
+      case 'anniversary': {
+        const annMilestones = (blockCfg.milestones as Array<{ label: string; date?: string; emoji?: string }>) || [];
+        const weddingDateStr = manifest.events?.[0]?.date || manifest.logistics?.date;
+        const defaultMilestones = annMilestones.length > 0 ? annMilestones : [
+          { label: 'First Date', emoji: '💕', date: '' },
+          { label: 'Engaged', emoji: '💍', date: '' },
+          { label: weddingDateStr ? 'Wedding Day' : '1 Year', emoji: '🎂', date: weddingDateStr || '' },
+          { label: 'Today', emoji: '✨', date: new Date().toISOString().slice(0, 10) },
+        ];
         return (
           <section key={key} data-pe-section="anniversary" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
             <div style={{ fontSize: '2rem', color: pal.accent, opacity: 0.4, marginBottom: '1rem' }}>{vibeSkin.accentSymbol || '✦'}</div>
-            <h2 data-pe-editable="true" data-pe-path="poetry.anniversaryTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1rem' }}>
-              Anniversary Milestones
+            <h2 data-pe-editable="true" data-pe-path="poetry.anniversaryTitle" style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg, marginBottom: '1.5rem' }}>
+              {(blockCfg.title as string) || 'Anniversary Milestones'}
             </h2>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-              {['First Date', '1 Year', '5 Years', 'Today'].map((milestone, i) => (
-                <div key={i} style={{ padding: '1rem', borderRadius: '12px', background: `${pal.accent}10`, border: `1px solid ${pal.accent}20`, minWidth: '100px' }}>
-                  <div style={{ fontSize: '1.5rem', color: pal.accent, marginBottom: '0.25rem' }}>{['💕', '🎂', '🌟', '✨'][i]}</div>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 600, color: safeFg }}>{milestone}</div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(0.75rem, 2vw, 2rem)', flexWrap: 'wrap' }}>
+              {defaultMilestones.map((m, i) => (
+                <div key={i} style={{ padding: '1.25rem 1rem', borderRadius: '16px', background: `${pal.accent}0D`, border: `1px solid ${pal.accent}20`, minWidth: '110px', maxWidth: '140px' }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{m.emoji || ['💕', '💍', '🎂', '✨'][i % 4]}</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: safeFg }}>{m.label}</div>
+                  {m.date && <div style={{ fontSize: '0.7rem', color: safeMuted, marginTop: '0.25rem' }}>{m.date}</div>}
                 </div>
               ))}
             </div>
           </section>
         );
+      }
       case 'storymap':
         return (
           <section key={key} data-pe-section="storymap" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>

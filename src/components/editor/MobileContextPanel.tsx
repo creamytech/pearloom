@@ -261,6 +261,30 @@ export function MobileContextPanel({
       case 'weddingParty':
         return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="weddingParty" label="Wedding Party" />;
 
+      case 'vibeQuote':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="vibeQuote" label="Vibe Quote" />;
+
+      case 'welcome':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="welcome" label="Welcome Message" />;
+
+      case 'anniversary':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="anniversary" label="Anniversary" />;
+
+      case 'storymap':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="storymap" label="Story Map" />;
+
+      case 'quiz':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="quiz" label="Couple Quiz" />;
+
+      case 'photoWall':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="photoWall" label="Photo Wall" />;
+
+      case 'gallery':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="gallery" label="Gallery" />;
+
+      case 'footer':
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="footer" label="Footer" />;
+
       default:
         return (
           <div style={{ ...sectionPad, color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)' }}>
@@ -1138,12 +1162,20 @@ function BlockSettings({
           />
         )}
         {blockType === 'countdown' && (
-          <Field
-            label="Countdown Label"
-            value={(config.label as string) || ''}
-            onChange={(v) => updateBlockConfig({ label: v })}
-            placeholder="Until the big day..."
-          />
+          <>
+            <Field
+              label="Target Date"
+              value={(config.date as string) || ''}
+              onChange={(v) => updateBlockConfig({ date: v })}
+              placeholder="2025-06-15"
+            />
+            <Field
+              label="Countdown Label"
+              value={(config.label as string) || ''}
+              onChange={(v) => updateBlockConfig({ label: v })}
+              placeholder="Until the big day..."
+            />
+          </>
         )}
         {blockType === 'divider' && (
           <Field
@@ -1151,6 +1183,45 @@ function BlockSettings({
             value={(config.symbol as string) || ''}
             onChange={(v) => updateBlockConfig({ symbol: v })}
             placeholder="A decorative symbol..."
+          />
+        )}
+        {(blockType === 'vibeQuote' || blockType === 'welcome') && (
+          <Field
+            label={blockType === 'welcome' ? 'Welcome Statement' : 'Quote Text'}
+            value={blockType === 'welcome' ? (manifest.poetry?.welcomeStatement || '') : (manifest.vibeSkin?.dividerQuote || manifest.vibeString || '')}
+            onChange={(v) => {
+              if (blockType === 'welcome') {
+                onUpdate({ poetry: { ...(manifest.poetry as any || {}), welcomeStatement: v } as StoryManifest['poetry'] });
+              } else {
+                onUpdate({ vibeSkin: manifest.vibeSkin ? { ...manifest.vibeSkin, dividerQuote: v } : manifest.vibeSkin });
+              }
+            }}
+            rows={3}
+            placeholder={blockType === 'welcome' ? 'Welcome to our celebration...' : 'A meaningful quote...'}
+          />
+        )}
+        {blockType === 'quiz' && (
+          <Field
+            label="Quiz Title"
+            value={(config.quizTitle as string) || ''}
+            onChange={(v) => updateBlockConfig({ quizTitle: v })}
+            placeholder="How Well Do You Know Us?"
+          />
+        )}
+        {blockType === 'hashtag' && (
+          <Field
+            label="Hashtag"
+            value={(config.hashtag as string) || ''}
+            onChange={(v) => updateBlockConfig({ hashtag: v })}
+            placeholder="SmithAndJones2025"
+          />
+        )}
+        {blockType === 'footer' && (
+          <Field
+            label="Footer Text"
+            value={(config.text as string) || (manifest.poetry?.closingLine || '')}
+            onChange={(v) => updateBlockConfig({ text: v })}
+            placeholder="Made with love"
           />
         )}
       </div>
