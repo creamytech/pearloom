@@ -85,6 +85,8 @@ export function AICommandBar() {
   const [status, setStatus] = useState<BarStatus>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [pearReply, setPearReply] = useState('');
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'pear'; text: string; action?: string; data?: Record<string, unknown> | null; ts: number }>>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -106,6 +108,7 @@ export function AICommandBar() {
     setStatus('idle');
     setErrorMsg('');
     setPearReply('');
+    setMessages([]);
   }, []);
 
   // ── Keyboard shortcut: "/" opens, ESC closes ──────────────
@@ -130,6 +133,18 @@ export function AICommandBar() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [expanded, open, close]);
+
+  // ── Auto-scroll messages ──────────────────────────────────
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages.length]);
+
+  // ── Intro message on first open ──────────────────────────
+  useEffect(() => {
+    if (expanded && messages.length === 0) {
+      setMessages([{ role: 'pear', text: "Hey! I'm Pear 🍐 What can I help with today?", ts: Date.now() }]);
+    }
+  }, [expanded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Listen for pear-command events from empty state buttons ──
 
@@ -298,6 +313,8 @@ export function AICommandBar() {
       return;
     }
 
+    // Add user message to conversation
+    setMessages(prev => [...prev, { role: 'user', text: trimmed, ts: Date.now() }]);
     setStatus('loading');
     setErrorMsg('');
     abortRef.current?.abort();
@@ -318,7 +335,9 @@ export function AICommandBar() {
         if (data.faqs) {
           const existing = manifest.faqs || [];
           actions.handleChatManifestUpdate({ faqs: [...existing, ...data.faqs] });
-          setPearReply(`Added ${data.faqs.length} FAQs to your site! You can edit them in the FAQ section. — Pear`);
+          const faqReply = `Added ${data.faqs.length} FAQs to your site! You can edit them in the FAQ section. — Pear`;
+          setPearReply(faqReply);
+          setMessages(prev => [...prev, { role: 'pear', text: faqReply, action: 'update_faqs', ts: Date.now() }]);
           setInputVal('');
           setStatus('reply');
         } else {
@@ -345,6 +364,7 @@ export function AICommandBar() {
         // Always show Pear's reply if there is one
         if (reply) {
           setPearReply(reply);
+          setMessages(prev => [...prev, { role: 'pear', text: reply, action: data.action, data: data.data, ts: Date.now() }]);
           setInputVal('');
           setStatus('reply');
         } else {
@@ -533,6 +553,64 @@ export function AICommandBar() {
               )}
             </AnimatePresence>
 
+            {/* Conversation thread */}
+            {messages.length > 0 && (
+              <div style={{
+                maxHeight: '280px', overflowY: 'auto', padding: '12px 16px 4px',
+                display: 'flex', flexDirection: 'column', gap: '8px',
+                borderBottom: '1px solid rgba(163,177,138,0.12)',
+              }}>
+                {messages.map((msg, i) => (
+                  <div key={i} style={{
+                    display: 'flex', gap: '8px',
+                    flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                    alignItems: 'flex-start',
+                  }}>
+                    {msg.role === 'pear' && (
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                        <PearIcon size={13} color={OLIVE} />
+                      </div>
+                    )}
+                    <div style={{
+                      maxWidth: '80%', padding: '8px 12px', borderRadius: '14px',
+                      fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
+                      background: msg.role === 'user' ? 'rgba(163,177,138,0.12)' : 'rgba(250,247,242,0.8)',
+                      color: 'var(--pl-ink-soft, #3D3530)',
+                      border: msg.role === 'pear' ? '1px solid rgba(163,177,138,0.1)' : 'none',
+                    }}>
+                      {msg.text}
+                      {/* Visual change preview */}
+                      {msg.action === 'update_theme' && msg.data && typeof msg.data === 'object' && 'colors' in msg.data && (
+                        <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                          {Object.values((msg.data as { colors: Record<string, string> }).colors).slice(0, 6).map((c: string, ci: number) => (
+                            <div key={ci} style={{ width: 18, height: 18, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.1)' }} />
+                          ))}
+                        </div>
+                      )}
+                      {msg.action === 'update_events' && msg.data && typeof msg.data === 'object' && 'events' in msg.data && (
+                        <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--pl-muted)' }}>
+                          {((msg.data as { events: Array<{ name: string }> }).events).map((e, ei) => (
+                            <div key={ei}>• {e.name}</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {status === 'loading' && (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(163,177,138,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <PearIcon size={13} color={OLIVE} />
+                    </div>
+                    <div style={{ padding: '8px 12px', borderRadius: 14, background: 'rgba(250,247,242,0.8)', fontSize: '0.82rem', color: 'var(--pl-muted)' }}>
+                      <span style={{ animation: 'pulse 1.5s infinite' }}>Pear is thinking...</span>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+
             {/* Input row */}
             <div style={{
               display: 'flex',
@@ -568,33 +646,6 @@ export function AICommandBar() {
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* Pear's reply bubble — shown above input when Pear responds */}
-              {status === 'reply' && pearReply && (
-                <div style={{
-                  position: 'absolute', bottom: '100%', left: 0, right: 0,
-                  marginBottom: '8px', padding: '12px 16px',
-                  borderRadius: '16px',
-                  background: 'rgba(250,247,242,0.95)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(163,177,138,0.2)',
-                  boxShadow: '0 4px 20px rgba(43,30,20,0.08)',
-                  maxHeight: '200px', overflowY: 'auto',
-                } as React.CSSProperties}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                    <PearIcon size={16} color={OLIVE} style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <p style={{
-                      margin: 0, fontSize: '0.85rem', lineHeight: 1.55,
-                      color: 'var(--pl-ink-soft, #3D3530)',
-                      fontFamily: 'var(--pl-font-body, Inter, sans-serif)',
-                      whiteSpace: 'pre-wrap',
-                    }}>
-                      {pearReply}
-                    </p>
-                  </div>
-                </div>
-              )}
 
               {/* Input field */}
               <input
