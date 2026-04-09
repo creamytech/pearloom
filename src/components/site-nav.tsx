@@ -104,6 +104,7 @@ interface SiteNavProps {
   logoIcon?: LogoIconId;
   logoSvg?: string;
   navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
+  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden';
   navOpacity?: number;
   navBackground?: string;
   /** Render inline (not fixed) — used inside mobile editor preview */
@@ -124,6 +125,7 @@ export function SiteNav({
   logoIcon,
   logoSvg,
   navStyle = 'glass',
+  mobileNavStyle = 'classic',
   navOpacity,
   navBackground,
   inline = false,
@@ -211,6 +213,11 @@ export function SiteNav({
     }, 300);
   };
 
+  // ── Effective mobile style (hidden = no top bar) ──────────────
+  const isMobileHidden = !isDesktop && mobileNavStyle === 'hidden';
+  const isMobilePill = !isDesktop && mobileNavStyle === 'floating-pill';
+  const isMobileBottomTabs = !isDesktop && mobileNavStyle === 'bottom-tabs';
+
   // ── Nav style classes ────────────────────────────────────────
   const navClassName = cn(
     'z-[100] overflow-hidden',
@@ -218,10 +225,13 @@ export function SiteNav({
     'transition-[background,box-shadow,border-color,padding,margin,border-radius] duration-300',
     inline
       ? 'sticky top-0 w-full'
-      : navStyle === 'floating'
-        ? 'fixed top-3 left-4 right-4 rounded-full'
-        : 'fixed top-0 left-0 right-0',
-    scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' ? 'py-1' : 'py-2 lg:py-4',
+      : isMobilePill
+        ? 'fixed top-3 left-[20%] right-[20%] rounded-full lg:top-0 lg:left-0 lg:right-0 lg:rounded-none'
+        : navStyle === 'floating'
+          ? 'fixed top-3 left-4 right-4 rounded-full'
+          : 'fixed top-0 left-0 right-0',
+    isMobileHidden && !isDesktop ? 'opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto' : '',
+    scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' || isMobilePill ? 'py-1' : 'py-2 lg:py-4',
   );
 
   // ── Nav style-specific background classes ────────────────────
@@ -598,6 +608,36 @@ export function SiteNav({
         </motion.nav>
       )}
 
+      {/* ── Floating hamburger for 'hidden' mobile nav style ── */}
+      {isMobileHidden && !inline && (
+        <button
+          onClick={() => drawerOpen ? closeDrawer() : openDrawer()}
+          aria-label="Open menu"
+          style={{
+            position: 'fixed',
+            top: '16px',
+            right: '16px',
+            zIndex: 101,
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            border: 'none',
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            boxShadow: '0 2px 12px rgba(43,30,20,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: 'var(--pl-ink)',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+          }}
+        >
+          {drawerOpen && !drawerClosing ? <X size={18} /> : <Menu size={18} />}
+        </button>
+      )}
+
       {/* ── CSS-animated drawer (works in both paths) ── */}
       {drawer}
 
@@ -620,8 +660,8 @@ export function SiteNav({
         />
       )}
 
-      {/* ── Mobile bottom tab bar (public site only) ── */}
-      {!isDesktop && !isStudio && !inline && enabledPages.length > 0 && (
+      {/* ── Mobile bottom tab bar (shown for bottom-tabs style, or classic with 3+ pages) ── */}
+      {!isDesktop && !isStudio && !inline && enabledPages.length > 0 && (mobileNavStyle === 'bottom-tabs' || (mobileNavStyle === 'classic' && enabledPages.length >= 3)) && (
         <div
           style={{
             position: 'fixed',

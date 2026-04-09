@@ -103,6 +103,8 @@ export interface StoryManifest {
   logoSvg?: string;
   // Navigation bar style variant
   navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
+  // Mobile-specific nav style (independent from desktop)
+  mobileNavStyle?: 'classic' | 'compact-glass' | 'floating-pill' | 'bottom-tabs' | 'hidden';
   // Nav bar customization — opacity (0-100) and custom background color
   navOpacity?: number;
   navBackground?: string;

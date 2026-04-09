@@ -112,6 +112,14 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
   },
 ];
 
+const MOBILE_NAV_STYLES: Array<{ id: string; label: string; desc: string }> = [
+  { id: 'classic', label: 'Classic', desc: 'Top bar with hamburger menu' },
+  { id: 'compact-glass', label: 'Compact Glass', desc: 'Thin frosted bar, minimal' },
+  { id: 'floating-pill', label: 'Floating Pill', desc: 'Centered pill-shaped nav' },
+  { id: 'bottom-tabs', label: 'Bottom Tabs', desc: 'App-style tab bar at bottom' },
+  { id: 'hidden', label: 'Hidden', desc: 'Floating hamburger button only' },
+];
+
 // ── Nav Customization Panel ───────────────────────────────────
 function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void }) {
   const currentLogo = manifest.logoIcon || 'pear';
@@ -172,10 +180,10 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
         )}
       </div>
 
-      {/* Nav bar style */}
+      {/* Desktop nav bar style */}
       <div>
         <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
-          Nav Bar Style
+          Desktop Nav Style
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
           {NAV_STYLES.map(style => {
@@ -204,6 +212,46 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                   }}>
                     {style.label}
                   </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile nav style */}
+      <div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+          Mobile Nav Style
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+          {MOBILE_NAV_STYLES.map(style => {
+            const isActive = (manifest.mobileNavStyle || 'classic') === style.id;
+            return (
+              <button
+                key={style.id}
+                onClick={() => onChange({ ...manifest, mobileNavStyle: style.id as StoryManifest['mobileNavStyle'] })}
+                style={{
+                  display: 'flex', flexDirection: 'column',
+                  borderRadius: '10px',
+                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
+                  cursor: 'pointer', padding: '8px 6px',
+                  boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.12)' : 'none',
+                  transition: 'all 0.15s',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{
+                  fontSize: '0.58rem', fontWeight: 700,
+                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                }}>
+                  {style.label}
+                </div>
+                <div style={{
+                  fontSize: '0.48rem', color: 'var(--pl-muted)', marginTop: '2px', lineHeight: 1.3,
+                }}>
+                  {style.desc}
                 </div>
               </button>
             );

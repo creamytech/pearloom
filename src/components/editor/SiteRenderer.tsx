@@ -1482,6 +1482,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             logoIcon={manifest.logoIcon}
             logoSvg={manifest.logoSvg}
             navStyle={manifest.navStyle}
+            mobileNavStyle={manifest.mobileNavStyle}
             navOpacity={manifest.navOpacity}
             navBackground={manifest.navBackground}
             inline={editMode}
