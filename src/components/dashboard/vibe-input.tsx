@@ -285,41 +285,41 @@ const MOOD_STYLES = {
 
 // ── Occasion-aware vibe options ──────────────────────────────
 // Each occasion gets moods that make sense for it
-type MoodDef = { id: string; label: string; icon: React.FC<{ size?: number }>; desc: string };
+type MoodDef = { id: string; label: string; icon: React.FC<{ size?: number }>; desc: string; hint?: string };
 
 const COUPLE_MOODS: MoodDef[] = [
-  { id: 'romantic',    label: 'Classic Romance',  icon: ElegantHeartIcon, desc: 'Timeless, elegant, deeply emotional' },
-  { id: 'adventurous', label: 'Adventurous',      icon: MountainIcon,     desc: 'Wild, exploring the world together' },
-  { id: 'playful',     label: 'Playful & Fun',    icon: StarburstIcon,    desc: 'Laughter, color, and vibrant energy' },
-  { id: 'cozy',        label: 'Cozy & Intimate',  icon: CoffeeCupIcon,    desc: 'Quiet mornings, warmth, and comfort' },
-  { id: 'wanderlust',  label: 'Wanderlust',       icon: SuitcaseIcon,     desc: 'Travel-driven, worldly, cultured' },
-  { id: 'pets',        label: 'Our Fur Babies',   icon: PawIcon,          desc: 'The pets are part of the love story' },
+  { id: 'romantic',    label: 'Classic Romance',  icon: ElegantHeartIcon, desc: 'Timeless, elegant, deeply emotional', hint: 'Soft colors, candlelight, roses' },
+  { id: 'adventurous', label: 'Adventurous',      icon: MountainIcon,     desc: 'Wild, exploring the world together', hint: 'Mountains, golden hour, open roads' },
+  { id: 'playful',     label: 'Playful & Fun',    icon: StarburstIcon,    desc: 'Laughter, color, and vibrant energy', hint: 'Confetti, bright hues, bold fonts' },
+  { id: 'cozy',        label: 'Cozy & Intimate',  icon: CoffeeCupIcon,    desc: 'Quiet mornings, warmth, and comfort', hint: 'Warm wood, soft knits, morning light' },
+  { id: 'wanderlust',  label: 'Wanderlust',       icon: SuitcaseIcon,     desc: 'Travel-driven, worldly, cultured', hint: 'Passport stamps, maps, vintage postcards' },
+  { id: 'pets',        label: 'Our Fur Babies',   icon: PawIcon,          desc: 'The pets are part of the love story', hint: 'Paw prints, nature, playful touches' },
 ];
 
 const BIRTHDAY_MOODS: MoodDef[] = [
-  { id: 'playful',     label: 'Fun & Colorful',   icon: StarburstIcon,    desc: 'Bright, energetic, full of life' },
-  { id: 'elegant',     label: 'Elegant & Classy', icon: ElegantHeartIcon, desc: 'Sophisticated milestone celebration' },
-  { id: 'adventurous', label: 'Wild Spirit',       icon: MountainIcon,     desc: 'For the one who lives boldly' },
-  { id: 'cozy',        label: 'Warm & Personal',   icon: CoffeeCupIcon,    desc: 'Heartfelt, intimate tribute' },
-  { id: 'nostalgic',   label: 'Down Memory Lane',  icon: MusicNoteIcon,    desc: 'A walk through their best moments' },
+  { id: 'playful',     label: 'Fun & Colorful',   icon: StarburstIcon,    desc: 'Bright, energetic, full of life', hint: 'Balloons, streamers, bold colors' },
+  { id: 'elegant',     label: 'Elegant & Classy', icon: ElegantHeartIcon, desc: 'Sophisticated milestone celebration', hint: 'Gold accents, fine type, champagne' },
+  { id: 'adventurous', label: 'Wild Spirit',       icon: MountainIcon,     desc: 'For the one who lives boldly', hint: 'Outdoors, sunsets, adventure gear' },
+  { id: 'cozy',        label: 'Warm & Personal',   icon: CoffeeCupIcon,    desc: 'Heartfelt, intimate tribute', hint: 'Handwritten notes, warm tones, candles' },
+  { id: 'nostalgic',   label: 'Down Memory Lane',  icon: MusicNoteIcon,    desc: 'A walk through their best moments', hint: 'Film grain, sepia tones, old photos' },
 ];
 
 const ANNIVERSARY_MOODS: MoodDef[] = [
-  { id: 'romantic',    label: 'Still in Love',     icon: ElegantHeartIcon, desc: 'Timeless romance, deeper than ever' },
-  { id: 'nostalgic',   label: 'Through the Years', icon: MusicNoteIcon,    desc: 'A journey through your shared history' },
-  { id: 'adventurous', label: 'Still Adventuring',  icon: MountainIcon,     desc: 'Partners in crime, still going' },
-  { id: 'cozy',        label: 'Our Quiet Life',     icon: CoffeeCupIcon,    desc: 'The beauty of everyday together' },
-  { id: 'playful',     label: 'Young at Heart',     icon: StarburstIcon,    desc: 'Still laughing after all these years' },
-  { id: 'pets',        label: 'The Whole Family',   icon: PawIcon,          desc: 'Including the four-legged members' },
+  { id: 'romantic',    label: 'Still in Love',     icon: ElegantHeartIcon, desc: 'Timeless romance, deeper than ever', hint: 'Soft blush, peonies, calligraphy' },
+  { id: 'nostalgic',   label: 'Through the Years', icon: MusicNoteIcon,    desc: 'A journey through your shared history', hint: 'Vintage prints, aged paper, film strips' },
+  { id: 'adventurous', label: 'Still Adventuring',  icon: MountainIcon,     desc: 'Partners in crime, still going', hint: 'Trail maps, campfires, starry skies' },
+  { id: 'cozy',        label: 'Our Quiet Life',     icon: CoffeeCupIcon,    desc: 'The beauty of everyday together', hint: 'Linen textures, tea cups, reading nooks' },
+  { id: 'playful',     label: 'Young at Heart',     icon: StarburstIcon,    desc: 'Still laughing after all these years', hint: 'Bright accents, hand-drawn doodles' },
+  { id: 'pets',        label: 'The Whole Family',   icon: PawIcon,          desc: 'Including the four-legged members', hint: 'Paw prints, cozy fur, family portraits' },
 ];
 
 const STORY_MOODS: MoodDef[] = [
-  { id: 'romantic',    label: 'Love Story',        icon: ElegantHeartIcon, desc: 'A beautiful narrative of connection' },
-  { id: 'adventurous', label: 'Adventurous',       icon: MountainIcon,     desc: 'Stories from the wild side' },
-  { id: 'playful',     label: 'Playful & Fun',     icon: StarburstIcon,    desc: 'Light-hearted and full of joy' },
-  { id: 'cozy',        label: 'Warm & Intimate',   icon: CoffeeCupIcon,    desc: 'Quiet moments that matter most' },
-  { id: 'wanderlust',  label: 'Wanderlust',        icon: SuitcaseIcon,     desc: 'Travel-driven, worldly, cultured' },
-  { id: 'nostalgic',   label: 'Nostalgic',         icon: MusicNoteIcon,    desc: 'A tribute to meaningful moments' },
+  { id: 'romantic',    label: 'Love Story',        icon: ElegantHeartIcon, desc: 'A beautiful narrative of connection', hint: 'Soft colors, candlelight, roses' },
+  { id: 'adventurous', label: 'Adventurous',       icon: MountainIcon,     desc: 'Stories from the wild side', hint: 'Mountains, golden hour, open roads' },
+  { id: 'playful',     label: 'Playful & Fun',     icon: StarburstIcon,    desc: 'Light-hearted and full of joy', hint: 'Confetti, bright hues, bold fonts' },
+  { id: 'cozy',        label: 'Warm & Intimate',   icon: CoffeeCupIcon,    desc: 'Quiet moments that matter most', hint: 'Warm wood, soft knits, morning light' },
+  { id: 'wanderlust',  label: 'Wanderlust',        icon: SuitcaseIcon,     desc: 'Travel-driven, worldly, cultured', hint: 'Passport stamps, maps, vintage postcards' },
+  { id: 'nostalgic',   label: 'Nostalgic',         icon: MusicNoteIcon,    desc: 'A tribute to meaningful moments', hint: 'Film grain, sepia tones, old photos' },
 ];
 
 function getMoodsForOccasion(occasion: string): (MoodDef & typeof MOOD_STYLES[keyof typeof MOOD_STYLES])[] {
@@ -1837,9 +1837,11 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--pl-muted)', marginBottom: '0.75rem' }}>
                   {occasion === 'birthday'
                     ? 'Who are we celebrating?'
-                    : (occasion === 'wedding' || occasion === 'engagement' || occasion === 'anniversary')
-                      ? 'Partner 1'
-                      : 'Your name'}
+                    : occasion === 'wedding'
+                      ? "Bride's Name"
+                      : (occasion === 'engagement' || occasion === 'anniversary')
+                        ? 'First Name'
+                        : 'Your name'}
                 </label>
                 <input
                   type="text"
@@ -1884,7 +1886,11 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, color: 'var(--pl-muted)', marginBottom: '0.75rem' }}>
-                      {(occasion === 'wedding' || occasion === 'engagement' || occasion === 'anniversary') ? 'Partner 2' : "Partner's name"}
+                      {occasion === 'wedding'
+                        ? "Groom's Name"
+                        : (occasion === 'engagement' || occasion === 'anniversary')
+                          ? 'Second Name'
+                          : "Partner's Name"}
                     </label>
                     <input type="text" placeholder="e.g. Shauna" value={name2} onChange={e => { setName2(e.target.value); setSubdomain(slugFromNames(name1, e.target.value)); }} style={{ ...inputStyle, fontSize: '1.25rem', ...(showValidation && !name2.trim() ? { borderColor: 'var(--pl-plum, #6D597A)' } : {}) }} onFocus={getFocusStyle} onBlur={getBlurStyle} />
                     {showValidation && !name2.trim() && (
@@ -2069,6 +2075,9 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                     <div>
                       <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--pl-ink)', marginBottom: '0.3rem' }}>{m.label}</h3>
                       <p style={{ fontSize: '0.8rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>{m.desc}</p>
+                      {m.hint && (
+                        <p style={{ fontSize: '0.72rem', color: 'var(--pl-olive)', fontStyle: 'italic', lineHeight: 1.4, margin: '0.25rem 0 0', opacity: 0.8 }}>{m.hint}</p>
+                      )}
                     </div>
                   </motion.button>
                 );

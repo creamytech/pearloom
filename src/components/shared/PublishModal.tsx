@@ -59,7 +59,7 @@ export function PublishModal({
 
   const handlePublish = async () => {
     const target = subdomain.trim();
-    if (!target) return setError('Please enter a subdomain.');
+    if (!target) return setError('Please enter a site name.');
     if (!manifest) return setError('No manifest to publish. Please generate a site first.');
     setError(null);
     setIsPublishing(true);
@@ -179,10 +179,13 @@ export function PublishModal({
         /* ── URL input state ── */
         <>
           <h2 className="text-[2rem] mb-2 font-heading font-normal">
-            Choose your URL
+            Choose Your Site Name
           </h2>
           <p className="text-[var(--pl-muted)] mb-1">
-            We&apos;ve pre-filled a unique URL — customize it below.
+            We&apos;ve pre-filled a unique site name — customize it below.
+          </p>
+          <p className="text-[var(--pl-muted)] text-[0.78rem] mb-1 opacity-70">
+            Your site will be live at <strong>yourname.pearloom.com</strong>
           </p>
           <p className="text-[var(--pl-muted)] text-[0.78rem] mb-8 opacity-70">
             You can upgrade to a full custom domain later.

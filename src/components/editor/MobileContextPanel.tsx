@@ -287,7 +287,7 @@ export function MobileContextPanel({
         return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="quote" label="Quote" />;
 
       case 'text':
-        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="text" label="Text Block" />;
+        return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="text" label="Text Section" />;
 
       case 'video':
         return <BlockSettings manifest={manifest} onUpdate={scheduleManifestUpdate} blockType="video" label="Video" />;

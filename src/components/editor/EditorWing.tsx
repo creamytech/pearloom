@@ -25,7 +25,7 @@ const TAB_LABEL: Partial<Record<EditorTab, string>> = {
   design:      'Design',
   details:     'Details',
   pages:       'Pages',
-  blocks:      'AI Blocks',
+  blocks:      'Smart Fill',
   voice:       'Voice',
   messaging:   'Messages',
   analytics:   'Analytics',

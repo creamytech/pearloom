@@ -123,28 +123,32 @@ function TemplatePersonalizeModal({ template, onConfirm, onClose }: {
           </div>
 
           {/* Names */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className={occasion === 'birthday' ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-2 gap-3'}>
             <div>
               <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-1.5">
-                {occasion === 'birthday' ? 'Name' : 'First Name'}
+                {occasion === 'birthday' ? "Birthday Person's Name"
+                  : occasion === 'wedding' ? "Bride's Name"
+                  : 'First Name'}
               </label>
               <input
                 autoFocus
                 value={name1}
                 onChange={e => setName1(e.target.value)}
-                placeholder={occasion === 'birthday' ? 'Celebrant' : 'Partner 1'}
+                placeholder={occasion === 'birthday' ? 'Their name'
+                  : occasion === 'wedding' ? 'e.g. Alex'
+                  : 'First name'}
                 className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.88rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] transition-colors"
               />
             </div>
             {occasion !== 'birthday' && (
               <div>
                 <label className="block text-[0.62rem] font-bold tracking-[0.12em] uppercase text-[var(--pl-muted)] mb-1.5">
-                  Second Name
+                  {occasion === 'wedding' ? "Groom's Name" : 'Second Name'}
                 </label>
                 <input
                   value={name2}
                   onChange={e => setName2(e.target.value)}
-                  placeholder="Partner 2"
+                  placeholder={occasion === 'wedding' ? 'e.g. Jordan' : 'Second name'}
                   className="w-full px-3 py-2.5 rounded-[var(--pl-radius-sm)] border border-[var(--pl-divider)] text-[max(16px,0.88rem)] text-[var(--pl-ink)] bg-white outline-none focus:border-[var(--pl-olive)] transition-colors"
                 />
               </div>

@@ -64,7 +64,7 @@ const BLOCK_CATALOGUE: BlockDef[] = [
   { type: 'guestbook', label: 'Guestbook',         icon: BlockGuestbookIcon, description: 'Public guest wishes & AI highlights',         color: '#7a4a8b', occasions: ALL_OCCASIONS },
   { type: 'map',       label: 'Map',               icon: BlockMapIcon,       description: 'Embedded venue map',                          color: '#4a6a8b', occasions: ['wedding', 'engagement', 'anniversary'] },
   { type: 'quote',     label: 'Quote',             icon: BlockQuoteIcon,     description: 'Romantic quote or vow snippet',               color: '#8b4a6a', occasions: ALL_OCCASIONS },
-  { type: 'text',      label: 'Text Block',        icon: BlockTextIcon,      description: 'Custom text section',                         color: '#6a8b4a', occasions: ALL_OCCASIONS },
+  { type: 'text',      label: 'Text Section',      icon: BlockTextIcon,      description: 'Custom text section',                         color: '#6a8b4a', occasions: ALL_OCCASIONS },
   { type: 'video',     label: 'Video',             icon: BlockVideoIcon,     description: 'YouTube or Vimeo embed',                      color: '#4a4a8b', occasions: ALL_OCCASIONS },
   { type: 'divider',   label: 'Divider',           icon: BlockDividerIcon,   description: 'Visual section separator',                    color: '#8b8b4a', occasions: ALL_OCCASIONS },
   { type: 'vibeQuote', label: 'Vibe Quote',        icon: MessageSquareQuote, description: 'Atmospheric quote with decorative symbol',    color: '#9b6a8b', occasions: ALL_OCCASIONS },
