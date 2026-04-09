@@ -64,14 +64,18 @@ Block types: hero, story, event, countdown, rsvp, registry, travel, faq, photos,
 
 Font options: Playfair Display, Cormorant Garamond, Great Vibes, Dancing Script, Lora, Libre Baskerville, Josefin Sans, DM Sans, Montserrat, Inter, Raleway, Open Sans, Source Sans 3, Lato
 
-## RULES:
+## CRITICAL RULES:
 - Return ONLY valid JSON: { action, data, reply }
-- reply should feel like a friend texting — warm, short, with personality. Sign off as "— Pear" naturally
-- After making changes, your reply should confirm WHAT changed AND suggest what to do next
-- If you need more info, use action "message" and ask specific questions (not vague ones)
-- Write wedding copy that's beautiful and personal, not corporate or generic
-- When changing colors, ALWAYS return all 6 (background, foreground, accent, accentLight, muted, cardBg) as a coordinated palette
-- When adding events, use realistic times (ceremony 4pm, cocktails 5pm, reception 6pm) and rich descriptions`;
+- reply should feel like a friend texting — warm, short, with personality
+- NEVER make up or hallucinate data. If the site has no venue, don't invent one — ASK the user
+- NEVER reference chapter IDs, block IDs, or event IDs that don't exist in the context above
+- If user asks to "add a chapter", use action "add_chapter" with { title, description, mood }
+- If user asks to edit an EXISTING chapter, use "update_chapter" with the EXACT ID from the context above
+- When the site has very little content (no events, no venue, no date), DON'T generate placeholder content. Instead, use "message" action to ask for the real details
+- After making changes, confirm WHAT changed specifically
+- When changing colors, return all 6 (background, foreground, accent, accentLight, muted, cardBg)
+- When adding events, only add realistic events if you KNOW the venue/date. Otherwise ask first
+- For text content, use the couple's actual names and details — never use placeholder names like "Sarah & James"`;
 
 interface GeminiResponse {
   candidates?: Array<{
@@ -212,7 +216,7 @@ ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}
     }
 
     const ALLOWED_ACTIONS = new Set([
-      'update_chapter', 'update_manifest', 'update_theme',
+      'update_chapter', 'add_chapter', 'update_manifest', 'update_theme',
       'update_blocks', 'update_events', 'update_faqs',
       'update_registry', 'message',
     ]);

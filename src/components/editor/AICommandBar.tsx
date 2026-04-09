@@ -204,8 +204,34 @@ export function AICommandBar() {
     switch (action) {
       case 'update_chapter': {
         if (!actionData?.id) break;
-        const { id, ...updates } = actionData;
-        actions.updateChapter(id as string, updates as Partial<Chapter>);
+        const id = actionData.id as string;
+        // Validate the chapter actually exists
+        const chapterExists = manifest.chapters?.some(c => c.id === id);
+        if (!chapterExists) {
+          console.warn('[Pear] Tried to update non-existent chapter:', id);
+          break;
+        }
+        const { id: _id, ...updates } = actionData;
+        actions.updateChapter(id, updates as Partial<Chapter>);
+        break;
+      }
+
+      case 'add_chapter': {
+        // Pear wants to add a new chapter — create blank then update it
+        actions.addChapter();
+        // The new chapter will be the last one after addChapter
+        setTimeout(() => {
+          const chapters = manifest.chapters || [];
+          const newChapter = chapters[chapters.length - 1];
+          if (newChapter && actionData) {
+            const updates: Partial<Chapter> = {};
+            if (actionData.title) updates.title = actionData.title as string;
+            if (actionData.subtitle) updates.subtitle = actionData.subtitle as string;
+            if (actionData.description) updates.description = actionData.description as string;
+            if (actionData.mood) updates.mood = actionData.mood as string;
+            actions.updateChapter(newChapter.id, updates);
+          }
+        }, 100);
         break;
       }
 
