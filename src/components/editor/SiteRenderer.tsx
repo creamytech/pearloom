@@ -690,12 +690,12 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               <>
                 <div
                   aria-hidden="true"
-                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(25vw, 200px)', height: 'min(25vw, 200px)', pointerEvents: 'none', zIndex: 2 }}
+                  style={{ position: 'absolute', top: 0, left: 0, width: 'min(25vw, 200px)', height: 'min(25vw, 200px)', pointerEvents: 'none', zIndex: 2, opacity: 0.55 }}
                   dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.cornerSvg) }}
                 />
                 <div
                   aria-hidden="true"
-                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(25vw, 200px)', height: 'min(25vw, 200px)', pointerEvents: 'none', zIndex: 2, transform: 'scaleX(-1)' }}
+                  style={{ position: 'absolute', top: 0, right: 0, width: 'min(25vw, 200px)', height: 'min(25vw, 200px)', pointerEvents: 'none', zIndex: 2, transform: 'scaleX(-1)', opacity: 0.55 }}
                   dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.cornerSvg) }}
                 />
               </>
@@ -713,6 +713,9 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!manifest.events?.length) return null;
         return (
           <section key={key} id="schedule" data-pe-section="events" style={{ position: 'relative', overflow: 'hidden', ...blockStyle }}>
+            {art.cornerSvg && (
+              <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: `linear-gradient(90deg, transparent, ${pal.accent}40, transparent)` }} />
+            )}
             {vibeSkin.accentBlobSvg && (
               <div
                 aria-hidden="true"
@@ -723,14 +726,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {art.blockArt?.eventFrame && (
               <div
                 aria-hidden="true"
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}
+                style={{ position: 'absolute', inset: '-8px', width: 'calc(100% + 16px)', height: 'calc(100% + 16px)', pointerEvents: 'none', zIndex: 1, opacity: 0.4 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.eventFrame) }}
               />
             )}
             {art.blockArt?.headingDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 160, height: 24, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.5 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
               />
             )}
@@ -740,18 +743,21 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'rsvp':
         if (!manifest.events?.length) return null;
         return (
-          <section key={key} id="rsvp" data-pe-section="rsvp" style={blockStyle}>
+          <section key={key} id="rsvp" data-pe-section="rsvp" style={{ position: 'relative', ...blockStyle }}>
+            {art.cornerSvg && (
+              <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: `linear-gradient(90deg, transparent, ${pal.accent}40, transparent)` }} />
+            )}
             {art.blockArt?.headingDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 160, height: 24, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.5 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
               />
             )}
             {art.blockArt?.rsvpDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 80, height: 80, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 50, height: 50, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.35 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.rsvpDecor) }}
               />
             )}
@@ -766,21 +772,28 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         return <section key={key} id="travel" data-pe-section="travel" style={blockStyle}><TravelSection info={manifest.travelInfo} /></section>;
       case 'faq':
         if (!manifest.faqs?.length) return null;
-        return <section key={key} id="faq" data-pe-section="faq" style={blockStyle}><FaqSection faqs={manifest.faqs} /></section>;
+        return (
+          <section key={key} id="faq" data-pe-section="faq" style={{ position: 'relative', ...blockStyle }}>
+            {art.cornerSvg && (
+              <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: `linear-gradient(90deg, transparent, ${pal.accent}40, transparent)` }} />
+            )}
+            <FaqSection faqs={manifest.faqs} />
+          </section>
+        );
       case 'countdown':
         return (
           <section key={key} data-pe-section="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
             {art.blockArt?.headingDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 160, height: 24, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.5 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
               />
             )}
             {art.blockArt?.countdownDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 80, height: 80, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 50, height: 50, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.35 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.countdownDecor) }}
               />
             )}
@@ -810,7 +823,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {art.accentSvg && (
               <div
                 aria-hidden="true"
-                style={{ width: 40, height: 40, margin: '0 auto 0.75rem', opacity: 0.15 }}
+                style={{ width: 60, height: 60, margin: '0 auto 0.75rem', opacity: 0.3 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.accentSvg) }}
               />
             )}
@@ -821,20 +834,28 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           </section>
         );
       case 'divider':
-        // TODO: Integration point for art.dividerPath — WaveDivider currently reads
-        // its path from skin.wavePath / skin.wavePathInverted and does not accept a
-        // custom path prop. To use theme-art divider paths, either extend WaveDivider
-        // with an optional `customPath` prop or inject art.dividerPath into the skin.
-        return <WaveDivider key={key} skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />;
+        return (
+          <div key={key}>
+            {art.dividerPath && (
+              <svg viewBox="0 0 200 50" style={{ width: '100%', height: '40px' }} preserveAspectRatio="none">
+                <path d={art.dividerPath} fill="none" stroke={pal.accent} strokeWidth="1" opacity="0.2" />
+              </svg>
+            )}
+            <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />
+          </div>
+        );
       case 'photos': {
         const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
         if (!allPhotos.length) return null;
         return (
-          <section key={key} data-pe-section="photos" style={{ padding: '4rem 2rem' }}>
+          <section key={key} data-pe-section="photos" style={{ position: 'relative', padding: '4rem 2rem' }}>
+            {art.cornerSvg && (
+              <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: `linear-gradient(90deg, transparent, ${pal.accent}40, transparent)` }} />
+            )}
             {art.blockArt?.headingDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 160, height: 24, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.5 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
               />
             )}
@@ -844,7 +865,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                   {art.blockArt?.photoFrame && (
                     <div
                       aria-hidden="true"
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}
+                      style={{ position: 'absolute', inset: '-4px', width: 'calc(100% + 8px)', height: 'calc(100% + 8px)', pointerEvents: 'none', zIndex: 1, opacity: 0.45 }}
                       dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.photoFrame) }}
                     />
                   )}
@@ -893,18 +914,21 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       }
       case 'guestbook':
         return (
-          <section key={key} data-pe-section="guestbook" style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+          <section key={key} data-pe-section="guestbook" style={{ position: 'relative', padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+            {art.cornerSvg && (
+              <div style={{ position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', background: `linear-gradient(90deg, transparent, ${pal.accent}40, transparent)` }} />
+            )}
             {art.blockArt?.guestbookDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 80, height: 80, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 50, height: 50, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.35 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.guestbookDecor) }}
               />
             )}
             {art.blockArt?.headingDecor && (
               <div
                 aria-hidden="true"
-                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                style={{ width: 160, height: 24, margin: '0 auto 0.5rem', pointerEvents: 'none', opacity: 0.5 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
               />
             )}
@@ -974,7 +998,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             {block.type === 'vibeQuote' && art.accentSvg && (
               <div
                 aria-hidden="true"
-                style={{ width: 40, height: 40, margin: '0 auto 0.75rem', opacity: 0.15 }}
+                style={{ width: 60, height: 60, margin: '0 auto 0.75rem', opacity: 0.3 }}
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.accentSvg) }}
               />
             )}
@@ -1264,7 +1288,16 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 const needsDivider = prevType === 'hero' || (prevType === 'story' && block.type !== 'divider') || (prevType === 'event' && block.type !== 'divider');
                 return (
                   <React.Fragment key={block.id}>
-                    {needsDivider && <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />}
+                    {needsDivider && (
+                      <>
+                        {art.dividerPath && (
+                          <svg viewBox="0 0 200 50" style={{ width: '100%', height: '40px' }} preserveAspectRatio="none">
+                            <path d={art.dividerPath} fill="none" stroke={pal.accent} strokeWidth="1" opacity="0.2" />
+                          </svg>
+                        )}
+                        <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />
+                      </>
+                    )}
                     {renderSectionWrap(block, i, visibleBlocks.length, renderBlock(block))}
                     <DropZone index={i + 1} />
                   </React.Fragment>
