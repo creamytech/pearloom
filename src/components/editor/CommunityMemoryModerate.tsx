@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Trash2 } from 'lucide-react';
 
 interface Memory {
   id: string;
@@ -369,7 +370,7 @@ export default function CommunityMemoryModerate({
                       gap: 6,
                     }}
                   >
-                    {memory.approved ? '✗ Remove' : '✗ Reject'}&nbsp;🗑
+                    {memory.approved ? '✗ Remove' : '✗ Reject'}&nbsp;<Trash2 size={13} style={{ color: 'currentColor', verticalAlign: 'middle' }} />
                   </button>
                 </div>
               </div>

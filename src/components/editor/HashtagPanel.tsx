@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Copy, Check, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Sparkles, Copy, Check, ChevronDown, ChevronUp, Loader2, Tag } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 
 // ── Props ──────────────────────────────────────────────────────
@@ -175,7 +175,7 @@ export function HashtagPanel({ manifest, onChange, names }: HashtagPanelProps) {
       {/* Header */}
       <div style={headerStyle}>
         <span style={labelStyle}>
-          <span style={{ fontSize: '1rem' }}>🏷️</span>
+          <Tag size={16} style={{ color: 'var(--pl-olive)' }} />
           Wedding Hashtag
         </span>
         <button

@@ -372,7 +372,7 @@ export default function TimeCapsulePanel({ manifest, siteId }: TimeCapsulePanelP
             cursor: saving ? 'not-allowed' : 'pointer',
           }}
         >
-          {saving ? 'Sealing...' : `✉️ Seal & Save Letter (${unlockLabel})`}
+          {saving ? 'Sealing...' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><MailCheck size={14} style={{ color: 'currentColor' }} /> Seal &amp; Save Letter ({unlockLabel})</span>}
         </motion.button>
       </div>
     </div>
