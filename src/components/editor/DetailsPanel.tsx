@@ -346,6 +346,89 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </div>
         <Field label="Cash Fund URL" value={manifest.registry?.cashFundUrl || ''} onChange={v => updRegistry({ cashFundUrl: v })} placeholder="https://hitchd.com/..." />
         <Field label="Cash Fund Message" value={manifest.registry?.cashFundMessage || ''} onChange={v => updRegistry({ cashFundMessage: v })} placeholder="We are saving for our honeymoon!" />
+        {/* ── Smart Registry Import ── */}
+        <div style={{
+          background: 'rgba(255,255,255,0.15)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          borderRadius: '14px',
+          padding: '12px',
+          border: '1px solid rgba(255,255,255,0.2)',
+          marginTop: '4px',
+        }}>
+          <label style={{ ...lbl, marginBottom: '6px' }}>
+            <Link size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+            Paste Registry URL
+          </label>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <input
+              value={registryUrl}
+              onChange={e => setRegistryUrl(e.target.value)}
+              placeholder="https://www.zola.com/registry/..."
+              style={{ ...inp, flex: 1, fontSize: '0.82rem' }}
+              onKeyDown={e => { if (e.key === 'Enter') handleRegistryImport(); }}
+            />
+            <button
+              onClick={handleRegistryImport}
+              disabled={registryImportLoading || !registryUrl.trim()}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: '0 12px',
+                borderRadius: '10px',
+                border: 'none',
+                background: registryUrl.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)',
+                color: registryUrl.trim() ? '#fff' : 'var(--pl-muted)',
+                cursor: registryUrl.trim() && !registryImportLoading ? 'pointer' : 'default',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                transition: 'background 0.15s',
+                flexShrink: 0,
+                opacity: registryImportLoading ? 0.7 : 1,
+              }}
+            >
+              {registryImportLoading ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : 'Import'}
+            </button>
+          </div>
+          {registryImportError && (
+            <p style={{ fontSize: '0.72rem', color: '#f87171', margin: '6px 0 0' }}>{registryImportError}</p>
+          )}
+          {registryImportResult && (
+            <div style={{
+              marginTop: '8px',
+              background: 'rgba(163,177,138,0.08)',
+              border: '1px solid rgba(163,177,138,0.2)',
+              borderRadius: '10px',
+              padding: '10px',
+            }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)', marginBottom: '2px' }}>
+                {registryImportResult.name}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--pl-muted)', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {registryImportResult.url}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft)', marginBottom: '8px' }}>
+                {registryImportResult.note}
+              </div>
+              <button
+                onClick={handleAddImportedRegistry}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: 'var(--pl-olive, #A3B18A)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                }}
+              >
+                <Plus size={10} /> Add to Registry
+              </button>
+            </div>
+          )}
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
           <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
           <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
@@ -550,6 +633,24 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             </p>
           )}
         </div>
+
+        {/* ── RSVP Intelligence Dashboard ── */}
+        {manifest.rsvps && manifest.rsvps.length > 0 && (
+          <div style={{ marginTop: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)', whiteSpace: 'nowrap' }}>Attendance Insights</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.3)' }} />
+            </div>
+            <RsvpInsights
+              rsvps={manifest.rsvps}
+              totalInvited={manifest.rsvps.length}
+              events={manifest.events || []}
+              coupleNames={manifest.chapters?.[0]?.title}
+              eventDate={logistics.date}
+              occasion={occasion}
+            />
+          </div>
+        )}
       </Section>
 
       <Section id="travel" label="Travel & Hotels">
