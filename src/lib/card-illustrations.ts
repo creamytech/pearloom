@@ -213,6 +213,304 @@ const CARD_GENERATORS: Record<string, (bg: string, ac: string, ac2: string, fg: 
     <path d="M692 256q18-8 22 10t-12 16-18-8z" fill="${ac2}" opacity=".15"/>
     <path d="M950 280q0-25 20-30t20 30-20 20-20-20z" fill="${ac}" opacity=".18"/>
   `),
+
+  'rustic-romance': (bg, ac, ac2) => svg(bg, `
+    <path d="M0 550q300-60 600-30t600-40v320H0z" fill="${ac}" opacity=".08"/>
+    <path d="M250 550v-200l5-15 5 15v200M260 350l-15-5 15-10 15 10-15 5" stroke="${ac}" stroke-width="2" fill="none" opacity=".25"/>
+    <path d="M260 380l-12-4 12-8 12 8-12 4" stroke="${ac}" stroke-width="1.5" fill="none" opacity=".2"/>
+    <path d="M700 530v-180l5-12 5 12v180M710 350l-12-4 12-8 12 8-12 4" stroke="${ac}" stroke-width="2" fill="none" opacity=".25"/>
+    <path d="M500 560v-160l4-10 4 10v160" stroke="${ac2}" stroke-width="1.5" fill="none" opacity=".2"/>
+    <rect x="400" y="600" width="400" height="8" rx="4" fill="${ac}" opacity=".06"/>
+  `),
+
+  'blush-bloom': (bg, ac, ac2) => svg(bg, `
+    <circle cx="300" cy="300" r="60" fill="${ac}" opacity=".08"/>
+    <circle cx="300" cy="300" r="45" fill="${ac}" opacity=".06"/>
+    <circle cx="300" cy="300" r="30" fill="${ac2}" opacity=".1"/>
+    <circle cx="700" cy="400" r="80" fill="${ac}" opacity=".07"/>
+    <circle cx="700" cy="400" r="55" fill="${ac2}" opacity=".08"/>
+    <circle cx="700" cy="400" r="35" fill="${ac}" opacity=".06"/>
+    <circle cx="500" cy="250" r="40" fill="${ac2}" opacity=".06"/>
+    <circle cx="900" cy="300" r="50" fill="${ac}" opacity=".05"/>
+    <circle cx="200" cy="500" r="70" fill="${ac2}" opacity=".06"/>
+    <path d="M0 600q300-40 600 0t600-20v220H0z" fill="${ac}" opacity=".06"/>
+  `),
+
+  'golden-hour': (bg, ac, ac2) => svg(bg, `
+    <circle cx="600" cy="600" r="300" fill="${ac}" opacity=".06"/>
+    <circle cx="600" cy="600" r="200" fill="${ac}" opacity=".04"/>
+    ${[0,1,2,3,4,5,6,7,8,9,10,11].map(i => `<line x1="600" y1="600" x2="${600+Math.cos(i*Math.PI/6)*500}" y2="${600+Math.sin(i*Math.PI/6)*500}" stroke="${ac}" stroke-width="1.5" opacity=".08"/>`).join('')}
+    <path d="M0 500q300-80 600-40t600-60v400H0z" fill="${ac2}" opacity=".08"/>
+    <path d="M0 580q400-30 800 0t400-20v240H0z" fill="${ac}" opacity=".05"/>
+  `),
+
+  'lavender-dreams': (bg, ac, ac2) => svg(bg, `
+    <ellipse cx="400" cy="350" rx="250" ry="180" fill="${ac}" opacity=".06"/>
+    <ellipse cx="800" cy="400" rx="200" ry="150" fill="${ac2}" opacity=".05"/>
+    ${[150,300,450,600,750,900,1050,200,500,800,350,650,950].map((x,i) => `<circle cx="${x}" cy="${100+(i*57)%500}" r="${2+i%3}" fill="${ac}" opacity=".${15+i%20}"/>`).join('')}
+    <path d="M300 250l500 200" stroke="${ac}" stroke-width=".5" opacity=".06"/>
+    <path d="M200 400l600 150" stroke="${ac2}" stroke-width=".5" opacity=".05"/>
+  `),
+
+  'minimalist-white': (bg, ac, ac2, fg) => svg(bg, `
+    <line x1="200" y1="400" x2="1000" y2="400" stroke="${fg}" stroke-width="1" opacity=".08"/>
+    <line x1="600" y1="200" x2="600" y2="600" stroke="${fg}" stroke-width="1" opacity=".08"/>
+    <rect x="450" y="300" width="300" height="200" fill="none" stroke="${fg}" stroke-width="1.5" opacity=".06"/>
+    <circle cx="600" cy="400" r="8" fill="${fg}" opacity=".08"/>
+  `),
+
+  'boho-wildflower': (bg, ac, ac2) => svg(bg, `
+    ${[100,200,300,400,500,600,700,800,900,1000,1100].map((x,i) => `<path d="M${x} 800q${i%2?10:-10}-200 ${i%2?25:-25}-450" fill="none" stroke="${i%2?ac:ac2}" stroke-width="2" opacity=".15"/>`).join('')}
+    <circle cx="125" cy="350" r="8" fill="${ac}" opacity=".2"/>
+    <circle cx="300" cy="300" r="10" fill="${ac2}" opacity=".18"/>
+    <circle cx="500" cy="280" r="12" fill="${ac}" opacity=".2"/>
+    <circle cx="700" cy="320" r="9" fill="${ac2}" opacity=".18"/>
+    <circle cx="900" cy="290" r="11" fill="${ac}" opacity=".2"/>
+    <circle cx="1075" cy="340" r="8" fill="${ac2}" opacity=".18"/>
+    <path d="M0 650q300-30 600 0t600-20v170H0z" fill="${ac}" opacity=".06"/>
+  `),
+
+  'classic-elegance': (bg, ac, ac2) => svg(bg, `
+    <rect x="100" y="100" width="1000" height="600" rx="4" fill="none" stroke="${ac}" stroke-width="2" opacity=".12"/>
+    <rect x="120" y="120" width="960" height="560" rx="2" fill="none" stroke="${ac}" stroke-width="1" opacity=".08"/>
+    <path d="M200 120q100 30 200 0M500 120q100 30 200 0M800 120q100 30 200 0" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".12"/>
+    <path d="M200 680q100-30 200 0M500 680q100-30 200 0M800 680q100-30 200 0" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".12"/>
+    <circle cx="600" cy="400" r="40" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".1"/>
+  `),
+
+  'fairytale-castle': (bg, ac, ac2) => svg(bg, `
+    <path d="M400 800v-350l10-30 10 30v350" fill="none" stroke="${ac}" stroke-width="2" opacity=".2"/>
+    <path d="M410 420l-20-40h40z" fill="${ac}" opacity=".15"/>
+    <path d="M500 800v-400l80-100 80 100v400" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".2"/>
+    <path d="M580 300l-40-60h80z" fill="${ac}" opacity=".18"/>
+    <path d="M700 800v-350l10-30 10 30v350" fill="none" stroke="${ac}" stroke-width="2" opacity=".2"/>
+    <path d="M710 420l-20-40h40z" fill="${ac}" opacity=".15"/>
+    <path d="M430 500h240" stroke="${ac}" stroke-width="1" opacity=".1"/>
+    <rect x="545" y="550" width="70" height="100" rx="35" fill="${ac}" opacity=".06"/>
+    ${[300,450,650,800,950].map((x,i) => `<circle cx="${x}" cy="${150+(i*37)%150}" r="${2+i%2}" fill="${ac2}" opacity=".2"/>`).join('')}
+  `),
+
+  'cottagecore': (bg, ac, ac2) => svg(bg, `
+    <path d="M300 500l200-150 200 150" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".2"/>
+    <rect x="350" y="500" width="300" height="200" fill="none" stroke="${ac}" stroke-width="2" opacity=".15"/>
+    <rect x="460" y="550" width="80" height="100" rx="40" fill="${ac}" opacity=".06"/>
+    <rect x="370" y="530" width="50" height="50" fill="none" stroke="${ac2}" stroke-width="1" opacity=".1"/>
+    <rect x="580" y="530" width="50" height="50" fill="none" stroke="${ac2}" stroke-width="1" opacity=".1"/>
+    ${[100,200,700,800,900,1000,1100].map((x,i) => `<path d="M${x} 700q${5+i%3}-${30+i*5} 0-${60+i*8}" fill="none" stroke="${i%2?ac:ac2}" stroke-width="1.5" opacity=".15"/><circle cx="${x}" cy="${640-i*8}" r="${4+i%3}" fill="${i%2?ac:ac2}" opacity=".12"/>`).join('')}
+    <path d="M0 700q300-20 600 0t600-15v115H0z" fill="${ac2}" opacity=".06"/>
+  `),
+
+  'regency-romance': (bg, ac, ac2) => svg(bg, `
+    <rect x="150" y="200" width="30" height="450" rx="15" fill="${ac}" opacity=".08"/>
+    <rect x="1020" y="200" width="30" height="450" rx="15" fill="${ac}" opacity=".08"/>
+    <path d="M180 200q420-200 840 0" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".15"/>
+    <path d="M200 220q400-180 800 0" fill="none" stroke="${ac2}" stroke-width="1.5" opacity=".1"/>
+    <path d="M250 250q150 40 300 0" fill="none" stroke="${ac}" stroke-width="1" opacity=".1"/>
+    <path d="M650 250q150 40 300 0" fill="none" stroke="${ac}" stroke-width="1" opacity=".1"/>
+    <circle cx="600" cy="400" r="50" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".12"/>
+    <circle cx="600" cy="400" r="35" fill="${ac}" opacity=".04"/>
+  `),
+
+  'black-and-white': (bg, ac, ac2, fg) => svg(bg, `
+    ${[0,1,2,3,4,5].map(i => `<rect x="${i*200}" y="0" width="100" height="800" fill="${fg}" opacity=".03"/>`).join('')}
+    <line x1="0" y1="0" x2="1200" y2="800" stroke="${fg}" stroke-width="1.5" opacity=".06"/>
+    <line x1="1200" y1="0" x2="0" y2="800" stroke="${fg}" stroke-width="1.5" opacity=".06"/>
+    <circle cx="600" cy="400" r="100" fill="none" stroke="${fg}" stroke-width="2" opacity=".1"/>
+    <rect x="500" y="300" width="200" height="200" fill="none" stroke="${fg}" stroke-width="1.5" opacity=".08"/>
+  `),
+
+  'gothic-cathedral': (bg, ac, ac2) => svg(bg, `
+    ${[100,350,600,850].map(x => `<path d="M${x} 800v-400q0-120 125-180q125 60 125 180v400" fill="none" stroke="${ac}" stroke-width="2" opacity=".15"/>`).join('')}
+    <path d="M600 180v250" stroke="${ac}" stroke-width="2" opacity=".12"/>
+    <path d="M540 300h120" stroke="${ac}" stroke-width="2" opacity=".12"/>
+    <circle cx="600" cy="250" r="30" fill="none" stroke="${ac}" stroke-width="1" opacity=".1"/>
+    <path d="M0 700q300-30 600 0t600-20v120H0z" fill="${ac}" opacity=".05"/>
+  `),
+
+  'nautical-prep': (bg, ac, ac2) => svg(bg, `
+    ${[0,1,2,3].map(i => `<path d="M0 ${450+i*80}q200-40 400 0t400-30 400 15" fill="none" stroke="${ac}" stroke-width="${2-i*.3}" opacity=".${12-i*2}"/>`).join('')}
+    <circle cx="600" cy="300" r="50" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".18"/>
+    <path d="M600 250v100M560 300h80" stroke="${ac}" stroke-width="2" opacity=".15"/>
+    <path d="M600 350v30M590 380h20" stroke="${ac}" stroke-width="2" opacity=".12"/>
+    <path d="M550 200l50-80 50 80" fill="none" stroke="${ac2}" stroke-width="1.5" opacity=".12"/>
+  `),
+
+  'mountain-lodge': (bg, ac, ac2) => svg(bg, `
+    <path d="M0 600l200-300 100 80 200-350 150 200 100-150 200 280 250-200v440H0z" fill="${ac}" opacity=".08"/>
+    <path d="M0 650l300-200 200 100 300-250 200 150 200-100v450H0z" fill="${ac2}" opacity=".06"/>
+    ${[200,450,700,950].map((x,i) => `<path d="M${x} ${600-i*20}l-25-70 30 15-5-50 20 15 0-40 15 25-5-30 25-15-8 45 28-10z" fill="${ac}" opacity=".${8+i*2}"/>`).join('')}
+    <path d="M0 700q400-30 800 0t400-15v115H0z" fill="${ac2}" opacity=".05"/>
+  `),
+
+  'japandi-zen': (bg, ac, ac2) => svg(bg, `
+    <circle cx="600" cy="380" r="200" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".12" stroke-dasharray="8 0 8"/>
+    <path d="M350 400q120-30 250 15" fill="none" stroke="${ac}" stroke-width="2" opacity=".15" stroke-linecap="round"/>
+    <circle cx="620" cy="408" r="8" fill="${ac}" opacity=".12"/>
+    <circle cx="580" cy="395" r="5" fill="${ac2}" opacity=".1"/>
+    <line x1="200" y1="600" x2="1000" y2="600" stroke="${ac}" stroke-width="1" opacity=".06"/>
+    <circle cx="600" cy="600" r="3" fill="${ac}" opacity=".1"/>
+  `),
+
+  'victorian-garden': (bg, ac, ac2) => svg(bg, `
+    <rect x="80" y="80" width="1040" height="640" rx="8" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".12"/>
+    <rect x="100" y="100" width="1000" height="600" rx="4" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".08"/>
+    <path d="M80 80q40 40 80 0M1120 80q-40 40-80 0M80 720q40-40 80 0M1120 720q-40-40-80 0" fill="none" stroke="${ac}" stroke-width="2" opacity=".15"/>
+    <path d="M500 200q50-40 100 0t100 0" fill="none" stroke="${ac2}" stroke-width="1.5" opacity=".1"/>
+    <path d="M500 600q50 40 100 0t100 0" fill="none" stroke="${ac2}" stroke-width="1.5" opacity=".1"/>
+  `),
+
+  'fall-harvest': (bg, ac, ac2) => svg(bg, `
+    ${[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].map((i) => {
+      const x = 80+(i*83)%1060, y = 100+(i*67)%550, rot = (i*47)%360;
+      return `<path d="M${x} ${y}q12-20 0-35q-12 15 0 35" fill="${i%3===0?ac:ac2}" opacity=".${12+i%8}" transform="rotate(${rot} ${x} ${y})"/>`;
+    }).join('')}
+    <path d="M0 650q400-40 800 0t400-20v170H0z" fill="${ac}" opacity=".06"/>
+  `),
+
+  'dark-academia': (bg, ac, ac2) => svg(bg, `
+    ${[0,1,2,3].map(i => `<line x1="150" y1="${200+i*150}" x2="1050" y2="${200+i*150}" stroke="${ac}" stroke-width="1.5" opacity=".08"/>`).join('')}
+    ${[0,1,2,3,4,5,6,7,8,9,10,11].map((i) => {
+      const x = 170+i*75, shelf = Math.floor(i/4), y = 172+shelf*150;
+      return `<rect x="${x}" y="${y}" width="${14+i%8}" height="26" rx="1" fill="${i%2?ac:ac2}" opacity=".${10+i%6}"/>`;
+    }).join('')}
+    <circle cx="800" cy="350" r="40" fill="none" stroke="${ac}" stroke-width="1" opacity=".08"/>
+    <path d="M785 330h30M800 315v30" stroke="${ac}" stroke-width="1" opacity=".06"/>
+  `),
+
+  'old-money': (bg, ac, ac2) => svg(bg, `
+    <rect x="150" y="150" width="900" height="500" rx="3" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".08"/>
+    <circle cx="600" cy="400" r="80" fill="none" stroke="${ac}" stroke-width="1" opacity=".06"/>
+    <circle cx="600" cy="400" r="60" fill="none" stroke="${ac2}" stroke-width=".5" opacity=".05"/>
+    <line x1="300" y1="400" x2="520" y2="400" stroke="${ac}" stroke-width=".5" opacity=".05"/>
+    <line x1="680" y1="400" x2="900" y2="400" stroke="${ac}" stroke-width=".5" opacity=".05"/>
+  `),
+
+  'maximalist-color': (bg, ac, ac2, fg) => svg(bg, `
+    ${[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].map((i) => {
+      const x = 50+(i*87)%1100, y = 50+(i*73)%700, r = 25+i%40;
+      const colors = [ac, ac2, '#4040FF', '#40C040', '#FFB800'];
+      const c = colors[i%5];
+      return i%3===0 ? `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity=".1"/>` : i%3===1 ? `<rect x="${x}" y="${y}" width="${r}" height="${r}" fill="${c}" opacity=".08" transform="rotate(${i*15} ${x} ${y})"/>` : `<polygon points="${x},${y-r} ${x+r},${y+r} ${x-r},${y+r}" fill="${c}" opacity=".07"/>`;
+    }).join('')}
+  `),
+
+  'retro-disco': (bg, ac, ac2) => svg(bg, `
+    <circle cx="600" cy="200" r="80" fill="none" stroke="${ac}" stroke-width="2" opacity=".2"/>
+    <circle cx="600" cy="200" r="60" fill="none" stroke="${ac}" stroke-width="1" opacity=".12"/>
+    <circle cx="600" cy="200" r="40" fill="${ac}" opacity=".06"/>
+    <line x1="600" y1="0" x2="600" y2="120" stroke="${ac2}" stroke-width="1" opacity=".12"/>
+    ${[0,1,2,3,4,5,6,7,8,9,10,11].map(i => `<line x1="600" y1="200" x2="${600+Math.cos(i*Math.PI/6)*400}" y2="${200+Math.sin(i*Math.PI/6)*400}" stroke="${ac}" stroke-width="1" opacity=".08"/>`).join('')}
+    <rect x="100" y="650" width="1000" height="20" rx="2" fill="${ac}" opacity=".06"/>
+    <rect x="100" y="680" width="1000" height="20" rx="2" fill="${ac2}" opacity=".05"/>
+  `),
+
+  'french-chateau': (bg, ac, ac2) => svg(bg, `
+    <ellipse cx="600" cy="400" rx="350" ry="300" fill="none" stroke="${ac}" stroke-width="2" opacity=".12"/>
+    <ellipse cx="600" cy="400" rx="300" ry="260" fill="none" stroke="${ac}" stroke-width="1" opacity=".08"/>
+    <path d="M600 100l-15 20 15 10 15-10z" fill="${ac}" opacity=".15"/>
+    <path d="M400 200q200-80 400 0" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".12"/>
+    <path d="M400 600q200 80 400 0" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".12"/>
+    <path d="M250 400h100M850 400h100" stroke="${ac}" stroke-width="1" opacity=".08"/>
+    <rect x="200" y="250" width="20" height="300" rx="10" fill="${ac}" opacity=".06"/>
+    <rect x="980" y="250" width="20" height="300" rx="10" fill="${ac}" opacity=".06"/>
+  `),
+
+  'country-barn': (bg, ac, ac2) => svg(bg, `
+    <path d="M350 500l250-180 250 180" fill="none" stroke="${ac}" stroke-width="3" opacity=".15"/>
+    <rect x="400" y="500" width="400" height="250" fill="none" stroke="${ac}" stroke-width="2" opacity=".12"/>
+    <rect x="550" y="550" width="100" height="120" rx="50" fill="${ac}" opacity=".06"/>
+    <line x1="600" y1="320" x2="600" y2="500" stroke="${ac}" stroke-width="1" opacity=".08"/>
+    ${[100,200,800,900,1000,1100].map((x,i) => `<rect x="${x}" y="620" width="8" height="80" fill="${ac}" opacity=".06"/>`).join('')}
+    <line x1="80" y1="660" x2="1120" y2="660" stroke="${ac}" stroke-width="1" opacity=".05"/>
+  `),
+
+  'western-ranch': (bg, ac, ac2) => svg(bg, `
+    <circle cx="850" cy="250" r="100" fill="${ac2}" opacity=".08"/>
+    <path d="M0 550l150-150h100l50 50h200l50-50h100l150 100 400-50v350H0z" fill="${ac}" opacity=".07"/>
+    <path d="M300 550v-200M280 400h40M270 440h60" stroke="${ac}" stroke-width="3" fill="none" opacity=".2" stroke-linecap="round"/>
+    <path d="M800 520v-150M785 410h30M778 440h44" stroke="${ac}" stroke-width="2.5" fill="none" opacity=".18" stroke-linecap="round"/>
+  `),
+
+  'romantic-blush': (bg, ac, ac2) => svg(bg, `
+    ${[0,1,2,3,4,5,6,7,8,9,10,11].map((i) => {
+      const x = 100+(i*97)%1000, y = 100+(i*71)%600;
+      return `<ellipse cx="${x}" cy="${y}" rx="${18+i%12}" ry="${22+i%15}" fill="${i%2?ac:ac2}" opacity=".${6+i%5}" transform="rotate(${i*30} ${x} ${y})"/>`;
+    }).join('')}
+    <path d="M0 600q300-30 600 0t600-20v220H0z" fill="${ac}" opacity=".05"/>
+  `),
+
+  'wildflower-meadow': (bg, ac, ac2) => svg(bg, `
+    ${[80,180,280,380,480,580,680,780,880,980,1080].map((x,i) => `<path d="M${x} 800q${i%2?8:-8}-180 ${i%2?20:-20}-400" fill="none" stroke="${i%3===0?ac:ac2}" stroke-width="1.5" opacity=".15"/><circle cx="${x+(i%2?20:-20)}" cy="${400-(i*17)%100}" r="${6+i%5}" fill="${i%2?ac:ac2}" opacity=".18"/>`).join('')}
+    <path d="M0 700q400-30 800 0t400-15v115H0z" fill="${ac}" opacity=".05"/>
+  `),
+
+  'whimsical-garden': (bg, ac, ac2) => svg(bg, `
+    ${[200,400,600,800,1000].map((x,i) => `<circle cx="${x}" cy="${300+(i*50)%200}" r="${40+i*8}" fill="none" stroke="${i%2?ac:ac2}" stroke-width="1.5" opacity=".1" stroke-dasharray="6 4"/>`).join('')}
+    ${[150,350,550,750,950,1100].map((x,i) => `<circle cx="${x}" cy="${200+(i*43)%400}" r="${3+i%4}" fill="${i%2?ac:ac2}" opacity=".15"/>`).join('')}
+    <path d="M0 600q200-40 400 10t400-30 400 20v200H0z" fill="${ac}" opacity=".05"/>
+  `),
+
+  'nature-organic': (bg, ac, ac2) => svg(bg, `
+    ${[0,1,2,3,4].map(i => `<path d="M0 ${400+i*80}q300-${40+i*10} 600 0t600 0" fill="none" stroke="${ac}" stroke-width="${2-i*.3}" opacity=".${10-i}"/>`).join('')}
+    <path d="M300 350q20-35 0-55q-20 20 0 55" fill="${ac}" opacity=".12"/>
+    <path d="M500 300q25-40 0-60q-25 20 0 60" fill="${ac2}" opacity=".1"/>
+    <path d="M800 320q18-30 0-48q-18 18 0 48" fill="${ac}" opacity=".1"/>
+    <path d="M650 370q15-25 0-40q-15 15 0 40" fill="${ac2}" opacity=".08"/>
+  `),
+
+  'y2k-reloaded': (bg, ac, ac2) => svg(bg, `
+    ${[0,1,2,3,4,5,6,7,8,9].map((i) => `<circle cx="${100+(i*110)%1000}" cy="${100+(i*73)%600}" r="${20+i%20}" fill="none" stroke="${i%2?ac:ac2}" stroke-width="1.5" opacity=".12"/>`).join('')}
+    ${[0,1,2,3,4,5].map((i) => `<path d="M${200+i*150} ${250+(i*47)%300}l5-15 5 15 15-5-15 5 5 15-5-15-15 5z" fill="${i%2?ac:ac2}" opacity=".18"/>`).join('')}
+    <circle cx="600" cy="350" r="60" fill="${ac}" opacity=".05"/>
+    <circle cx="600" cy="350" r="45" fill="${ac2}" opacity=".04"/>
+  `),
+
+  'aged-to-perfection': (bg, ac, ac2) => svg(bg, `
+    <path d="M500 250l100 200h-200z" fill="none" stroke="${ac}" stroke-width="2" opacity=".15"/>
+    <line x1="600" y1="450" x2="600" y2="600" stroke="${ac}" stroke-width="2" opacity=".12"/>
+    <ellipse cx="600" cy="600" rx="50" ry="10" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".12"/>
+    <circle cx="350" cy="400" r="80" fill="none" stroke="${ac2}" stroke-width="1" opacity=".08"/>
+    <circle cx="850" cy="350" r="60" fill="none" stroke="${ac2}" stroke-width="1" opacity=".06"/>
+    <path d="M0 650q400-30 800 0t400-20v170H0z" fill="${ac}" opacity=".05"/>
+  `),
+
+  'future-noir': (bg, ac, ac2) => svg(bg, `
+    ${[0,1,2,3,4,5,6,7].map(i => `<line x1="${i*170}" y1="0" x2="${i*170}" y2="800" stroke="${ac}" stroke-width=".5" opacity=".1"/>`).join('')}
+    ${[0,1,2,3,4,5].map(i => `<line x1="0" y1="${i*160}" x2="1200" y2="${i*160}" stroke="${ac}" stroke-width=".5" opacity=".08"/>`).join('')}
+    <polygon points="600,250 680,310 680,420 600,480 520,420 520,310" fill="none" stroke="${ac}" stroke-width="2" opacity=".2"/>
+    <polygon points="600,280 650,320 650,400 600,440 550,400 550,320" fill="${ac}" opacity=".04"/>
+    <circle cx="600" cy="360" r="15" fill="${ac}" opacity=".08"/>
+  `),
+
+  'martini-hour': (bg, ac, ac2) => svg(bg, `
+    <path d="M500 200l100 250h-200z" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".18"/>
+    <line x1="600" y1="450" x2="600" y2="580" stroke="${ac}" stroke-width="2" opacity=".15"/>
+    <line x1="540" y1="580" x2="660" y2="580" stroke="${ac}" stroke-width="2" opacity=".15"/>
+    <circle cx="570" cy="280" r="4" fill="${ac}" opacity=".15"/>
+    <circle cx="590" cy="310" r="3" fill="${ac}" opacity=".12"/>
+    <circle cx="615" cy="260" r="3.5" fill="${ac}" opacity=".12"/>
+    <circle cx="300" cy="350" r="60" fill="${ac2}" opacity=".04"/>
+    <circle cx="900" cy="400" r="50" fill="${ac2}" opacity=".03"/>
+  `),
+
+  'gothic-masquerade': (bg, ac, ac2) => svg(bg, `
+    <ellipse cx="600" cy="350" rx="150" ry="80" fill="none" stroke="${ac}" stroke-width="2.5" opacity=".18"/>
+    <ellipse cx="600" cy="350" rx="120" ry="60" fill="${ac}" opacity=".04"/>
+    <circle cx="530" cy="340" r="25" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".15"/>
+    <circle cx="670" cy="340" r="25" fill="none" stroke="${ac}" stroke-width="1.5" opacity=".15"/>
+    <path d="M460 320q-60-120-30-200" fill="none" stroke="${ac2}" stroke-width="1.5" opacity=".12"/>
+    <path d="M740 320q60-120 30-200" fill="none" stroke="${ac2}" stroke-width="1.5" opacity=".12"/>
+    <path d="M500 400q100 40 200 0" fill="none" stroke="${ac}" stroke-width="1" opacity=".1"/>
+  `),
+
+  'maximalist-fun-house': (bg, ac, ac2) => svg(bg, `
+    <path d="M200 700l400-450 400 450" fill="none" stroke="${ac}" stroke-width="3" opacity=".15"/>
+    <path d="M300 700l300-350 300 350" fill="none" stroke="${ac2}" stroke-width="2" opacity=".1"/>
+    ${[250,370,490,610,730].map((x,i) => `<path d="M${x} 350l20 35-40 0z" fill="${['#FF4444','#FFB800','#4444FF','#40C040',ac][i]}" opacity=".12"/>`).join('')}
+    <line x1="600" y1="0" x2="600" y2="250" stroke="${ac}" stroke-width="1" opacity=".08"/>
+    <circle cx="600" cy="250" r="15" fill="${ac}" opacity=".06"/>
+    ${[150,400,650,900,1050].map((x,i) => `<circle cx="${x}" cy="${600+(i*20)%100}" r="${8+i%5}" fill="${['#FF4444','#FFB800','#4444FF','#40C040',ac][i]}" opacity=".08"/>`).join('')}
+  `),
 };
 
 function fallbackCard(bg: string, ac: string, ac2: string, fg: string): string {
