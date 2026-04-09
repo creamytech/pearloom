@@ -18,6 +18,8 @@ export interface StoryManifest {
   comingSoon: ComingSoonConfig;
   // User-uploaded hero cover photo (overrides AI-generated art)
   coverPhoto?: string;
+  // Hero slideshow: multiple photos that auto-rotate in the hero section
+  heroSlideshow?: string[];
   // What type of life event is this site for?
   occasion?: 'wedding' | 'anniversary' | 'engagement' | 'birthday' | 'story';
   // Timeline macro layout format chosen by user

@@ -986,7 +986,8 @@ function BlockConfigPanel({
           </div>
         );
 
-      case 'hero':
+      case 'hero': {
+        const slideshowPhotos = (manifest.heroSlideshow || []) as string[];
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <MiniInput
@@ -1004,8 +1005,48 @@ function BlockConfigPanel({
               onChange={v => onChange({ ...manifest, coverPhoto: v })}
               placeholder="https://... or leave blank for AI art"
             />
+            {/* Hero Slideshow */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--pl-muted)', marginBottom: '6px' }}>
+                Photo Slideshow {slideshowPhotos.length > 0 && `· ${slideshowPhotos.length}`}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', marginBottom: '6px', lineHeight: 1.4 }}>
+                Add multiple photos for an auto-rotating hero slideshow
+              </div>
+              {slideshowPhotos.map((url, i) => (
+                <div key={i} style={{ display: 'flex', gap: '4px', marginBottom: '4px', alignItems: 'center' }}>
+                  <MiniInput
+                    label={`Photo ${i + 1}`}
+                    value={url}
+                    onChange={v => {
+                      const updated = [...slideshowPhotos];
+                      updated[i] = v;
+                      onChange({ ...manifest, heroSlideshow: updated });
+                    }}
+                    placeholder="https://..."
+                  />
+                  <button
+                    onClick={() => onChange({ ...manifest, heroSlideshow: slideshowPhotos.filter((_, j) => j !== i) })}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e87171', fontSize: '0.8rem', padding: '4px', flexShrink: 0 }}
+                    title="Remove"
+                  >×</button>
+                </div>
+              ))}
+              <button
+                onClick={() => onChange({ ...manifest, heroSlideshow: [...slideshowPhotos, ''] })}
+                style={{
+                  width: '100%', padding: '6px', borderRadius: '8px',
+                  border: '1.5px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.05)',
+                  color: 'var(--pl-olive)', fontSize: '0.72rem', fontWeight: 600,
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
+                + Add Slideshow Photo
+              </button>
+            </div>
           </div>
         );
+      }
 
       case 'photos':
       case 'photoWall':
