@@ -57,7 +57,7 @@ function ActionBtn({
       }}
     >
       {icon}
-      <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+      <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
         {label}
       </span>
     </motion.button>
@@ -68,7 +68,7 @@ function ActionBtn({
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <label style={{
-      fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em',
+      fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em',
       textTransform: 'uppercase', color: 'var(--pl-muted, #9A9488)',
       marginBottom: 4, display: 'block',
     }}>

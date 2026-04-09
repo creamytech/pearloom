@@ -5,8 +5,9 @@
 // Clean chapter cards, story style picker, inline editing
 // ─────────────────────────────────────────────────────────────
 
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
-import { Plus, Trash2, Image, Clock, GripVertical, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Image, Clock, GripVertical, ChevronDown, Undo2, X } from 'lucide-react';
 import { ChapterPanel } from './ChapterPanel';
 import { slugDate } from './editor-utils';
 import { useEditor } from '@/lib/editor-state';

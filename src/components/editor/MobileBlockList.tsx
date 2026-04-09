@@ -181,7 +181,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
       {/* Section header */}
       <div style={{
         padding: '12px 16px 8px',
-        fontSize: 'var(--pl-text-2xs, 10px)',
+        fontSize: '0.7rem',
         fontWeight: 700,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
@@ -266,7 +266,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 35 }}
             style={{
               position: 'fixed',
               bottom: 'calc(90px + env(safe-area-inset-bottom, 0px))',
@@ -286,7 +286,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
             <span style={{ fontSize: 'var(--pl-text-sm, 13px)', fontWeight: 600, color: 'var(--pl-ink)' }}>
               Delete this section?
             </span>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 16 }}>
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 style={{
@@ -299,6 +299,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
                   cursor: 'pointer',
                   color: 'var(--pl-ink)',
                   minHeight: 44,
+                  touchAction: 'manipulation',
                 }}
               >
                 Cancel
@@ -315,6 +316,7 @@ export function MobileBlockList({ onSelectBlock, onScrollToBlock }: MobileBlockL
                   fontWeight: 700,
                   cursor: 'pointer',
                   minHeight: 44,
+                  touchAction: 'manipulation',
                 }}
               >
                 Delete
@@ -448,14 +450,14 @@ const MobileBlockCard = memo(function MobileBlockCard({
 
             if (offsetX < -100) {
               // Full swipe — trigger delete confirm
-              animate(rowX, -120, { type: 'spring', stiffness: 500, damping: 38 });
+              animate(rowX, -120, { type: 'spring', stiffness: 350, damping: 38 });
               onDeleteConfirm(block.id);
             } else if (offsetX < -40) {
               // Partial swipe — snap to show buttons
-              animate(rowX, -120, { type: 'spring', stiffness: 500, damping: 38 });
+              animate(rowX, -120, { type: 'spring', stiffness: 350, damping: 38 });
             } else {
               // Spring back
-              animate(rowX, 0, { type: 'spring', stiffness: 500, damping: 38 });
+              animate(rowX, 0, { type: 'spring', stiffness: 350, damping: 38 });
               onDeleteConfirm(null);
             }
           }}
@@ -463,7 +465,7 @@ const MobileBlockCard = memo(function MobileBlockCard({
             if (!isSwiping) {
               // If card is swiped open, close it first
               if (rowX.get() < -10) {
-                animate(rowX, 0, { type: 'spring', stiffness: 500, damping: 38 });
+                animate(rowX, 0, { type: 'spring', stiffness: 350, damping: 38 });
                 onDeleteConfirm(null);
                 return;
               }
@@ -493,7 +495,7 @@ const MobileBlockCard = memo(function MobileBlockCard({
               touchAction: 'none',
             }}
           >
-            <GripIcon size={16} />
+            <GripIcon size={20} />
           </motion.div>
 
           {/* Block type icon (colored circle, 36px) */}
@@ -525,7 +527,7 @@ const MobileBlockCard = memo(function MobileBlockCard({
               {def?.label || block.type}
             </div>
             <div style={{
-              fontSize: 'var(--pl-text-2xs, 10px)',
+              fontSize: '0.7rem',
               color: 'var(--pl-ink-soft, #6B5E52)',
               marginTop: 2,
               whiteSpace: 'nowrap',
@@ -576,7 +578,7 @@ function toggleVisibilityInline(
   blockId: string,
 ) {
   if (rowX.get() < -10) {
-    animate(rowX, 0, { type: 'spring', stiffness: 500, damping: 38 });
+    animate(rowX, 0, { type: 'spring', stiffness: 350, damping: 38 });
   }
   onToggle(blockId);
 }
@@ -606,7 +608,7 @@ function AddBlockSheet({
           position: 'fixed',
           inset: 0,
           zIndex: 300,
-          background: 'rgba(0,0,0,0.4)',
+          background: 'rgba(43,30,20,0.25)',
           WebkitTapHighlightColor: 'transparent',
         }}
       />
@@ -741,7 +743,7 @@ function AddBlockSheet({
 
                   {/* Label */}
                   <span style={{
-                    fontSize: 'var(--pl-text-2xs, 10px)',
+                    fontSize: '0.7rem',
                     fontWeight: 600,
                     color: 'var(--pl-ink, #2B1E14)',
                     textAlign: 'center',

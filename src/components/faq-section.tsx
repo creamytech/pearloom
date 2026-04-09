@@ -57,7 +57,10 @@ function FaqAccordionItem({
           cursor: 'pointer',
           textAlign: 'left',
           gap: '1.5rem',
+          outline: 'none',
+          borderRadius: '4px',
         }}
+        className="pl-faq-btn"
         aria-expanded={open}
       >
         <span
@@ -175,6 +178,12 @@ export function FaqSection({
 
   return (
     <section data-pe-section="faq" data-pe-label="FAQ" style={{ padding: '8rem 2rem', background: 'var(--pl-cream)' }}>
+      <style>{`
+        .pl-faq-btn:focus-visible {
+          outline: 2px solid var(--pl-olive) !important;
+          outline-offset: 2px;
+        }
+      `}</style>
       <div style={{ maxWidth: '860px', margin: '0 auto' }}>
         {/* Section header */}
         <motion.div

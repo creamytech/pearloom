@@ -5,7 +5,7 @@
 // Multi-event display: ceremony, reception, rehearsal dinner, etc.
 // ─────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink, Heart, Sparkles, UtensilsCrossed, Wine, Coffee, Calendar } from 'lucide-react';
 import { AddToCalendar } from '@/components/add-to-calendar';
@@ -38,6 +38,13 @@ function getEventIcon(type: WeddingEvent['type'], accentColor = 'var(--pl-olive)
 }
 
 function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: number; vibeSkin?: VibeSkin }) {
+  const [isFocused, setIsFocused] = useState(false);
+  const handleFocus = useCallback((e: React.FocusEvent) => {
+    if (e.currentTarget === e.target || e.currentTarget.matches(':focus-visible')) {
+      setIsFocused(true);
+    }
+  }, []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
   const accentColor = vibeSkin?.palette.accent ?? 'var(--pl-olive)';
   const cardBg = vibeSkin?.palette.card ?? 'var(--pl-cream-card, #FDFAF4)';
   const headingFont = vibeSkin?.fonts.heading ?? 'var(--pl-font-heading)';
@@ -73,6 +80,9 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
       className="pl-scroll-scale-in"
       data-pe-event-id={event.id}
       data-pe-event-index={index}
+      tabIndex={0}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -94,6 +104,8 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         flexDirection: 'column',
         position: 'relative',
         fontFamily: bodyFont,
+        outline: isFocused ? `2px solid ${accentColor}` : 'none',
+        outlineOffset: isFocused ? '2px' : undefined,
       } as React.CSSProperties}
     >
       {/* Left accent bar */}
