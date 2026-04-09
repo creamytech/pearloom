@@ -21,14 +21,30 @@ interface QuickAction {
   handler: 'ai-chat' | 'ai-faq' | 'section-picker';
 }
 
-const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Pear, help me start',   prompt: 'Look at my site and tell me what\'s missing or needs attention. Give me a prioritized to-do list of the most important things to add or fix, and offer to do the first one for me.', handler: 'ai-chat' },
-  { label: 'Make it beautiful',     prompt: 'Redesign my site to look stunning — change the color palette, fonts, and tagline to create a cohesive, magazine-worthy look that matches the vibe.', handler: 'ai-chat' },
-  { label: 'Write my content',      prompt: 'Write all the text content my site needs — hero tagline, welcome message, closing line, and RSVP intro. Make it personal using the couple names and any details you know about the event.', handler: 'ai-chat' },
-  { label: 'Set up events',         prompt: 'Set up my wedding day schedule with a ceremony, cocktail hour, and reception. Use the venue and date if I have them, or ask me for the details you need.', handler: 'ai-chat' },
-  { label: 'Ask Pear for FAQs',     prompt: 'Write 5-7 FAQs that my guests would actually ask. Use real details from my site like venue, parking, dress code. If you don\'t have enough info, ask me the key questions first.', handler: 'ai-chat' },
-  { label: 'Suggest improvements',  prompt: 'Review my entire site like a wedding planner would. What\'s working? What could be better? Give me specific, actionable suggestions and offer to make the changes.', handler: 'ai-chat' },
-];
+function getDefaultQuickActions(occasion?: string): QuickAction[] {
+  const occ = occasion || 'wedding';
+  const eventPrompt = occ === 'birthday'
+    ? 'Set up my birthday party details — the main celebration and any other activities. Ask me for details you need.'
+    : occ === 'anniversary'
+      ? 'Set up my anniversary celebration — dinner, party, or gathering. Ask me for the details you need.'
+      : occ === 'engagement'
+        ? 'Set up my engagement party schedule. Ask me for venue and date if you need them.'
+        : 'Set up my event schedule — ceremony, cocktail hour, and reception. Use the venue and date if I have them, or ask me for the details.';
+  const reviewPrompt = occ === 'birthday'
+    ? 'Review my birthday site like a party planner. What\'s working? What could be better?'
+    : occ === 'anniversary'
+      ? 'Review my anniversary site. What\'s working? What could be better?'
+      : 'Review my site like a wedding planner. What\'s working? What could be better?';
+
+  return [
+    { label: 'Pear, help me start',  prompt: 'Look at my site and tell me what\'s missing or needs attention. Give me a prioritized to-do list and offer to do the first one.', handler: 'ai-chat' },
+    { label: 'Make it beautiful',    prompt: 'Redesign my site to look stunning — change colors, fonts, and tagline to create a magazine-worthy look.', handler: 'ai-chat' },
+    { label: 'Write my content',     prompt: 'Write all the text content my site needs — tagline, welcome message, closing line. Make it personal using the names and details you know.', handler: 'ai-chat' },
+    { label: 'Set up events',        prompt: eventPrompt, handler: 'ai-chat' },
+    { label: 'Ask Pear for FAQs',    prompt: 'Write 5-7 FAQs guests would actually ask. Use real details from my site. If info is missing, ask me first.', handler: 'ai-chat' },
+    { label: 'Suggest improvements', prompt: reviewPrompt, handler: 'ai-chat' },
+  ];
+}
 
 const SECTION_QUICK_ACTIONS: Record<string, QuickAction[]> = {
   hero: [
@@ -55,9 +71,9 @@ const SECTION_QUICK_ACTIONS: Record<string, QuickAction[]> = {
 
 /** Return context-aware quick actions based on the active section/tab */
 function getContextualActions(manifest: StoryManifest, activeSection: string | null): QuickAction[] {
-  if (!activeSection) return DEFAULT_QUICK_ACTIONS;
+  const defaults = getDefaultQuickActions(manifest.occasion);
+  if (!activeSection) return defaults;
 
-  // Normalize: the contextSection or block type maps to our action groups
   const normalized = activeSection.toLowerCase();
 
   if (normalized === 'hero') return SECTION_QUICK_ACTIONS.hero;
@@ -65,7 +81,7 @@ function getContextualActions(manifest: StoryManifest, activeSection: string | n
   if (normalized === 'story' || normalized === 'chapter') return SECTION_QUICK_ACTIONS.story;
   if (normalized === 'design' || normalized === 'theme' || normalized === 'navigation' || normalized === 'nav') return SECTION_QUICK_ACTIONS.design;
 
-  return DEFAULT_QUICK_ACTIONS;
+  return defaults;
 }
 
 // ── Colour tokens ─────────────────────────────────────────────
