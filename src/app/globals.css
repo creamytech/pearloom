@@ -1037,3 +1037,9 @@ select:focus-visible {
     animation-duration: 0s !important;
   }
 }
+
+/* ── Mobile editor: site nav stays within preview, not viewport ── */
+.pl-mobile-editor-preview nav[class*="fixed"] {
+  position: sticky !important;
+  top: 0 !important;
+}

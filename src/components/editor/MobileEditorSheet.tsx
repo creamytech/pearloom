@@ -551,7 +551,7 @@ export function MobileEditorSheet() {
       </div>
 
       {/* ── Preview Area (direct DOM, matches desktop) ── */}
-      <div ref={previewRef} style={{
+      <div ref={previewRef} className="pl-mobile-editor-preview" style={{
         flex: 1, position: 'relative', minHeight: 0,
         overflow: 'auto', WebkitOverflowScrolling: 'touch',
         background: 'var(--pl-cream)',
