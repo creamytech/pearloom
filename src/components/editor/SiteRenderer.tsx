@@ -720,12 +720,44 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(vibeSkin.accentBlobSvg) }}
               />
             )}
+            {art.blockArt?.eventFrame && (
+              <div
+                aria-hidden="true"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.eventFrame) }}
+              />
+            )}
+            {art.blockArt?.headingDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
+              />
+            )}
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
           </section>
         );
       case 'rsvp':
         if (!manifest.events?.length) return null;
-        return <section key={key} id="rsvp" data-pe-section="rsvp" style={blockStyle}><PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} /></section>;
+        return (
+          <section key={key} id="rsvp" data-pe-section="rsvp" style={blockStyle}>
+            {art.blockArt?.headingDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
+              />
+            )}
+            {art.blockArt?.rsvpDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 80, height: 80, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.rsvpDecor) }}
+              />
+            )}
+            <PublicRsvpSection siteId="preview" events={manifest.events} deadline={manifest.logistics?.rsvpDeadline} />
+          </section>
+        );
       case 'registry':
         if (!manifest.registry?.entries?.length && !manifest.registry?.cashFundUrl) return null;
         return <section key={key} id="registry" data-pe-section="registry" style={blockStyle}><RegistryShowcase registries={manifest.registry?.entries || []} cashFundUrl={manifest.registry?.cashFundUrl} cashFundMessage={manifest.registry?.cashFundMessage} title={vibeSkin.sectionLabels.registry} /></section>;
@@ -738,6 +770,20 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'countdown':
         return (
           <section key={key} data-pe-section="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
+            {art.blockArt?.headingDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
+              />
+            )}
+            {art.blockArt?.countdownDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 80, height: 80, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.countdownDecor) }}
+              />
+            )}
             <div style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.4rem, 3vw, 2rem)', color: safeFg }}>
               Countdown
             </div>
@@ -785,9 +831,23 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         if (!allPhotos.length) return null;
         return (
           <section key={key} data-pe-section="photos" style={{ padding: '4rem 2rem' }}>
+            {art.blockArt?.headingDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
+              />
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxWidth: '960px', margin: '0 auto' }}>
               {allPhotos.map((photo, i) => (
-                <div key={i} style={{ aspectRatio: i === 0 ? '2/1' : '1', gridColumn: i === 0 ? 'span 2' : undefined, borderRadius: '10px', overflow: 'hidden' }}>
+                <div key={i} style={{ position: 'relative', aspectRatio: i === 0 ? '2/1' : '1', gridColumn: i === 0 ? 'span 2' : undefined, borderRadius: '10px', overflow: 'hidden' }}>
+                  {art.blockArt?.photoFrame && (
+                    <div
+                      aria-hidden="true"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.photoFrame) }}
+                    />
+                  )}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={proxyUrl(photo.url, 800, 600)} alt={photo.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
@@ -834,6 +894,20 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'guestbook':
         return (
           <section key={key} data-pe-section="guestbook" style={{ padding: '4rem 2rem', maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+            {art.blockArt?.guestbookDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 80, height: 80, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.guestbookDecor) }}
+              />
+            )}
+            {art.blockArt?.headingDecor && (
+              <div
+                aria-hidden="true"
+                style={{ width: 200, height: 30, margin: '0 auto 0.5rem', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeSvg(art.blockArt.headingDecor) }}
+              />
+            )}
             <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: safeFg, marginBottom: '1rem' }}>
               Leave Your Wishes
             </h2>

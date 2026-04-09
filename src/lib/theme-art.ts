@@ -5,11 +5,27 @@
 // Each theme gets unique visual identity beyond just colors.
 // ─────────────────────────────────────────────────────────────
 
+export interface BlockArt {
+  /** SVG decoration above section headings */
+  headingDecor?: string;
+  /** SVG frame/border for event cards */
+  eventFrame?: string;
+  /** SVG decoration for RSVP section */
+  rsvpDecor?: string;
+  /** SVG frame for photo gallery items */
+  photoFrame?: string;
+  /** SVG border for guestbook section */
+  guestbookDecor?: string;
+  /** SVG decoration for countdown section */
+  countdownDecor?: string;
+}
+
 export interface ThemeArt {
   cornerSvg?: string;
   heroPatternSvg?: string;
   dividerPath?: string;
   accentSvg?: string;
+  blockArt?: BlockArt;
 }
 
 export const THEME_ART: Record<string, ThemeArt> = {
@@ -20,6 +36,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M10 40 Q15 30 10 25 Q5 30 10 40Z" fill="#6A8F5A" opacity="0.06"/><path d="M35 15 Q40 5 35 0 Q30 5 35 15Z" fill="#6A8F5A" opacity="0.04"/><circle cx="25" cy="25" r="1" fill="#6A8F5A" opacity="0.08"/></svg>',
     dividerPath: 'M0,25 Q25,10 50,20 T100,25 Q125,15 150,22 T200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="35" fill="none" stroke="#6A8F5A" stroke-width="1" opacity="0.3"/><path d="M50 15 Q65 25 60 40 Q55 30 50 15Z M85 50 Q75 65 60 60 Q70 55 85 50Z M50 85 Q35 75 40 60 Q45 70 50 85Z M15 50 Q25 35 40 40 Q30 45 15 50Z" fill="#6A8F5A" opacity="0.2"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M20 20 Q40 8 60 15 Q80 5 100 12 Q120 5 140 15 Q160 8 180 20" fill="none" stroke="#6A8F5A" stroke-width="1.2" opacity="0.2"/><path d="M55 14 Q58 10 62 14 Q58 18 55 14Z" fill="#6A8F5A" opacity="0.18"/><path d="M135 14 Q138 10 142 14 Q138 18 135 14Z" fill="#6A8F5A" opacity="0.18"/><circle cx="100" cy="11" r="2" fill="#6A8F5A" opacity="0.2"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 5 Q5 5 5 10 L5 90 Q5 95 10 95" fill="none" stroke="#6A8F5A" stroke-width="1" opacity="0.18"/><path d="M90 5 Q95 5 95 10 L95 90 Q95 95 90 95" fill="none" stroke="#6A8F5A" stroke-width="1" opacity="0.18"/><path d="M5 10 Q8 8 12 10 Q8 12 5 10Z" fill="#6A8F5A" opacity="0.15"/><path d="M95 10 Q92 8 88 10 Q92 12 95 10Z" fill="#6A8F5A" opacity="0.15"/></svg>',
+      guestbookDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="28" fill="none" stroke="#6A8F5A" stroke-width="0.8" opacity="0.18"/><path d="M40 12 Q48 18 46 28 Q44 20 40 12Z M68 40 Q62 48 52 46 Q60 44 68 40Z M40 68 Q32 62 34 52 Q36 60 40 68Z M12 40 Q18 32 28 34 Q20 36 12 40Z" fill="#6A8F5A" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Midnight Luxe ───────────────────────────────────────
@@ -28,6 +49,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 0 L50 25 L25 50 L0 25Z" fill="none" stroke="#C4A96A" stroke-width="0.5" opacity="0.06"/><path d="M25 10 L40 25 L25 40 L10 25Z" fill="none" stroke="#C4A96A" stroke-width="0.3" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 L20,25 L25,15 L30,25 L50,25 L55,20 L60,25 L70,25 L75,15 L80,25 L100,25 L120,25 L125,15 L130,25 L150,25 L155,20 L160,25 L170,25 L175,15 L180,25 L200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 L55 45 L90 50 L55 55 L50 90 L45 55 L10 50 L45 45Z" fill="none" stroke="#C4A96A" stroke-width="1.5" opacity="0.4"/><circle cx="50" cy="50" r="5" fill="#C4A96A" opacity="0.15"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M70 25 Q80 10 90 5 L100 2 L110 5 Q120 10 130 25" fill="none" stroke="#C4A96A" stroke-width="1" opacity="0.2"/><path d="M78 22 Q88 12 95 8 L100 5 L105 8 Q112 12 122 22" fill="none" stroke="#C4A96A" stroke-width="0.8" opacity="0.15"/><line x1="20" y1="22" x2="68" y2="22" stroke="#C4A96A" stroke-width="0.8" opacity="0.18"/><line x1="132" y1="22" x2="180" y2="22" stroke="#C4A96A" stroke-width="0.8" opacity="0.18"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 3 L97 50 L50 97 L3 50Z" fill="none" stroke="#C4A96A" stroke-width="0.8" opacity="0.15"/><path d="M50 8 L92 50 L50 92 L8 50Z" fill="none" stroke="#C4A96A" stroke-width="0.5" opacity="0.12"/><line x1="3" y1="50" x2="97" y2="50" stroke="#C4A96A" stroke-width="0.3" opacity="0.1"/></svg>',
+      countdownDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><path d="M40 5 L43 35 L73 40 L43 45 L40 75 L37 45 L7 40 L37 35Z" fill="none" stroke="#C4A96A" stroke-width="1" opacity="0.2"/><path d="M40 15 L42 36 L63 40 L42 44 L40 65 L38 44 L17 40 L38 36Z" fill="none" stroke="#C4A96A" stroke-width="0.5" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Coastal Breeze ──────────────────────────────────────
@@ -36,6 +62,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M0 30 Q12.5 20 25 30 Q37.5 40 50 30" fill="none" stroke="#3A7CA8" stroke-width="0.8" opacity="0.06"/><path d="M0 40 Q12.5 30 25 40 Q37.5 50 50 40" fill="none" stroke="#3A7CA8" stroke-width="0.6" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 Q25,5 50,25 Q75,45 100,25 Q125,5 150,25 Q175,45 200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 20 Q70 20 75 40 Q80 60 65 70 Q50 80 40 65 Q30 50 35 35 Q40 20 50 20Z" fill="none" stroke="#3A7CA8" stroke-width="1.5" opacity="0.3"/><path d="M50 30 Q60 30 63 40 Q66 50 58 55 Q50 60 45 52 Q40 44 43 37 Q46 30 50 30Z" fill="#3A7CA8" opacity="0.08"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M15 18 Q40 6 65 18 Q90 30 115 18 Q140 6 165 18 Q178 24 185 18" fill="none" stroke="#3A7CA8" stroke-width="1.2" opacity="0.2"/><path d="M96 12 Q100 8 104 12 Q100 16 96 12Z" fill="#3A7CA8" opacity="0.2"/><circle cx="100" cy="12" r="1.5" fill="#3A7CA8" opacity="0.18"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 5 L95 5 L95 95 L5 95Z" fill="none" stroke="#3A7CA8" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.18"/><path d="M8 8 L92 8 L92 92 L8 92Z" fill="none" stroke="#3A7CA8" stroke-width="0.5" stroke-dasharray="4 4" opacity="0.12"/></svg>',
+      guestbookDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><path d="M40 10 L40 50 M30 55 Q40 65 50 55 M40 50 L40 55" fill="none" stroke="#3A7CA8" stroke-width="1.5" opacity="0.2"/><path d="M32 28 L40 10 L48 28" fill="none" stroke="#3A7CA8" stroke-width="1" opacity="0.18"/><line x1="30" y1="55" x2="50" y2="55" stroke="#3A7CA8" stroke-width="1" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Art Deco Glamour ────────────────────────────────────
@@ -44,6 +75,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 0 Q35 12 25 25 Q15 12 25 0Z" fill="#C9A84C" opacity="0.04"/><path d="M0 25 Q12 15 25 25 Q12 35 0 25Z" fill="#C9A84C" opacity="0.03"/><path d="M25 25 Q35 37 25 50 Q15 37 25 25Z" fill="#C9A84C" opacity="0.04"/><path d="M25 25 Q37 15 50 25 Q37 35 25 25Z" fill="#C9A84C" opacity="0.03"/></svg>',
     dividerPath: 'M0,25 L15,25 L20,15 L25,25 L30,15 L35,25 L50,25 L65,25 L70,15 L75,25 L80,15 L85,25 L100,25 L115,25 L120,15 L125,25 L130,15 L135,25 L150,25 L165,25 L170,15 L175,25 L180,15 L185,25 L200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="60" height="60" fill="none" stroke="#C9A84C" stroke-width="1.5" opacity="0.3"/><rect x="30" y="30" width="40" height="40" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.2"/><path d="M50 20 L50 80 M20 50 L80 50" stroke="#C9A84C" stroke-width="0.5" opacity="0.15"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M30 22 L40 22 L40 18 L50 18 L50 14 L60 14 L60 10 L80 10 L80 14 L90 14" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.2"/><path d="M110 14 L120 14 L120 10 L140 10 L140 14 L150 14 L150 18 L160 18 L160 22 L170 22" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.2"/><circle cx="100" cy="10" r="2.5" fill="#C9A84C" opacity="0.2"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M20 95 L5 95 L5 30 Q5 5 50 5 Q95 5 95 30 L95 95 L80 95" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.18"/><path d="M25 95 L10 95 L10 32 Q10 10 50 10 Q90 10 90 32 L90 95 L75 95" fill="none" stroke="#C9A84C" stroke-width="0.5" opacity="0.12"/></svg>',
+      rsvpDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><path d="M40 70 L40 40 M40 40 L15 60 M40 40 L20 50 M40 40 L25 55 M40 40 L30 58 M40 40 L50 58 M40 40 L55 55 M40 40 L60 50 M40 40 L65 60" fill="none" stroke="#C9A84C" stroke-width="0.8" opacity="0.2"/><path d="M15 60 Q40 30 65 60" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.18"/></svg>',
+    },
   },
 
   // ── Enchanted Forest ────────────────────────────────────
@@ -52,6 +88,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 45 L25 20 M20 30 L25 25 M30 35 L25 30" fill="none" stroke="#2E7D52" stroke-width="0.8" opacity="0.06"/><circle cx="10" cy="10" r="1" fill="#4AE080" opacity="0.1"/><circle cx="40" cy="40" r="0.8" fill="#4AE080" opacity="0.08"/></svg>',
     dividerPath: 'M0,30 Q10,20 20,28 Q30,10 45,25 Q55,15 65,22 Q80,8 95,20 Q110,28 120,18 Q135,10 150,25 Q160,15 175,22 Q185,30 200,20',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="30" fill="#2E7D52" opacity="0.08"/><circle cx="50" cy="50" r="32" fill="none" stroke="#2E7D52" stroke-width="0.5" opacity="0.2"/><path d="M50 18 L50 82 M40 35 Q50 28 60 35 M38 45 Q50 38 62 45" fill="none" stroke="#2E7D52" stroke-width="1" opacity="0.15"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M85 22 L85 12 Q85 6 90 6 Q95 6 95 12 Q95 6 100 6 Q105 6 105 12 L105 22" fill="none" stroke="#2E7D52" stroke-width="0.8" opacity="0.2"/><path d="M30 25 Q45 20 55 22 Q65 24 75 22 L82 22" fill="none" stroke="#2E7D52" stroke-width="1" opacity="0.18"/><path d="M108 22 L118 22 Q130 24 140 22 Q155 20 170 25" fill="none" stroke="#2E7D52" stroke-width="1" opacity="0.18"/><path d="M60 22 Q63 18 66 22 Q63 20 60 22Z" fill="#2E7D52" opacity="0.15"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 5 Q5 15 8 25 Q3 35 7 50 Q4 60 8 75 Q5 85 10 95" fill="none" stroke="#2E7D52" stroke-width="1.2" opacity="0.18"/><path d="M90 5 Q95 15 92 25 Q97 35 93 50 Q96 60 92 75 Q95 85 90 95" fill="none" stroke="#2E7D52" stroke-width="1.2" opacity="0.18"/><circle cx="8" cy="50" r="1.5" fill="#2E7D52" opacity="0.15"/><circle cx="92" cy="50" r="1.5" fill="#2E7D52" opacity="0.15"/></svg>',
+      guestbookDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="25" fill="none" stroke="#2E7D52" stroke-width="1" opacity="0.18"/><circle cx="40" cy="40" r="20" fill="none" stroke="#2E7D52" stroke-width="0.8" opacity="0.15"/><circle cx="40" cy="40" r="15" fill="none" stroke="#2E7D52" stroke-width="0.6" opacity="0.12"/><circle cx="40" cy="40" r="10" fill="none" stroke="#2E7D52" stroke-width="0.4" opacity="0.1"/></svg>',
+    },
   },
 
   // ── Desert Boho ─────────────────────────────────────────
@@ -60,6 +101,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 40 L20 25 L25 10 L30 25Z" fill="none" stroke="#C4622D" stroke-width="0.5" opacity="0.06"/><circle cx="25" cy="25" r="1" fill="#C4622D" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 L10,25 L15,20 L20,25 L25,20 L30,25 L40,25 L50,25 L60,25 L65,20 L70,25 L75,20 L80,25 L90,25 L100,25 L110,25 L115,20 L120,25 L125,20 L130,25 L140,25 L150,25 L160,25 L165,20 L170,25 L175,20 L180,25 L190,25 L200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="25" fill="none" stroke="#C4622D" stroke-width="1" opacity="0.25"/><path d="M50 25 L55 45 L50 50 L45 45Z M75 50 L55 55 L50 50 L55 45Z M50 75 L45 55 L50 50 L55 55Z M25 50 L45 45 L50 50 L45 55Z" fill="none" stroke="#C4622D" stroke-width="0.8" opacity="0.2"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M30 15 L40 10 L50 15 L60 10 L70 15 L80 10 L90 15" fill="none" stroke="#C4622D" stroke-width="1" opacity="0.2"/><path d="M110 15 L120 10 L130 15 L140 10 L150 15 L160 10 L170 15" fill="none" stroke="#C4622D" stroke-width="1" opacity="0.2"/><path d="M96 15 L100 8 L104 15" fill="none" stroke="#C4622D" stroke-width="1.2" opacity="0.22"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 10 L5 5 L10 5 M90 5 L95 5 L95 10 M95 90 L95 95 L90 95 M10 95 L5 95 L5 90" fill="none" stroke="#C4622D" stroke-width="1" opacity="0.18"/><path d="M20 5 Q30 8 40 5 Q50 2 60 5 Q70 8 80 5" fill="none" stroke="#C4622D" stroke-width="0.6" opacity="0.15"/><path d="M20 95 Q30 92 40 95 Q50 98 60 95 Q70 92 80 95" fill="none" stroke="#C4622D" stroke-width="0.6" opacity="0.15"/></svg>',
+      rsvpDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="35" r="18" fill="none" stroke="#C4622D" stroke-width="1" opacity="0.2"/><path d="M40 53 L35 70 M40 53 L40 72 M40 53 L45 70 M40 53 L30 65 M40 53 L50 65" fill="none" stroke="#C4622D" stroke-width="0.8" opacity="0.18"/><circle cx="40" cy="35" r="12" fill="none" stroke="#C4622D" stroke-width="0.5" opacity="0.12"/></svg>',
+    },
   },
 
   // ── Tropical Paradise ───────────────────────────────────
@@ -68,6 +114,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 5 Q35 15 30 30 Q25 20 25 5Z M25 5 Q15 15 20 30 Q25 20 25 5Z" fill="#E87461" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 Q15,10 30,25 Q45,40 60,25 Q75,10 90,25 Q105,40 120,25 Q135,10 150,25 Q165,40 180,25 Q195,10 200,20',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 20 Q65 30 60 50 Q55 35 50 20Z M50 20 Q35 30 40 50 Q45 35 50 20Z M55 50 Q70 55 65 70 Q58 60 55 50Z M45 50 Q30 55 35 70 Q42 60 45 50Z M50 50 Q50 70 50 80" fill="none" stroke="#E87461" stroke-width="1.2" opacity="0.25"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M40 20 Q50 8 60 15 Q70 5 80 12 Q85 8 90 10" fill="none" stroke="#E87461" stroke-width="1" opacity="0.2"/><path d="M110 10 Q115 8 120 12 Q130 5 140 15 Q150 8 160 20" fill="none" stroke="#E87461" stroke-width="1" opacity="0.2"/><path d="M95 12 Q100 6 105 12 Q100 18 95 12Z" fill="#E87461" opacity="0.18"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 5 L5 95 M8 5 L8 95 M95 5 L95 95 M92 5 L92 95" stroke="#E87461" stroke-width="1" opacity="0.15"/><line x1="5" y1="5" x2="8" y2="5" stroke="#E87461" stroke-width="1" opacity="0.2"/><line x1="5" y1="95" x2="8" y2="95" stroke="#E87461" stroke-width="1" opacity="0.2"/><line x1="92" y1="5" x2="95" y2="5" stroke="#E87461" stroke-width="1" opacity="0.2"/><line x1="92" y1="95" x2="95" y2="95" stroke="#E87461" stroke-width="1" opacity="0.2"/></svg>',
+      guestbookDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="26" fill="none" stroke="#E87461" stroke-width="0.8" opacity="0.18"/><path d="M40 14 Q44 20 42 26 Q40 20 38 26 Q36 20 40 14Z" fill="#E87461" opacity="0.15"/><path d="M62 30 Q56 34 52 30 Q56 28 62 30Z" fill="#E87461" opacity="0.15"/><path d="M62 50 Q56 46 52 50 Q56 52 62 50Z" fill="#E87461" opacity="0.15"/><path d="M18 30 Q24 34 28 30 Q24 28 18 30Z" fill="#E87461" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Winter Wonderland ───────────────────────────────────
@@ -76,6 +127,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 15 L25 35 M18 20 L32 30 M32 20 L18 30" stroke="#6BA3BE" stroke-width="0.5" opacity="0.05"/><circle cx="25" cy="25" r="1" fill="#6BA3BE" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 L15,25 L20,20 L25,25 L30,20 L35,25 L40,20 L45,25 L60,25 L75,25 L80,20 L85,25 L90,20 L95,25 L100,20 L105,25 L120,25 L135,25 L140,20 L145,25 L150,20 L155,25 L160,20 L165,25 L180,25 L200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 L50 90 M10 50 L90 50 M22 22 L78 78 M78 22 L22 78" stroke="#6BA3BE" stroke-width="1" opacity="0.2"/><circle cx="50" cy="10" r="3" fill="#6BA3BE" opacity="0.15"/><circle cx="50" cy="90" r="3" fill="#6BA3BE" opacity="0.15"/><circle cx="10" cy="50" r="3" fill="#6BA3BE" opacity="0.15"/><circle cx="90" cy="50" r="3" fill="#6BA3BE" opacity="0.15"/><circle cx="50" cy="50" r="8" fill="none" stroke="#6BA3BE" stroke-width="1" opacity="0.2"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M50 15 L50 10 M47 12 L53 18 M53 12 L47 18" stroke="#6BA3BE" stroke-width="0.8" opacity="0.2"/><path d="M100 15 L100 8 M96 11 L104 19 M104 11 L96 19" stroke="#6BA3BE" stroke-width="1" opacity="0.22"/><path d="M150 15 L150 10 M147 12 L153 18 M153 12 L147 18" stroke="#6BA3BE" stroke-width="0.8" opacity="0.2"/><line x1="55" y1="15" x2="95" y2="15" stroke="#6BA3BE" stroke-width="0.5" opacity="0.12"/><line x1="105" y1="15" x2="145" y2="15" stroke="#6BA3BE" stroke-width="0.5" opacity="0.12"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M20 5 L5 20 L5 80 L20 95" fill="none" stroke="#6BA3BE" stroke-width="0.8" opacity="0.18"/><path d="M80 5 L95 20 L95 80 L80 95" fill="none" stroke="#6BA3BE" stroke-width="0.8" opacity="0.18"/><path d="M25 5 L10 20 L10 80 L25 95" fill="none" stroke="#6BA3BE" stroke-width="0.4" opacity="0.12"/><path d="M75 5 L90 20 L90 80 L75 95" fill="none" stroke="#6BA3BE" stroke-width="0.4" opacity="0.12"/></svg>',
+      countdownDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><path d="M40 10 L40 35 M35 15 L40 10 L45 15 M30 20 Q35 18 40 22 Q45 18 50 20" fill="none" stroke="#6BA3BE" stroke-width="1" opacity="0.2"/><path d="M25 30 Q30 25 35 28 L40 35 L45 28 Q50 25 55 30" fill="none" stroke="#6BA3BE" stroke-width="0.8" opacity="0.18"/><path d="M30 38 Q35 34 40 38 Q45 34 50 38" fill="none" stroke="#6BA3BE" stroke-width="0.6" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Celestial Night ─────────────────────────────────────
@@ -84,6 +140,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="0.8" fill="#C8A84A" opacity="0.08"/><circle cx="35" cy="20" r="0.5" fill="#C8A84A" opacity="0.06"/><circle cx="20" cy="40" r="1" fill="#C8A84A" opacity="0.05"/><circle cx="45" cy="45" r="0.6" fill="#C8A84A" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 Q20,20 40,25 Q50,22 60,25 Q80,30 100,25 Q120,20 140,25 Q150,22 160,25 Q180,30 200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="20" fill="none" stroke="#C8A84A" stroke-width="1" opacity="0.25"/><path d="M30 50 Q40 35 50 50 Q60 35 70 50 Q60 65 50 50 Q40 65 30 50Z" fill="#C8A84A" opacity="0.08"/><circle cx="35" cy="30" r="1.5" fill="#C8A84A" opacity="0.3"/><circle cx="65" cy="25" r="1" fill="#C8A84A" opacity="0.25"/><circle cx="70" cy="70" r="0.8" fill="#C8A84A" opacity="0.2"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="15" r="1.5" fill="#C8A84A" opacity="0.25"/><circle cx="70" cy="10" r="1" fill="#C8A84A" opacity="0.2"/><circle cx="100" cy="12" r="2" fill="#C8A84A" opacity="0.22"/><circle cx="130" cy="10" r="1" fill="#C8A84A" opacity="0.2"/><circle cx="160" cy="15" r="1.5" fill="#C8A84A" opacity="0.25"/><line x1="42" y1="15" x2="68" y2="10" stroke="#C8A84A" stroke-width="0.5" opacity="0.15"/><line x1="72" y1="10" x2="98" y2="12" stroke="#C8A84A" stroke-width="0.5" opacity="0.15"/><line x1="102" y1="12" x2="128" y2="10" stroke="#C8A84A" stroke-width="0.5" opacity="0.15"/><line x1="132" y1="10" x2="158" y2="15" stroke="#C8A84A" stroke-width="0.5" opacity="0.15"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="1.5" fill="#C8A84A" opacity="0.2"/><circle cx="90" cy="10" r="1" fill="#C8A84A" opacity="0.18"/><circle cx="10" cy="90" r="1" fill="#C8A84A" opacity="0.18"/><circle cx="90" cy="90" r="1.5" fill="#C8A84A" opacity="0.2"/><circle cx="50" cy="5" r="1.2" fill="#C8A84A" opacity="0.2"/><circle cx="5" cy="50" r="1.2" fill="#C8A84A" opacity="0.2"/><circle cx="95" cy="50" r="1.2" fill="#C8A84A" opacity="0.2"/><circle cx="50" cy="95" r="1.2" fill="#C8A84A" opacity="0.2"/></svg>',
+      rsvpDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="20" fill="none" stroke="#C8A84A" stroke-width="0.8" opacity="0.2"/><path d="M28 40 Q28 28 40 28 Q34 28 30 34 Q28 38 28 40Z" fill="#C8A84A" opacity="0.15"/><circle cx="55" cy="30" r="1" fill="#C8A84A" opacity="0.2"/><circle cx="60" cy="45" r="0.8" fill="#C8A84A" opacity="0.18"/></svg>',
+    },
   },
 
   // ── Tuscan Villa ─────────────────────────────────────────
@@ -92,6 +153,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="25" height="25" fill="none" stroke="#B8693D" stroke-width="0.3" opacity="0.04"/><rect x="25" y="25" width="25" height="25" fill="none" stroke="#B8693D" stroke-width="0.3" opacity="0.04"/></svg>',
     dividerPath: 'M0,30 Q20,22 40,28 Q60,18 80,26 Q100,22 120,28 Q140,18 160,26 Q180,22 200,28',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M45 80 L45 30 Q45 15 50 10 Q55 15 55 30 L55 80" fill="none" stroke="#B8693D" stroke-width="1.5" opacity="0.2"/><path d="M42 80 L42 35 Q42 18 50 8 Q58 18 58 35 L58 80" fill="none" stroke="#B8693D" stroke-width="0.8" opacity="0.12"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M40 18 Q60 12 80 15 Q90 16 100 14 Q110 16 120 15 Q140 12 160 18" fill="none" stroke="#B8693D" stroke-width="1" opacity="0.2"/><path d="M68 14 Q70 11 73 14 Q70 13 68 14Z" fill="#B8693D" opacity="0.18"/><path d="M127 14 Q130 11 133 14 Q130 13 127 14Z" fill="#B8693D" opacity="0.18"/><circle cx="100" cy="14" r="2" fill="#B8693D" opacity="0.15"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 95 L15 35 Q15 8 50 8 Q85 8 85 35 L85 95" fill="none" stroke="#B8693D" stroke-width="1.2" opacity="0.18"/><line x1="15" y1="95" x2="85" y2="95" stroke="#B8693D" stroke-width="0.8" opacity="0.12"/></svg>',
+      photoFrame: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="70" height="70" fill="none" stroke="#B8693D" stroke-width="2" opacity="0.18"/><rect x="8" y="8" width="64" height="64" fill="none" stroke="#B8693D" stroke-width="0.5" opacity="0.12"/><rect x="3" y="3" width="74" height="74" fill="none" stroke="#B8693D" stroke-width="0.5" opacity="0.1"/></svg>',
+    },
   },
 
   // ── French Chateau ──────────────────────────────────────
@@ -100,6 +166,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 5 Q30 15 25 25 Q20 15 25 5Z" fill="#6B8CAE" opacity="0.03"/><path d="M10 30 Q15 40 10 50 Q5 40 10 30Z" fill="#6B8CAE" opacity="0.025"/><path d="M40 30 Q45 40 40 50 Q35 40 40 30Z" fill="#6B8CAE" opacity="0.025"/></svg>',
     dividerPath: 'M0,25 Q10,18 20,25 Q30,32 40,25 Q50,18 60,25 Q70,32 80,25 Q90,18 100,25 Q110,32 120,25 Q130,18 140,25 Q150,32 160,25 Q170,18 180,25 Q190,32 200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="50" rx="30" ry="38" fill="none" stroke="#6B8CAE" stroke-width="1.5" opacity="0.2"/><ellipse cx="50" cy="50" rx="22" ry="30" fill="none" stroke="#6B8CAE" stroke-width="0.8" opacity="0.12"/><path d="M50 12 L50 88 M20 50 L80 50" stroke="#6B8CAE" stroke-width="0.5" opacity="0.08"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M100 3 Q95 10 100 18 Q105 10 100 3Z" fill="#6B8CAE" opacity="0.2"/><path d="M100 18 L95 25 L100 22 L105 25Z" fill="#6B8CAE" opacity="0.18"/><line x1="30" y1="18" x2="92" y2="18" stroke="#6B8CAE" stroke-width="0.6" opacity="0.15"/><line x1="108" y1="18" x2="170" y2="18" stroke="#6B8CAE" stroke-width="0.6" opacity="0.15"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 5 Q5 5 5 10 Q3 15 5 20" fill="none" stroke="#6B8CAE" stroke-width="1" opacity="0.18"/><path d="M90 5 Q95 5 95 10 Q97 15 95 20" fill="none" stroke="#6B8CAE" stroke-width="1" opacity="0.18"/><path d="M10 95 Q5 95 5 90 Q3 85 5 80" fill="none" stroke="#6B8CAE" stroke-width="1" opacity="0.18"/><path d="M90 95 Q95 95 95 90 Q97 85 95 80" fill="none" stroke="#6B8CAE" stroke-width="1" opacity="0.18"/><line x1="10" y1="5" x2="90" y2="5" stroke="#6B8CAE" stroke-width="0.5" opacity="0.12"/><line x1="10" y1="95" x2="90" y2="95" stroke="#6B8CAE" stroke-width="0.5" opacity="0.12"/></svg>',
+      rsvpDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="22" fill="none" stroke="#6B8CAE" stroke-width="1.5" opacity="0.2"/><circle cx="40" cy="40" r="18" fill="none" stroke="#6B8CAE" stroke-width="0.5" opacity="0.12"/><circle cx="40" cy="40" r="8" fill="#6B8CAE" opacity="0.08"/><path d="M40 32 Q44 36 40 40 Q36 36 40 32Z" fill="#6B8CAE" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Southern Charm ──────────────────────────────────────
@@ -108,6 +179,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 20 Q22 15 25 10 Q28 15 25 20Z" fill="#E8A87C" opacity="0.04"/><circle cx="25" cy="10" r="1" fill="#E8A87C" opacity="0.03"/></svg>',
     dividerPath: 'M0,25 Q15,15 30,25 Q45,35 60,25 Q75,15 90,25 Q105,35 120,25 Q135,15 150,25 Q165,35 180,25 Q195,15 200,22',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 25 Q60 30 62 42 Q64 54 55 60 Q46 66 38 58 Q30 50 35 40 Q40 30 50 25Z" fill="none" stroke="#E8A87C" stroke-width="1.5" opacity="0.25"/><path d="M50 30 Q56 34 57 42 Q58 50 52 54 Q46 58 42 52 Q38 46 41 40 Q44 34 50 30Z" fill="#E8A87C" opacity="0.06"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M90 15 Q95 8 100 5 Q105 8 110 15" fill="none" stroke="#E8A87C" stroke-width="1" opacity="0.2"/><path d="M95 12 Q100 6 105 12 Q100 10 95 12Z" fill="#E8A87C" opacity="0.18"/><path d="M88 16 Q94 10 100 7 Q106 10 112 16" fill="none" stroke="#E8A87C" stroke-width="0.5" opacity="0.12"/><line x1="30" y1="18" x2="85" y2="18" stroke="#E8A87C" stroke-width="0.6" opacity="0.15"/><line x1="115" y1="18" x2="170" y2="18" stroke="#E8A87C" stroke-width="0.6" opacity="0.15"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 15 Q5 5 15 5" fill="none" stroke="#E8A87C" stroke-width="1" opacity="0.18"/><path d="M85 5 Q95 5 95 15" fill="none" stroke="#E8A87C" stroke-width="1" opacity="0.18"/><path d="M95 85 Q95 95 85 95" fill="none" stroke="#E8A87C" stroke-width="1" opacity="0.18"/><path d="M15 95 Q5 95 5 85" fill="none" stroke="#E8A87C" stroke-width="1" opacity="0.18"/><path d="M8 8 Q12 5 16 8 Q12 11 8 8Z" fill="#E8A87C" opacity="0.12"/><path d="M84 8 Q88 5 92 8 Q88 11 84 8Z" fill="#E8A87C" opacity="0.12"/></svg>',
+      guestbookDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="20" x2="20" y2="40" stroke="#E8A87C" stroke-width="1" opacity="0.2"/><line x1="60" y1="20" x2="60" y2="40" stroke="#E8A87C" stroke-width="1" opacity="0.2"/><path d="M20 20 Q25 15 30 20 Q35 15 40 20 Q45 15 50 20 Q55 15 60 20" fill="none" stroke="#E8A87C" stroke-width="0.8" opacity="0.18"/><path d="M22 40 L58 40" fill="none" stroke="#E8A87C" stroke-width="1.5" opacity="0.2"/></svg>',
+    },
   },
 
   // ── Industrial Chic ─────────────────────────────────────
@@ -116,6 +192,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="24" width="50" height="0.5" fill="#B87333" opacity="0.04"/><rect x="24" y="0" width="0.5" height="50" fill="#B87333" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 L200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="25" fill="none" stroke="#B87333" stroke-width="2" opacity="0.2"/><path d="M50 25 L53 47 L75 50 L53 53 L50 75 L47 53 L25 50 L47 47Z" fill="none" stroke="#B87333" stroke-width="1" opacity="0.15"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><line x1="25" y1="15" x2="175" y2="15" stroke="#B87333" stroke-width="1.5" opacity="0.15"/><circle cx="45" cy="15" r="3" fill="none" stroke="#B87333" stroke-width="1" opacity="0.2"/><circle cx="45" cy="15" r="1" fill="#B87333" opacity="0.18"/><circle cx="100" cy="15" r="3" fill="none" stroke="#B87333" stroke-width="1" opacity="0.2"/><circle cx="100" cy="15" r="1" fill="#B87333" opacity="0.18"/><circle cx="155" cy="15" r="3" fill="none" stroke="#B87333" stroke-width="1" opacity="0.2"/><circle cx="155" cy="15" r="1" fill="#B87333" opacity="0.18"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 5 L15 5 L15 10 L5 10Z" fill="none" stroke="#B87333" stroke-width="1.2" opacity="0.2"/><path d="M85 5 L95 5 L95 10 L85 10Z" fill="none" stroke="#B87333" stroke-width="1.2" opacity="0.2"/><path d="M5 90 L15 90 L15 95 L5 95Z" fill="none" stroke="#B87333" stroke-width="1.2" opacity="0.2"/><path d="M85 90 L95 90 L95 95 L85 95Z" fill="none" stroke="#B87333" stroke-width="1.2" opacity="0.2"/><line x1="15" y1="7" x2="85" y2="7" stroke="#B87333" stroke-width="0.5" opacity="0.12"/><line x1="15" y1="93" x2="85" y2="93" stroke="#B87333" stroke-width="0.5" opacity="0.12"/></svg>',
+      countdownDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="22" fill="none" stroke="#B87333" stroke-width="1.5" opacity="0.2"/><circle cx="40" cy="40" r="18" fill="none" stroke="#B87333" stroke-width="0.5" opacity="0.12"/><path d="M40 18 L42 36 M40 18 L38 36" fill="none" stroke="#B87333" stroke-width="1" opacity="0.18"/><path d="M62 40 L44 42 M62 40 L44 38" fill="none" stroke="#B87333" stroke-width="1" opacity="0.18"/><circle cx="40" cy="40" r="3" fill="#B87333" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Modern Glam ─────────────────────────────────────────
@@ -124,6 +205,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="25" r="0.8" fill="#E84393" opacity="0.06"/></svg>',
     dividerPath: 'M0,25 L85,25 L90,20 L95,25 L100,20 L105,25 L110,20 L115,25 L200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 20 L60 45 L85 50 L60 55 L50 80 L40 55 L15 50 L40 45Z" fill="none" stroke="#E84393" stroke-width="1.5" opacity="0.2"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><line x1="25" y1="15" x2="90" y2="15" stroke="#E84393" stroke-width="0.8" opacity="0.18"/><path d="M95 15 L100 8 L105 15 L100 22Z" fill="none" stroke="#E84393" stroke-width="0.8" opacity="0.22"/><line x1="110" y1="15" x2="175" y2="15" stroke="#E84393" stroke-width="0.8" opacity="0.18"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="94" height="94" fill="none" stroke="#E84393" stroke-width="0.6" opacity="0.15"/><line x1="3" y1="3" x2="12" y2="3" stroke="#E84393" stroke-width="1.5" opacity="0.2"/><line x1="3" y1="3" x2="3" y2="12" stroke="#E84393" stroke-width="1.5" opacity="0.2"/><line x1="88" y1="3" x2="97" y2="3" stroke="#E84393" stroke-width="1.5" opacity="0.2"/><line x1="97" y1="3" x2="97" y2="12" stroke="#E84393" stroke-width="1.5" opacity="0.2"/></svg>',
+      rsvpDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><path d="M40 20 L44 36 L60 40 L44 44 L40 60 L36 44 L20 40 L36 36Z" fill="none" stroke="#E84393" stroke-width="0.8" opacity="0.2"/><path d="M40 28 L42 37 L52 40 L42 43 L40 52 L38 43 L28 40 L38 37Z" fill="none" stroke="#E84393" stroke-width="0.5" opacity="0.15"/><circle cx="40" cy="40" r="2" fill="#E84393" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Vintage Romance ─────────────────────────────────────
@@ -132,6 +218,11 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="25" r="8" fill="none" stroke="#C48B8B" stroke-width="0.3" opacity="0.04" stroke-dasharray="2 2"/></svg>',
     dividerPath: 'M0,25 Q10,20 20,25 Q25,22 30,25 Q40,30 50,25 Q60,20 70,25 Q75,22 80,25 Q90,30 100,25 Q110,20 120,25 Q125,22 130,25 Q140,30 150,25 Q160,20 170,25 Q175,22 180,25 Q190,30 200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="50" rx="28" ry="35" fill="none" stroke="#C48B8B" stroke-width="1.5" opacity="0.2"/><path d="M35 20 Q50 15 65 20 M35 80 Q50 85 65 80" fill="none" stroke="#C48B8B" stroke-width="1" opacity="0.15"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M30 18 Q40 10 50 18 Q60 10 70 18 Q80 10 90 18 Q100 10 110 18 Q120 10 130 18 Q140 10 150 18 Q160 10 170 18" fill="none" stroke="#C48B8B" stroke-width="0.8" opacity="0.2"/><path d="M30 20 Q40 12 50 20 Q60 12 70 20 Q80 12 90 20 Q100 12 110 20 Q120 12 130 20 Q140 12 150 20 Q160 12 170 20" fill="none" stroke="#C48B8B" stroke-width="0.4" opacity="0.12"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="50" rx="45" ry="48" fill="none" stroke="#C48B8B" stroke-width="1" opacity="0.15"/><ellipse cx="50" cy="50" rx="42" ry="45" fill="none" stroke="#C48B8B" stroke-width="0.5" opacity="0.1"/><path d="M25 10 Q50 5 75 10" fill="none" stroke="#C48B8B" stroke-width="0.5" opacity="0.12"/><path d="M25 90 Q50 95 75 90" fill="none" stroke="#C48B8B" stroke-width="0.5" opacity="0.12"/></svg>',
+      photoFrame: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="40" rx="35" ry="38" fill="none" stroke="#C48B8B" stroke-width="1.5" opacity="0.18"/><ellipse cx="40" cy="40" rx="32" ry="35" fill="none" stroke="#C48B8B" stroke-width="0.5" opacity="0.12"/></svg>',
+    },
   },
 
   // ── Rustic Romance ──────────────────────────────────────
@@ -148,13 +239,18 @@ export const THEME_ART: Record<string, ThemeArt> = {
     heroPatternSvg: '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M25 20 Q22 15 25 10 Q28 15 25 20Z" fill="#8B2040" opacity="0.04"/></svg>',
     dividerPath: 'M0,25 Q25,15 50,25 Q75,35 100,25 Q125,15 150,25 Q175,35 200,25',
     accentSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 25 Q60 30 62 45 Q64 60 50 65 Q36 60 38 45 Q40 30 50 25Z" fill="none" stroke="#8B2040" stroke-width="1.5" opacity="0.25"/><path d="M50 30 Q45 42 50 55 Q55 42 50 30Z" fill="#8B2040" opacity="0.08"/></svg>',
+    blockArt: {
+      headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M30 18 Q50 14 70 18 Q80 12 90 15 L100 13 L110 15 Q120 12 130 18 Q150 14 170 18" fill="none" stroke="#8B2040" stroke-width="1" opacity="0.2"/><path d="M65 16 L68 13 M75 15 L78 12 M125 15 L122 12 M135 16 L132 13" stroke="#8B2040" stroke-width="0.8" opacity="0.18"/><circle cx="100" cy="13" r="1.5" fill="#8B2040" opacity="0.2"/></svg>',
+      eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 95 L5 95 L5 30 Q5 5 50 5 Q95 5 95 30 L95 95 L85 95" fill="none" stroke="#8B2040" stroke-width="1" opacity="0.18"/><path d="M50 5 L50 12" stroke="#8B2040" stroke-width="0.5" opacity="0.12"/><path d="M20 95 L10 95 L10 32 Q10 10 50 10 Q90 10 90 32 L90 95 L80 95" fill="none" stroke="#8B2040" stroke-width="0.4" opacity="0.1"/></svg>',
+      guestbookDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="25" fill="none" stroke="#8B2040" stroke-width="0.8" opacity="0.18"/><path d="M40 15 Q45 22 42 28 Q40 22 38 28 Q35 22 40 15Z" fill="#8B2040" opacity="0.15"/><path d="M65 40 Q58 45 52 42 Q58 40 52 38 Q58 35 65 40Z" fill="#8B2040" opacity="0.15"/><path d="M40 65 Q35 58 38 52 Q40 58 42 52 Q45 58 40 65Z" fill="#8B2040" opacity="0.15"/><path d="M15 40 Q22 35 28 38 Q22 40 28 42 Q22 45 15 40Z" fill="#8B2040" opacity="0.15"/></svg>',
+    },
   },
 
   // ── Remaining themes (batch) ────────────────────────────
-  'blush-bloom': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 30 Q10 18 18 10 Q26 18 20 28Z" fill="#D4829A" opacity="0.2"/><path d="M20 25 Q25 15 32 18" fill="none" stroke="#D4829A" stroke-width="1" opacity="0.2"/></svg>', dividerPath: 'M0,25 Q25,15 50,25 Q75,35 100,25 Q125,15 150,25 Q175,35 200,25' },
-  'minimalist-white': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="5" y1="5" x2="35" y2="5" stroke="#111" stroke-width="1.5" opacity="0.15"/><line x1="5" y1="5" x2="5" y2="35" stroke="#111" stroke-width="1.5" opacity="0.15"/></svg>', dividerPath: 'M0,25 L200,25' },
-  'golden-hour': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15" fill="none" stroke="#C9A87C" stroke-width="1" opacity="0.2"/><path d="M20 5 L20 35 M5 20 L35 20" stroke="#C9A87C" stroke-width="0.5" opacity="0.15"/></svg>', dividerPath: 'M0,25 Q50,15 100,25 Q150,35 200,25' },
-  'lavender-dreams': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="2" fill="#9B7FD9" opacity="0.3"/><circle cx="25" cy="10" r="1.5" fill="#9B7FD9" opacity="0.25"/><circle cx="10" cy="25" r="1" fill="#9B7FD9" opacity="0.2"/></svg>', dividerPath: 'M0,25 Q50,18 100,25 Q150,32 200,25' },
+  'blush-bloom': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 30 Q10 18 18 10 Q26 18 20 28Z" fill="#D4829A" opacity="0.2"/><path d="M20 25 Q25 15 32 18" fill="none" stroke="#D4829A" stroke-width="1" opacity="0.2"/></svg>', dividerPath: 'M0,25 Q25,15 50,25 Q75,35 100,25 Q125,15 150,25 Q175,35 200,25', blockArt: { headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M20 18 Q23 12 28 15 Q25 20 20 18Z M55 10 Q58 5 62 8 Q59 12 55 10Z M90 16 Q94 10 99 13 Q95 18 90 16Z M130 8 Q133 3 137 6 Q134 10 130 8Z M165 14 Q169 9 174 12 Q170 17 165 14Z" fill="#D4829A" opacity="0.2"/></svg>', eventFrame: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M15 8 Q12 3 16 1 Q20 3 17 8Z M80 5 Q77 0 81 -2 Q85 0 82 5Z M8 90 Q5 85 9 83 Q13 85 10 90Z M88 92 Q85 87 89 85 Q93 87 90 92Z" fill="#D4829A" opacity="0.18"/></svg>' } },
+  'minimalist-white': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="5" y1="5" x2="35" y2="5" stroke="#111" stroke-width="1.5" opacity="0.15"/><line x1="5" y1="5" x2="5" y2="35" stroke="#111" stroke-width="1.5" opacity="0.15"/></svg>', dividerPath: 'M0,25 L200,25', blockArt: { headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="15" x2="90" y2="15" stroke="#111" stroke-width="0.5" opacity="0.15"/><path d="M100 11 L104 15 L100 19 L96 15Z" fill="#111" opacity="0.18"/><line x1="110" y1="15" x2="180" y2="15" stroke="#111" stroke-width="0.5" opacity="0.15"/></svg>', rsvpDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="40" x2="70" y2="40" stroke="#111" stroke-width="0.5" opacity="0.15"/><path d="M40 36 L44 40 L40 44 L36 40Z" fill="#111" opacity="0.15"/></svg>' } },
+  'golden-hour': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="15" fill="none" stroke="#C9A87C" stroke-width="1" opacity="0.2"/><path d="M20 5 L20 35 M5 20 L35 20" stroke="#C9A87C" stroke-width="0.5" opacity="0.15"/></svg>', dividerPath: 'M0,25 Q50,15 100,25 Q150,35 200,25', blockArt: { headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="8" r="6" fill="none" stroke="#C9A87C" stroke-width="0.8" opacity="0.2"/><line x1="70" y1="20" x2="85" y2="10" stroke="#C9A87C" stroke-width="0.5" opacity="0.18"/><line x1="115" y1="10" x2="130" y2="20" stroke="#C9A87C" stroke-width="0.5" opacity="0.18"/><line x1="100" y1="14" x2="100" y2="26" stroke="#C9A87C" stroke-width="0.5" opacity="0.18"/></svg>', countdownDecor: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="40" cy="40" r="20" fill="none" stroke="#C9A87C" stroke-width="0.8" opacity="0.18"/><path d="M40 20 L40 10 M60 40 L70 40 M40 60 L40 70 M20 40 L10 40" stroke="#C9A87C" stroke-width="0.5" opacity="0.15"/></svg>' } },
+  'lavender-dreams': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="2" fill="#9B7FD9" opacity="0.3"/><circle cx="25" cy="10" r="1.5" fill="#9B7FD9" opacity="0.25"/><circle cx="10" cy="25" r="1" fill="#9B7FD9" opacity="0.2"/></svg>', dividerPath: 'M0,25 Q50,18 100,25 Q150,32 200,25', blockArt: { headingDecor: '<svg viewBox="0 0 200 30" xmlns="http://www.w3.org/2000/svg"><path d="M30 12 L32 8 L34 12 L30 12Z" fill="#9B7FD9" opacity="0.2"/><circle cx="65" cy="18" r="1.5" fill="#9B7FD9" opacity="0.18"/><path d="M95 6 L97 2 L99 6 L95 6Z" fill="#9B7FD9" opacity="0.22"/><circle cx="130" cy="14" r="1" fill="#9B7FD9" opacity="0.2"/><path d="M160 20 L162 16 L164 20 L160 20Z" fill="#9B7FD9" opacity="0.18"/></svg>', photoFrame: '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="2" fill="#9B7FD9" opacity="0.2"/><circle cx="65" cy="12" r="1.5" fill="#9B7FD9" opacity="0.18"/><circle cx="12" cy="65" r="1.5" fill="#9B7FD9" opacity="0.18"/><circle cx="68" cy="68" r="2" fill="#9B7FD9" opacity="0.2"/></svg>' } },
   'boho-wildflower': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 90 Q10 65 20 50 M10 85 Q20 55 35 40" fill="none" stroke="#C4956A" stroke-width="1.5" opacity="0.3"/><circle cx="20" cy="48" r="2" fill="#C4956A" opacity="0.2"/></svg>', dividerPath: 'M0,22 Q10,28 20,25 Q30,22 40,28 Q50,22 60,25 Q70,28 80,22 Q90,28 100,25 Q110,22 120,28 Q130,22 140,25 Q150,28 160,22 Q170,28 180,25 Q190,22 200,28' },
   'classic-elegance': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M5 5 L40 5 L40 8 L8 8 L8 40 L5 40Z" fill="none" stroke="#4A6A38" stroke-width="1" opacity="0.2"/></svg>', dividerPath: 'M0,25 L200,25' },
   'fairytale-castle': { cornerSvg: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M10 40 L10 10 L15 5 L20 10 L20 15 L25 10 L30 15 L30 40" fill="none" stroke="#8A5AA0" stroke-width="1" opacity="0.2"/></svg>', dividerPath: 'M0,25 Q25,10 50,25 Q75,40 100,25 Q125,10 150,25 Q175,40 200,25' },
