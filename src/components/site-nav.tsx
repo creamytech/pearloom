@@ -1,13 +1,18 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────
-// Pearloom / site-nav.tsx — v3
-// Glass nav bar + slide-in drawer
-// Pure Tailwind — no inline style props for visual properties
+// Pearloom / site-nav.tsx — v4
+// Organic Glass nav bar + CSS-animated slide-in drawer
+//
+// Two completely separate render paths:
+//   inline=true  → plain <nav> (editor preview, no Framer Motion)
+//   inline=false → <motion.nav> with entrance animation (public site)
+//
+// Drawer uses CSS @keyframes — works in both paths.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { Menu, X, LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -36,6 +41,28 @@ import {
   BouquetIcon,
 } from '@/components/icons/PearloomIcons';
 import { cn } from '@/lib/cn';
+
+// ── Keyframe styles injected once ─────────────────────────────
+const DRAWER_KEYFRAMES = `
+@keyframes pl-drawer-slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes pl-drawer-slide-out {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+@keyframes pl-backdrop-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pl-backdrop-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+`;
+
+// ── Icon helpers ──────────────────────────────────────────────
 
 function LogoIcon({ iconId, size = 18, color }: { iconId?: LogoIconId; size?: number; color: string }) {
   switch (iconId) {
@@ -69,6 +96,8 @@ function PageIcon({ slug, size = 17 }: { slug: string; size?: number }) {
   return <PearlIcon size={size} color={c} />;
 }
 
+// ── Props ─────────────────────────────────────────────────────
+
 interface SiteNavProps {
   names: [string, string];
   pages: SitePage[];
@@ -87,6 +116,8 @@ interface SiteNavProps {
   onStartNew?: () => void;
 }
 
+// ── Main component ────────────────────────────────────────────
+
 export function SiteNav({
   names,
   pages,
@@ -104,9 +135,22 @@ export function SiteNav({
 }: SiteNavProps) {
   const [scrollY, setScrollY]         = useState(0);
   const [drawerOpen, setDrawer]       = useState(false);
+  const [drawerClosing, setDrawerClosing] = useState(false);
   const [isDesktop, setIsDesktop]     = useState(false);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  // Inject keyframes once
+  const stylesInjected = useRef(false);
+  useEffect(() => {
+    if (stylesInjected.current) return;
+    stylesInjected.current = true;
+    const style = document.createElement('style');
+    style.textContent = DRAWER_KEYFRAMES;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
 
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -115,20 +159,23 @@ export function SiteNav({
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // Scroll progress (Framer Motion) — only used in non-inline path
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 32, restDelta: 0.001 });
 
-  // Use shared scroll context for scrollY (avoids duplicate listener)
+  // Shared scroll context for scrollY
   const sharedScroll = useSharedScroll();
   useEffect(() => {
     setScrollY(sharedScroll.scrollY);
   }, [sharedScroll.scrollY]);
 
+  // Lock body scroll when drawer is open
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [drawerOpen]);
 
+  // ── Derived state ────────────────────────────────────────────
   const atTop    = scrollY < 20;
   const scrolled = scrollY > 60;
   const isStudio = names[0] === 'Pearloom';
@@ -146,8 +193,25 @@ export function SiteNav({
     return '/' + parts[1];
   })();
 
-  const getHref = (slug: string) => pageHrefOverride ? pageHrefOverride(slug) : (slug === '' ? basePath : `${basePath}/${slug}`);
+  const getHref = (slug: string) =>
+    pageHrefOverride ? pageHrefOverride(slug) : (slug === '' ? basePath : `${basePath}/${slug}`);
 
+  // ── Drawer open/close with CSS animation ─────────────────────
+  const openDrawer = () => {
+    setDrawerClosing(false);
+    setDrawer(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerClosing(true);
+    // Wait for exit animation to finish
+    setTimeout(() => {
+      setDrawer(false);
+      setDrawerClosing(false);
+    }, 300);
+  };
+
+  // ── Nav style classes ────────────────────────────────────────
   const navClassName = cn(
     'z-[100] overflow-hidden',
     !inline && 'pt-[env(safe-area-inset-top,0px)]',
@@ -155,9 +219,13 @@ export function SiteNav({
     inline
       ? 'sticky top-0 w-full'
       : navStyle === 'floating'
-        ? 'fixed top-2 left-4 right-4 rounded-full'
+        ? 'fixed top-3 left-4 right-4 rounded-full'
         : 'fixed top-0 left-0 right-0',
     scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' ? 'py-1' : 'py-2 lg:py-4',
+  );
+
+  // ── Nav style-specific background classes ────────────────────
+  const navBgClassName = cn(
     navBackground
       ? ''
       : navStyle === 'minimal'
@@ -173,20 +241,139 @@ export function SiteNav({
             : navStyle === 'floating'
               ? 'bg-white/90 border border-[rgba(255,255,255,0.6)] shadow-[0_4px_24px_rgba(43,30,20,0.08)]'
               : (atTop && !isStudio
-                ? 'bg-black/50 border-b border-white/10 shadow-none'
-                : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
+                ? 'bg-[rgba(255,255,255,0.65)] border-b border-[rgba(255,255,255,0.5)] shadow-[0_1px_12px_rgba(43,30,20,0.04)]'
+                : 'bg-[rgba(255,255,255,0.82)] border-b border-[rgba(255,255,255,0.5)] shadow-[0_1px_12px_rgba(43,30,20,0.04)]'),
   );
 
+  // ── Backdrop filter inline style ──────────────────────────────
   const navInlineStyle: React.CSSProperties = {
-    backdropFilter: navStyle === 'minimal' ? 'none'
+    backdropFilter:
+      navStyle === 'minimal' ? 'none'
       : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
-      : 'blur(14px) saturate(1.6)',
-    WebkitBackdropFilter: navStyle === 'minimal' ? 'none'
+      : 'blur(20px) saturate(1.4)',
+    WebkitBackdropFilter:
+      navStyle === 'minimal' ? 'none'
       : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
-      : 'blur(14px) saturate(1.6)',
+      : 'blur(20px) saturate(1.4)',
   } as React.CSSProperties;
 
-  const navContent = (
+  // ── Brand / couple name ──────────────────────────────────────
+  const brandContent = (
+    <Link
+      href={basePath}
+      className="flex items-center gap-2 no-underline hover:opacity-75 transition-opacity duration-200 min-w-0"
+    >
+      {isStudio ? (
+        <Image
+          src="/logo.png"
+          alt="Pearloom"
+          width={130}
+          height={40}
+          className="object-contain h-8 w-auto max-w-[140px]"
+          priority
+        />
+      ) : (
+        <>
+          {logoSvg ? (
+            <span
+              className="flex items-center w-[18px] h-[18px] text-[var(--pl-olive)]"
+              dangerouslySetInnerHTML={{
+                __html: logoSvg
+                  .replace(/width="[^"]*"/, 'width="18"')
+                  .replace(/height="[^"]*"/, 'height="18"')
+                  .replace(/stroke="[^"]*"/g, 'stroke="currentColor"'),
+              }}
+            />
+          ) : (
+            <LogoIcon iconId={logoIcon} size={18} color="var(--pl-olive)" />
+          )}
+          <span className={cn(
+            'font-heading font-semibold text-[1rem] tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis',
+            isDesktop
+              ? 'text-[var(--pl-ink-soft)] max-w-none'
+              : 'text-[var(--pl-ink-soft)] max-w-[200px] italic',
+          )}>
+            {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
+          </span>
+        </>
+      )}
+    </Link>
+  );
+
+  // ── Desktop page links ───────────────────────────────────────
+  const desktopNav = isDesktop && !isStudio ? (
+    <nav className="flex items-center gap-0.5 justify-center">
+      {enabledPages.map((page) => {
+        const active = isActive(page.slug);
+        return (
+          <Link
+            key={page.id}
+            href={getHref(page.slug)}
+            className={cn(
+              'px-3.5 py-1.5 rounded-[var(--pl-radius-full)]',
+              'text-[0.72rem] font-body no-underline uppercase tracking-[0.08em] font-semibold',
+              'border transition-all duration-150 whitespace-nowrap',
+              active
+                ? 'text-[var(--pl-ink)] border-b-2 border-b-[var(--pl-ink)] border-x-transparent border-t-transparent rounded-none bg-transparent'
+                : 'text-[var(--pl-muted)] bg-transparent border-transparent hover:text-[var(--pl-ink)]',
+            )}
+          >
+            {page.label}
+          </Link>
+        );
+      })}
+    </nav>
+  ) : (
+    <div />
+  );
+
+  // ── Right-side actions ───────────────────────────────────────
+  const rightContent = (
+    <div className="flex items-center gap-2.5">
+      {/* Desktop studio quick actions */}
+      {isDesktop && isStudio && (
+        <div className="flex items-center gap-1.5">
+          {onGoToDashboard && (
+            <button
+              onClick={onGoToDashboard}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--pl-radius-sm)] text-[0.78rem] font-[500] text-[var(--pl-muted)] bg-transparent border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.05)] hover:text-[var(--pl-ink)] transition-colors duration-150 whitespace-nowrap"
+            >
+              <LayoutDashboard size={13} />
+              My Sites
+            </button>
+          )}
+          {onStartNew && (
+            <button
+              onClick={onStartNew}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--pl-radius-sm)] text-[0.78rem] font-semibold text-[var(--pl-olive)] bg-[rgba(163,177,138,0.1)] border border-[rgba(163,177,138,0.2)] cursor-pointer hover:bg-[rgba(163,177,138,0.18)] transition-colors duration-150 whitespace-nowrap"
+            >
+              <Plus size={13} />
+              New Site
+            </button>
+          )}
+        </div>
+      )}
+      {user && <UserNav user={user} onDashboard={onGoToDashboard} />}
+      {/* Hamburger: mobile only */}
+      {!isDesktop && (
+        <button
+          onClick={() => drawerOpen ? closeDrawer() : openDrawer()}
+          aria-label="Open navigation menu"
+          aria-expanded={drawerOpen}
+          className={cn(
+            'flex items-center justify-center w-9 h-9 rounded-[var(--pl-radius-sm)]',
+            'text-[var(--pl-ink)] bg-transparent border-0 cursor-pointer',
+            'hover:bg-[rgba(0,0,0,0.05)] transition-colors duration-150',
+          )}
+        >
+          {drawerOpen && !drawerClosing ? <X size={21} /> : <Menu size={21} />}
+        </button>
+      )}
+    </div>
+  );
+
+  // ── Inner nav content (shared by both render paths) ──────────
+  const navInner = (
     <>
       {/* Custom nav background overlay */}
       {navBackground && (
@@ -211,296 +398,211 @@ export function SiteNav({
           }}
         />
       )}
-      {/* Scroll progress bar */}
-      {!isStudio && !inline && (
-        <motion.div
-          style={{
-            position: 'absolute', top: 0, left: 0, right: 0,
-            height: '2px', scaleX, transformOrigin: '0%',
-            background: 'linear-gradient(90deg, var(--pl-olive), color-mix(in srgb, var(--pl-olive) 60%, white))',
-          }}
-        />
-      )}
 
       <div
-        className="relative mx-auto grid items-center h-[3.25rem]"
-          style={{
-            maxWidth: layout.maxWidth,
-            padding: `0 ${layout.padding}`,
-            gridTemplateColumns: isDesktop ? 'auto 1fr auto' : '1fr auto',
-            overflow: 'visible',
-          }}
-        >
-          {/* ── Brand / couple name ── */}
-          <Link
-            href={basePath}
-            className="flex items-center gap-2 no-underline hover:opacity-75 transition-opacity duration-200 min-w-0"
+        className="relative mx-auto grid items-center"
+        style={{
+          maxWidth: layout.maxWidth,
+          padding: `0 ${layout.padding}`,
+          gridTemplateColumns: isDesktop ? 'auto 1fr auto' : '1fr auto',
+          overflow: 'visible',
+          height: isDesktop ? '52px' : '48px',
+        }}
+      >
+        {brandContent}
+        {desktopNav}
+        {rightContent}
+      </div>
+    </>
+  );
+
+  // ── Scroll progress bar (inline path uses plain div) ──────────
+  const scrollProgressBar = !isStudio && !inline ? (
+    <motion.div
+      style={{
+        position: 'absolute', top: 0, left: 0, right: 0,
+        height: '2px', scaleX, transformOrigin: '0%',
+        background: 'linear-gradient(90deg, var(--pl-olive), color-mix(in srgb, var(--pl-olive) 60%, white))',
+      }}
+    />
+  ) : null;
+
+  // ── Drawer (CSS-animated, no Framer Motion) ──────────────────
+  const drawer = drawerOpen && (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={closeDrawer}
+        className="fixed inset-0 z-[101]"
+        style={{
+          backgroundColor: 'rgba(43,30,20,0.2)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          animation: drawerClosing
+            ? 'pl-backdrop-fade-out 0.25s ease forwards'
+            : 'pl-backdrop-fade-in 0.15s ease forwards',
+        }}
+      />
+
+      {/* Panel */}
+      <div
+        ref={drawerRef}
+        className={cn(
+          'fixed top-0 right-0 bottom-0 z-[102]',
+          'w-[min(280px,100vw)]',
+          'flex flex-col',
+          'border-l border-[rgba(0,0,0,0.05)]',
+          'shadow-[-16px_0_50px_rgba(0,0,0,0.09)]',
+          'pb-[env(safe-area-inset-bottom,24px)]',
+          'overflow-y-auto',
+        )}
+        style={{
+          background: 'rgba(245,241,232,0.98)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          animation: drawerClosing
+            ? 'pl-drawer-slide-out 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            : 'pl-drawer-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        }}
+      >
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
+          <span className="font-heading text-[1.3rem] font-semibold italic text-[var(--pl-ink-soft)] tracking-tight leading-tight">
+            {isStudio ? 'Pearloom' : (names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0])}
+          </span>
+          <button
+            onClick={closeDrawer}
+            aria-label="Close menu"
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-[rgba(0,0,0,0.06)] text-[var(--pl-ink)] border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.10)] transition-colors duration-150 flex-shrink-0"
           >
-            {isStudio ? (
-              <Image
-                src="/logo.png"
-                alt="Pearloom"
-                width={130}
-                height={40}
-                className="object-contain h-8 w-auto max-w-[140px]"
-                priority
-              />
-            ) : (
-              <>
-                {logoSvg ? (
-                  <span
-                    className="flex items-center w-[18px] h-[18px] text-[var(--pl-olive)]"
-                    dangerouslySetInnerHTML={{
-                      __html: logoSvg
-                        .replace(/width="[^"]*"/, 'width="18"')
-                        .replace(/height="[^"]*"/, 'height="18"')
-                        .replace(/stroke="[^"]*"/g, 'stroke="currentColor"'),
-                    }}
-                  />
-                ) : (
-                  <LogoIcon iconId={logoIcon} size={18} color="var(--pl-olive)" />
-                )}
-                <span className="font-heading font-semibold text-[1rem] text-[var(--pl-ink-soft)] tracking-[-0.01em] whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px] lg:max-w-none">
-                  {names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0]}
-                </span>
-              </>
-            )}
-          </Link>
+            <X size={16} />
+          </button>
+        </div>
 
-          {/* ── Desktop inline nav (≥1024px, guest sites only) ── */}
-          {isDesktop && !isStudio ? (
-            <nav className="flex items-center gap-0.5 justify-center">
-              {enabledPages.map((page) => {
-                const active = isActive(page.slug);
-                return (
-                  <Link
-                    key={page.id}
-                    href={getHref(page.slug)}
-                    className={cn(
-                      'px-3.5 py-1.5 rounded-[var(--pl-radius-full)]',
-                      'text-[0.72rem] font-body no-underline uppercase tracking-[0.08em] font-semibold',
-                      'border transition-all duration-150 whitespace-nowrap',
-                      active
-                        ? 'text-[var(--pl-ink)] border-b-2 border-b-[var(--pl-ink)] border-x-transparent border-t-transparent rounded-none bg-transparent'
-                        : 'text-[var(--pl-muted)] bg-transparent border-transparent hover:text-[var(--pl-ink)]',
-                    )}
-                  >
-                    {page.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          ) : (
-            <div />
-          )}
-
-          {/* ── Right: desktop studio actions + user avatar + hamburger ── */}
-          <div className="flex items-center gap-2.5">
-            {/* Desktop studio quick actions — replaces hamburger on ≥1024px */}
-            {isDesktop && isStudio && (
-              <div className="flex items-center gap-1.5">
-                {onGoToDashboard && (
-                  <button
-                    onClick={onGoToDashboard}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--pl-radius-sm)] text-[0.78rem] font-[500] text-[var(--pl-muted)] bg-transparent border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.05)] hover:text-[var(--pl-ink)] transition-colors duration-150 whitespace-nowrap"
-                  >
-                    <LayoutDashboard size={13} />
-                    My Sites
-                  </button>
-                )}
-                {onStartNew && (
-                  <button
-                    onClick={onStartNew}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--pl-radius-sm)] text-[0.78rem] font-semibold text-[var(--pl-olive)] bg-[rgba(163,177,138,0.1)] border border-[rgba(163,177,138,0.2)] cursor-pointer hover:bg-[rgba(163,177,138,0.18)] transition-colors duration-150 whitespace-nowrap"
-                  >
-                    <Plus size={13} />
-                    New Site
-                  </button>
-                )}
-              </div>
-            )}
-            {user && <UserNav user={user} onDashboard={onGoToDashboard} />}
-            {/* Hamburger: mobile only */}
-            {!isDesktop && (
+        {/* Studio-mode actions */}
+        {isStudio && user && (
+          <div className="py-1.5 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0">
+            {onGoToDashboard && (
               <button
-                onClick={() => setDrawer(!drawerOpen)}
-                aria-label="Open navigation menu"
-                aria-expanded={drawerOpen}
-                className={cn(
-                  'flex items-center justify-center w-9 h-9 rounded-[var(--pl-radius-sm)]',
-                  'text-[var(--pl-ink)] bg-transparent border-0 cursor-pointer',
-                  'hover:bg-[rgba(0,0,0,0.05)] transition-colors duration-150',
-                )}
+                onClick={() => { onGoToDashboard(); closeDrawer(); }}
+                className="pl-enter pl-enter-d1 flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
               >
-                {drawerOpen ? <X size={21} /> : <Menu size={21} />}
+                <LayoutDashboard size={17} className="text-[var(--pl-olive)]" />
+                My Sites
+              </button>
+            )}
+            {onStartNew && (
+              <button
+                onClick={() => { onStartNew(); closeDrawer(); }}
+                className="pl-enter pl-enter-d2 flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
+              >
+                <Plus size={17} className="text-[var(--pl-olive)]" />
+                New Site
               </button>
             )}
           </div>
+        )}
+
+        {/* Page links */}
+        <nav className="flex-1 py-1.5">
+          {enabledPages.map((page, i) => {
+            const active = isActive(page.slug);
+            return (
+              <div
+                key={page.id}
+                className={`pl-enter pl-enter-d${Math.min(i + 1, 8)}`}
+              >
+                <Link
+                  href={getHref(page.slug)}
+                  onClick={closeDrawer}
+                  className={cn(
+                    'flex items-center gap-3.5 min-h-[52px] px-5',
+                    'text-[0.92rem] font-body no-underline',
+                    'border-l-[3px] transition-all duration-150',
+                    active
+                      ? 'font-semibold text-[var(--pl-ink)] bg-[rgba(163,177,138,0.07)] border-l-[var(--pl-olive)]'
+                      : 'font-[500] text-[var(--pl-muted)] bg-transparent border-l-transparent hover:bg-[rgba(163,177,138,0.06)]',
+                  )}
+                >
+                  <PageIcon slug={page.slug} size={17} />
+                  <span className="flex-1">{page.label}</span>
+                </Link>
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Account row + powered-by */}
+        <div className="flex-shrink-0 border-t border-[rgba(0,0,0,0.06)] px-5 py-4">
+          {user && (
+            <div className="pl-enter-fade pl-enter-d3 flex items-center gap-2.5 mb-3.5">
+              {user.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.image}
+                  alt=""
+                  role="presentation"
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[var(--pl-olive)] flex items-center justify-center flex-shrink-0">
+                  <LogOut size={12} color="#fff" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-[0.8rem] font-semibold text-[var(--pl-ink)] truncate">
+                  {user.name || 'Your Account'}
+                </div>
+                <div className="text-[0.68rem] text-[var(--pl-muted)] truncate">{user.email}</div>
+              </div>
+              <button
+                onClick={() => { closeDrawer(); signOut(); }}
+                title="Sign out"
+                className="flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-lg bg-[rgba(0,0,0,0.05)] text-[var(--pl-muted)] border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.10)] hover:text-[var(--pl-ink)] transition-all duration-150"
+              >
+                <LogOut size={13} />
+              </button>
+            </div>
+          )}
+          <p className="text-[0.65rem] uppercase tracking-[0.12em] text-[var(--pl-muted)] opacity-60 m-0">
+            Powered by Pearloom
+          </p>
         </div>
-      </>
-    );
+      </div>
+    </>
+  );
+
+  // ════════════════════════════════════════════════════════════════
+  // RENDER — two completely separate paths
+  // ════════════════════════════════════════════════════════════════
 
   return (
     <>
-      {/* ── Nav bar — plain <nav> when inline (editor), motion.nav otherwise ── */}
+      {/* ── Nav bar ── */}
       {inline ? (
-        <nav className={navClassName} style={navInlineStyle}>
-          {navContent}
+        /* INLINE PATH: plain <nav>, no Framer Motion, no motion.* */
+        <nav className={cn(navClassName, navBgClassName)} style={navInlineStyle}>
+          {navInner}
         </nav>
       ) : (
+        /* PUBLIC PATH: motion.nav with entrance animation */
         <motion.nav
-          className={navClassName}
+          className={cn(navClassName, navBgClassName)}
           style={navInlineStyle}
           initial={{ y: -80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          {navContent}
+          {scrollProgressBar}
+          {navInner}
         </motion.nav>
       )}
 
-      {/* ── Slide-in drawer ── */}
-      <AnimatePresence>
-        {drawerOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.12 }}
-              onClick={() => setDrawer(false)}
-              className="fixed inset-0 z-[101] bg-black/35 backdrop-blur-[4px]"
-            />
+      {/* ── CSS-animated drawer (works in both paths) ── */}
+      {drawer}
 
-            {/* Panel */}
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              className={cn(
-                'fixed top-0 right-0 bottom-0 z-[102]',
-                'w-[min(300px,100vw)]',
-                'flex flex-col',
-                'bg-[rgba(245,241,232,0.98)] border-l border-[rgba(0,0,0,0.05)]',
-                'shadow-[-16px_0_50px_rgba(0,0,0,0.09)]',
-                'pb-[env(safe-area-inset-bottom,24px)]',
-                'overflow-y-auto',
-              )}
-              style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
-            >
-              {/* Drawer header */}
-              <div className="flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
-                <span className="font-heading text-[1.3rem] font-semibold italic text-[var(--pl-ink-soft)] tracking-tight leading-tight">
-                  {isStudio ? 'Pearloom' : (names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0])}
-                </span>
-                <button
-                  onClick={() => setDrawer(false)}
-                  aria-label="Close menu"
-                  className="flex items-center justify-center w-9 h-9 rounded-full bg-[rgba(0,0,0,0.06)] text-[var(--pl-ink)] border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.10)] transition-colors duration-150 flex-shrink-0"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Studio-mode actions */}
-              {isStudio && user && (
-                <div className="py-1.5 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0">
-                  {onGoToDashboard && (
-                    <button
-                      onClick={() => { onGoToDashboard(); setDrawer(false); }}
-                      className="pl-enter pl-enter-d1 flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
-                    >
-                      <LayoutDashboard size={17} className="text-[var(--pl-olive)]" />
-                      My Sites
-                    </button>
-                  )}
-                  {onStartNew && (
-                    <button
-                      onClick={() => { onStartNew(); setDrawer(false); }}
-                      className="pl-enter pl-enter-d2 flex items-center gap-3.5 w-full min-h-[52px] px-5 text-[0.92rem] font-[500] text-[var(--pl-ink)] font-body bg-transparent border-0 cursor-pointer text-left hover:bg-[rgba(163,177,138,0.07)] transition-colors duration-150"
-                    >
-                      <Plus size={17} className="text-[var(--pl-olive)]" />
-                      New Site
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Page links */}
-              <nav className="flex-1 py-1.5">
-                {enabledPages.map((page, i) => {
-                  const active = isActive(page.slug);
-                  return (
-                    <div
-                      key={page.id}
-                      className={`pl-enter pl-enter-d${Math.min(i + 1, 8)}`}
-                    >
-                      <Link
-                        href={getHref(page.slug)}
-                        onClick={() => setDrawer(false)}
-                        className={cn(
-                          'flex items-center gap-3.5 min-h-[52px] px-5',
-                          'text-[0.92rem] font-body no-underline',
-                          'border-l-[3px] transition-all duration-150',
-                          active
-                            ? 'font-semibold text-[var(--pl-ink)] bg-[rgba(163,177,138,0.07)] border-l-[var(--pl-olive)]'
-                            : 'font-[500] text-[var(--pl-muted)] bg-transparent border-l-transparent hover:bg-[rgba(163,177,138,0.06)]',
-                        )}
-                      >
-                        <PageIcon slug={page.slug} size={17} />
-                        <span className="flex-1">{page.label}</span>
-                      </Link>
-                    </div>
-                  );
-                })}
-              </nav>
-
-              {/* Account row + powered-by */}
-              <div className="flex-shrink-0 border-t border-[rgba(0,0,0,0.06)] px-5 py-4">
-                {user && (
-                  <div className="pl-enter-fade pl-enter-d3 flex items-center gap-2.5 mb-3.5">
-
-                    {user.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={user.image}
-                        alt=""
-                        role="presentation"
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-[var(--pl-olive)] flex items-center justify-center flex-shrink-0">
-                        <LogOut size={12} color="#fff" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[0.8rem] font-semibold text-[var(--pl-ink)] truncate">
-                        {user.name || 'Your Account'}
-                      </div>
-                      <div className="text-[0.68rem] text-[var(--pl-muted)] truncate">{user.email}</div>
-                    </div>
-                    <button
-                      onClick={() => { setDrawer(false); signOut(); }}
-                      title="Sign out"
-                      className="flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-lg bg-[rgba(0,0,0,0.05)] text-[var(--pl-muted)] border-0 cursor-pointer hover:bg-[rgba(0,0,0,0.10)] hover:text-[var(--pl-ink)] transition-all duration-150"
-                    >
-                      <LogOut size={13} />
-                    </button>
-                  </div>
-                )}
-                <p className="text-[0.65rem] uppercase tracking-[0.12em] text-[var(--pl-muted)] opacity-60 m-0">
-                  Powered by Pearloom
-                </p>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ── Feature 1: The Seam ── */}
-      {!isStudio && (
+      {/* ── Feature 1: The Seam (left edge scroll indicator) ── */}
+      {!isStudio && !inline && (
         <motion.div
           style={{
             position: 'fixed',
@@ -518,8 +620,8 @@ export function SiteNav({
         />
       )}
 
-      {/* ── Mobile bottom tab bar ── */}
-      {!isDesktop && !isStudio && enabledPages.length > 0 && (
+      {/* ── Mobile bottom tab bar (public site only) ── */}
+      {!isDesktop && !isStudio && !inline && enabledPages.length > 0 && (
         <div
           style={{
             position: 'fixed',
@@ -550,7 +652,7 @@ export function SiteNav({
                   gap: '3px',
                   padding: '8px 4px 6px',
                   textDecoration: 'none',
-                  color: active ? 'var(--pl-olive, var(--pl-olive))' : 'rgba(0,0,0,0.35)',
+                  color: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
                   transition: 'color 0.15s',
                   position: 'relative',
                 }}
@@ -559,7 +661,7 @@ export function SiteNav({
                   <div style={{
                     position: 'absolute', top: 0, left: '25%', right: '25%',
                     height: '2px', borderRadius: '0 0 2px 2px',
-                    background: 'var(--pl-olive, var(--pl-olive))',
+                    background: 'var(--pl-olive)',
                   }} />
                 )}
                 <PageIcon slug={page.slug} size={18} />
@@ -577,7 +679,7 @@ export function SiteNav({
                       'Schedule': 'Events', 'Getting There': 'Travel',
                     };
                     const lbl = shortLabels[page.label] || page.label;
-                    return lbl.length > 8 ? lbl.slice(0, 7) + '…' : lbl;
+                    return lbl.length > 8 ? lbl.slice(0, 7) + '\u2026' : lbl;
                   })()}
                 </span>
               </Link>
@@ -586,8 +688,8 @@ export function SiteNav({
         </div>
       )}
 
-      {/* ── Feature 2: Thread Navigation ── */}
-      {isDesktop && !isStudio && enabledPages.length > 0 && (
+      {/* ── Feature 2: Thread Navigation (desktop side dots) ── */}
+      {!inline && isDesktop && !isStudio && enabledPages.length > 0 && (
         <div
           style={{
             position: 'fixed',
@@ -637,9 +739,7 @@ export function SiteNav({
                 onMouseLeave={() => setHoveredSlug(null)}
               >
                 {/* Label text */}
-                <motion.span
-                  animate={{ opacity: showLabel ? 1 : 0 }}
-                  transition={{ duration: 0.18 }}
+                <span
                   style={{
                     fontSize: '0.6rem',
                     fontWeight: 700,
@@ -648,22 +748,22 @@ export function SiteNav({
                     color: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.35)',
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
+                    opacity: showLabel ? 1 : 0,
+                    transition: 'opacity 0.18s ease',
                   }}
                 >
                   {page.label}
-                </motion.span>
+                </span>
 
                 {/* Dot */}
-                <motion.div
-                  animate={{
+                <div
+                  style={{
                     width: active ? '7px' : '5px',
                     height: active ? '7px' : '5px',
                     background: active ? 'var(--pl-olive)' : 'rgba(0,0,0,0.18)',
-                  }}
-                  transition={{ duration: 0.2 }}
-                  style={{
                     borderRadius: '50%',
                     flexShrink: 0,
+                    transition: 'width 0.2s, height 0.2s, background 0.2s',
                   }}
                 />
               </Link>
