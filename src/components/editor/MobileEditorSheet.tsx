@@ -127,7 +127,9 @@ export function MobileEditorSheet() {
     setActiveSection(sectionId);
     setActiveChapterId(null);
     setActiveTab('edit');
-    setSheetSnap(1);
+    // Bounce: snap to slightly higher, then settle at half
+    setSheetSnap(2);
+    setTimeout(() => setSheetSnap(1), 250);
 
     // Flash highlight on the tapped section in preview
     const el = previewRef.current?.querySelector(`[data-pe-section="${sectionId}"]`) as HTMLElement | null;
