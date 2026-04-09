@@ -1836,7 +1836,62 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           })()}
         </div>
 
-        {/* ── AVAILABLE SECTIONS — click to add ── */}
+        {/* ── Config panel — appears between active blocks and add sections ── */}
+        <AnimatePresence>
+          {activeBlock && activeDef && (
+            <motion.div
+              ref={configPanelRef}
+              key={activeBlock.id}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                overflow: 'hidden', flexShrink: 0,
+                borderTop: `2px solid ${activeDef.color}40`,
+                background: `rgba(255,255,255,0.6)`,
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderRadius: '12px',
+                margin: '8px 0',
+              } as React.CSSProperties}
+            >
+              <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+                  <div style={{
+                    width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
+                    background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${activeDef.color}30`,
+                  }}>
+                    <activeDef.icon size={14} color={activeDef.color} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--pl-ink)' }}>{activeDef.label}</div>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings</div>
+                  </div>
+                  <button
+                    onClick={() => setActiveBlockId(null)}
+                    style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+                <BlockConfigPanel
+                  block={activeBlock}
+                  def={activeDef}
+                  manifest={manifest}
+                  blocksKey={blocksKey}
+                  onChange={m => {
+                    onChange(m);
+                    pushToPreview(m);
+                  }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── AVAILABLE SECTIONS — click or drag to add ── */}
         {availableBlocks.length > 0 && (
           <>
             <div style={{
@@ -1887,61 +1942,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
         )}
       </div>
 
-      {/* ── Config panel (slides up from bottom) ── */}
-      <AnimatePresence>
-        {activeBlock && activeDef && (
-          <motion.div
-            ref={configPanelRef}
-            key={activeBlock.id}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              overflow: 'hidden', flexShrink: 0,
-              borderTop: `2px solid ${activeDef.color}40`,
-              background: `rgba(255,255,255,0.6)`,
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-            } as React.CSSProperties}
-          >
-            <div style={{ maxHeight: '50vh', overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {/* Panel header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-                <div style={{
-                  width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0,
-                  background: `${activeDef.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: `1px solid ${activeDef.color}30`,
-                }}>
-                  <activeDef.icon size={14} color={activeDef.color} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--pl-ink)' }}>{activeDef.label}</div>
-                  <div style={{ fontSize: '0.6rem', color: 'var(--pl-ink-soft)' }}>Block settings · Section style</div>
-                </div>
-                <button
-                  onClick={() => setActiveBlockId(null)}
-                  style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', cursor: 'pointer', color: 'var(--pl-ink-soft)', display: 'flex', padding: '5px' }}
-                >
-                  <X size={13} />
-                </button>
-              </div>
-
-              {/* Config content */}
-              <BlockConfigPanel
-                block={activeBlock}
-                def={activeDef}
-                manifest={manifest}
-                blocksKey={blocksKey}
-                onChange={m => {
-                  onChange(m);
-                  pushToPreview(m);
-                }}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Config panel moved above — now appears between active blocks and add sections */}
 
       {/* ── Drag ghost — follows pointer via imperative DOM updates in useDragSort ── */}
       {(() => {
