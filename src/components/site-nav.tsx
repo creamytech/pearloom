@@ -271,6 +271,7 @@ export function SiteNav({
   const brandContent = (
     <Link
       href={basePath}
+      onClick={inline ? (e: React.MouseEvent) => e.preventDefault() : undefined}
       className="flex items-center gap-2 no-underline hover:opacity-75 transition-opacity duration-200 min-w-0"
     >
       {isStudio ? (
