@@ -119,6 +119,8 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
   const badgeDateStr = weddingDate || date;
   // True when any photo is displayed — drives text/overlay color choices
   const hasPhoto = !!(coverPhoto || photoList.length > 0);
+  // Illustrated hero (SVG data URI or API-generated) needs lighter overlay than real photos
+  const isIllustratedHero = !!(coverPhoto && (coverPhoto.startsWith('data:image/svg') || coverPhoto.includes('/api/hero-art')));
 
   // Smart brightness detection: analyze cover photo to pick optimal text color
   const [photoBrightness, setPhotoBrightness] = useState<'light' | 'dark' | null>(null);
@@ -133,8 +135,8 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
     img.src = coverPhoto;
   }, [coverPhoto]);
 
-  // Text color: always white on photos (dark overlay guarantees readability)
-  const heroTextColor = hasPhoto ? '#ffffff' : 'var(--pl-ink)';
+  // Text color: white on real photos (dark overlay guarantees readability), theme color on illustrations
+  const heroTextColor = hasPhoto && !isIllustratedHero ? '#ffffff' : 'var(--pl-ink)';
   const heroSecondaryColor = hasPhoto ? 'rgba(255,255,255,0.8)' : 'var(--pl-olive)';
 
   return (
@@ -233,15 +235,19 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             </AnimatePresence>
           </motion.div>
 
-          {/* Dark overlay — strong enough for bright daytime photos */}
+          {/* Dark overlay — lighter for illustrated SVGs, stronger for real photos */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 35%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.55) 100%)',
+            background: isIllustratedHero
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 35%, rgba(0,0,0,0.04) 55%, rgba(0,0,0,0.12) 100%)'
+              : 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 35%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.55) 100%)',
           }} />
           {/* Radial vignette for cinematic frame */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-            background: 'radial-gradient(ellipse at center, transparent 38%, rgba(43,30,20,0.4) 100%)',
+            background: isIllustratedHero
+              ? 'radial-gradient(ellipse at center, transparent 50%, rgba(43,30,20,0.1) 100%)'
+              : 'radial-gradient(ellipse at center, transparent 38%, rgba(43,30,20,0.4) 100%)',
           }} />
           <FilmGrain />
         </>
