@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useEditor } from '@/lib/editor-state';
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, X, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, X, ChevronDown, Sparkles, MapPin, Check, UtensilsCrossed } from 'lucide-react';
 import { LocationPinIcon } from '@/components/icons/PearloomIcons';
 import { Field, lbl, inp } from './editor-utils';
-import type { StoryManifest, FaqItem, TravelInfo, HotelBlock } from '@/types';
+import type { StoryManifest, FaqItem, TravelInfo, HotelBlock, MealOption } from '@/types';
 import { VenueSearch } from '@/components/venue/VenueSearch';
 import type { VenuePartial } from '@/components/venue/VenueSearch';
 import { SeatingCanvas } from '@/components/seating/SeatingCanvas';
+import { HotelFinderPanel } from './HotelFinderPanel';
 
 export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: StoryManifest; onChange: (m: StoryManifest) => void; subdomain?: string }) {
   const { state } = useEditor();
@@ -40,6 +41,41 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const delFaq = (id: string) =>
     onChange({ ...manifest, faqs: faqs.filter(f => f.id !== id) });
 
+  // ── AI FAQ generation ──
+  const [aiFaqLoading, setAiFaqLoading] = useState(false);
+  const [aiFaqError, setAiFaqError] = useState<string | null>(null);
+  const generateSmartFaqs = useCallback(async () => {
+    setAiFaqLoading(true);
+    setAiFaqError(null);
+    try {
+      const res = await fetch('/api/ai-faq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manifest }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to generate FAQs');
+      }
+      const data = await res.json();
+      if (data.faqs && Array.isArray(data.faqs)) {
+        const newFaqs: FaqItem[] = data.faqs.map(
+          (faq: { id?: string; question: string; answer: string }, i: number) => ({
+            id: faq.id || `faq-${Date.now()}-${i}`,
+            question: faq.question,
+            answer: faq.answer,
+            order: faqs.length + i,
+          })
+        );
+        onChange({ ...manifest, faqs: [...faqs, ...newFaqs] });
+      }
+    } catch (err) {
+      setAiFaqError(err instanceof Error ? err.message : 'Generation failed');
+    } finally {
+      setAiFaqLoading(false);
+    }
+  }, [manifest, faqs, onChange]);
+
   // ── Registry helpers ──
   const entries = manifest.registry?.entries || [];
   const updRegistry = (patch: Partial<NonNullable<StoryManifest['registry']>>) =>
@@ -51,6 +87,49 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const delEntry = (i: number) =>
     updRegistry({ entries: entries.filter((_, idx) => idx !== i) });
 
+  // ── Registry URL Import ──
+  const [registryUrl, setRegistryUrl] = useState('');
+  const [registryImportLoading, setRegistryImportLoading] = useState(false);
+  const [registryImportResult, setRegistryImportResult] = useState<{ name: string; url: string; note: string; platform: string } | null>(null);
+  const [registryImportError, setRegistryImportError] = useState('');
+
+  const handleRegistryImport = async () => {
+    if (!registryUrl.trim()) return;
+    setRegistryImportLoading(true);
+    setRegistryImportError('');
+    setRegistryImportResult(null);
+    try {
+      const res = await fetch('/api/ai-registry-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: registryUrl.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Import failed');
+      }
+      const data = await res.json();
+      setRegistryImportResult(data.entry);
+    } catch (err) {
+      setRegistryImportError(err instanceof Error ? err.message : 'Import failed');
+    } finally {
+      setRegistryImportLoading(false);
+    }
+  };
+
+  const handleAddImportedRegistry = () => {
+    if (!registryImportResult) return;
+    updRegistry({
+      entries: [...entries, {
+        name: registryImportResult.name,
+        url: registryImportResult.url,
+        note: registryImportResult.note,
+      }],
+    });
+    setRegistryImportResult(null);
+    setRegistryUrl('');
+  };
+
   // ── Travel helpers ──
   const travel = manifest.travelInfo || { airports: [], hotels: [] };
   const updTravel = (patch: Partial<TravelInfo>) =>
@@ -61,6 +140,73 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     updTravel({ hotels: (travel.hotels || []).map((h, idx) => idx === i ? { ...h, ...data } : h) });
   const delHotel = (i: number) =>
     updTravel({ hotels: (travel.hotels || []).filter((_, idx) => idx !== i) });
+
+  // ── Hotel finder panel state ──
+  const [showHotelFinder, setShowHotelFinder] = useState(false);
+
+  // ── Meal option helpers ──
+  const mealOptions = manifest.mealOptions || [];
+  const addMealOption = () => {
+    const newMeal: MealOption = { id: `meal-${Date.now()}`, name: '', dietaryTags: [] };
+    onChange({ ...manifest, mealOptions: [...mealOptions, newMeal] });
+  };
+  const updMealOption = (i: number, data: Partial<MealOption>) =>
+    onChange({ ...manifest, mealOptions: mealOptions.map((m, idx) => idx === i ? { ...m, ...data } : m) });
+  const delMealOption = (i: number) =>
+    onChange({ ...manifest, mealOptions: mealOptions.filter((_, idx) => idx !== i) });
+
+  // ── AI Meal generation ──
+  const [aiMealLoading, setAiMealLoading] = useState(false);
+  const [aiMealError, setAiMealError] = useState<string | null>(null);
+  const [aiMealPreviews, setAiMealPreviews] = useState<Array<{ name: string; description?: string; dietaryTags: string[] }>>([]);
+
+  const generateMenu = useCallback(async () => {
+    setAiMealLoading(true);
+    setAiMealError(null);
+    setAiMealPreviews([]);
+    try {
+      const res = await fetch('/api/ai-meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          generateMenu: true,
+          occasion: manifest.occasion || 'wedding',
+          vibe: manifest.vibeString || '',
+          guestCount: undefined,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to generate menu');
+      }
+      const data = await res.json();
+      if (data.meals && Array.isArray(data.meals)) {
+        setAiMealPreviews(data.meals);
+      }
+    } catch (err) {
+      setAiMealError(err instanceof Error ? err.message : 'Generation failed');
+    } finally {
+      setAiMealLoading(false);
+    }
+  }, [manifest.occasion, manifest.vibeString]);
+
+  const acceptMealPreview = useCallback((meal: { name: string; description?: string; dietaryTags: string[] }) => {
+    const validTags = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher'] as const;
+    const newMeal: MealOption = {
+      id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: meal.name,
+      description: meal.description,
+      dietaryTags: (meal.dietaryTags || []).filter((t): t is MealOption['dietaryTags'][number] =>
+        validTags.includes(t as typeof validTags[number])
+      ),
+    };
+    onChange({ ...manifest, mealOptions: [...(manifest.mealOptions || []), newMeal] });
+    setAiMealPreviews(prev => prev.filter(m => m.name !== meal.name));
+  }, [manifest, onChange]);
+
+  const rejectMealPreview = useCallback((name: string) => {
+    setAiMealPreviews(prev => prev.filter(m => m.name !== name));
+  }, []);
 
   type SectionId = 'couple' | 'theday' | 'registry' | 'rsvp' | 'travel' | 'faq' | 'vibe' | 'seating' | 'seo' | 'protection';
   const Section = ({ id, label, children }: { id: SectionId; label: string; children: React.ReactNode }) => {
@@ -232,6 +378,178 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             onChange={(d) => upd({ rsvpDeadline: d })}
           />
         </div>
+
+        {/* ── Meal Options ── */}
+        <div style={{ marginTop: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <label style={{ ...lbl, margin: 0 }}>Meal Options ({mealOptions.length})</label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                onClick={generateMenu}
+                disabled={aiMealLoading}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
+                  borderRadius: '5px', border: '1px solid rgba(163,177,138,0.35)',
+                  background: aiMealLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)',
+                  color: 'var(--pl-olive, #A3B18A)', cursor: aiMealLoading ? 'wait' : 'pointer',
+                  fontSize: '0.82rem', fontWeight: 700, opacity: aiMealLoading ? 0.6 : 1,
+                  transition: 'background 0.18s',
+                }}
+                onMouseOver={e => { if (!aiMealLoading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiMealLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)'; }}
+              >
+                <Sparkles size={10} />
+                {aiMealLoading ? 'Generating...' : 'Generate Menu with AI'}
+              </button>
+              <button onClick={addMealOption} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+                <Plus size={10} /> Add Meal
+              </button>
+            </div>
+          </div>
+          {aiMealError && (
+            <p style={{ fontSize: '0.75rem', color: '#f87171', margin: '0 0 8px', lineHeight: 1.4 }}>
+              {aiMealError}
+            </p>
+          )}
+
+          {/* AI-generated meal previews — accept/reject before adding */}
+          {aiMealPreviews.length > 0 && (
+            <div style={{ marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                AI Suggestions
+              </span>
+              {aiMealPreviews.map((meal, i) => (
+                <div key={i} style={{
+                  background: 'rgba(163,177,138,0.08)', border: '1px dashed rgba(163,177,138,0.3)',
+                  borderRadius: '12px', padding: '10px 12px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--pl-ink, #1A1A1A)', marginBottom: '3px' }}>
+                        {meal.name}
+                      </div>
+                      {meal.description && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--pl-ink-soft, #4A4A4A)', lineHeight: 1.45, margin: '0 0 4px' }}>
+                          {meal.description}
+                        </p>
+                      )}
+                      {meal.dietaryTags?.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                          {meal.dietaryTags.map((tag, j) => (
+                            <span key={j} style={{
+                              padding: '1px 6px', borderRadius: '4px', fontSize: '0.65rem',
+                              fontWeight: 600, background: 'rgba(163,177,138,0.15)', color: 'var(--pl-olive, #A3B18A)',
+                            }}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      <button
+                        onClick={() => acceptMealPreview(meal)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '3px',
+                          padding: '4px 8px', borderRadius: '6px', border: 'none',
+                          background: 'var(--pl-olive, #A3B18A)', color: '#fff',
+                          fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer',
+                        }}
+                      >
+                        <Check size={10} /> Add
+                      </button>
+                      <button
+                        onClick={() => rejectMealPreview(meal.name)}
+                        style={{
+                          display: 'flex', alignItems: 'center', padding: '4px 6px',
+                          borderRadius: '6px', border: 'none',
+                          background: 'rgba(248,113,113,0.1)', color: '#e87a7a',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Loading skeleton for meal generation */}
+          {aiMealLoading && (
+            <div style={{ marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{
+                  borderRadius: '12px', padding: '12px',
+                  background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.1)',
+                  animation: 'pl-meal-pulse 1.5s ease-in-out infinite',
+                  animationDelay: `${i * 0.12}s`,
+                }}>
+                  <div style={{ width: '60%', height: '14px', borderRadius: '7px', background: 'rgba(0,0,0,0.06)', marginBottom: '6px' }} />
+                  <div style={{ width: '85%', height: '10px', borderRadius: '5px', background: 'rgba(0,0,0,0.04)' }} />
+                </div>
+              ))}
+              <style>{`@keyframes pl-meal-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }`}</style>
+            </div>
+          )}
+
+          {/* Existing meal option cards */}
+          {mealOptions.map((meal, i) => (
+            <div key={meal.id} style={{
+              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+              borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
+              border: '1px solid rgba(255,255,255,0.2)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>
+                  <UtensilsCrossed size={10} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                  Meal {i + 1}
+                </span>
+                <button onClick={() => delMealOption(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
+                  onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--pl-muted)'; }}>
+                  <Trash2 size={11} />
+                </button>
+              </div>
+              <Field label="Meal Name" value={meal.name} onChange={v => updMealOption(i, { name: v })} placeholder="Herb-Crusted Chicken" />
+              <Field label="Description" value={meal.description || ''} onChange={v => updMealOption(i, { description: v })} placeholder="A tender chicken breast with golden herb crust..." rows={2} />
+              <div>
+                <label style={lbl}>Dietary Tags</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  {(['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher'] as const).map(tag => {
+                    const active = meal.dietaryTags?.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          const tags = active
+                            ? (meal.dietaryTags || []).filter(t => t !== tag)
+                            : [...(meal.dietaryTags || []), tag];
+                          updMealOption(i, { dietaryTags: tags });
+                        }}
+                        style={{
+                          padding: '3px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 600,
+                          border: active ? '1px solid rgba(163,177,138,0.5)' : '1px solid rgba(255,255,255,0.3)',
+                          background: active ? 'rgba(163,177,138,0.2)' : 'rgba(255,255,255,0.15)',
+                          color: active ? 'var(--pl-olive, #A3B18A)' : 'var(--pl-muted, #7A756E)',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                        }}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ))}
+          {mealOptions.length === 0 && aiMealPreviews.length === 0 && !aiMealLoading && (
+            <p style={{ fontSize: '0.82rem', color: 'var(--pl-muted)', textAlign: 'center', padding: '0.5rem 0' }}>
+              No meal options yet — add them manually or generate with AI
+            </p>
+          )}
+        </div>
       </Section>
 
       <Section id="travel" label="Travel & Hotels">
@@ -256,9 +574,25 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
           <label style={{ ...lbl, margin: 0 }}>Hotels ({(travel.hotels || []).length})</label>
-          <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
-            <Plus size={10} /> Add Hotel
-          </button>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              onClick={() => setShowHotelFinder(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
+                borderRadius: '5px', border: '1px solid rgba(163,177,138,0.35)',
+                background: 'rgba(163,177,138,0.1)', color: 'var(--pl-olive, #A3B18A)',
+                cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+                transition: 'background 0.18s',
+              }}
+              onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.1)'; }}
+            >
+              <MapPin size={10} /> Find Hotels Near Venue
+            </button>
+            <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+              <Plus size={10} /> Add Hotel
+            </button>
+          </div>
         </div>
         {(travel.hotels || []).map((hotel, i) => (
           <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
@@ -280,11 +614,33 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       </Section>
 
       <Section id="faq" label="FAQ">
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', flexWrap: 'wrap' }}>
+          <button
+            onClick={generateSmartFaqs}
+            disabled={aiFaqLoading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
+              borderRadius: '5px', border: '1px solid rgba(163,177,138,0.35)',
+              background: aiFaqLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)',
+              color: 'var(--pl-olive, #A3B18A)', cursor: aiFaqLoading ? 'wait' : 'pointer',
+              fontSize: '0.82rem', fontWeight: 700, opacity: aiFaqLoading ? 0.6 : 1,
+              transition: 'background 0.18s',
+            }}
+            onMouseOver={e => { if (!aiFaqLoading) (e.currentTarget as HTMLElement).style.background = 'rgba(163,177,138,0.2)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiFaqLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)'; }}
+          >
+            <Sparkles size={10} />
+            {aiFaqLoading ? 'Generating...' : 'Generate Smart FAQs'}
+          </button>
           <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
           </button>
         </div>
+        {aiFaqError && (
+          <p style={{ fontSize: '0.75rem', color: '#f87171', margin: '4px 0 0', lineHeight: 1.4 }}>
+            {aiFaqError}
+          </p>
+        )}
         {faqs.map(faq => (
           <div key={faq.id} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -507,6 +863,15 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           )}
         </div>
       </Section>
+
+      {/* Hotel Finder overlay */}
+      {showHotelFinder && (
+        <HotelFinderPanel
+          manifest={manifest}
+          onChange={onChange}
+          onClose={() => setShowHotelFinder(false)}
+        />
+      )}
     </div>
   );
 }

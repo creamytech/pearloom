@@ -8,6 +8,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink, Heart, Sparkles, UtensilsCrossed, Wine, Coffee, Calendar } from 'lucide-react';
+import { AddToCalendar } from '@/components/add-to-calendar';
 import {
   CalendarHeartIcon,
   LocationPinIcon,
@@ -428,6 +429,19 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           )}
         </div>
       )}
+
+      {/* Add to Calendar buttons */}
+      <div style={{ padding: '0 1.75rem 1.25rem 2rem' }}>
+        <AddToCalendar
+          eventName={event.name}
+          date={event.date}
+          time={event.time}
+          endTime={event.endTime}
+          venue={event.venue}
+          address={event.address}
+          description={event.description}
+        />
+      </div>
     </motion.div>
   );
 }

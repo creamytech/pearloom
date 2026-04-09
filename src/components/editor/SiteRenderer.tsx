@@ -13,6 +13,7 @@ import { ChevronUp, ChevronDown, Copy, Trash2, Eye, EyeOff, GripVertical } from 
 import { Hero } from '@/components/hero';
 import { Timeline } from '@/components/timeline';
 import { WeddingEvents } from '@/components/wedding-events';
+import { VisualTimeline } from '@/components/visual-timeline';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
@@ -826,6 +827,23 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               />
             )}
             <WeddingEvents events={manifest.events} title={vibeSkin.sectionLabels.events} />
+            {manifest.events && manifest.events.length >= 2 && (
+              <div style={{ padding: '0 2rem 4rem', position: 'relative', zIndex: 2 }}>
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                  <span style={{
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.25em',
+                    textTransform: 'uppercase' as const,
+                    color: pal.accent,
+                    fontWeight: 700,
+                    opacity: 0.7,
+                  }}>
+                    Day-of Timeline
+                  </span>
+                </div>
+                <VisualTimeline events={manifest.events} />
+              </div>
+            )}
           </section>
         );
       case 'rsvp':
