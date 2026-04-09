@@ -224,7 +224,7 @@ const cardBg = PAL.card;
 export default function DemoPage() {
   return (
     <ThemeProvider theme={THEME}>
-      <SiteNav names={NAMES} pages={PAGES} />
+      <SiteNav names={NAMES} pages={PAGES} pageHrefOverride={(slug) => slug === '' ? '#' : `#${slug}`} />
 
       <main style={{ minHeight: '100dvh', background: bgColor }}>
         {/* Hero */}
