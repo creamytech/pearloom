@@ -891,7 +891,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
           {/* ── WEDDING ── */}
           {occasion === 'wedding' && (
             <>
-              <AccordionSection title="Ceremony" icon="💒" defaultOpen={true}>
+              <AccordionSection title="Venue & Time" icon="💒" defaultOpen={true}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
@@ -958,7 +958,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="Reception & Style" icon="🥂" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon="🥂" defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue<Tooltip text="Search for your venue — we'll auto-fill the address" /></label>
@@ -1115,7 +1115,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="Celebration details" icon="📍" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon="📍" defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Celebration venue <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1229,7 +1229,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="Event details" icon="📍" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon="📍" defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Venue / location <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
@@ -1326,7 +1326,7 @@ export function VibeInput({ onSubmit, initialNames, initialVibe }: VibeInputProp
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="Looking ahead" icon="✨" defaultOpen={false}>
+              <AccordionSection title="More Details (Optional)" icon="✨" defaultOpen={false}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <label style={fieldLabel}>Wedding timeline <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>

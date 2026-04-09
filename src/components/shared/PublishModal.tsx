@@ -244,23 +244,48 @@ export function PublishModal({
           </motion.div>
         </div>
       ) : (
-        /* ── URL input state ── */
+        /* ── Simplified publish flow ── */
         <>
           <h2 className="text-[2rem] mb-2 font-heading font-normal">
-            Choose Your Site Name
+            Publish Your Site
           </h2>
-          <p className="text-[var(--pl-muted)] mb-1">
-            We&apos;ve pre-filled a unique site name — customize it below.
-          </p>
-          <p className="text-[var(--pl-muted)] text-[0.78rem] mb-1 opacity-70">
-            Your site will be live at <strong>yourname.pearloom.com</strong>
-          </p>
-          <p className="text-[var(--pl-muted)] text-[0.78rem] mb-8 opacity-70">
-            You can upgrade to a full custom domain later.
+
+          {/* Prominent URL preview */}
+          <div className="w-full rounded-[var(--pl-radius-md)] bg-[var(--pl-cream)] border border-[var(--pl-gold)] p-4 mb-2 text-center">
+            <div className="text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-muted)] mb-2">
+              Your site will be at
+            </div>
+            <div className="text-[1.1rem] font-bold text-[var(--pl-ink)] tracking-tight">
+              {subdomain || '...'}<span className="text-[var(--pl-muted)]">.pearloom.com</span>
+            </div>
+          </div>
+
+          {/* Editable name — hidden by default */}
+          {!isEditing ? (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-[0.78rem] text-[var(--pl-olive)] font-medium bg-transparent border-0 cursor-pointer hover:underline mb-2 self-center"
+            >
+              Change site name
+            </button>
+          ) : (
+            <div className="mb-2">
+              <Input
+                value={subdomain}
+                onChange={(e) => handleSubdomainChange(e.target.value)}
+                placeholder="sarah-and-james"
+                disabled={isPublishing}
+                suffix=".pearloom.com"
+              />
+            </div>
+          )}
+
+          <p className="text-[var(--pl-muted)] text-[0.82rem] mb-4 leading-relaxed text-center">
+            Your site will be live and shareable with guests. You can update it anytime.
           </p>
 
           {error && (
-            <div className="text-red-600 bg-red-50 p-3 rounded-lg mb-6 text-[0.9rem]">
+            <div className="text-red-600 bg-red-50 p-3 rounded-lg mb-4 text-[0.9rem]">
               {error}
             </div>
           )}
@@ -276,7 +301,7 @@ export function PublishModal({
             if (!hasPhotos) warnings.push('No photos — your site will use placeholder art');
             if (!manifest.events?.length) warnings.push('No events added — schedule section will be hidden');
             return warnings.length > 0 ? (
-              <div className="mb-5 p-3 rounded-lg text-[0.78rem] leading-relaxed"
+              <div className="mb-4 p-3 rounded-lg text-[0.78rem] leading-relaxed"
                 style={{ background: 'rgba(196,169,106,0.1)', border: '1px solid rgba(196,169,106,0.2)', color: 'var(--pl-ink-soft)' }}>
                 <div className="font-bold text-[0.65rem] uppercase tracking-[0.08em] text-[var(--pl-gold)] mb-1.5">Before you publish</div>
                 {warnings.map((w, i) => (
@@ -289,30 +314,24 @@ export function PublishModal({
             ) : null;
           })()}
 
-          <Input
-            value={subdomain}
-            onChange={(e) => handleSubdomainChange(e.target.value)}
-            placeholder="ben-and-shauna"
+          <Button
+            variant="accent"
+            size="lg"
+            onClick={handlePublish}
+            disabled={isPublishing || !subdomain}
+            loading={isPublishing}
+            icon={!isPublishing ? <Globe size={16} /> : undefined}
+            className="w-full"
+          >
+            Publish Site
+          </Button>
+          <button
+            onClick={handleClose}
             disabled={isPublishing}
-            suffix=".pearloom.com"
-          />
-
-          <div className="flex gap-4 mt-8">
-            <Button variant="secondary" size="lg" onClick={handleClose} disabled={isPublishing} className="flex-1">
-              Cancel
-            </Button>
-            <Button
-              variant="accent"
-              size="lg"
-              onClick={handlePublish}
-              disabled={isPublishing || !subdomain}
-              loading={isPublishing}
-              icon={!isPublishing ? <Globe size={16} /> : undefined}
-              className="flex-[2]"
-            >
-              Publish Site
-            </Button>
-          </div>
+            className="mt-2 text-[0.82rem] text-[var(--pl-muted)] bg-transparent border-0 cursor-pointer hover:text-[var(--pl-ink)] transition-colors self-center"
+          >
+            Cancel
+          </button>
         </>
       )}
     </Modal>
