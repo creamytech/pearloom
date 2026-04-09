@@ -1,24 +1,422 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts } from '@/lib/theme';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Switch,
+  Alert,
+  Platform,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Constants from 'expo-constants';
+import { colors, spacing, radius } from '@/lib/theme';
+import { useAuth } from '@/lib/auth';
+import {
+  registerForPushNotifications,
+  cancelAllNotifications,
+} from '@/lib/notifications';
+
+// ── Types ──────────────────────────────────────────────────────────────
+
+interface SettingsItem {
+  key: string;
+  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  label: string;
+  subtitle?: string;
+  onPress?: () => void;
+  rightElement?: React.ReactNode;
+  danger?: boolean;
+}
+
+interface SettingsSection {
+  title: string;
+  items: SettingsItem[];
+}
+
+// ── Component ──────────────────────────────────────────────────────────
 
 export default function MoreScreen() {
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [referralCode] = useState(
+    'PEARL-' + (user?.id?.slice(0, 6)?.toUpperCase() ?? 'XXXXXX'),
+  );
+
+  // ── Notification toggle ──────────────────────────────────────────────
+
+  const handleToggleNotifications = async (value: boolean) => {
+    setNotificationsEnabled(value);
+    if (value) {
+      const token = await registerForPushNotifications();
+      if (!token) {
+        setNotificationsEnabled(false);
+        Alert.alert(
+          'Notifications Disabled',
+          'Please enable notifications in your device settings.',
+        );
+      }
+    } else {
+      await cancelAllNotifications();
+    }
+  };
+
+  // ── Sign out ─────────────────────────────────────────────────────────
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+        },
+      },
+    ]);
+  };
+
+  // ── Share referral code ──────────────────────────────────────────────
+
+  const handleShareReferral = () => {
+    Alert.alert(
+      'Referral Code',
+      `Share your code: ${referralCode}\n\nFriends get 10% off their first plan!`,
+    );
+  };
+
+  // ── Build sections ───────────────────────────────────────────────────
+
+  const appVersion =
+    Constants.expoConfig?.version ??
+    Constants.manifest2?.extra?.expoClient?.version ??
+    '1.0.0';
+
+  const sections: SettingsSection[] = [
+    {
+      title: 'Preferences',
+      items: [
+        {
+          key: 'notifications',
+          icon: 'bell',
+          label: 'Notifications',
+          subtitle: notificationsEnabled ? 'On' : 'Off',
+          rightElement: (
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={handleToggleNotifications}
+              trackColor={{ false: colors.creamDeep, true: colors.olive }}
+              thumbColor={colors.white}
+            />
+          ),
+        },
+      ],
+    },
+    {
+      title: 'Account',
+      items: [
+        {
+          key: 'referral',
+          icon: 'gift',
+          label: 'Referral Program',
+          subtitle: referralCode,
+          onPress: handleShareReferral,
+        },
+        {
+          key: 'billing',
+          icon: 'credit-card',
+          label: 'Billing & Plan',
+          subtitle: 'Free Plan',
+          onPress: () => {
+            Alert.alert('Billing', 'Plan management coming soon.');
+          },
+        },
+        {
+          key: 'export',
+          icon: 'download',
+          label: 'Export Data',
+          subtitle: 'CSV, PDF',
+          onPress: () => {
+            Alert.alert('Export', 'Data export coming soon.');
+          },
+        },
+      ],
+    },
+    {
+      title: 'Support',
+      items: [
+        {
+          key: 'help',
+          icon: 'question-circle',
+          label: 'Help & Support',
+          onPress: () => {
+            Alert.alert('Help', 'Contact us at support@pearloom.com');
+          },
+        },
+        {
+          key: 'signout',
+          icon: 'sign-out',
+          label: 'Sign Out',
+          onPress: handleSignOut,
+          danger: true,
+        },
+      ],
+    },
+  ];
+
+  // ── Render ───────────────────────────────────────────────────────────
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>More</Text>
-    </View>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Profile card */}
+      <View style={styles.profileCard}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {(user?.name ?? 'U').charAt(0).toUpperCase()}
+          </Text>
+        </View>
+
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>
+            {user?.name ?? 'Guest User'}
+          </Text>
+          <Text style={styles.profileEmail}>
+            {user?.email ?? 'Not signed in'}
+          </Text>
+        </View>
+
+        <View style={styles.planBadge}>
+          <Text style={styles.planBadgeText}>FREE</Text>
+        </View>
+      </View>
+
+      {/* Settings sections */}
+      {sections.map((section) => (
+        <View key={section.title} style={styles.section}>
+          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <View style={styles.sectionCard}>
+            {section.items.map((item, index) => (
+              <React.Fragment key={item.key}>
+                {index > 0 && <View style={styles.divider} />}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.settingsRow,
+                    pressed && item.onPress && styles.settingsRowPressed,
+                  ]}
+                  onPress={item.onPress}
+                  disabled={!item.onPress && !item.rightElement}
+                >
+                  <View
+                    style={[
+                      styles.iconContainer,
+                      item.danger && styles.iconContainerDanger,
+                    ]}
+                  >
+                    <FontAwesome
+                      name={item.icon}
+                      size={16}
+                      color={item.danger ? colors.danger : colors.olive}
+                    />
+                  </View>
+
+                  <View style={styles.settingsContent}>
+                    <Text
+                      style={[
+                        styles.settingsLabel,
+                        item.danger && styles.settingsLabelDanger,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    {item.subtitle && !item.rightElement && (
+                      <Text style={styles.settingsSubtitle}>
+                        {item.subtitle}
+                      </Text>
+                    )}
+                  </View>
+
+                  {item.rightElement ? (
+                    item.rightElement
+                  ) : item.onPress ? (
+                    <FontAwesome
+                      name="chevron-right"
+                      size={12}
+                      color={colors.muted}
+                    />
+                  ) : null}
+                </Pressable>
+              </React.Fragment>
+            ))}
+          </View>
+        </View>
+      ))}
+
+      {/* Version footer */}
+      <Text style={styles.version}>Pearloom v{appVersion}</Text>
+    </ScrollView>
   );
 }
 
+// ── Styles ─────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: colors.cream,
   },
-  title: {
-    fontFamily: fonts.heading,
-    fontSize: 24,
+  content: {
+    paddingBottom: 40,
+  },
+
+  // Profile card
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    gap: spacing.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.ink,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.olive + '22',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.olive,
+  },
+  profileInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  profileName: {
+    fontSize: 17,
+    fontWeight: '700',
     color: colors.ink,
+  },
+  profileEmail: {
+    fontSize: 13,
+    color: colors.muted,
+  },
+  planBadge: {
+    backgroundColor: colors.gold + '22',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+  },
+  planBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.gold,
+    letterSpacing: 0.5,
+  },
+
+  // Sections
+  section: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
+  },
+  sectionCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.ink,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.creamDeep,
+    marginLeft: spacing.lg + 36 + spacing.md,
+  },
+
+  // Settings row
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md + 2,
+    gap: spacing.md,
+  },
+  settingsRowPressed: {
+    backgroundColor: colors.cream,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.olive + '12',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconContainerDanger: {
+    backgroundColor: colors.danger + '12',
+  },
+  settingsContent: {
+    flex: 1,
+    gap: 2,
+  },
+  settingsLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.ink,
+  },
+  settingsLabelDanger: {
+    color: colors.danger,
+  },
+  settingsSubtitle: {
+    fontSize: 13,
+    color: colors.muted,
+  },
+
+  // Version
+  version: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: colors.muted,
+    marginTop: spacing.xxl,
   },
 });
