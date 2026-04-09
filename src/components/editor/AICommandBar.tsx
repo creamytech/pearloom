@@ -183,11 +183,20 @@ export function AICommandBar() {
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
       setStatus('error');
-      setErrorMsg('Something went wrong. Try again.');
+      const msg = (e as Error).message || '';
+      if (msg.includes('401')) {
+        setErrorMsg('Please sign in to use AI features.');
+      } else if (msg.includes('500')) {
+        setErrorMsg('AI service not configured. Check your API key.');
+      } else if (msg.includes('429')) {
+        setErrorMsg('Too many requests. Wait a moment and try again.');
+      } else {
+        setErrorMsg('Could not reach AI. Check your connection and try again.');
+      }
       setTimeout(() => {
         setStatus('idle');
         setErrorMsg('');
-      }, 3000);
+      }, 4000);
     }
   }, [manifest, state.activeId, actions, dispatch, close, applyAIResponse]);
 
