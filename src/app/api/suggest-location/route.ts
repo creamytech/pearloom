@@ -127,7 +127,7 @@ Respond with ONLY a JSON object:
 {"location": "City, Country or descriptive location", "confidence": "high"|"medium"|"low", "reason": "1-sentence explanation", "suggestedTitle": "Evocative 3-5 word title"}`;
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

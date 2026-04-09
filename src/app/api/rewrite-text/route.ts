@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/api/rewrite-text/route.ts
 // Inline AI rewrite suggestions for text fields in the editor.
-// Uses Gemini gemini-3-flash-preview for low-latency rewrites.
+// Uses Gemini gemini-2.5-flash for low-latency rewrites.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,7 +12,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 const VALID_STYLES = ['poetic', 'casual', 'shorter'] as const;
 type RewriteStyle = (typeof VALID_STYLES)[number];

@@ -29,7 +29,7 @@ function isSortRateLimited(email: string): boolean {
 }
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 async function callGemini(prompt: string, apiKey: string): Promise<string> {
   const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {

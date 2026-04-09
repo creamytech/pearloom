@@ -8,8 +8,8 @@
 // Gemini 3 Flash  → analytical passes (critique, scoring, judgment)
 // Gemini 3.1 Flash-Lite → lightweight extraction (couple DNA, metadata)
 export const GEMINI_PRO   = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
-export const GEMINI_FLASH = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
-export const GEMINI_LITE  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
+export const GEMINI_FLASH = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+export const GEMINI_LITE  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 // Default — used for backward compat on any pass not explicitly routed
 export const GEMINI_API_BASE = GEMINI_FLASH;

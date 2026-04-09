@@ -18,7 +18,7 @@ const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
 // Couple DNA extraction uses Flash-Lite — lightweight extraction task
 const GEMINI_LITE_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
 
 // — Extract couple DNA from vibeString + chapters ——————————————————————————————————————————————————
