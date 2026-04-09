@@ -600,6 +600,7 @@ export function MobileEditorSheet() {
       <MobileBottomSheet
         snapPoints={[10, 50, 92]}
         initialSnap={0}
+        snap={sheetSnap}
         onSnapChange={setSheetSnap}
         open
         header={

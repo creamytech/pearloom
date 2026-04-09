@@ -26,6 +26,8 @@ export interface MobileBottomSheetProps {
   snapPoints?: [number, number, number];
   /** Which snap index to start at */
   initialSnap?: 0 | 1 | 2;
+  /** Controlled snap — when changed externally, animates to this snap */
+  snap?: 0 | 1 | 2;
   /** Called when the sheet settles at a new snap point */
   onSnapChange?: (snapIndex: 0 | 1 | 2) => void;
   /** Optional fixed header rendered inside the sheet below the handle */
@@ -100,6 +102,7 @@ export function MobileBottomSheet({
   children,
   snapPoints = [10, 50, 92],
   initialSnap = 0,
+  snap: controlledSnap,
   onSnapChange,
   header,
   showHandle = true,
@@ -164,6 +167,14 @@ export function MobileBottomSheet({
       animateToSnap(initialSnap);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Controlled snap — react to external snap changes ──────────
+
+  useEffect(() => {
+    if (controlledSnap !== undefined && controlledSnap !== currentSnap) {
+      animateToSnap(controlledSnap);
+    }
+  }, [controlledSnap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Drag handlers (touch on handle area) ──────────────────────
 

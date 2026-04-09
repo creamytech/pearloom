@@ -1470,35 +1470,34 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         onClick={handleSectionClick}
         style={{ position: 'relative', minHeight: '100%' }}
       >
-        {/* Site navigation — click opens design panel (nav settings) */}
-        <div
-          className="pl-site-nav-editor"
-          onClick={(e) => { e.stopPropagation(); onSectionClick?.('nav'); }}
-          style={{ position: 'relative', zIndex: 10, cursor: editMode ? 'pointer' : 'default' }}
-        >
-          <SiteNav
-            names={safeNames}
-            pages={sitePages}
-            logoIcon={manifest.logoIcon}
-            logoSvg={manifest.logoSvg}
-            navStyle={manifest.navStyle}
-            mobileNavStyle={manifest.mobileNavStyle}
-            navOpacity={manifest.navOpacity}
-            navBackground={manifest.navBackground}
-            inline={editMode}
-            pageHrefOverride={(slug) => {
-              // In editor: scroll to section instead of navigating
-              const sectionId = slug === '' || slug === 'our-story' ? 'our-story' : slug;
-              return `#${sectionId}`;
-            }}
-          />
-        </div>
-
         {/* Main content */}
         <main style={{
           minHeight: '100dvh', paddingBottom: '5rem',
           background: bgColor, position: 'relative', isolation: 'isolate',
         }}>
+          {/* Site navigation — inside main so z-index works within same stacking context */}
+          <div
+            className="pl-site-nav-editor"
+            onClick={(e) => { e.stopPropagation(); onSectionClick?.('nav'); }}
+            style={{ position: 'relative', zIndex: 50, cursor: editMode ? 'pointer' : 'default' }}
+          >
+            <SiteNav
+              names={safeNames}
+              pages={sitePages}
+              logoIcon={manifest.logoIcon}
+              logoSvg={manifest.logoSvg}
+              navStyle={manifest.navStyle}
+              mobileNavStyle={manifest.mobileNavStyle}
+              navOpacity={manifest.navOpacity}
+              navBackground={manifest.navBackground}
+              inline={editMode}
+              pageHrefOverride={(slug) => {
+                // In editor: scroll to section instead of navigating
+                const sectionId = slug === '' || slug === 'our-story' ? 'our-story' : slug;
+                return `#${sectionId}`;
+              }}
+            />
+          </div>
           {/* Ambient art overlay */}
           {vibeSkin.ambientArtDataUrl ? (
             <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
