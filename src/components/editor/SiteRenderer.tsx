@@ -1474,7 +1474,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         <div
           className="pl-site-nav-editor"
           onClick={(e) => { e.stopPropagation(); onSectionClick?.('nav'); }}
-          style={{ position: 'relative', zIndex: 5, cursor: editMode ? 'pointer' : 'default' }}
+          style={{ position: 'relative', zIndex: 10, cursor: editMode ? 'pointer' : 'default' }}
         >
           <SiteNav
             names={safeNames}
