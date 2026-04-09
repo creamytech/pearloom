@@ -12,7 +12,7 @@ import { useEditor, type EditorTab } from '@/lib/editor-state';
 const TAB_LABELS: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
-  blocks: 'Smart Fill', voice: 'Voice', messaging: 'Messaging',
+  blocks: 'Pear', voice: 'Voice', messaging: 'Messaging',
   analytics: 'Analytics', guests: 'Guests', seating: 'Seating',
   translate: 'Translate', invite: 'Invite', savethedate: 'Save the Date',
   spotify: 'Music', vendors: 'Vendors', thankyou: 'Thank You',

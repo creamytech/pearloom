@@ -25,11 +25,11 @@ const PHASES = [
 
 // ── Encouraging messages ───────────────────────────────────────
 const MESSAGES = [
-  'This usually takes about a minute...',
-  'AI is crafting something special for you...',
-  'Almost there \u2014 adding the finishing touches...',
+  'Pear is building your site...',
+  'Pear is crafting something special for you...',
+  'Almost there \u2014 Pear is adding the finishing touches...',
   'Your guests are going to love this...',
-  'Weaving your memories into something beautiful...',
+  'Pear is weaving your memories into something beautiful...',
   'Every detail is being placed with care...',
 ];
 
@@ -536,7 +536,7 @@ export function GenerationProgress({
         {/* ── Bottom status bar ── */}
         <div className="flex items-center justify-between w-full max-w-[480px] mt-2">
           <span className="text-[0.52rem] font-semibold tracking-[0.06em] uppercase text-[var(--pl-muted)]">
-            Powered by <strong className="text-[var(--pl-ink-soft)]">Pearloom AI</strong>
+            Powered by <strong className="text-[var(--pl-ink-soft)]">Pear</strong>
             {' \u00B7 '}
             <strong className="text-[var(--pl-ink-soft)]">{elapsed}s</strong>
           </span>

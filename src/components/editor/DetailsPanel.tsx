@@ -878,7 +878,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = aiFaqLoading ? 'rgba(163,177,138,0.08)' : 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))'; (e.currentTarget as HTMLElement).style.boxShadow = aiFaqLoading ? 'none' : '0 1px 4px rgba(163,177,138,0.15)'; }}
           >
             <Sparkles size={11} />
-            {aiFaqLoading ? 'Generating...' : 'AI Smart FAQs'}
+            {aiFaqLoading ? 'Pear is thinking...' : 'Ask Pear to write FAQs'}
           </button>
           <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question

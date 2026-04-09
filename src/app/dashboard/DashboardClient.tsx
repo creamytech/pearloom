@@ -472,7 +472,7 @@ export default function DashboardClient() {
                 <Plus size={20} className="text-[var(--pl-olive)]" />
               </motion.div>
             </div>
-            <span className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)]">Loading your studio...</span>
+            <span className="font-heading italic text-[1.1rem] text-[var(--pl-ink-soft)]">Loading your Pearloom studio...</span>
           </motion.div>
         </div>
       ) : state.step === 'dashboard' ? (
@@ -522,6 +522,7 @@ export default function DashboardClient() {
                 onOpenTemplates={() => setShowTemplates(true)}
                 onEditSite={(site) => dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] })}
                 onManageGuests={(site) => { dispatch({ type: 'EDIT_SITE', manifest: site.manifest, subdomain: site.domain, names: site.names || ['', ''] }); dispatch({ type: 'NAVIGATE', step: 'guests' }); }}
+                userName={session?.user?.name?.split(' ')[0] || undefined}
               />
             </main>
           </div>
@@ -572,7 +573,7 @@ export default function DashboardClient() {
                     className="font-bold text-[0.95rem] mb-1"
                     style={{ color: '#b91c1c' }}
                   >
-                    Generation failed
+                    Pear hit a snag
                   </div>
                   <div
                     className="text-[0.88rem] leading-relaxed mb-1"

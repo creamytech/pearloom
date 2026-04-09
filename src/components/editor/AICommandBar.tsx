@@ -9,6 +9,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowUp, Check, Loader2, X } from 'lucide-react';
+import { PearIcon } from '@/components/icons/PearloomIcons';
 import { useEditor } from '@/lib/editor-state';
 import type { StoryManifest, Chapter } from '@/types';
 
@@ -21,12 +22,12 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Help me get started',  prompt: 'Look at my site and tell me what\'s missing or needs attention. Give me a prioritized to-do list of the most important things to add or fix, and offer to do the first one for me.', handler: 'ai-chat' },
-  { label: 'Make it beautiful',    prompt: 'Redesign my site to look stunning — change the color palette, fonts, and tagline to create a cohesive, magazine-worthy look that matches the vibe.', handler: 'ai-chat' },
-  { label: 'Write my content',     prompt: 'Write all the text content my site needs — hero tagline, welcome message, closing line, and RSVP intro. Make it personal using the couple names and any details you know about the event.', handler: 'ai-chat' },
-  { label: 'Set up events',       prompt: 'Set up my wedding day schedule with a ceremony, cocktail hour, and reception. Use the venue and date if I have them, or ask me for the details you need.', handler: 'ai-chat' },
-  { label: 'Add FAQ',             prompt: 'Write 5-7 FAQs that my guests would actually ask. Use real details from my site like venue, parking, dress code. If you don\'t have enough info, ask me the key questions first.', handler: 'ai-chat' },
-  { label: 'Suggest improvements', prompt: 'Review my entire site like a wedding planner would. What\'s working? What could be better? Give me specific, actionable suggestions and offer to make the changes.', handler: 'ai-chat' },
+  { label: 'Pear, help me start',   prompt: 'Look at my site and tell me what\'s missing or needs attention. Give me a prioritized to-do list of the most important things to add or fix, and offer to do the first one for me.', handler: 'ai-chat' },
+  { label: 'Make it beautiful',     prompt: 'Redesign my site to look stunning — change the color palette, fonts, and tagline to create a cohesive, magazine-worthy look that matches the vibe.', handler: 'ai-chat' },
+  { label: 'Write my content',      prompt: 'Write all the text content my site needs — hero tagline, welcome message, closing line, and RSVP intro. Make it personal using the couple names and any details you know about the event.', handler: 'ai-chat' },
+  { label: 'Set up events',         prompt: 'Set up my wedding day schedule with a ceremony, cocktail hour, and reception. Use the venue and date if I have them, or ask me for the details you need.', handler: 'ai-chat' },
+  { label: 'Ask Pear for FAQs',     prompt: 'Write 5-7 FAQs that my guests would actually ask. Use real details from my site like venue, parking, dress code. If you don\'t have enough info, ask me the key questions first.', handler: 'ai-chat' },
+  { label: 'Suggest improvements',  prompt: 'Review my entire site like a wedding planner would. What\'s working? What could be better? Give me specific, actionable suggestions and offer to make the changes.', handler: 'ai-chat' },
 ];
 
 // ── Colour tokens ─────────────────────────────────────────────
@@ -291,11 +292,11 @@ export function AICommandBar() {
       if (msg.includes('401')) {
         setErrorMsg('Please sign in to use AI features.');
       } else if (msg.includes('500')) {
-        setErrorMsg('AI service not configured. Check your API key.');
+        setErrorMsg('Pear needs an API key to work.');
       } else if (msg.includes('429')) {
         setErrorMsg('Too many requests. Wait a moment and try again.');
       } else {
-        setErrorMsg('Could not reach AI. Check your connection and try again.');
+        setErrorMsg('Pear couldn\'t connect. Try again.');
       }
       setTimeout(() => {
         setStatus('idle');
@@ -382,7 +383,8 @@ export function AICommandBar() {
             >
               <Sparkles size={15} color={OLIVE} />
             </motion.span>
-            Ask AI anything...
+            <PearIcon size={15} color={OLIVE} style={{ marginRight: '-4px' }} />
+            Ask Pear anything...
             <kbd style={{
               padding: '2px 6px',
               borderRadius: '4px',
@@ -483,7 +485,7 @@ export function AICommandBar() {
               {/* Input field */}
               <input
                 ref={inputRef}
-                value={status === 'success' ? 'Applied!' : status === 'error' ? errorMsg : inputVal}
+                value={status === 'success' ? 'Pear applied your changes!' : status === 'error' ? errorMsg : inputVal}
                 onChange={e => setInputVal(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -496,7 +498,7 @@ export function AICommandBar() {
                   }
                 }}
                 disabled={status === 'loading' || status === 'success'}
-                placeholder="Rewrite the hero tagline..."
+                placeholder={status === 'loading' ? 'Pear is thinking...' : 'Rewrite the hero tagline...'}
                 style={{
                   flex: 1,
                   background: 'transparent',

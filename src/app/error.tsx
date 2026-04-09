@@ -48,7 +48,7 @@ export default function ErrorPage({
           letterSpacing: '-0.01em',
         }}
       >
-        Something went wrong
+        Pear hit a snag
       </h1>
       <p
         style={{
@@ -59,8 +59,8 @@ export default function ErrorPage({
           marginBottom: '2rem',
         }}
       >
-        An unexpected error occurred. Your site data is safe &mdash; we just
-        hit a snag displaying this page.
+        Something unexpected happened, but your data is safe. Let&rsquo;s try
+        that again.
       </p>
       <button
         onClick={() => unstable_retry()}

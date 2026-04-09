@@ -36,7 +36,7 @@ const TAB_CONFIG: Array<{
   { tab: 'events',  icon: EventsIcon,   label: 'Events',    group: 'top' },
   { tab: 'design',  icon: DesignIcon,   label: 'Design',    group: 'top' },
   { tab: 'details', icon: DetailsIcon,  label: 'Details',   group: 'bottom' },
-  { tab: 'blocks',  icon: AIBlocksIcon, label: 'Smart Fill', group: 'bottom' },
+  { tab: 'blocks',  icon: AIBlocksIcon, label: 'Pear', group: 'bottom' },
   { tab: 'voice',      icon: VoiceIcon,    label: 'Voice',      group: 'bottom' },
   { tab: 'messaging',  icon: Mail,         label: 'Messaging',  group: 'bottom' },
 ];
@@ -44,7 +44,7 @@ const TAB_CONFIG: Array<{
 const TAB_LABELS: Record<EditorTab, string> = {
   canvas: 'Sections', story: 'Story Chapters', events: 'Events',
   design: 'Design', details: 'Details', pages: 'Pages',
-  blocks: 'Smart Fill', voice: 'Voice', messaging: 'Message Guests',
+  blocks: 'Pear', voice: 'Voice', messaging: 'Message Guests',
   analytics: 'Analytics', guests: 'Guest List', seating: 'Seating Chart',
   translate: 'Translations', invite: 'Send Invitations', savethedate: 'Save the Date',
 };

@@ -327,7 +327,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
         >
           {[
-            { icon: <Sparkles size={20} />, title: 'AI Story', action: onStartNew },
+            { icon: <Sparkles size={20} />, title: 'Let Pear handle it', action: onStartNew },
             { icon: <Image size={20} />, title: 'Upload Photos', action: () => { if (onStartNew) onStartNew(); } },
             { icon: <Globe size={20} />, title: 'From Template', action: onOpenTemplates || onQuickStart || onStartNew },
           ].map((card, i) => (
@@ -368,10 +368,10 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             <AlertTriangle size={28} className="text-[var(--pl-plum)]" />
           </div>
           <h3 className="font-heading text-2xl font-semibold italic mb-2 text-[var(--pl-ink-soft)]">
-            Could not load sites
+            Pear hit a snag
           </h3>
           <p className="text-[var(--pl-muted)] text-[0.88rem] mb-8 leading-relaxed">
-            Check your connection and try again.
+            We couldn&apos;t load your sites. Check your connection and try again.
           </p>
           <Button variant="primary" size="md" onClick={loadSites} icon={<RefreshCw size={14} />}>
             Try Again
@@ -398,7 +398,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               Welcome to Pearloom!
             </h2>
             <p className="text-[var(--pl-muted)] max-w-[380px] leading-[1.7] text-[1rem] mb-10">
-              Create your first celebration site in minutes
+              Pearloom is ready when you are. Create your first celebration site in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <Button variant="accent" size="lg" onClick={onStartNew} icon={<Sparkles size={15} />} className="shadow-[0_4px_20px_rgba(163,177,138,0.35)] min-w-[180px]">

@@ -76,7 +76,7 @@ export function WelcomeOverlay({ onDismiss, siteName, manifest, coupleNames }: W
       : 'Pick up where you left off.';
 
   // ── First visit content ─────────────────────────────────────
-  const firstTitle = 'Your site is ready';
+  const firstTitle = 'Your Pearloom site is ready';
   const firstSubtitle = 'Click any section to edit it. Drag to rearrange. Make it yours.';
 
   const title = isReturning ? returningTitle : firstTitle;

@@ -75,7 +75,7 @@ export function SiteFooter({
             <div className="flex items-center gap-2 mt-6">
               <PearIcon size={18} color="var(--pl-olive)" />
               <span className="text-[0.75rem] text-[rgba(245,241,232,0.4)] tracking-[0.04em]">
-                Powered by{' '}
+                Made with{' '}
                 <a
                   href="https://pearloom.com"
                   target="_blank"

@@ -14,6 +14,7 @@ interface DashboardStepProps {
   onOpenTemplates?: () => void;
   onEditSite: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
   onManageGuests: (site: { manifest: StoryManifest; domain: string; names?: [string, string] }) => void;
+  userName?: string;
 }
 
 export function DashboardStep({
@@ -25,6 +26,7 @@ export function DashboardStep({
   onOpenTemplates,
   onEditSite,
   onManageGuests,
+  userName,
 }: DashboardStepProps) {
   return (
     <>
@@ -73,6 +75,7 @@ export function DashboardStep({
         onOpenTemplates={onOpenTemplates}
         onEditSite={onEditSite}
         onManageGuests={onManageGuests}
+        userName={userName}
       />
     </>
   );

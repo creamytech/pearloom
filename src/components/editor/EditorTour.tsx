@@ -51,7 +51,7 @@ const STEPS: TourStep[] = [
   {
     find: 'button[title="Chapters"]',
     title: 'Tell your story',
-    body: 'Add chapters with photos and text. Our AI can help write and enhance your narrative.',
+    body: 'Add chapters with photos and text. Pear can help write and enhance your narrative.',
     icon: '\u{1F4D6}',
   },
   {

@@ -637,10 +637,10 @@ export function PhotoBrowser({ onSelectionChange, maxSelection = 30, onSkipToTem
           </div>
         </div>
         <h3 style={{ fontFamily: 'var(--pl-font-heading)', fontSize: '2rem', marginBottom: '1rem', color: '#2B2B2B' }}>
-          Connection Error
+          Pear hit a snag
         </h3>
         <p style={{ color: C.muted, fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
-          {error}
+          {error || 'Something went wrong with the connection. Let\u2019s try again.'}
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           <Button variant="danger" size="lg" onClick={() => signOut()}>

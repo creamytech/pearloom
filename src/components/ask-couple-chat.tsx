@@ -226,7 +226,7 @@ export function AskCoupleChat({ siteId, coupleNames, vibeSkin }: AskCoupleChatPr
                 <div style={{ fontSize: '0.65rem', opacity: 0.8, marginTop: '0.1rem' }}>
                   {typing
                     ? 'typing...'
-                    : 'Powered by AI trained on our story'}
+                    : 'Powered by Pear, trained on our story'}
                 </div>
               </div>
               <button

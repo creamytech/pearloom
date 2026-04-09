@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       block: {
         title: 'A Beautiful Moment',
-        subtitle: 'Written by Pearloom AI',
+        subtitle: 'Written by Pear',
         description: 'Every love story has chapters that words can barely capture. This is one of them â€” a moment frozen in time, waiting to be told.',
         mood: 'romantic',
         date: new Date().toISOString().slice(0, 10),

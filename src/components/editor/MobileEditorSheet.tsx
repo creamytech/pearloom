@@ -60,7 +60,7 @@ const ESSENTIAL_TOOLS: MoreTool[] = [
 ];
 
 const ADVANCED_TOOLS: MoreTool[] = [
-  { id: 'blocks',      icon: LayoutGrid,  label: 'AI Content'    },
+  { id: 'blocks',      icon: LayoutGrid,  label: 'Pear'          },
   { id: 'voice',       icon: Mic,         label: 'Voice AI'      },
   { id: 'seating',     icon: Users,       label: 'Seating Chart' },
   { id: 'analytics',   icon: BarChart2,   label: 'Analytics'     },

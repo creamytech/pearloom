@@ -49,7 +49,7 @@ const BLOCKS: BlockDef[] = [
     id: 'registry',
     label: 'Registry',
     icon: Gift,
-    description: 'Beautiful registry cards with AI-written personal messaging',
+    description: 'Beautiful registry cards with personal messaging by Pear',
     color: '#e8927a',
     promptPlaceholder: 'We have a Zola registry and an Amazon registry, plus a honeymoon fund for Italy...',
   },
@@ -395,7 +395,7 @@ function BlockCard({
               >
                 {isGenerating
                   ? <><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
-                  : <><Sparkles size={13} /> Generate with AI</>}
+                  : <><Sparkles size={13} /> Ask Pear</>}
               </motion.button>
 
               {isApplied && (
@@ -532,7 +532,7 @@ export function AIBlocksPanel({ manifest, coupleNames, onChange }: AIBlocksPanel
             Auto-Fill Sections
           </div>
           <p style={{ fontSize: '0.7rem', color: 'var(--pl-muted)', lineHeight: 1.5, margin: 0 }}>
-            Tell AI about your events, venue, registry, or travel — it generates polished content for each section of your site.
+            Tell Pear about your events, venue, registry, or travel — Pear generates polished content for each section of your site.
           </p>
         </div>
         <button

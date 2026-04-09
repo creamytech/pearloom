@@ -157,7 +157,7 @@ export function PublishModal({
             transition={{ delay: 0.3 }}
             className="text-[2.25rem] font-normal tracking-tight leading-tight font-heading"
           >
-            Your Story is Live
+            Your site is live on Pearloom!
           </motion.h2>
 
           <motion.p
@@ -208,7 +208,7 @@ export function PublishModal({
             className="flex gap-3 w-full"
           >
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`Check out our wedding site: ${publishedUrl}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`Check out our celebration site on Pearloom: ${publishedUrl}`)}`}
               target="_blank"
               rel="noreferrer"
               className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-[var(--pl-radius-md)] no-underline font-medium text-[0.85rem] text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/5 transition-colors"
@@ -216,7 +216,7 @@ export function PublishModal({
               <MessageCircle size={15} /> WhatsApp
             </a>
             <a
-              href={`mailto:?subject=${encodeURIComponent('Our Wedding Site')}&body=${encodeURIComponent(`We are so excited to share our wedding site with you: ${publishedUrl}`)}`}
+              href={`mailto:?subject=${encodeURIComponent('Our Celebration Site on Pearloom')}&body=${encodeURIComponent(`We are so excited to share our site with you: ${publishedUrl}`)}`}
               className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-[var(--pl-radius-md)] no-underline font-medium text-[0.85rem] text-[var(--pl-ink)] border border-[var(--pl-divider)] hover:bg-[var(--pl-cream)] transition-colors"
             >
               <Mail size={15} /> Email
