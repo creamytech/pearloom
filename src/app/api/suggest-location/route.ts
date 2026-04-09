@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Priority 2: AI inference from metadata ───────────────────
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
       // No AI available — still try to give something useful from dates
       const firstDate = new Date(photos[0]?.creationTime);

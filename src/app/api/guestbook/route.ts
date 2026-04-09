@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
 
 // Re-pick the most beautiful wish using Gemini
 async function reHighlight(siteId: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) return;
 
   const supabase = getSupabase();

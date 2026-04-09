@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Too many requests' }, { status: 429 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'Gemini API key not configured' }, { status: 500 });
   }

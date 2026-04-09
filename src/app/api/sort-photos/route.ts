@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     // AI mode: ask Gemini to rank images by visual quality heuristics
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
       return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
     }

@@ -233,7 +233,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'Gemini API key not configured' }), { status: 500 });
   }

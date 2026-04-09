@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
   if (!apiKey || !resendKey) {
     return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
