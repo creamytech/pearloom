@@ -10,6 +10,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Search, X, Sparkles } from 'lucide-react';
 import { SITE_TEMPLATES, searchTemplates, type SiteTemplate } from '@/lib/templates/wedding-templates';
+import { generateHeroIllustration } from '@/lib/hero-illustrations';
+import { getThemeArt } from '@/lib/theme-art';
 import { Button } from '@/components/ui/button';
 
 interface TemplateGalleryProps {
@@ -150,47 +152,82 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                       transform: isHovered ? 'translateY(-2px)' : 'none',
                     } as React.CSSProperties}
                   >
-                    {/* Color preview */}
+                    {/* Custom SVG art preview */}
                     <div
                       style={{
                         height: '120px',
-                        background: template.previewGradient,
+                        background: template.theme.colors.background,
                         position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        overflow: 'hidden',
                       }}
                     >
+                      {/* Illustrated SVG background */}
+                      <div
+                        style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+                        dangerouslySetInnerHTML={{ __html: generateHeroIllustration(template.id, {
+                          background: template.theme.colors.background,
+                          accent: template.theme.colors.accent,
+                          accent2: template.theme.colors.accentLight,
+                          foreground: template.theme.colors.foreground,
+                        }) }}
+                      />
+
+                      {/* Corner decorations */}
+                      {(() => {
+                        const art = getThemeArt(template.id);
+                        return art.cornerSvg ? (
+                          <>
+                            <div style={{ position: 'absolute', top: 6, left: 6, width: 30, height: 30, zIndex: 1, opacity: 0.6 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                            <div style={{ position: 'absolute', top: 6, right: 6, width: 30, height: 30, zIndex: 1, opacity: 0.6, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                          </>
+                        ) : null;
+                      })()}
+
                       {/* Template name overlay */}
-                      <span style={{
-                        fontFamily: `"${template.theme.fonts.heading}", serif`,
-                        fontSize: '1.3rem',
-                        fontStyle: 'italic',
-                        fontWeight: 600,
-                        color: template.theme.colors.foreground === '#111111'
-                          || template.theme.colors.foreground.startsWith('#0')
-                          || template.theme.colors.foreground.startsWith('#1')
-                          ? '#111' : template.theme.colors.foreground,
-                        textShadow: template.theme.colors.background.startsWith('#0')
-                          ? '0 2px 8px rgba(0,0,0,0.3)' : 'none',
-                        opacity: 0.8,
+                      <div style={{
+                        position: 'absolute', inset: 0, zIndex: 2,
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center',
+                        padding: '8px',
                       }}>
-                        {template.name}
-                      </span>
+                        {(() => {
+                          const art = getThemeArt(template.id);
+                          return art.blockArt?.headingDecor ? (
+                            <div style={{ width: 60, height: 10, marginBottom: 4, opacity: 0.7 }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
+                          ) : null;
+                        })()}
+                        <span style={{
+                          fontFamily: `"${template.theme.fonts.heading}", serif`,
+                          fontSize: '1rem',
+                          fontStyle: 'italic',
+                          fontWeight: 400,
+                          color: template.theme.colors.foreground,
+                          lineHeight: 1.2,
+                        }}>
+                          {template.name}
+                        </span>
+                      </div>
 
                       {/* Selected checkmark */}
                       {isSelected && (
-                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[var(--pl-olive)] flex items-center justify-center">
+                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[var(--pl-olive)] flex items-center justify-center" style={{ zIndex: 5 }}>
                           <Check size={14} color="white" strokeWidth={3} />
                         </div>
                       )}
 
                       {/* Popularity badge */}
                       {template.popularity >= 90 && (
-                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]">
+                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]" style={{ zIndex: 5 }}>
                           <Sparkles size={9} /> Popular
                         </div>
                       )}
+
+                      {/* Color palette strip */}
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', height: '2px', zIndex: 3 }}>
+                        {[template.theme.colors.accent, template.theme.colors.accentLight, template.theme.colors.muted].map((c, ci) => (
+                          <div key={ci} style={{ flex: 1, background: c }} />
+                        ))}
+                      </div>
                     </div>
 
                     {/* Info */}
