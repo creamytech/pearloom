@@ -66,7 +66,7 @@ function HotelCard({
         borderRadius: '1.25rem',
         border: '1px solid rgba(0,0,0,0.06)',
         overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(43,43,43,0.04)',
+        boxShadow: '0 4px 20px rgba(43,30,20,0.06)',
         transition: 'box-shadow 0.4s ease, transform 0.4s ease',
       }}
     >

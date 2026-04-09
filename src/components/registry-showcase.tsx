@@ -194,7 +194,7 @@ function RegistryCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.75, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4, boxShadow: '0 24px 60px rgba(43,43,43,0.1)' }}
+      whileHover={{ y: -4, boxShadow: '0 24px 60px rgba(43,30,20,0.08)' }}
       style={{
         '--pl-stagger-delay': `${index * 100}ms`,
         display: 'flex',
@@ -202,7 +202,7 @@ function RegistryCard({
         background: 'var(--pl-cream-card, #ffffff)',
         borderRadius: '1.25rem',
         overflow: 'hidden',
-        boxShadow: '0 4px 24px rgba(43,43,43,0.05)',
+        boxShadow: '0 4px 24px rgba(43,30,20,0.06)',
         transition: 'box-shadow 0.4s ease, transform 0.4s ease',
       } as React.CSSProperties}
     >

@@ -139,7 +139,7 @@ function StatsBar({ stats }: { stats: AggregateStats }) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.35, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white/50 backdrop-blur-lg border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(43,30,20,0.06)]"
         >
           <span className="text-[var(--pl-olive)]">{pill.icon}</span>
           <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{pill.value}</span>
@@ -176,9 +176,9 @@ function RsvpChip({ siteId }: { siteId: string }) {
 
 function SkeletonCard() {
   return (
-    <div className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+    <div className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_2px_12px_rgba(43,30,20,0.06)]">
       <div className="h-56 skeleton" />
-      <div className="p-6 flex flex-col gap-3 bg-white">
+      <div className="p-6 flex flex-col gap-3 bg-white/50 backdrop-blur-lg">
         <div className="h-4 rounded-full w-[55%] skeleton" />
         <div className="h-3 rounded-full w-[30%] skeleton" />
         <div className="flex gap-2 mt-2">
@@ -470,7 +470,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               return (
                 <article
                   key={site.id}
-                  className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_4px_20px_rgba(0,0,0,0.08),0_1px_4px_rgba(0,0,0,0.05)] bg-white group transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.14),0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-1.5 flex flex-col`}
+                  className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_4px_20px_rgba(43,30,20,0.06),0_1px_4px_rgba(43,30,20,0.06)] bg-white/50 backdrop-blur-lg group transition-all duration-300 hover:shadow-[0_12px_40px_rgba(43,30,20,0.12),0_4px_12px_rgba(43,30,20,0.06)] hover:-translate-y-1.5 flex flex-col`}
                 >
                   {/* Cover — living portrait */}
                   <div
