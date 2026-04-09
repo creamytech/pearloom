@@ -1038,8 +1038,15 @@ select:focus-visible {
   }
 }
 
-/* ── Mobile editor: site nav stays within preview, not viewport ── */
-.pl-mobile-editor-preview nav[class*="fixed"] {
-  position: sticky !important;
-  top: 0 !important;
+/* ── Mobile editor: force site nav into normal flow within the scrollable preview ── */
+.pl-mobile-editor-preview .pl-site-nav-editor nav,
+.pl-mobile-editor-preview .pl-site-nav-editor > nav {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+  z-index: 5 !important;
 }
