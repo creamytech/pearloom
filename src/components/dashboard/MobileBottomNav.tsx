@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { motion } from 'framer-motion';
-import { LayoutGrid, Plus, Search, User, Sparkles } from 'lucide-react';
+import { LayoutGrid, Plus, Store, User } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 interface MobileBottomNavProps {
@@ -17,10 +17,10 @@ interface MobileBottomNavProps {
 }
 
 const TABS = [
-  { id: 'feed' as const,    Icon: LayoutGrid, label: 'Feed',    href: '/dashboard' },
-  { id: 'build' as const,   Icon: Plus,       label: 'Build',   primary: true, href: null },
-  { id: 'aiscout' as const, Icon: Sparkles,   label: 'AI',      href: '/marketplace' },
-  { id: 'profile' as const, Icon: User,       label: 'Profile', href: '/dashboard/profile' },
+  { id: 'feed' as const,    Icon: LayoutGrid, label: 'Home',        href: '/dashboard' },
+  { id: 'build' as const,   Icon: Plus,       label: 'Create',      primary: true, href: null },
+  { id: 'aiscout' as const, Icon: Store,      label: 'Marketplace', href: '/marketplace' },
+  { id: 'profile' as const, Icon: User,       label: 'Settings',    href: '/dashboard/profile' },
 ];
 
 export function MobileBottomNav({ activeTab, onTabChange, onBuild }: MobileBottomNavProps) {
