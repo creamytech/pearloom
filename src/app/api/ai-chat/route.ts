@@ -1,8 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Pearloom / app/api/ai-chat/route.ts
-// Floating AI editor chat — couples describe changes, Gemini
-// returns structured actions to update chapters or manifest.
-// POST { message, manifest, activeChapterId }
+// Smart inline AI assistant — understands the full site manifest
+// and can make comprehensive changes across all sections.
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest } from 'next/server';
@@ -15,18 +14,58 @@ export const dynamic = 'force-dynamic';
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent';
 
-const SYSTEM_PROMPT = `You are an AI assistant helping a couple build their wedding website on Pearloom.
-You can:
-1. Rewrite a specific chapter (return action: "update_chapter" with the chapter id and updated fields)
-2. Update site-wide content like tagline, closing line (return action: "update_manifest")
-3. Answer questions or give suggestions (return action: "message")
+const SYSTEM_PROMPT = `You are the Pearloom AI — a smart, warm assistant that helps couples build beautiful celebration websites. You understand the FULL site structure and can make ANY change the user asks for.
 
-Always be warm, poetic, and encouraging.
-Return ONLY valid JSON: { action, data, reply }
-Where reply is a short friendly message to show the user (1-2 sentences).
-For update_chapter: data = { id: string, title?, subtitle?, description?, mood? }
-For update_manifest: data = { path: "poetry.heroTagline" | "poetry.closingLine" | "logistics.venue", value: string }
-For message: data = null`;
+## What you can do:
+
+### 1. update_manifest — Change ANY site-wide setting
+You can update ANY field in the manifest. Common paths:
+- poetry.heroTagline (hero subtitle text)
+- poetry.closingLine (footer closing message)
+- poetry.welcomeStatement (welcome section text)
+- poetry.rsvpIntro (RSVP introduction text)
+- logistics.venue (venue name)
+- logistics.venueAddress (venue address)
+- logistics.date (event date, YYYY-MM-DD)
+- logistics.time (event time)
+- logistics.dresscode (dress code)
+- coverPhoto (hero cover photo URL)
+- vibeString (overall vibe description)
+- navStyle (glass | minimal | solid | editorial | floating)
+- pageMode (multi-page | single-scroll)
+
+For theme colors: return action "update_theme" with the full colors object.
+For blocks: return action "update_blocks" to add/remove/reorder sections.
+
+### 2. update_chapter — Edit a specific story chapter
+Update title, subtitle, description, mood, location for any chapter by ID.
+
+### 3. update_theme — Change colors, fonts, or visual style
+Return: { colors?: { background, foreground, accent, accentLight, muted, cardBg }, fonts?: { heading, body } }
+
+### 4. update_blocks — Add, remove, or modify page sections
+Return: { add?: [{ type, config }], remove?: [blockId], update?: [{ id, config }] }
+Block types: hero, story, event, countdown, rsvp, registry, travel, faq, photos, guestbook, quote, text, video, spotify, hashtag, divider, weddingParty, welcome, vibeQuote, map, quiz, anniversary, storymap, footer
+
+### 5. update_events — Add or modify events
+Return: { events: [{ name, type, date, time, venue, address, dressCode, description }] }
+
+### 6. update_faqs — Add or modify FAQs
+Return: { faqs: [{ question, answer }] }
+
+### 7. update_registry — Add registry links
+Return: { entries: [{ name, url, note }], message?, cashFundUrl?, cashFundMessage? }
+
+### 8. message — Just reply with advice/suggestions
+When user asks a question without wanting changes.
+
+## Rules:
+- Return ONLY valid JSON: { action, data, reply }
+- reply = a short, warm, friendly confirmation (1-2 sentences)
+- Be proactive — if user says "make it more romantic", change the tagline, colors, fonts, AND vibe all at once
+- If user asks to change colors, suggest a complete palette (all 6 colors), not just one
+- For text changes, write beautiful, poetic, wedding-appropriate copy
+- If you're not sure what they want, ask a clarifying question via "message" action`;
 
 interface GeminiResponse {
   candidates?: Array<{
@@ -40,12 +79,12 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(25_000),
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.85,
-        maxOutputTokens: 768,
+        temperature: 0.8,
+        maxOutputTokens: 2048,
       },
     }),
   });
@@ -57,7 +96,6 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
 
   const data: GeminiResponse = await res.json();
   const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
-  // Strip markdown code fences if present
   return raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '').trim();
 }
 
@@ -67,7 +105,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }
@@ -81,34 +119,74 @@ export async function POST(req: NextRequest) {
     if (!message?.trim()) {
       return Response.json({ error: 'message is required' }, { status: 400 });
     }
-    if (String(message).length > 2000) {
-      return Response.json({ error: 'Message too long (max 2000 characters)' }, { status: 400 });
-    }
 
-    // Build a concise context snapshot for Gemini
+    // Build RICH context — give AI full understanding of the site
     const activeChapter = manifest?.chapters?.find(c => c.id === activeChapterId) ?? null;
+
     const chapterSummaries = (manifest?.chapters ?? [])
-      .map(c => `  • [${c.id}] "${c.title}" — ${c.description?.slice(0, 80) ?? '(no description)'}`)
+      .map(c => `  [${c.id}] "${c.title}" — ${c.description?.slice(0, 120) ?? '(no description)'}`)
       .join('\n');
 
+    const blockSummaries = (manifest?.blocks ?? [])
+      .map(b => `  [${b.id}] ${b.type} (${b.visible ? 'visible' : 'hidden'})${b.config?.title ? ` — "${b.config.title}"` : ''}`)
+      .join('\n');
+
+    const eventSummaries = (manifest?.events ?? [])
+      .map(e => `  "${e.name}" — ${e.date || 'no date'} at ${e.venue || 'no venue'}`)
+      .join('\n');
+
+    const faqSummaries = (manifest?.faqs ?? [])
+      .map(f => `  Q: ${f.question.slice(0, 60)}`)
+      .join('\n');
+
+    const colors = manifest?.theme?.colors;
+    const fonts = manifest?.theme?.fonts;
+
     const contextBlock = `
-Current site context:
-- Couple: ${manifest?.coupleId ?? 'unknown'}
-- Tagline: ${manifest?.poetry?.heroTagline ?? '(none set)'}
-- Closing line: ${manifest?.poetry?.closingLine ?? '(none set)'}
-- Venue: ${manifest?.logistics?.venue ?? '(none set)'}
-- Active chapter: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}"` : '(none)'}
-- All chapters:
+CURRENT SITE STATE:
+- Couple names: ${manifest?.coupleId ?? 'unknown'}
+- Occasion: ${manifest?.occasion ?? 'wedding'}
+- Vibe: ${manifest?.vibeString ?? '(none)'}
+- Page mode: ${manifest?.pageMode ?? 'multi-page'}
+- Nav style: ${manifest?.navStyle ?? 'glass'}
+
+CONTENT:
+- Hero tagline: "${manifest?.poetry?.heroTagline ?? '(not set)'}"
+- Welcome statement: "${manifest?.poetry?.welcomeStatement?.slice(0, 100) ?? '(not set)'}"
+- Closing line: "${manifest?.poetry?.closingLine ?? '(not set)'}"
+- RSVP intro: "${manifest?.poetry?.rsvpIntro?.slice(0, 100) ?? '(not set)'}"
+
+LOGISTICS:
+- Venue: ${manifest?.logistics?.venue ?? '(not set)'}
+- Address: ${manifest?.logistics?.venueAddress ?? '(not set)'}
+- Date: ${manifest?.logistics?.date ?? '(not set)'}
+- Time: ${manifest?.logistics?.time ?? '(not set)'}
+- Dress code: ${manifest?.logistics?.dresscode ?? '(not set)'}
+
+THEME:
+- Colors: bg=${colors?.background ?? '?'}, fg=${colors?.foreground ?? '?'}, accent=${colors?.accent ?? '?'}, accentLight=${colors?.accentLight ?? '?'}, muted=${colors?.muted ?? '?'}
+- Fonts: heading="${fonts?.heading ?? '?'}", body="${fonts?.body ?? '?'}"
+
+CHAPTERS (${manifest?.chapters?.length ?? 0}):
 ${chapterSummaries || '  (none)'}
+
+BLOCKS (${manifest?.blocks?.length ?? 0}):
+${blockSummaries || '  (none)'}
+
+EVENTS (${manifest?.events?.length ?? 0}):
+${eventSummaries || '  (none)'}
+
+FAQs (${manifest?.faqs?.length ?? 0}):
+${faqSummaries || '  (none)'}
+
+REGISTRY: ${manifest?.registry?.entries?.length ?? 0} links, cash fund: ${manifest?.registry?.cashFundUrl ? 'yes' : 'no'}
+TRAVEL: ${manifest?.travelInfo?.hotels?.length ?? 0} hotels, ${manifest?.travelInfo?.airports?.length ?? 0} airports
+
+ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}" — "${activeChapter.description?.slice(0, 200)}"` : '(none selected)'}
 `.trim();
 
-    // Sanitize user message to prevent prompt injection via quote/backtick escaping
     const safeMessage = message.trim().replace(/["`]/g, "'");
-    const fullPrompt = `${SYSTEM_PROMPT}
-
-${contextBlock}
-
-User request: ${safeMessage}`;
+    const fullPrompt = `${SYSTEM_PROMPT}\n\n${contextBlock}\n\nUser request: ${safeMessage}`;
 
     const raw = await callGemini(fullPrompt, apiKey);
 
@@ -116,21 +194,24 @@ User request: ${safeMessage}`;
     try {
       parsed = JSON.parse(raw);
     } catch {
-      // Gemini sometimes wraps in prose — extract first JSON object
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) {
         return Response.json({
           action: 'message',
           data: null,
-          reply: raw.slice(0, 280) || 'I had trouble understanding that. Could you rephrase?',
+          reply: raw.slice(0, 500) || 'I had trouble understanding that. Could you rephrase?',
         });
       }
       parsed = JSON.parse(match[0]);
     }
 
-    // Validate action is one of the allowed types to prevent injection attacks
-    const ALLOWED_ACTIONS = new Set(['update_chapter', 'update_manifest', 'message']);
+    const ALLOWED_ACTIONS = new Set([
+      'update_chapter', 'update_manifest', 'update_theme',
+      'update_blocks', 'update_events', 'update_faqs',
+      'update_registry', 'message',
+    ]);
     const action = ALLOWED_ACTIONS.has(parsed.action) ? parsed.action : 'message';
+
     return Response.json({
       action,
       data: parsed.data ?? null,
@@ -140,7 +221,7 @@ User request: ${safeMessage}`;
     console.error('[ai-chat] Error:', err);
     return Response.json(
       { error: 'Internal server error', detail: String(err) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

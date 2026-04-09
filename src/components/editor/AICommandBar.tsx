@@ -21,11 +21,12 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Rewrite tagline',  prompt: 'Rewrite the hero tagline to be more poetic and memorable', handler: 'ai-chat' },
-  { label: 'Suggest colors',   prompt: 'Suggest a warmer, more elegant color palette for this wedding site', handler: 'ai-chat' },
-  { label: 'Generate FAQ',     prompt: '',  handler: 'ai-faq' },
-  { label: 'Improve story',    prompt: 'Improve and enhance all chapter descriptions to be more vivid and emotional', handler: 'ai-chat' },
-  { label: 'Add section',      prompt: '',  handler: 'section-picker' },
+  { label: 'Rewrite tagline',   prompt: 'Write a new, beautiful, poetic hero tagline that captures this couple\'s love story. Return update_manifest with path poetry.heroTagline.', handler: 'ai-chat' },
+  { label: 'Change colors',     prompt: 'Suggest a completely new, elegant color palette that matches the vibe of this site. Return update_theme with a full 6-color palette (background, foreground, accent, accentLight, muted, cardBg).', handler: 'ai-chat' },
+  { label: 'Write welcome',     prompt: 'Write a warm, heartfelt welcome message for the guests (3-4 sentences). Return update_manifest with path poetry.welcomeStatement.', handler: 'ai-chat' },
+  { label: 'Generate FAQ',      prompt: '',  handler: 'ai-faq' },
+  { label: 'Add events',        prompt: 'Create a ceremony and reception event with beautiful descriptions, realistic times, and the venue from the site details. Return update_events.', handler: 'ai-chat' },
+  { label: 'Improve story',     prompt: 'Rewrite all chapter descriptions to be more vivid, emotional, and poetic. Return update_chapter for each one.', handler: 'ai-chat' },
 ];
 
 // ── Colour tokens ─────────────────────────────────────────────
@@ -102,27 +103,130 @@ export function AICommandBar() {
 
   const applyAIResponse = useCallback((data: { action: string; data: Record<string, unknown> | null; reply: string }) => {
     const { action, data: actionData } = data;
+    if (!actionData && action !== 'message') return;
 
-    if (action === 'update_chapter' && actionData?.id) {
-      const { id, ...updates } = actionData;
-      actions.updateChapter(id as string, updates as Partial<Chapter>);
-    } else if (action === 'update_manifest' && actionData?.path) {
-      const parts = (actionData.path as string).split('.');
-      if (parts.length === 2) {
-        const [topKey, subKey] = parts;
-        const existing = (manifest as unknown as Record<string, unknown>)[topKey] as Record<string, unknown> | undefined;
-        const updated = { [topKey]: { ...(existing || {}), [subKey]: actionData.value } };
-        actions.handleChatManifestUpdate(updated as Partial<StoryManifest>);
-      } else if (parts.length === 1) {
-        actions.handleChatManifestUpdate({ [parts[0]]: actionData.value } as Partial<StoryManifest>);
-      } else if (parts[0] === 'chapters' && parts.length === 3) {
-        const chapterIndex = parseInt(parts[1], 10);
-        const fieldKey = parts[2];
-        const targetChapter = manifest.chapters?.[chapterIndex];
-        if (targetChapter && !isNaN(chapterIndex)) {
-          actions.updateChapter(targetChapter.id, { [fieldKey]: actionData.value } as Partial<Chapter>);
-        }
+    switch (action) {
+      case 'update_chapter': {
+        if (!actionData?.id) break;
+        const { id, ...updates } = actionData;
+        actions.updateChapter(id as string, updates as Partial<Chapter>);
+        break;
       }
+
+      case 'update_manifest': {
+        if (!actionData?.path) break;
+        const parts = (actionData.path as string).split('.');
+        if (parts.length === 2) {
+          const [topKey, subKey] = parts;
+          const existing = (manifest as unknown as Record<string, unknown>)[topKey] as Record<string, unknown> | undefined;
+          actions.handleChatManifestUpdate({ [topKey]: { ...(existing || {}), [subKey]: actionData.value } } as Partial<StoryManifest>);
+        } else if (parts.length === 1) {
+          actions.handleChatManifestUpdate({ [parts[0]]: actionData.value } as Partial<StoryManifest>);
+        }
+        break;
+      }
+
+      case 'update_theme': {
+        const themeUpdate: Record<string, unknown> = {};
+        if (actionData?.colors) {
+          themeUpdate.theme = {
+            ...(manifest.theme || {}),
+            colors: { ...(manifest.theme?.colors || {}), ...(actionData.colors as Record<string, string>) },
+          };
+        }
+        if (actionData?.fonts) {
+          themeUpdate.theme = {
+            ...((themeUpdate.theme as Record<string, unknown>) || manifest.theme || {}),
+            fonts: { ...(manifest.theme?.fonts || {}), ...(actionData.fonts as Record<string, string>) },
+          };
+        }
+        if (Object.keys(themeUpdate).length > 0) {
+          actions.handleChatManifestUpdate(themeUpdate as Partial<StoryManifest>);
+        }
+        break;
+      }
+
+      case 'update_blocks': {
+        const blocks = [...(manifest.blocks || [])];
+        // Remove blocks
+        if (Array.isArray(actionData?.remove)) {
+          const removeIds = new Set(actionData.remove as string[]);
+          const filtered = blocks.filter(b => !removeIds.has(b.id));
+          actions.handleChatManifestUpdate({ blocks: filtered } as Partial<StoryManifest>);
+        }
+        // Add blocks
+        if (Array.isArray(actionData?.add)) {
+          const newBlocks = (actionData.add as Array<{ type: string; config?: Record<string, unknown> }>).map((b, i) => ({
+            id: `ai-${b.type}-${Date.now()}-${i}`,
+            type: b.type as import('@/types').BlockType,
+            order: blocks.length + i,
+            visible: true,
+            config: b.config,
+          }));
+          actions.handleChatManifestUpdate({ blocks: [...blocks, ...newBlocks] } as Partial<StoryManifest>);
+        }
+        // Update block configs
+        if (Array.isArray(actionData?.update)) {
+          const updates = actionData.update as Array<{ id: string; config: Record<string, unknown> }>;
+          const updated = blocks.map(b => {
+            const u = updates.find(u2 => u2.id === b.id);
+            return u ? { ...b, config: { ...b.config, ...u.config } } : b;
+          });
+          actions.handleChatManifestUpdate({ blocks: updated } as Partial<StoryManifest>);
+        }
+        break;
+      }
+
+      case 'update_events': {
+        if (Array.isArray(actionData?.events)) {
+          const newEvents = (actionData.events as Array<Record<string, unknown>>).map((e, i) => ({
+            id: `ai-event-${Date.now()}-${i}`,
+            name: (e.name as string) || 'Event',
+            type: (e.type as string) || 'other',
+            date: (e.date as string) || '',
+            time: (e.time as string) || '',
+            venue: (e.venue as string) || '',
+            address: (e.address as string) || '',
+            dressCode: (e.dressCode as string) || '',
+            description: (e.description as string) || '',
+          }));
+          const existing = manifest.events || [];
+          actions.handleChatManifestUpdate({ events: [...existing, ...newEvents] } as Partial<StoryManifest>);
+        }
+        break;
+      }
+
+      case 'update_faqs': {
+        if (Array.isArray(actionData?.faqs)) {
+          const newFaqs = (actionData.faqs as Array<{ question: string; answer: string }>).map((f, i) => ({
+            id: `ai-faq-${Date.now()}-${i}`,
+            question: f.question,
+            answer: f.answer,
+            order: (manifest.faqs?.length || 0) + i,
+          }));
+          const existing = manifest.faqs || [];
+          actions.handleChatManifestUpdate({ faqs: [...existing, ...newFaqs] } as Partial<StoryManifest>);
+        }
+        break;
+      }
+
+      case 'update_registry': {
+        const reg = manifest.registry || { enabled: true };
+        const updates: Partial<StoryManifest['registry']> = { ...reg };
+        if (Array.isArray(actionData?.entries)) {
+          updates.entries = [...(reg.entries || []), ...(actionData.entries as Array<{ name: string; url: string; note?: string }>)];
+        }
+        if (actionData?.message) updates.message = actionData.message as string;
+        if (actionData?.cashFundUrl) updates.cashFundUrl = actionData.cashFundUrl as string;
+        if (actionData?.cashFundMessage) updates.cashFundMessage = actionData.cashFundMessage as string;
+        actions.handleChatManifestUpdate({ registry: updates } as Partial<StoryManifest>);
+        break;
+      }
+
+      case 'message':
+      default:
+        // No data changes, just the reply
+        break;
     }
   }, [manifest, actions]);
 
