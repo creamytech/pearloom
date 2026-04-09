@@ -17,6 +17,7 @@ import { VisualTimeline } from '@/components/visual-timeline';
 import { RegistryShowcase } from '@/components/registry-showcase';
 import { FaqSection } from '@/components/faq-section';
 import { TravelSection } from '@/components/travel-section';
+import { TravelGuide } from '@/components/travel-guide';
 import { PublicRsvpSection } from '@/components/public-rsvp-section';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SiteNav } from '@/components/site-nav';
@@ -899,7 +900,18 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             </div>
           </section>
         ) : null;
-        return <section key={key} id="travel" data-pe-section="travel" style={blockStyle}><TravelSection info={manifest.travelInfo} /></section>;
+        return (
+          <section key={key} id="travel" data-pe-section="travel" style={blockStyle}>
+            <TravelSection info={manifest.travelInfo} />
+            {(manifest.logistics?.venueAddress || manifest.logistics?.venue) && (
+              <TravelGuide
+                venueAddress={manifest.logistics?.venueAddress}
+                venueCity={manifest.logistics?.venue || manifest.logistics?.venueAddress || ''}
+                eventDate={manifest.logistics?.date}
+              />
+            )}
+          </section>
+        );
       case 'faq':
         if (!manifest.faqs?.length) return editMode ? (
           <section key={key} data-pe-section="faq" style={{ padding: '4rem 2rem', textAlign: 'center', ...blockStyle }}>
