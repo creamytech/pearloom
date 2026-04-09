@@ -74,7 +74,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="editor"
+        name="edit"
         options={{
           title: 'Editor',
           tabBarIcon: ({ color }) => <TabBarIcon name="pencil" color={color} />,
