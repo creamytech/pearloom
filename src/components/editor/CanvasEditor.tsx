@@ -1742,7 +1742,8 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* ── Scrollable content ── */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 2px' } as React.CSSProperties}>
+      {/* FIX: Scroll container with bottom padding to prevent cutoff */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 2px 24px' } as React.CSSProperties}>
 
         {/* ── Page Selector (collapsed) ── */}
         <div style={{ padding: '0 0 6px', borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: '2px' }}>
@@ -2035,15 +2036,24 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
           )}
         </AnimatePresence>
 
+        {/* FIX #15: Quick search add button using AddBlockPicker for discoverability */}
+        <div style={{ padding: '8px 2px 4px', borderTop: '1px solid rgba(255,255,255,0.2)', marginTop: '4px' }}>
+          <AddBlockPicker
+            onAdd={addBlock}
+            onDragType={setDraggingNewType}
+            existingTypes={existingTypes}
+            occasion={(manifest.occasion || 'wedding') as OccasionTag}
+          />
+        </div>
+
         {/* ── AVAILABLE SECTIONS — click or drag to add ── */}
         {availableBlocks.length > 0 && (
           <>
             <div style={{
               fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.12em',
               textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '12px 4px 6px',
-              borderTop: '1px solid rgba(255,255,255,0.2)', marginTop: '4px',
             }}>
-              Add Sections
+              Available Sections
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {availableBlocks.map(b => (

@@ -6,7 +6,7 @@
 // tapped in the mobile preview. Renders inside MobileBottomSheet.
 // ─────────────────────────────────────────────────────────────
 
-import { useCallback, useRef, useEffect, useState, useMemo } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Star, BookOpen, CalendarDays, Mail, Gift, Plane, HelpCircle,
