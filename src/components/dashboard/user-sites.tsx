@@ -1,76 +1,60 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Globe, Pencil, ExternalLink, Calendar, Loader2, Image,
   Trash2, AlertTriangle, Users, Check, Share2, RefreshCw, Sparkles,
-  TrendingUp, Clock, BarChart2,
+  EllipsisVertical,
 } from 'lucide-react';
 import type { StoryManifest } from '@/types';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardFooter } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Modal } from '@/components/ui/modal';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/cn';
 
-import { SiteCompletenessPanel } from '@/components/dashboard/SiteCompletenessPanel';
 import { parseLocalDate } from '@/lib/date';
 
-// ── Living Portrait ───────────────────────────────────────────
+// ── Compact Thumbnail ────────────────────────────────────────
 
-function LivingPortrait({ photos, coverPhoto, vibeSkin }: {
+function SiteThumbnail({ photos, coverPhoto, accentColor, accentDark }: {
   photos: string[];
   coverPhoto?: string;
-  vibeSkin?: { accent?: string; bg?: string };
+  accentColor: string;
+  accentDark: string;
 }) {
-  const allPhotos = [coverPhoto, ...photos].filter(Boolean) as string[];
-  const [idx, setIdx] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-
-  // Reset loaded state when image index changes so crossfade works properly
-  useEffect(() => {
-    setLoaded(false);
-  }, [idx]);
-
-  useEffect(() => {
-    if (allPhotos.length <= 1) return;
-    const t = setInterval(() => setIdx(i => (i + 1) % allPhotos.length), 4000);
-    return () => clearInterval(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allPhotos.length]);
-
-  if (allPhotos.length === 0) return null;
+  const src = coverPhoto || photos[0];
 
   // proxy Google URLs
-  const src = allPhotos[idx]?.includes('googleusercontent.com')
-    ? `/api/photos/proxy?url=${encodeURIComponent(allPhotos[idx])}&w=600&h=400`
-    : allPhotos[idx];
+  const proxiedSrc = src?.includes('googleusercontent.com')
+    ? `/api/photos/proxy?url=${encodeURIComponent(src)}&w=120&h=120`
+    : src;
+
+  if (!proxiedSrc) {
+    return (
+      <div
+        className="w-[60px] h-[60px] rounded-2xl flex-shrink-0 flex items-center justify-center"
+        style={{
+          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentDark} 100%)`,
+        }}
+      >
+        <Globe size={20} className="text-white/60" />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="w-[60px] h-[60px] rounded-2xl flex-shrink-0 overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        key={idx}
-        src={src}
+        src={proxiedSrc}
         alt=""
-        onLoad={() => setLoaded(true)}
-        style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover',
-          opacity: loaded ? 1 : 0,
-          transition: 'opacity 0.5s ease',
-        }}
+        className="w-full h-full object-cover"
       />
-      {/* Gradient overlay for text readability */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.65) 100%)',
-        pointerEvents: 'none',
-      }} />
     </div>
   );
 }
@@ -94,99 +78,121 @@ function daysUntil(dateStr: string): number | null {
   } catch { return null; }
 }
 
-// ── Aggregate stats bar ────────────────────────────────────────
-
-interface AggregateStats {
-  totalViews: number;
-  totalAttending: number;
-  upcomingEvents: number;
-}
-
-function useAggregateStats(sites: UserSite[]): AggregateStats {
-  const totalViews = sites.reduce((sum, s) => sum + (s.manifest?.analytics?.views ?? 0), 0);
-  const upcomingEvents = sites.filter(s => {
-    const d = s.manifest?.logistics?.date || s.manifest?.events?.[0]?.date;
-    if (!d) return false;
-    const days = daysUntil(d);
-    return days !== null && days >= 0;
-  }).length;
-  // attendingCount stored in manifest if available
-  const totalAttending = sites.reduce((sum, s) => {
-    const count = (s.manifest as unknown as { attendingCount?: number }).attendingCount;
-    return sum + (count ?? 0);
-  }, 0);
-  return { totalViews, totalAttending, upcomingEvents };
-}
-
-function StatsBar({ stats }: { stats: AggregateStats }) {
-  if (stats.totalViews === 0 && stats.totalAttending === 0 && stats.upcomingEvents === 0) return null;
-  const pills = [
-    stats.totalViews > 0 && { icon: <BarChart2 size={13} />, value: stats.totalViews.toLocaleString(), label: 'total views' },
-    stats.totalAttending > 0 && { icon: <Users size={13} />, value: stats.totalAttending, label: 'attending' },
-    stats.upcomingEvents > 0 && { icon: <Calendar size={13} />, value: stats.upcomingEvents, label: 'upcoming' },
-  ].filter(Boolean) as { icon: React.ReactNode; value: string | number; label: string }[];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="flex items-center gap-3 flex-wrap mb-8"
-    >
-      {pills.map((pill, i) => (
-        <motion.div
-          key={pill.label}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-[var(--pl-radius-md)] bg-white/50 backdrop-blur-lg border border-[var(--pl-divider)] shadow-[0_1px_4px_rgba(43,30,20,0.06)]"
-        >
-          <span className="text-[var(--pl-olive)]">{pill.icon}</span>
-          <span className="text-[0.85rem] font-semibold text-[var(--pl-ink)]">{pill.value}</span>
-          <span className="text-[0.72rem] text-[var(--pl-muted)]">{pill.label}</span>
-        </motion.div>
-      ))}
-    </motion.div>
-  );
-}
-
-// ── Per-card RSVP count (lazy-loaded) ─────────────────────────
-
-function RsvpChip({ siteId }: { siteId: string }) {
-  const [count, setCount] = useState<number | null>(null);
-  useEffect(() => {
-    fetch(`/api/guests?siteId=${encodeURIComponent(siteId)}`)
-      .then(r => r.ok ? r.json() : { guests: [] })
-      .then(({ guests = [] }) => {
-        setCount((guests as { status: string }[]).filter(g => g.status === 'attending').length);
-      })
-      .catch(() => null);
-  }, [siteId]);
-  if (count === null || count === 0) return null;
-  return (
-    <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
-      <Users size={9} />
-      <span className="font-semibold text-[var(--pl-ink-soft)]">{count}</span>
-      <span>attending</span>
-    </div>
-  );
-}
-
 // ── Skeleton ──────────────────────────────────────────────────
 
 function SkeletonCard() {
   return (
-    <div className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_2px_12px_rgba(43,30,20,0.06)]">
-      <div className="h-56 skeleton" />
-      <div className="p-6 flex flex-col gap-3 bg-white/50 backdrop-blur-lg">
+    <div
+      className="flex items-center gap-4 px-4 py-3 rounded-2xl"
+      style={{
+        background: 'rgba(255,255,255,0.5)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255,255,255,0.5)',
+      } as React.CSSProperties}
+    >
+      <div className="w-[60px] h-[60px] rounded-2xl skeleton flex-shrink-0" />
+      <div className="flex-1 flex flex-col gap-2">
         <div className="h-4 rounded-full w-[55%] skeleton" />
         <div className="h-3 rounded-full w-[30%] skeleton" />
-        <div className="flex gap-2 mt-2">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-10 flex-1 rounded-lg skeleton" />)}
-        </div>
       </div>
     </div>
   );
+}
+
+// ── Overflow menu ─────────────────────────────────────────────
+
+function OverflowMenu({ site, onShare, onDelete, isCopied, isDeleting }: {
+  site: UserSite;
+  onShare: (site: UserSite, e: React.MouseEvent) => void;
+  onDelete: (site: UserSite) => void;
+  isCopied: boolean;
+  isDeleting: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen((p) => !p); }}
+        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors"
+        aria-label="More options"
+      >
+        <EllipsisVertical size={16} className="text-[var(--pl-muted)]" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-10 z-50 min-w-[160px] rounded-xl overflow-hidden"
+            style={{
+              background: 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              boxShadow: '0 8px 32px rgba(43,30,20,0.12), 0 2px 8px rgba(43,30,20,0.06)',
+            } as React.CSSProperties}
+          >
+            <button
+              onClick={(e) => { e.stopPropagation(); onShare(site, e); setOpen(false); }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-[0.82rem] text-[var(--pl-ink)] hover:bg-black/[0.03] transition-colors text-left"
+            >
+              {isCopied ? <Check size={14} className="text-[var(--pl-olive)]" /> : <Share2 size={14} className="text-[var(--pl-muted)]" />}
+              {isCopied ? 'Link copied!' : 'Copy share link'}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(getSiteUrlStatic(site.domain), '_blank');
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-[0.82rem] text-[var(--pl-ink)] hover:bg-black/[0.03] transition-colors text-left"
+            >
+              <ExternalLink size={14} className="text-[var(--pl-muted)]" />
+              View live site
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(site);
+                setOpen(false);
+              }}
+              disabled={isDeleting}
+              className="w-full flex items-center gap-3 px-4 py-3 text-[0.82rem] text-red-600 hover:bg-red-50 transition-colors text-left border-t border-[rgba(0,0,0,0.06)]"
+            >
+              {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+              Delete site
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Static helper for site URL (used in OverflowMenu) ────────
+
+function getSiteUrlStatic(domain: string) {
+  if (typeof window === 'undefined') return `https://${domain}.pearloom.com`;
+  const { hostname, origin } = window.location;
+  if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
+  if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
+  return `https://${domain}.pearloom.com`;
 }
 
 // ── Types ──────────────────────────────────────────────────────
@@ -220,7 +226,6 @@ const OCCASION_BADGE: Record<string, { label: string; variant: 'plum' | 'gold' |
 
 export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSite, onManageGuests, userName }: UserSitesProps) {
   const router = useRouter();
-  const goToEditor = (site: UserSite) => router.push(`/editor/${site.domain}`);
   const [sites, setSites]                   = useState<UserSite[]>([]);
   const [loading, setLoading]               = useState(true);
   const [fetchError, setFetchError]         = useState(false);
@@ -228,7 +233,6 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   const [confirmDelete, setConfirmDelete]   = useState<UserSite | null>(null);
   const [deleteError, setDeleteError]       = useState<string | null>(null);
   const [copiedId, setCopiedId]             = useState<string | null>(null);
-  const [expandedCompleteness, setExpandedCompleteness] = useState<string | null>(null);
 
 
   const loadSites = () => {
@@ -266,13 +270,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
     }
   };
 
-  const getSiteUrl = (domain: string) => {
-    if (typeof window === 'undefined') return `https://${domain}.pearloom.com`;
-    const { hostname, origin } = window.location;
-    if (hostname === 'localhost') return `http://${domain}.localhost:3000`;
-    if (hostname.includes('vercel.app')) return `${origin}/sites/${domain}`;
-    return `https://${domain}.pearloom.com`;
-  };
+  const getSiteUrl = (domain: string) => getSiteUrlStatic(domain);
 
   const handleCopyUrl = async (site: UserSite, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -283,19 +281,20 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
     } catch { /* silent */ }
   };
 
-  const getFormattedDate = (d: string) =>
-    new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  const aggStats = useAggregateStats(sites);
+  const getDisplayName = useCallback((site: UserSite) => {
+    const rawNames = (site.names || ['', '']).map((n) => n.charAt(0).toUpperCase() + n.slice(1));
+    if (rawNames[1]?.trim()) return rawNames.join(' & ');
+    if (rawNames[0]?.trim()) return rawNames[0];
+    return 'Untitled Site';
+  }, []);
 
   return (
     <div className="w-full max-w-[1280px] mx-auto pb-24 md:pb-20">
 
       {/* ── Header band ── */}
       <div
-        className="pl-enter rounded-[var(--pl-radius-lg)] sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
+        className="pl-enter rounded-2xl sm:rounded-[var(--pl-radius-xl)] bg-[var(--pl-cream)] px-5 py-6 sm:px-10 sm:py-10 mb-6 sm:mb-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6 overflow-hidden relative"
       >
-        {/* Decorative arc */}
         <div>
           <p className="text-[0.68rem] font-bold tracking-[0.14em] uppercase text-[var(--pl-olive-deep)] mb-2">
             {getGreeting()}{userName ? `, ${userName}` : ''}
@@ -318,40 +317,48 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
         </Button>
       </div>
 
-      {/* ── Bento creation cards ── */}
+      {/* ── Compact creation row — horizontal scroll on mobile ── */}
       {!loading && !fetchError && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10"
+          className="flex gap-3 mb-6 sm:mb-10 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
         >
           {[
-            { icon: <Pencil size={24} />, title: 'New Story', desc: 'AI builds your site from photos — the full creative experience.', action: onStartNew },
-            { icon: <Image size={24} />, title: 'Upload Photos', desc: 'Jump straight to uploading your own high-quality images.', action: () => { if (onStartNew) onStartNew(); /* navigates to photos step */ } },
-            { icon: <Sparkles size={24} />, title: 'From Template', desc: 'Pick a pre-designed template and customize every detail.', action: onOpenTemplates || onQuickStart || onStartNew },
+            { icon: <Sparkles size={20} />, title: 'AI Story', action: onStartNew },
+            { icon: <Image size={20} />, title: 'Upload Photos', action: () => { if (onStartNew) onStartNew(); } },
+            { icon: <Globe size={20} />, title: 'From Template', action: onOpenTemplates || onQuickStart || onStartNew },
           ].map((card, i) => (
             <button
               key={card.title}
               onClick={card.action}
-              className={`pl-enter pl-enter-d${i + 1} flex flex-col items-center text-center p-5 sm:p-8 min-h-[120px] rounded-[var(--pl-radius-lg)] bg-[var(--pl-cream-deep)]/60 border border-transparent hover:bg-white hover:border-[rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] active:scale-[0.98] transition-all duration-300 cursor-pointer`}
+              className={cn(
+                `pl-enter pl-enter-d${i + 1}`,
+                'flex items-center gap-3 px-4 py-3 min-w-[140px] max-h-[80px]',
+                'rounded-2xl border border-transparent',
+                'hover:bg-white hover:border-[rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(43,30,20,0.06)]',
+                'active:scale-[0.98] transition-all duration-200 cursor-pointer flex-shrink-0',
+              )}
+              style={{
+                background: 'rgba(255,255,255,0.45)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+              } as React.CSSProperties}
             >
-              <div className="w-14 h-14 rounded-2xl border border-[var(--pl-divider)] flex items-center justify-center mb-4 text-[var(--pl-muted)]">
+              <div className="w-10 h-10 rounded-xl border border-[var(--pl-divider)] flex items-center justify-center text-[var(--pl-muted)] flex-shrink-0">
                 {card.icon}
               </div>
-              <h3 className="font-heading italic text-lg text-[var(--pl-ink-soft)] mb-2">{card.title}</h3>
-              <p className="text-[0.82rem] text-[var(--pl-muted)] leading-relaxed">{card.desc}</p>
+              <span className="font-heading italic text-[0.88rem] text-[var(--pl-ink-soft)] whitespace-nowrap">{card.title}</span>
             </button>
           ))}
         </motion.div>
       )}
 
-      {/* ── Stats row ── */}
-      {!loading && !fetchError && sites.length > 0 && <StatsBar stats={aggStats} />}
-
       {/* ── Loading ── */}
       {loading ? (
-        <div className="grid gap-4 sm:gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))' }}>
+        <div className="flex flex-col gap-3">
           {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
 
@@ -417,7 +424,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
-                className="p-5 rounded-[16px] text-center"
+                className="p-5 rounded-2xl text-center"
                 style={{
                   background: 'rgba(255,255,255,0.4)',
                   backdropFilter: 'blur(12px)',
@@ -437,14 +444,16 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
 
       ) : (
         <>
-        {/* Recent Looms heading */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-heading italic text-[clamp(1.4rem,2.5vw,1.8rem)] text-[var(--pl-ink-soft)]">Recent Looms</h2>
-          <a href="/dashboard/gallery" className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--pl-muted)] hover:text-[var(--pl-ink)] transition-colors flex items-center gap-1">
-            View Archive <ExternalLink size={10} />
-          </a>
+        {/* Your Sites heading + count */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading italic text-[clamp(1.4rem,2.5vw,1.8rem)] text-[var(--pl-ink-soft)]">Your Sites</h2>
+          <span className="text-[0.78rem] text-[var(--pl-muted)]">
+            {sites.length} {sites.length === 1 ? 'site' : 'sites'}
+          </span>
         </div>
-        <div className="grid gap-4 sm:gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))' }}>
+
+        {/* Compact site cards */}
+        <div className="flex flex-col gap-3">
           <AnimatePresence>
             {sites.map((site, i) => {
               const vibeSkin      = site.manifest?.vibeSkin;
@@ -455,270 +464,95 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
                 .flatMap(c => (c.images ?? []).slice(0, 1).map(img => img.url))
                 .filter(Boolean)
                 .slice(0, 5) as string[];
-              const heroTagline   = site.manifest?.poetry?.heroTagline;
-              const daysTogether  = Math.floor((Date.now() - new Date(site.created_at).getTime()) / 86400000);
               const isDeleting    = deletingDomain === site.domain;
               const isCopied      = copiedId === site.id;
-              const rawNames = (site.names || ['', '']).map((n) => n.charAt(0).toUpperCase() + n.slice(1));
-              const displayNames = rawNames[1]?.trim() ? rawNames.join(' & ') : rawNames[0];
+              const displayName   = getDisplayName(site);
               const weddingDate   = site.manifest?.logistics?.date || site.manifest?.events?.[0]?.date;
               const isLive        = !site.manifest?.comingSoon?.enabled;
               const occ           = OCCASION_BADGE[site.manifest?.occasion || ''];
 
+              // Date display
+              let dateDisplay: string | null = null;
+              if (weddingDate) {
+                try {
+                  dateDisplay = parseLocalDate(weddingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                } catch { /* ignore */ }
+              }
+
               return (
-                <article
+                <motion.article
                   key={site.id}
-                  className={`pl-enter pl-enter-d${Math.min(i + 1, 8)} rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.07)] shadow-[0_4px_20px_rgba(43,30,20,0.06),0_1px_4px_rgba(43,30,20,0.06)] bg-white/50 backdrop-blur-lg group transition-all duration-300 hover:shadow-[0_12px_40px_rgba(43,30,20,0.12),0_4px_12px_rgba(43,30,20,0.06)] hover:-translate-y-1.5 flex flex-col`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                  onClick={() => onEditSite(site)}
+                  className={cn(
+                    'flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer',
+                    'transition-all duration-200',
+                    'hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-0.5',
+                    'active:scale-[0.99]',
+                  )}
+                  style={{
+                    background: 'rgba(255,255,255,0.5)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.6)',
+                    boxShadow: '0 2px 12px rgba(43,30,20,0.04)',
+                  } as React.CSSProperties}
                 >
-                  {/* Cover — living portrait */}
-                  <div
-                    onClick={() => goToEditor(site)}
-                    className="h-56 relative overflow-hidden cursor-pointer flex-shrink-0 transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-                    style={{ background: `linear-gradient(150deg, ${accentColor} 0%, ${accentDark} 100%)` }}
-                  >
-                    {/* Living portrait or fallback decoration */}
-                    {chapterPhotos.length > 0 || coverPhotoUrl ? (
-                      <LivingPortrait
-                        photos={chapterPhotos}
-                        coverPhoto={coverPhotoUrl}
-                      />
-                    ) : (
-                      <div
-                        className="absolute inset-0 opacity-30"
-                        style={{
-                          backgroundImage: 'radial-gradient(circle at 30% 50%, var(--pl-muted) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(0,0,0,0.08) 0%, transparent 40%)',
-                        }}
-                      />
-                    )}
+                  {/* Thumbnail */}
+                  <SiteThumbnail
+                    photos={chapterPhotos}
+                    coverPhoto={coverPhotoUrl}
+                    accentColor={accentColor}
+                    accentDark={accentDark}
+                  />
 
-                    {/* Dark gradient overlay when no portrait (portrait has its own) */}
-                    {(chapterPhotos.length === 0 && !coverPhotoUrl) && (
-                      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.65) 100%)' }} />
-                    )}
-
-                    {/* Top row */}
-                    <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between" style={{ zIndex: 10 }}>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    {/* Row 1: Name + status badge */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-heading text-[0.95rem] font-semibold italic text-[var(--pl-ink-soft)] truncate">
+                        {displayName}
+                      </span>
                       {isLive ? (
-                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-sm text-[0.6rem] font-bold text-white tracking-widest uppercase border border-white/15">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_rgba(74,222,128,0.8)]" />
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-bold tracking-wide uppercase bg-green-50 text-green-700 border border-green-200 flex-shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                           Live
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-sm text-[0.6rem] font-bold text-white/80 tracking-widest uppercase border border-white/15">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-bold tracking-wide uppercase bg-amber-50 text-amber-700 border border-amber-200 flex-shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                           Draft
                         </span>
                       )}
-                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-sm text-[0.6rem] font-bold text-white/80 border border-white/15">
-                        <Globe size={8} />
-                        {site.domain}
-                      </span>
                     </div>
 
-                    {/* Names — big and centered at bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5" style={{ zIndex: 10 }}>
-                      <div
-                        className="font-heading text-[1.55rem] font-semibold italic text-white leading-tight mb-1"
-                        style={{ textShadow: '0 2px 24px rgba(0,0,0,0.5), 0 1px 6px rgba(0,0,0,0.3)' }}
-                      >
-                        {displayNames}
-                      </div>
-                      {weddingDate && (
-                        <div className="flex items-center gap-1.5 text-white/65 text-[0.65rem] tracking-[0.1em] uppercase font-semibold">
-                          <Calendar size={9} />
-                          {parseLocalDate(weddingDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                        </div>
+                    {/* Row 2: Occasion pill + date */}
+                    <div className="flex items-center gap-2 text-[0.75rem] text-[var(--pl-muted)]">
+                      {occ && <Badge variant={occ.variant} size="sm">{occ.label}</Badge>}
+                      {dateDisplay && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={10} />
+                          {dateDisplay}
+                        </span>
                       )}
                     </div>
-
-                    {/* AI tagline */}
-                    {heroTagline && (
-                      <motion.p
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5, duration: 0.7 }}
-                        style={{
-                          position: 'absolute', bottom: '4.5rem', left: '1.25rem', right: '1.25rem',
-                          fontFamily: 'Georgia, serif',
-                          fontStyle: 'italic',
-                          fontSize: '0.8rem',
-                          color: 'rgba(255,255,255,0.85)',
-                          lineHeight: 1.4,
-                          textShadow: '0 1px 6px rgba(0,0,0,0.5)',
-                          zIndex: 10,
-                          margin: 0,
-                          pointerEvents: 'none',
-                        }}
-                      >
-                        {heroTagline}
-                      </motion.p>
-                    )}
                   </div>
 
-                  {/* Body */}
-                  <div className="flex-1 flex flex-col p-5 gap-4">
-                    {/* Meta row */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        {occ && <Badge variant={occ.variant} size="sm">{occ.label}</Badge>}
-                        <code className="text-[0.6rem] bg-[rgba(0,0,0,0.04)] border border-[var(--pl-divider)] px-1.5 py-0.5 rounded font-mono text-[var(--pl-muted)] truncate max-w-[120px]">
-                          {site.domain}.pearloom.com
-                        </code>
-                      </div>
-                      <span className="text-[0.68rem] text-[var(--pl-muted)] flex-shrink-0">
-                        {getFormattedDate(site.created_at)}
-                      </span>
-                    </div>
-
-                    {/* Stats row: views + RSVP + countdown */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                      {site.manifest?.analytics?.views != null && site.manifest.analytics.views > 0 && (
-                        <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
-                          <TrendingUp size={9} />
-                          <span className="font-semibold text-[var(--pl-ink-soft)]">{site.manifest.analytics.views.toLocaleString()}</span>
-                          <span>views</span>
-                        </div>
-                      )}
-                      <RsvpChip siteId={site.domain} />
-                      {daysTogether > 0 && (
-                        <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
-                          <span>•</span>
-                          <span className="font-semibold text-[var(--pl-ink-soft)]">{daysTogether}</span>
-                          <span>days together</span>
-                        </div>
-                      )}
-                      {(() => {
-                        const days = weddingDate ? daysUntil(weddingDate) : null;
-                        if (days === null) return null;
-                        if (days < 0) return (
-                          <div className="flex items-center gap-1 text-[0.68rem] text-[var(--pl-muted)]">
-                            <Clock size={9} />
-                            <span>{Math.abs(days)}d ago</span>
-                          </div>
-                        );
-                        if (days === 0) return (
-                          <div className="flex items-center gap-1 text-[0.68rem] font-bold text-[var(--pl-olive)]">
-                            <Calendar size={9} />
-                            <span>Today!</span>
-                          </div>
-                        );
-                        return (
-                          <div className={cn(
-                            'flex items-center gap-1 text-[0.68rem]',
-                            days <= 30 ? 'text-[var(--pl-olive)] font-semibold' : 'text-[var(--pl-muted)]',
-                          )}>
-                            <Calendar size={9} />
-                            <span>{days}d to go</span>
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* Completeness */}
-                    {site.manifest && (
-                      <div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setExpandedCompleteness((p) => p === site.id ? null : site.id); }}
-                          className="w-full bg-transparent border-0 cursor-pointer p-0 text-left"
-                        >
-                          <SiteCompletenessPanel
-                            manifest={site.manifest}
-                            coupleNames={(site.names || ['', '']) as [string, string]}
-                            compact
-                          />
-                        </button>
-                        <AnimatePresence>
-                          {expandedCompleteness === site.id && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-                              className="overflow-hidden mt-2"
-                            >
-                              <SiteCompletenessPanel
-                                manifest={site.manifest}
-                                coupleNames={(site.names || ['', '']) as [string, string]}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer action bar */}
-                  <CardFooter className="border-t border-[rgba(0,0,0,0.06)] bg-[var(--pl-cream)] px-4 py-3 gap-2">
-                    <Button
-                      variant="accent"
-                      size="sm"
-                      className="flex-1"
-                      onClick={(e) => { e.stopPropagation(); onEditSite(site); }}
-                      icon={<Pencil size={11} />}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className={cn('flex-1', isCopied && 'bg-[var(--pl-olive-mist)] text-[var(--pl-olive-deep)]')}
-                      onClick={(e) => handleCopyUrl(site, e)}
-                      icon={isCopied ? <Check size={11} /> : <Share2 size={11} />}
-                    >
-                      {isCopied ? 'Copied!' : 'Share'}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => { e.stopPropagation(); onManageGuests(site); }}
-                      title="Manage Guests"
-                    >
-                      <Users size={14} />
-                    </Button>
-                    <Button variant="ghost" size="icon" asChild>
-                      <a
-                        href={getSiteUrl(site.domain)}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        title="View Live Site"
-                      >
-                        <ExternalLink size={14} />
-                      </a>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-400 hover:text-red-700 hover:bg-red-50"
-                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(site); }}
-                      disabled={isDeleting}
-                      title="Delete site"
-                    >
-                      {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                    </Button>
-                  </CardFooter>
-                </article>
+                  {/* Overflow menu */}
+                  <OverflowMenu
+                    site={site}
+                    onShare={handleCopyUrl}
+                    onDelete={(s) => setConfirmDelete(s)}
+                    isCopied={isCopied}
+                    isDeleting={isDeleting}
+                  />
+                </motion.article>
               );
             })}
           </AnimatePresence>
-
-          {/* Create new card */}
-          <button
-            onClick={onStartNew}
-            className="pl-enter pl-enter-d4 min-h-[340px] flex flex-col items-center justify-center gap-5 rounded-[var(--pl-radius-lg)] border-2 border-dashed border-[rgba(163,177,138,0.35)] bg-transparent cursor-pointer transition-all duration-300 hover:border-[var(--pl-olive)] hover:bg-[rgba(163,177,138,0.04)] group"
-          >
-            <div className="w-14 h-14 rounded-2xl bg-[var(--pl-olive-mist)] flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-              <Plus size={22} className="text-[var(--pl-olive)]" />
-            </div>
-            <div className="text-center px-6">
-              <div className="font-heading text-[1.1rem] font-semibold italic text-[var(--pl-olive)] mb-1.5">
-                New Site
-              </div>
-              <div className="text-[0.82rem] text-[var(--pl-muted)] leading-snug">
-                Create your celebration site in seconds
-              </div>
-            </div>
-          </button>
         </div>
         </>
       )}
@@ -759,7 +593,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
               letterSpacing: '0.08em', textTransform: 'uppercase',
             }}
           >
-            <Plus size={14} /> New Loom
+            <Plus size={14} /> New Site
           </button>
           {[
             { label: 'Templates', icon: <Globe size={14} />, onClick: onOpenTemplates || onQuickStart },
@@ -802,7 +636,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
             Delete this site?
           </h3>
           <p className="text-[var(--pl-muted)] leading-relaxed mb-6 text-[0.88rem]">
-            <strong className="text-[var(--pl-ink)]">{confirmDelete?.domain}.pearloom.com</strong> will be
+            <strong className="text-[var(--pl-ink)]">{confirmDelete ? getDisplayName(confirmDelete) : ''}</strong> will be
             permanently removed and guests will lose access.
           </p>
           {deleteError && (
