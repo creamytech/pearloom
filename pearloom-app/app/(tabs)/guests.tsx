@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,11 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { colors, spacing, radius } from '@/lib/theme';
 import { getGuests, getRsvpStats, getSites, apiFetch } from '@/lib/api';
@@ -49,6 +52,44 @@ export default function GuestsScreen() {
 
   // Search
   const [search, setSearch] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchBorderAnim = useRef(new Animated.Value(0)).current;
+
+  // FAB animation
+  const fabScaleAnim = useRef(new Animated.Value(0)).current;
+
+  // ── Search focus animation ───────────────────────────────────────────
+
+  useEffect(() => {
+    Animated.timing(searchBorderAnim, {
+      toValue: searchFocused ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [searchFocused]);
+
+  const searchBorderColor = searchBorderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.creamDeep, colors.olive],
+  });
+
+  const searchShadowOpacity = searchBorderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.15],
+  });
+
+  // ── FAB bounce animation on mount ────────────────────────────────────
+
+  useEffect(() => {
+    Animated.spring(fabScaleAnim, {
+      toValue: 1,
+      damping: 10,
+      stiffness: 150,
+      mass: 0.8,
+      delay: 400,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   // ── Fetch sites on mount ─────────────────────────────────────────────
 
@@ -96,7 +137,9 @@ export default function GuestsScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchData();
+    fetchData().then(() => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    });
   }, [fetchData]);
 
   // ── Filtered & sectioned data ────────────────────────────────────────
@@ -139,6 +182,7 @@ export default function GuestsScreen() {
           method: 'PATCH',
           body: JSON.stringify({ rsvp_status: status }),
         });
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setGuests((prev) =>
           prev.map((g) =>
             g.id === guest.id ? { ...g, rsvp_status: status } : g,
@@ -162,6 +206,7 @@ export default function GuestsScreen() {
 
   const deleteGuest = useCallback(
     (guest: Guest) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       Alert.alert(
         'Delete Guest',
         `Remove ${guest.name} from the guest list?`,
@@ -211,10 +256,12 @@ export default function GuestsScreen() {
   }: {
     section: GuestSection;
   }) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{section.title}</Text>
-      <Text style={styles.sectionCount}>{section.data.length}</Text>
-    </View>
+    <BlurView intensity={80} tint="light" style={styles.sectionHeaderBlur}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{section.title}</Text>
+        <Text style={styles.sectionCount}>{section.data.length}</Text>
+      </View>
+    </BlurView>
   );
 
   const renderItem = ({ item }: { item: Guest }) => (
@@ -230,7 +277,9 @@ export default function GuestsScreen() {
     if (loading) return null;
     return (
       <View style={styles.emptyContainer}>
-        <FontAwesome name="users" size={48} color={colors.muted} />
+        <View style={styles.emptyIllustration}>
+          <FontAwesome name="users" size={36} color={colors.olive + '44'} />
+        </View>
         <Text style={styles.emptyTitle}>No guests yet</Text>
         <Text style={styles.emptySubtitle}>
           {search
@@ -252,12 +301,23 @@ export default function GuestsScreen() {
         />
       )}
 
-      {/* Search bar */}
-      <View style={styles.searchContainer}>
+      {/* Search bar with focus animation */}
+      <Animated.View
+        style={[
+          styles.searchContainer,
+          {
+            borderColor: searchBorderColor,
+            shadowColor: colors.olive,
+            shadowOpacity: searchShadowOpacity,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 0 },
+          },
+        ]}
+      >
         <FontAwesome
           name="search"
           size={14}
-          color={colors.muted}
+          color={searchFocused ? colors.olive : colors.muted}
           style={styles.searchIcon}
         />
         <TextInput
@@ -266,15 +326,23 @@ export default function GuestsScreen() {
           placeholderTextColor={colors.muted}
           value={search}
           onChangeText={setSearch}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setSearchFocused(false)}
           autoCapitalize="none"
           autoCorrect={false}
         />
         {search.length > 0 && (
-          <Pressable onPress={() => setSearch('')} hitSlop={8}>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSearch('');
+            }}
+            hitSlop={8}
+          >
             <FontAwesome name="times-circle" size={16} color={colors.muted} />
           </Pressable>
         )}
-      </View>
+      </Animated.View>
     </View>
   );
 
@@ -285,7 +353,10 @@ export default function GuestsScreen() {
         <View style={styles.sitePickerWrapper}>
           <Pressable
             style={styles.sitePicker}
-            onPress={() => setShowSitePicker(!showSitePicker)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowSitePicker(!showSitePicker);
+            }}
           >
             <Text style={styles.sitePickerLabel} numberOfLines={1}>
               {siteName}
@@ -307,6 +378,7 @@ export default function GuestsScreen() {
                     site.id === selectedSiteId && styles.siteOptionActive,
                   ]}
                   onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setSelectedSiteId(site.id);
                     setShowSitePicker(false);
                   }}
@@ -347,7 +419,7 @@ export default function GuestsScreen() {
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.listContent}
-          stickySectionHeadersEnabled={false}
+          stickySectionHeadersEnabled={true}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           refreshControl={
             <RefreshControl
@@ -360,18 +432,26 @@ export default function GuestsScreen() {
         />
       )}
 
-      {/* FAB: Add Guest */}
-      <Pressable
-        style={({ pressed }) => [
-          styles.fab,
-          pressed && styles.fabPressed,
+      {/* FAB: Add Guest with bounce animation */}
+      <Animated.View
+        style={[
+          styles.fabContainer,
+          { transform: [{ scale: fabScaleAnim }] },
         ]}
-        onPress={() => {
-          Alert.alert('Add Guest', 'Guest creation form coming soon.');
-        }}
       >
-        <FontAwesome name="plus" size={22} color={colors.white} />
-      </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.fab,
+            pressed && styles.fabPressed,
+          ]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            Alert.alert('Add Guest', 'Guest creation form coming soon.');
+          }}
+        >
+          <FontAwesome name="plus" size={22} color={colors.white} />
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }
@@ -456,8 +536,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.creamDeep,
+    borderWidth: 1.5,
     height: 44,
   },
   searchIcon: {
@@ -470,7 +549,10 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
 
-  // Section headers
+  // Section headers with glass blur
+  sectionHeaderBlur: {
+    overflow: 'hidden',
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -478,7 +560,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     paddingTop: spacing.lg,
-    backgroundColor: colors.cream,
+    backgroundColor: Platform.OS === 'ios' ? 'transparent' : colors.cream,
   },
   sectionTitle: {
     fontSize: 13,
@@ -506,11 +588,20 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: spacing.xl,
   },
+  emptyIllustration: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.olive + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.ink,
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
   },
   emptySubtitle: {
     fontSize: 14,
@@ -521,10 +612,12 @@ const styles = StyleSheet.create({
   },
 
   // FAB
-  fab: {
+  fabContainer: {
     position: 'absolute',
     right: spacing.xl,
     bottom: spacing.xl,
+  },
+  fab: {
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -545,6 +638,6 @@ const styles = StyleSheet.create({
   },
   fabPressed: {
     opacity: 0.85,
-    transform: [{ scale: 0.95 }],
+    transform: [{ scale: 0.92 }],
   },
 });

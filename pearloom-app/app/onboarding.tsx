@@ -29,13 +29,15 @@ const WARM_GRAY = '#8A8780';
 
 export const ONBOARDING_KEY = 'pearloom_onboarding_complete';
 
+type IconName = React.ComponentProps<typeof FontAwesome>['name'];
+
 interface OnboardingStep {
-  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  icon: IconName;
   iconBg: string;
   title: string;
   subtitle: string;
-  decorIcon1: string;
-  decorIcon2: string;
+  decorIcon1: IconName;
+  decorIcon2: IconName;
 }
 
 const STEPS: OnboardingStep[] = [

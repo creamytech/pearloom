@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,11 @@ import {
   Switch,
   Alert,
   Platform,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Constants from 'expo-constants';
 import { colors, spacing, radius } from '@/lib/theme';
@@ -36,6 +39,92 @@ interface SettingsSection {
   items: SettingsItem[];
 }
 
+// ── Animated settings row ──────────────────────────────────────────────
+
+function AnimatedSettingsRow({
+  item,
+}: {
+  item: SettingsItem;
+}) {
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = useCallback(() => {
+    Animated.timing(opacityAnim, {
+      toValue: 0.6,
+      duration: 80,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePressOut = useCallback(() => {
+    Animated.timing(opacityAnim, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePress = useCallback(() => {
+    if (item.danger) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    item.onPress?.();
+  }, [item]);
+
+  return (
+    <Animated.View style={{ opacity: opacityAnim }}>
+      <Pressable
+        style={styles.settingsRow}
+        onPress={handlePress}
+        onPressIn={item.onPress ? handlePressIn : undefined}
+        onPressOut={item.onPress ? handlePressOut : undefined}
+        disabled={!item.onPress && !item.rightElement}
+      >
+        <View
+          style={[
+            styles.iconContainer,
+            item.danger && styles.iconContainerDanger,
+          ]}
+        >
+          <FontAwesome
+            name={item.icon}
+            size={16}
+            color={item.danger ? colors.danger : colors.olive}
+          />
+        </View>
+
+        <View style={styles.settingsContent}>
+          <Text
+            style={[
+              styles.settingsLabel,
+              item.danger && styles.settingsLabelDanger,
+            ]}
+          >
+            {item.label}
+          </Text>
+          {item.subtitle && !item.rightElement && (
+            <Text style={styles.settingsSubtitle}>
+              {item.subtitle}
+            </Text>
+          )}
+        </View>
+
+        {item.rightElement ? (
+          item.rightElement
+        ) : item.onPress ? (
+          <FontAwesome
+            name="chevron-right"
+            size={12}
+            color={colors.muted}
+          />
+        ) : null}
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 // ── Component ──────────────────────────────────────────────────────────
 
 export default function MoreScreen() {
@@ -50,6 +139,7 @@ export default function MoreScreen() {
   // ── Notification toggle ──────────────────────────────────────────────
 
   const handleToggleNotifications = async (value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setNotificationsEnabled(value);
     if (value) {
       const token = await registerForPushNotifications();
@@ -68,26 +158,50 @@ export default function MoreScreen() {
   // ── Sign out ─────────────────────────────────────────────────────────
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+          },
         },
-      },
-    ]);
+      ],
+      { cancelable: true },
+    );
   };
 
   // ── Share referral code ──────────────────────────────────────────────
 
   const handleShareReferral = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert(
       'Referral Code',
       `Share your code: ${referralCode}\n\nFriends get 10% off their first plan!`,
     );
   };
+
+  // ── Determine plan badge ─────────────────────────────────────────────
+
+  const planLevel = 'free'; // Would come from user data in production
+  const planLabel = planLevel === 'premium' ? 'PREMIUM' : planLevel === 'pro' ? 'PRO' : 'FREE';
+  const planBadgeBg =
+    planLevel === 'premium'
+      ? colors.gold + '22'
+      : planLevel === 'pro'
+      ? colors.olive + '22'
+      : colors.gold + '22';
+  const planBadgeColor =
+    planLevel === 'premium'
+      ? colors.gold
+      : planLevel === 'pro'
+      ? colors.olive
+      : colors.gold;
 
   // ── Build sections ───────────────────────────────────────────────────
 
@@ -132,6 +246,7 @@ export default function MoreScreen() {
           label: 'Billing & Plan',
           subtitle: 'Free Plan',
           onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             Alert.alert('Billing', 'Plan management coming soon.');
           },
         },
@@ -141,6 +256,7 @@ export default function MoreScreen() {
           label: 'Export Data',
           subtitle: 'CSV, PDF',
           onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             Alert.alert('Export', 'Data export coming soon.');
           },
         },
@@ -154,6 +270,7 @@ export default function MoreScreen() {
           icon: 'question-circle',
           label: 'Help & Support',
           onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             Alert.alert('Help', 'Contact us at support@pearloom.com');
           },
         },
@@ -176,27 +293,36 @@ export default function MoreScreen() {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Profile card */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {(user?.name ?? 'U').charAt(0).toUpperCase()}
-          </Text>
-        </View>
+      {/* Profile card with gradient background */}
+      <LinearGradient
+        colors={[colors.olive + '18', colors.cream]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.profileCardGradient}
+      >
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {(user?.name ?? 'U').charAt(0).toUpperCase()}
+            </Text>
+          </View>
 
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>
-            {user?.name ?? 'Guest User'}
-          </Text>
-          <Text style={styles.profileEmail}>
-            {user?.email ?? 'Not signed in'}
-          </Text>
-        </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>
+              {user?.name ?? 'Guest User'}
+            </Text>
+            <Text style={styles.profileEmail}>
+              {user?.email ?? 'Not signed in'}
+            </Text>
+          </View>
 
-        <View style={styles.planBadge}>
-          <Text style={styles.planBadgeText}>FREE</Text>
+          <View style={[styles.planBadge, { backgroundColor: planBadgeBg }]}>
+            <Text style={[styles.planBadgeText, { color: planBadgeColor }]}>
+              {planLabel}
+            </Text>
+          </View>
         </View>
-      </View>
+      </LinearGradient>
 
       {/* Settings sections */}
       {sections.map((section) => (
@@ -206,53 +332,7 @@ export default function MoreScreen() {
             {section.items.map((item, index) => (
               <React.Fragment key={item.key}>
                 {index > 0 && <View style={styles.divider} />}
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.settingsRow,
-                    pressed && item.onPress && styles.settingsRowPressed,
-                  ]}
-                  onPress={item.onPress}
-                  disabled={!item.onPress && !item.rightElement}
-                >
-                  <View
-                    style={[
-                      styles.iconContainer,
-                      item.danger && styles.iconContainerDanger,
-                    ]}
-                  >
-                    <FontAwesome
-                      name={item.icon}
-                      size={16}
-                      color={item.danger ? colors.danger : colors.olive}
-                    />
-                  </View>
-
-                  <View style={styles.settingsContent}>
-                    <Text
-                      style={[
-                        styles.settingsLabel,
-                        item.danger && styles.settingsLabelDanger,
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                    {item.subtitle && !item.rightElement && (
-                      <Text style={styles.settingsSubtitle}>
-                        {item.subtitle}
-                      </Text>
-                    )}
-                  </View>
-
-                  {item.rightElement ? (
-                    item.rightElement
-                  ) : item.onPress ? (
-                    <FontAwesome
-                      name="chevron-right"
-                      size={12}
-                      color={colors.muted}
-                    />
-                  ) : null}
-                </Pressable>
+                <AnimatedSettingsRow item={item} />
               </React.Fragment>
             ))}
           </View>
@@ -277,15 +357,10 @@ const styles = StyleSheet.create({
   },
 
   // Profile card
-  profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
+  profileCardGradient: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
-    padding: spacing.lg,
     borderRadius: radius.lg,
-    gap: spacing.md,
     ...Platform.select({
       ios: {
         shadowColor: colors.ink,
@@ -297,6 +372,14 @@ const styles = StyleSheet.create({
         elevation: 2,
       },
     }),
+  },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    gap: spacing.md,
+    backgroundColor: 'rgba(255,255,255,0.75)',
   },
   avatar: {
     width: 52,
@@ -325,7 +408,6 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   planBadge: {
-    backgroundColor: colors.gold + '22',
     paddingHorizontal: spacing.sm + 2,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
@@ -333,7 +415,6 @@ const styles = StyleSheet.create({
   planBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.gold,
     letterSpacing: 0.5,
   },
 
@@ -343,11 +424,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '700',
     color: colors.muted,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     marginBottom: spacing.sm,
     marginLeft: spacing.xs,
   },
@@ -380,9 +461,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md + 2,
     gap: spacing.md,
-  },
-  settingsRowPressed: {
-    backgroundColor: colors.cream,
   },
   iconContainer: {
     width: 36,

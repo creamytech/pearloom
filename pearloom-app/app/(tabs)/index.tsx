@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  Animated,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -43,13 +45,92 @@ export default function HomeScreen() {
   // TODO: Replace with actual user data from auth context
   const userName = 'Sarah';
 
+  // ── Animation values ───────────────────────────────────────────────────
+  const greetingFade = useRef(new Animated.Value(0)).current;
+  const greetingSlide = useRef(new Animated.Value(16)).current;
+  const statsScale = useRef(new Animated.Value(0.85)).current;
+  const statsOpacity = useRef(new Animated.Value(0)).current;
+  const newSiteScale = useRef(new Animated.Value(1)).current;
+
+  // Card stagger animations — allocate enough for a reasonable max
+  const MAX_CARDS = 20;
+  const cardFades = useRef(
+    Array.from({ length: MAX_CARDS }, () => new Animated.Value(0))
+  ).current;
+  const cardSlides = useRef(
+    Array.from({ length: MAX_CARDS }, () => new Animated.Value(30))
+  ).current;
+
+  // ── Mount animations ───────────────────────────────────────────────────
+  const runEntryAnimations = useCallback(
+    (siteCount: number) => {
+      // Greeting fade in
+      Animated.parallel([
+        Animated.timing(greetingFade, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(greetingSlide, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Stats bar spring in (delayed slightly)
+      Animated.parallel([
+        Animated.spring(statsScale, {
+          toValue: 1,
+          friction: 6,
+          tension: 80,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(statsOpacity, {
+          toValue: 1,
+          duration: 400,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Staggered card animations
+      const cardAnims: Animated.CompositeAnimation[] = [];
+      const count = Math.min(siteCount, MAX_CARDS);
+      for (let i = 0; i < count; i++) {
+        cardFades[i].setValue(0);
+        cardSlides[i].setValue(30);
+        cardAnims.push(
+          Animated.parallel([
+            Animated.timing(cardFades[i], {
+              toValue: 1,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+            Animated.timing(cardSlides[i], {
+              toValue: 0,
+              duration: 400,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+      }
+      Animated.stagger(100, cardAnims).start();
+    },
+    [greetingFade, greetingSlide, statsScale, statsOpacity, cardFades, cardSlides]
+  );
+
+  // ── Data fetching ──────────────────────────────────────────────────────
   const fetchSites = useCallback(async () => {
     try {
       setError(null);
       const data = await getSites();
       setSites(data as DashboardSite[]);
+      return (data as DashboardSite[]).length;
     } catch (err) {
       setError('Could not load your sites. Pull down to try again.');
+      return 0;
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -57,13 +138,36 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    fetchSites();
-  }, [fetchSites]);
+    fetchSites().then((count) => {
+      runEntryAnimations(count);
+    });
+  }, [fetchSites, runEntryAnimations]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchSites();
-  }, [fetchSites]);
+    fetchSites().then((count) => {
+      runEntryAnimations(count);
+    });
+  }, [fetchSites, runEntryAnimations]);
+
+  // ── New Site button press animation ────────────────────────────────────
+  function onNewSitePressIn() {
+    Animated.spring(newSiteScale, {
+      toValue: 0.92,
+      friction: 8,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  function onNewSitePressOut() {
+    Animated.spring(newSiteScale, {
+      toValue: 1,
+      friction: 5,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
+  }
 
   function handleNewSite() {
     router.push('/wizard');
@@ -154,13 +258,19 @@ export default function HomeScreen() {
             onRefresh={onRefresh}
             tintColor={OLIVE}
             colors={[OLIVE]}
+            progressBackgroundColor={CREAM}
           />
         }
         showsVerticalScrollIndicator={false}
       >
         {/* --- Header --- */}
         <View style={styles.header}>
-          <View>
+          <Animated.View
+            style={{
+              opacity: greetingFade,
+              transform: [{ translateY: greetingSlide }],
+            }}
+          >
             <Text style={styles.greeting}>
               {getGreeting()}, {userName}
             </Text>
@@ -169,15 +279,19 @@ export default function HomeScreen() {
                 ? `You have ${sites.length} site${sites.length !== 1 ? 's' : ''}`
                 : 'Let\u2019s get started'}
             </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.newSiteButton}
-            onPress={handleNewSite}
-            activeOpacity={0.85}
-          >
-            <FontAwesome name="plus" size={14} color="#FFFFFF" />
-            <Text style={styles.newSiteButtonText}>New Site</Text>
-          </TouchableOpacity>
+          </Animated.View>
+
+          <Animated.View style={{ transform: [{ scale: newSiteScale }] }}>
+            <Pressable
+              style={styles.newSiteButton}
+              onPress={handleNewSite}
+              onPressIn={onNewSitePressIn}
+              onPressOut={onNewSitePressOut}
+            >
+              <FontAwesome name="plus" size={14} color="#FFFFFF" />
+              <Text style={styles.newSiteButtonText}>New Site</Text>
+            </Pressable>
+          </Animated.View>
         </View>
 
         {/* --- Error state --- */}
@@ -193,42 +307,72 @@ export default function HomeScreen() {
 
         {/* --- Empty state --- */}
         {!error && sites.length === 0 && (
-          <View style={styles.emptyState}>
+          <Animated.View
+            style={[
+              styles.emptyState,
+              {
+                opacity: greetingFade,
+                transform: [{ translateY: greetingSlide }],
+              },
+            ]}
+          >
             <View style={styles.emptyIconCircle}>
               <Text style={styles.emptyIcon}>✦</Text>
             </View>
-            {/* TODO: Replace with serif font */}
             <Text style={styles.emptyHeading}>
               Create your first site
             </Text>
             <Text style={styles.emptySubtext}>
               Design a beautiful AI-powered celebration site in minutes.
             </Text>
-            <TouchableOpacity
-              style={styles.emptyCTA}
-              onPress={handleNewSite}
-              activeOpacity={0.85}
-            >
-              <FontAwesome name="plus" size={14} color="#FFFFFF" />
-              <Text style={styles.emptyCTAText}>New Site</Text>
-            </TouchableOpacity>
-          </View>
+            <Animated.View style={{ transform: [{ scale: newSiteScale }] }}>
+              <Pressable
+                style={styles.emptyCTA}
+                onPress={handleNewSite}
+                onPressIn={onNewSitePressIn}
+                onPressOut={onNewSitePressOut}
+              >
+                <FontAwesome name="plus" size={14} color="#FFFFFF" />
+                <Text style={styles.emptyCTAText}>New Site</Text>
+              </Pressable>
+            </Animated.View>
+          </Animated.View>
         )}
 
         {/* --- Stats bar (only if sites exist) --- */}
         {sites.length > 0 && (
-          <StatsBar
-            totalViews={totalViews}
-            totalAttending={totalAttending}
-            upcomingEvents={upcomingEvents}
-          />
+          <Animated.View
+            style={{
+              opacity: statsOpacity,
+              transform: [{ scale: statsScale }],
+            }}
+          >
+            <StatsBar
+              totalViews={totalViews}
+              totalAttending={totalAttending}
+              upcomingEvents={upcomingEvents}
+            />
+          </Animated.View>
         )}
 
-        {/* --- Site cards --- */}
+        {/* --- Site cards with staggered animation --- */}
         {sites.length > 0 && (
           <View style={styles.cardsContainer}>
-            {sites.map((site) => (
-              <SiteCard key={site.id} site={site} />
+            {sites.map((site, index) => (
+              <Animated.View
+                key={site.id}
+                style={{
+                  opacity: index < MAX_CARDS ? cardFades[index] : 1,
+                  transform: [
+                    {
+                      translateY:
+                        index < MAX_CARDS ? cardSlides[index] : 0,
+                    },
+                  ],
+                }}
+              >
+                <SiteCard site={site} />
+              </Animated.View>
             ))}
           </View>
         )}
@@ -260,13 +404,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   greeting: {
-    // TODO: Replace with serif font (e.g. 'PlayfairDisplay-SemiBold')
+    fontFamily: 'PlayfairDisplay_700Bold_Italic',
     fontSize: 24,
     fontWeight: '700',
     color: INK,
     letterSpacing: -0.3,
   },
   headerSubtitle: {
+    fontFamily: 'Inter_400Regular',
     fontSize: 14,
     color: WARM_GRAY,
     marginTop: 2,
@@ -286,6 +431,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   newSiteButtonText: {
+    fontFamily: 'Inter_600SemiBold',
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
@@ -336,7 +482,7 @@ const styles = StyleSheet.create({
     color: OLIVE,
   },
   emptyHeading: {
-    // TODO: Replace with serif font (e.g. 'PlayfairDisplay-SemiBold')
+    fontFamily: 'PlayfairDisplay_700Bold_Italic',
     fontSize: 22,
     fontWeight: '700',
     color: INK,
@@ -344,6 +490,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptySubtext: {
+    fontFamily: 'Inter_400Regular',
     fontSize: 15,
     color: WARM_GRAY,
     textAlign: 'center',
@@ -365,6 +512,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   emptyCTAText: {
+    fontFamily: 'Inter_600SemiBold',
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',

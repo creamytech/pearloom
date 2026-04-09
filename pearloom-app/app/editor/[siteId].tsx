@@ -1,10 +1,12 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   StyleSheet,
   ActivityIndicator,
   Platform,
   BackHandler,
   Share,
+  Animated,
+  Text,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -18,7 +20,7 @@ import {
   takePhoto,
   uploadAndGetUrl,
 } from '@/lib/photo-bridge';
-import { colors } from '@/lib/theme';
+import { colors, spacing } from '@/lib/theme';
 import { useFocusEffect } from 'expo-router';
 
 const API_BASE = __DEV__ ? 'http://localhost:3000' : 'https://pearloom.com';
@@ -81,7 +83,67 @@ export default function EditorScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [canGoBack, setCanGoBack] = useState(false);
 
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const overlayOpacity = useRef(new Animated.Value(1)).current;
+  const logoScaleAnim = useRef(new Animated.Value(0.8)).current;
+
   const editorUrl = `${API_BASE}/editor/${siteId}`;
+
+  // ── Loading animations ──────────────────────────────────────────────
+
+  useEffect(() => {
+    // Logo entrance animation
+    Animated.spring(logoScaleAnim, {
+      toValue: 1,
+      damping: 12,
+      stiffness: 100,
+      useNativeDriver: true,
+    }).start();
+
+    // Progress bar animation (indeterminate)
+    const progressLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(progressAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: false,
+        }),
+        Animated.timing(progressAnim, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: false,
+        }),
+      ]),
+    );
+    progressLoop.start();
+
+    return () => progressLoop.stop();
+  }, []);
+
+  // When loading finishes, fade in WebView and fade out overlay
+  useEffect(() => {
+    if (!isLoading) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayOpacity, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoading]);
+
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: ['0%', '70%', '100%'],
+  });
 
   // ── Android back button ──────────────────────────────────────────────
 
@@ -92,9 +154,9 @@ export default function EditorScreen() {
       const onBackPress = () => {
         if (canGoBack && webViewRef.current) {
           webViewRef.current.goBack();
-          return true; // prevent default back
+          return true;
         }
-        return false; // let default back happen (navigate away)
+        return false;
       };
 
       const subscription = BackHandler.addEventListener(
@@ -228,34 +290,58 @@ export default function EditorScreen() {
       />
 
       <View style={styles.container}>
-        <WebView
-          ref={webViewRef}
-          source={{
-            uri: editorUrl,
-            headers: authHeaders,
-          }}
-          style={styles.webView}
-          userAgent={`PearloomApp/${Platform.OS}`}
-          injectedJavaScript={INJECTED_JS}
-          onMessage={onMessage}
-          onLoadStart={() => setIsLoading(true)}
-          onLoadEnd={() => setIsLoading(false)}
-          onNavigationStateChange={(navState) =>
-            setCanGoBack(navState.canGoBack)
-          }
-          javaScriptEnabled
-          domStorageEnabled
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false}
-          startInLoadingState={false}
-          originWhitelist={['https://*', 'http://*']}
-          allowsBackForwardNavigationGestures={Platform.OS === 'ios'}
-        />
-
+        {/* Progress bar at top */}
         {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={colors.olive} />
+          <View style={styles.progressBarContainer}>
+            <Animated.View
+              style={[styles.progressBar, { width: progressWidth }]}
+            />
           </View>
+        )}
+
+        {/* WebView with fade transition */}
+        <Animated.View style={[styles.webViewContainer, { opacity: fadeAnim }]}>
+          <WebView
+            ref={webViewRef}
+            source={{
+              uri: editorUrl,
+              headers: authHeaders,
+            }}
+            style={styles.webView}
+            userAgent={`PearloomApp/${Platform.OS}`}
+            injectedJavaScript={INJECTED_JS}
+            onMessage={onMessage}
+            onLoadStart={() => setIsLoading(true)}
+            onLoadEnd={() => setIsLoading(false)}
+            onNavigationStateChange={(navState) =>
+              setCanGoBack(navState.canGoBack)
+            }
+            javaScriptEnabled
+            domStorageEnabled
+            allowsInlineMediaPlayback
+            mediaPlaybackRequiresUserAction={false}
+            startInLoadingState={false}
+            originWhitelist={['https://*', 'http://*']}
+            allowsBackForwardNavigationGestures={Platform.OS === 'ios'}
+          />
+        </Animated.View>
+
+        {/* Branded loading overlay */}
+        {isLoading && (
+          <Animated.View style={[styles.loadingOverlay, { opacity: overlayOpacity }]}>
+            <Animated.View style={{ transform: [{ scale: logoScaleAnim }] }}>
+              <View style={styles.loadingLogo}>
+                <Text style={styles.loadingLogoText}>P</Text>
+              </View>
+              <Text style={styles.loadingBrandText}>Pearloom</Text>
+            </Animated.View>
+            <ActivityIndicator
+              size="small"
+              color={colors.olive}
+              style={styles.loadingSpinner}
+            />
+            <Text style={styles.loadingHint}>Loading editor...</Text>
+          </Animated.View>
         )}
 
         <CameraButton
@@ -272,6 +358,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.cream,
   },
+  progressBarContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: colors.creamDeep,
+    zIndex: 20,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: colors.olive,
+    borderRadius: 1.5,
+  },
+  webViewContainer: {
+    flex: 1,
+  },
   webView: {
     flex: 1,
   },
@@ -280,5 +383,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.cream,
+    zIndex: 10,
+  },
+  loadingLogo: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: colors.olive,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing.md,
+  },
+  loadingLogoText: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  loadingBrandText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.ink,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  loadingSpinner: {
+    marginTop: spacing.xl,
+  },
+  loadingHint: {
+    fontSize: 13,
+    color: colors.muted,
+    marginTop: spacing.sm,
   },
 });

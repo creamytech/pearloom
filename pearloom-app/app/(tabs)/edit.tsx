@@ -1,17 +1,167 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Animated,
+  Platform,
+  Pressable,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Text, View } from '@/components/Themed';
 import { colors, spacing, radius } from '@/lib/theme';
 import { getSites } from '@/lib/api';
 import type { UserSite } from '@/lib/types';
+
+// ── Skeleton placeholder ───────────────────────────────────────────────
+
+function SkeletonCard() {
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <View style={skeletonStyles.card}>
+      <View style={skeletonStyles.cardInner}>
+        <View style={skeletonStyles.textBlock}>
+          <Animated.View style={[skeletonStyles.titleBar, { opacity }]} />
+          <Animated.View style={[skeletonStyles.subtitleBar, { opacity }]} />
+        </View>
+        <Animated.View style={[skeletonStyles.circle, { opacity }]} />
+      </View>
+    </View>
+  );
+}
+
+const skeletonStyles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.ink,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: { elevation: 2 },
+    }),
+  },
+  cardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  textBlock: {
+    flex: 1,
+    gap: 8,
+    backgroundColor: 'transparent',
+  },
+  titleBar: {
+    width: '60%',
+    height: 16,
+    borderRadius: 4,
+    backgroundColor: colors.creamDeep,
+  },
+  subtitleBar: {
+    width: '40%',
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: colors.creamDeep,
+  },
+  circle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.creamDeep,
+    marginLeft: spacing.md,
+  },
+});
+
+// ── Animated card row ──────────────────────────────────────────────────
+
+function AnimatedSiteCard({
+  item,
+  onEdit,
+}: {
+  item: UserSite;
+  onEdit: (id: string) => void;
+}) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  }, []);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  }, []);
+
+  const handlePress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onEdit(item.id);
+  }, [item.id, onEdit]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <Pressable
+        style={styles.card}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <View style={styles.cardBody}>
+          <Text style={styles.siteName}>
+            {item.names[0]} & {item.names[1]}
+          </Text>
+          <Text style={styles.siteDomain}>{item.domain}</Text>
+        </View>
+        <View style={styles.editBadge}>
+          <FontAwesome name="pencil" size={16} color={colors.white} />
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────
 
 export default function EditTabScreen() {
   const router = useRouter();
@@ -52,10 +202,15 @@ export default function EditTabScreen() {
     [router],
   );
 
+  // Loading skeleton state
   if (loading && sites.length === 0) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.olive} />
+      <View style={styles.container}>
+        <View style={styles.skeletonList}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </View>
       </View>
     );
   }
@@ -69,9 +224,18 @@ export default function EditTabScreen() {
           color={colors.muted}
         />
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchSites}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.retryButton,
+            pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] },
+          ]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            fetchSites();
+          }}
+        >
           <Text style={styles.retryText}>Retry</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -91,7 +255,9 @@ export default function EditTabScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <FontAwesome name="pencil-square-o" size={48} color={colors.muted} />
+            <View style={styles.emptyIllustration}>
+              <FontAwesome name="pencil-square-o" size={36} color={colors.olive + '55'} />
+            </View>
             <Text style={styles.emptyTitle}>No sites yet</Text>
             <Text style={styles.emptySubtitle}>
               Create a site on pearloom.com to start editing
@@ -99,21 +265,7 @@ export default function EditTabScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => handleEditSite(item.id)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.cardBody}>
-              <Text style={styles.siteName}>
-                {item.names[0]} & {item.names[1]}
-              </Text>
-              <Text style={styles.siteDomain}>{item.domain}</Text>
-            </View>
-            <View style={styles.editBadge}>
-              <FontAwesome name="pencil" size={16} color={colors.white} />
-            </View>
-          </TouchableOpacity>
+          <AnimatedSiteCard item={item} onEdit={handleEditSite} />
         )}
       />
     </View>
@@ -136,19 +288,29 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
+  skeletonList: {
+    padding: spacing.lg,
+    gap: spacing.md,
+    backgroundColor: 'transparent',
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderRadius: radius.md,
+    borderRadius: 16,
     padding: spacing.lg,
     marginBottom: spacing.md,
-    // Shadow
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.ink,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   cardBody: {
     flex: 1,
@@ -179,11 +341,20 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
     backgroundColor: 'transparent',
   },
+  emptyIllustration: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.olive + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.ink,
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
   },
   emptySubtitle: {
     fontSize: 14,
@@ -202,7 +373,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     backgroundColor: colors.olive,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
   },
   retryText: {
     color: colors.white,

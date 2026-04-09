@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
 import { useFonts } from 'expo-font';
 import {
   Inter_400Regular,
@@ -16,6 +17,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { AuthContext, useAuthState } from '@/lib/auth';
+import { ONBOARDING_KEY } from './onboarding';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -50,20 +52,50 @@ export default function RootLayout() {
   });
 
   const auth = useAuthState();
+  const router = useRouter();
+  const segments = useSegments();
+
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(true); // default true to avoid flash
+
+  // Check onboarding status on mount
+  useEffect(() => {
+    SecureStore.getItemAsync(ONBOARDING_KEY)
+      .then((value) => {
+        setOnboardingDone(value === 'true');
+      })
+      .catch(() => {
+        // If reading fails, assume done to avoid blocking
+        setOnboardingDone(true);
+      })
+      .finally(() => {
+        setOnboardingChecked(true);
+      });
+  }, []);
 
   // Throw font loading errors so the ErrorBoundary can catch them.
   useEffect(() => {
     if (fontError) throw fontError;
   }, [fontError]);
 
-  // Hide splash once fonts + auth state are ready.
+  // Hide splash once fonts + auth + onboarding state are ready.
   useEffect(() => {
-    if (fontsLoaded && !auth.loading) {
+    if (fontsLoaded && !auth.loading && onboardingChecked) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, auth.loading]);
+  }, [fontsLoaded, auth.loading, onboardingChecked]);
 
-  if (!fontsLoaded || auth.loading) {
+  // Navigate to onboarding on first launch
+  useEffect(() => {
+    if (!fontsLoaded || auth.loading || !onboardingChecked) return;
+
+    // If onboarding hasn't been completed, redirect there
+    if (!onboardingDone && segments[0] !== 'onboarding') {
+      router.replace('/onboarding');
+    }
+  }, [fontsLoaded, auth.loading, onboardingChecked, onboardingDone, segments, router]);
+
+  if (!fontsLoaded || auth.loading || !onboardingChecked) {
     return null;
   }
 
@@ -72,6 +104,20 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{
+            headerShown: false,
+            animation: 'fade',
+          }}
+        />
+        <Stack.Screen
+          name="auth/sign-in"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
         <Stack.Screen name="editor/[siteId]" options={{ headerShown: true }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         <Stack.Screen
