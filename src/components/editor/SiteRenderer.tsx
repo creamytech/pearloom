@@ -940,7 +940,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
       case 'countdown': {
         const countdownDate = (blockCfg.date as string) || manifest.events?.[0]?.date || manifest.logistics?.date;
         return (
-          <section key={key} data-pe-section="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg }}>
+          <section key={key} data-pe-section="countdown" style={{ padding: '4rem 2rem', textAlign: 'center', background: cardBg, ...blockStyle }}>
             {art.blockArt?.headingDecor && (
               <div
                 aria-hidden="true"
@@ -1006,14 +1006,14 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         );
       case 'divider':
         return (
-          <div key={key}>
+          <section key={key} data-pe-section="divider">
             {art.dividerPath && (
               <svg viewBox="0 0 200 50" style={{ width: '100%', height: '40px' }} preserveAspectRatio="none">
                 <path d={art.dividerPath} fill="none" stroke={pal.accent} strokeWidth="1" opacity="0.2" />
               </svg>
             )}
             <WaveDivider skin={vibeSkin} fromColor={bgColor} toColor={bgColor} height={60} />
-          </div>
+          </section>
         );
       case 'photos': {
         const allPhotos = manifest.chapters?.flatMap(ch => ch.images || []).slice(0, 9) || [];
@@ -1063,7 +1063,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           <section key={key} data-pe-section="video" style={{ padding: '3rem 2rem', maxWidth: '960px', margin: '0 auto' }}>
             {embedUrl ? (
               <div style={{ aspectRatio: '16/9', borderRadius: '1rem', overflow: 'hidden' }}>
-                <iframe src={embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen />
+                <iframe src={embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen title="Video" />
               </div>
             ) : (
               <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)' }}>
@@ -1112,9 +1112,9 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
               />
             )}
             <h2 style={{ fontFamily: `"${vibeSkin.fonts.heading}", serif`, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', color: safeFg, marginBottom: '1rem' }}>
-              Leave Your Wishes
+              {(blockCfg.heading as string) || (blockCfg.title as string) || 'Leave Your Wishes'}
             </h2>
-            <p style={{ color: safeMuted, fontSize: '0.95rem', marginBottom: '2rem' }}>Share your love and well wishes</p>
+            <p style={{ color: safeMuted, fontSize: '0.95rem', marginBottom: '2rem' }}>{(blockCfg.prompt as string) || 'Share your love and well wishes'}</p>
             <div style={{ padding: '2rem', borderRadius: '1rem', background: `${pal.card}40`, border: `1px solid ${pal.accent}20` }}>
               <p style={{ color: safeMuted, fontStyle: 'italic' }}>Guestbook messages will appear here</p>
             </div>
@@ -1126,7 +1126,7 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
         return (
           <section key={key} data-pe-section="spotify" style={{ padding: '3rem 2rem', maxWidth: '700px', margin: '0 auto' }}>
             {embedSrc ? (
-              <iframe src={embedSrc} style={{ width: '100%', height: '352px', borderRadius: '12px', border: 'none' }} allow="encrypted-media" />
+              <iframe src={embedSrc} style={{ width: '100%', height: '352px', borderRadius: '12px', border: 'none' }} allow="encrypted-media" title="Spotify Playlist" />
             ) : (
               <div style={{ padding: '3rem', textAlign: 'center', borderRadius: '1rem', border: '2px dashed rgba(163,177,138,0.3)', color: 'var(--pl-muted)', fontSize: '0.88rem' }}>
                 Add a Spotify playlist URL in the Music panel
