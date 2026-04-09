@@ -215,7 +215,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
     const isOpen = openSection === id;
     return (
       <div style={{
-        borderRadius: '14px', marginBottom: '4px',
+        borderRadius: '16px', marginBottom: '4px',
         background: isOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
         border: isOpen ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
         transition: 'all 0.15s',
@@ -226,9 +226,9 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           onClick={() => setOpenSection(isOpen ? null : id)}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '10px 12px', background: 'none', border: 'none', cursor: 'pointer',
+            padding: '12px', background: 'none', border: 'none', cursor: 'pointer',
             color: isOpen ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
-            borderRadius: '14px',
+            borderRadius: '16px',
           }}
         >
           <span style={{
@@ -300,7 +300,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               padding: '5px 12px', margin: '0 12px 4px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               background: 'rgba(163,177,138,0.1)',
               border: '1px solid rgba(163,177,138,0.2)',
               fontSize: '0.68rem', fontWeight: 600,
@@ -341,7 +341,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         <div>
           <label style={lbl}>Venue</label>
           {logistics.venue ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '8px', padding: '10px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(163,177,138,0.1)', border: '1px solid rgba(163,177,138,0.3)', borderRadius: '12px', padding: '12px' }}>
               <LocationPinIcon size={13} color="var(--pl-olive, #A3B18A)" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--pl-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{logistics.venue}</div>
@@ -391,9 +391,9 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
         {/* ── Smart Registry Import ── */}
         <div style={{
           background: 'rgba(255,255,255,0.15)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          borderRadius: '14px',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: '16px',
           padding: '12px',
           border: '1px solid rgba(255,255,255,0.2)',
           marginTop: '4px',
@@ -416,7 +416,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px',
                 padding: '0 12px',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 border: 'none',
                 background: registryUrl.trim() ? 'var(--pl-olive, #A3B18A)' : 'rgba(163,177,138,0.2)',
                 color: registryUrl.trim() ? '#fff' : 'var(--pl-muted)',
@@ -439,8 +439,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               marginTop: '8px',
               background: 'rgba(163,177,138,0.08)',
               border: '1px solid rgba(163,177,138,0.2)',
-              borderRadius: '10px',
-              padding: '10px',
+              borderRadius: '12px',
+              padding: '12px',
             }}>
               <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)', marginBottom: '2px' }}>
                 {registryImportResult.name}
@@ -456,7 +456,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px',
                   padding: '6px 14px',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   border: 'none',
                   background: 'var(--pl-olive, #A3B18A)',
                   color: '#fff',
@@ -473,12 +473,12 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px' }}>
           <label style={{ ...lbl, margin: 0 }}>Registry Links ({entries.length})</label>
-          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addEntry} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Registry
           </button>
         </div>
         {entries.map((entry, i) => (
-          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Registry {i + 1}</span>
               <button onClick={() => delEntry(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
@@ -514,7 +514,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 disabled={aiMealLoading}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
-                  borderRadius: '5px', border: '1px solid rgba(163,177,138,0.35)',
+                  borderRadius: '12px', border: '1px solid rgba(163,177,138,0.35)',
                   background: aiMealLoading ? 'rgba(163,177,138,0.08)' : 'rgba(163,177,138,0.1)',
                   color: 'var(--pl-olive, #A3B18A)', cursor: aiMealLoading ? 'wait' : 'pointer',
                   fontSize: '0.82rem', fontWeight: 700, opacity: aiMealLoading ? 0.6 : 1,
@@ -526,7 +526,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                 <Sparkles size={10} />
                 {aiMealLoading ? 'Generating...' : 'Generate Menu with AI'}
               </button>
-              <button onClick={addMealOption} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+              <button onClick={addMealOption} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
                 <Plus size={10} /> Add Meal
               </button>
             </div>
@@ -546,7 +546,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               {aiMealPreviews.map((meal, i) => (
                 <div key={i} style={{
                   background: 'rgba(163,177,138,0.08)', border: '1px dashed rgba(163,177,138,0.3)',
-                  borderRadius: '12px', padding: '10px 12px',
+                  borderRadius: '12px', padding: '12px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -612,7 +612,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
                   animationDelay: `${i * 0.12}s`,
                 }}>
                   <div style={{ width: '60%', height: '14px', borderRadius: '7px', background: 'rgba(0,0,0,0.06)', marginBottom: '6px' }} />
-                  <div style={{ width: '85%', height: '10px', borderRadius: '5px', background: 'rgba(0,0,0,0.04)' }} />
+                  <div style={{ width: '85%', height: '10px', borderRadius: '12px', background: 'rgba(0,0,0,0.04)' }} />
                 </div>
               ))}
               <style>{`@keyframes pl-meal-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }`}</style>
@@ -622,8 +622,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           {/* Existing meal option cards */}
           {mealOptions.map((meal, i) => (
             <div key={meal.id} style={{
-              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
-              borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
+              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px',
               border: '1px solid rgba(255,255,255,0.2)',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -722,7 +722,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               onClick={() => setShowHotelFinder(true)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px',
-                borderRadius: '5px', border: '1px solid rgba(163,177,138,0.35)',
+                borderRadius: '12px', border: '1px solid rgba(163,177,138,0.35)',
                 background: 'rgba(163,177,138,0.1)', color: 'var(--pl-olive, #A3B18A)',
                 cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                 transition: 'background 0.18s',
@@ -732,13 +732,13 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             >
               <MapPin size={10} /> Find Hotels Near Venue
             </button>
-            <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+            <button onClick={addHotel} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
               <Plus size={10} /> Add Hotel
             </button>
           </div>
         </div>
         {(travel.hotels || []).map((hotel, i) => (
-          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div key={i} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-olive, #A3B18A)' }}>Hotel {i + 1}</span>
               <button onClick={() => delHotel(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
@@ -770,7 +770,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             disabled={aiFaqLoading}
             style={{
               display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 12px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid rgba(163,177,138,0.4)',
               background: aiFaqLoading
                 ? 'rgba(163,177,138,0.08)'
@@ -786,7 +786,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
             <Sparkles size={11} />
             {aiFaqLoading ? 'Generating...' : 'AI Smart FAQs'}
           </button>
-          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '5px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
+          <button onClick={addFaq} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '12px', border: 'none', background: 'rgba(163,177,138,0.18)', color: 'var(--pl-olive, #A3B18A)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700 }}>
             <Plus size={10} /> Add Question
           </button>
         </div>
@@ -796,7 +796,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           </p>
         )}
         {faqs.map(faq => (
-          <div key={faq.id} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: '14px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div key={faq.id} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: '16px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button onClick={() => delFaq(faq.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--pl-muted)', display: 'flex', padding: '2px' }}
                 onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = '#f87171'; }}
@@ -922,7 +922,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
           <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.45)', marginBottom: '10px', lineHeight: 1.5 }}>
             Drag guests to tables. Add constraints like &quot;keep together&quot; or &quot;near the exit&quot;.
           </div>
-          <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
             <SeatingCanvas siteId={subdomain || manifest.coupleId || 'draft'} />
           </div>
         </Section>
@@ -941,7 +941,7 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
               justifyContent: 'center',
               gap: '6px',
               padding: '9px 14px',
-              borderRadius: '8px',
+              borderRadius: '12px',
               border: '1px solid rgba(163,177,138,0.35)',
               background: 'rgba(163,177,138,0.1)',
               color: 'var(--pl-olive, #A3B18A)',

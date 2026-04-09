@@ -62,8 +62,8 @@ function ChapterCard({
         style={{
           borderRadius: '16px',
           background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.25)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           border: isActive ? '1.5px solid rgba(163,177,138,0.35)' : '1px solid rgba(255,255,255,0.3)',
           overflow: 'hidden',
           cursor: 'pointer',
@@ -74,7 +74,7 @@ function ChapterCard({
         } as React.CSSProperties}
       >
         {/* Main row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 12px 12px 6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 12px 12px 8px' }}>
           {/* Drag handle */}
           <motion.div
             onPointerDown={e => { e.preventDefault(); e.stopPropagation(); controls.start(e); }}
@@ -89,7 +89,7 @@ function ChapterCard({
 
           {/* Chapter number */}
           <div style={{
-            width: '24px', height: '24px', borderRadius: '8px', flexShrink: 0,
+            width: '24px', height: '24px', borderRadius: '12px', flexShrink: 0,
             background: isActive ? 'var(--pl-olive)' : 'rgba(255,255,255,0.4)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '0.62rem', fontWeight: 800,
@@ -102,7 +102,7 @@ function ChapterCard({
           {/* Thumbnail */}
           {thumb && (
             <div style={{
-              width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
+              width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
               overflow: 'hidden', border: '1px solid rgba(255,255,255,0.3)',
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -130,7 +130,7 @@ function ChapterCard({
               {chapter.layout && (
                 <span style={{
                   background: 'rgba(163,177,138,0.1)', color: 'var(--pl-olive)',
-                  padding: '0 5px', borderRadius: '4px', fontSize: '0.55rem', fontWeight: 600,
+                  padding: '0 5px', borderRadius: '8px', fontSize: '0.55rem', fontWeight: 600,
                 }}>
                   {chapter.layout}
                 </span>
@@ -156,7 +156,7 @@ function ChapterCard({
             whileHover={{ color: '#f87171', background: 'rgba(248,113,113,0.1)' }}
             whileTap={{ scale: 0.88 }}
             style={{
-              padding: '6px', borderRadius: '8px', border: 'none',
+              padding: '6px', borderRadius: '12px', border: 'none',
               background: 'transparent', color: 'var(--pl-muted)', cursor: 'pointer',
               display: 'flex', flexShrink: 0, opacity: 0.6,
             }}
@@ -224,7 +224,7 @@ export function StoryPanel() {
                   padding: '6px 14px', borderRadius: '100px', border: 'none',
                   cursor: 'pointer',
                   background: isActive ? 'var(--pl-olive)' : 'rgba(255,255,255,0.3)',
-                  backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+                  backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                   color: isActive ? 'white' : 'var(--pl-ink-soft)',
                   fontSize: '0.68rem', fontWeight: isActive ? 700 : 500,
                   boxShadow: isActive ? '0 2px 8px rgba(163,177,138,0.3)' : 'none',
@@ -277,7 +277,7 @@ export function StoryPanel() {
           /* FIX #1: Empty state for chapters */
           <div style={{
             padding: '24px 16px', textAlign: 'center',
-            borderRadius: '14px',
+            borderRadius: '16px',
             background: 'rgba(255,255,255,0.15)',
             border: '1px dashed rgba(163,177,138,0.25)',
           }}>
@@ -298,7 +298,7 @@ export function StoryPanel() {
           style={{
             width: '100%', padding: '12px', marginTop: '6px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            border: '1.5px dashed rgba(163,177,138,0.3)', borderRadius: '14px',
+            border: '1.5px dashed rgba(163,177,138,0.3)', borderRadius: '16px',
             background: 'transparent', cursor: 'pointer',
             color: 'var(--pl-olive)', fontSize: '0.75rem', fontWeight: 600,
             transition: 'all 0.15s',
@@ -323,8 +323,8 @@ export function StoryPanel() {
               marginTop: '12px', padding: '16px',
               borderRadius: '16px',
               background: 'rgba(255,255,255,0.2)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               border: '1px solid rgba(255,255,255,0.25)',
             } as React.CSSProperties}>
               <ChapterPanel

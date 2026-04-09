@@ -77,7 +77,7 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="flex md:hidden items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent cursor-pointer"
-              style={{ color: 'rgba(80,60,40,0.5)' }}
+              style={{ color: 'var(--pl-muted)' }}
             >
               <Menu size={18} />
             </button>
@@ -143,9 +143,9 @@ export function WizardLayout({ step, title, subtitle, children, onStepClick, rig
             <button
               onClick={onClose}
               className="w-7 h-7 rounded-full flex items-center justify-center border-none cursor-pointer transition-colors"
-              style={{ background: 'rgba(0,0,0,0.04)', color: 'rgba(80,60,40,0.35)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; e.currentTarget.style.color = 'rgba(80,60,40,0.7)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = 'rgba(80,60,40,0.35)'; }}
+              style={{ background: 'rgba(43,30,20,0.04)', color: 'var(--pl-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(43,30,20,0.08)'; e.currentTarget.style.color = 'var(--pl-ink)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(43,30,20,0.04)'; e.currentTarget.style.color = 'var(--pl-muted)'; }}
             >
               <X size={13} />
             </button>

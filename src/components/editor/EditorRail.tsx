@@ -68,7 +68,7 @@ function RailButton({ item, isActive, onClick }: { item: RailItem; isActive: boo
           width: '38px', height: '38px',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          gap: '2px', border: 'none', borderRadius: '12px',
+          gap: '4px', border: 'none', borderRadius: '12px',
           background: isActive ? 'rgba(163,177,138,0.15)' : 'transparent',
           color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
           cursor: 'pointer', position: 'relative',
@@ -128,7 +128,7 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
       style={{
         position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
         zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center',
-        gap: '2px', padding: '8px 6px', borderRadius: '18px',
+        gap: '4px', padding: '8px 6px', borderRadius: '18px',
         background: 'rgba(250,247,242,0.72)',
         backdropFilter: 'blur(32px) saturate(1.5)',
         WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
@@ -187,11 +187,11 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                 border: '1px solid rgba(255,255,255,0.6)',
                 boxShadow: '0 12px 40px rgba(43,30,20,0.12), 0 4px 12px rgba(43,30,20,0.05)',
                 zIndex: 100,
-                display: 'flex', flexDirection: 'column', gap: '2px',
+                display: 'flex', flexDirection: 'column', gap: '4px',
                 maxHeight: '400px', overflowY: 'auto',
               } as React.CSSProperties}
             >
-              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '4px 8px 6px', borderBottom: '1px solid rgba(0,0,0,0.04)', marginBottom: '2px' }}>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', padding: '4px 8px 6px', borderBottom: '1px solid rgba(43,30,20,0.04)', marginBottom: '2px' }}>
                 All Tools
               </div>
               {MORE_ITEMS.map(item => {
@@ -203,13 +203,13 @@ export function EditorRail({ onOpen }: { onOpen?: () => void }) {
                     onClick={() => handleClick(item.tab)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '8px 10px', borderRadius: '10px', border: 'none',
+                      padding: '8px 10px', borderRadius: '12px', border: 'none',
                       background: isActive ? 'rgba(163,177,138,0.12)' : 'transparent',
                       color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft)',
                       cursor: 'pointer', fontSize: '0.78rem', fontWeight: isActive ? 600 : 400,
                       width: '100%', textAlign: 'left', transition: 'background 0.12s',
                     }}
-                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.03)'; }}
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(43,30,20,0.03)'; }}
                     onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                   >
                     <Icon size={15} style={{ color: isActive ? 'var(--pl-olive)' : 'var(--pl-muted)', flexShrink: 0 }} />

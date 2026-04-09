@@ -433,7 +433,7 @@ export default function MarketplacePage() {
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04 }}
-                        className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white hover:shadow-md hover:-translate-y-0.5 transition-all"
+                        className="rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white/50 backdrop-blur-lg hover:shadow-md hover:-translate-y-0.5 transition-all"
                       >
                         <div style={{ height: '90px', background: theme.previewGradient, position: 'relative' }}>
                           <div style={{
@@ -509,7 +509,7 @@ export default function MarketplacePage() {
                         key={cat.id}
                         onClick={() => setCategory(cat.id)}
                         className={`shrink-0 px-3 py-1.5 rounded-full text-[0.65rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
-                          category === cat.id ? 'bg-[var(--pl-ink)] text-white' : 'bg-white text-[var(--pl-muted)]'
+                          category === cat.id ? 'bg-[var(--pl-ink)] text-white' : 'bg-white/50 backdrop-blur-lg text-[var(--pl-muted)]'
                         }`}
                       >
                         {cat.label}
@@ -521,7 +521,7 @@ export default function MarketplacePage() {
                     {filtered.map((pack, i) => (
                       <div
                         key={pack.id}
-                        className="pl-enter rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 transition-all"
+                        className="pl-enter rounded-[var(--pl-radius-lg)] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-white/50 backdrop-blur-lg hover:shadow-[0_8px_32px_rgba(43,30,20,0.08)] hover:-translate-y-1 transition-all"
                         style={{ animationDelay: `${i * 40}ms` }}
                       >
                         {/* Preview strip */}
@@ -599,7 +599,7 @@ export default function MarketplacePage() {
                               <button
                                 onClick={() => handlePurchase(pack.id, pack.category)}
                                 disabled={purchasing === pack.id}
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-ink)] text-white text-[0.68rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--pl-olive-deep)] text-white text-[0.68rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
                               >
                                 {purchasing === pack.id ? 'Loading...' : <><ShoppingBag size={11} /> Buy Pack</>}
                               </button>

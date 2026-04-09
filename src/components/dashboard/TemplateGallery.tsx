@@ -89,7 +89,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
 
           {/* Search + Filters */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 rounded-[12px]" style={{ background: 'rgba(255,255,255,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.4)' } as React.CSSProperties}>
+            <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 rounded-[12px]" style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.4)' } as React.CSSProperties}>
               <Search size={14} className="text-[var(--pl-muted)] flex-shrink-0" />
               <input
                 type="text"
@@ -182,7 +182,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
 
                       {/* Popularity badge */}
                       {template.popularity >= 90 && (
-                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]" style={{ zIndex: 5 }}>
+                        <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-lg text-[0.55rem] font-bold uppercase tracking-[0.08em] text-[var(--pl-olive-deep)]" style={{ zIndex: 5 }}>
                           <Sparkles size={9} /> Popular
                         </div>
                       )}
@@ -215,7 +215,7 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                       </p>
                       <div className="flex gap-1 mt-2 flex-wrap">
                         {template.tags.slice(0, 3).map(tag => (
-                          <span key={tag} className="text-[0.55rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-[var(--pl-cream-deep)] text-[var(--pl-muted)]">
+                          <span key={tag} className="text-[0.55rem] font-bold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded-full bg-white/40 backdrop-blur-sm text-[var(--pl-muted)]">
                             {tag}
                           </span>
                         ))}

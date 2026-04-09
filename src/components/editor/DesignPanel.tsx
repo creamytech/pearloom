@@ -50,7 +50,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'glass', label: 'Glass', desc: 'Frosted blur, floats over content',
     preview: (
       <div style={{ height: '100%', background: 'linear-gradient(135deg, rgba(163,177,138,0.15), rgba(196,169,106,0.1))', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(4px)', borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.5)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
             <div style={{ width: '12px', height: '2px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.6 }} />
@@ -101,7 +101,7 @@ const NAV_STYLES: Array<{ id: string; label: string; desc: string; preview: Reac
     id: 'floating', label: 'Floating', desc: 'Pill-shaped, detached from edge',
     preview: (
       <div style={{ height: '100%', background: 'var(--pl-cream)', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div style={{ position: 'absolute', top: '3px', left: '15%', right: '15%', height: '8px', background: 'rgba(255,255,255,0.9)', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 1px 4px rgba(43,30,20,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '3px' }}>
             <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'var(--pl-olive)' }} />
             <div style={{ width: '10px', height: '1.5px', background: 'var(--pl-ink)', borderRadius: '1px', opacity: 0.4 }} />
@@ -143,11 +143,11 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 title={label}
                 style={{
                   aspectRatio: '1',
-                  borderRadius: '10px',
+                  borderRadius: '12px',
                   border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                   background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -194,7 +194,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 onClick={() => onChange({ ...manifest, navStyle: style.id as StoryManifest['navStyle'] })}
                 style={{
                   display: 'flex', flexDirection: 'column',
-                  borderRadius: '10px', overflow: 'hidden',
+                  borderRadius: '12px', overflow: 'hidden',
                   border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                   background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
                   cursor: 'pointer', padding: 0,
@@ -233,7 +233,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 onClick={() => onChange({ ...manifest, mobileNavStyle: style.id as StoryManifest['mobileNavStyle'] })}
                 style={{
                   display: 'flex', flexDirection: 'column',
-                  borderRadius: '10px',
+                  borderRadius: '12px',
                   border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                   background: isActive ? 'rgba(163,177,138,0.06)' : 'rgba(255,255,255,0.5)',
                   cursor: 'pointer', padding: '8px 6px',
@@ -298,7 +298,7 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
                 key={opt.label}
                 onClick={() => onChange({ ...manifest, navBackground: opt.value || undefined })}
                 style={{
-                  padding: '6px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 600,
+                  padding: '6px 10px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 600,
                   border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                   background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
                   color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
@@ -389,8 +389,8 @@ function CornerDecorationPicker({ manifest, onChange }: { manifest: StoryManifes
                 borderRadius: '12px',
                 border: active ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                 background: active ? 'rgba(163,177,138,0.08)' : 'rgba(255,255,255,0.5)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
                 cursor: 'pointer',
                 overflow: 'hidden',
                 transition: 'all 0.15s',
@@ -595,7 +595,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   }}
                   title={bg.label}
                   style={{
-                    width: '28px', height: '28px', borderRadius: '8px',
+                    width: '28px', height: '28px', borderRadius: '12px',
                     border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
                     background: bg.value || 'linear-gradient(135deg, #FAF7F2, #E8D5C4)',
                     cursor: 'pointer', transition: 'border 0.15s',
@@ -712,7 +712,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
               }}
               style={{
                 display: 'flex', flexDirection: 'column', gap: '6px',
-                padding: '10px', borderRadius: '10px', cursor: 'pointer',
+                padding: '10px', borderRadius: '12px', cursor: 'pointer',
                 border: '1px solid rgba(255,255,255,0.25)',
                 background: 'rgba(255,255,255,0.3)',
                 textAlign: 'left', transition: 'all 0.15s',
@@ -745,7 +745,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             handleThemeApply(darkSkin);
           }}
           style={{
-            width: '100%', padding: '10px 14px', borderRadius: '10px',
+            width: '100%', padding: '10px 14px', borderRadius: '12px',
             border: '1px solid rgba(255,255,255,0.3)',
             background: 'linear-gradient(135deg, #1a1520 0%, #252030 100%)',
             color: '#F0E8D8', cursor: 'pointer',
@@ -779,7 +779,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
                   });
                 }}
                 style={{
-                  flex: 1, minWidth: '70px', padding: '8px 6px', borderRadius: '8px',
+                  flex: 1, minWidth: '70px', padding: '8px 6px', borderRadius: '12px',
                   border: manifest.theme?.typeScale === scale
                     ? '1.5px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.25)',
                   background: manifest.theme?.typeScale === scale
@@ -841,7 +841,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {manifest.stickers!.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
                   <span style={{ fontSize: '0.72rem', color: 'var(--pl-ink-soft, #3D3530)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.6rem', color: 'var(--pl-muted, #7A756E)' }}>
                     Size
@@ -868,7 +868,7 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       </SidebarSection>
 
       {/* Live preview — compact, no extra nesting */}
-      <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(43,30,20,0.05)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}>
+      <div style={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(43,30,20,0.05)', border: '1px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
         <div style={{ background: colors.background || '#faf9f6', padding: '14px' }}>
           <div style={{ fontFamily: `"${manifest.theme?.fonts?.heading || 'Playfair Display'}", serif`, fontSize: '1rem', fontWeight: 700, color: colors.foreground || 'var(--pl-ink, var(--pl-ink-soft))', marginBottom: '3px' }}>
             {manifest.chapters?.[0]?.title || 'Preview'}
