@@ -12,7 +12,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 export const dynamic = 'force-dynamic';
 
 const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 const RATE_LIMIT_REGISTRY_IMPORT = { max: 15, windowMs: 60 * 60 * 1000 };
 

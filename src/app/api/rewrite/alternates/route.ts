@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 
 export const maxDuration = 60;
 
-const GEMINI_FLASH = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const GEMINI_FLASH = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 interface AlternateConfig {
   temperature: number;

@@ -6,7 +6,7 @@
 import type { Guest, SeatingTable, SeatingConstraint, RegistryItem } from '@/types';
 
 const GEMINI_API_BASE =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 // ─── Internal helpers ─────────────────────────────────────────
 

@@ -4,17 +4,17 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 // ─────────────────────────────────────────────────────────────
 // Pearloom / api/generate-pattern/route.ts
 // Generates bespoke SVG background art for a couple using
-// gemini-2.5-flash — the most capable Gemini model available
+// gemini-3.1-flash-lite-preview — the most capable Gemini model available
 // as of March 2026 (Pro-level quality, Flash speed).
 //
 // Uses the same raw REST API pattern as memory-engine.ts to avoid
 // npm SDK dependency issues.
 // ─────────────────────────────────────────────────────────────
 
-// gemini-2.5-flash: Pro-level intelligence at Flash speed.
-// gemini-2.5-flash-lite: faster/cheaper but less capable (lightweight tasks only).
+// gemini-3.1-flash-lite-preview: Pro-level intelligence at Flash speed.
+// gemini-3.1-flash-lite-preview: faster/cheaper but less capable (lightweight tasks only).
 // We use the full 3-flash-preview for creative SVG generation.
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.1-flash-image-preview';
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 const SYSTEM_INSTRUCTION = `You are a world-class SVG editorial illustrator creating BOLD, PROMINENT background art for luxury wedding websites. This art must be visually striking and immediately noticeable — NOT subtle watermarks.

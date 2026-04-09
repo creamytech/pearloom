@@ -18,7 +18,7 @@ const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent';
 // Couple DNA extraction uses Flash-Lite — lightweight extraction task
 const GEMINI_LITE_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
 
 
 // — Extract couple DNA from vibeString + chapters ——————————————————————————————————————————————————
@@ -612,10 +612,10 @@ CRITICAL DESIGN RULES:
 // ── Pass 2.5: Raster Art Generation (Nano Banana Pro) ────────────────────────
 // Generates a beautiful AI-painted hero art panel + ambient background art
 // tuned to the couple's specific vibe, palette, and occasion.
-// Uses gemini-3-pro-image-preview (Nano Banana Pro) — generated once at
+// Uses gemini-3.1-flash-image-preview (Nano Banana Pro) — generated once at
 // site creation time, stored as base64 data URLs in vibeSkin.
 
-const NANO_BANANA_PRO = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent';
+const NANO_BANANA_PRO = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
 const NANO_BANANA_2   = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent';
 
 
