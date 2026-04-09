@@ -441,40 +441,45 @@ export function SiteNav({
       {/* Backdrop */}
       <div
         onClick={closeDrawer}
-        className="fixed inset-0 z-[101]"
         style={{
+          position: inline ? 'absolute' : 'fixed',
+          inset: 0,
+          zIndex: 101,
           backgroundColor: 'rgba(43,30,20,0.2)',
           backdropFilter: 'blur(4px)',
           WebkitBackdropFilter: 'blur(4px)',
           animation: drawerClosing
             ? 'pl-backdrop-fade-out 0.25s ease forwards'
             : 'pl-backdrop-fade-in 0.15s ease forwards',
-        }}
+        } as React.CSSProperties}
       />
 
       {/* Panel */}
       <div
         ref={drawerRef}
-        className={cn(
-          'fixed top-0 right-0 bottom-0 z-[102]',
-          'w-[min(280px,100vw)]',
-          'flex flex-col',
-          'border-l border-[rgba(0,0,0,0.05)]',
-          'shadow-[-16px_0_50px_rgba(0,0,0,0.09)]',
-          'pb-[env(safe-area-inset-bottom,24px)]',
-          'overflow-y-auto',
-        )}
         style={{
+          position: inline ? 'absolute' : 'fixed',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 102,
+          width: 'min(280px, 100vw)',
+          display: 'flex',
+          flexDirection: 'column',
+          borderLeft: '1px solid rgba(0,0,0,0.05)',
+          boxShadow: '-16px 0 50px rgba(0,0,0,0.09)',
+          paddingBottom: inline ? '24px' : 'env(safe-area-inset-bottom, 24px)',
+          overflowY: 'auto',
           background: 'rgba(245,241,232,0.98)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           animation: drawerClosing
             ? 'pl-drawer-slide-out 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards'
             : 'pl-drawer-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-        }}
+        } as React.CSSProperties}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
+        <div className={cn("flex items-center justify-between px-5 pb-4 border-b border-[rgba(0,0,0,0.06)] flex-shrink-0", inline ? "pt-5" : "pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]")}>
           <span className="font-heading text-[1.3rem] font-semibold italic text-[var(--pl-ink-soft)] tracking-tight leading-tight">
             {isStudio ? 'Pearloom' : (names[1]?.trim() ? `${names[0]} & ${names[1]}` : names[0])}
           </span>
