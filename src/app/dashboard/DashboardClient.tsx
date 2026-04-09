@@ -42,7 +42,7 @@ import { PublishModal } from '@/components/shared/PublishModal';
 import { TemplateGallery } from '@/components/dashboard/TemplateGallery';
 import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav';
 import { DialogProvider } from '@/components/ui/confirm-dialog';
-import { applyTemplate, type SiteTemplate } from '@/lib/templates/wedding-templates';
+import { applyTemplate, SITE_TEMPLATES, type SiteTemplate } from '@/lib/templates/wedding-templates';
 
 // Full-screen editor — SSR disabled (uses browser APIs + framer Reorder)
 const FullscreenEditor = nextDynamic(
@@ -220,6 +220,21 @@ export default function DashboardClient() {
       router.replace('/');
     }
   }, [status, router]);
+
+  // ── Auto-open template from marketplace ?template= param ────
+  useEffect(() => {
+    if (status !== 'authenticated' || state.step !== 'dashboard') return;
+    const params = new URLSearchParams(window.location.search);
+    const templateId = params.get('template');
+    if (templateId) {
+      const template = SITE_TEMPLATES.find(t => t.id === templateId);
+      if (template) {
+        setPendingTemplate(template);
+        // Clean up the URL param so it doesn't re-trigger
+        window.history.replaceState({}, '', '/dashboard');
+      }
+    }
+  }, [status, state.step]);
 
   // ── Generation handler ──────────────────────────────────────
   const handleVibeSubmit = useCallback(async (data: VibeFormData) => {
@@ -419,6 +434,13 @@ export default function DashboardClient() {
     const manifest = applyTemplate(pendingTemplate, { occasion } as import('@/types').StoryManifest, names);
     dispatch({ type: 'EDIT_SITE', manifest, subdomain: slug, names });
     setPendingTemplate(null);
+
+    // Auto-save draft to DB so refresh doesn't lose work
+    fetch('/api/sites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subdomain: slug, manifest, names }),
+    }).catch(err => logError('[Template] Auto-save draft failed:', err));
   };
 
   return (

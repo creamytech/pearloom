@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useMemo, useEffect } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -35,6 +36,9 @@ const TABS: Array<{ id: TabId; label: string; icon: React.ElementType; count: nu
 ];
 
 export default function MarketplacePage() {
+  const { status: authStatus } = useSession();
+  const isAuthenticated = authStatus === 'authenticated';
+
   const [activeTab, setActiveTab] = useState<TabId>('templates');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -328,13 +332,23 @@ export default function MarketplacePage() {
                             {/* Action */}
                             <div className="flex items-center gap-2">
                               {canUse ? (
-                                <Link
-                                  href="/dashboard"
-                                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[0.72rem] font-bold no-underline transition-opacity hover:opacity-90"
-                                  style={{ background: colors.accent, color: '#fff' }}
-                                >
-                                  Use Template <ArrowRight size={11} />
-                                </Link>
+                                isAuthenticated ? (
+                                  <Link
+                                    href={`/dashboard?template=${template.id}`}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[0.72rem] font-bold no-underline transition-opacity hover:opacity-90"
+                                    style={{ background: colors.accent, color: '#fff' }}
+                                  >
+                                    Use Template <ArrowRight size={11} />
+                                  </Link>
+                                ) : (
+                                  <button
+                                    onClick={() => signIn('google', { callbackUrl: `/dashboard?template=${template.id}` })}
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-[0.72rem] font-bold border-none cursor-pointer transition-opacity hover:opacity-90"
+                                    style={{ background: colors.accent, color: '#fff' }}
+                                  >
+                                    Sign In to Use <ArrowRight size={11} />
+                                  </button>
+                                )
                               ) : (
                                 <button
                                   onClick={() => handlePurchase(template.id, 'template')}
