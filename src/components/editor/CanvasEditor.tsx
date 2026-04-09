@@ -379,9 +379,75 @@ function EventBlockConfig({ events, onChange }: {
 }
 
 // ── Block Row ──────────────────────────────────────────────────
+// ── Content summary — shows actual data in each block row ──────
+function getBlockContentSummary(block: PageBlock, manifest: StoryManifest): string | null {
+  const cfg = (block.config || {}) as Record<string, any>;
+  switch (block.type) {
+    case 'hero': {
+      const names = cfg.coupleNames || (manifest as any).names?.join(' & ') || '';
+      const tagline = cfg.tagline || (manifest as any).poetry?.heroTagline || '';
+      return [names, tagline].filter(Boolean).join(' — ') || null;
+    }
+    case 'story': {
+      const chapters = (manifest as any).chapters || cfg.chapters || [];
+      if (!Array.isArray(chapters) || chapters.length === 0) return 'No chapters yet';
+      return `${chapters.length} chapter${chapters.length !== 1 ? 's' : ''}: ${chapters.map((c: any) => c.title).filter(Boolean).slice(0, 3).join(', ')}`;
+    }
+    case 'event': {
+      const events = (manifest as any).events || cfg.events || [];
+      if (!Array.isArray(events) || events.length === 0) return 'No events yet';
+      return events.map((e: any) => [e.title || e.name, e.date].filter(Boolean).join(' · ')).slice(0, 2).join(', ');
+    }
+    case 'countdown': {
+      const date = cfg.date || (manifest as any).events?.[0]?.date || '';
+      return date ? `Counting down to ${date}` : 'No date set';
+    }
+    case 'rsvp': {
+      const deadline = cfg.deadline || (manifest as any).logistics?.rsvpDeadline || '';
+      return deadline ? `Deadline: ${deadline}` : 'RSVP form active';
+    }
+    case 'registry': {
+      const links = Array.isArray(cfg.links) ? cfg.links : [];
+      return links.length > 0 ? `${links.length} registr${links.length !== 1 ? 'ies' : 'y'}` : 'No registries yet';
+    }
+    case 'travel': {
+      const hotels = Array.isArray(cfg.hotels) ? cfg.hotels : (Array.isArray((manifest as any).logistics?.hotels) ? (manifest as any).logistics.hotels : []);
+      return hotels.length > 0 ? `${hotels.length} hotel${hotels.length !== 1 ? 's' : ''}: ${hotels.map((h: any) => h.name).filter(Boolean).slice(0, 2).join(', ')}` : 'No hotels yet';
+    }
+    case 'faq': {
+      const items = Array.isArray(cfg.items) ? cfg.items : (Array.isArray((manifest as any).faq) ? (manifest as any).faq : []);
+      return items.length > 0 ? `${items.length} question${items.length !== 1 ? 's' : ''}` : 'No FAQs yet';
+    }
+    case 'photos': case 'gallery': case 'photoWall': {
+      const photos = Array.isArray(cfg.photos) ? cfg.photos : [];
+      return photos.length > 0 ? `${photos.length} photo${photos.length !== 1 ? 's' : ''}` : 'No photos yet';
+    }
+    case 'guestbook': {
+      const msgs = Array.isArray(cfg.messages) ? cfg.messages : [];
+      return msgs.length > 0 ? `${msgs.length} message${msgs.length !== 1 ? 's' : ''}` : 'Awaiting messages';
+    }
+    case 'quote': case 'vibeQuote':
+      return cfg.text || cfg.quote || (manifest as any).poetry?.heroTagline || null;
+    case 'welcome':
+      return cfg.text || (manifest as any).poetry?.welcomeStatement || null;
+    case 'hashtag':
+      return cfg.hashtag ? `#${cfg.hashtag}` : null;
+    case 'spotify':
+      return cfg.url || cfg.playlistUrl || 'No playlist URL';
+    case 'video':
+      return cfg.url ? 'Video linked' : 'No video URL';
+    case 'text':
+      return cfg.content ? String(cfg.content).slice(0, 60) + (String(cfg.content).length > 60 ? '...' : '') : null;
+    case 'map':
+      return cfg.address || (manifest as any).logistics?.venue || 'No address set';
+    default:
+      return null;
+  }
+}
+
 function BlockRow({
   block, def, isActive, onSelect, onToggle, onDelete, onDuplicate, onMoveUp, onMoveDown, dragHandleProps,
-  isMobile, isFirst, isLast,
+  isMobile, isFirst, isLast, manifest,
 }: {
   block: PageBlock;
   def: BlockDef | undefined;
@@ -396,14 +462,16 @@ function BlockRow({
   isMobile?: boolean;
   isFirst?: boolean;
   isLast?: boolean;
+  manifest: StoryManifest;
 }) {
   const Icon = def?.icon || LayoutTemplate;
   const color = def?.color || 'var(--pl-olive, #A3B18A)';
   const label = def?.label || block.type.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+  const summary = getBlockContentSummary(block, manifest);
 
   return (
     <div>
-      {/* Main row — clean: drag handle, icon, name, chevron */}
+      {/* Main row — drag handle, icon, name + content summary, chevron */}
       <motion.div
         layout
         initial={{ opacity: 0, y: -6 }}
@@ -438,14 +506,26 @@ function BlockRow({
           <Icon size={14} color={color} />
         </div>
 
-        {/* Name */}
-        <span style={{
-          flex: 1, fontSize: '0.82rem', fontWeight: 600,
-          color: block.visible ? 'var(--pl-ink)' : 'var(--pl-muted)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {label}
-        </span>
+        {/* Name + inline content summary */}
+        <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
+          <span style={{
+            fontSize: '0.82rem', fontWeight: 600,
+            color: block.visible ? 'var(--pl-ink)' : 'var(--pl-muted)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            display: 'block',
+          }}>
+            {label}
+          </span>
+          {summary && (
+            <span style={{
+              fontSize: '0.68rem', color: 'var(--pl-muted)', lineHeight: 1.3,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              display: 'block', marginTop: '1px',
+            }}>
+              {summary}
+            </span>
+          )}
+        </div>
 
         {/* Chevron */}
         <motion.div
@@ -1805,6 +1885,7 @@ export function CanvasEditor({ manifest, onChange, pushToPreview, onDragStateCha
                   isMobile={isMobile}
                   isFirst={idx === 0}
                   isLast={idx === N - 1}
+                  manifest={manifest}
                 />
                 {/* Drop indicator line — after the last item */}
                 {showDropLineAfter && (

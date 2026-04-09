@@ -126,6 +126,34 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen name="editor/[siteId]" options={{ headerShown: true }} />
+        <Stack.Screen
+          name="preview/[siteId]"
+          options={{
+            headerShown: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="editor/blocks"
+          options={{
+            headerShown: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="editor/block-config/[blockId]"
+          options={{
+            headerShown: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="editor/design"
+          options={{
+            headerShown: true,
+            animation: 'slide_from_right',
+          }}
+        />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         <Stack.Screen
           name="marketplace"
