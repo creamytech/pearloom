@@ -161,9 +161,9 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                         overflow: 'hidden',
                       }}
                     >
-                      {/* Illustrated SVG background */}
+                      {/* Illustrated SVG background — boosted contrast for card visibility */}
                       <div
-                        style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+                        style={{ position: 'absolute', inset: '-20%', width: '140%', height: '140%', zIndex: 0, filter: 'contrast(3) saturate(2)', opacity: 0.7 }}
                         dangerouslySetInnerHTML={{ __html: generateHeroIllustration(template.id, {
                           background: template.theme.colors.background,
                           accent: template.theme.colors.accent,
@@ -172,41 +172,36 @@ export function TemplateGallery({ onSelect, onClose, occasion }: TemplateGallery
                         }) }}
                       />
 
-                      {/* Corner decorations */}
+                      {/* Bold accent gradient overlay */}
+                      <div style={{
+                        position: 'absolute', inset: 0, zIndex: 1,
+                        background: `radial-gradient(ellipse at 50% 80%, ${template.theme.colors.accent}30 0%, transparent 70%)`,
+                      }} />
+
+                      {/* Corner decorations — LARGE and visible */}
                       {(() => {
                         const art = getThemeArt(template.id);
                         return art.cornerSvg ? (
                           <>
-                            <div style={{ position: 'absolute', top: 6, left: 6, width: 30, height: 30, zIndex: 1, opacity: 0.6 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                            <div style={{ position: 'absolute', top: 6, right: 6, width: 30, height: 30, zIndex: 1, opacity: 0.6, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                            <div style={{ position: 'absolute', top: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                            <div style={{ position: 'absolute', top: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scaleY(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                            <div style={{ position: 'absolute', bottom: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scale(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
                           </>
                         ) : null;
                       })()}
 
-                      {/* Template name overlay */}
-                      <div style={{
-                        position: 'absolute', inset: 0, zIndex: 2,
-                        display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center',
-                        padding: '8px',
-                      }}>
-                        {(() => {
-                          const art = getThemeArt(template.id);
-                          return art.blockArt?.headingDecor ? (
-                            <div style={{ width: 60, height: 10, marginBottom: 4, opacity: 0.7 }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
-                          ) : null;
-                        })()}
-                        <span style={{
-                          fontFamily: `"${template.theme.fonts.heading}", serif`,
-                          fontSize: '1rem',
-                          fontStyle: 'italic',
-                          fontWeight: 400,
-                          color: template.theme.colors.foreground,
-                          lineHeight: 1.2,
-                        }}>
-                          {template.name}
-                        </span>
-                      </div>
+                      {/* Centered heading decoration motif */}
+                      {(() => {
+                        const art = getThemeArt(template.id);
+                        return art.blockArt?.headingDecor ? (
+                          <div style={{
+                            position: 'absolute', top: '50%', left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 120, height: 20, zIndex: 3, opacity: 0.9,
+                          }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
+                        ) : null;
+                      })()}
 
                       {/* Selected checkmark */}
                       {isSelected && (

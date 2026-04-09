@@ -260,49 +260,36 @@ export default function MarketplacePage() {
                             const art = getThemeArt(template.id);
                             return (
                               <>
-                                {/* Illustrated background */}
+                                {/* Illustrated background — boosted for card visibility */}
                                 <div
-                                  style={{ position: 'absolute', inset: 0, zIndex: 0 }}
+                                  style={{ position: 'absolute', inset: '-20%', width: '140%', height: '140%', zIndex: 0, filter: 'contrast(3) saturate(2)', opacity: 0.7 }}
                                   dangerouslySetInnerHTML={{ __html: heroSvg }}
                                 />
 
-                                {/* Corner decorations from theme art */}
+                                {/* Accent gradient glow */}
+                                <div style={{
+                                  position: 'absolute', inset: 0, zIndex: 1,
+                                  background: `radial-gradient(ellipse at 50% 80%, ${colors.accent}30 0%, transparent 70%)`,
+                                }} />
+
+                                {/* Corner decorations — all 4 corners, bold */}
                                 {art.cornerSvg && (
                                   <>
-                                    <div style={{ position: 'absolute', top: 8, left: 8, width: 40, height: 40, zIndex: 1, opacity: 0.6 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
-                                    <div style={{ position: 'absolute', top: 8, right: 8, width: 40, height: 40, zIndex: 1, opacity: 0.6, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                                    <div style={{ position: 'absolute', top: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                                    <div style={{ position: 'absolute', top: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.8, transform: 'scaleX(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                                    <div style={{ position: 'absolute', bottom: 0, left: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scaleY(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
+                                    <div style={{ position: 'absolute', bottom: 0, right: 0, width: 50, height: 50, zIndex: 2, opacity: 0.6, transform: 'scale(-1)' }} dangerouslySetInnerHTML={{ __html: art.cornerSvg }} />
                                   </>
                                 )}
 
-                                {/* Template name + tagline overlay */}
-                                <div style={{
-                                  position: 'absolute', inset: 0, display: 'flex',
-                                  flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                  padding: '16px', textAlign: 'center', zIndex: 2,
-                                }}>
-                                  {/* Heading decoration from block art */}
-                                  {art.blockArt?.headingDecor && (
-                                    <div style={{ width: 80, height: 12, marginBottom: 8, opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
-                                  )}
+                                {/* Centered heading decoration — the hero motif */}
+                                {art.blockArt?.headingDecor && (
                                   <div style={{
-                                    fontFamily: `"${fonts.heading}", serif`,
-                                    fontSize: viewMode === 'list' ? '0.85rem' : '1.15rem',
-                                    fontStyle: 'italic', fontWeight: 400,
-                                    color: colors.foreground,
-                                    lineHeight: 1.15, letterSpacing: '-0.02em',
-                                  }}>
-                                    Emma <span style={{ fontSize: '0.6em', opacity: 0.5 }}>&amp;</span> James
-                                  </div>
-                                  <div style={{
-                                    fontFamily: `"${fonts.body}", sans-serif`,
-                                    fontSize: '0.5rem', fontStyle: 'italic',
-                                    color: colors.muted,
-                                    marginTop: '4px', letterSpacing: '0.04em',
-                                    maxWidth: '85%',
-                                  }}>
-                                    {template.poetry.heroTagline}
-                                  </div>
-                                </div>
+                                    position: 'absolute', top: '50%', left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    width: 140, height: 24, zIndex: 3, opacity: 0.9,
+                                  }} dangerouslySetInnerHTML={{ __html: art.blockArt.headingDecor }} />
+                                )}
                               </>
                             );
                           })()}
