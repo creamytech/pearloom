@@ -148,93 +148,82 @@ export function SiteNav({
 
   const getHref = (slug: string) => pageHrefOverride ? pageHrefOverride(slug) : (slug === '' ? basePath : `${basePath}/${slug}`);
 
-  return (
-    <>
-      {/* ── Nav bar ── */}
-      <motion.nav
-        className={cn(
-          'z-[100] overflow-hidden',
-          !inline && 'pt-[env(safe-area-inset-top,0px)]',
-          'transition-[background,box-shadow,border-color,padding,margin,border-radius] duration-300',
-          // Position: inline (editor) = sticky within scroll container, otherwise fixed
-          inline
-            ? 'w-full'
+  const navClassName = cn(
+    'z-[100] overflow-hidden',
+    !inline && 'pt-[env(safe-area-inset-top,0px)]',
+    'transition-[background,box-shadow,border-color,padding,margin,border-radius] duration-300',
+    inline
+      ? 'sticky top-0 w-full'
+      : navStyle === 'floating'
+        ? 'fixed top-2 left-4 right-4 rounded-full'
+        : 'fixed top-0 left-0 right-0',
+    scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' ? 'py-1' : 'py-2 lg:py-4',
+    navBackground
+      ? ''
+      : navStyle === 'minimal'
+        ? (atTop && !isStudio
+          ? 'bg-transparent border-b border-transparent shadow-none'
+          : 'bg-transparent border-b border-[rgba(0,0,0,0.06)] shadow-none')
+        : navStyle === 'solid'
+          ? 'bg-white border-b border-[rgba(0,0,0,0.05)] shadow-[0_2px_12px_rgba(43,30,20,0.04)]'
+          : navStyle === 'editorial'
+            ? (atTop && !isStudio
+              ? 'bg-transparent border-b border-transparent'
+              : 'bg-[var(--pl-cream)]/98 border-b border-[rgba(0,0,0,0.04)]')
             : navStyle === 'floating'
-              ? 'fixed top-2 left-4 right-4 rounded-full'
-              : 'fixed top-0 left-0 right-0',
-          // Padding — tighter on mobile
-          scrolled ? 'py-1.5 lg:py-2' : navStyle === 'floating' ? 'py-1' : 'py-2 lg:py-4',
-          // Style-specific backgrounds — skipped when custom navBackground is set
-          navBackground
-            ? ''
-            : navStyle === 'minimal'
-              ? (atTop && !isStudio
-                ? 'bg-transparent border-b border-transparent shadow-none'
-                : 'bg-transparent border-b border-[rgba(0,0,0,0.06)] shadow-none')
-              : navStyle === 'solid'
-                ? 'bg-white border-b border-[rgba(0,0,0,0.05)] shadow-[0_2px_12px_rgba(43,30,20,0.04)]'
-                : navStyle === 'editorial'
-                  ? (atTop && !isStudio
-                    ? 'bg-transparent border-b border-transparent'
-                    : 'bg-[var(--pl-cream)]/98 border-b border-[rgba(0,0,0,0.04)]')
-                  : navStyle === 'floating'
-                    ? 'bg-white/90 border border-[rgba(255,255,255,0.6)] shadow-[0_4px_24px_rgba(43,30,20,0.08)]'
-                    : (atTop && !isStudio
-                      ? 'bg-black/50 border-b border-white/10 shadow-none'
-                      : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
-        )}
-        style={{
-          // When inline (editor preview): sticky + kill transform so sticky works
-          ...(inline ? { position: 'sticky' as const, top: 0, transform: 'none' } : {}),
-          backdropFilter: navStyle === 'minimal' ? 'none'
-            : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
-            : 'blur(14px) saturate(1.6)',
-          WebkitBackdropFilter: navStyle === 'minimal' ? 'none'
-            : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
-            : 'blur(14px) saturate(1.6)',
-        }}
-        {...(inline
-          ? { initial: false, animate: undefined, transition: undefined }
-          : { initial: { y: -80, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
-        )}
-      >
-        {/* Custom nav background overlay — separate layer so it doesn't affect Safari chrome or child opacity */}
-        {navBackground && (
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
-              backgroundColor: navBackground,
-              opacity: navOpacity !== undefined ? navOpacity / 100 : 1,
-              borderRadius: 'inherit',
-            }}
-          />
-        )}
-        {/* Opacity-only overlay (no custom background) */}
-        {!navBackground && navOpacity !== undefined && navOpacity < 100 && (
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
-              background: 'inherit',
-              opacity: navOpacity / 100,
-              borderRadius: 'inherit',
-            }}
-          />
-        )}
-        {/* Scroll progress bar */}
-        {!isStudio && (
-          <motion.div
-            style={{
-              position: 'absolute', top: 0, left: 0, right: 0,
-              height: '2px', scaleX, transformOrigin: '0%',
-              background: 'linear-gradient(90deg, var(--pl-olive), color-mix(in srgb, var(--pl-olive) 60%, white))',
-            }}
-          />
-        )}
+              ? 'bg-white/90 border border-[rgba(255,255,255,0.6)] shadow-[0_4px_24px_rgba(43,30,20,0.08)]'
+              : (atTop && !isStudio
+                ? 'bg-black/50 border-b border-white/10 shadow-none'
+                : 'bg-[var(--pl-cream,rgba(245,241,232,0.94))]/95 border-b border-[rgba(0,0,0,0.04)] shadow-[0_2px_20px_rgba(0,0,0,0.04)]'),
+  );
 
+  const navInlineStyle: React.CSSProperties = {
+    backdropFilter: navStyle === 'minimal' ? 'none'
+      : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
+      : 'blur(14px) saturate(1.6)',
+    WebkitBackdropFilter: navStyle === 'minimal' ? 'none'
+      : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
+      : 'blur(14px) saturate(1.6)',
+  } as React.CSSProperties;
+
+  const navContent = (
+    <>
+      {/* Custom nav background overlay */}
+      {navBackground && (
         <div
-          className="relative mx-auto grid items-center h-[3.25rem]"
+          aria-hidden="true"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+            backgroundColor: navBackground,
+            opacity: navOpacity !== undefined ? navOpacity / 100 : 1,
+            borderRadius: 'inherit',
+          }}
+        />
+      )}
+      {!navBackground && navOpacity !== undefined && navOpacity < 100 && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+            background: 'inherit',
+            opacity: navOpacity / 100,
+            borderRadius: 'inherit',
+          }}
+        />
+      )}
+      {/* Scroll progress bar */}
+      {!isStudio && !inline && (
+        <motion.div
+          style={{
+            position: 'absolute', top: 0, left: 0, right: 0,
+            height: '2px', scaleX, transformOrigin: '0%',
+            background: 'linear-gradient(90deg, var(--pl-olive), color-mix(in srgb, var(--pl-olive) 60%, white))',
+          }}
+        />
+      )}
+
+      <div
+        className="relative mx-auto grid items-center h-[3.25rem]"
           style={{
             maxWidth: layout.maxWidth,
             padding: `0 ${layout.padding}`,
@@ -348,7 +337,27 @@ export function SiteNav({
             )}
           </div>
         </div>
-      </motion.nav>
+      </>
+    );
+
+  return (
+    <>
+      {/* ── Nav bar — plain <nav> when inline (editor), motion.nav otherwise ── */}
+      {inline ? (
+        <nav className={navClassName} style={navInlineStyle}>
+          {navContent}
+        </nav>
+      ) : (
+        <motion.nav
+          className={navClassName}
+          style={navInlineStyle}
+          initial={{ y: -80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {navContent}
+        </motion.nav>
+      )}
 
       {/* ── Slide-in drawer ── */}
       <AnimatePresence>
