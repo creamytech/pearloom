@@ -114,10 +114,15 @@ export function MobileEditorSheet() {
       setActiveChapterId(chapterId);
       setActiveSection('story');
       setActiveTab('edit');
-      setSheetSnap(1);
+      setSheetSnap(0);
+      requestAnimationFrame(() => setSheetSnap(2));
       dispatch({ type: 'SET_ACTIVE_ID', id: chapterId });
       return;
     }
+
+    // Only open panel for sections that have settings — ignore background taps
+    const validSections = ['hero', 'story', 'nav', 'footer', 'events', 'rsvp', 'registry', 'travel', 'faq', 'photos', 'guestbook', 'map', 'quote', 'text', 'video', 'countdown', 'divider', 'spotify', 'hashtag', 'weddingParty', 'vibeQuote', 'welcome', 'anniversary', 'storymap', 'quiz', 'photoWall', 'gallery'];
+    if (!validSections.includes(sectionId)) return;
 
     if (blockId) {
       setSelectedBlockId(blockId);
@@ -127,8 +132,9 @@ export function MobileEditorSheet() {
     setActiveSection(sectionId);
     setActiveChapterId(null);
     setActiveTab('edit');
-    // Snap to full so settings are immediately visible
-    setSheetSnap(2);
+    // Force snap change even if already at 2 — reset then set
+    setSheetSnap(0);
+    requestAnimationFrame(() => setSheetSnap(2));
 
     // Flash highlight on the tapped section in preview
     const el = previewRef.current?.querySelector(`[data-pe-section="${sectionId}"]`) as HTMLElement | null;

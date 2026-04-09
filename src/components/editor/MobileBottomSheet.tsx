@@ -170,11 +170,13 @@ export function MobileBottomSheet({
 
   // ── Controlled snap — react to external snap changes ──────────
 
+  const lastControlledSnap = useRef<number | undefined>(undefined);
   useEffect(() => {
-    if (controlledSnap !== undefined && controlledSnap !== currentSnap) {
+    if (controlledSnap !== undefined && controlledSnap !== lastControlledSnap.current) {
+      lastControlledSnap.current = controlledSnap;
       animateToSnap(controlledSnap);
     }
-  }, [controlledSnap]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [controlledSnap, animateToSnap]);
 
   // ── Drag handlers (touch on handle area) ──────────────────────
 

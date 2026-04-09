@@ -439,13 +439,13 @@ export function SiteNav({
   // ── Drawer (CSS-animated, no Framer Motion) ──────────────────
   const drawer = drawerOpen && (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — always fixed to cover full viewport */}
       <div
         onClick={closeDrawer}
         style={{
-          position: inline ? 'absolute' : 'fixed',
+          position: 'fixed',
           inset: 0,
-          zIndex: 101,
+          zIndex: 9998,
           backgroundColor: 'rgba(43,30,20,0.2)',
           backdropFilter: 'blur(4px)',
           WebkitBackdropFilter: 'blur(4px)',
@@ -455,15 +455,15 @@ export function SiteNav({
         } as React.CSSProperties}
       />
 
-      {/* Panel */}
+      {/* Panel — always fixed to cover full viewport */}
       <div
         ref={drawerRef}
         style={{
-          position: inline ? 'absolute' : 'fixed',
+          position: 'fixed',
           top: 0,
           right: 0,
           bottom: 0,
-          zIndex: 102,
+          zIndex: 9999,
           width: 'min(280px, 100vw)',
           display: 'flex',
           flexDirection: 'column',

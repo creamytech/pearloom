@@ -1390,6 +1390,7 @@ const scrollArea: React.CSSProperties = {
   flex: 1,
   overflowY: 'auto',
   WebkitOverflowScrolling: 'touch',
+  paddingBottom: '80px', // Space for bottom tab bar
 } as React.CSSProperties;
 
 const sectionPad: React.CSSProperties = {
