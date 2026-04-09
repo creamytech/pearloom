@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { PageBlock, StoryManifest } from '@/types';
+import { getHeroIllustrationDataUrl } from '@/lib/hero-illustrations';
 
 export interface SiteTemplate {
   id: string;
@@ -1175,7 +1176,13 @@ export function applyTemplate(
     } as StoryManifest['theme'],
     vibeString: template.vibeString,
     layoutFormat: template.layoutFormat as StoryManifest['layoutFormat'],
-    coverPhoto: template.coverPhoto || manifest.coverPhoto,
+    // Use illustrated SVG hero if available, fall back to stock photo
+    coverPhoto: getHeroIllustrationDataUrl(template.id, {
+      background: template.theme.colors.background,
+      accent: template.theme.colors.accent,
+      accent2: template.theme.colors.accentLight,
+      foreground: template.theme.colors.foreground,
+    }) || template.coverPhoto || manifest.coverPhoto,
     poetry: {
       ...manifest.poetry,
       ...template.poetry,
