@@ -210,6 +210,66 @@ function NavCustomizationPanel({ manifest, onChange }: { manifest: StoryManifest
           })}
         </div>
       </div>
+
+      {/* Nav opacity */}
+      <div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+          Nav Opacity — {manifest.navOpacity ?? 100}%
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={manifest.navOpacity ?? 100}
+          onChange={e => onChange({ ...manifest, navOpacity: Number(e.target.value) })}
+          style={{ width: '100%', accentColor: 'var(--pl-olive)' }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '2px' }}>
+          <span>Transparent</span><span>Full</span>
+        </div>
+      </div>
+
+      {/* Nav background color */}
+      <div>
+        <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--pl-muted)', marginBottom: '8px' }}>
+          Nav Background
+        </div>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {[
+            { label: 'Auto', value: '' },
+            { label: 'White', value: 'rgba(255,255,255,0.9)' },
+            { label: 'Cream', value: 'rgba(245,241,232,0.92)' },
+            { label: 'Dark', value: 'rgba(28,28,28,0.85)' },
+            { label: 'Black', value: 'rgba(0,0,0,0.7)' },
+            { label: 'Accent', value: accent },
+          ].map(opt => {
+            const isActive = (manifest.navBackground || '') === opt.value;
+            return (
+              <button
+                key={opt.label}
+                onClick={() => onChange({ ...manifest, navBackground: opt.value || undefined })}
+                style={{
+                  padding: '6px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 600,
+                  border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
+                  background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
+                  color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-muted)',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
+                {opt.value && opt.label !== 'Auto' && (
+                  <span style={{
+                    display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%',
+                    background: opt.value, border: '1px solid rgba(0,0,0,0.1)',
+                    marginRight: '4px', verticalAlign: 'middle',
+                  }} />
+                )}
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

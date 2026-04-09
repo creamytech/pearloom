@@ -75,6 +75,8 @@ interface SiteNavProps {
   logoIcon?: LogoIconId;
   logoSvg?: string;
   navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
+  navOpacity?: number;
+  navBackground?: string;
   currentPage?: string;
   /** When provided, overrides the default path-based href generation for page links. */
   pageHrefOverride?: (slug: string) => string;
@@ -89,6 +91,8 @@ export function SiteNav({
   logoIcon,
   logoSvg,
   navStyle = 'glass',
+  navOpacity,
+  navBackground,
   currentPage,
   pageHrefOverride,
   user,
@@ -178,6 +182,8 @@ export function SiteNav({
           WebkitBackdropFilter: navStyle === 'minimal' ? 'none'
             : navStyle === 'floating' ? 'blur(24px) saturate(1.5)'
             : 'blur(14px) saturate(1.6)',
+          ...(navOpacity !== undefined ? { opacity: navOpacity / 100 } : {}),
+          ...(navBackground ? { backgroundColor: navBackground } : {}),
         }}
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

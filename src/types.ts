@@ -103,6 +103,9 @@ export interface StoryManifest {
   logoSvg?: string;
   // Navigation bar style variant
   navStyle?: 'glass' | 'minimal' | 'solid' | 'editorial' | 'floating';
+  // Nav bar customization — opacity (0-100) and custom background color
+  navOpacity?: number;
+  navBackground?: string;
   // SEO
   seoTitle?: string;
   seoDescription?: string;

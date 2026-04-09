@@ -1482,6 +1482,8 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
             logoIcon={manifest.logoIcon}
             logoSvg={manifest.logoSvg}
             navStyle={manifest.navStyle}
+            navOpacity={manifest.navOpacity}
+            navBackground={manifest.navBackground}
             pageHrefOverride={(slug) => {
               // In editor: scroll to section instead of navigating
               const sectionId = slug === '' || slug === 'our-story' ? 'our-story' : slug;
