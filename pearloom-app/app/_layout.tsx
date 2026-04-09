@@ -118,8 +118,22 @@ export default function RootLayout() {
             animation: 'slide_from_right',
           }}
         />
+        <Stack.Screen
+          name="wizard/index"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
         <Stack.Screen name="editor/[siteId]" options={{ headerShown: true }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name="marketplace"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
         <Stack.Screen
           name="qr-scan"
           options={{

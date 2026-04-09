@@ -13,6 +13,7 @@ import {
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as Haptics from 'expo-haptics';
 import { colors, fonts, spacing, radius } from '@/lib/theme';
+import type { WizardPhoto } from '@/lib/types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const GRID_PADDING = spacing.xl;
@@ -21,13 +22,11 @@ const NUM_COLUMNS = 3;
 const ITEM_SIZE =
   (SCREEN_WIDTH - GRID_PADDING * 2 - GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
 
-export interface PhotoItem {
-  uri: string;
-  id: string;
-}
+/** @deprecated Use WizardPhoto from @/lib/types instead */
+export type PhotoItem = WizardPhoto;
 
 interface PhotoGridProps {
-  photos: PhotoItem[];
+  photos: WizardPhoto[];
   onRemove: (id: string) => void;
   onAdd: () => void;
   maxPhotos?: number;
@@ -39,7 +38,7 @@ function AnimatedPhoto({
   onRemove,
   index,
 }: {
-  photo: PhotoItem;
+  photo: WizardPhoto;
   onRemove: (id: string) => void;
   index: number;
 }) {

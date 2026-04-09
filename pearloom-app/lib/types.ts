@@ -44,3 +44,70 @@ export interface User {
   name: string;
   avatar_url?: string;
 }
+
+// ── Wizard types ────────────────────────────────────────────────────────
+
+export interface WizardPhoto {
+  uri: string;
+  id: string;
+}
+
+export type VibeOption =
+  | 'romantic'
+  | 'modern'
+  | 'rustic'
+  | 'playful'
+  | 'elegant'
+  | 'boho'
+  | 'celestial'
+  | 'tropical'
+  | 'vintage'
+  | 'minimalist';
+
+export interface WizardState {
+  photos: WizardPhoto[];
+  name1: string;
+  name2: string;
+  occasion: string;
+  vibeText: string;
+  selectedVibes: VibeOption[];
+  eventDate: Date | null;
+  venueName: string;
+}
+
+// ── Marketplace types ───────────────────────────────────────────────────
+
+export interface MarketplaceTemplate {
+  id: string;
+  name: string;
+  tagline?: string;
+  description?: string;
+  category: 'wedding' | 'birthday' | 'anniversary' | 'engagement' | 'general';
+  colors: string[];
+  headingFont?: string;
+  bodyFont?: string;
+  blockCount?: number;
+  blocks?: string[];
+  price?: number;
+  owned?: boolean;
+  popular?: boolean;
+  previewUrl?: string;
+}
+
+export interface AssetPack {
+  id: string;
+  name: string;
+  description?: string;
+  itemCount: number;
+  price: number;
+  gradientColors: [string, string];
+  items: AssetPackItem[];
+  owned?: boolean;
+}
+
+export interface AssetPackItem {
+  id: string;
+  name: string;
+  type: 'illustration' | 'icon' | 'pattern' | 'border' | 'divider';
+  previewUrl?: string;
+}

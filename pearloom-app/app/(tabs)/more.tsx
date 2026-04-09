@@ -204,6 +204,21 @@ export default function MoreScreen() {
 
   const sections: SettingsSection[] = [
     {
+      title: 'Discover',
+      items: [
+        {
+          key: 'marketplace',
+          icon: 'shopping-bag',
+          label: 'Marketplace',
+          subtitle: 'Templates, themes & asset packs',
+          onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/marketplace');
+          },
+        },
+      ],
+    },
+    {
       title: 'Preferences',
       items: [
         {
