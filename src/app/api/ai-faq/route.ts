@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS, checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +37,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Rate limit by user email
+  // ── Pear monthly usage check ──────────────────────────────
+  const { blocked, gate } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
+
+  // Rate limit by user email (per-hour burst protection)
   const rateCheck = checkRateLimit(`ai-faq:${session.user.email}`, RATE_LIMITS.aiBlocks);
   if (!rateCheck.allowed) {
     return NextResponse.json(
@@ -202,7 +206,13 @@ Categories to use: "logistics", "dress-code", "travel", "gifts", "ceremony", "ge
       })
     );
 
-    return NextResponse.json({ faqs });
+    return NextResponse.json(
+      {
+        faqs,
+        ...(gate!.isUnlimited ? { plan: gate!.plan } : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
+      },
+      { headers: pearHeaders(gate!) },
+    );
   } catch (err) {
     console.error('[ai-faq] Error:', err);
     return NextResponse.json({ error: 'FAQ generation failed' }, { status: 500 });

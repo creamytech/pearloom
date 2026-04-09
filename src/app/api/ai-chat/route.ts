@@ -7,6 +7,7 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 import type { StoryManifest } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -115,6 +116,11 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // ── Pear monthly usage check ──────────────────────────────
+  const userEmail = session.user.email;
+  const { blocked, gate } = await checkPearGate(userEmail);
+  if (blocked) return blocked;
+
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
     return Response.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
@@ -222,11 +228,16 @@ ACTIVE CHAPTER: ${activeChapter ? `[${activeChapter.id}] "${activeChapter.title}
     ]);
     const action = ALLOWED_ACTIONS.has(parsed.action) ? parsed.action : 'message';
 
-    return Response.json({
+    const responseBody = {
       action,
       data: parsed.data ?? null,
       reply: typeof parsed.reply === 'string' ? parsed.reply.slice(0, 1000) : 'Done!',
-    });
+      ...(gate!.isUnlimited
+        ? { plan: gate!.plan }
+        : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
+    };
+
+    return Response.json(responseBody, { headers: pearHeaders(gate!) });
   } catch (err) {
     console.error('[ai-chat] Error:', err);
     return Response.json(

@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +39,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Rate limit by user email
+  // ── Pear monthly usage check ──────────────────────────────
+  const { blocked, gate } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
+
+  // Rate limit by user email (per-hour burst protection)
   const rateCheck = checkRateLimit(`ai-thankyou:${session.user.email}`, RATE_LIMIT_THANKYOU);
   if (!rateCheck.allowed) {
     return NextResponse.json(
@@ -98,7 +102,13 @@ Return ONLY the plain text note (no JSON, no quotes, no formatting):`;
         : `Thank you so much for being there to celebrate with us — your presence truly made the day special. We loved every moment of having you there, and the memories we made together are ones we'll cherish forever. We can't wait to see you again soon.`;
     }
 
-    return NextResponse.json({ note });
+    return NextResponse.json(
+      {
+        note,
+        ...(gate!.isUnlimited ? { plan: gate!.plan } : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
+      },
+      { headers: pearHeaders(gate!) },
+    );
   } catch (err) {
     console.error('[ai-thankyou] Error:', err);
     return NextResponse.json({ error: 'Generation failed' }, { status: 500 });

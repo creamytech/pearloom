@@ -233,6 +233,7 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   const [confirmDelete, setConfirmDelete]   = useState<UserSite | null>(null);
   const [deleteError, setDeleteError]       = useState<string | null>(null);
   const [copiedId, setCopiedId]             = useState<string | null>(null);
+  const [pearUsage, setPearUsage]           = useState<{ used: number; limit: number; plan: string } | null>(null);
 
 
   const loadSites = () => {
@@ -249,6 +250,16 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
   };
 
   useEffect(() => { loadSites(); }, []);
+
+  // Fetch Pear AI usage stats
+  useEffect(() => {
+    fetch('/api/ai-usage')
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (d) setPearUsage({ used: d.used ?? 0, limit: d.limit ?? 15, plan: d.plan ?? 'free' });
+      })
+      .catch(() => { /* silent */ });
+  }, []);
 
   const handleDelete = async (site: UserSite) => {
     setDeletingDomain(site.domain);
@@ -306,15 +317,41 @@ export function UserSites({ onStartNew, onQuickStart, onOpenTemplates, onEditSit
           </h1>
         </div>
 
-        <Button
-          variant="accent"
-          size="md"
-          onClick={onStartNew}
-          icon={<Plus size={15} />}
-          className="flex-shrink-0 shadow-[0_4px_20px_rgba(163,177,138,0.35)]"
-        >
-          New Site
-        </Button>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Pear usage indicator */}
+          {pearUsage && (
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-full"
+              style={{
+                background: 'rgba(255,255,255,0.5)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(163,177,138,0.15)',
+              } as React.CSSProperties}
+            >
+              <Sparkles size={13} className="text-[var(--pl-olive)]" />
+              <span className="text-[0.72rem] font-semibold" style={{ color: 'var(--pl-ink-soft)' }}>
+                Pear:{' '}
+                {pearUsage.plan !== 'free' ? (
+                  <span className="text-[var(--pl-olive)]">{'\u221E'}</span>
+                ) : (
+                  <span style={{ color: pearUsage.used >= pearUsage.limit ? '#b91c1c' : pearUsage.used >= pearUsage.limit - 3 ? '#b45309' : 'var(--pl-olive)' }}>
+                    {pearUsage.used}/{pearUsage.limit} used
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+          <Button
+            variant="accent"
+            size="md"
+            onClick={onStartNew}
+            icon={<Plus size={15} />}
+            className="flex-shrink-0 shadow-[0_4px_20px_rgba(163,177,138,0.35)]"
+          >
+            New Site
+          </Button>
+        </div>
       </div>
 
       {/* ── Compact creation row — horizontal scroll on mobile ── */}

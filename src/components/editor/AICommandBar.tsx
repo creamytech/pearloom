@@ -8,7 +8,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowUp, Check, Loader2, X } from 'lucide-react';
+import { Sparkles, ArrowUp, Check, Loader2, X, Crown } from 'lucide-react';
 import { PearIcon } from '@/components/icons/PearloomIcons';
 import { useEditor } from '@/lib/editor-state';
 import type { StoryManifest, Chapter } from '@/types';
@@ -86,6 +86,9 @@ export function AICommandBar() {
   const [errorMsg, setErrorMsg] = useState('');
   const [pearReply, setPearReply] = useState('');
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'pear'; text: string; action?: string; data?: Record<string, unknown> | null; ts: number }>>([]);
+  const [pearRemaining, setPearRemaining] = useState<number | null>(null); // null = unknown / unlimited
+  const [pearPlan, setPearPlan] = useState<string>('free');
+  const [limitReached, setLimitReached] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -373,6 +376,21 @@ export function AICommandBar() {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // Helper: update usage tracking from any AI response
+    const trackUsage = (data: Record<string, unknown>, res: globalThis.Response) => {
+      // Check X-Pear-Remaining header
+      const headerRemaining = res.headers.get('X-Pear-Remaining');
+      if (headerRemaining === 'unlimited') {
+        setPearPlan(typeof data.plan === 'string' ? data.plan : 'pro');
+        setPearRemaining(null);
+        return;
+      }
+      if (typeof data.remaining === 'number') {
+        setPearRemaining(data.remaining);
+        setPearPlan(typeof data.plan === 'string' ? data.plan : 'free');
+      }
+    };
+
     try {
       if (handler === 'ai-faq') {
         // Generate FAQs
@@ -382,8 +400,22 @@ export function AICommandBar() {
           body: JSON.stringify({ manifest }),
           signal: controller.signal,
         });
+        // Handle 429 limit_reached
+        if (res.status === 429) {
+          const errData = await res.json().catch(() => ({}));
+          if (errData.error === 'limit_reached') {
+            setPearRemaining(0);
+            setLimitReached(true);
+            setPearPlan('free');
+            setStatus('idle');
+            setInputVal('');
+            return;
+          }
+          throw new Error('HTTP 429');
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        trackUsage(data, res);
         if (data.faqs) {
           const existing = manifest.faqs || [];
           actions.handleChatManifestUpdate({ faqs: [...existing, ...data.faqs] });
@@ -408,8 +440,22 @@ export function AICommandBar() {
           }),
           signal: controller.signal,
         });
+        // Handle 429 limit_reached
+        if (res.status === 429) {
+          const errData = await res.json().catch(() => ({}));
+          if (errData.error === 'limit_reached') {
+            setPearRemaining(0);
+            setLimitReached(true);
+            setPearPlan('free');
+            setStatus('idle');
+            setInputVal('');
+            return;
+          }
+          throw new Error('HTTP 429');
+        }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        trackUsage(data, res);
         const reply = data.reply || data.message || '';
         applyAIResponse(data);
 
@@ -539,6 +585,32 @@ export function AICommandBar() {
                   fontStyle: 'italic',
                   color: 'var(--pl-ink)',
                 }}>Pear</span>
+                {/* Usage counter */}
+                {pearRemaining !== null && pearPlan === 'free' ? (
+                  <span style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    color: pearRemaining <= 3 ? '#b45309' : 'var(--pl-muted)',
+                    background: pearRemaining <= 3 ? 'rgba(180,83,9,0.08)' : 'rgba(0,0,0,0.04)',
+                    padding: '2px 8px',
+                    borderRadius: 100,
+                    fontFamily: 'var(--pl-font-body)',
+                  }}>
+                    {15 - pearRemaining}/15
+                  </span>
+                ) : pearPlan !== 'free' ? (
+                  <span style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 600,
+                    color: OLIVE,
+                    background: 'rgba(163,177,138,0.1)',
+                    padding: '2px 8px',
+                    borderRadius: 100,
+                    fontFamily: 'var(--pl-font-body)',
+                  }}>
+                    {'\u221E'}
+                  </span>
+                ) : null}
               </div>
               <motion.button
                 onClick={close}
@@ -666,7 +738,121 @@ export function AICommandBar() {
               </div>
             )}
 
-            {/* ── Input bar (fixed at bottom) ───────────────── */}
+            {/* ── Low messages warning ──────────────────────── */}
+            {!limitReached && pearRemaining !== null && pearRemaining <= 3 && pearRemaining > 0 && pearPlan === 'free' && (
+              <div style={{
+                padding: '6px 16px',
+                fontSize: '0.72rem',
+                color: '#b45309',
+                background: 'rgba(180,83,9,0.05)',
+                borderTop: '1px solid rgba(180,83,9,0.1)',
+                textAlign: 'center',
+                flexShrink: 0,
+                fontFamily: 'var(--pl-font-body)',
+              }}>
+                {pearRemaining} message{pearRemaining === 1 ? '' : 's'} left this month
+              </div>
+            )}
+
+            {/* ── Limit reached upgrade prompt ─────────────────── */}
+            {limitReached ? (
+              <div style={{
+                padding: '20px 16px',
+                borderTop: '1px solid rgba(163,177,138,0.12)',
+                background: 'rgba(255,255,255,0.06)',
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                textAlign: 'center',
+              }}>
+                {/* Pear avatar + message */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 10,
+                  width: '100%',
+                }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(163,177,138,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <PearIcon size={20} color={OLIVE} />
+                  </div>
+                  <div style={{
+                    padding: '10px 14px', borderRadius: 16,
+                    background: 'rgba(255,255,255,0.7)',
+                    border: '1px solid rgba(163,177,138,0.1)',
+                    fontSize: '0.84rem', lineHeight: 1.55,
+                    color: 'var(--pl-ink-soft)',
+                    fontFamily: 'var(--pl-font-body)',
+                    textAlign: 'left',
+                  }}>
+                    I&apos;ve loved helping you build your site! Upgrade to Pro to keep our conversation going. — Pear
+                  </div>
+                </div>
+
+                {/* Glass card */}
+                <div style={{
+                  width: '100%',
+                  padding: '16px',
+                  borderRadius: 16,
+                  background: 'rgba(255,255,255,0.5)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(163,177,138,0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 10,
+                } as React.CSSProperties}>
+                  <p style={{
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: 'var(--pl-ink)',
+                    fontFamily: 'var(--pl-font-heading)',
+                    fontStyle: 'italic',
+                    margin: 0,
+                  }}>
+                    You&apos;ve used all 15 free Pear messages this month
+                  </p>
+                  <button
+                    onClick={() => { window.location.href = '/dashboard?upgrade=true'; }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '10px 24px', borderRadius: 100,
+                      background: OLIVE, color: 'white',
+                      border: 'none', cursor: 'pointer',
+                      fontSize: '0.82rem', fontWeight: 700,
+                      fontFamily: 'var(--pl-font-body)',
+                      letterSpacing: '0.02em',
+                      boxShadow: '0 4px 16px rgba(163,177,138,0.35)',
+                    }}
+                  >
+                    <Crown size={14} />
+                    Upgrade to Pro
+                  </button>
+                  <button
+                    onClick={() => { /* dismiss — just let them read history */ }}
+                    style={{
+                      background: 'none', border: 'none',
+                      cursor: 'pointer', fontSize: '0.72rem',
+                      color: 'var(--pl-muted)',
+                      fontFamily: 'var(--pl-font-body)',
+                      textDecoration: 'underline',
+                      textDecorationColor: 'rgba(0,0,0,0.15)',
+                      textUnderlineOffset: '2px',
+                    }}
+                  >
+                    Or wait until next month
+                  </button>
+                </div>
+              </div>
+            ) : (
+            /* ── Input bar (fixed at bottom) ───────────────── */
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -762,6 +948,7 @@ export function AICommandBar() {
                 </motion.button>
               )}
             </div>
+            )}
 
             {/* Loading shimmer overlay */}
             <AnimatePresence>

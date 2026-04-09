@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS, checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +39,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Rate limit by user email
+  // ── Pear monthly usage check ──────────────────────────────
+  const { blocked, gate } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
+
+  // Rate limit by user email (per-hour burst protection)
   const rateCheck = checkRateLimit(`ai-registry-import:${session.user.email}`, RATE_LIMIT_REGISTRY_IMPORT);
   if (!rateCheck.allowed) {
     return NextResponse.json(
@@ -115,7 +119,13 @@ Return ONLY valid JSON (no markdown, no backticks):
       parsed = { name, url, note, platform };
     }
 
-    return NextResponse.json({ entry: parsed });
+    return NextResponse.json(
+      {
+        entry: parsed,
+        ...(gate!.isUnlimited ? { plan: gate!.plan } : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
+      },
+      { headers: pearHeaders(gate!) },
+    );
   } catch (err) {
     console.error('[ai-registry-import] Error:', err);
     return NextResponse.json({ error: 'Import failed' }, { status: 500 });

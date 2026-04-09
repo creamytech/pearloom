@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS, checkPearGate, pearHeaders, PEAR_MONTHLY_LIMIT } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +37,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Rate limit by user email
+  // ── Pear monthly usage check ──────────────────────────────
+  const { blocked, gate } = await checkPearGate(session.user.email);
+  if (blocked) return blocked;
+
+  // Rate limit by user email (per-hour burst protection)
   const rateCheck = checkRateLimit(`ai-meals:${session.user.email}`, RATE_LIMITS.aiBlocks);
   if (!rateCheck.allowed) {
     return NextResponse.json(
@@ -98,7 +102,13 @@ Only include dietaryTags that actually apply to each dish. Make descriptions war
         ];
       }
 
-      return NextResponse.json({ meals: Array.isArray(parsed) ? parsed : [parsed] });
+      return NextResponse.json(
+        {
+          meals: Array.isArray(parsed) ? parsed : [parsed],
+          ...(gate!.isUnlimited ? { plan: gate!.plan } : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
+        },
+        { headers: pearHeaders(gate!) },
+      );
     }
 
     // ── Mode 2: Generate description for a single meal ──
@@ -136,7 +146,13 @@ Return ONLY the description text — no quotes, no JSON, just the 1-2 sentences.
       description = `A beautifully prepared ${mealName.toLowerCase()}, crafted with seasonal ingredients and served with care.`;
     }
 
-    return NextResponse.json({ description });
+    return NextResponse.json(
+      {
+        description,
+        ...(gate!.isUnlimited ? { plan: gate!.plan } : { remaining: gate!.remaining, limit: PEAR_MONTHLY_LIMIT, plan: 'free' }),
+      },
+      { headers: pearHeaders(gate!) },
+    );
   } catch (err) {
     console.error('[ai-meals] Error:', err);
     return NextResponse.json({ error: 'Meal generation failed' }, { status: 500 });
