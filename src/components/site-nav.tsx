@@ -333,9 +333,7 @@ export function SiteNav({
         );
       })}
     </nav>
-  ) : (
-    <div />
-  );
+  ) : null;
 
   // ── Right-side actions ───────────────────────────────────────
   const rightContent = (
