@@ -137,16 +137,18 @@ export function MobileEditorSheet() {
     requestAnimationFrame(() => setSheetSnap(2));
 
     // Flash highlight on the tapped section in preview
-    const el = previewRef.current?.querySelector(`[data-pe-section="${sectionId}"]`) as HTMLElement | null;
-    if (el) {
-      el.style.outline = '2px solid var(--pl-olive)';
-      el.style.outlineOffset = '-2px';
-      el.style.transition = 'outline-color 0.6s ease';
-      setTimeout(() => {
-        el.style.outlineColor = 'transparent';
-        setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 600);
-      }, 800);
-    }
+    try {
+      const el = previewRef.current?.querySelector(`[data-pe-section="${sectionId}"]`) as HTMLElement | null;
+      if (el) {
+        el.style.outline = '2px solid var(--pl-olive)';
+        el.style.outlineOffset = '-2px';
+        el.style.transition = 'outline-color 0.6s ease';
+        setTimeout(() => {
+          el.style.outlineColor = 'transparent';
+          setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 600);
+        }, 800);
+      }
+    } catch { /* DOM query failed — non-critical */ }
   }, [dispatch]);
 
   // ── Inline text edit — direct DOM (matches EditorCanvas) ───
@@ -235,14 +237,15 @@ export function MobileEditorSheet() {
   // ── Block drop → insert at position ──────────────────────
   const handleBlockDrop = useCallback((blockType: string, position: number) => {
     const blocks = manifest.blocks || [];
+    const safePosition = Math.max(0, Math.min(position, blocks.length));
     const newBlock = {
       id: `block-${blockType}-${Date.now()}`,
       type: blockType as BlockType,
-      order: position,
+      order: safePosition,
       visible: true,
     };
     const updated = [...blocks];
-    updated.splice(position, 0, newBlock);
+    updated.splice(safePosition, 0, newBlock);
     actions.handleDesignChange({ ...manifest, blocks: updated.map((b, i) => ({ ...b, order: i })) });
   }, [manifest, actions]);
 

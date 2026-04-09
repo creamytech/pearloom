@@ -46,8 +46,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
   const [aiFaqLoading, setAiFaqLoading] = useState(false);
   const [aiFaqError, setAiFaqError] = useState<string | null>(null);
   const generateSmartFaqs = useCallback(async () => {
-    setAiFaqLoading(true);
     setAiFaqError(null);
+    setAiFaqLoading(true);
     try {
       const res = await fetch('/api/ai-faq', {
         method: 'POST',
@@ -103,7 +103,8 @@ export function DetailsPanel({ manifest, onChange, subdomain }: { manifest: Stor
       const res = await fetch('/api/ai-registry-import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: registryUrl.trim() }),
+        body: JSON.stringify({ url: registryUrl.trim(), occasion: manifest.occasion, vibe: manifest.vibeString }),
+        signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
