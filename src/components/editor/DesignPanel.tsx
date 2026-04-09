@@ -486,6 +486,10 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
   const [feedbackExpanded, setFeedbackExpanded] = useState(true);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
+  // ── AI Tone Adjuster state ──
+  const [activeTone, setActiveTone] = useState<string | null>(null);
+  const [toneLoading, setToneLoading] = useState(false);
+
   const handleGetDesignFeedback = async () => {
     setFeedbackLoading(true);
     setFeedbackError(null);
@@ -577,6 +581,24 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
         },
       },
     });
+  };
+
+  const handleToneAdjust = async (tone: string) => {
+    if (toneLoading) return;
+    setActiveTone(tone);
+    setToneLoading(true);
+    try {
+      const names = coupleNames ? `${coupleNames[0]} & ${coupleNames[1]}` : 'the couple';
+      const prompt = `Rewrite ALL text content on this site to match a ${tone} tone. Update the hero tagline, welcome message, closing line, RSVP intro, and all chapter descriptions. The couple's names are ${names}. Return multiple update_manifest and update_chapter actions to apply all changes at once. Be comprehensive — change every piece of text content.`;
+      // Dispatch to Pear command bar for comprehensive tone rewrite
+      window.dispatchEvent(new CustomEvent('pear-command', { detail: { prompt } }));
+    } finally {
+      // Reset after a brief delay to show the active state
+      setTimeout(() => {
+        setToneLoading(false);
+        setActiveTone(null);
+      }, 500);
+    }
   };
 
   const colors = manifest.theme?.colors || {};
@@ -691,6 +713,69 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
       {regenError && (
         <p style={{ fontSize: '0.78rem', color: '#e87a7a', marginTop: '-4px' }}>{regenError}</p>
       )}
+
+      {/* ── Writing Style — AI tone adjuster ── */}
+      <SidebarSection title="Writing Style" defaultOpen={false}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--pl-muted, #7A756E)', margin: 0, lineHeight: 1.5 }}>
+            Let Pear rewrite all your site copy to match a tone.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            {(['Casual', 'Warm', 'Elegant', 'Formal'] as const).map((tone) => {
+              const isActive = activeTone === tone;
+              return (
+                <button
+                  key={tone}
+                  onClick={() => handleToneAdjust(tone)}
+                  disabled={toneLoading}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    border: isActive ? '2px solid var(--pl-olive)' : '1px solid rgba(255,255,255,0.3)',
+                    background: isActive ? 'rgba(163,177,138,0.1)' : 'rgba(255,255,255,0.5)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    cursor: toneLoading ? 'wait' : 'pointer',
+                    opacity: toneLoading && !isActive ? 0.5 : 1,
+                    transition: 'all 0.15s',
+                    fontSize: '0.72rem',
+                    fontWeight: isActive ? 700 : 600,
+                    color: isActive ? 'var(--pl-olive-deep)' : 'var(--pl-ink-soft, #3D3530)',
+                  } as React.CSSProperties}
+                >
+                  {isActive && toneLoading ? (
+                    <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                  ) : (
+                    <PearIcon size={12} color={isActive ? 'var(--pl-olive)' : 'var(--pl-muted, #7A756E)'} />
+                  )}
+                  {tone}
+                </button>
+              );
+            })}
+          </div>
+          {toneLoading && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              borderRadius: '10px',
+              background: 'rgba(163,177,138,0.06)',
+              border: '1px solid rgba(163,177,138,0.12)',
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              color: 'var(--pl-olive, #A3B18A)',
+            }}>
+              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+              Pear is adjusting your tone...
+            </div>
+          )}
+        </div>
+      </SidebarSection>
 
       {/* ── Theme — presets ── */}
       <SidebarSection title="Theme" defaultOpen={forceOpenSection === 'theme' || !forceOpenSection} key={forceOpenSection === 'theme' ? 'theme-open' : 'theme'}>
