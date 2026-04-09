@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { useEditor, type DeviceMode } from '@/lib/editor-state';
 import { SiteRenderer } from './SiteRenderer';
+import { PearTextRewrite } from './PearTextRewrite';
 import type { BlockType, PageBlock } from '@/types';
 
 export function EditorCanvas() {
@@ -295,6 +296,9 @@ export function EditorCanvas() {
       }}
     >
       {/* Device switcher moved to toolbar */}
+
+      {/* AI text rewrite floating pill — shows on text selection */}
+      <PearTextRewrite onTextEdit={handleTextEdit} />
 
       {/* ── Canvas content — direct DOM rendering ── */}
       <div style={{

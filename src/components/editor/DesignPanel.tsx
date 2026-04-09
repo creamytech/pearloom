@@ -480,6 +480,38 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
   const [regenError, setRegenError] = useState('');
   const [forceOpenSection, setForceOpenSection] = useState<string | null>(null);
 
+  // ── AI Design Critic state ──
+  const [designFeedback, setDesignFeedback] = useState<string | null>(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackExpanded, setFeedbackExpanded] = useState(true);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
+  const handleGetDesignFeedback = async () => {
+    setFeedbackLoading(true);
+    setFeedbackError(null);
+    setDesignFeedback(null);
+    setFeedbackExpanded(true);
+    try {
+      const res = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: "Review this site's visual design critically. Check: 1) Does the heading font pair well with the body font? 2) Does the color palette have enough contrast? 3) Are the accent colors harmonious? 4) Is the overall vibe consistent? Give specific, actionable improvement suggestions. Use the 'message' action.",
+          manifest,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const reply = data.reply || data.message || '';
+      setDesignFeedback(reply);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Could not get feedback';
+      setFeedbackError(msg);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
   // Auto-open section from contextual click
   useEffect(() => {
     if (state.contextSection && state.activeTab === 'design') {
@@ -555,6 +587,71 @@ export function DesignPanel({ manifest, onChange, coupleNames }: { manifest: Sto
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '24px' }}>
+
+      {/* ── AI Design Critic ── */}
+      <div className="pl-panel-section" style={{
+        display: 'flex', flexDirection: 'column', gap: '10px',
+        background: 'rgba(255,255,255,0.45)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(163,177,138,0.2)',
+        borderRadius: '14px',
+        padding: '14px',
+        marginBottom: '2px',
+      } as React.CSSProperties}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <PearIcon size={18} color="var(--pl-olive, #A3B18A)" />
+          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--pl-ink)', fontFamily: 'var(--pl-font-heading)', fontStyle: 'italic' }}>
+            Want Pear to review your design?
+          </span>
+        </div>
+        <button
+          onClick={handleGetDesignFeedback}
+          disabled={feedbackLoading}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            padding: '7px 14px', borderRadius: '100px',
+            border: 'none',
+            background: feedbackLoading ? 'rgba(163,177,138,0.2)' : 'rgba(163,177,138,0.9)',
+            color: feedbackLoading ? 'var(--pl-ink-soft)' : '#fff',
+            cursor: feedbackLoading ? 'not-allowed' : 'pointer',
+            fontSize: '0.78rem', fontWeight: 700, transition: 'all 0.15s',
+            boxShadow: feedbackLoading ? 'none' : '0 2px 8px rgba(163,177,138,0.3)',
+            width: '100%',
+          }}
+        >
+          {feedbackLoading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <PearIcon size={12} color="#fff" />}
+          {feedbackLoading ? 'Analyzing design...' : 'Get Feedback'}
+        </button>
+        {feedbackError && (
+          <p style={{ fontSize: '0.72rem', color: '#e87a7a', margin: 0 }}>{feedbackError}</p>
+        )}
+        {designFeedback && (
+          <div style={{ marginTop: '2px' }}>
+            <button
+              onClick={() => setFeedbackExpanded(!feedbackExpanded)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
+                textTransform: 'uppercase', color: 'var(--pl-olive, #A3B18A)',
+              }}
+            >
+              {feedbackExpanded ? 'Hide' : 'Show'} Feedback
+            </button>
+            {feedbackExpanded && (
+              <div style={{
+                marginTop: '6px', padding: '10px 12px', borderRadius: '10px',
+                background: 'rgba(163,177,138,0.06)', border: '1px solid rgba(163,177,138,0.12)',
+                fontSize: '0.78rem', lineHeight: 1.6, color: 'var(--pl-ink-soft, #3D3530)',
+                whiteSpace: 'pre-wrap',
+              }}>
+                {designFeedback}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── Quick AI regenerate ── */}
       <div className="pl-panel-section" style={{

@@ -43,6 +43,10 @@ function getDefaultQuickActions(occasion?: string): QuickAction[] {
     { label: 'Set up events',        prompt: eventPrompt, handler: 'ai-chat' },
     { label: 'Ask Pear for FAQs',    prompt: 'Write 5-7 FAQs guests would actually ask. Use real details from my site. If info is missing, ask me first.', handler: 'ai-chat' },
     { label: 'Suggest improvements', prompt: reviewPrompt, handler: 'ai-chat' },
+    // Guest communications
+    { label: 'Write a save-the-date message', prompt: 'Write a save-the-date message for our guests using our names and wedding date. Make it warm, personal, and ready to copy. Use the \'message\' action — just give me the text.', handler: 'ai-chat' },
+    { label: 'Write a rehearsal dinner invite', prompt: 'Write a rehearsal dinner invitation for our guests. Include a warm, personal tone. Use the \'message\' action — just give me the full invite text to copy.', handler: 'ai-chat' },
+    { label: 'Write a day-of welcome note', prompt: 'Write a day-of welcome note for guests arriving at our wedding. Make it heartfelt and set the tone for the celebration. Use the \'message\' action — just give me the full text to copy.', handler: 'ai-chat' },
   ];
 }
 
@@ -61,11 +65,18 @@ const SECTION_QUICK_ACTIONS: Record<string, QuickAction[]> = {
     { label: 'Improve chapter descriptions', prompt: 'Improve my story chapter descriptions — make them more vivid, personal, and engaging while keeping the same tone.', handler: 'ai-chat' },
     { label: 'Add a new chapter', prompt: 'Add a new chapter to our love story. Suggest a meaningful milestone we might want to include.', handler: 'ai-chat' },
     { label: 'Make stories more emotional', prompt: 'Rewrite our story chapters to be more emotional and heartfelt — add sensory details and personal touches.', handler: 'ai-chat' },
+    { label: 'Get photo tips', prompt: 'Look at my story chapters and suggest how to improve the photo layout. Are there too many photos in one chapter? Should I reorder them? Are any chapters missing photos? Give specific, actionable advice. Use the \'message\' action.', handler: 'ai-chat' },
   ],
   design: [
     { label: 'Change color palette', prompt: 'Change my site color palette to something fresh and cohesive. Suggest a palette that matches the wedding vibe.', handler: 'ai-chat' },
     { label: 'Try different fonts', prompt: 'Try different font pairings for my site. Suggest elegant heading and body font combinations.', handler: 'ai-chat' },
     { label: 'Make it more elegant', prompt: 'Make my site design more elegant — refine the typography, spacing, and color choices to feel more polished and sophisticated.', handler: 'ai-chat' },
+  ],
+  communications: [
+    { label: 'Write a save-the-date message', prompt: 'Write a save-the-date message for our guests using our names and wedding date. Make it warm, personal, and ready to copy. Use the \'message\' action — just give me the text.', handler: 'ai-chat' as const },
+    { label: 'Write a rehearsal dinner invite', prompt: 'Write a rehearsal dinner invitation for our guests. Include a warm, personal tone. Use the \'message\' action — just give me the full invite text to copy.', handler: 'ai-chat' as const },
+    { label: 'Write a day-of welcome note', prompt: 'Write a day-of welcome note for guests arriving at our wedding. Make it heartfelt and set the tone for the celebration. Use the \'message\' action — just give me the full text to copy.', handler: 'ai-chat' as const },
+    { label: 'Write a thank-you note', prompt: 'Write a heartfelt thank-you note for guests who attended our wedding. Use the \'message\' action — just give me the full text to copy.', handler: 'ai-chat' as const },
   ],
 };
 
@@ -80,6 +91,7 @@ function getContextualActions(manifest: StoryManifest, activeSection: string | n
   if (normalized === 'events' || normalized === 'event' || normalized === 'schedule') return SECTION_QUICK_ACTIONS.events;
   if (normalized === 'story' || normalized === 'chapter') return SECTION_QUICK_ACTIONS.story;
   if (normalized === 'design' || normalized === 'theme' || normalized === 'navigation' || normalized === 'nav') return SECTION_QUICK_ACTIONS.design;
+  if (normalized === 'communications' || normalized === 'messaging' || normalized === 'invites' || normalized === 'messages') return SECTION_QUICK_ACTIONS.communications;
 
   return defaults;
 }

@@ -1,13 +1,58 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, X, Camera, Upload, Loader2, LayoutGrid, Share2, ImageIcon } from 'lucide-react';
-import { LoomThreadIcon } from '@/components/icons/PearloomIcons';
+import { LoomThreadIcon, PearIcon } from '@/components/icons/PearloomIcons';
 import { lbl } from './editor-utils';
 import { PhotoReposition } from './PhotoReposition';
 import { useGooglePhotosPicker, type PickedPhoto } from '@/hooks/useGooglePhotosPicker';
 import { GalleryPicker } from './GalleryPicker';
-import type { ChapterImage } from '@/types';
+import { useEditor } from '@/lib/editor-state';
+import type { ChapterImage, Chapter } from '@/types';
+
+// ── Smart Photo Placement Suggestion ─────────────────────────
+interface PlacementSuggestion {
+  chapterTitle: string;
+  chapterId: string;
+  message: string;
+}
+
+function computePlacementSuggestion(
+  currentChapterTitle: string | undefined,
+  currentImages: ChapterImage[],
+  allChapters: Chapter[],
+): PlacementSuggestion | null {
+  if (!allChapters || allChapters.length <= 1) return null;
+  // If the current chapter had 0 photos before and another chapter shares a similar date,
+  // suggest moving the photo there.
+  if (currentImages.length === 1) {
+    // Just added the first photo — check if another chapter with the same date range has photos
+    const currentChapter = allChapters.find(c => c.title === currentChapterTitle);
+    if (currentChapter) {
+      const currentDate = currentChapter.date?.slice(0, 7); // YYYY-MM
+      const sibling = allChapters.find(
+        c => c.id !== currentChapter.id && c.date?.slice(0, 7) === currentDate && c.images && c.images.length > 0
+      );
+      if (sibling) {
+        return {
+          chapterTitle: sibling.title,
+          chapterId: sibling.id,
+          message: `This looks like it could fit in '${sibling.title}' — move it there?`,
+        };
+      }
+    }
+  }
+  // If all chapters have photos, just confirm
+  const allHavePhotos = allChapters.every(c => c.images && c.images.length > 0);
+  if (allHavePhotos && currentChapterTitle) {
+    return {
+      chapterTitle: currentChapterTitle,
+      chapterId: '',
+      message: `Added to ${currentChapterTitle}`,
+    };
+  }
+  return null;
+}
 
 export function ImageManager({
   images, onUpdate, imagePosition, onPositionChange,
@@ -32,6 +77,31 @@ export function ImageManager({
   const [viewMode, setViewMode] = useState<'grid' | 'constellation'>('grid');
   const [galleryOpen, setGalleryOpen] = useState(false);
   const { pick: pickGooglePhotos, state: gpState, error: gpError } = useGooglePhotosPicker();
+
+  // Smart placement suggestion state
+  const [suggestion, setSuggestion] = useState<PlacementSuggestion | null>(null);
+  const suggestionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevImageCount = useRef(images.length);
+  const { manifest } = useEditor();
+
+  const showSuggestion = useCallback((s: PlacementSuggestion) => {
+    setSuggestion(s);
+    if (suggestionTimer.current) clearTimeout(suggestionTimer.current);
+    suggestionTimer.current = setTimeout(() => setSuggestion(null), 5000);
+  }, []);
+
+  // Detect when photos are added and compute a suggestion
+  useEffect(() => {
+    if (images.length > prevImageCount.current) {
+      const s = computePlacementSuggestion(chapterTitle, images, manifest.chapters || []);
+      if (s) showSuggestion(s);
+    }
+    prevImageCount.current = images.length;
+  }, [images.length, chapterTitle, manifest.chapters, showSuggestion]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => { if (suggestionTimer.current) clearTimeout(suggestionTimer.current); };
+  }, []);
 
   const handleGooglePhotosPicked = async (photos: PickedPhoto[]) => {
     const newImages: ChapterImage[] = photos
@@ -539,6 +609,37 @@ export function ImageManager({
               {captionError}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Smart Photo Placement Suggestion Toast */}
+      {suggestion && (
+        <div style={{
+          marginTop: '0.6rem',
+          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '8px 12px', borderRadius: '100px',
+          background: 'rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(163,177,138,0.25)',
+          boxShadow: '0 2px 12px rgba(43,30,20,0.06)',
+          fontSize: '0.76rem', lineHeight: 1.4,
+          color: 'var(--pl-ink-soft, #3D3530)',
+          animation: 'fadeIn 0.2s ease-out',
+        } as React.CSSProperties}>
+          <span style={{ flex: 1 }}>{suggestion.message}</span>
+          <button
+            onClick={() => setSuggestion(null)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '18px', height: '18px', borderRadius: '50%',
+              background: 'rgba(0,0,0,0.06)', border: 'none', cursor: 'pointer',
+              color: 'var(--pl-muted)', flexShrink: 0, padding: 0,
+            }}
+          >
+            <X size={10} />
+          </button>
+          <PearIcon size={14} color="var(--pl-olive, #A3B18A)" style={{ flexShrink: 0 }} />
         </div>
       )}
     </div>

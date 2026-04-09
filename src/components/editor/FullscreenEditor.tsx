@@ -62,6 +62,7 @@ import { trackPublish, trackEdit } from '@/lib/intelligence';
 import { WeddingPartyEditor } from './WeddingPartyEditor';
 import { EditorTour } from './EditorTour';
 import { GettingStartedChecklist } from './GettingStartedChecklist';
+import { PearPublishAudit } from './PearPublishAudit';
 import {
   duplicateBlock, deleteBlock, moveBlockUp, moveBlockDown,
   setBlockStyle, saveSnapshot, parseElementId,
@@ -98,6 +99,8 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
   const tabScrollPositions = useRef<Record<string, number>>({});
   const preDragSplitView = useRef(false);
   const hintShownRef = useRef(false);
+  const [showPublishAudit, setShowPublishAudit] = useState(false);
+  const auditPassedRef = useRef(false);
 
   // ── Panel open/close tracking ────────────────────────────────
   useEffect(() => {
@@ -142,6 +145,19 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest.chapters]);
+
+  // ── Intercept publish → show audit first ─────────────────────
+  useEffect(() => {
+    if (state.showPublish && !showPublishAudit && !auditPassedRef.current) {
+      // Intercept: hide the publish modal and show audit instead
+      dispatch({ type: 'SET_SHOW_PUBLISH', show: false });
+      setShowPublishAudit(true);
+    }
+    // Reset the bypass flag when publish modal closes
+    if (!state.showPublish) {
+      auditPassedRef.current = false;
+    }
+  }, [state.showPublish, showPublishAudit]);
 
   // ── Auto-dismiss welcome ─────────────────────────────────────
   useEffect(() => {
@@ -902,6 +918,20 @@ export function FullscreenEditor({ manifest, coupleNames, subdomain: initialSubd
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 100px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--pl-muted); }
       `}</style>
+
+      {/* Pre-publish audit */}
+      {showPublishAudit && (
+        <PearPublishAudit
+          manifest={manifest}
+          coupleNames={coupleNames}
+          onProceed={() => {
+            setShowPublishAudit(false);
+            auditPassedRef.current = true;
+            dispatch({ type: 'OPEN_PUBLISH' });
+          }}
+          onClose={() => setShowPublishAudit(false)}
+        />
+      )}
 
       {/* Publish Modal */}
       <PublishModalInline />
