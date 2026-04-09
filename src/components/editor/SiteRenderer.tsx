@@ -246,6 +246,7 @@ const SectionOverlay = React.memo(function SectionOverlay({
         position: 'relative',
         borderRadius: '4px',
         cursor: editMode ? 'default' : 'default',
+        isolation: 'isolate', // Contain z-index within each block — prevents hero from overlapping nav
       }}
     >
       {/* Inline toolbar — selected only */}
@@ -1478,7 +1479,13 @@ export function SiteRenderer({ manifest, names, onTextEdit, onSectionClick, onBl
           {/* Site navigation — inside main so z-index works within same stacking context */}
           <div
             className="pl-site-nav-editor"
-            onClick={(e) => { e.stopPropagation(); onSectionClick?.('nav'); }}
+            onClick={(e) => {
+              // Don't open nav settings when clicking buttons/links inside the nav (e.g. hamburger)
+              const target = e.target as HTMLElement;
+              if (target.closest('button') || target.closest('a') || target.tagName === 'BUTTON' || target.tagName === 'A') return;
+              e.stopPropagation();
+              onSectionClick?.('nav');
+            }}
             style={{ position: 'relative', zIndex: 50, cursor: editMode ? 'pointer' : 'default' }}
           >
             <SiteNav
