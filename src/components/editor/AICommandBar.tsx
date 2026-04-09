@@ -320,11 +320,23 @@ export function AICommandBar() {
 
       case 'update_events': {
         if (Array.isArray(actionData?.events)) {
+          // Normalize dates to YYYY-MM-DD — Pear might send "June 15, 2025" etc.
+          const normalizeDate = (d: string): string => {
+            if (!d) return '';
+            // Already ISO format
+            if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+            // Try parsing natural language date
+            const parsed = new Date(d);
+            if (!isNaN(parsed.getTime())) {
+              return parsed.toISOString().slice(0, 10);
+            }
+            return d;
+          };
           const newEvents = (actionData.events as Array<Record<string, unknown>>).map((e, i) => ({
             id: `ai-event-${Date.now()}-${i}`,
             name: (e.name as string) || 'Event',
             type: (e.type as string) || 'other',
-            date: (e.date as string) || '',
+            date: normalizeDate((e.date as string) || ''),
             time: (e.time as string) || '',
             venue: (e.venue as string) || '',
             address: (e.address as string) || '',
@@ -1053,7 +1065,7 @@ export function AICommandBar() {
                 >
                   <Sparkles size={15} color={OLIVE} />
                 </motion.span>
-                <PearIcon size={15} color={OLIVE} style={{ marginRight: '-4px' }} />
+                <PearIcon size={15} color={OLIVE} style={{ marginRight: '-4px' }} className={status === 'loading' ? 'pl-pear-breathe' : undefined} />
                 Ask Pear anything...
                 <kbd style={{
                   padding: '2px 6px',
