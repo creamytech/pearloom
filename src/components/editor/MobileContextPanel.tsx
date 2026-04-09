@@ -758,7 +758,7 @@ function EventSettings({
           label="Time"
           value={event.time || ''}
           onChange={(v) => onUpdate({ time: v })}
-          placeholder="4:00 PM"
+          placeholder="e.g., 4:00 PM"
         />
         <Field
           label="Venue"
@@ -776,14 +776,14 @@ function EventSettings({
           label="Dress Code"
           value={event.dressCode || ''}
           onChange={(v) => onUpdate({ dressCode: v })}
-          placeholder="Black tie, cocktail..."
+          placeholder="e.g., Black Tie, Cocktail, Casual"
         />
         <Field
           label="Description"
           value={event.description || ''}
           onChange={(v) => onUpdate({ description: v })}
           rows={3}
-          placeholder="Details about this event..."
+          placeholder="Tell your guests what to expect at this event"
         />
       </div>
     </div>
@@ -1062,7 +1062,8 @@ function RsvpSettings({
           onChange={(v) => onUpdate({
             logistics: { ...(manifest.logistics || {}), rsvpDeadline: v },
           })}
-          placeholder="2026-06-01"
+          placeholder="e.g., June 1, 2026"
+          hint="The last day guests can respond to your invitation"
         />
       </div>
     </div>
@@ -1091,10 +1092,11 @@ function RegistrySettings({
           placeholder="Your presence is the greatest gift..."
         />
         <Field
-          label="Cash Fund URL"
+          label="Cash Fund Link"
           value={registry.cashFundUrl || ''}
           onChange={(v) => onUpdate({ registry: { ...registry, cashFundUrl: v } })}
-          placeholder="https://..."
+          placeholder="e.g., Venmo, PayPal, or GoFundMe link"
+          hint="Paste the link where guests can send a contribution"
         />
         <Field
           label="Cash Fund Note"
@@ -1128,11 +1130,11 @@ function RegistrySettings({
                 onUpdate({ registry: { ...registry, entries } });
               }} placeholder="Amazon, Zola, Target..." />
               <div style={{ height: 6 }} />
-              <Field label="URL" value={entry.url || ''} onChange={(v) => {
+              <Field label="Registry Link" value={entry.url || ''} onChange={(v) => {
                 const entries = [...(registry.entries || [])];
                 entries[i] = { ...entries[i], url: v };
                 onUpdate({ registry: { ...registry, entries } });
-              }} placeholder="https://..." />
+              }} placeholder="Paste the link to your registry page" />
             </div>
           ))}
           <button
@@ -1221,17 +1223,17 @@ function TravelSettings({
                 onUpdate({ travelInfo: { ...travel, hotels } });
               }} placeholder="Hotel address" />
               <div style={{ height: 6 }} />
-              <Field label="Booking URL" value={hotel.bookingUrl || ''} onChange={(v) => {
+              <Field label="Booking Link" value={hotel.bookingUrl || ''} onChange={(v) => {
                 const hotels = [...(travel.hotels || [])];
                 hotels[i] = { ...hotels[i], bookingUrl: v };
                 onUpdate({ travelInfo: { ...travel, hotels } });
-              }} placeholder="https://..." />
+              }} placeholder="Paste the hotel's booking page link" />
               <div style={{ height: 6 }} />
               <Field label="Group Rate" value={hotel.groupRate || ''} onChange={(v) => {
                 const hotels = [...(travel.hotels || [])];
                 hotels[i] = { ...hotels[i], groupRate: v };
                 onUpdate({ travelInfo: { ...travel, hotels } });
-              }} placeholder="Block code: SMITH2025" />
+              }} placeholder="e.g., Use code SMITH2025 for a discounted rate" />
             </div>
           ))}
           <button
@@ -1295,7 +1297,7 @@ function FaqSettings({
               label="Question"
               value={faq.question}
               onChange={(v) => updateFaq(i, { question: v })}
-              placeholder="Will there be parking?"
+              placeholder="e.g., Is there parking at the venue?"
             />
             <div style={{ height: 8 }} />
             <Field
@@ -1303,7 +1305,7 @@ function FaqSettings({
               value={faq.answer}
               onChange={(v) => updateFaq(i, { answer: v })}
               rows={2}
-              placeholder="Yes! Free parking is available..."
+              placeholder="e.g., Yes! Free parking is available in the lot behind the building."
             />
           </div>
         ))}
@@ -1334,10 +1336,11 @@ function SpotifySettings({
     <div style={sectionPad}>
       <div style={fieldStack}>
         <Field
-          label="Spotify Playlist URL"
+          label="Spotify Link"
           value={manifest.spotifyUrl || ''}
           onChange={(v) => onUpdate({ spotifyUrl: v })}
-          placeholder="https://open.spotify.com/playlist/..."
+          placeholder="Paste your Spotify playlist link"
+          hint="Open Spotify, go to your playlist, tap Share, then Copy Link"
         />
         <Field
           label="Playlist Name"
@@ -1372,6 +1375,7 @@ function HashtagSettings({
             onUpdate({ hashtags: updated });
           }}
           placeholder="#JessAndTomForever"
+          hint="Your guests will use this to share photos on social media"
         />
         <Field
           label="Secondary Hashtag"
@@ -1431,7 +1435,7 @@ function BlockSettings({
             value={(config.content as string) || (config.text as string) || ''}
             onChange={(v) => updateBlockConfig({ content: v })}
             rows={4}
-            placeholder="Enter text content..."
+            placeholder="Write anything here — a welcome message, a story, or a note to your guests"
           />
         )}
         {blockType === 'quote' && (
@@ -1444,19 +1448,20 @@ function BlockSettings({
               placeholder="Love is composed of a single soul..."
             />
             <Field
-              label="Attribution"
+              label="Who said this?"
               value={(config.author as string) || (config.attribution as string) || ''}
               onChange={(v) => updateBlockConfig({ author: v })}
-              placeholder="— Aristotle"
+              placeholder="e.g., — Shakespeare"
             />
           </>
         )}
         {blockType === 'video' && (
           <Field
-            label="Video URL"
+            label="Video Link"
             value={(config.url as string) || ''}
             onChange={(v) => updateBlockConfig({ url: v })}
-            placeholder="https://youtube.com/watch?v=..."
+            placeholder="Paste a YouTube or Vimeo link"
+            hint="Copy the link from your browser when watching the video"
           />
         )}
         {blockType === 'guestbook' && (
@@ -1465,7 +1470,7 @@ function BlockSettings({
             value={(config.prompt as string) || ''}
             onChange={(v) => updateBlockConfig({ prompt: v })}
             rows={2}
-            placeholder="Share your love and well wishes..."
+            placeholder="e.g., Share a favorite memory or wish for the couple"
           />
         )}
         {(blockType === 'photos' || blockType === 'gallery' || blockType === 'photoWall') && (
@@ -1490,10 +1495,11 @@ function BlockSettings({
         )}
         {blockType === 'map' && (
           <Field
-            label="Map URL / Place ID"
+            label="Venue Address"
             value={(config.url as string) || ''}
             onChange={(v) => updateBlockConfig({ url: v })}
-            placeholder="Google Maps embed URL..."
+            placeholder={manifest.events?.[0]?.address || manifest.logistics?.venueAddress || 'e.g., 123 Main St, New York, NY'}
+            hint="Just type the address and we will show it on a map"
           />
         )}
         {blockType === 'countdown' && (
@@ -1506,6 +1512,9 @@ function BlockSettings({
                 onChange={(e) => updateBlockConfig({ date: e.target.value })}
                 style={inp}
               />
+              {!((config.date as string) || manifest.events?.[0]?.date || manifest.logistics?.date) && (
+                <p style={{ fontSize: '0.55rem', color: 'var(--pl-muted)', marginTop: '4px', lineHeight: 1.4 }}>This is when the countdown timer reaches zero</p>
+              )}
             </div>
             <Field
               label="Countdown Label"
@@ -1535,7 +1544,7 @@ function BlockSettings({
               }
             }}
             rows={3}
-            placeholder={blockType === 'welcome' ? 'Welcome to our celebration...' : 'A meaningful quote...'}
+            placeholder={blockType === 'welcome' ? "e.g., We're so happy you're here to celebrate with us..." : 'A meaningful quote...'}
           />
         )}
         {blockType === 'quiz' && (
@@ -1552,6 +1561,7 @@ function BlockSettings({
             value={(config.hashtag as string) || ''}
             onChange={(v) => updateBlockConfig({ hashtag: v })}
             placeholder="SmithAndJones2025"
+            hint="Your guests will use this to share photos on social media"
           />
         )}
         {blockType === 'footer' && (
@@ -1559,7 +1569,7 @@ function BlockSettings({
             label="Footer Text"
             value={(config.text as string) || (manifest.poetry?.closingLine || '')}
             onChange={(v) => updateBlockConfig({ text: v })}
-            placeholder="Made with love"
+            placeholder="e.g., Made with love by Sarah & James"
           />
         )}
       </div>

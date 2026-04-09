@@ -169,8 +169,8 @@ const inp: React.CSSProperties = {
   boxSizing: 'border-box', transition: 'border-color 0.15s',
 };
 
-function MiniInput({ label, value, onChange, placeholder, type = 'text' }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string;
+function MiniInput({ label, value, onChange, placeholder, type = 'text', hint }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; hint?: string;
 }) {
   return (
     <div>
@@ -181,6 +181,7 @@ function MiniInput({ label, value, onChange, placeholder, type = 'text' }: {
         onFocus={e => { e.currentTarget.style.borderColor = 'rgba(163,177,138,0.5)'; }}
         onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
       />
+      {hint && <p style={{ fontSize: '0.58rem', color: 'var(--pl-muted)', marginTop: '4px', lineHeight: 1.4 }}>{hint}</p>}
     </div>
   );
 }
@@ -318,8 +319,8 @@ function EventBlockConfig({ events, onChange }: {
             {/* Core fields */}
             <MiniInput label="Event name" value={activeEvent.name} onChange={v => upd(activeEvent.id, { name: v })} placeholder="Ceremony" />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-              <MiniInput label="Date (YYYY-MM-DD)" value={activeEvent.date} onChange={v => upd(activeEvent.id, { date: v })} placeholder="2025-06-14" />
-              <MiniInput label="Start time" value={activeEvent.time} onChange={v => upd(activeEvent.id, { time: v })} placeholder="5:00 PM" />
+              <MiniInput label="Date" value={activeEvent.date} onChange={v => upd(activeEvent.id, { date: v })} placeholder="e.g., 2026-06-14" />
+              <MiniInput label="Start time" value={activeEvent.time} onChange={v => upd(activeEvent.id, { time: v })} placeholder="e.g., 4:00 PM" />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               <MiniInput label="End time" value={activeEvent.endTime || ''} onChange={v => upd(activeEvent.id, { endTime: v })} placeholder="6:00 PM" />
@@ -873,10 +874,10 @@ function BlockConfigPanel({
               placeholder='"Two souls, one heart."'
             />
             <MiniInput
-              label="Attribution (optional)"
+              label="Who said this?"
               value={String(block.config?.attribution || '')}
               onChange={v => updateBlockConfig({ attribution: v })}
-              placeholder="— Pablo Neruda"
+              placeholder="e.g., — Shakespeare"
             />
           </div>
         );
@@ -898,40 +899,44 @@ function BlockConfigPanel({
       case 'video':
         return (
           <MiniInput
-            label="YouTube or Vimeo URL"
+            label="Video Link"
             value={String(block.config?.url || '')}
             onChange={v => updateBlockConfig({ url: v })}
-            placeholder="https://www.youtube.com/watch?v=..."
+            placeholder="Paste a YouTube or Vimeo link"
+            hint="Copy the link from your browser when watching the video"
           />
         );
 
       case 'countdown':
         return (
           <MiniInput
-            label="Target date (YYYY-MM-DD)"
+            label="Countdown Date"
             value={String(block.config?.date || manifest.events?.[0]?.date || '')}
             onChange={v => updateBlockConfig({ date: v })}
-            placeholder={manifest.events?.[0]?.date || '2025-06-14'}
+            placeholder={manifest.events?.[0]?.date || 'e.g., 2026-06-14'}
+            hint="This is when the countdown timer reaches zero"
           />
         );
 
       case 'map':
         return (
           <MiniInput
-            label="Address or venue name"
+            label="Venue Address"
             value={String(block.config?.address || manifest.events?.[0]?.address || manifest.logistics?.venue || '')}
             onChange={v => updateBlockConfig({ address: v })}
-            placeholder={manifest.events?.[0]?.address || manifest.logistics?.venue || 'The Grand Ballroom, New York'}
+            placeholder={manifest.events?.[0]?.address || manifest.logistics?.venue || 'e.g., 123 Main St, New York, NY'}
+            hint="Just type the address and we will show it on a map"
           />
         );
 
       case 'spotify':
         return (
           <MiniInput
-            label="Spotify playlist URL"
+            label="Spotify Link"
             value={String(block.config?.url || '')}
             onChange={v => updateBlockConfig({ url: v })}
-            placeholder="https://open.spotify.com/playlist/..."
+            placeholder="Paste your Spotify playlist link"
+            hint="Open Spotify, go to your playlist, tap Share, then Copy Link"
           />
         );
 
@@ -942,6 +947,7 @@ function BlockConfigPanel({
             value={String(block.config?.hashtag || '')}
             onChange={v => updateBlockConfig({ hashtag: v })}
             placeholder={`${manifest.chapters?.[0]?.title || 'OurWedding'}2026`}
+            hint="Your guests will use this to share photos on social media"
           />
         );
 
@@ -958,7 +964,7 @@ function BlockConfigPanel({
               label="Prompt text"
               value={String(block.config?.prompt || 'Share your love and well wishes')}
               onChange={v => updateBlockConfig({ prompt: v })}
-              placeholder="Share your love and well wishes"
+              placeholder="e.g., Share a favorite memory or wish for the couple"
             />
           </div>
         );
@@ -1003,10 +1009,11 @@ function BlockConfigPanel({
               placeholder="captured in your warmest light"
             />
             <MiniInput
-              label="Cover photo URL"
+              label="Cover Photo"
               value={String(manifest.coverPhoto || '')}
               onChange={v => onChange({ ...manifest, coverPhoto: v })}
-              placeholder="https://... or leave blank for AI art"
+              placeholder="Paste an image link or leave blank for illustrated art"
+              hint="Tip: Upload a photo in the Photos section, or paste an image link"
             />
             {/* Hero Slideshow */}
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px', marginTop: '4px' }}>
@@ -1090,7 +1097,7 @@ function BlockConfigPanel({
                 onChange({ ...manifest, vibeSkin: manifest.vibeSkin ? { ...manifest.vibeSkin, dividerQuote: v } : manifest.vibeSkin });
               }
             }}
-            placeholder={block.type === 'welcome' ? 'A personal note to your guests...' : 'A beautiful quote...'}
+            placeholder={block.type === 'welcome' ? "e.g., We're so happy you're here to celebrate with us..." : 'A beautiful quote...'}
           />
         );
 
