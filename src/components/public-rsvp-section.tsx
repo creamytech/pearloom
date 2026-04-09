@@ -252,13 +252,13 @@ export function PublicRsvpSection({
           {(envelopeState === 'sealed' || envelopeState === 'opening') && (
             <div
               style={{
-                background: 'linear-gradient(135deg, #FBF8F1 0%, #F5F0E8 100%)',
+                background: 'linear-gradient(135deg, var(--pl-cream) 0%, var(--pl-cream-deep) 100%)',
                 border: '1px solid rgba(196,169,106,0.3)',
                 borderRadius: '12px',
                 padding: 0,
                 overflow: 'hidden',
                 boxShadow:
-                  '0 8px 40px rgba(43,43,43,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
+                  '0 8px 40px rgba(43,30,20,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
               }}
             >
               {/* Envelope flap */}
@@ -299,7 +299,7 @@ export function PublicRsvpSection({
                         height: '52px',
                         borderRadius: '50%',
                         background:
-                          'radial-gradient(circle at 40% 35%, #C4A96A, #8B7040)',
+                          'radial-gradient(circle at 40% 35%, var(--pl-gold, #C4A96A), #8B7040)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
                         display: 'flex',
                         alignItems: 'center',
@@ -393,12 +393,12 @@ export function PublicRsvpSection({
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               style={{
-                background: 'linear-gradient(135deg, #FBF8F1 0%, #F5F0E8 100%)',
+                background: 'linear-gradient(135deg, var(--pl-cream) 0%, var(--pl-cream-deep) 100%)',
                 border: '1px solid rgba(196,169,106,0.3)',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 boxShadow:
-                  '0 8px 40px rgba(43,43,43,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
+                  '0 8px 40px rgba(43,30,20,0.12), 0 0 0 1px rgba(196,169,106,0.15)',
               }}
             >
               {/* Invitation card header */}

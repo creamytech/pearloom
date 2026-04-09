@@ -71,11 +71,11 @@ function getSeasonIcon(date?: string) {
 function GlassCard({ children, delay = 0, style }: { children: React.ReactNode; delay?: number; style?: React.CSSProperties }) {
   return (
     <div style={{
-      background: 'rgba(255, 255, 255, 0.12)',
+      background: 'rgba(255, 255, 255, 0.50)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       borderRadius: '20px',
-      border: '1px solid rgba(255, 255, 255, 0.18)',
+      border: '1px solid rgba(255, 255, 255, 0.4)',
       padding: 'clamp(1.25rem, 3vw, 2rem)',
       animation: `tg-fadeInUp 0.6s ease-out ${delay}s both`,
       ...style,

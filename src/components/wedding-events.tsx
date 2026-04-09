@@ -116,7 +116,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          borderBottom: '1px solid rgba(0,0,0,0.05)',
+          borderBottom: '1px solid rgba(43,30,20,0.04)',
         }}
       >
         <div
@@ -156,7 +156,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
       <div
         style={{
           padding: '1.25rem 2rem 1.5rem',
-          borderBottom: '1px solid rgba(0,0,0,0.05)',
+          borderBottom: '1px solid rgba(43,30,20,0.04)',
           textAlign: 'center',
           background: `${accentColor}0a`,
         }}
@@ -375,7 +375,7 @@ function EventCard({ event, index, vibeSkin }: { event: WeddingEvent; index: num
         <div
           style={{
             padding: '1rem 1.75rem 1.25rem 2rem',
-            borderTop: '1px solid rgba(0,0,0,0.05)',
+            borderTop: '1px solid rgba(43,30,20,0.04)',
             display: 'flex',
             gap: '0.6rem',
             flexWrap: 'wrap' as const,

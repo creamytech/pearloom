@@ -74,11 +74,11 @@ function StatCard({ label, value, total, color, icon: Icon, delay = 0 }: {
 }) {
   return (
     <div style={{
-      background: 'rgba(255, 255, 255, 0.12)',
+      background: 'rgba(255, 255, 255, 0.50)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
       borderRadius: '16px',
-      border: '1px solid rgba(255, 255, 255, 0.18)',
+      border: '1px solid rgba(255, 255, 255, 0.4)',
       padding: '1.25rem',
       display: 'flex',
       alignItems: 'center',
@@ -351,11 +351,11 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
       {/* Meal Breakdown */}
       {mealSegments.length > 0 && (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.12)',
+          background: 'rgba(255, 255, 255, 0.50)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          border: '1px solid rgba(255, 255, 255, 0.4)',
           padding: '1.25rem',
           animation: 'ri-fadeInUp 0.5s ease-out 0.4s both',
         }}>
@@ -374,11 +374,11 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
       {/* Per-Event Attendance */}
       {stats.eventStats.length > 1 && (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.12)',
+          background: 'rgba(255, 255, 255, 0.50)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          border: '1px solid rgba(255, 255, 255, 0.4)',
           padding: '1.25rem',
           animation: 'ri-fadeInUp 0.5s ease-out 0.5s both',
         }}>
@@ -432,11 +432,11 @@ export function RsvpInsights({ rsvps, totalInvited, events, coupleNames, eventDa
       {/* Follow-Up Email Drafter */}
       {stats.pending.length > 0 && (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.12)',
+          background: 'rgba(255, 255, 255, 0.50)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          border: '1px solid rgba(255, 255, 255, 0.4)',
           padding: '1.25rem',
           animation: 'ri-fadeInUp 0.5s ease-out 0.6s both',
         }}>

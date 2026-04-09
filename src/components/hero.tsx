@@ -242,7 +242,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
             position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
             background: isIllustratedHero
               ? 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 35%, rgba(0,0,0,0.04) 55%, rgba(0,0,0,0.12) 100%)'
-              : 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 35%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.55) 100%)',
+              : 'linear-gradient(to bottom, rgba(43,30,20,0.5) 0%, rgba(43,30,20,0.3) 35%, rgba(43,30,20,0.25) 55%, rgba(43,30,20,0.55) 100%)',
           }} />
           {/* Radial vignette for cinematic frame */}
           <div style={{
@@ -287,7 +287,7 @@ export function Hero({ names, anniversaryLabel, subtitle, date, venue, coverPhot
           {/* Fine dot grid */}
           <div style={{
             position: 'absolute', inset: 0, zIndex: 0,
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1.2px, transparent 0)',
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(43,30,20,0.04) 1.2px, transparent 0)',
             backgroundSize: '32px 32px',
           }} />
 

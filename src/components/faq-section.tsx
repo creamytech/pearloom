@@ -85,7 +85,7 @@ function FaqAccordionItem({
             height: '44px',
             borderRadius: '50%',
             border: '1px solid',
-            borderColor: open ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
+            borderColor: open ? 'var(--pl-olive)' : 'rgba(163,177,138,0.25)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

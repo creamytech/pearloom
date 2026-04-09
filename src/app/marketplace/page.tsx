@@ -108,7 +108,7 @@ export default function MarketplacePage() {
         </div>
         <div className="flex items-center gap-2">
           {/* Search bar */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--pl-cream)] border border-[var(--pl-divider)] w-[280px]">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/50 backdrop-blur-lg border border-[var(--pl-divider)] w-[280px]">
             <Search size={13} className="text-[var(--pl-muted)] shrink-0" />
             <input
               type="text"
@@ -145,7 +145,7 @@ export default function MarketplacePage() {
             </p>
 
             {/* Mobile search */}
-            <div className="sm:hidden mt-4 flex items-center gap-2 px-3 py-2.5 rounded-full bg-white border border-[var(--pl-divider)]">
+            <div className="sm:hidden mt-4 flex items-center gap-2 px-3 py-2.5 rounded-full bg-white/50 backdrop-blur-lg border border-[var(--pl-divider)]">
               <Search size={14} className="text-[var(--pl-muted)]" />
               <input
                 type="text"
@@ -192,7 +192,7 @@ export default function MarketplacePage() {
               <button
                 onClick={() => setCategory('all')}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-[0.65rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
-                  category === 'all' ? 'bg-[var(--pl-ink)] text-white' : 'bg-white text-[var(--pl-muted)] border border-[var(--pl-divider)]'
+                  category === 'all' ? 'bg-[var(--pl-ink)] text-white' : 'bg-white/50 backdrop-blur-lg text-[var(--pl-muted)] border border-[var(--pl-divider)]'
                 }`}
               >
                 All
@@ -202,7 +202,7 @@ export default function MarketplacePage() {
                   key={cat.id}
                   onClick={() => setCategory(cat.id)}
                   className={`shrink-0 px-3 py-1.5 rounded-full text-[0.65rem] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all ${
-                    category === cat.id ? 'bg-[var(--pl-ink)] text-white' : 'bg-white text-[var(--pl-muted)]'
+                    category === cat.id ? 'bg-[var(--pl-ink)] text-white' : 'bg-white/50 backdrop-blur-lg text-[var(--pl-muted)]'
                   }`}
                 >
                   {cat.label}
@@ -303,7 +303,7 @@ export default function MarketplacePage() {
                         </div>
 
                         {/* ── Card body ── */}
-                        <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex items-center' : ''}`} style={{ background: 'white' }}>
+                        <div className={`p-4 ${viewMode === 'list' ? 'flex-1 flex items-center' : ''}`} style={{ background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as React.CSSProperties}>
                           <div className={viewMode === 'list' ? 'flex-1' : ''}>
                             {/* Font preview */}
                             <div className="flex items-center gap-2 mb-2">
@@ -353,7 +353,7 @@ export default function MarketplacePage() {
                                 <button
                                   onClick={() => handlePurchase(template.id, 'template')}
                                   disabled={purchasing === template.id}
-                                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--pl-ink)] text-white text-[0.72rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
+                                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--pl-olive-deep)] text-white text-[0.72rem] font-bold border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
                                 >
                                   {purchasing === template.id ? 'Loading...' : <><ShoppingBag size={11} /> Get Template</>}
                                 </button>
@@ -387,7 +387,7 @@ export default function MarketplacePage() {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className="p-5 rounded-[var(--pl-radius-lg)] bg-white border border-[rgba(0,0,0,0.05)] hover:shadow-md hover:-translate-y-0.5 transition-all"
+                      className="p-5 rounded-[var(--pl-radius-lg)] bg-white/50 backdrop-blur-lg border border-[rgba(0,0,0,0.05)] hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
                       <div className="flex items-start gap-3 mb-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--pl-olive-mist)] flex items-center justify-center shrink-0">

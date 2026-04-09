@@ -60,7 +60,7 @@ function HotelCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.75, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -3, boxShadow: '0 16px 50px rgba(43,43,43,0.08)' }}
+      whileHover={{ y: -3, boxShadow: '0 16px 50px rgba(43,30,20,0.08)' }}
       style={{
         background: 'var(--pl-cream-card, #ffffff)',
         borderRadius: '1.25rem',
@@ -433,7 +433,7 @@ export function TravelSection({
                 background: 'var(--pl-cream-card, #ffffff)',
                 borderRadius: '1.25rem',
                 border: '1px solid rgba(0,0,0,0.06)',
-                boxShadow: '0 4px 20px rgba(43,43,43,0.03)',
+                boxShadow: '0 4px 20px rgba(43,30,20,0.03)',
               }}
             >
               <div
@@ -550,7 +550,7 @@ export function TravelSection({
                     borderRadius: '1.25rem',
                     border: '1px solid rgba(0,0,0,0.06)',
                     overflow: 'hidden',
-                    boxShadow: '0 4px 20px rgba(43,43,43,0.03)',
+                    boxShadow: '0 4px 20px rgba(43,30,20,0.03)',
                   }}
                 >
                   {/* Map-placeholder visual */}
@@ -559,7 +559,7 @@ export function TravelSection({
                       height: '100px',
                       background: 'var(--pl-gold)',
                       backgroundImage:
-                        'radial-gradient(circle, rgba(43,43,43,0.08) 1px, transparent 1px)',
+                        'radial-gradient(circle, rgba(43,30,20,0.08) 1px, transparent 1px)',
                       backgroundSize: '18px 18px',
                       position: 'relative',
                       display: 'flex',
@@ -567,7 +567,7 @@ export function TravelSection({
                       justifyContent: 'center',
                     }}
                   >
-                    <LocationPinIcon size={28} color="rgba(43,43,43,0.35)" />
+                    <LocationPinIcon size={28} color="rgba(43,30,20,0.35)" />
                   </div>
                   <div style={{ padding: '1.75rem 2rem', background: 'var(--pl-cream-card, #ffffff)' }}>
                     <div
@@ -615,7 +615,7 @@ export function TravelSection({
                     background: 'var(--pl-cream-card, #ffffff)',
                     borderRadius: '1.25rem',
                     border: '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: '0 4px 20px rgba(43,43,43,0.03)',
+                    boxShadow: '0 4px 20px rgba(43,30,20,0.03)',
                   }}
                 >
                   <div
