@@ -205,9 +205,54 @@ export function MobileContextPanel({
             );
           }
         }
+        // Show event list with add/delete + tap to edit
+        const events = manifest.events || [];
         return (
-          <div style={{ ...sectionPad, color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)' }}>
-            Tap a specific event in the preview to edit it.
+          <div style={sectionPad}>
+            <div style={fieldStack}>
+              {events.length === 0 && (
+                <div style={{ color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)', lineHeight: 1.5 }}>
+                  No events yet. Add your ceremony, reception, and more.
+                </div>
+              )}
+              {events.map((ev, i) => (
+                <div key={ev.id} style={{
+                  padding: 12, borderRadius: 10,
+                  border: '1px solid var(--pl-black-6)',
+                  background: 'var(--pl-glass-light)',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--pl-ink)' }}>{ev.name || `Event ${i + 1}`}</div>
+                    <button
+                      onClick={() => scheduleManifestUpdate({ events: events.filter(e => e.id !== ev.id) })}
+                      style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px', flexShrink: 0 }}
+                    >Remove</button>
+                  </div>
+                  <EventSettings
+                    event={ev}
+                    onUpdate={(data) => {
+                      const updated = events.map(e => e.id === ev.id ? { ...e, ...data } : e);
+                      scheduleManifestUpdate({ events: updated });
+                    }}
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const newEvent: WeddingEvent = {
+                    id: `event-${Date.now()}`, name: '', type: 'other',
+                    date: manifest.logistics?.date || '', time: '', venue: '', address: '',
+                  };
+                  scheduleManifestUpdate({ events: [...events, newEvent] });
+                }}
+                style={{
+                  width: '100%', padding: '12px', borderRadius: 10,
+                  border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
+                  color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >+ Add Event</button>
+            </div>
           </div>
         );
       }
@@ -1055,6 +1100,51 @@ function RegistrySettings({
           rows={2}
           placeholder="For our honeymoon fund..."
         />
+
+        {/* Registry links */}
+        <div>
+          <label style={lbl}>Registry Links</label>
+          {(registry.entries || []).map((entry, i) => (
+            <div key={i} style={{
+              padding: 12, borderRadius: 10, marginBottom: 8,
+              border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}>{entry.name || `Registry ${i + 1}`}</span>
+                <button
+                  onClick={() => {
+                    const entries = (registry.entries || []).filter((_, j) => j !== i);
+                    onUpdate({ registry: { ...registry, entries } });
+                  }}
+                  style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer' }}
+                >Remove</button>
+              </div>
+              <Field label="Name" value={entry.name || ''} onChange={(v) => {
+                const entries = [...(registry.entries || [])];
+                entries[i] = { ...entries[i], name: v };
+                onUpdate({ registry: { ...registry, entries } });
+              }} placeholder="Amazon, Zola, Target..." />
+              <div style={{ height: 6 }} />
+              <Field label="URL" value={entry.url || ''} onChange={(v) => {
+                const entries = [...(registry.entries || [])];
+                entries[i] = { ...entries[i], url: v };
+                onUpdate({ registry: { ...registry, entries } });
+              }} placeholder="https://..." />
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              const entries = [...(registry.entries || []), { name: '', url: '' }];
+              onUpdate({ registry: { ...registry, entries } });
+            }}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 10,
+              border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
+              color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >+ Add Registry</button>
+        </div>
       </div>
     </div>
   );
@@ -1100,6 +1190,57 @@ function TravelSettings({
           rows={3}
           placeholder="From the airport, take..."
         />
+
+        {/* Hotel list */}
+        <div>
+          <label style={lbl}>Hotels</label>
+          {(travel.hotels || []).map((hotel, i) => (
+            <div key={i} style={{
+              padding: 12, borderRadius: 10, marginBottom: 8,
+              border: '1px solid var(--pl-black-6)', background: 'var(--pl-glass-light)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--pl-ink-soft)' }}>Hotel {i + 1}</span>
+                <button
+                  onClick={() => onUpdate({ travelInfo: { ...travel, hotels: (travel.hotels || []).filter((_, j) => j !== i) } })}
+                  style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer' }}
+                >Remove</button>
+              </div>
+              <Field label="Name" value={hotel.name || ''} onChange={(v) => {
+                const hotels = [...(travel.hotels || [])];
+                hotels[i] = { ...hotels[i], name: v };
+                onUpdate({ travelInfo: { ...travel, hotels } });
+              }} placeholder="Hotel name" />
+              <div style={{ height: 6 }} />
+              <Field label="Address" value={hotel.address || ''} onChange={(v) => {
+                const hotels = [...(travel.hotels || [])];
+                hotels[i] = { ...hotels[i], address: v };
+                onUpdate({ travelInfo: { ...travel, hotels } });
+              }} placeholder="Hotel address" />
+              <div style={{ height: 6 }} />
+              <Field label="Booking URL" value={hotel.bookingUrl || ''} onChange={(v) => {
+                const hotels = [...(travel.hotels || [])];
+                hotels[i] = { ...hotels[i], bookingUrl: v };
+                onUpdate({ travelInfo: { ...travel, hotels } });
+              }} placeholder="https://..." />
+              <div style={{ height: 6 }} />
+              <Field label="Group Rate" value={hotel.groupRate || ''} onChange={(v) => {
+                const hotels = [...(travel.hotels || [])];
+                hotels[i] = { ...hotels[i], groupRate: v };
+                onUpdate({ travelInfo: { ...travel, hotels } });
+              }} placeholder="Block code: SMITH2025" />
+            </div>
+          ))}
+          <button
+            onClick={() => onUpdate({ travelInfo: { ...travel, hotels: [...(travel.hotels || []), { name: '', address: '' }] } })}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 10,
+              border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
+              color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >+ Add Hotel</button>
+        </div>
       </div>
     </div>
   );
@@ -1121,12 +1262,20 @@ function FaqSettings({
     onUpdate({ faqs: updated });
   };
 
+  const addFaq = () => {
+    onUpdate({ faqs: [...faqs, { id: `faq-${Date.now()}`, question: '', answer: '', order: faqs.length }] });
+  };
+
+  const removeFaq = (index: number) => {
+    onUpdate({ faqs: faqs.filter((_, i) => i !== index) });
+  };
+
   return (
     <div style={sectionPad}>
       <div style={fieldStack}>
         {faqs.length === 0 && (
-          <div style={{ color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)' }}>
-            No FAQs yet. Add your first question and answer.
+          <div style={{ color: 'var(--pl-muted)', fontSize: 'var(--pl-text-sm)', lineHeight: 1.5 }}>
+            No FAQs yet. Add common questions your guests might have.
           </div>
         )}
         {faqs.map((faq, i) => (
@@ -1135,8 +1284,12 @@ function FaqSettings({
             border: '1px solid var(--pl-black-6)',
             background: 'var(--pl-glass-light)',
           }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--pl-ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Q{i + 1}</span>
+              <button onClick={() => removeFaq(i)} style={{ background: 'none', border: 'none', color: '#e87171', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', padding: '4px 8px' }}>Remove</button>
+            </div>
             <Field
-              label={`Question ${i + 1}`}
+              label="Question"
               value={faq.question}
               onChange={(v) => updateFaq(i, { question: v })}
               placeholder="Will there be parking?"
@@ -1151,6 +1304,15 @@ function FaqSettings({
             />
           </div>
         ))}
+        <button
+          onClick={addFaq}
+          style={{
+            width: '100%', padding: '12px', borderRadius: 10,
+            border: '2px dashed rgba(163,177,138,0.3)', background: 'rgba(163,177,138,0.04)',
+            color: 'var(--pl-olive)', fontSize: '0.82rem', fontWeight: 600,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          }}
+        >+ Add Question</button>
       </div>
     </div>
   );
@@ -1260,14 +1422,31 @@ function BlockSettings({
           onChange={(v) => updateBlockConfig({ subtitle: v })}
           placeholder="Optional subtitle..."
         />
-        {(blockType === 'text' || blockType === 'quote') && (
+        {blockType === 'text' && (
           <Field
-            label={blockType === 'quote' ? 'Quote Text' : 'Content'}
-            value={(config.text as string) || ''}
-            onChange={(v) => updateBlockConfig({ text: v })}
+            label="Content"
+            value={(config.content as string) || (config.text as string) || ''}
+            onChange={(v) => updateBlockConfig({ content: v })}
             rows={4}
-            placeholder={blockType === 'quote' ? 'Enter your quote...' : 'Enter text content...'}
+            placeholder="Enter text content..."
           />
+        )}
+        {blockType === 'quote' && (
+          <>
+            <Field
+              label="Quote Text"
+              value={(config.text as string) || (config.quote as string) || ''}
+              onChange={(v) => updateBlockConfig({ text: v })}
+              rows={3}
+              placeholder="Love is composed of a single soul..."
+            />
+            <Field
+              label="Attribution"
+              value={(config.author as string) || (config.attribution as string) || ''}
+              onChange={(v) => updateBlockConfig({ author: v })}
+              placeholder="— Aristotle"
+            />
+          </>
         )}
         {blockType === 'video' && (
           <Field
@@ -1276,6 +1455,35 @@ function BlockSettings({
             onChange={(v) => updateBlockConfig({ url: v })}
             placeholder="https://youtube.com/watch?v=..."
           />
+        )}
+        {blockType === 'guestbook' && (
+          <Field
+            label="Prompt Text"
+            value={(config.prompt as string) || ''}
+            onChange={(v) => updateBlockConfig({ prompt: v })}
+            rows={2}
+            placeholder="Share your love and well wishes..."
+          />
+        )}
+        {(blockType === 'photos' || blockType === 'gallery' || blockType === 'photoWall') && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ ...lbl, marginBottom: 0 }}>Show Captions</span>
+            <button
+              onClick={() => updateBlockConfig({ showCaptions: !config.showCaptions })}
+              style={{
+                width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
+                background: config.showCaptions ? 'var(--pl-olive)' : 'rgba(0,0,0,0.12)',
+                position: 'relative', transition: 'background 0.2s',
+              }}
+            >
+              <div style={{
+                width: 22, height: 22, borderRadius: 11, background: 'white',
+                position: 'absolute', top: 2,
+                left: config.showCaptions ? 20 : 2,
+                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+              }} />
+            </button>
+          </div>
         )}
         {blockType === 'map' && (
           <Field
@@ -1287,12 +1495,15 @@ function BlockSettings({
         )}
         {blockType === 'countdown' && (
           <>
-            <Field
-              label="Target Date"
-              value={(config.date as string) || ''}
-              onChange={(v) => updateBlockConfig({ date: v })}
-              placeholder="2025-06-15"
-            />
+            <div>
+              <label style={lbl}>Target Date</label>
+              <input
+                type="date"
+                value={(config.date as string) || manifest.events?.[0]?.date || manifest.logistics?.date || ''}
+                onChange={(e) => updateBlockConfig({ date: e.target.value })}
+                style={inp}
+              />
+            </div>
             <Field
               label="Countdown Label"
               value={(config.label as string) || ''}
