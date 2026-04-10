@@ -38,7 +38,7 @@ import { GeneratingStep } from '@/components/wizard/GeneratingStep';
 import { LivePreview, QuickStartBanner } from '@/components/wizard/LivePreview';
 import { createProgressiveSession, type ProgressiveState } from '@/lib/progressive-generation';
 import { GuestsStep } from '@/components/wizard/GuestsStep';
-import { PearCrafts } from '@/components/wizard/PearCrafts';
+import { PearSpotlight } from '@/components/wizard/PearSpotlight';
 import { PublishModal } from '@/components/shared/PublishModal';
 import { TemplateGallery } from '@/components/dashboard/TemplateGallery';
 import { MobileBottomNav } from '@/components/dashboard/MobileBottomNav';
@@ -428,10 +428,10 @@ export default function DashboardClient() {
     );
   }
 
-  // ── PearCrafts conversational wizard takes over ─────────────
+  // ── Pear Spotlight wizard takes over ─────────────────────────
   if (state.step === 'pear-crafts') {
     return (
-      <PearCrafts
+      <PearSpotlight
         onComplete={(manifest: StoryManifest, names: [string, string], subdomain: string) => {
           dispatch({ type: 'EDIT_SITE', manifest, subdomain, names });
         }}
