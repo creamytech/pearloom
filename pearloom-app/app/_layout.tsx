@@ -14,9 +14,11 @@ import {
   PlayfairDisplay_700Bold_Italic,
 } from '@expo-google-fonts/playfair-display';
 import { StatusBar } from 'expo-status-bar';
+import { useColorScheme } from 'react-native';
 import 'react-native-reanimated';
 
 import { AuthContext, useAuthState } from '@/lib/auth';
+import { setupPushNotifications, useNotificationHandler } from '@/lib/notifications';
 import { ONBOARDING_KEY } from './onboarding';
 
 export {
@@ -99,9 +101,23 @@ export default function RootLayout() {
     return null;
   }
 
+  const colorScheme = useColorScheme();
+
+  // Register push notifications on launch when user is authenticated
+  useEffect(() => {
+    if (!auth.loading && auth.user) {
+      setupPushNotifications().catch(() => {
+        // Non-critical — ignore silently
+      });
+    }
+  }, [auth.loading, auth.user]);
+
+  // Handle notification taps for navigation
+  useNotificationHandler();
+
   return (
     <AuthContext.Provider value={auth}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
@@ -151,6 +167,13 @@ export default function RootLayout() {
           name="editor/design"
           options={{
             headerShown: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="gallery/index"
+          options={{
+            headerShown: false,
             animation: 'slide_from_right',
           }}
         />

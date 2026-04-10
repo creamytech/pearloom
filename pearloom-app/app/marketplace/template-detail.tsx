@@ -8,6 +8,9 @@ import {
   Animated,
   Platform,
   Alert,
+  Modal,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +18,7 @@ import * as Haptics from 'expo-haptics';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { WebView } from 'react-native-webview';
 import { colors, fonts, spacing, radius } from '@/lib/theme';
+import { apiFetch } from '@/lib/api';
 import type { MarketplaceTemplate } from '@/lib/types';
 import ColorPalette from '@/components/ColorPalette';
 
@@ -138,6 +142,12 @@ export default function TemplateDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [showCheckout, setShowCheckout] = useState(false);
+  const [personalizeVisible, setPersonalizeVisible] = useState(false);
+  const [pName1, setPName1] = useState('');
+  const [pName2, setPName2] = useState('');
+  const [pOccasion, setPOccasion] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
 
   const template = useMemo(
     () => SITE_TEMPLATES.find((t) => t.id === id) ?? SITE_TEMPLATES[0],
@@ -189,23 +199,50 @@ export default function TemplateDetailScreen() {
   // ── Handlers ──────────────────────────────────────────────────────────
 
   const handleUseTemplate = useCallback(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (isFree || isOwned) {
-      Alert.alert(
-        'Template Applied',
-        `"${template.name}" has been applied to your site. Head to the editor to customize it.`,
-        [
-          { text: 'Later', style: 'cancel' },
-          {
-            text: 'Open Editor',
-            onPress: () => router.replace('/(tabs)/edit'),
-          },
-        ],
-      );
+      setApplyError(null);
+      setPersonalizeVisible(true);
     } else {
       setShowCheckout(true);
     }
-  }, [isFree, isOwned, template.name, router]);
+  }, [isFree, isOwned]);
+
+  const handleApplyTemplate = useCallback(async () => {
+    if (!pName1.trim() || !pName2.trim()) {
+      setApplyError('Please enter both names.');
+      return;
+    }
+    setApplying(true);
+    setApplyError(null);
+    try {
+      const result = await apiFetch<{ siteId: string; domain: string }>(
+        '/api/sites/create-from-template',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            templateId: template.id,
+            names: [pName1.trim(), pName2.trim()],
+            occasion: pOccasion.trim() || template.category,
+            templateManifest: {
+              colors: template.colors,
+              headingFont: template.headingFont,
+              bodyFont: template.bodyFont,
+              blocks: template.blocks,
+            },
+          }),
+        },
+      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setPersonalizeVisible(false);
+      router.replace(`/editor/${result.siteId}`);
+    } catch (err: any) {
+      setApplyError(err?.message ?? 'Failed to create site. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setApplying(false);
+    }
+  }, [pName1, pName2, pOccasion, template, router]);
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -435,6 +472,75 @@ export default function TemplateDetailScreen() {
           </Pressable>
         </Animated.View>
       </View>
+
+      {/* Personalize Modal */}
+      <Modal
+        visible={personalizeVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPersonalizeVisible(false)}
+      >
+        <View style={styles.personalizeOverlay}>
+          <View style={styles.personalizeCard}>
+            <Text style={styles.personalizeTitle}>Personalize Your Site</Text>
+            <Text style={styles.personalizeSubtitle}>
+              Using the "{template.name}" template
+            </Text>
+
+            <Text style={styles.personalizeLabel}>Partner 1</Text>
+            <TextInput
+              style={styles.personalizeInput}
+              placeholder="First name"
+              placeholderTextColor={colors.muted}
+              value={pName1}
+              onChangeText={setPName1}
+              autoCapitalize="words"
+            />
+
+            <Text style={styles.personalizeLabel}>Partner 2</Text>
+            <TextInput
+              style={styles.personalizeInput}
+              placeholder="First name"
+              placeholderTextColor={colors.muted}
+              value={pName2}
+              onChangeText={setPName2}
+              autoCapitalize="words"
+            />
+
+            <Text style={styles.personalizeLabel}>Occasion (optional)</Text>
+            <TextInput
+              style={styles.personalizeInput}
+              placeholder={template.category}
+              placeholderTextColor={colors.muted}
+              value={pOccasion}
+              onChangeText={setPOccasion}
+              autoCapitalize="sentences"
+            />
+
+            {applyError && (
+              <Text style={styles.personalizeError}>{applyError}</Text>
+            )}
+
+            <Pressable
+              style={[styles.personalizeBtn, applying && { opacity: 0.6 }]}
+              onPress={handleApplyTemplate}
+              disabled={applying}
+            >
+              {applying ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Text style={styles.personalizeBtnText}>Create Site</Text>
+              )}
+            </Pressable>
+            <Pressable
+              style={styles.personalizeCancel}
+              onPress={() => setPersonalizeVisible(false)}
+            >
+              <Text style={styles.personalizeCancelText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -766,5 +872,91 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
+  },
+
+  // Personalize modal
+  personalizeOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  personalizeCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    width: '100%',
+    maxWidth: 360,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 24,
+      },
+      android: { elevation: 10 },
+    }),
+  },
+  personalizeTitle: {
+    fontFamily: fonts.heading,
+    fontSize: 22,
+    color: colors.ink,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  personalizeSubtitle: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.muted,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+  personalizeLabel: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.muted,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+    marginTop: spacing.md,
+  },
+  personalizeInput: {
+    borderWidth: 1.5,
+    borderColor: colors.creamDeep,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    fontSize: 16,
+    fontFamily: fonts.body,
+    color: colors.ink,
+  },
+  personalizeError: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.danger,
+    textAlign: 'center',
+    marginTop: spacing.md,
+  },
+  personalizeBtn: {
+    backgroundColor: colors.olive,
+    paddingVertical: spacing.md + 2,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    marginTop: spacing.xl,
+  },
+  personalizeBtnText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 16,
+    color: colors.white,
+  },
+  personalizeCancel: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  personalizeCancelText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.muted,
   },
 });

@@ -1,3 +1,5 @@
+import { useColorScheme } from 'react-native';
+
 export const colors = {
   cream: '#FAF7F2',
   creamDeep: '#F5F1E8',
@@ -12,6 +14,29 @@ export const colors = {
   danger: '#EF4444',
   success: '#22C55E',
 };
+
+export const darkColors: typeof colors = {
+  cream: '#1A1A1A',
+  creamDeep: '#252525',
+  olive: '#A3B18A',
+  oliveDeep: '#7A9170',
+  ink: '#F0EDE8',
+  inkSoft: '#D4CFC8',
+  muted: '#8A8780',
+  gold: '#C4A96A',
+  plum: '#9B7FC4',
+  white: '#2A2A2A',
+  danger: '#EF4444',
+  success: '#22C55E',
+};
+
+/**
+ * Returns the correct color palette based on the system color scheme.
+ */
+export function useThemeColors(): typeof colors {
+  const scheme = useColorScheme();
+  return scheme === 'dark' ? darkColors : colors;
+}
 
 export const fonts = {
   heading: 'PlayfairDisplay_700Bold_Italic',

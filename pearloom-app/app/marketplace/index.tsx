@@ -411,6 +411,7 @@ export default function MarketplaceScreen() {
   const handleSheetUse = useCallback(
     (t: MarketplaceTemplate) => {
       setSheetVisible(false);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       router.push({
         pathname: '/marketplace/template-detail',
         params: { id: t.id },

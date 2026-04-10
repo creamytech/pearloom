@@ -19,6 +19,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getSite, apiFetch } from '@/lib/api';
 import { colors, fonts, spacing, radius } from '@/lib/theme';
 import NativeHero from '@/components/NativeHero';
@@ -53,7 +54,7 @@ type EditorTab = 'preview' | 'blocks' | 'design';
 
 const TAB_CONFIG: { id: EditorTab; label: string; icon: string }[] = [
   { id: 'preview', label: 'Preview', icon: '\u{1F441}' },
-  { id: 'blocks', label: 'Blocks', icon: '\u{1F9F1}' },
+  { id: 'blocks', label: 'Sections', icon: '\u{1F9F1}' },
   { id: 'design', label: 'Design', icon: '\u{1F3A8}' },
 ];
 
@@ -151,11 +152,32 @@ export default function EditorScreen() {
     });
   }, [router, siteId]);
 
+  // Share state
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const siteShareUrl = publishedUrl || `https://${publishSiteName || siteId}.pearloom.com`;
+
   const handleShare = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const url = `https://pearloom.com/s/${siteId}`;
-    await Share.share({ url, message: `Check out our site: ${url}` });
-  }, [siteId]);
+    setLinkCopied(false);
+    setShareModalVisible(true);
+  }, []);
+
+  const handleNativeShare = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await Share.share({
+      url: siteShareUrl,
+      message: `${coupleNames ? coupleNames + ' - ' : ''}Check out our celebration site: ${siteShareUrl}`,
+    });
+  }, [siteShareUrl, coupleNames]);
+
+  const handleCopyShareLink = useCallback(async () => {
+    await Clipboard.setStringAsync(siteShareUrl);
+    setLinkCopied(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }, [siteShareUrl]);
 
   // ── Pear Chat handlers ──────────────────────────────────────────────
 
@@ -589,8 +611,8 @@ export default function EditorScreen() {
             {blocks.length > 0 ? blocks.map(renderBlock) : (
               <View style={styles.emptyState}>
                 <Text style={{ fontSize: 48, marginBottom: spacing.md }}>{'\u{1F3A8}'}</Text>
-                <Text style={styles.emptyTitle}>No Blocks Yet</Text>
-                <Text style={styles.emptySub}>Go to the Blocks tab to add content</Text>
+                <Text style={styles.emptyTitle}>No Sections Yet</Text>
+                <Text style={styles.emptySub}>Go to the Sections tab to add content</Text>
               </View>
             )}
             <View style={{ height: 40 }} />
@@ -602,15 +624,15 @@ export default function EditorScreen() {
           <ScrollView style={styles.scrollView} contentContainerStyle={{ padding: spacing.lg }}>
             <View style={styles.actionCard}>
               <Text style={{ fontSize: 36, marginBottom: spacing.md }}>{'\u{1F9F1}'}</Text>
-              <Text style={styles.actionTitle}>Block Manager</Text>
-              <Text style={styles.actionDesc}>Add, remove, reorder, and configure your site blocks.</Text>
+              <Text style={styles.actionTitle}>Section Manager</Text>
+              <Text style={styles.actionDesc}>Add, remove, reorder, and configure your site sections.</Text>
               <Pressable style={styles.actionBtn} onPress={navigateToBlocks}>
-                <Text style={styles.actionBtnText}>Open Block Manager</Text>
+                <Text style={styles.actionBtnText}>Open Section Manager</Text>
               </Pressable>
             </View>
 
             <View style={styles.quickList}>
-              <Text style={styles.quickHeader}>{blocks.length} active block{blocks.length !== 1 ? 's' : ''}</Text>
+              <Text style={styles.quickHeader}>{blocks.length} active section{blocks.length !== 1 ? 's' : ''}</Text>
               {blocks.slice(0, 10).map((block) => (
                 <Pressable key={block.id} style={styles.quickRow} onPress={() => navigateToBlockConfig(block)}>
                   <Text style={styles.quickIcon}>{getBlockIcon(block.type)}</Text>
@@ -732,6 +754,53 @@ export default function EditorScreen() {
                 </Pressable>
               </>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Share Modal ───────────────────────────────────────── */}
+      <Modal
+        visible={shareModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShareModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Share Your Site</Text>
+            <Text style={styles.shareUrl}>{siteShareUrl}</Text>
+
+            {/* QR Code (SVG-based simple QR representation) */}
+            <View style={styles.qrContainer}>
+              <View style={styles.qrPlaceholder}>
+                <FontAwesome name="qrcode" size={80} color={colors.ink} />
+                <Text style={styles.qrHint}>Scan to visit</Text>
+              </View>
+            </View>
+
+            <View style={styles.modalBtnRow}>
+              <Pressable style={styles.modalCopyBtn} onPress={handleCopyShareLink}>
+                <FontAwesome
+                  name={linkCopied ? 'check' : 'clipboard'}
+                  size={14}
+                  color={colors.white}
+                />
+                <Text style={styles.modalCopyBtnText}>
+                  {linkCopied ? 'Copied!' : 'Copy Link'}
+                </Text>
+              </Pressable>
+              <Pressable style={styles.modalShareBtn} onPress={handleNativeShare}>
+                <FontAwesome name="share" size={14} color={colors.ink} />
+                <Text style={styles.modalShareBtnText}>Share</Text>
+              </Pressable>
+            </View>
+
+            <Pressable
+              style={styles.modalCloseBtn}
+              onPress={() => setShareModalVisible(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>Done</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -1065,10 +1134,13 @@ const styles = StyleSheet.create({
   },
   modalCopyBtn: {
     flex: 1,
+    flexDirection: 'row',
     backgroundColor: colors.olive,
     paddingVertical: spacing.md,
     borderRadius: radius.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs + 2,
   },
   modalCopyBtnText: {
     fontFamily: fonts.bodySemibold,
@@ -1077,10 +1149,13 @@ const styles = StyleSheet.create({
   },
   modalShareBtn: {
     flex: 1,
+    flexDirection: 'row',
     backgroundColor: colors.creamDeep,
     paddingVertical: spacing.md,
     borderRadius: radius.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs + 2,
   },
   modalShareBtnText: {
     fontFamily: fonts.bodySemibold,
@@ -1093,6 +1168,33 @@ const styles = StyleSheet.create({
   modalCloseBtnText: {
     fontFamily: fonts.bodyMedium,
     fontSize: 15,
+    color: colors.muted,
+  },
+
+  // Share modal
+  shareUrl: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.olive,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  qrContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  qrPlaceholder: {
+    width: 160,
+    height: 160,
+    borderRadius: radius.lg,
+    backgroundColor: colors.creamDeep,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  qrHint: {
+    fontFamily: fonts.body,
+    fontSize: 12,
     color: colors.muted,
   },
 });

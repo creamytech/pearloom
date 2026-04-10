@@ -9,6 +9,8 @@ import {
   Alert,
   Platform,
   Animated,
+  Linking,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -202,6 +204,11 @@ export default function MoreScreen() {
     Constants.manifest2?.extra?.expoClient?.version ??
     '1.0.0';
 
+  const buildNumber =
+    Constants.expoConfig?.ios?.buildNumber ??
+    Constants.expoConfig?.android?.versionCode?.toString() ??
+    '1';
+
   const sections: SettingsSection[] = [
     {
       title: 'Discover',
@@ -214,6 +221,16 @@ export default function MoreScreen() {
           onPress: () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push('/marketplace');
+          },
+        },
+        {
+          key: 'gallery',
+          icon: 'photo',
+          label: 'Photo Gallery',
+          subtitle: 'All your photos in one place',
+          onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/gallery');
           },
         },
       ],
@@ -241,21 +258,27 @@ export default function MoreScreen() {
       title: 'Account',
       items: [
         {
+          key: 'account-info',
+          icon: 'user',
+          label: 'Account',
+          subtitle: user?.email ?? 'Not signed in',
+        },
+        {
+          key: 'manage-plan',
+          icon: 'credit-card',
+          label: 'Manage Plan',
+          subtitle: planLabel + ' Plan',
+          onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            Linking.openURL('https://pearloom.com/account/billing');
+          },
+        },
+        {
           key: 'referral',
           icon: 'gift',
           label: 'Referral Program',
           subtitle: referralCode,
           onPress: handleShareReferral,
-        },
-        {
-          key: 'billing',
-          icon: 'credit-card',
-          label: 'Billing & Plan',
-          subtitle: 'Free Plan',
-          onPress: () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            Alert.alert('Billing', 'Plan management coming soon.');
-          },
         },
         {
           key: 'export',
@@ -276,9 +299,42 @@ export default function MoreScreen() {
           key: 'help',
           icon: 'question-circle',
           label: 'Help & Support',
+          subtitle: 'FAQ & contact',
           onPress: () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            Alert.alert('Help', 'Contact us at support@pearloom.com');
+            Alert.alert(
+              'Help & Support',
+              'How can we help?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Visit FAQ',
+                  onPress: () => Linking.openURL('https://pearloom.com/faq'),
+                },
+                {
+                  text: 'Email Support',
+                  onPress: () => Linking.openURL('mailto:support@pearloom.com'),
+                },
+              ],
+            );
+          },
+        },
+        {
+          key: 'privacy',
+          icon: 'shield',
+          label: 'Privacy Policy',
+          onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            Linking.openURL('https://pearloom.com/privacy');
+          },
+        },
+        {
+          key: 'terms',
+          icon: 'file-text-o',
+          label: 'Terms of Service',
+          onPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            Linking.openURL('https://pearloom.com/terms');
           },
         },
         {
@@ -308,11 +364,15 @@ export default function MoreScreen() {
         style={styles.profileCardGradient}
       >
         <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {(user?.name ?? 'U').charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          {user?.avatar_url ? (
+            <Image source={{ uri: user.avatar_url }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {(user?.name ?? 'U').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>
@@ -347,7 +407,9 @@ export default function MoreScreen() {
       ))}
 
       {/* Version footer */}
-      <Text style={styles.version}>Pearloom v{appVersion}</Text>
+      <Text style={styles.version}>
+        Pearloom v{appVersion} ({buildNumber})
+      </Text>
     </ScrollView>
   );
 }
@@ -395,6 +457,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.olive + '22',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
   },
   avatarText: {
     fontSize: 22,

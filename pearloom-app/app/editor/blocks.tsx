@@ -46,7 +46,7 @@ const BLOCK_TYPES = [
   { type: 'spotify', name: 'Spotify', icon: '\u{1F3B5}', description: 'Wedding playlist' },
   { type: 'hashtag', name: 'Hashtag', icon: '#', description: 'Your wedding hashtag' },
   { type: 'video', name: 'Video', icon: '\u{1F3AC}', description: 'Embed a video' },
-  { type: 'text', name: 'Text', icon: '\u{1F4DD}', description: 'Custom text block' },
+  { type: 'text', name: 'Text', icon: '\u{1F4DD}', description: 'Custom text section' },
 ];
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ export default function BlocksScreen() {
   const handleDelete = useCallback(
     (blockId: string, blockName: string) => {
       Alert.alert(
-        'Delete Block',
+        'Delete Section',
         `Are you sure you want to delete "${blockName}"? This cannot be undone.`,
         [
           { text: 'Cancel', style: 'cancel' },
@@ -232,7 +232,7 @@ export default function BlocksScreen() {
       <>
         <Stack.Screen
           options={{
-            title: 'Blocks',
+            title: 'Sections',
             headerStyle: { backgroundColor: colors.cream },
             headerTitleStyle: { fontFamily: fonts.bodySemibold, color: colors.ink },
             headerShadowVisible: false,
@@ -251,7 +251,7 @@ export default function BlocksScreen() {
       <>
         <Stack.Screen
           options={{
-            title: 'Blocks',
+            title: 'Sections',
             headerStyle: { backgroundColor: colors.cream },
             headerTitleStyle: { fontFamily: fonts.bodySemibold, color: colors.ink },
             headerShadowVisible: false,
@@ -271,7 +271,7 @@ export default function BlocksScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Blocks',
+          title: 'Sections',
           headerStyle: { backgroundColor: colors.cream },
           headerTitleStyle: { fontFamily: fonts.bodySemibold, color: colors.ink },
           headerShadowVisible: false,
@@ -292,7 +292,7 @@ export default function BlocksScreen() {
             <Text style={styles.emptyIcon}>{'\u{1F9F1}'}</Text>
             <Text style={styles.emptyTitle}>No Blocks</Text>
             <Text style={styles.emptySubtitle}>
-              Tap the button below to add your first block
+              Tap the button below to add your first section
             </Text>
           </View>
         ) : (
@@ -339,7 +339,7 @@ export default function BlocksScreen() {
           />
         )}
 
-        {/* Add Block Button */}
+        {/* Add Section Button */}
         <Animated.View
           style={[
             styles.addBtnWrapper,
@@ -354,7 +354,7 @@ export default function BlocksScreen() {
             }}
           >
             <Text style={styles.addBtnIcon}>+</Text>
-            <Text style={styles.addBtnText}>Add Block</Text>
+            <Text style={styles.addBtnText}>Add Section</Text>
           </Pressable>
         </Animated.View>
 
@@ -367,7 +367,7 @@ export default function BlocksScreen() {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add Block</Text>
+              <Text style={styles.modalTitle}>Add Section</Text>
               <Pressable
                 onPress={() => setShowPicker(false)}
                 hitSlop={12}

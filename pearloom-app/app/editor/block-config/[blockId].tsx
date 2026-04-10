@@ -13,8 +13,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { apiFetch } from '@/lib/api';
 import { colors, fonts, spacing, radius } from '@/lib/theme';
+import GalleryPicker from '@/components/GalleryPicker';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -68,6 +70,13 @@ export default function BlockConfigScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [galleryPickerVisible, setGalleryPickerVisible] = useState(false);
+  const galleryPickerTargetRef = useRef<string | null>(null);
+
+  const openGalleryPicker = useCallback((targetField: string) => {
+    galleryPickerTargetRef.current = targetField;
+    setGalleryPickerVisible(true);
+  }, []);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -161,6 +170,15 @@ export default function BlockConfigScreen() {
     saveConfig(config);
   }, [config, saveConfig]);
 
+  const handleGallerySelect = useCallback(
+    (url: string) => {
+      if (galleryPickerTargetRef.current) {
+        updateField(galleryPickerTargetRef.current, url);
+      }
+    },
+    [updateField],
+  );
+
   // ── Dynamic form rendering based on block type ────────────────────────
 
   const type = blockType ?? block?.type ?? 'text';
@@ -184,6 +202,13 @@ export default function BlockConfigScreen() {
               onChange={(v) => updateField('coverPhoto', v)}
               placeholder="https://..."
             />
+            <Pressable
+              style={blockConfigStyles.galleryPickerBtn}
+              onPress={() => openGalleryPicker('coverPhoto')}
+            >
+              <FontAwesome name="photo" size={14} color={colors.olive} />
+              <Text style={blockConfigStyles.galleryPickerBtnText}>Choose from Gallery</Text>
+            </Pressable>
           </>
         );
 
@@ -434,9 +459,35 @@ export default function BlockConfigScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <GalleryPicker
+        visible={galleryPickerVisible}
+        onClose={() => setGalleryPickerVisible(false)}
+        onSelect={handleGallerySelect}
+      />
     </>
   );
 }
+
+const blockConfigStyles = StyleSheet.create({
+  galleryPickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.olive,
+    borderRadius: radius.md,
+    alignSelf: 'flex-start',
+    marginTop: spacing.xs,
+  },
+  galleryPickerBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.olive,
+  },
+});
 
 // ── Sub-components ──────────────────────────────────────────────────────
 

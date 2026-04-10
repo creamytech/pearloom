@@ -12,11 +12,15 @@ import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import * as SecureStore from 'expo-secure-store';
 import { colors, fonts, spacing, radius } from '@/lib/theme';
 import { apiFetch, uploadPhoto } from '@/lib/api';
 import type { WizardState } from '@/lib/types';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const API_BASE = __DEV__ ? 'http://localhost:3000' : 'https://pearloom.com';
+const TOKEN_KEY = 'pearloom_auth_token';
 
 const GENERATION_STEPS = [
   { message: 'Analyzing your photos...', icon: 'search' as const, duration: 6000 },
@@ -26,6 +30,18 @@ const GENERATION_STEPS = [
 ];
 
 const TOTAL_FAKE_DURATION = GENERATION_STEPS.reduce((a, s) => a + s.duration, 0);
+
+// Map API stream phases to step indices
+const PHASE_MAP: Record<string, number> = {
+  analyzing: 0,
+  photos: 0,
+  crafting: 1,
+  story: 1,
+  designing: 2,
+  visual: 2,
+  building: 3,
+  finalizing: 3,
+};
 
 interface GeneratingStepProps {
   state: WizardState;
@@ -167,6 +183,61 @@ export default function GeneratingStep({ state, onRetry }: GeneratingStepProps) 
     }).start();
   }, [error, progressAnim]);
 
+  // Helper: try streaming endpoint for real-time progress
+  const tryStreamGenerate = useCallback(
+    async (
+      photoUrls: string[],
+      onPhase: (phase: string, progress: number) => void,
+    ): Promise<{ siteId: string; domain: string } | null> => {
+      try {
+        const token = await SecureStore.getItemAsync(TOKEN_KEY);
+        const res = await fetch(`${API_BASE}/api/generate/stream`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            photos: photoUrls,
+            names: [state.name1.trim(), state.name2.trim()],
+            occasion: state.occasion,
+            vibe: state.vibeText,
+            eventDate: state.eventDate?.toISOString() ?? null,
+            venueName: state.venueName || null,
+          }),
+        });
+
+        if (!res.ok) return null; // Fall back to non-streaming
+
+        const text = await res.text();
+        // Parse newline-delimited JSON (NDJSON) or SSE
+        const lines = text.split('\n').filter((l) => l.trim());
+        let result: { siteId: string; domain: string } | null = null;
+
+        for (const line of lines) {
+          try {
+            const cleaned = line.startsWith('data:') ? line.slice(5).trim() : line;
+            const parsed = JSON.parse(cleaned);
+
+            if (parsed.phase) {
+              const stepIdx = PHASE_MAP[parsed.phase] ?? -1;
+              if (stepIdx >= 0) onPhase(parsed.phase, parsed.progress ?? 0);
+            }
+            if (parsed.siteId) {
+              result = { siteId: parsed.siteId, domain: parsed.domain ?? '' };
+            }
+          } catch {
+            // skip unparseable lines
+          }
+        }
+        return result;
+      } catch {
+        return null; // Fall back to non-streaming
+      }
+    },
+    [state],
+  );
+
   // Fire the actual API call
   useEffect(() => {
     let cancelled = false;
@@ -188,21 +259,64 @@ export default function GeneratingStep({ state, onRetry }: GeneratingStepProps) 
 
         if (cancelled) return;
 
-        // Call generate endpoint
-        const response = await apiFetch<{ siteId: string; domain: string }>(
-          '/api/generate',
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              photos: photoUrls,
-              names: [state.name1.trim(), state.name2.trim()],
-              occasion: state.occasion,
-              vibe: state.vibeText,
-              eventDate: state.eventDate?.toISOString() ?? null,
-              venueName: state.venueName || null,
-            }),
-          },
-        );
+        // Try streaming endpoint first for real progress phases
+        let response: { siteId: string; domain: string } | null = null;
+
+        response = await tryStreamGenerate(photoUrls, (phase, progress) => {
+          if (cancelled) return;
+          const stepIdx = PHASE_MAP[phase] ?? -1;
+          if (stepIdx >= 0 && stepIdx !== currentStepIndex) {
+            // Animate to new step message
+            Animated.parallel([
+              Animated.timing(messageFade, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+              Animated.timing(messageSlide, {
+                toValue: -20,
+                duration: 200,
+                useNativeDriver: true,
+              }),
+            ]).start(() => {
+              setCurrentStepIndex(stepIdx);
+              messageSlide.setValue(20);
+              Animated.parallel([
+                Animated.timing(messageFade, {
+                  toValue: 1,
+                  duration: 300,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(messageSlide, {
+                  toValue: 0,
+                  duration: 300,
+                  useNativeDriver: true,
+                }),
+              ]).start();
+            });
+          }
+          if (progress > 0) {
+            progressAnim.setValue(Math.min(progress / 100, 0.9));
+          }
+        });
+
+        // Fall back to standard endpoint if streaming failed
+        if (!response) {
+          response = await apiFetch<{ siteId: string; domain: string }>(
+            '/api/generate',
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                photos: photoUrls,
+                names: [state.name1.trim(), state.name2.trim()],
+                occasion: state.occasion,
+                vibe: state.vibeText,
+                eventDate: state.eventDate?.toISOString() ?? null,
+                venueName: state.venueName || null,
+              }),
+            },
+          );
+        }
 
         if (cancelled) return;
 
@@ -229,7 +343,7 @@ export default function GeneratingStep({ state, onRetry }: GeneratingStepProps) 
           // Navigate to editor after a short celebration
           setTimeout(() => {
             if (!cancelled) {
-              router.replace(`/editor/${response.siteId}`);
+              router.replace(`/editor/${response!.siteId}`);
             }
           }, 1800);
         });

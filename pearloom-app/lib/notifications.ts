@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
+import { apiFetch } from './api';
 
 // ── Configure default notification behavior ────────────────────────────
 
@@ -83,6 +85,83 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 }
 
+// ── Register push token with backend ──────────────────────────────────
+
+/**
+ * Registers the push token with the Pearloom backend.
+ * Should be called on app launch after getting the token.
+ */
+export async function registerPushTokenWithBackend(token: string): Promise<void> {
+  try {
+    await apiFetch('/api/notifications/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        token,
+        platform: Platform.OS,
+        deviceName: Constants.deviceName ?? 'Unknown',
+      }),
+    });
+  } catch (err) {
+    console.warn('Failed to register push token with backend:', err);
+  }
+}
+
+/**
+ * Registers for push notifications, gets the token, and sends it to the backend.
+ * Returns the token or null.
+ */
+export async function setupPushNotifications(): Promise<string | null> {
+  const token = await registerForPushNotifications();
+  if (token) {
+    await registerPushTokenWithBackend(token);
+  }
+  return token;
+}
+
+// ── Schedule event reminders ──────────────────────────────────────────
+
+/**
+ * Schedules local reminder notifications for an upcoming event.
+ */
+export async function scheduleEventReminders(
+  eventName: string,
+  eventDate: Date,
+  siteId: string,
+): Promise<void> {
+  const now = Date.now();
+
+  // Reminder 3 days before
+  const threeDaysBefore = new Date(eventDate.getTime() - 3 * 24 * 60 * 60 * 1000);
+  if (threeDaysBefore.getTime() > now) {
+    await scheduleLocalNotification(
+      'Event Reminder',
+      `${eventName} is in 3 days!`,
+      threeDaysBefore,
+    );
+  }
+
+  // Reminder 1 day before
+  const oneDayBefore = new Date(eventDate.getTime() - 24 * 60 * 60 * 1000);
+  if (oneDayBefore.getTime() > now) {
+    await scheduleLocalNotification(
+      'Event Tomorrow!',
+      `${eventName} is tomorrow! Make sure everything is ready.`,
+      oneDayBefore,
+    );
+  }
+
+  // Day-of reminder
+  const dayOf = new Date(eventDate);
+  dayOf.setHours(8, 0, 0, 0); // 8 AM on event day
+  if (dayOf.getTime() > now) {
+    await scheduleLocalNotification(
+      'Today is the Day!',
+      `${eventName} is today! Have an amazing celebration.`,
+      dayOf,
+    );
+  }
+}
+
 // ── Schedule a local notification ──────────────────────────────────────
 
 /**
@@ -140,14 +219,15 @@ export async function cancelAllNotifications(): Promise<void> {
  * - User interactions (taps) on notifications
  *
  * Handles routing based on notification type:
- * - rsvp_new: could navigate to guests screen
- * - guestbook_new: could navigate to guestbook
- * - deadline_reminder: could navigate to RSVP settings
- * - event_reminder: could navigate to dashboard
+ * - rsvp_new: navigates to guests screen
+ * - guestbook_new: navigates to editor for the site
+ * - deadline_reminder: navigates to guests screen
+ * - event_reminder: navigates to dashboard
  */
 export function useNotificationHandler(): void {
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     // Handle notifications received while app is in foreground
@@ -177,20 +257,18 @@ export function useNotificationHandler(): void {
         // Route based on notification type
         switch (data.type) {
           case 'rsvp_new':
-            // Navigate to guests screen
-            // router.push('/(tabs)/guests');
+            router.push('/(tabs)/guests');
             break;
           case 'guestbook_new':
-            // Navigate to guestbook
-            // router.push('/guestbook');
+            if (data.siteId) {
+              router.push(`/editor/${data.siteId}`);
+            }
             break;
           case 'deadline_reminder':
-            // Navigate to RSVP settings
-            // router.push('/rsvp-settings');
+            router.push('/(tabs)/guests');
             break;
           case 'event_reminder':
-            // Navigate to dashboard
-            // router.push('/(tabs)/');
+            router.push('/(tabs)/');
             break;
         }
       });
@@ -203,5 +281,5 @@ export function useNotificationHandler(): void {
         responseListener.current.remove();
       }
     };
-  }, []);
+  }, [router]);
 }

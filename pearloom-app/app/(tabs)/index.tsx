@@ -19,7 +19,9 @@ import * as Haptics from 'expo-haptics';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import SiteCard from '@/components/SiteCard';
 import StatsBar from '@/components/StatsBar';
+import OfflineBanner from '@/components/OfflineBanner';
 import { getSites, apiFetch } from '@/lib/api';
+import { useNetworkStatus, cacheSites, getCachedSites } from '@/lib/offline';
 import type { UserSite, RsvpStats } from '@/lib/types';
 
 // Design tokens
@@ -39,10 +41,12 @@ type DashboardSite = UserSite & {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { isOnline } = useNetworkStatus();
   const [sites, setSites] = useState<DashboardSite[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fabScale = useRef(new Animated.Value(1)).current;
 
   // TODO: Replace with actual user data from auth context
   const userName = 'Sarah';
@@ -129,8 +133,15 @@ export default function HomeScreen() {
       setError(null);
       const data = await getSites();
       setSites(data as DashboardSite[]);
+      cacheSites(data);
       return (data as DashboardSite[]).length;
     } catch (err) {
+      // Attempt to load cached sites when offline
+      const cached = await getCachedSites();
+      if (cached.length > 0) {
+        setSites(cached as DashboardSite[]);
+        return cached.length;
+      }
       setError('Could not load your sites. Pull down to try again.');
       return 0;
     } finally {
@@ -173,6 +184,38 @@ export default function HomeScreen() {
 
   function handleNewSite() {
     router.push('/wizard');
+  }
+
+  function handleFromTemplate() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/marketplace');
+  }
+
+  function onFabPress() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert('Create Site', 'How would you like to get started?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'From Template', onPress: handleFromTemplate },
+      { text: 'New Site', onPress: handleNewSite },
+    ]);
+  }
+
+  function onFabPressIn() {
+    Animated.spring(fabScale, {
+      toValue: 0.88,
+      friction: 8,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  function onFabPressOut() {
+    Animated.spring(fabScale, {
+      toValue: 1,
+      friction: 5,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
   }
 
   // Compute aggregate stats
@@ -290,6 +333,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={CREAM} />
+      <OfflineBanner visible={!isOnline} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -377,6 +421,10 @@ export default function HomeScreen() {
                 <Text style={styles.emptyCTAText}>New Site</Text>
               </Pressable>
             </Animated.View>
+            <Pressable style={styles.templateCTA} onPress={handleFromTemplate}>
+              <FontAwesome name="shopping-bag" size={14} color={OLIVE} />
+              <Text style={styles.templateCTAText}>From Template</Text>
+            </Pressable>
           </Animated.View>
         )}
 
@@ -420,6 +468,20 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Floating Action Button */}
+      {sites.length > 0 && (
+        <Animated.View style={[styles.fab, { transform: [{ scale: fabScale }] }]}>
+          <Pressable
+            style={styles.fabInner}
+            onPress={onFabPress}
+            onPressIn={onFabPressIn}
+            onPressOut={onFabPressOut}
+          >
+            <FontAwesome name="plus" size={22} color="#FFFFFF" />
+          </Pressable>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
@@ -611,5 +673,45 @@ const styles = StyleSheet.create({
   },
   spinner: {
     marginTop: 20,
+  },
+
+  // --- Template CTA ---
+  templateCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: OLIVE,
+  },
+  templateCTAText: {
+    fontFamily: 'Inter_600SemiBold',
+    color: OLIVE,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // --- FAB ---
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    zIndex: 100,
+  },
+  fabInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: OLIVE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: OLIVE,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });
