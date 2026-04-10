@@ -21,7 +21,18 @@ interface ChatMessage {
   text: string;
   ts: number;
   cards?: Array<{ label: string; value: string; icon?: string }>;
+  cardType?: 'occasion' | 'date' | 'venue' | 'style';
 }
+
+// Style palette pairs for the A/B style discovery
+const STYLE_PAIRS = [
+  { a: { name: 'Blush & Sage', colors: ['#D4A0A0', '#A3B18A', '#FAF7F2', '#3D3530'] },
+    b: { name: 'Navy & Gold', colors: ['#2C3E6B', '#C4A96A', '#FAF7F2', '#1C1C1C'] } },
+  { a: { name: 'Terracotta', colors: ['#C67B5C', '#E8B89D', '#FFF8F2', '#3D2E24'] },
+    b: { name: 'Lavender', colors: ['#9B8EC1', '#D4A0C4', '#F8F5FD', '#2D2640'] } },
+  { a: { name: 'Coastal', colors: ['#5B9BD5', '#B8D4E8', '#F0F7FF', '#1E4D8C'] },
+    b: { name: 'Emerald', colors: ['#2D6A4F', '#C4A96A', '#F0F7F4', '#1C2E24'] } },
+];
 
 interface Collected {
   occasion?: string;
@@ -112,7 +123,36 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
         });
       }
 
-      setMessages(prev => [...prev, { role: 'pear', text: reply, ts: Date.now() }]);
+      // Determine what interactive element to show next
+      const nextCollected = { ...collected };
+      if (extracted?.occasion) nextCollected.occasion = extracted.occasion;
+      if (extracted?.names) nextCollected.names = extracted.names;
+      if (extracted?.date) nextCollected.date = extracted.date;
+      if (extracted?.venue) nextCollected.venue = extracted.venue;
+
+      const pearMsg: ChatMessage = { role: 'pear', text: reply, ts: Date.now() };
+
+      // Add contextual interactive cards based on what's still missing
+      if (!nextCollected.occasion) {
+        pearMsg.cards = [
+          { label: 'Wedding', value: 'wedding', icon: '✦' },
+          { label: 'Birthday', value: 'birthday', icon: '✦' },
+          { label: 'Anniversary', value: 'anniversary', icon: '✦' },
+          { label: 'Engagement', value: 'engagement', icon: '✦' },
+        ];
+        pearMsg.cardType = 'occasion';
+      } else if (!nextCollected.date) {
+        pearMsg.cardType = 'date';
+      } else if (!nextCollected.venue) {
+        pearMsg.cards = [
+          { label: 'Skip for now', value: 'skip', icon: '→' },
+        ];
+        pearMsg.cardType = 'venue';
+      } else if (!nextCollected.vibe) {
+        pearMsg.cardType = 'style';
+      }
+
+      setMessages(prev => [...prev, pearMsg]);
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'pear',
@@ -287,8 +327,9 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
               }}
             >
               {msg.text}
-              {/* Inline option cards */}
-              {msg.cards && !collected.occasion && (
+
+              {/* ── Occasion cards ── */}
+              {msg.cardType === 'occasion' && msg.cards && !collected.occasion && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
                   {msg.cards.map((card) => (
                     <button
@@ -298,25 +339,99 @@ export function PearCrafts({ onComplete, onBack }: PearCraftsProps) {
                         sendMessage(`It's a ${card.label.toLowerCase()}`);
                       }}
                       style={{
-                        padding: '10px 16px',
-                        borderRadius: '100px',
-                        border: '1px solid rgba(163,177,138,0.3)',
-                        background: 'rgba(255,255,255,0.6)',
-                        backdropFilter: 'blur(8px)',
-                        cursor: 'pointer',
-                        fontSize: '0.82rem',
-                        fontWeight: 600,
-                        color: 'var(--pl-ink, #2B1E14)',
-                        transition: 'all 0.15s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
+                        padding: '10px 16px', borderRadius: '100px',
+                        border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.6)',
+                        backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '0.82rem',
+                        fontWeight: 600, color: 'var(--pl-ink, #2B1E14)', transition: 'all 0.15s',
+                        display: 'flex', alignItems: 'center', gap: '6px',
                       }}
                     >
                       <span style={{ color: 'var(--pl-olive)', fontSize: '0.9rem' }}>{card.icon}</span>
                       {card.label}
                     </button>
                   ))}
+                </div>
+              )}
+
+              {/* ── Date picker ── */}
+              {msg.cardType === 'date' && !collected.date && (
+                <div style={{ marginTop: '12px' }}>
+                  <input
+                    type="date"
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setCollected(prev => ({ ...prev, date: e.target.value }));
+                        const d = new Date(e.target.value + 'T12:00:00');
+                        const formatted = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                        sendMessage(`The date is ${formatted}`);
+                      }
+                    }}
+                    style={{
+                      padding: '10px 14px', borderRadius: '12px', fontSize: '0.88rem',
+                      border: '1px solid rgba(163,177,138,0.3)', background: 'rgba(255,255,255,0.7)',
+                      color: 'var(--pl-ink)', fontFamily: 'inherit', cursor: 'pointer',
+                      width: '100%', maxWidth: '220px',
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* ── Venue with skip ── */}
+              {msg.cardType === 'venue' && !collected.venue && msg.cards && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  {msg.cards.map((card) => (
+                    <button
+                      key={card.value}
+                      onClick={() => {
+                        setCollected(prev => ({ ...prev, venue: 'TBD' }));
+                        sendMessage("I'll add the venue later");
+                      }}
+                      style={{
+                        padding: '8px 16px', borderRadius: '100px',
+                        border: '1px solid rgba(163,177,138,0.2)', background: 'rgba(255,255,255,0.5)',
+                        cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
+                        color: 'var(--pl-muted)', transition: 'all 0.15s',
+                      }}
+                    >
+                      {card.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* ── Style palette A/B choice ── */}
+              {msg.cardType === 'style' && !collected.vibe && (
+                <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
+                  {(() => {
+                    const pair = STYLE_PAIRS[Math.floor(Math.random() * STYLE_PAIRS.length)];
+                    return [pair.a, pair.b].map((palette) => (
+                      <button
+                        key={palette.name}
+                        onClick={() => {
+                          setCollected(prev => ({ ...prev, vibe: palette.name.toLowerCase() }));
+                          sendMessage(`I love the ${palette.name} style`);
+                        }}
+                        style={{
+                          flex: 1, minWidth: '120px', padding: '12px', borderRadius: '16px',
+                          border: '1px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.5)',
+                          backdropFilter: 'blur(8px)', cursor: 'pointer', transition: 'all 0.15s',
+                          textAlign: 'center',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
+                          {palette.colors.map((c, ci) => (
+                            <div key={ci} style={{
+                              width: '24px', height: '24px', borderRadius: '50%',
+                              background: c, border: '1px solid rgba(0,0,0,0.08)',
+                            }} />
+                          ))}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--pl-ink)' }}>
+                          {palette.name}
+                        </div>
+                      </button>
+                    ));
+                  })()}
                 </div>
               )}
             </div>
